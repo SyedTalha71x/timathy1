@@ -2,8 +2,7 @@
 import { X, Smile, Send, MoreVertical, Trash2, Reply, XCircle, Copy, ExternalLink, Check, CheckCheck } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import EmojiPicker from "../EmojiPicker";
 import BirthdayBadge from "../BirthdayBadge";
 import { memberChatListNew, staffChatListNew } from "../../../utils/studio-states";
 
@@ -15,8 +14,8 @@ const InitialsAvatar = ({ firstName, lastName, size = 40, className = "", contex
     return `${firstInitial}${lastInitial}` || "?"
   }
 
-  // Staff uses blue, members use orange
-  const bgColor = context === "staff" ? "bg-blue-600" : "bg-orange-500";
+  // Always use secondary color
+  const bgColor = "bg-secondary";
 
   return (
     <div 
@@ -49,7 +48,7 @@ const HighlightedText = ({ text, isUserMessage }) => {
         result.push(
           <span 
             key={`match-${index}`}
-            className={`border-b ${isUserMessage ? 'border-white/60' : 'border-gray-400'}`}
+            className={`border-b ${isUserMessage ? 'border-white/60' : 'border-border'}`}
             style={{ borderBottomStyle: 'dotted', paddingBottom: '1px' }}
           >
             {part}
@@ -135,8 +134,6 @@ const ChatPopup = ({
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
-  const emojiPickerRef = useRef(null);
-  const reactionPickerRef = useRef(null);
   const messageMenuRef = useRef(null);
 
   // Get full name and birthday info
@@ -183,21 +180,6 @@ const ChatPopup = ({
     
     lastLoadedMemberRef.current = currentMemberId;
   }, [member.id, context, externalMessages, isOpen]);
-
-  // Click outside handlers
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
-        setShowEmojiPicker(false);
-      }
-      if (reactionPickerRef.current && !reactionPickerRef.current.contains(event.target)) {
-        setShowReactionPicker(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -384,12 +366,12 @@ const ChatPopup = ({
       onClick={onClose}
     >
       <div 
-        className="bg-[#1a1a1a] rounded-xl w-full max-w-md h-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-gray-800"
+        className="bg-surface-card rounded-xl w-full max-w-md h-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
               {member.image || member.logo ? (
@@ -414,8 +396,8 @@ const ChatPopup = ({
               />
             </div>
             <div>
-              <p className="text-white font-medium">{memberFullName}</p>
-              <p className="text-gray-400 text-xs">
+              <p className="text-content-primary font-medium">{memberFullName}</p>
+              <p className="text-content-muted text-xs">
                 {context === "staff" ? "Staff Member" : "Member"}
               </p>
             </div>
@@ -424,14 +406,14 @@ const ChatPopup = ({
             {/* Open Full Chat Button */}
             <button
               onClick={handleOpenFullChat}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
+              className="p-2 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary"
               title="Open in Communications"
             >
               <ExternalLink size={18} />
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
+              className="p-2 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary"
             >
               <X size={18} />
             </button>
@@ -440,7 +422,7 @@ const ChatPopup = ({
 
         {/* Copied Toast - identical to communications.jsx */}
         {showCopiedToast && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-[1100] flex items-center gap-2">
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-surface-dark text-content-primary px-4 py-2 rounded-lg shadow-lg z-[1100] flex items-center gap-2">
             <Check size={16} className="text-green-400" />
             Copied to clipboard
           </div>
@@ -462,9 +444,9 @@ const ChatPopup = ({
                 <div className="relative flex-shrink-0">
                   <button
                     onClick={(e) => handleOpenMessageMenu(msg.id, e, true)}
-                    className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2"
+                    className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
                   >
-                    <MoreVertical size={18} className="text-gray-400" />
+                    <MoreVertical size={18} className="text-content-muted" />
                   </button>
                 </div>
               )}
@@ -473,10 +455,10 @@ const ChatPopup = ({
                 <div
                   className={`rounded-xl p-3 ${
                     msg.isDeleted
-                      ? "bg-gray-800/50 text-gray-500 italic"
+                      ? "bg-surface-dark/50 text-content-faint italic"
                       : msg.sender === 'You'
-                        ? "bg-orange-500"
-                        : "bg-black"
+                        ? "bg-primary"
+                        : "bg-surface-dark"
                   }`}
                 >
                   {/* Reply Preview - identical to communications.jsx */}
@@ -484,14 +466,14 @@ const ChatPopup = ({
                     <div
                       className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${
                         msg.sender === 'You'
-                          ? "bg-orange-600/50 border-l-white"
-                          : "bg-gray-700 border-l-orange-500"
+                          ? "bg-primary-hover/50 border-l-primary"
+                          : "bg-surface-button border-l-primary"
                       }`}
                     >
-                      <p className="font-semibold mb-0.5 text-white text-xs">
+                      <p className={`font-semibold mb-0.5 text-xs ${msg.sender === "You" ? "text-white" : "text-content-primary"}`}>
                         {msg.replyTo.sender === 'You' ? 'You' : msg.replyTo.sender}
                       </p>
-                      <p className={`${msg.sender === 'You' ? 'text-orange-100/80' : 'text-gray-400'} text-xs`}>
+                      <p className={`${msg.sender === 'You' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
                         {truncateText(msg.replyTo.content, 50)}
                       </p>
                     </div>
@@ -499,7 +481,7 @@ const ChatPopup = ({
 
                   {/* Message Content - identical to communications.jsx */}
                   <p 
-                    className={`text-sm ${msg.isDeleted ? "" : "text-white"}`}
+                    className={`text-sm ${msg.isDeleted ? "" : msg.sender === "You" ? "text-white" : "text-content-primary"}`}
                     style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                   >
                     {msg.isDeleted ? (
@@ -514,17 +496,17 @@ const ChatPopup = ({
 
                   {/* Time and status - IDENTICAL to communications.jsx */}
                   <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${
-                    msg.sender === "You" ? "text-white/70 justify-end" : "text-gray-500"
+                    msg.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"
                   }`}>
                     <span>{msg.time || formatTimestamp(msg.timestamp)}</span>
                     {msg.sender === "You" && !msg.isDeleted && (
                       <span className="ml-1">
                         {msg.status === "read" ? (
-                          <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                          <CheckCheck className="w-3.5 h-3.5 text-white" />
                         ) : msg.status === "delivered" ? (
-                          <CheckCheck className="w-3.5 h-3.5" />
+                          <CheckCheck className="w-3.5 h-3.5 text-white/70" />
                         ) : (
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3.5 h-3.5 text-white/70" />
                         )}
                       </span>
                     )}
@@ -536,11 +518,11 @@ const ChatPopup = ({
                   <div className={`flex gap-1 ${msg.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
                     <button
                       onClick={(e) => removeReaction(msg.id, e)}
-                      className="bg-gray-700/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-gray-600 transition-colors group/reaction"
+                      className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button-hover transition-colors group/reaction"
                       title="Click to remove"
                     >
                       <span>{messageReactions[msg.id]}</span>
-                      <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">✕</span>
+                      <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-content-muted">✕</span>
                     </button>
                   </div>
                 )}
@@ -551,9 +533,9 @@ const ChatPopup = ({
                 <div className="relative flex-shrink-0">
                   <button
                     onClick={(e) => handleOpenMessageMenu(msg.id, e, false)}
-                    className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2"
+                    className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
                   >
-                    <MoreVertical size={18} className="text-gray-400" />
+                    <MoreVertical size={18} className="text-content-muted" />
                   </button>
                 </div>
               )}
@@ -571,7 +553,7 @@ const ChatPopup = ({
             />
             <div
               ref={messageMenuRef}
-              className="fixed z-[1100] bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] border border-gray-700"
+              className="fixed z-[1100] bg-surface-dark rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
               style={{
                 top: menuPosition.top,
                 left: menuPosition.left,
@@ -586,7 +568,7 @@ const ChatPopup = ({
                   <>
                     <button
                       onClick={() => handleReplyToMessage(activeMsg)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                     >
                       <Reply size={14} />
                       Reply
@@ -596,14 +578,14 @@ const ChatPopup = ({
                         setShowReactionPicker(activeMsg.id);
                         setActiveMessageMenu(null);
                       }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                     >
                       <Smile size={14} />
                       React
                     </button>
                     <button
                       onClick={() => handleCopyMessage(activeMsg)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                     >
                       <Copy size={14} />
                       Copy
@@ -614,7 +596,7 @@ const ChatPopup = ({
                           setShowDeleteConfirm(activeMsg.id);
                           setActiveMessageMenu(null);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-red-400 flex items-center gap-2"
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-red-400 flex items-center gap-2"
                       >
                         <Trash2 size={14} />
                         Delete
@@ -636,44 +618,30 @@ const ChatPopup = ({
         )}
 
         {/* Reaction Picker */}
-        {showReactionPicker && (
-          <div 
-            ref={reactionPickerRef}
-            className="fixed z-[1099]"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)}
-              theme="dark"
-              previewPosition="none"
-              skinTonePosition="none"
-              perLine={8}
-              maxFrequentRows={2}
-            />
-          </div>
-        )}
+        <EmojiPicker
+          isOpen={!!showReactionPicker}
+          onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)}
+          onClose={() => setShowReactionPicker(null)}
+          className="fixed z-[1099]"
+          style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+        />
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-[1100] rounded-xl">
-            <div className="bg-[#2a2a2a] rounded-xl p-4 mx-4 max-w-sm w-full shadow-xl border border-gray-700">
-              <h4 className="text-white font-medium mb-2">Delete Message?</h4>
-              <p className="text-gray-400 text-sm mb-4">This message will be deleted permanently.</p>
+            <div className="bg-surface-dark rounded-xl p-4 mx-4 max-w-sm w-full shadow-xl border border-border">
+              <h4 className="text-content-primary font-medium mb-2">Delete Message?</h4>
+              <p className="text-content-muted text-sm mb-4">This message will be deleted permanently.</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowDeleteConfirm(null)}
-                  className="flex-1 px-4 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors"
+                  className="flex-1 px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleDeleteMessage(showDeleteConfirm)}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
                 >
                   Delete
                 </button>
@@ -684,20 +652,20 @@ const ChatPopup = ({
 
         {/* Reply Preview Bar - identical to communications.jsx */}
         {replyingTo && (
-          <div className="px-4 pt-2 border-t border-gray-800 flex-shrink-0">
-            <div className="flex items-center gap-2 bg-gray-800/80 rounded-lg p-2.5">
-              <div className="w-1 h-10 bg-orange-500 rounded-full flex-shrink-0"></div>
+          <div className="px-4 pt-2 border-t border-border flex-shrink-0">
+            <div className="flex items-center gap-2 bg-surface-dark/80 rounded-lg p-2.5">
+              <div className="w-1 h-10 bg-primary rounded-full flex-shrink-0"></div>
               <div className="flex-1 min-w-0">
-                <p className="text-orange-400 text-xs font-semibold">
+                <p className="text-primary text-xs font-semibold">
                   Replying to {replyingTo.sender === 'You' ? 'yourself' : replyingTo.sender}
                 </p>
-                <p className="text-gray-300 text-sm truncate">
+                <p className="text-content-secondary text-sm truncate">
                   {truncateText(replyingTo.content, 40)}
                 </p>
               </div>
               <button
                 onClick={() => setReplyingTo(null)}
-                className="p-1 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                className="p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0"
               >
                 <XCircle size={18} />
               </button>
@@ -706,20 +674,20 @@ const ChatPopup = ({
         )}
 
         {/* Input - identical to communications.jsx */}
-        <div className="p-4 border-t border-gray-800 flex-shrink-0 relative">
-          <div className="flex items-end gap-2 bg-black rounded-xl p-2">
+        <div className="p-4 border-t border-border flex-shrink-0 relative">
+          <div className="flex items-end gap-2 bg-surface-dark rounded-xl p-2">
             <button
-              className="p-2 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors"
+              className="p-2 hover:bg-surface-button rounded-lg flex items-center justify-center transition-colors"
               aria-label="Add emoji"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             >
-              <Smile className="w-5 h-5 text-gray-400" />
+              <Smile className="w-5 h-5 text-content-muted" />
             </button>
 
             <textarea
               ref={textareaRef}
               placeholder="Type your message..."
-              className="flex-1 bg-transparent focus:outline-none text-sm resize-none overflow-hidden text-white placeholder-gray-500 max-h-[120px] leading-8"
+              className="flex-1 bg-transparent focus:outline-none text-sm resize-none overflow-hidden text-content-primary placeholder-content-faint max-h-[120px] leading-8"
               rows={1}
               style={{ height: '32px' }}
               value={message}
@@ -734,8 +702,8 @@ const ChatPopup = ({
             <button
               className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
                 message.trim() 
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                  : 'text-gray-500 cursor-not-allowed'
+                  ? 'bg-primary hover:bg-primary-hover text-white' 
+                  : 'text-content-faint cursor-not-allowed'
               }`}
               aria-label="Send message"
               onClick={handleSendMessage}
@@ -745,22 +713,12 @@ const ChatPopup = ({
             </button>
           </div>
 
-          {showEmojiPicker && (
-            <div 
-              ref={emojiPickerRef}
-              className="absolute bottom-20 left-4 z-[1020]"
-            >
-              <Picker
-                data={data}
-                onEmojiSelect={handleEmojiSelect}
-                theme="dark"
-                previewPosition="none"
-                skinTonePosition="none"
-                perLine={8}
-                maxFrequentRows={2}
-              />
-            </div>
-          )}
+          <EmojiPicker
+            isOpen={showEmojiPicker}
+            onEmojiSelect={handleEmojiSelect}
+            onClose={() => setShowEmojiPicker(false)}
+            className="absolute bottom-20 left-4 z-[1020]"
+          />
         </div>
       </div>
     </div>

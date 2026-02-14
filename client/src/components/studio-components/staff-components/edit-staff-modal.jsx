@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries";
 import DatePickerField from "../../shared/DatePickerField";
+import ColorPickerModal from "../../shared/ColorPickerModal";
+import CustomSelect from "../../shared/CustomSelect";
 
 // Initials Avatar Component - Blue background with initials (like members)
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -21,7 +23,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-[#3F74FF] rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -91,11 +93,11 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1100] p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h3 className="text-white font-semibold">Take Photo</h3>
-          <button onClick={() => { stopCamera(); onClose(); }} className="text-gray-400 hover:text-white">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1100] p-4">
+      <div className="bg-surface-card rounded-xl w-full max-w-md overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <h3 className="text-content-primary font-semibold">Take Photo</h3>
+          <button onClick={() => { stopCamera(); onClose(); }} className="text-content-muted hover:text-content-primary">
             <X size={20} />
           </button>
         </div>
@@ -106,7 +108,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
               <p className="text-red-400 text-sm mb-4">{error}</p>
               <button 
                 onClick={startCamera}
-                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+                className="px-4 py-2 bg-surface-button text-content-primary rounded-xl text-sm"
               >
                 Try Again
               </button>
@@ -127,14 +129,14 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
               <div className="flex gap-3">
                 <button
                   onClick={toggleCamera}
-                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm flex items-center justify-center gap-2"
                 >
                   <Camera size={16} />
                   Flip
                 </button>
                 <button
                   onClick={handleCapture}
-                  className="flex-[2] py-2.5 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white rounded-xl text-sm font-medium"
+                  className="flex-[2] py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium"
                 >
                   Capture Photo
                 </button>
@@ -160,7 +162,7 @@ function EditStaffModal({
   const [editedStaff, setEditedStaff] = useState({
     ...staff,
     about: staff.description || staff.about || "",
-    color: staff.color || "#3F74FF",
+    color: staff.color && !staff.color.startsWith("var(") ? staff.color : "#6366f1",
     mobileNumber: staff.mobileNumber || staff.phone || "",
     telephoneNumber: staff.telephoneNumber || "",
   })
@@ -168,6 +170,7 @@ function EditStaffModal({
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [newPassword, setNewPassword] = useState("")
   const [showCameraModal, setShowCameraModal] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
 
   // Reset state when staff changes
   useEffect(() => {
@@ -175,7 +178,7 @@ function EditStaffModal({
       setEditedStaff({
         ...staff,
         about: staff.description || staff.about || "",
-        color: staff.color || "#3F74FF",
+        color: staff.color && !staff.color.startsWith("var(") ? staff.color : "#6366f1",
         mobileNumber: staff.mobileNumber || staff.phone || "",
         telephoneNumber: staff.telephoneNumber || "",
       })
@@ -253,28 +256,28 @@ function EditStaffModal({
 
   return (
     <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-      <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-white font-bold">Edit Staff</h2>
+          <h2 className="text-xl text-content-primary font-bold">Edit Staff</h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-content-muted hover:text-content-primary transition-colors"
           >
             <X size={24} />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-700 mb-6">
+        <div className="flex border-b border-border mb-6">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab.id 
-                  ? "text-blue-400 border-b-2 border-blue-400" 
-                  : "text-gray-400 hover:text-white"
+                  ? "text-primary border-b-2 border-primary" 
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               {tab.label}
@@ -327,7 +330,7 @@ function EditStaffModal({
                     />
                     <label
                       htmlFor="edit-avatar"
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
+                      className="bg-primary hover:bg-primary-hover px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
                     >
                       <Upload size={16} />
                       Upload
@@ -335,7 +338,7 @@ function EditStaffModal({
                     <button
                       type="button"
                       onClick={() => setShowCameraModal(true)}
-                      className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-4 py-2 rounded-xl text-sm text-white flex items-center gap-2"
+                      className="bg-surface-button hover:bg-surface-button-hover px-4 py-2 rounded-xl text-sm text-content-primary flex items-center gap-2"
                     >
                       <Camera size={16} />
                       Camera
@@ -345,206 +348,199 @@ function EditStaffModal({
 
                 {/* Personal Information */}
                 <div className="space-y-4">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        First Name<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        First Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
                         name="firstName"
                         value={editedStaff.firstName}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Last Name<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        Last Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
                         name="lastName"
                         value={editedStaff.lastName}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Email<span className="text-red-500 ml-1">*</span>
+                    <label className="text-sm text-content-secondary block mb-2">
+                      Email<span className="text-accent-red ml-1">*</span>
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={editedStaff.email || ""}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       required
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Mobile Number<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        Mobile Number<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="tel"
                         name="mobileNumber"
                         value={editedStaff.mobileNumber}
                         onChange={handlePhoneChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <label className="text-sm text-content-secondary block mb-2">Telephone Number</label>
                       <input
                         type="tel"
                         name="telephoneNumber"
                         value={editedStaff.telephoneNumber}
                         onChange={handlePhoneChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
-                      <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
-                        <span className={editedStaff.birthday ? "text-white" : "text-gray-500"}>{editedStaff.birthday ? (() => { const [y,m,d] = (editedStaff.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                        <span className={editedStaff.birthday ? "text-content-primary" : "text-content-faint"}>{editedStaff.birthday ? (() => { const [y,m,d] = (editedStaff.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={editedStaff.birthday || ""} onChange={(val) => setEditedStaff(prev => ({ ...prev, birthday: val }))} />
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
-                      <select
+                      <label className="text-sm text-content-secondary block mb-2">Gender</label>
+                      <CustomSelect
                         name="gender"
                         value={editedStaff.gender || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
-                      >
-                        <option value="">Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
+                        placeholder="Select gender"
+                        options={[
+                          { value: "male", label: "Male" },
+                          { value: "female", label: "Female" },
+                          { value: "other", label: "Other" },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>
 
                 {/* Address */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street</label>
+                    <label className="text-sm text-content-secondary block mb-2">Street</label>
                     <input
                       type="text"
                       name="street"
                       value={editedStaff.street || ""}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <label className="text-sm text-content-secondary block mb-2">ZIP Code</label>
                       <input
                         type="text"
                         name="zipCode"
                         value={editedStaff.zipCode || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <label className="text-sm text-content-secondary block mb-2">City</label>
                       <input
                         type="text"
                         name="city"
                         value={editedStaff.city || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Country</label>
-                    <select
+                    <label className="text-sm text-content-secondary block mb-2">Country</label>
+                    <CustomSelect
                       name="country"
                       value={editedStaff.country || ""}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
-                    >
-                      <option value="">Select a country</option>
-                      {loading ? (
-                        <option value="" disabled>Loading countries...</option>
-                      ) : (
-                        countries.map((country) => (
-                          <option key={country.code} value={country.name}>
-                            {country.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
+                      placeholder={loading ? "Loading countries..." : "Select a country"}
+                      searchable
+                      options={countries.map((country) => ({
+                        value: country.name,
+                        label: country.name,
+                      }))}
+                      disabled={loading}
+                    />
                   </div>
                 </div>
 
                 {/* Employment */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Employment</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Employment</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Role<span className="text-red-500 ml-1">*</span>
+                    <label className="text-sm text-content-secondary block mb-2">
+                      Role<span className="text-accent-red ml-1">*</span>
                     </label>
-                    <select
+                    <CustomSelect
                       name="role"
                       value={editedStaff.role || ""}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                      placeholder="Select role"
                       required
+                      options={[
+                        { value: "admin", label: "Admin" },
+                        { value: "manager", label: "Manager" },
+                        { value: "employee", label: "Employee" },
+                      ]}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-content-secondary block mb-2">Staff Identification Color</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowColorPicker(true)}
+                      className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
                     >
-                      <option value="">Select role</option>
-                      <option value="admin">Admin</option>
-                      <option value="manager">Manager</option>
-                      <option value="employee">Employee</option>
-                    </select>
+                      <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: editedStaff.color }} />
+                      <span className="text-content-primary">{editedStaff.color}</span>
+                    </button>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Staff Identification Color</label>
-                    <div className="flex items-center gap-3 bg-[#141414] rounded-xl p-3">
-                      <input
-                        type="color"
-                        name="color"
-                        value={editedStaff.color}
-                        onChange={handleColorChange}
-                        className="w-10 h-10 bg-transparent rounded-lg cursor-pointer border-0"
-                      />
-                      <span className="text-sm text-gray-300">{editedStaff.color}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2 flex items-center gap-2">
+                    <label className="text-sm text-content-secondary block mb-2 flex items-center gap-2">
                       Vacation Entitlement per Year (Days)
                       <div className="relative group">
-                        <Info size={14} className="text-gray-500 cursor-help" />
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
+                        <Info size={14} className="text-content-faint cursor-help" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-surface-dark text-content-primary text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
                           Changes will take effect next year
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-surface-dark"></div>
                         </div>
                       </div>
                     </label>
@@ -554,23 +550,23 @@ function EditStaffModal({
                       value={editedStaff.vacationEntitlement || 30}
                       onChange={handleInputChange}
                       min="0"
-                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
 
                 {/* Additional Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Additional Information</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <label className="text-sm text-content-secondary block mb-2">About</label>
                     <textarea
                       name="about"
                       value={editedStaff.about || ""}
                       onChange={handleInputChange}
                       placeholder="Enter more details..."
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none min-h-[100px] border border-transparent focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
@@ -579,24 +575,24 @@ function EditStaffModal({
 
             {activeTab === "access" && (
               <div className="space-y-4">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Login Credentials</div>
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Login Credentials</div>
                 
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    Username<span className="text-red-500 ml-1">*</span>
+                  <label className="text-sm text-content-secondary block mb-2">
+                    Username<span className="text-accent-red ml-1">*</span>
                   </label>
                   <input
                     type="text"
                     name="username"
                     value={editedStaff.username || ""}
                     onChange={handleInputChange}
-                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">Password</label>
+                  <label className="text-sm text-content-secondary block mb-2">Password</label>
                   <div className="relative">
                     {isChangingPassword ? (
                       <div className="space-y-2">
@@ -605,13 +601,13 @@ function EditStaffModal({
                             type={showPassword ? "text" : "password"}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full bg-[#141414] rounded-xl px-4 py-2 pr-20 text-white outline-none text-sm border border-blue-500"
+                            className="w-full bg-surface-dark rounded-xl px-4 py-2 pr-20 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                             placeholder="Enter new password"
                           />
                           <button
                             type="button"
                             onClick={handlePasswordToggle}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 hover:text-white"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-content-muted hover:text-content-primary"
                           >
                             {showPassword ? "Hide" : "Show"}
                           </button>
@@ -622,7 +618,7 @@ function EditStaffModal({
                             setIsChangingPassword(false)
                             setNewPassword("")
                           }}
-                          className="text-sm text-gray-400 hover:text-white"
+                          className="text-sm text-content-muted hover:text-content-primary"
                         >
                           Cancel
                         </button>
@@ -633,12 +629,12 @@ function EditStaffModal({
                           type="password"
                           value="********"
                           disabled
-                          className="flex-1 bg-[#141414] rounded-xl px-4 py-2 text-gray-500 outline-none text-sm"
+                          className="flex-1 bg-surface-dark rounded-xl px-4 py-2 text-content-faint outline-none text-sm"
                         />
                         <button
                           type="button"
                           onClick={() => setIsChangingPassword(true)}
-                          className="text-sm text-blue-400 hover:text-blue-300 whitespace-nowrap"
+                          className="text-sm text-primary hover:text-primary/80 whitespace-nowrap transition-colors"
                         >
                           Change Password
                         </button>
@@ -664,13 +660,13 @@ function EditStaffModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
+                className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm text-white rounded-xl bg-orange-500 hover:bg-orange-600"
+                className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors"
               >
                 Save Changes
               </button>
@@ -684,6 +680,13 @@ function EditStaffModal({
         isOpen={showCameraModal}
         onClose={() => setShowCameraModal(false)}
         onCapture={handleCameraCapture}
+      />
+      <ColorPickerModal
+        isOpen={showColorPicker}
+        onClose={() => setShowColorPicker(false)}
+        onSelectColor={(color) => setEditedStaff(prev => ({ ...prev, color }))}
+        currentColor={editedStaff.color}
+        title="Staff Identification Color"
       />
     </div>
   )

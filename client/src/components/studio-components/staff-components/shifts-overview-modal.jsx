@@ -16,6 +16,7 @@ import {
   MousePointer2
 } from "lucide-react"
 import toast from "react-hot-toast"
+import DatePickerField from "../../shared/DatePickerField"
 
 // Helper to format date
 const formatDateStr = (date) => {
@@ -92,7 +93,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 
   return (
     <div 
-      className={`rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 bg-blue-600 ${sizeClasses[size]}`}
+      className={`rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 bg-secondary ${sizeClasses[size]}`}
     >
       {getInitials()}
     </div>
@@ -102,6 +103,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 // CSS for patterns
 const ShiftStyles = () => (
   <style>{`
+    .tile-text { text-shadow: 0 0 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); }
     .hatched-absence {
       background: repeating-linear-gradient(
         45deg,
@@ -180,14 +182,14 @@ const Tooltip = ({ children, text, className = "", style = {} }) => {
             transform: "translate(-50%, -100%)"
           }}
         >
-          <div className="bg-[#1f1f1f] text-white px-3 py-2 rounded-lg text-xs whitespace-pre-line max-w-[200px] text-center border border-gray-700 shadow-xl">
+          <div className="bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs whitespace-pre-line max-w-[200px] text-center border border-border shadow-xl">
             {text}
             <div 
               className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
               style={{
                 borderLeft: "6px solid transparent",
                 borderRight: "6px solid transparent",
-                borderTop: "6px solid #1f1f1f"
+                borderTop: "6px solid var(--color-surface-dark)"
               }}
             />
           </div>
@@ -202,20 +204,18 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, shiftDate }) => {
   if (!isOpen) return null
   
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1002] p-4">
-      <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 shadow-2xl max-w-sm w-full p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-red-500/10 rounded-xl">
-            <Trash2 className="w-5 h-5 text-red-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-white">Delete Shift</h3>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1002] p-4">
+      <div className="bg-surface-card rounded-xl max-w-sm w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl text-content-primary font-bold">Delete Shift</h2>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors"><X size={24} /></button>
         </div>
-        <p className="text-gray-400 mb-6">
+        <p className="text-sm text-content-secondary mb-4">
           Are you sure you want to delete this shift{shiftDate ? ` on ${shiftDate}` : ""}? This action cannot be undone.
         </p>
-        <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors">Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors">Delete</button>
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">Cancel</button>
+          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">Delete</button>
         </div>
       </div>
     </div>
@@ -257,7 +257,7 @@ const ShiftBar = ({ shift, staffColor, onClick, style = {}, className = "", show
       >
         {showTime && (
           <div className={`h-full flex items-center overflow-hidden ${compactTime ? "px-1 justify-center" : "px-3"}`}>
-            <span className={`font-medium truncate ${isAbsence ? "text-red-300" : "text-white"} ${compactTime ? "text-[10px]" : "text-sm"}`}>
+            <span className={`font-medium truncate text-white tile-text ${compactTime ? "text-[10px]" : "text-sm"}`}>
               {compactTime ? compactTimeDisplay : timeDisplay}
             </span>
           </div>
@@ -277,7 +277,7 @@ const IndividualCalendarView = ({
   viewPeriod
 }) => {
   const staffShifts = shifts.filter(s => s.staffId === staff.id)
-  const staffColor = staff.color || "#3F74FF"
+  const staffColor = staff.color || "var(--color-secondary)"
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
@@ -292,16 +292,16 @@ const IndividualCalendarView = ({
     const isClosed = isClosingDay(dateStr)
 
     return (
-      <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-6">
-        <div className={`text-center mb-6 ${isClosed ? "text-gray-500" : "text-white"}`}>
+      <div className="bg-surface-card rounded-xl border border-border p-6">
+        <div className={`text-center mb-6 ${isClosed ? "text-content-faint" : "text-content-primary"}`}>
           <div className="text-3xl font-bold">{currentMonth.getDate()}</div>
-          <div className="text-base text-gray-400 mt-1">
+          <div className="text-base text-content-muted mt-1">
             {currentMonth.toLocaleDateString("en-US", { weekday: "long", month: "long", year: "numeric" })}
           </div>
         </div>
         
         {isClosed ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-content-faint">
             <div className="hatched-closing w-20 h-20 rounded-xl mx-auto mb-4" />
             <p className="text-lg">Closing Day</p>
           </div>
@@ -317,7 +317,7 @@ const IndividualCalendarView = ({
                   style={{ backgroundColor: isAbsence ? undefined : staffColor }}
                   onClick={() => onViewShift(shift)}
                 >
-                  <span className={`font-medium text-sm ${isAbsence ? "text-red-400" : "text-white"}`}>
+                  <span className="font-medium text-sm text-white tile-text">
                     {formatTimeShort(shift.startTime)} - {formatTimeShort(shift.endTime)}
                   </span>
                 </div>
@@ -325,7 +325,7 @@ const IndividualCalendarView = ({
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500"><p className="text-lg">No shift scheduled</p></div>
+          <div className="text-center py-12 text-content-faint"><p className="text-lg">No shift scheduled</p></div>
         )}
       </div>
     )
@@ -342,7 +342,7 @@ const IndividualCalendarView = ({
     })
 
     return (
-      <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
+      <div className="bg-surface-card rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <div className="grid grid-cols-7 min-w-[600px]">
             {weekDays.map((date, i) => {
@@ -352,10 +352,10 @@ const IndividualCalendarView = ({
               const isToday = dateStr === formatDateStr(new Date())
 
               return (
-                <div key={i} className={`border-r border-gray-800 last:border-r-0 min-h-[280px] ${isClosed ? "hatched-closing" : ""}`}>
-                  <div className={`p-3 text-center border-b border-gray-800 ${isToday ? "bg-blue-500/20" : ""}`}>
-                    <div className={`text-sm ${isClosed ? "text-gray-600" : "text-gray-400"}`}>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}</div>
-                    <div className={`text-2xl font-semibold mt-1 ${isToday ? "text-blue-400" : isClosed ? "text-gray-600" : "text-white"}`}>{date.getDate()}</div>
+                <div key={i} className={`border-r border-border last:border-r-0 min-h-[280px] ${isClosed ? "hatched-closing" : ""}`}>
+                  <div className={`p-3 text-center border-b border-border ${isToday ? "bg-secondary/20" : ""}`}>
+                    <div className={`text-sm ${isClosed ? "text-content-faint" : "text-content-muted"}`}>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}</div>
+                    <div className={`text-2xl font-semibold mt-1 ${isToday ? "text-secondary" : isClosed ? "text-content-faint" : "text-content-primary"}`}>{date.getDate()}</div>
                   </div>
                   <div className="p-2 space-y-1">
                     {dayShifts.map((shift, idx) => {
@@ -368,7 +368,7 @@ const IndividualCalendarView = ({
                           style={{ backgroundColor: isAbsence ? undefined : staffColor }}
                           onClick={() => onViewShift(shift)}
                         >
-                          <div className={`text-xs font-medium ${isAbsence ? "text-red-400" : "text-white"}`}>
+                          <div className="text-xs font-medium text-white tile-text">
                             {formatTimeShort(shift.startTime)} - {formatTimeShort(shift.endTime)}
                           </div>
                         </div>
@@ -391,15 +391,15 @@ const IndividualCalendarView = ({
   return (
     <div className="flex flex-col h-full overflow-x-auto">
       <div className="min-w-[500px]">
-        <div className="grid grid-cols-7 border-b border-gray-800">
+        <div className="grid grid-cols-7 border-b border-border">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
-            <div key={d} className={`py-4 text-center text-base font-medium ${i === 0 || i === 6 ? "text-gray-600" : "text-gray-400"}`}>{d}</div>
+            <div key={d} className={`py-4 text-center text-base font-medium ${i === 0 || i === 6 ? "text-content-faint" : "text-content-muted"}`}>{d}</div>
           ))}
         </div>
         <div className="flex-1 overflow-auto">
-          <div className="grid grid-cols-7 bg-[#1a1a1a] border border-t-0 border-gray-800">
+          <div className="grid grid-cols-7 bg-surface-card border border-t-0 border-border">
             {Array.from({ length: firstDayOfMonth }, (_, i) => (
-              <div key={`empty-${i}`} className="min-h-[120px] border-b border-r border-gray-800/30 bg-gray-900/30" />
+              <div key={`empty-${i}`} className="min-h-[120px] border-b border-r border-border/30 bg-surface-dark/30" />
             ))}
             {Array.from({ length: daysInMonth }, (_, dayIdx) => {
               const day = dayIdx + 1
@@ -410,8 +410,8 @@ const IndividualCalendarView = ({
               const isToday = dateStr === formatDateStr(new Date())
 
               return (
-                <div key={day} className={`min-h-[120px] border-b border-r border-gray-800/30 p-2 ${isClosed ? "hatched-closing" : ""} ${isToday ? "ring-2 ring-inset ring-blue-500/50" : ""}`}>
-                  <div className={`text-sm font-medium mb-1 ${isToday ? "text-blue-400" : isClosed ? "text-gray-600" : "text-gray-400"}`}>{day}</div>
+                <div key={day} className={`min-h-[120px] border-b border-r border-border/30 p-2 ${isClosed ? "hatched-closing" : ""} ${isToday ? "ring-2 ring-inset ring-secondary/50" : ""}`}>
+                  <div className={`text-sm font-medium mb-1 ${isToday ? "text-secondary" : isClosed ? "text-content-faint" : "text-content-muted"}`}>{day}</div>
                   <div className="space-y-1">
                     {dayShifts.slice(0, 2).map((shift, idx) => {
                       const isPast = isPastDate(shift.endDate)
@@ -423,13 +423,13 @@ const IndividualCalendarView = ({
                           style={{ backgroundColor: isAbsence ? undefined : staffColor }}
                           onClick={() => onViewShift(shift)}
                         >
-                          <span className={`text-[9px] font-medium ${isAbsence ? "text-red-300" : "text-white"}`}>
+                          <span className="text-[9px] font-medium text-white tile-text">
                             {formatTimeShort(shift.startTime)} - {formatTimeShort(shift.endTime)}
                           </span>
                         </div>
                       )
                     })}
-                    {dayShifts.length > 2 && <div className="text-[10px] text-gray-500 text-center">+{dayShifts.length - 2}</div>}
+                    {dayShifts.length > 2 && <div className="text-[10px] text-content-faint text-center">+{dayShifts.length - 2}</div>}
                   </div>
                 </div>
               )
@@ -469,17 +469,17 @@ const GroupCalendarView = ({
     const isClosed = isClosingDay(dateStr)
 
     return (
-      <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
-        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-800 ${isClosed ? "hatched-closing" : ""}`}>
-          <div className="text-white font-semibold text-base sm:text-xl">
+      <div className="bg-surface-card rounded-xl border border-border overflow-hidden">
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b border-border ${isClosed ? "hatched-closing" : ""}`}>
+          <div className="text-content-primary font-semibold text-base sm:text-xl">
             {currentMonth.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
           </div>
-          {isClosed && <span className="text-xs sm:text-sm text-gray-500">Closing Day</span>}
+          {isClosed && <span className="text-xs sm:text-sm text-content-faint">Closing Day</span>}
         </div>
-        <div className="divide-y divide-gray-800">
+        <div className="divide-y divide-border">
           {staffMembers.map(staff => {
             const dayShifts = getShiftsForDate(staff.id, dateStr)
-            const staffColor = staff.color || "#3F74FF"
+            const staffColor = staff.color || "var(--color-secondary)"
 
             return (
               <div 
@@ -489,7 +489,7 @@ const GroupCalendarView = ({
               >
                 <div className="flex items-center gap-2 sm:gap-3 sm:w-48 flex-shrink-0">
                   <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="sm" />
-                  <span className="text-sm sm:text-base text-gray-300">{staff.firstName} {staff.lastName}</span>
+                  <span className="text-sm sm:text-base text-content-secondary">{staff.firstName} {staff.lastName}</span>
                 </div>
                 <div className="flex-1 flex flex-wrap items-center gap-2 sm:gap-3 ml-8 sm:ml-0">
                   {dayShifts.map((shift, idx) => {
@@ -506,14 +506,14 @@ const GroupCalendarView = ({
                           style={{ backgroundColor: isAbsence ? undefined : staffColor }}
                           onClick={(e) => { e.stopPropagation(); onEditShift(shift) }}
                         >
-                          <span className={`text-xs sm:text-sm font-medium ${isAbsence ? "text-red-300" : "text-white"}`}>
+                          <span className="text-xs sm:text-sm font-medium text-white tile-text">
                             {timeDisplay}
                           </span>
                         </div>
                       </Tooltip>
                     )
                   })}
-                  {!isClosed && dayShifts.length === 0 && <span className="text-gray-500 text-xs sm:text-sm">Tap to add shift</span>}
+                  {!isClosed && dayShifts.length === 0 && <span className="text-content-faint text-xs sm:text-sm">Tap to add shift</span>}
                 </div>
               </div>
             )
@@ -631,11 +631,11 @@ const GroupCalendarView = ({
     })
 
     return (
-      <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-auto">
+      <div className="bg-surface-card rounded-xl border border-border overflow-auto">
         <div style={{ minWidth: STAFF_COL_WIDTH + 7 * CELL_WIDTH }}>
           {/* Header */}
-          <div className="flex border-b border-gray-800 sticky top-0 bg-[#1a1a1a] z-10">
-            <div style={{ width: STAFF_COL_WIDTH }} className="flex-shrink-0 p-4 border-r border-gray-800 text-gray-500 text-sm font-medium">Staff</div>
+          <div className="flex border-b border-border sticky top-0 bg-surface-card z-10">
+            <div style={{ width: STAFF_COL_WIDTH }} className="flex-shrink-0 p-4 border-r border-border text-content-faint text-sm font-medium">Staff</div>
             {weekDays.map(({ date, dateStr }, i) => {
               const isClosed = isClosingDay(dateStr)
               const isToday = dateStr === formatDateStr(new Date())
@@ -643,10 +643,10 @@ const GroupCalendarView = ({
                 <div 
                   key={i}
                   style={{ width: CELL_WIDTH }}
-                  className={`flex-shrink-0 text-center py-4 border-r border-gray-800 last:border-r-0 ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-blue-500/10" : ""}`}
+                  className={`flex-shrink-0 text-center py-4 border-r border-border last:border-r-0 ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/10" : ""}`}
                 >
-                  <div className={`text-sm ${isClosed ? "text-gray-600" : "text-gray-500"}`}>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}</div>
-                  <div className={`text-2xl font-semibold mt-1 ${isToday ? "text-blue-400" : isClosed ? "text-gray-600" : "text-gray-300"}`}>{date.getDate()}</div>
+                  <div className={`text-sm ${isClosed ? "text-content-faint" : "text-content-faint"}`}>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}</div>
+                  <div className={`text-2xl font-semibold mt-1 ${isToday ? "text-secondary" : isClosed ? "text-content-faint" : "text-content-primary"}`}>{date.getDate()}</div>
                 </div>
               )
             })}
@@ -654,14 +654,14 @@ const GroupCalendarView = ({
 
           {/* Staff Rows */}
           {staffShiftsData.map(({ staff, segmentsWithLanes, rowHeight }) => {
-            const staffColor = staff.color || "#3F74FF"
+            const staffColor = staff.color || "var(--color-secondary)"
 
             return (
-              <div key={staff.id} className="flex border-b border-gray-800 last:border-b-0">
+              <div key={staff.id} className="flex border-b border-border last:border-b-0">
                 {/* Staff Name */}
-                <div style={{ width: STAFF_COL_WIDTH, height: rowHeight }} className="flex-shrink-0 flex items-center gap-3 px-4 border-r border-gray-800">
+                <div style={{ width: STAFF_COL_WIDTH, height: rowHeight }} className="flex-shrink-0 flex items-center gap-3 px-4 border-r border-border">
                   <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="md" />
-                  <span className="text-sm text-gray-300 truncate">{staff.firstName} {staff.lastName}</span>
+                  <span className="text-sm text-content-secondary truncate">{staff.firstName} {staff.lastName}</span>
                 </div>
 
                 {/* Timeline Container - NO overflow hidden! */}
@@ -678,7 +678,7 @@ const GroupCalendarView = ({
                         <div 
                           key={i}
                           style={{ width: CELL_WIDTH }}
-                          className={`h-full border-r border-gray-800 last:border-r-0 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-blue-500/5" : ""} ${isSelectionStart ? "!bg-blue-500/30" : ""} ${isSelected && !isSelectionStart ? "!bg-blue-500/20" : ""}`}
+                          className={`h-full border-r border-border last:border-r-0 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/5" : ""} ${isSelectionStart ? "!bg-secondary/30" : ""} ${isSelected && !isSelectionStart ? "!bg-secondary/20" : ""}`}
                           onClick={() => !isClosed && onCellClick(staff.id, dateStr)}
                           onMouseEnter={() => onCellHover(staff.id, dateStr)}
                         />
@@ -818,11 +818,11 @@ const GroupCalendarView = ({
   })
 
   return (
-    <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-auto max-h-full">
+    <div className="bg-surface-card rounded-xl border border-border overflow-auto max-h-full">
       <div style={{ minWidth: STAFF_COL_WIDTH + daysInMonth * CELL_WIDTH }}>
         {/* Header */}
-        <div className="flex border-b border-gray-800 sticky top-0 bg-[#1a1a1a] z-10">
-          <div style={{ width: STAFF_COL_WIDTH }} className="flex-shrink-0 p-2 border-r border-gray-800 text-gray-500 text-xs font-medium">Staff</div>
+        <div className="flex border-b border-border sticky top-0 bg-surface-card z-10">
+          <div style={{ width: STAFF_COL_WIDTH }} className="flex-shrink-0 p-2 border-r border-border text-content-faint text-xs font-medium">Staff</div>
           {monthDays.map(({ date, dateStr, day }) => {
             const isClosed = isClosingDay(dateStr)
             const isToday = dateStr === formatDateStr(new Date())
@@ -830,10 +830,10 @@ const GroupCalendarView = ({
               <div 
                 key={day}
                 style={{ width: CELL_WIDTH }}
-                className={`flex-shrink-0 text-center py-1.5 border-r border-gray-800/50 last:border-r-0 ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-blue-500/10" : ""}`}
+                className={`flex-shrink-0 text-center py-1.5 border-r border-border/50 last:border-r-0 ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/10" : ""}`}
               >
-                <div className={`text-[9px] ${isClosed ? "text-gray-600" : "text-gray-500"}`}>{getDayName(date)}</div>
-                <div className={`text-sm font-semibold ${isToday ? "text-blue-400" : isClosed ? "text-gray-600" : "text-gray-300"}`}>{day}</div>
+                <div className={`text-[9px] ${isClosed ? "text-content-faint" : "text-content-faint"}`}>{getDayName(date)}</div>
+                <div className={`text-sm font-semibold ${isToday ? "text-secondary" : isClosed ? "text-content-faint" : "text-content-primary"}`}>{day}</div>
               </div>
             )
           })}
@@ -841,14 +841,14 @@ const GroupCalendarView = ({
 
         {/* Staff Rows */}
         {staffShiftsData.map(({ staff, segmentsWithLanes, rowHeight }) => {
-          const staffColor = staff.color || "#3F74FF"
+          const staffColor = staff.color || "var(--color-secondary)"
 
           return (
-            <div key={staff.id} className="flex border-b border-gray-800/50 last:border-b-0">
+            <div key={staff.id} className="flex border-b border-border/50 last:border-b-0">
               {/* Staff Name */}
-              <div style={{ width: STAFF_COL_WIDTH, height: rowHeight }} className="flex-shrink-0 flex items-center gap-2 px-2 border-r border-gray-800">
+              <div style={{ width: STAFF_COL_WIDTH, height: rowHeight }} className="flex-shrink-0 flex items-center gap-2 px-2 border-r border-border">
                 <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="sm" />
-                <span className="text-xs text-gray-300 truncate">{staff.firstName} {staff.lastName}</span>
+                <span className="text-xs text-content-secondary truncate">{staff.firstName} {staff.lastName}</span>
               </div>
 
               {/* Timeline Container */}
@@ -865,7 +865,7 @@ const GroupCalendarView = ({
                       <div 
                         key={day}
                         style={{ width: CELL_WIDTH }}
-                        className={`h-full border-r border-gray-800/50 last:border-r-0 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-blue-500/5" : ""} ${isSelectionStart ? "!bg-blue-500/30" : ""} ${isSelected && !isSelectionStart ? "!bg-blue-500/20" : ""}`}
+                        className={`h-full border-r border-border/50 last:border-r-0 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/5" : ""} ${isSelectionStart ? "!bg-secondary/30" : ""} ${isSelected && !isSelectionStart ? "!bg-secondary/20" : ""}`}
                         onClick={() => !isClosed && onCellClick(staff.id, dateStr)}
                         onMouseEnter={() => onCellHover(staff.id, dateStr)}
                       />
@@ -995,23 +995,18 @@ const ShiftFormModal = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[1001] p-0 sm:p-4">
-        <div className="bg-[#1a1a1a] w-full h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl sm:max-w-md border-t sm:border border-gray-800 shadow-2xl flex flex-col">
-          <div className="flex-shrink-0 p-5 border-b border-gray-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-xl"><Clock className="w-5 h-5 text-blue-400" /></div>
-                <h3 className="text-lg font-semibold text-white">{readOnly ? "View Shift" : shift ? "Edit Shift" : "New Shift"}</h3>
-              </div>
-              <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg"><X size={20} className="text-gray-400" /></button>
-            </div>
+      <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1001] overflow-y-auto">
+        <div className="bg-surface-card p-6 rounded-xl w-full max-w-md my-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl text-content-primary font-bold">{readOnly ? "View Shift" : shift ? "Edit Shift" : "New Shift"}</h2>
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors"><X size={24} /></button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
             {!fixedStaffId && !readOnly && (
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Staff Member *</label>
-                <select value={formData.staffId} onChange={(e) => setFormData({ ...formData, staffId: e.target.value })} className="w-full bg-[#141414] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none">
+                <label className="text-sm text-content-secondary block mb-2">Staff Member <span className="text-accent-red">*</span></label>
+                <select value={formData.staffId} onChange={(e) => setFormData({ ...formData, staffId: e.target.value })} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors">
                   <option value="">Select staff...</option>
                   {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
                 </select>
@@ -1019,78 +1014,83 @@ const ShiftFormModal = ({
             )}
 
             {selectedStaff && (
-              <div className="bg-[#141414] rounded-xl p-4 flex items-center gap-4">
-                <InitialsAvatar firstName={selectedStaff.firstName} lastName={selectedStaff.lastName} img={selectedStaff.img} size="md" />
+              <div className="bg-surface-dark rounded-xl p-3 flex items-center gap-3">
+                <InitialsAvatar firstName={selectedStaff.firstName} lastName={selectedStaff.lastName} img={selectedStaff.img} size="sm" />
                 <div className="flex-1">
-                  <p className="text-white font-medium">{selectedStaff.firstName} {selectedStaff.lastName}</p>
-                  <p className="text-sm text-gray-500">{selectedStaff.role}</p>
+                  <p className="text-content-primary font-medium text-sm">{selectedStaff.firstName} {selectedStaff.lastName}</p>
+                  <p className="text-xs text-content-faint">{selectedStaff.role}</p>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Start Date *</label>
-                <input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: formData.endDate || e.target.value })} className="w-full bg-[#141414] border border-gray-700 rounded-xl px-4 py-3 text-white [color-scheme:dark]" disabled={readOnly} />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">End Date</label>
-                <input type="date" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} className="w-full bg-[#141414] border border-gray-700 rounded-xl px-4 py-3 text-white [color-scheme:dark]" disabled={readOnly} min={formData.startDate} />
-              </div>
-            </div>
-
-            {!readOnly && (
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Type</label>
-                <div className="flex gap-3">
-                  <button onClick={() => setFormData({ ...formData, status: "scheduled" })} className="flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium border transition-all" style={formData.status === "scheduled" ? { backgroundColor: "rgba(59, 130, 246, 0.2)", color: "#60A5FA", borderColor: "rgba(59, 130, 246, 0.5)" } : { backgroundColor: "#141414", color: "#9CA3AF", borderColor: "#374151" }}>
-                    <Clock size={16} />Shift
-                  </button>
-                  <button onClick={() => setFormData({ ...formData, status: "absence" })} className="flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-medium border transition-all" style={formData.status === "absence" ? { backgroundColor: "rgba(239, 68, 68, 0.2)", color: "#F87171", borderColor: "rgba(239, 68, 68, 0.5)" } : { backgroundColor: "#141414", color: "#9CA3AF", borderColor: "#374151" }}>
-                    <AlertCircle size={16} />Absence
-                  </button>
+            <div className="space-y-4 pt-2 border-t border-border">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Schedule</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">Start Date <span className="text-accent-red">*</span></label>
+                  <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                    <span className={formData.startDate ? "text-content-primary" : "text-content-faint"}>{formData.startDate ? (() => { const [y,m,d] = formData.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    {!readOnly && <DatePickerField value={formData.startDate} onChange={(val) => setFormData({ ...formData, startDate: val, endDate: formData.endDate || val })} />}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">End Date</label>
+                  <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                    <span className={formData.endDate ? "text-content-primary" : "text-content-faint"}>{formData.endDate ? (() => { const [y,m,d] = formData.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    {!readOnly && <DatePickerField value={formData.endDate} onChange={(val) => setFormData({ ...formData, endDate: val })} />}
+                  </div>
                 </div>
               </div>
-            )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">{formData.status === "absence" ? "From *" : "Start Time *"}</label>
-                <input type="time" value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className="w-full bg-[#141414] border border-gray-700 rounded-xl px-4 py-3 text-white [color-scheme:dark]" disabled={readOnly} />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">{formData.status === "absence" ? "To *" : "End Time *"}</label>
-                <input type="time" value={formData.endTime} onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} className="w-full bg-[#141414] border border-gray-700 rounded-xl px-4 py-3 text-white [color-scheme:dark]" disabled={readOnly} />
+              {!readOnly && (
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">Type</label>
+                  <div className="flex gap-3">
+                    <button onClick={() => setFormData({ ...formData, status: "scheduled" })} className={`flex-1 py-2 px-4 rounded-xl flex items-center justify-center gap-2 text-sm font-medium border transition-all ${formData.status === "scheduled" ? "bg-primary/20 text-primary border-primary/50" : "bg-surface-dark text-content-muted border-transparent hover:border-border"}`}>
+                      <Clock size={16} />Shift
+                    </button>
+                    <button onClick={() => setFormData({ ...formData, status: "absence" })} className={`flex-1 py-2 px-4 rounded-xl flex items-center justify-center gap-2 text-sm font-medium border transition-all ${formData.status === "absence" ? "bg-primary/20 text-primary border-primary/50" : "bg-surface-dark text-content-muted border-transparent hover:border-border"}`}>
+                      <AlertCircle size={16} />Absence
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">{formData.status === "absence" ? "From" : "Start Time"} <span className="text-accent-red">*</span></label>
+                  <input type="time" value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors [color-scheme:dark]" disabled={readOnly} />
+                </div>
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">{formData.status === "absence" ? "To" : "End Time"} <span className="text-accent-red">*</span></label>
+                  <input type="time" value={formData.endTime} onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors [color-scheme:dark]" disabled={readOnly} />
+                </div>
               </div>
             </div>
 
             {hours > 0 && (
-              <div className="rounded-xl p-4 flex items-center gap-3 bg-orange-500/10 border border-orange-500/30">
-                <Clock size={20} className="text-orange-400" />
+              <div className="rounded-xl p-4 flex items-center gap-3 bg-primary/10 border border-primary/30">
+                <Clock size={20} className="text-primary" />
                 <div>
-                  <p className="text-orange-400 font-medium">{hours.toFixed(1)} hours {formData.status === "absence" ? "absent" : ""} {daysCount > 1 ? `× ${daysCount} days` : ""}</p>
-                  <p className="text-xs text-gray-500">{formData.startTime} - {formData.endTime}</p>
+                  <p className="text-primary font-medium text-sm">{hours.toFixed(1)} hours {formData.status === "absence" ? "absent" : ""} {daysCount > 1 ? `× ${daysCount} days` : ""}</p>
+                  <p className="text-xs text-content-faint">{formData.startTime} - {formData.endTime}</p>
                 </div>
               </div>
             )}
 
             {!readOnly && (
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Notes</label>
-                <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full bg-[#141414] border border-gray-700 rounded-xl px-4 py-3 text-white resize-none" />
+                <label className="text-sm text-content-secondary block mb-2">Notes</label>
+                <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none border border-transparent focus:border-primary transition-colors" />
               </div>
             )}
           </div>
 
-          <div className="flex-shrink-0 p-5 border-t border-gray-800 flex gap-3">
-            {shift && !readOnly && <button onClick={() => setShowDeleteModal(true)} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors"><Trash2 size={20} /></button>}
-            {readOnly ? (
-              <button onClick={onClose} className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700">Close</button>
-            ) : (
-              <>
-                <button onClick={onClose} className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700">Cancel</button>
-                <button onClick={handleSave} disabled={!isFormValid} className={`flex-1 py-3 rounded-xl font-medium transition-colors ${isFormValid ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}>{shift ? "Save" : "Add Shift"}</button>
-              </>
+          <div className="flex justify-end gap-2 pt-4">
+            {shift && !readOnly && <button onClick={() => setShowDeleteModal(true)} className="px-4 py-2 text-sm bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors flex items-center gap-1"><Trash2 size={16} />Delete</button>}
+            <button onClick={onClose} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">{readOnly ? "Close" : "Cancel"}</button>
+            {!readOnly && (
+              <button onClick={handleSave} disabled={!isFormValid} className={`px-4 py-2 text-sm rounded-xl transition-colors ${isFormValid ? "bg-primary text-white hover:bg-primary-hover" : "bg-primary/50 text-white/50 cursor-not-allowed"}`}>{shift ? "Save Changes" : "Add Shift"}</button>
             )}
           </div>
         </div>
@@ -1254,29 +1254,26 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
     setModalFixedStaffId(null); setIsReadOnlyModal(false); cancelSelection()
   }
 
-  const containerClass = isEmbedded ? "w-full h-full" : isFullscreen ? "fixed inset-0 z-[1000] bg-[#0f0f0f]" : "fixed inset-0 bg-black/60 z-[1000] flex items-center justify-center p-0 sm:p-2"
-  const modalClass = isEmbedded ? "w-full h-full flex flex-col" : isFullscreen ? "w-full h-full flex flex-col" : "w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-[1400px] sm:max-h-[95vh] flex flex-col sm:border border-gray-800 shadow-2xl overflow-hidden"
+  const containerClass = isEmbedded ? "w-full h-full" : isFullscreen ? "fixed inset-0 z-[1000] bg-surface-base" : "fixed inset-0 bg-black/60 z-[1000] flex items-center justify-center p-0 sm:p-2"
+  const modalClass = isEmbedded ? "w-full h-full flex flex-col" : isFullscreen ? "w-full h-full flex flex-col" : "w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-[1400px] sm:max-h-[95vh] flex flex-col sm:border border-border shadow-2xl overflow-hidden"
 
   return (
     <div className={`${containerClass} shift-modal-wrapper`}>
       <ShiftStyles />
-      <div className={`bg-[#1a1a1a] text-white ${modalClass}`}>
+      <div className={`bg-surface-card text-content-primary ${modalClass}`}>
         {/* Header */}
-        <div className="flex-shrink-0 border-b border-gray-800 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex-shrink-0 border-b border-border px-4 sm:px-6 py-3 sm:py-4">
           {/* Row 1: Title + Filter + Close */}
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg sm:rounded-xl flex-shrink-0"><Calendar className="text-blue-400 w-4 h-4 sm:w-5 sm:h-5" /></div>
-              <div className="min-w-0">
-                <h2 className="font-bold text-white text-base sm:text-xl truncate">Shift Schedule</h2>
-                <p className="text-gray-500 text-xs hidden sm:block">Manage team shifts and absences</p>
-              </div>
+              <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg sm:rounded-xl flex-shrink-0"><Calendar className="text-primary w-4 h-4 sm:w-5 sm:h-5" /></div>
+              <h2 className="font-semibold text-content-primary text-lg sm:text-xl truncate">Shift Schedule</h2>
               {/* Filter - Mobile: next to title */}
               {viewMode === "team" && (
                 <select 
                   value={staffFilter} 
                   onChange={(e) => setStaffFilter(e.target.value)} 
-                  className="sm:hidden bg-gray-800 border border-gray-700 rounded-lg text-white px-2 py-1.5 text-xs ml-auto flex-shrink-0"
+                  className="sm:hidden bg-surface-dark border border-border rounded-lg text-content-primary px-2 py-1.5 text-xs ml-auto flex-shrink-0"
                 >
                   <option value="all">All</option>
                   {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName}</option>)}
@@ -1284,65 +1281,65 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
               )}
             </div>
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {!isEmbedded && <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg hidden sm:block">{isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>}
-              {!isEmbedded && <button onClick={onClose} className="p-1.5 sm:p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg"><X size={18} className="sm:hidden" /><X size={20} className="hidden sm:block" /></button>}
+              {!isEmbedded && <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 bg-surface-dark hover:bg-surface-hover text-content-secondary rounded-lg hidden sm:block">{isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>}
+              {!isEmbedded && <button onClick={onClose} className="p-1.5 sm:p-2 hover:bg-surface-dark text-content-muted hover:text-content-primary rounded-lg"><X size={18} className="sm:hidden" /><X size={20} className="hidden sm:block" /></button>}
             </div>
           </div>
 
           {/* Row 2: Navigation + Controls */}
           <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            {/* Navigation */}
+            {/* Navigation + Period Toggle */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <button onClick={goToPrevious} className="p-1.5 sm:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg flex-shrink-0"><ChevronLeft size={16} className="sm:hidden text-gray-400" /><ChevronLeft size={18} className="hidden sm:block text-gray-400" /></button>
-              <button onClick={() => setCurrentMonth(new Date())} className="bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[200px] truncate">{getNavigationLabel()}</button>
-              <button onClick={goToNext} className="p-1.5 sm:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg flex-shrink-0"><ChevronRight size={16} className="sm:hidden text-gray-400" /><ChevronRight size={18} className="hidden sm:block text-gray-400" /></button>
+              <button onClick={goToPrevious} className="p-1.5 sm:p-2 bg-surface-dark hover:bg-surface-hover rounded-lg flex-shrink-0"><ChevronLeft size={16} className="sm:hidden text-content-muted" /><ChevronLeft size={18} className="hidden sm:block text-content-muted" /></button>
+              <button onClick={() => setCurrentMonth(new Date())} className="bg-surface-dark hover:bg-surface-hover rounded-lg font-medium text-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[200px] truncate">{getNavigationLabel()}</button>
+              <button onClick={goToNext} className="p-1.5 sm:p-2 bg-surface-dark hover:bg-surface-hover rounded-lg flex-shrink-0"><ChevronRight size={16} className="sm:hidden text-content-muted" /><ChevronRight size={18} className="hidden sm:block text-content-muted" /></button>
+
+              {/* Period Toggle - right next to date */}
+              <div className="flex bg-surface-dark rounded-lg p-0.5">
+                {["day", "week", "month"].map(p => (
+                  <button key={p} onClick={() => setViewPeriod(p)} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm capitalize ${viewPeriod === p ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>{p.charAt(0).toUpperCase()}<span className="hidden sm:inline">{p.slice(1)}</span></button>
+                ))}
+              </div>
             </div>
 
             {/* Desktop only: Filter + Multi-Select */}
             {viewMode === "team" && (
               <div className="hidden sm:flex items-center gap-2">
-                <div className="w-px h-6 bg-gray-700 mx-1" />
-                <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-xl text-white px-3 py-2 text-sm">
+                <div className="w-px h-6 bg-surface-button mx-1" />
+                <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="bg-surface-dark border border-border rounded-xl text-content-primary px-3 py-2 text-sm">
                   <option value="all">All ({staffMembers.length})</option>
                   {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
                 </select>
-                <div className="w-px h-6 bg-gray-700 mx-1" />
-                <button onClick={() => { setIsMultiSelectMode(!isMultiSelectMode); cancelSelection() }} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-colors ${isMultiSelectMode ? "bg-orange-500 text-white" : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"}`}>
+                <div className="w-px h-6 bg-surface-button mx-1" />
+                <button onClick={() => { setIsMultiSelectMode(!isMultiSelectMode); cancelSelection() }} className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm transition-colors ${isMultiSelectMode ? "bg-primary text-white" : "bg-surface-dark text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
                   <MousePointer2 size={14} />Multi-Select {isMultiSelectMode ? "ON" : "OFF"}
                 </button>
-                {isMultiSelectMode && selectionStart && <button onClick={cancelSelection} className="text-gray-400 hover:text-white text-xs">Cancel</button>}
+                {isMultiSelectMode && selectionStart && <button onClick={cancelSelection} className="text-content-muted hover:text-content-primary text-xs">Cancel</button>}
               </div>
             )}
 
             <div className="flex-1 hidden sm:block" />
 
-            {/* Combined Toggles: Period + View Mode */}
+            {/* New Shift + View Mode */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Period Toggle */}
-              <div className="flex bg-gray-800 rounded-lg p-0.5">
-                {["day", "week", "month"].map(p => (
-                  <button key={p} onClick={() => setViewPeriod(p)} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm capitalize ${viewPeriod === p ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"}`}>{p.charAt(0).toUpperCase()}<span className="hidden sm:inline">{p.slice(1)}</span></button>
-                ))}
-              </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex bg-gray-800 rounded-lg p-0.5">
-                <button onClick={() => setViewMode("team")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "team" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}><Users size={12} className="sm:hidden" /><Users size={14} className="hidden sm:block" /><span className="hidden xs:inline">Team</span></button>
-                <button onClick={() => setViewMode("individual")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "individual" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}><User size={12} className="sm:hidden" /><User size={14} className="hidden sm:block" /><span className="hidden xs:inline">My</span></button>
-              </div>
-
-              {/* Desktop: New Shift Button */}
+              {/* Desktop: New Shift Button - left of view mode */}
               {viewMode === "team" && (
-                <button onClick={() => handleAddShift(null)} className="hidden sm:flex bg-orange-500 hover:bg-orange-600 text-white rounded-xl items-center gap-2 px-4 py-2 text-sm">
+                <button onClick={() => handleAddShift(null)} className="hidden sm:flex bg-primary hover:bg-primary-hover text-white rounded-xl items-center gap-2 px-4 py-2 text-sm">
                   <Plus size={16} />New Shift
                 </button>
               )}
+
+              {/* View Mode Toggle */}
+              <div className="flex bg-surface-dark rounded-lg p-0.5">
+                <button onClick={() => setViewMode("team")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "team" ? "bg-secondary text-white" : "text-content-muted hover:text-content-primary"}`}><Users size={12} className="sm:hidden" /><Users size={14} className="hidden sm:block" />Team</button>
+                <button onClick={() => setViewMode("individual")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "individual" ? "bg-secondary text-white" : "text-content-muted hover:text-content-primary"}`}><User size={12} className="sm:hidden" /><User size={14} className="hidden sm:block" />My</button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-4 bg-[#141414]">
+        <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-4 bg-surface-card">
           {viewMode === "individual" && currentStaff ? (
             <IndividualCalendarView staff={currentStaff} shifts={shifts} currentMonth={currentMonth} onViewShift={handleViewShift} closingDays={closingDays} viewPeriod={viewPeriod} />
           ) : (
@@ -1356,21 +1353,21 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-800 bg-[#1a1a1a] px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto">
+        <div className="flex-shrink-0 border-t border-border bg-surface-card px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto">
           <div className="flex items-center gap-4 sm:gap-6 h-5 sm:h-6 min-w-max">
-            <span className="text-gray-500 uppercase tracking-wider text-[10px] sm:text-xs flex-shrink-0">LEGEND:</span>
+            <span className="text-content-faint uppercase tracking-wider text-[10px] sm:text-xs flex-shrink-0">LEGEND:</span>
             {viewMode === "team" ? (
               <div className="flex items-center gap-3 sm:gap-6">
                 {filteredStaffMembers.slice(0, 4).map(s => (
-                  <div key={s.id} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-3 sm:w-4 h-2 sm:h-3 rounded" style={{ backgroundColor: s.color || "#3F74FF" }} /><span className="text-gray-400 text-[10px] sm:text-xs">{s.firstName}</span></div>
+                  <div key={s.id} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-3 sm:w-4 h-2 sm:h-3 rounded" style={{ backgroundColor: s.color || "var(--color-secondary)" }} /><span className="text-content-muted text-[10px] sm:text-xs">{s.firstName}</span></div>
                 ))}
-                {filteredStaffMembers.length > 4 && <span className="text-gray-500 text-[10px] sm:text-xs hidden sm:inline">+{filteredStaffMembers.length - 4}</span>}
+                {filteredStaffMembers.length > 4 && <span className="text-content-faint text-[10px] sm:text-xs hidden sm:inline">+{filteredStaffMembers.length - 4}</span>}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-4 sm:w-5 h-2 sm:h-3 rounded" style={{ backgroundColor: currentStaff?.color || "#3F74FF" }} /><span className="text-gray-400 text-[10px] sm:text-xs">Scheduled</span></div>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-4 sm:w-5 h-2 sm:h-3 rounded" style={{ backgroundColor: currentStaff?.color || "var(--color-secondary)" }} /><span className="text-content-muted text-[10px] sm:text-xs">Scheduled</span></div>
             )}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-4 sm:w-5 h-2 sm:h-3 rounded hatched-absence border border-red-500/30" /><span className="text-gray-400 text-[10px] sm:text-xs">Absence</span></div>
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 hidden sm:flex"><div className="w-5 h-3 rounded hatched-closing" /><span className="text-gray-400 text-xs">Closing Days</span></div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-4 sm:w-5 h-2 sm:h-3 rounded hatched-absence border border-red-500/30" /><span className="text-content-muted text-[10px] sm:text-xs">Absence</span></div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 hidden sm:flex"><div className="w-5 h-3 rounded hatched-closing" /><span className="text-content-muted text-xs">Closing Days</span></div>
           </div>
         </div>
 
@@ -1378,7 +1375,7 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
         {viewMode === "team" && (
           <button
             onClick={() => handleAddShift(null)}
-            className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[1001]"
+            className="sm:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[1001]"
             aria-label="Add New Shift"
           >
             <Plus size={22} />

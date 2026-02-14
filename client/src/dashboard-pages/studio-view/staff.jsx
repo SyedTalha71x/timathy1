@@ -62,7 +62,7 @@ const RoleTag = ({ role, compact = false }) => {
       'Therapist': 'bg-teal-600'
     };
 
-    return roleColors[role] || 'bg-gray-600';
+    return roleColors[role] || 'bg-content-faint';
   };
 
   const bgColor = getDynamicRoleColor(role);
@@ -904,10 +904,10 @@ const AdminBanner = () => {
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Grid View</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                     </div>
                   </div>
                   
@@ -924,15 +924,15 @@ const AdminBanner = () => {
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">List View</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                     </div>
                   </div>
 
                   {/* Compact/Detailed Toggle */}
-                  <div className="h-6 w-px bg-border-subtle mx-1"></div>
+                  <div className="h-6 w-px bg-border mx-1"></div>
                   <div className="relative group">
                     <button
                       onClick={() => setIsCompactView(!isCompactView)}
@@ -940,20 +940,20 @@ const AdminBanner = () => {
                     >
                       <div className="flex flex-col gap-0.5">
                         <div className="flex gap-0.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                          <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
                         </div>
                         <div className="flex gap-0.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                          <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
                         </div>
                       </div>
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                     </div>
                   </div>
                 </div>
@@ -973,10 +973,10 @@ const AdminBanner = () => {
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Staff Planning</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">P</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                     </div>
                   </div>
 
@@ -990,10 +990,10 @@ const AdminBanner = () => {
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Vacation Calendar</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">K</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                     </div>
                   </div>
 
@@ -1002,15 +1002,15 @@ const AdminBanner = () => {
                       onClick={() => setIsModalOpen(true)}
                       className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                     >
-                      <Plus size={14} />
+                      <Plus size={18} />
                       <span>Create Staff</span>
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">Create Staff Member</span>
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                      <span className="font-medium">Create Staff</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                     </div>
                   </div>
                 </div>
@@ -1048,9 +1048,9 @@ const AdminBanner = () => {
                   {staffFilters.map((filter) => (
                     <div 
                       key={filter.staffId}
-                      className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
+                      className="flex items-center gap-1.5 bg-secondary/20 border border-secondary/40 rounded-lg px-2 py-1 text-sm"
                     >
-                      <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                      <div className="w-5 h-5 rounded bg-secondary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
                         {filter.staffName.split(' ')[0]?.charAt(0)}{filter.staffName.split(' ')[1]?.charAt(0) || ''}
                       </div>
                       <span className="text-content-primary text-xs whitespace-nowrap">{filter.staffName}</span>
@@ -1059,7 +1059,7 @@ const AdminBanner = () => {
                           e.stopPropagation();
                           handleRemoveFilter(filter.staffId);
                         }}
-                        className="p-0.5 hover:bg-primary/30 rounded transition-colors"
+                        className="p-0.5 hover:bg-secondary/30 rounded transition-colors"
                       >
                         <X size={12} className="text-secondary hover:text-secondary-hover" />
                       </button>
@@ -1354,7 +1354,7 @@ const AdminBanner = () => {
                             >
                               <Eye size={isCompactView ? 16 : 18} />
                             </button>
-                            <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border-subtle/50 mx-1`} />
+                            <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
                             <button
                               onClick={() => handleEdit(staff)}
                               className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
@@ -1664,7 +1664,7 @@ const AdminBanner = () => {
                          {!isAdminMode && (
   <button
     onClick={() => handleChatClick(staff)}
-    className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+    className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
     title="Start Chat"
   >
     <MessageCircle size={18} />

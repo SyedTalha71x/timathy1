@@ -4,8 +4,7 @@ import { createPortal } from "react-dom"
 import ReactQuill, { Quill } from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import { X, Upload } from "lucide-react"
-import data from '@emoji-mart/data'
-import Picker from '@emoji-mart/react'
+import EmojiPicker from "../shared/EmojiPicker"
 
 // Register custom fonts
 const FontClass = Quill.import('formats/font')
@@ -203,7 +202,6 @@ export const WysiwygEditor = forwardRef(({
   const isResizing = useRef(false)
   const isDraggingRef = useRef(false)
   const isDraggingFromHandle = useRef(false)
-  const emojiPickerRef = useRef(null)
   
   const lastValueRef = useRef(normalizedValue)
   const isInternalUpdate = useRef(false)
@@ -290,41 +288,6 @@ export const WysiwygEditor = forwardRef(({
     savedContentRef.current = newContent
     onChange(newContent)
   }, [onChange])
-
-  // Click outside handler for emoji picker
-  useEffect(() => {
-    if (!showEmojiPicker) return
-
-    const handleClickOutside = (event) => {
-      const isInsideEmojiPicker = emojiPickerRef.current?.contains(event.target)
-      // Check if clicking on the toolbar emoji button
-      const isEmojiButton = event.target.closest('.ql-emoji')
-      
-      // Check for emoji-mart elements (Web Components with Shadow DOM)
-      const path = event.composedPath ? event.composedPath() : []
-      const isInEmojiMartPath = path.some(el => 
-        el.tagName?.toLowerCase() === 'em-emoji-picker' ||
-        el.classList?.contains('emoji-mart') ||
-        (el.getAttribute && el.getAttribute('data-emoji-picker'))
-      )
-      
-      const isEmojiMartElement = event.target.closest('em-emoji-picker') || 
-                                  event.target.closest('[data-emoji-picker]') ||
-                                  event.target.closest('.emoji-mart')
-
-      if (!isInsideEmojiPicker && !isEmojiButton && !isEmojiMartElement && !isInEmojiMartPath) {
-        setShowEmojiPicker(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('touchstart', handleClickOutside)
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('touchstart', handleClickOutside)
-    }
-  }, [showEmojiPicker])
 
   // Toggle active class on emoji button when picker is open
   useEffect(() => {
@@ -1939,28 +1902,18 @@ export const WysiwygEditor = forwardRef(({
         {renderImageSelection()}
         
         {/* Emoji Picker - rendered via portal for proper z-index */}
-        {showEmojiPicker && createPortal(
-          <div 
-            ref={emojiPickerRef}
-            className="fixed shadow-2xl rounded-xl overflow-hidden"
-            style={{ top: emojiPickerPos.top, left: emojiPickerPos.left, zIndex: 99999, '--color-a': 'var(--color-primary, #f97316)', '--rgb-accent': '249, 115, 22' }}
-            data-emoji-picker
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-          >
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji) => {
-                insertEmoji(emoji)
-                setShowEmojiPicker(false)
-              }}
-              theme={document.documentElement.classList.contains('light') ? 'light' : 'dark'}
-              previewPosition="none"
-              skinTonePosition="none"
-              perLine={8}
-              maxFrequentRows={2}
-            />
-          </div>,
+        {createPortal(
+          <EmojiPicker
+            isOpen={showEmojiPicker}
+            onEmojiSelect={(emoji) => {
+              insertEmoji(emoji)
+              setShowEmojiPicker(false)
+            }}
+            onClose={() => setShowEmojiPicker(false)}
+            className="fixed"
+            style={{ top: emojiPickerPos.top, left: emojiPickerPos.left, zIndex: 99999 }}
+            ignoreCloseSelectors={['.ql-emoji']}
+          />,
           document.body
         )}
       </div>

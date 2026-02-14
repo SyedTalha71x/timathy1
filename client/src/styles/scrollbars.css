@@ -1,13 +1,24 @@
 /* ============================================
    SCROLLBAR STYLES
-   Uses --theme-* variables with fallbacks.
+   Neutral grays — no blue tint.
+   Dark = default, .light overrides.
    ============================================ */
+
+:root {
+  --scrollbar-thumb: #3a3a3a;
+  --scrollbar-thumb-hover: #555555;
+}
+
+.light {
+  --scrollbar-thumb: #c0c0c0;
+  --scrollbar-thumb-hover: #a0a0a0;
+}
 
 /* ---- Global Page Scrollbar (Firefox) ---- */
 html,
 body {
   scrollbar-width: thin;
-  scrollbar-color: var(--theme-scrollbar-thumb, #333333) var(--theme-scrollbar-track, #1C1C1C);
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 /* ---- .custom-scrollbar (WebKit) ---- */
@@ -16,23 +27,23 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--theme-scrollbar-track, #1C1C1C);
+  background: transparent;
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--theme-scrollbar-thumb, #333333);
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--theme-scrollbar-thumb-hover, #444444);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ---- .custom-scrollbar (Firefox) ---- */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--theme-scrollbar-thumb, #333333) var(--theme-scrollbar-track, #1C1C1C);
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 /* ---- Mobile Horizontal Scrollbar ---- */
@@ -40,7 +51,7 @@ body {
   .custom_scrollbar {
     overflow-x: auto;
     scrollbar-width: thin;
-    scrollbar-color: #6b7280 #374151;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 
   .custom_scrollbar::-webkit-scrollbar {
@@ -48,12 +59,12 @@ body {
   }
 
   .custom_scrollbar::-webkit-scrollbar-thumb {
-    background-color: #6b7280;
+    background-color: var(--scrollbar-thumb);
     border-radius: 4px;
   }
 
   .custom_scrollbar::-webkit-scrollbar-track {
-    background-color: #374151;
+    background-color: transparent;
     border-radius: 4px;
   }
 }
@@ -73,10 +84,34 @@ body {
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--scrollbar-thumb);
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: transparent;
   border-radius: 4px;
+}
+
+/* ---- Sidebar Scrollbar (always dark) ---- */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 10px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555555;
 }

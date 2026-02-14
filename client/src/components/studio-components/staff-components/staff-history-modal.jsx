@@ -17,7 +17,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md" }) => {
   }
 
   return (
-    <div className={`bg-blue-600 rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]}`}>
+    <div className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]}`}>
       {getInitials()}
     </div>
   )
@@ -27,16 +27,16 @@ const InitialsAvatar = ({ firstName, lastName, size = "md" }) => {
 const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
       active
-        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-        : "text-gray-400 hover:text-white hover:bg-[#2F2F2F]"
+        ? "text-primary border-b-2 border-primary"
+        : "text-content-muted hover:text-content-primary"
     }`}
   >
     <Icon size={16} />
     <span>{label}</span>
     {count !== undefined && (
-      <span className={`px-1.5 py-0.5 rounded-md text-xs ${active ? "bg-blue-500" : "bg-[#2F2F2F]"}`}>
+      <span className={`px-1.5 py-0.5 rounded-md text-xs ${active ? "bg-primary/20 text-primary" : "bg-surface-button text-content-muted"}`}>
         {count}
       </span>
     )}
@@ -45,74 +45,61 @@ const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
 
 // Change Card Component
 const ChangeCard = ({ change }) => (
-  <div className="bg-[#1C1C1C] rounded-xl p-4 border border-[#2F2F2F] hover:border-[#3F3F3F] transition-colors">
+  <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
       <div className="flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-blue-500" />
-        <h4 className="font-medium text-white">{change.field}</h4>
+        <div className="w-2 h-2 rounded-full bg-secondary" />
+        <h4 className="font-medium text-content-primary">{change.field}</h4>
       </div>
-      <div className="flex items-center gap-2 text-xs text-gray-500">
+      <div className="flex items-center gap-2 text-xs text-content-faint">
         <Clock size={12} />
         <span>{change.date} • {change.time}</span>
       </div>
     </div>
     
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 text-sm mb-3">
-      <div className="flex items-center gap-2 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg w-full sm:w-auto">
-        <XCircle size={14} className="flex-shrink-0" />
+      <div className="flex items-center gap-2 bg-secondary/10 text-content-secondary px-3 py-1.5 rounded-lg w-full sm:w-auto">
+        <XCircle size={14} className="flex-shrink-0 text-content-muted" />
         <span className="truncate">{change.oldValue}</span>
       </div>
-      <ArrowRight size={16} className="text-gray-600 hidden sm:block flex-shrink-0" />
-      <div className="flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg w-full sm:w-auto">
-        <CheckCircle size={14} className="flex-shrink-0" />
+      <ArrowRight size={16} className="text-content-faint hidden sm:block flex-shrink-0" />
+      <div className="flex items-center gap-2 bg-secondary/10 text-content-primary px-3 py-1.5 rounded-lg w-full sm:w-auto">
+        <CheckCircle size={14} className="flex-shrink-0 text-secondary" />
         <span className="truncate">{change.newValue}</span>
       </div>
     </div>
     
-    <p className="text-xs text-gray-500">
-      Changed by <span className="text-gray-300">{change.changedBy}</span>
+    <p className="text-xs text-content-faint">
+      Changed by <span className="text-content-secondary">{change.changedBy}</span>
     </p>
   </div>
 )
 
 // Action Card Component
-const ActionCard = ({ action }) => {
-  const getActionColor = (actionType) => {
-    const colors = {
-      "Moved Appointment": "bg-purple-500/10 text-purple-400 border-purple-500/20",
-      "Changed Member Data": "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      "Created To-Do List": "bg-green-500/10 text-green-400 border-green-500/20",
-      "Deleted To-Do List": "bg-red-500/10 text-red-400 border-red-500/20",
-      "Assigned Task": "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    }
-    return colors[actionType] || "bg-gray-500/10 text-gray-400 border-gray-500/20"
-  }
-
-  return (
-    <div className="bg-[#1C1C1C] rounded-xl p-4 border border-[#2F2F2F] hover:border-[#3F3F3F] transition-colors">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-        <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium border ${getActionColor(action.action)}`}>
-          {action.action}
-        </span>
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <Clock size={12} />
-          <span>{action.date} • {action.time}</span>
-        </div>
-      </div>
-      
-      <p className="text-sm text-gray-300 mb-2">{action.details}</p>
-      
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-        <span className="text-gray-500">
-          Target: <span className="text-gray-400">{action.target}</span>
-        </span>
-        <span className="text-gray-500">
-          By: <span className="text-gray-400">{action.performedBy}</span>
-        </span>
+const ActionCard = ({ action }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
+        {action.action}
+      </span>
+      <div className="flex items-center gap-2 text-xs text-content-faint">
+        <Clock size={12} />
+        <span>{action.date} • {action.time}</span>
       </div>
     </div>
-  )
-}
+    
+    <p className="text-sm text-content-secondary mb-2">{action.details}</p>
+    
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+      <span className="text-content-faint">
+        Target: <span className="text-content-muted">{action.target}</span>
+      </span>
+      <span className="text-content-faint">
+        By: <span className="text-content-muted">{action.performedBy}</span>
+      </span>
+    </div>
+  </div>
+)
 
 // Login Activity Card Component
 const LoginCard = ({ activity }) => {
@@ -127,34 +114,30 @@ const LoginCard = ({ activity }) => {
   }
 
   return (
-    <div className="bg-[#1C1C1C] rounded-xl p-4 border border-[#2F2F2F] hover:border-[#3F3F3F] transition-colors">
+    <div className="bg-surface-dark rounded-xl p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-            activity.action === "Login" 
-              ? "bg-green-500/10 text-green-400" 
-              : "bg-red-500/10 text-red-400"
-          }`}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/10 text-secondary">
             <LogIn size={18} className={activity.action === "Logout" ? "rotate-180" : ""} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className={`font-medium ${activity.action === "Login" ? "text-green-400" : "text-red-400"}`}>
+              <span className={`font-medium ${activity.action === "Login" ? "text-content-primary" : "text-content-secondary"}`}>
                 {activity.action}
               </span>
-              <span className={`w-2 h-2 rounded-full ${activity.action === "Login" ? "bg-green-500" : "bg-red-500"}`} />
+              <span className={`w-2 h-2 rounded-full ${activity.action === "Login" ? "bg-secondary" : "bg-content-muted"}`} />
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">{activity.date} • {activity.time}</p>
+            <p className="text-xs text-content-faint mt-0.5">{activity.date} • {activity.time}</p>
           </div>
         </div>
       </div>
       
-      <div className="mt-3 pt-3 border-t border-[#2F2F2F] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs">
-        <div className="flex items-center gap-2 text-gray-400">
-          <Globe size={12} className="text-gray-500" />
+      <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs">
+        <div className="flex items-center gap-2 text-content-muted">
+          <Globe size={12} className="text-content-faint" />
           <span>{activity.ipAddress}</span>
         </div>
-        <div className="flex items-center gap-2 text-gray-400">
+        <div className="flex items-center gap-2 text-content-muted">
           {getDeviceIcon(activity.device)}
           <span>{activity.device}</span>
         </div>
@@ -165,33 +148,29 @@ const LoginCard = ({ activity }) => {
 
 // Vacation Card Component
 const VacationCard = ({ vacation }) => (
-  <div className="bg-[#1C1C1C] rounded-xl p-4 border border-[#2F2F2F] hover:border-[#3F3F3F] transition-colors">
+  <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-          <Calendar size={18} className="text-purple-400" />
+        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+          <Calendar size={18} className="text-secondary" />
         </div>
         <div>
-          <p className="font-medium text-white">
+          <p className="font-medium text-content-primary">
             {new Date(vacation.startDate).toLocaleDateString("de-DE", { day: "2-digit", month: "short" })} - {new Date(vacation.endDate).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" })}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-content-faint mt-0.5">
             {vacation.days} days • Requested {new Date(vacation.requestDate).toLocaleDateString("de-DE")}
           </p>
         </div>
       </div>
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium ${
-        vacation.status === "Approved" 
-          ? "bg-green-500/10 text-green-400 border border-green-500/20" 
-          : "bg-orange-500/10 text-orange-400 border border-orange-500/20"
-      }`}>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
         {vacation.status === "Approved" && <CheckCircle size={12} />}
         {vacation.status}
       </span>
     </div>
     
-    <p className="text-xs text-gray-500">
-      Approved by <span className="text-gray-400">{vacation.approvedBy}</span>
+    <p className="text-xs text-content-faint">
+      Approved by <span className="text-content-muted">{vacation.approvedBy}</span>
     </p>
   </div>
 )
@@ -199,11 +178,11 @@ const VacationCard = ({ vacation }) => (
 // Empty State Component
 const EmptyState = ({ icon: Icon, title, description }) => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
-    <div className="w-16 h-16 rounded-2xl bg-[#2F2F2F] flex items-center justify-center mb-4">
-      <Icon size={24} className="text-gray-500" />
+    <div className="w-16 h-16 rounded-2xl bg-surface-button flex items-center justify-center mb-4">
+      <Icon size={24} className="text-content-faint" />
     </div>
-    <h4 className="text-white font-medium mb-1">{title}</h4>
-    <p className="text-sm text-gray-500">{description}</p>
+    <h4 className="text-content-primary font-medium mb-1">{title}</h4>
+    <p className="text-sm text-content-faint">{description}</p>
   </div>
 )
 
@@ -361,32 +340,31 @@ function StaffHistoryModal({ staff, onClose }) {
   ]
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center">
-      <div className="bg-[#181818] w-full h-[95vh] md:h-auto md:rounded-2xl md:max-w-4xl md:mx-4 md:max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000] overflow-y-auto">
+      <div className="bg-surface-card p-6 rounded-xl w-full max-w-4xl my-8 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 p-4 md:p-6 border-b border-[#2F2F2F]">
-          <div className="flex items-center justify-between">
+        <div className="flex-shrink-0">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <InitialsAvatar firstName={staff?.firstName} lastName={staff?.lastName} size="md" />
               <div>
-                <h2 className="text-lg md:text-xl font-bold text-white">
+                <h2 className="text-xl text-content-primary font-bold">
                   {staff?.firstName} {staff?.lastName}
                 </h2>
-                <p className="text-sm text-gray-400">Activity History</p>
+                <p className="text-sm text-content-muted">Activity History</p>
               </div>
             </div>
             <button 
               onClick={onClose} 
-              className="p-2 hover:bg-[#2F2F2F] rounded-xl text-gray-400 hover:text-white transition-colors"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
           </div>
         </div>
 
-        {/* Tabs - Horizontally scrollable on mobile */}
-        <div className="flex-shrink-0 border-b border-[#2F2F2F]">
-          <div className="flex gap-2 p-3 md:p-4 overflow-x-auto scrollbar-hide">
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <TabButton
                 key={tab.id}
@@ -396,12 +374,10 @@ function StaffHistoryModal({ staff, onClose }) {
                 label={tab.label}
                 count={tab.count}
               />
-            ))}
-          </div>
-        </div>
+            ))}</div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === "profile" && (
             <div className="space-y-3">
               {profileChanges.length > 0 ? (
@@ -468,10 +444,10 @@ function StaffHistoryModal({ staff, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 p-4 md:p-6 border-t border-[#2F2F2F]">
+        <div className="flex justify-end pt-4">
           <button
             onClick={onClose}
-            className="w-full md:w-auto px-6 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm font-medium transition-colors"
+            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Close
           </button>

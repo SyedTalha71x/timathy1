@@ -97,6 +97,16 @@
   -webkit-text-fill-color: var(--color-content-muted) !important;
 }
 
+/* Force native form elements to inherit the app font (Open Sans)
+   instead of falling back to the OS system font */
+select,
+option,
+input,
+textarea,
+button {
+  font-family: inherit;
+}
+
 /* Global text selection — uses primary color across the entire platform */
 ::selection {
   background: var(--color-primary) !important;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, createContext } from "react"
+import React, { useState, useCallback, createContext, useRef, useEffect } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 import Sidebar from "./components/sidebar"
 import DashboardHeader from "./components/DashboardHeader"
@@ -31,8 +31,16 @@ export const ExternalSidebarContext = createContext({
  */
 const Dashboardlayout = () => {
   const location = useLocation()
+  const mainRef = useRef(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false)
+
+  // Scroll main content to top on route change
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0)
+    }
+  }, [location.pathname])
   
   // External sidebar state for pages with custom sidebars (e.g., Selling)
   const [isExternalSidebarOpen, setIsExternalSidebarOpen] = useState(false)
@@ -140,6 +148,7 @@ const Dashboardlayout = () => {
 
           {/* Main Content Area */}
           <main
+            ref={mainRef}
             className={`
               flex-1 md:h-screen h-[calc(100vh-3.5rem)] overflow-y-auto 
               lg:pt-0 md:pt-14 sm:pt-14 pt-14

@@ -240,7 +240,7 @@ const AssessmentFormModal = ({
                 value={currentAnswer}
                 onChange={(e) => handleAnswerChange(item.id, e.target.value)}
                 disabled={isViewMode}
-                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 appearance-none disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-primary text-base focus:outline-none focus:border-primary appearance-none disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">Select {variableLabel}...</option>
                 {variableOptions.map(option => (
@@ -250,7 +250,7 @@ const AssessmentFormModal = ({
                 ))}
               </select>
               <svg 
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none w-4 h-4" 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none w-4 h-4" 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
@@ -269,7 +269,7 @@ const AssessmentFormModal = ({
               value={currentAnswer}
               onChange={(e) => handleAnswerChange(item.id, e.target.value)}
               disabled={isViewMode}
-              className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-primary text-base focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
         );
@@ -283,7 +283,7 @@ const AssessmentFormModal = ({
               onChange={(e) => handleAnswerChange(item.id, e.target.value)}
               disabled={isViewMode}
               placeholder={isViewMode ? "" : `Enter ${variableLabel}...`}
-              className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-primary text-base focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
         );
@@ -305,9 +305,9 @@ const AssessmentFormModal = ({
                 checked={currentAnswer === 'yes'}
                 onChange={() => handleAnswerChange(question.id, 'yes')}
                 disabled={isViewMode}
-                className="w-5 h-5 accent-blue-600"
+                className="w-5 h-5 accent-primary"
               />
-              <span className="text-gray-300">Yes</span>
+              <span className="text-content-secondary">Yes</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input 
@@ -316,9 +316,9 @@ const AssessmentFormModal = ({
                 checked={currentAnswer === 'no'}
                 onChange={() => handleAnswerChange(question.id, 'no')}
                 disabled={isViewMode}
-                className="w-5 h-5 accent-blue-600"
+                className="w-5 h-5 accent-primary"
               />
-              <span className="text-gray-300">No</span>
+              <span className="text-content-secondary">No</span>
             </label>
           </div>
         );
@@ -333,9 +333,9 @@ const AssessmentFormModal = ({
                 checked={currentAnswer === 'yes'}
                 onChange={() => handleAnswerChange(question.id, 'yes')}
                 disabled={isViewMode}
-                className="w-5 h-5 accent-blue-600"
+                className="w-5 h-5 accent-primary"
               />
-              <span className="text-gray-300">Yes</span>
+              <span className="text-content-secondary">Yes</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input 
@@ -344,9 +344,9 @@ const AssessmentFormModal = ({
                 checked={currentAnswer === 'no'}
                 onChange={() => handleAnswerChange(question.id, 'no')}
                 disabled={isViewMode}
-                className="w-5 h-5 accent-blue-600"
+                className="w-5 h-5 accent-primary"
               />
-              <span className="text-gray-300">No</span>
+              <span className="text-content-secondary">No</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input 
@@ -355,9 +355,9 @@ const AssessmentFormModal = ({
                 checked={currentAnswer === 'dontknow'}
                 onChange={() => handleAnswerChange(question.id, 'dontknow')}
                 disabled={isViewMode}
-                className="w-5 h-5 accent-blue-600"
+                className="w-5 h-5 accent-primary"
               />
-              <span className="text-gray-300">Don&apos;t know</span>
+              <span className="text-content-secondary">Don&apos;t know</span>
             </label>
           </div>
         );
@@ -372,9 +372,9 @@ const AssessmentFormModal = ({
                   checked={(currentAnswer || []).includes(option.id)}
                   onChange={(e) => handleMultipleChoiceChange(question.id, option.id, e.target.checked)}
                   disabled={isViewMode}
-                  className="w-5 h-5 accent-blue-600"
+                  className="w-5 h-5 accent-primary"
                 />
-                <span className="text-gray-300">
+                <span className="text-content-secondary">
                   {String.fromCharCode(97 + index)}). {option.text}
                 </span>
               </label>
@@ -390,7 +390,7 @@ const AssessmentFormModal = ({
               value={currentAnswer || ''}
               onChange={(e) => handleAnswerChange(question.id, e.target.value)}
               disabled={isViewMode}
-              className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-primary text-base focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
               placeholder={isViewMode ? "" : "Enter your answer..."}
             />
           </div>
@@ -487,39 +487,39 @@ const AssessmentFormModal = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
-        <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl border border-gray-700 flex flex-col max-h-[90vh]">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1000]">
+        <div className="bg-surface-card rounded-xl w-full max-w-4xl flex flex-col max-h-[90vh]">
           {/* Fixed Header */}
-          <div className="flex-shrink-0 p-6 border-b border-gray-700">
+          <div className="flex-shrink-0 p-6 border-b border-border">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-content-primary">
                   {formTitle}
                 </h2>
-                <p className="text-gray-400 text-sm mt-1">
-                  {isViewMode ? 'Viewing for' : isEditMode ? 'Editing for' : 'For'}: <span className="text-white font-medium">{fullName}</span>
+                <p className="text-content-muted text-sm mt-1">
+                  {isViewMode ? 'Viewing for' : isEditMode ? 'Editing for' : 'For'}: <span className="text-content-primary font-medium">{fullName}</span>
                 </p>
                 {isViewMode && (
-                  <p className="text-orange-400 text-xs mt-1">Read-only mode</p>
+                  <p className="text-primary text-xs mt-1">Read-only mode</p>
                 )}
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                className="text-content-muted hover:text-content-primary transition-colors"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
 
             {/* Progress Bar */}
             <div className="mt-4">
-              <div className="flex justify-between text-sm text-gray-400 mb-2">
+              <div className="flex justify-between text-sm text-content-muted mb-2">
                 <span>Section {currentSection + 1} of {sampleAssessmentSections.length}</span>
                 <span>{Math.round(((currentSection + 1) / sampleAssessmentSections.length) * 100)}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-surface-button rounded-full h-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentSection + 1) / sampleAssessmentSections.length) * 100}%` }}
                 ></div>
               </div>
@@ -530,8 +530,8 @@ const AssessmentFormModal = ({
           <div className="flex-1 overflow-y-auto p-6">
             {!isSigned ? (
               /* Assessment Questions */
-              <div className="bg-[#161616] border border-gray-600 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+              <div className="bg-surface-dark border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-content-primary mb-4 border-b border-border pb-2">
                   {sampleAssessmentSections[currentSection].name}
                 </h3>
                 
@@ -540,8 +540,8 @@ const AssessmentFormModal = ({
                     // Text block rendering
                     if (item.itemType === 'textBlock') {
                       return (
-                        <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                          <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        <div key={item.id} className="p-4 bg-surface-card rounded-lg">
+                          <p className="text-sm text-content-secondary whitespace-pre-wrap leading-relaxed">
                             {item.text}
                           </p>
                         </div>
@@ -551,15 +551,15 @@ const AssessmentFormModal = ({
                     // Variable field rendering
                     if (item.itemType === 'variableField') {
                       return (
-                        <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                          <p className="font-medium text-white mb-1">
+                        <div key={item.id} className="p-4 bg-surface-card rounded-lg">
+                          <p className="font-medium text-content-primary mb-1">
                             {item.number}. {item.text || 'Untitled Variable Field'}
                             {item.required !== false && <span className="text-red-500 ml-1">*</span>}
                           </p>
                           {item.variable ? (
                             renderVariableInput(item)
                           ) : (
-                            <div className="mt-3 text-sm text-gray-500 italic">
+                            <div className="mt-3 text-sm text-content-faint italic">
                               No variable selected
                             </div>
                           )}
@@ -569,8 +569,8 @@ const AssessmentFormModal = ({
                     
                     // Question rendering (default)
                     return (
-                      <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                        <p className="font-medium text-white mb-1">
+                      <div key={item.id} className="p-4 bg-surface-card rounded-lg">
+                        <p className="font-medium text-content-primary mb-1">
                           {item.number}. {item.text}
                           {item.required !== false && <span className="text-red-500 ml-1">*</span>}
                         </p>
@@ -582,25 +582,25 @@ const AssessmentFormModal = ({
               </div>
             ) : (
               /* Signature Section */
-              <div className="bg-[#161616] border border-gray-600 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">
+              <div className="bg-surface-dark border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-content-primary mb-4">
                   {isViewMode ? 'Signature' : 'Signature Required'}
                 </h3>
                 {!isViewMode && (
-                  <p className="text-gray-300 mb-6">
+                  <p className="text-content-secondary mb-6">
                     Please draw your signature in the box below to complete the medical history form.
                   </p>
                 )}
                 
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-3">
-                    <label className="block text-sm font-medium text-gray-300">
+                    <label className="block text-sm font-medium text-content-secondary">
                       {isViewMode ? 'Signed signature' : 'Draw your signature'}
                     </label>
                     {!isViewMode && (
                       <button
                         onClick={clearSignature}
-                        className="text-sm text-gray-400 hover:text-white transition-colors"
+                        className="text-sm text-content-muted hover:text-content-primary transition-colors"
                       >
                         Clear signature
                       </button>
@@ -610,7 +610,7 @@ const AssessmentFormModal = ({
                   {/* Signature Display */}
                   {isViewMode && signature ? (
                     // View mode: show signature as image
-                    <div className="bg-white border-2 border-gray-600 rounded-lg overflow-hidden p-4">
+                    <div className="bg-white border-2 border-border rounded-lg overflow-hidden p-4">
                       <img 
                         src={signature} 
                         alt="Signature" 
@@ -620,7 +620,7 @@ const AssessmentFormModal = ({
                     </div>
                   ) : (
                     // Edit mode: canvas for drawing
-                    <div className="bg-white border-2 border-gray-600 rounded-lg overflow-hidden">
+                    <div className="bg-white border-2 border-border rounded-lg overflow-hidden">
                       <canvas
                         ref={canvasRef}
                         className={`w-full h-48 ${isViewMode ? 'cursor-default' : 'cursor-crosshair'} touch-none`}
@@ -647,7 +647,7 @@ const AssessmentFormModal = ({
                   )}
                   
                   {!isViewMode && (
-                    <p className="text-gray-400 text-xs mt-2">
+                    <p className="text-content-muted text-xs mt-2">
                       Draw your signature using mouse/finger. On mobile, use your finger to sign.
                     </p>
                   )}
@@ -657,13 +657,13 @@ const AssessmentFormModal = ({
           </div>
 
           {/* Fixed Footer */}
-          <div className="flex-shrink-0 p-6 border-t border-gray-700">
+          <div className="flex-shrink-0 p-6 border-t border-border">
             {!isSigned ? (
               <div className="flex justify-between">
                 <button
                   onClick={handlePrevious}
                   disabled={currentSection === 0}
-                  className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-content-secondary border border-border rounded-xl hover:bg-surface-button-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -675,14 +675,14 @@ const AssessmentFormModal = ({
                       {signature && (
                         <button
                           onClick={() => setIsSigned(true)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
                         >
                           View Signature
                         </button>
                       )}
                       <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
                       >
                         Close
                       </button>
@@ -691,7 +691,7 @@ const AssessmentFormModal = ({
                     <button
                       onClick={() => setIsSigned(true)}
                       disabled={!allQuestionsAnswered()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Complete & Sign
                     </button>
@@ -700,7 +700,7 @@ const AssessmentFormModal = ({
                   <button
                     onClick={handleNext}
                     disabled={!allQuestionsAnswered() && !isViewMode}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next Section
                   </button>
@@ -712,13 +712,13 @@ const AssessmentFormModal = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsSigned(false)}
-                      className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+                      className="px-4 py-2 text-content-secondary border border-border rounded-xl hover:bg-surface-button-hover transition-colors"
                     >
                       Back to Questions
                     </button>
                     <button
                       onClick={onClose}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                      className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
                     >
                       Close
                     </button>
@@ -727,14 +727,14 @@ const AssessmentFormModal = ({
                   <>
                     <button
                       onClick={() => setIsSigned(false)}
-                      className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+                      className="px-4 py-2 text-content-secondary border border-border rounded-xl hover:bg-surface-button-hover transition-colors"
                     >
                       Back to Questions
                     </button>
                     <button
                       onClick={handleCompleteAssessment}
                       disabled={!signature}
-                      className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isEditMode ? 'Update Medical History' : 'Complete Medical History'}
                     </button>
@@ -748,18 +748,18 @@ const AssessmentFormModal = ({
 
       {/* Custom Contract Prompt Modal */}
       {showContractPrompt && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4">
-          <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md border border-gray-700">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4">
+          <div className="bg-surface-card rounded-xl p-6 w-full max-w-md">
             <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-accent-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">
+              <h3 className="text-xl font-bold text-content-primary mb-2">
                 Assessment Completed Successfully!
               </h3>
-              <p className="text-gray-300">
+              <p className="text-content-secondary">
                 Would you like to proceed with creating a contract for {selectedLead?.firstName} {selectedLead?.surname}?
               </p>
             </div>
@@ -767,13 +767,13 @@ const AssessmentFormModal = ({
             <div className="space-y-3">
               <button
                 onClick={handleProceedToContractClick}
-                className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                className="w-full py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium"
               >
                 Yes, Create Contract
               </button>
               <button
                 onClick={handleSkipContract}
-                className="w-full py-3 bg-[#2F2F2F] text-gray-300 border border-gray-600 rounded-lg hover:bg-[#3F3F3F] transition-colors"
+                className="w-full py-3 bg-surface-button text-content-secondary border border-border rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 No, Return to Leads
               </button>

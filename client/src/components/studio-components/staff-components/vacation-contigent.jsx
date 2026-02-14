@@ -18,7 +18,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -66,20 +66,20 @@ const VacationContingentModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-      <div className="bg-surface-base w-full max-w-md rounded-xl overflow-hidden animate-in slide-in-from-bottom duration-300">
-        <div className="px-6 py-4 border-b border-border flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-content-primary">
+      <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden animate-in slide-in-from-bottom duration-300 p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl text-content-primary font-bold">
             Manage Vacation Contingent
           </h2>
           <button
             onClick={onClose}
-            className="text-content-muted hover:text-content-primary transition-colors p-2 hover:bg-surface-hover rounded-lg"
+            className="text-content-muted hover:text-content-primary transition-colors"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
-        <div className="p-6">
+        <div>
           <div className="flex flex-col items-center mb-6">
             {staff.img ? (
               <img
@@ -119,7 +119,7 @@ const VacationContingentModal = ({
                 <Minus size={20} />
               </button>
               
-              <div className="text-3xl font-bold text-content-primary min-w-[60px] text-center">
+              <div className="text-3xl font-bold text-primary min-w-[60px] text-center">
                 {contingent}
               </div>
               
@@ -136,16 +136,16 @@ const VacationContingentModal = ({
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-border flex gap-3">
+        <div className="flex justify-end gap-2 pt-4">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-surface-button text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors"
+            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary-hover transition-colors"
+            className="px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
           >
             Save Changes
           </button>

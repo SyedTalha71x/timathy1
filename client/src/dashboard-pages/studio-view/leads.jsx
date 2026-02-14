@@ -1273,7 +1273,6 @@ export default function LeadManagement() {
                 </div>
               </div>
               <span className="text-xs ml-1 hidden sm:inline">
-                {isCompactView ? "Compact" : "Detailed"}
               </span>
             </button>
           </div>

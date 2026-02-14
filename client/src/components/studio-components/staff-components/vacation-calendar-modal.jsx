@@ -17,6 +17,7 @@ import {
   MousePointer2
 } from "lucide-react"
 import toast from "react-hot-toast"
+import DatePickerField from "../../shared/DatePickerField"
 
 // Helper to format date
 const formatDateStr = (date) => {
@@ -87,7 +88,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
   // Otherwise show blue initials avatar (consistent with staff.jsx)
   return (
     <div 
-      className={`bg-blue-600 rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]}`}
+      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]}`}
     >
       {getInitials()}
     </div>
@@ -98,7 +99,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 const StatusBadge = ({ status }) => {
   const config = {
     pending: { bg: "bg-yellow-500/20", text: "text-yellow-400", icon: Clock, label: "Pending" },
-    approved: { bg: "bg-orange-500/20", text: "text-orange-400", icon: Check, label: "Approved" }
+    approved: { bg: "bg-primary/20", text: "text-primary", icon: Check, label: "Approved" }
   }
 
   const { bg, text, icon: Icon, label } = config[status] || config.pending
@@ -114,6 +115,7 @@ const StatusBadge = ({ status }) => {
 // CSS for hatched/striped patterns
 const HatchedStyles = () => (
   <style>{`
+    .tile-text { text-shadow: 0 0 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); }
     .hatched-pending {
       background: repeating-linear-gradient(
         45deg,
@@ -167,7 +169,7 @@ const VacationBar = ({ vacation, staff, startOfMonth, daysInMonth, onEdit, isFul
 
   const isPending = vacation.status === "pending"
   // Use staff identification color for approved vacations
-  const staffColor = staff.color || "#3F74FF"
+  const staffColor = staff.color || "var(--color-secondary)"
 
   return (
     <div
@@ -185,7 +187,7 @@ const VacationBar = ({ vacation, staff, startOfMonth, daysInMonth, onEdit, isFul
     >
       {widthPercent > 10 && (
         <div className="px-2 h-full flex items-center overflow-hidden">
-          <span className={`${isPending ? "text-yellow-300" : "text-white"} ${isFullscreen ? "text-sm" : "text-xs"} font-medium truncate`}>
+          <span className={`text-white tile-text ${isFullscreen ? "text-sm" : "text-xs"} font-medium truncate`}>
             {vacation.reason || "Vacation"}
           </span>
         </div>
@@ -212,7 +214,7 @@ const IndividualCalendarView = ({
 }) => {
   const staffVacations = vacations.filter(v => v.staffId === staff.id)
   // Staff identification color for approved vacations
-  const staffColor = staff.color || "#3F74FF"
+  const staffColor = staff.color || "var(--color-secondary)"
 
   // Get vacation for a specific date
   const getVacationForDate = (dateStr) => {
@@ -287,17 +289,17 @@ const IndividualCalendarView = ({
     <div className="flex flex-col h-full">
       {/* Year Calendar Table - Now takes full height */}
       <div className="flex-1 overflow-auto custom-scrollbar">
-        <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
+        <div className="bg-surface-card rounded-xl border border-border overflow-hidden">
           {Array.from({ length: 12 }, (_, monthIndex) => {
             const monthStart = new Date(currentYear, monthIndex, 1)
             const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate()
             const monthName = monthStart.toLocaleDateString("en-US", { month: "short" })
 
             return (
-              <div key={monthIndex} className="flex border-b border-gray-800 last:border-b-0">
+              <div key={monthIndex} className="flex border-b border-border last:border-b-0">
                 {/* Month label */}
-                <div className={`${monthLabelWidth} flex-shrink-0 flex items-center justify-center bg-gray-800/50 border-r border-gray-800`}>
-                  <span className={`text-white font-semibold ${monthLabelSize}`}>
+                <div className={`${monthLabelWidth} flex-shrink-0 flex items-center justify-center bg-surface-dark border-r border-border`}>
+                  <span className={`text-content-primary font-semibold ${monthLabelSize}`}>
                     {monthName}
                   </span>
                 </div>
@@ -313,7 +315,7 @@ const IndividualCalendarView = ({
                     const isSelected = selectedDates.includes(dateStr)
                     const isSelectionStart = selectionStart === dateStr
 
-                    let cellClass = `${cellSize} border-r border-gray-800/30 last:border-r-0 flex flex-col items-center justify-center transition-all `
+                    let cellClass = `${cellSize} border-r border-border last:border-r-0 flex flex-col items-center justify-center transition-all `
                     let cellStyle = {}
                     
                     if (isClosing) {
@@ -334,14 +336,14 @@ const IndividualCalendarView = ({
                       cellStyle.backgroundColor = staffColor
                       cellStyle.opacity = 0.5
                     } else {
-                      cellClass += "hover:bg-gray-800 cursor-pointer"
+                      cellClass += "hover:bg-surface-hover cursor-pointer"
                     }
 
                     const textColor = isClosing 
-                      ? "text-gray-600" 
+                      ? "text-content-faint" 
                       : (vacation || isSelected || isSelectionStart) 
                         ? "text-white" 
-                        : "text-gray-400"
+                        : "text-content-muted"
 
                     return (
                       <div
@@ -470,15 +472,15 @@ const GroupCalendarView = ({
         const totalWidth = STAFF_WIDTH + daysInMonth * CELL_WIDTH
 
         return (
-          <div key={monthIndex} className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
+          <div key={monthIndex} className="bg-surface-card rounded-xl border border-border overflow-hidden">
             {/* Month header */}
-            <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-800 flex items-center justify-between">
-              <h3 className={`font-semibold text-white ${isFullscreen ? "text-lg" : "text-sm"}`}>
+            <div className="px-4 py-3 bg-surface-dark border-b border-border flex items-center justify-between">
+              <h3 className={`font-semibold text-content-primary ${isFullscreen ? "text-lg" : "text-sm"}`}>
                 {monthStart.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               </h3>
               <button
                 onClick={() => onAddVacation(monthStart)}
-                className={`text-orange-400 hover:text-orange-300 flex items-center gap-1 ${isFullscreen ? "text-base" : "text-sm"}`}
+                className={`text-primary hover:text-primary-hover flex items-center gap-1 ${isFullscreen ? "text-base" : "text-sm"}`}
               >
                 <Plus size={isFullscreen ? 18 : 14} />
                 <span>Add</span>
@@ -489,11 +491,11 @@ const GroupCalendarView = ({
             <div className="overflow-x-auto">
               <div style={{ minWidth: totalWidth }}>
                 {/* Day headers row */}
-                <div className="flex border-b border-gray-800/50">
+                <div className="flex border-b border-border">
                   {/* Empty space for staff column */}
                   <div 
                     style={{ width: STAFF_WIDTH, minWidth: STAFF_WIDTH }} 
-                    className="flex-shrink-0 border-r border-gray-800/50"
+                    className="flex-shrink-0 border-r border-border"
                   />
                   {/* Day cells */}
                   {Array.from({ length: daysInMonth }, (_, i) => {
@@ -505,14 +507,14 @@ const GroupCalendarView = ({
                       <div 
                         key={i}
                         style={{ width: CELL_WIDTH, minWidth: CELL_WIDTH }}
-                        className={`text-center py-2 border-r border-gray-800/30 last:border-r-0 flex flex-col justify-center flex-shrink-0 ${
+                        className={`text-center py-2 border-r border-border last:border-r-0 flex flex-col justify-center flex-shrink-0 ${
                           isClosing ? "hatched-closing" : ""
                         }`}
                       >
-                        <span className={`${dayNameSize} ${isClosing ? "text-gray-600" : "text-gray-500"} leading-none`}>
+                        <span className={`${dayNameSize} ${isClosing ? "text-content-faint" : "text-content-faint"} leading-none`}>
                           {dayName}
                         </span>
-                        <span className={`${dayNumSize} ${isClosing ? "text-gray-600" : "text-gray-400"} font-medium leading-none mt-1`}>
+                        <span className={`${dayNumSize} ${isClosing ? "text-content-faint" : "text-content-primary"} font-medium leading-none mt-1`}>
                           {i + 1}
                         </span>
                       </div>
@@ -528,13 +530,13 @@ const GroupCalendarView = ({
                   return (
                     <div 
                       key={staff.id} 
-                      className="flex border-b border-gray-800/30 last:border-b-0"
+                      className="flex border-b border-border/30 last:border-b-0"
                       style={{ height: ROW_HEIGHT }}
                     >
                       {/* Staff info */}
                       <div 
                         style={{ width: STAFF_WIDTH, minWidth: STAFF_WIDTH }}
-                        className="flex-shrink-0 flex items-center gap-2 px-3 border-r border-gray-800/50"
+                        className="flex-shrink-0 flex items-center gap-2 px-3 border-r border-border"
                       >
                         <InitialsAvatar 
                           firstName={staff.firstName}
@@ -542,7 +544,7 @@ const GroupCalendarView = ({
                           img={staff.img}
                           size={isFullscreen ? "sm" : "sm"}
                         />
-                        <span className={`${staffNameSize} text-gray-300 truncate`}>
+                        <span className={`${staffNameSize} text-content-secondary truncate`}>
                           {staff.firstName} {staff.lastName}
                         </span>
                       </div>
@@ -557,7 +559,7 @@ const GroupCalendarView = ({
                             <div 
                               key={i}
                               style={{ width: CELL_WIDTH, minWidth: CELL_WIDTH }}
-                              className={`flex-shrink-0 border-r border-gray-800/30 last:border-r-0 ${closing ? "hatched-closing" : ""}`}
+                              className={`flex-shrink-0 border-r border-border last:border-r-0 ${closing ? "hatched-closing" : ""}`}
                             />
                           )
                         })}
@@ -580,13 +582,13 @@ const GroupCalendarView = ({
                                 style={{
                                   left: `${leftPos + 2}px`,
                                   width: `${width}px`,
-                                  backgroundColor: vacation.status === "pending" ? undefined : (staff.color || "#3F74FF")
+                                  backgroundColor: vacation.status === "pending" ? undefined : (staff.color || "var(--color-secondary)")
                                 }}
                                 onClick={() => onEditVacation(vacation)}
                                 title={`${staff.firstName} ${staff.lastName}: ${vacation.startDate} - ${vacation.endDate}${vacation.reason ? ` - ${vacation.reason}` : ""} (${vacation.status})`}
                               >
                                 {segment.isFirst && width > 60 && (
-                                  <span className={`px-2 text-white text-xs font-medium truncate ${vacation.status === "pending" ? "text-yellow-300" : ""}`}>
+                                  <span className="px-2 text-white tile-text text-xs font-medium truncate">
                                     {vacation.reason || "Vacation"}
                                   </span>
                                 )}
@@ -616,12 +618,12 @@ const GroupCalendarView = ({
         
         if (yearVacations.length === 0) {
           return (
-            <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-12 text-center">
-              <Sun size={isFullscreen ? 64 : 48} className="mx-auto mb-4 text-gray-600" />
-              <p className={`text-gray-500 ${isFullscreen ? "text-lg" : "text-base"}`}>No vacations scheduled for {currentYear}</p>
+            <div className="bg-surface-card rounded-xl border border-border p-12 text-center">
+              <Sun size={isFullscreen ? 64 : 48} className="mx-auto mb-4 text-content-faint" />
+              <p className={`text-content-faint ${isFullscreen ? "text-lg" : "text-base"}`}>No vacations scheduled for {currentYear}</p>
               <button
                 onClick={() => onAddVacation(new Date(currentYear, 0, 1))}
-                className={`mt-4 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl ${isFullscreen ? "text-base" : "text-sm"}`}
+                className={`mt-4 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl ${isFullscreen ? "text-base" : "text-sm"}`}
               >
                 Create Vacation
               </button>
@@ -705,45 +707,26 @@ const VacationRequestModal = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[1001] p-0 sm:p-4">
-      <div className="bg-[#1a1a1a] w-full h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl sm:max-w-md border-t sm:border border-gray-800 shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg sm:rounded-xl">
-                <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-white">
-                {vacation ? "Edit Vacation" : "Request Vacation"}
-              </h3>
-            </div>
-            <button 
-              onClick={onClose}
-              className="p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <X size={18} className="text-gray-400 sm:hidden" />
-              <X size={20} className="text-gray-400 hidden sm:block" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1001] overflow-y-auto">
+      <div className="bg-surface-card p-6 rounded-xl w-full max-w-md my-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl text-content-primary font-bold">{vacation ? "Edit Vacation" : "Request Vacation"}</h2>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors"><X size={24} /></button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5">
-          {/* Staff Selection - Only show dropdown in team view (when not fixed) */}
+        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+          {/* Staff Selection */}
           {!isFixedStaff && (
             <div>
-              <label className="block text-xs sm:text-sm text-gray-400 mb-1.5 sm:mb-2">Staff Member *</label>
+              <label className="text-sm text-content-secondary block mb-2">Staff Member <span className="text-accent-red">*</span></label>
               <select
                 value={formData.staffId}
                 onChange={(e) => setFormData({ ...formData, staffId: e.target.value })}
-                className="w-full bg-[#141414] border border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:border-orange-500 focus:outline-none transition-colors"
+                className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
               >
                 <option value="">Select staff...</option>
                 {staffMembers.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.firstName} {s.lastName}
-                  </option>
+                  <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
                 ))}
               </select>
             </div>
@@ -751,7 +734,7 @@ const VacationRequestModal = ({
 
           {/* Staff Info */}
           {selectedStaff && (
-            <div className="bg-[#141414] rounded-lg sm:rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
+            <div className="bg-surface-dark rounded-xl p-3 flex items-center gap-3">
               <InitialsAvatar 
                 firstName={selectedStaff.firstName}
                 lastName={selectedStaff.lastName}
@@ -759,104 +742,81 @@ const VacationRequestModal = ({
                 size="sm"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-white font-medium text-sm sm:text-base truncate">{selectedStaff.firstName} {selectedStaff.lastName}</p>
-                <p className="text-xs sm:text-sm text-gray-500 truncate">{selectedStaff.role}</p>
+                <p className="text-content-primary font-medium text-sm truncate">{selectedStaff.firstName} {selectedStaff.lastName}</p>
+                <p className="text-xs text-content-faint truncate">{selectedStaff.role}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p 
-                  className="font-semibold text-sm sm:text-base"
-                  style={{ color: selectedStaff.color || "#3F74FF" }}
-                >
-                  {selectedStaff.vacationDays || 30}
-                </p>
-                <p className="text-[10px] sm:text-xs text-gray-500">days left</p>
+                <p className="font-semibold text-sm text-primary">{selectedStaff.vacationDays || 30}</p>
+                <p className="text-[10px] text-content-faint">days left</p>
               </div>
             </div>
           )}
 
           {/* Date Range */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm text-gray-400 mb-1.5 sm:mb-2">Start Date *</label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full bg-[#141414] border border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:border-orange-500 focus:outline-none transition-colors [color-scheme:dark]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm text-gray-400 mb-1.5 sm:mb-2">End Date *</label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                min={formData.startDate}
-                className="w-full bg-[#141414] border border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:border-orange-500 focus:outline-none transition-colors [color-scheme:dark]"
-              />
+          <div className="space-y-4 pt-2 border-t border-border">
+            <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Period</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-content-secondary block mb-2">Start Date <span className="text-accent-red">*</span></label>
+                <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                  <span className={formData.startDate ? "text-content-primary" : "text-content-faint"}>{formData.startDate ? (() => { const [y,m,d] = formData.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                  <DatePickerField value={formData.startDate} onChange={(val) => setFormData({ ...formData, startDate: val })} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-content-secondary block mb-2">End Date <span className="text-accent-red">*</span></label>
+                <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                  <span className={formData.endDate ? "text-content-primary" : "text-content-faint"}>{formData.endDate ? (() => { const [y,m,d] = formData.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                  <DatePickerField value={formData.endDate} onChange={(val) => setFormData({ ...formData, endDate: val })} />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Duration Display */}
           {businessDays > 0 && selectedStaff && (
-            <div 
-              className="rounded-lg sm:rounded-xl p-3 sm:p-4 flex items-center justify-between"
-              style={{ 
-                backgroundColor: `${selectedStaff.color || "#3F74FF"}15`,
-                borderWidth: 1,
-                borderColor: `${selectedStaff.color || "#3F74FF"}30`
-              }}
-            >
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Calendar size={16} className="sm:hidden" style={{ color: selectedStaff.color || "#3F74FF" }} />
-                <Calendar size={20} className="hidden sm:block" style={{ color: selectedStaff.color || "#3F74FF" }} />
+            <div className="rounded-xl p-4 flex items-center justify-between bg-primary/10 border border-primary/30">
+              <div className="flex items-center gap-3">
+                <Calendar size={20} className="text-primary" />
                 <div>
-                  <p className="text-white font-medium text-sm sm:text-base">{businessDays} business days</p>
-                  <p className="text-[10px] sm:text-xs text-gray-500">Excluding Closing Days</p>
+                  <p className="text-content-primary font-medium text-sm">{businessDays} business days</p>
+                  <p className="text-xs text-content-faint">Excluding Closing Days</p>
                 </div>
               </div>
               <div className="text-right">
-                <p 
-                  className="font-semibold text-sm sm:text-base"
-                  style={{ 
-                    color: (selectedStaff.vacationDays || 30) - businessDays >= 0 
-                      ? (selectedStaff.color || "#3F74FF")
-                      : "#f87171" 
-                  }}
-                >
+                <p className={`font-semibold text-sm ${(selectedStaff.vacationDays || 30) - businessDays >= 0 ? "text-primary" : "text-red-400"}`}>
                   {(selectedStaff.vacationDays || 30) - businessDays} days
                 </p>
-                <p className="text-[10px] sm:text-xs text-gray-500">remaining after</p>
+                <p className="text-xs text-content-faint">remaining after</p>
               </div>
             </div>
           )}
           {businessDays > 0 && !selectedStaff && (
-            <div className="bg-gray-800/50 border border-gray-700 rounded-lg sm:rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-              <Calendar size={16} className="text-gray-400 sm:hidden" />
-              <Calendar size={20} className="text-gray-400 hidden sm:block" />
+            <div className="bg-surface-dark rounded-xl p-4 flex items-center gap-3">
+              <Calendar size={20} className="text-content-muted" />
               <div>
-                <p className="text-white font-medium text-sm sm:text-base">{businessDays} business days</p>
-                <p className="text-[10px] sm:text-xs text-gray-500">Excluding Closing Days</p>
+                <p className="text-content-primary font-medium text-sm">{businessDays} business days</p>
+                <p className="text-xs text-content-faint">Excluding Closing Days</p>
               </div>
             </div>
           )}
 
           {/* Reason */}
           <div>
-            <label className="block text-xs sm:text-sm text-gray-400 mb-1.5 sm:mb-2">Reason (optional)</label>
+            <label className="text-sm text-content-secondary block mb-2">Reason (optional)</label>
             <input
               type="text"
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               placeholder="e.g., Family vacation, Personal time..."
-              className="w-full bg-[#141414] border border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder-gray-600 focus:border-orange-500 focus:outline-none transition-colors"
+              className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
             />
           </div>
 
           {/* Current Status (for editing) */}
           {vacation && (
             <div>
-              <label className="block text-xs sm:text-sm text-gray-400 mb-1.5 sm:mb-2">Status</label>
+              <label className="text-sm text-content-secondary block mb-2">Status</label>
               <div className="flex items-center gap-2">
                 <StatusBadge status={formData.status} />
               </div>
@@ -865,78 +825,34 @@ const VacationRequestModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 p-4 sm:p-6 border-t border-gray-800">
-          {/* Action buttons for existing vacation */}
+        <div className="flex justify-end gap-2 pt-4">
           {vacation && (
-            <div className="flex gap-2 mb-3 sm:mb-4">
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-3 sm:px-4 py-2 sm:py-2.5 text-red-400 hover:bg-red-500/10 rounded-lg sm:rounded-xl transition-colors flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base"
-              >
-                <Trash2 size={14} className="sm:hidden" />
-                <Trash2 size={16} className="hidden sm:block" />
-                Delete
-              </button>
-              
+            <>
+              <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2 text-sm bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors flex items-center gap-1"><Trash2 size={16} />Delete</button>
               {vacation.status === "pending" && (
-                <button
-                  onClick={() => {
-                    onApprove(vacation.id)
-                    onClose()
-                  }}
-                  className="px-3 sm:px-4 py-2 sm:py-2.5 text-orange-400 hover:bg-orange-500/10 rounded-lg sm:rounded-xl transition-colors flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base"
-                >
-                  <Check size={14} className="sm:hidden" />
-                  <Check size={16} className="hidden sm:block" />
-                  Approve
-                </button>
+                <button onClick={() => { onApprove(vacation.id); onClose() }} className="px-4 py-2 text-sm bg-surface-button text-primary rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-1"><Check size={16} />Approve</button>
               )}
-            </div>
+            </>
           )}
-          
-          {/* Main action buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg sm:rounded-xl transition-colors font-medium text-sm sm:text-base"
-            >
-              {vacation ? "Save Changes" : "Submit Request"}
-            </button>
-          </div>
+          <button onClick={onClose} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">Cancel</button>
+          <button onClick={handleSave} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">{vacation ? "Save Changes" : "Submit Request"}</button>
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1002] p-4">
-          <div className="bg-[#1a1a1a] rounded-xl sm:rounded-2xl w-full max-w-sm border border-gray-800 shadow-2xl p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Delete Vacation</h3>
-            <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1002] p-4">
+          <div className="bg-surface-card rounded-xl w-full max-w-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl text-content-primary font-bold">Delete Vacation</h2>
+              <button onClick={() => setShowDeleteConfirm(false)} className="text-content-muted hover:text-content-primary transition-colors"><X size={24} /></button>
+            </div>
+            <p className="text-sm text-content-secondary mb-4">
               Are you sure you want to delete this vacation? This action cannot be undone.
             </p>
-            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 sm:justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 sm:flex-none px-4 py-2 bg-gray-700 text-white rounded-lg sm:rounded-xl hover:bg-gray-600 transition-colors text-sm sm:text-base"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  onDelete(vacation.id)
-                  setShowDeleteConfirm(false)
-                  onClose()
-                }}
-                className="flex-1 sm:flex-none px-4 py-2 bg-red-600 text-white rounded-lg sm:rounded-xl hover:bg-red-700 transition-colors text-sm sm:text-base"
-              >
-                Delete
-              </button>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">Cancel</button>
+              <button onClick={() => { onDelete(vacation.id); setShowDeleteConfirm(false); onClose() }} className="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">Delete</button>
             </div>
           </div>
         </div>
@@ -1105,37 +1021,35 @@ function VacationCalendarModal({
   const containerClass = isEmbedded 
     ? "w-full h-full"
     : isFullscreen 
-      ? "fixed inset-0 z-[1000] bg-[#0f0f0f]"
+      ? "fixed inset-0 z-[1000] bg-surface-base"
       : "fixed inset-0 bg-black/60 z-[1000] flex items-center justify-center p-0 sm:p-2"
 
   const modalClass = isEmbedded
     ? "w-full h-full flex flex-col"
     : isFullscreen
       ? "w-full h-full flex flex-col"
-      : "bg-[#141414] w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-[1400px] sm:max-h-[95vh] flex flex-col sm:border border-gray-800 shadow-2xl overflow-hidden"
+      : "bg-surface-card w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-[1400px] sm:max-h-[95vh] flex flex-col sm:border border-border shadow-2xl overflow-hidden"
 
   return (
     <div className={`${containerClass} vacation-modal-wrapper`}>
       <HatchedStyles />
       <div className={modalClass}>
         {/* Header */}
-        <div className="flex-shrink-0 bg-[#1a1a1a] border-b border-gray-800 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex-shrink-0 bg-surface-card border-b border-border px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className={`hidden sm:flex bg-orange-500/10 rounded-xl ${isFullscreen ? "p-3" : "p-2"}`}>
-                <Sun className={`text-orange-400 ${isFullscreen ? "w-8 h-8" : "w-6 h-6"}`} />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg sm:rounded-xl flex-shrink-0">
+                <Sun className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h2 className={`font-semibold text-white ${isFullscreen ? "text-2xl" : "text-lg sm:text-xl"}`}>
+              <h2 className="font-semibold text-content-primary text-lg sm:text-xl">
                   Vacation Calendar
-                </h2>
-              </div>
+              </h2>
             </div>
 
             {/* Staff info for individual view - hidden on mobile */}
             {viewMode === "individual" && currentStaff && (
               <div className="hidden md:flex items-center gap-4 flex-1 justify-center">
-                <div className="flex items-center gap-3 bg-[#141414] rounded-xl px-4 py-2">
+                <div className="flex items-center gap-3 bg-surface-card rounded-xl px-4 py-2">
                   <InitialsAvatar 
                     firstName={currentStaff.firstName}
                     lastName={currentStaff.lastName}
@@ -1143,22 +1057,21 @@ function VacationCalendarModal({
                     size={isFullscreen ? "md" : "sm"}
                   />
                   <div>
-                    <p className={`text-white font-medium ${isFullscreen ? "text-base" : "text-sm"}`}>
+                    <p className={`text-content-primary font-medium ${isFullscreen ? "text-base" : "text-sm"}`}>
                       {currentStaff.firstName} {currentStaff.lastName}
                     </p>
-                    <p className={`text-gray-500 ${isFullscreen ? "text-sm" : "text-xs"}`}>{currentStaff.role}</p>
+                    <p className={`text-content-faint ${isFullscreen ? "text-sm" : "text-xs"}`}>{currentStaff.role}</p>
                   </div>
                 </div>
 
                 {/* Days remaining */}
-                <div className="flex items-center gap-2 bg-[#141414] rounded-xl px-4 py-2">
+                <div className="flex items-center gap-2 bg-surface-card rounded-xl px-4 py-2">
                   <p 
-                    className={`font-bold ${isFullscreen ? "text-2xl" : "text-xl"}`}
-                    style={{ color: currentStaff.color || "#3F74FF" }}
+                    className={`font-bold text-primary ${isFullscreen ? "text-2xl" : "text-xl"}`}
                   >
                     {currentStaff.vacationDays || 30}
                   </p>
-                  <p className={`text-gray-500 ${isFullscreen ? "text-sm" : "text-xs"}`}>days<br/>remaining</p>
+                  <p className={`text-content-faint ${isFullscreen ? "text-sm" : "text-xs"}`}>days<br/>remaining</p>
                 </div>
               </div>
             )}
@@ -1168,7 +1081,7 @@ function VacationCalendarModal({
               {!isEmbedded && (
                 <button
                   onClick={() => setIsFullscreen(!isFullscreen)}
-                  className={`hidden sm:flex hover:bg-gray-800 rounded-xl transition-colors text-gray-400 hover:text-white ${isFullscreen ? "p-3" : "p-2"}`}
+                  className={`hidden sm:flex hover:bg-surface-hover rounded-xl transition-colors text-content-muted hover:text-content-primary ${isFullscreen ? "p-3" : "p-2"}`}
                 >
                   {isFullscreen ? <Minimize2 size={isFullscreen ? 24 : 20} /> : <Maximize2 size={isFullscreen ? 24 : 20} />}
                 </button>
@@ -1177,7 +1090,7 @@ function VacationCalendarModal({
               {!isEmbedded && (
                 <button
                   onClick={onClose}
-                  className={`hover:bg-gray-800 rounded-xl transition-colors text-gray-400 hover:text-white p-2 ${isFullscreen ? "sm:p-3" : ""}`}
+                  className={`hover:bg-surface-hover rounded-xl transition-colors text-content-muted hover:text-content-primary p-2 ${isFullscreen ? "sm:p-3" : ""}`}
                 >
                   <X size={20} className="sm:hidden" />
                   <X size={isFullscreen ? 24 : 20} className="hidden sm:block" />
@@ -1192,33 +1105,33 @@ function VacationCalendarModal({
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
               <button
                 onClick={() => setCurrentYear(y => y - 1)}
-                className={`hover:bg-gray-800 rounded-lg transition-colors p-1.5 sm:p-2 ${isFullscreen ? "sm:p-3" : ""}`}
+                className={`hover:bg-surface-hover rounded-lg transition-colors p-1.5 sm:p-2 ${isFullscreen ? "sm:p-3" : ""}`}
               >
-                <ChevronLeft size={18} className="text-gray-400 sm:hidden" />
-                <ChevronLeft size={isFullscreen ? 28 : 20} className="text-gray-400 hidden sm:block" />
+                <ChevronLeft size={18} className="text-content-muted sm:hidden" />
+                <ChevronLeft size={isFullscreen ? 28 : 20} className="text-content-muted hidden sm:block" />
               </button>
               <button
                 onClick={() => setCurrentYear(new Date().getFullYear())}
-                className={`font-semibold text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors min-w-[80px] sm:min-w-[100px] px-3 py-1.5 text-sm ${isFullscreen ? "sm:px-6 sm:py-3 sm:text-xl" : "sm:px-4 sm:py-2"}`}
+                className={`font-semibold text-content-primary bg-surface-dark hover:bg-surface-hover rounded-lg transition-colors min-w-[80px] sm:min-w-[100px] px-3 py-1.5 text-sm ${isFullscreen ? "sm:px-6 sm:py-3 sm:text-xl" : "sm:px-4 sm:py-2"}`}
               >
                 {currentYear}
               </button>
               <button
                 onClick={() => setCurrentYear(y => y + 1)}
-                className={`hover:bg-gray-800 rounded-lg transition-colors p-1.5 sm:p-2 ${isFullscreen ? "sm:p-3" : ""}`}
+                className={`hover:bg-surface-hover rounded-lg transition-colors p-1.5 sm:p-2 ${isFullscreen ? "sm:p-3" : ""}`}
               >
-                <ChevronRight size={18} className="text-gray-400 sm:hidden" />
-                <ChevronRight size={isFullscreen ? 28 : 20} className="text-gray-400 hidden sm:block" />
+                <ChevronRight size={18} className="text-content-muted sm:hidden" />
+                <ChevronRight size={isFullscreen ? 28 : 20} className="text-content-muted hidden sm:block" />
               </button>
 
               {/* Staff Filter - only in team view */}
               {viewMode === "team" && (
                 <>
-                  <div className="hidden sm:block w-px h-6 bg-gray-700 mx-2" />
+                  <div className="hidden sm:block w-px h-6 bg-surface-button mx-2" />
                   <select
                     value={staffFilter}
                     onChange={(e) => setStaffFilter(e.target.value)}
-                    className={`bg-gray-800 border border-gray-700 rounded-lg sm:rounded-xl text-white focus:outline-none focus:border-orange-500 text-xs px-2 py-1.5 sm:text-sm sm:px-3 sm:py-2 max-w-[120px] sm:max-w-none ${isFullscreen ? "sm:px-4 sm:py-2.5 sm:text-base" : ""}`}
+                    className={`bg-surface-dark border border-border rounded-lg sm:rounded-xl text-content-primary focus:outline-none focus:border-primary text-xs px-2 py-1.5 sm:text-sm sm:px-3 sm:py-2 max-w-[120px] sm:max-w-none ${isFullscreen ? "sm:px-4 sm:py-2.5 sm:text-base" : ""}`}
                   >
                     <option value="all">All ({staffMembers.length})</option>
                     {staffMembers.map(staff => (
@@ -1233,29 +1146,25 @@ function VacationCalendarModal({
               {/* Multi-select toggle - only in individual view */}
               {viewMode === "individual" && currentStaff && (
                 <>
-                  <div className="hidden sm:block w-px h-6 bg-gray-700 mx-2" />
+                  <div className="hidden sm:block w-px h-6 bg-surface-button mx-2" />
                   <button
                     onClick={() => {
                       setIsMultiSelectMode(!isMultiSelectMode)
                       cancelSelection()
                     }}
-                    style={isMultiSelectMode ? { backgroundColor: currentStaff.color || "#3F74FF" } : undefined}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-colors text-[11px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} ${
+                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm transition-colors ${
                       isMultiSelectMode 
-                        ? "text-white" 
-                        : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"
+                        ? "bg-primary text-white" 
+                        : "bg-surface-dark text-content-muted hover:text-content-primary hover:bg-surface-hover"
                     }`}
                   >
-                    <MousePointer2 size={12} className="sm:hidden" />
-                    <MousePointer2 size={isFullscreen ? 16 : 14} className="hidden sm:block" />
-                    <span className="hidden sm:inline">Multi-Select</span>
-                    <span className="sm:hidden">Select</span>
-                    {isMultiSelectMode ? " ON" : " OFF"}
+                    <MousePointer2 size={14} />
+                    Multi-Select {isMultiSelectMode ? "ON" : "OFF"}
                   </button>
                   {isMultiSelectMode && selectionStart && (
                     <button
                       onClick={cancelSelection}
-                      className={`text-gray-400 hover:text-white text-[11px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""}`}
+                      className={`text-content-muted hover:text-content-primary text-[11px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""}`}
                     >
                       Cancel
                     </button>
@@ -1264,13 +1173,13 @@ function VacationCalendarModal({
               )}
             </div>
 
-            {/* View toggle and add button row */}
+            {/* Action button + View toggle row */}
             <div className="flex items-center gap-2 justify-between sm:justify-end">
-              {/* Add Vacation Button - Next to Team tab */}
+              {/* Add Vacation Button - left of view mode */}
               {viewMode === "team" && (
                 <button
                   onClick={() => handleAddVacation(null)}
-                  className={`bg-orange-600 hover:bg-orange-700 text-white rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 transition-colors px-3 py-1.5 text-xs sm:text-sm ${isFullscreen ? "sm:px-5 sm:py-2.5 sm:text-base" : "sm:px-4 sm:py-2"}`}
+                  className={`bg-primary hover:bg-primary-hover text-white rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 transition-colors px-3 py-1.5 text-xs sm:text-sm ${isFullscreen ? "sm:px-5 sm:py-2.5 sm:text-base" : "sm:px-4 sm:py-2"}`}
                 >
                   <Plus size={14} className="sm:hidden" />
                   <Plus size={isFullscreen ? 18 : 14} className="hidden sm:block" />
@@ -1278,32 +1187,31 @@ function VacationCalendarModal({
                 </button>
               )}
 
-              {/* View Mode Toggle - Blue color */}
-              <div className="flex bg-gray-800 rounded-lg p-0.5 sm:p-1">
+              {/* View Mode Toggle */}
+              <div className="flex bg-surface-dark rounded-lg p-0.5">
                 <button
                   onClick={() => setViewMode("team")}
-                  className={`rounded-md transition-colors flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 text-xs sm:text-sm ${isFullscreen ? "sm:px-4 sm:py-2 sm:text-base" : "sm:px-3 sm:py-1.5"} ${
+                  className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${
                     viewMode === "team" 
-                      ? "bg-blue-600 text-white" 
-                      : "text-gray-400 hover:text-white"
+                      ? "bg-secondary text-white" 
+                      : "text-content-muted hover:text-content-primary"
                   }`}
                 >
                   <Users size={12} className="sm:hidden" />
-                  <Users size={isFullscreen ? 20 : 14} className="hidden sm:block" />
+                  <Users size={14} className="hidden sm:block" />
                   Team
                 </button>
                 <button
                   onClick={() => setViewMode("individual")}
-                  className={`rounded-md transition-colors flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 text-xs sm:text-sm ${isFullscreen ? "sm:px-4 sm:py-2 sm:text-base" : "sm:px-3 sm:py-1.5"} ${
+                  className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${
                     viewMode === "individual" 
-                      ? "bg-blue-600 text-white" 
-                      : "text-gray-400 hover:text-white"
+                      ? "bg-secondary text-white" 
+                      : "text-content-muted hover:text-content-primary"
                   }`}
                 >
                   <User size={12} className="sm:hidden" />
-                  <User size={isFullscreen ? 20 : 14} className="hidden sm:block" />
-                  <span className="hidden sm:inline">My Calendar</span>
-                  <span className="sm:hidden">My</span>
+                  <User size={14} className="hidden sm:block" />
+                  My
                 </button>
               </div>
             </div>
@@ -1311,7 +1219,7 @@ function VacationCalendarModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 overflow-auto bg-[#141414] vacation-calendar-content">
+        <div className="flex-1 min-h-0 overflow-auto bg-surface-card vacation-calendar-content">
           {viewMode === "individual" && currentStaff ? (
             <div className="p-2 sm:p-4">
               <IndividualCalendarView
@@ -1346,12 +1254,12 @@ function VacationCalendarModal({
         </div>
 
         {/* Fixed Footer Legend */}
-        <div className="flex-shrink-0 border-t border-gray-800 bg-[#1a1a1a] px-3 sm:px-6 py-2 sm:py-2.5">
+        <div className="flex-shrink-0 border-t border-border bg-surface-card px-3 sm:px-6 py-2 sm:py-2.5">
           <div className="flex items-center gap-2 sm:gap-4 h-5 sm:h-6 overflow-x-auto">
             {viewMode === "team" ? (
               // Team view: Staff colors legend + status indicators
               <>
-                <span className={`text-gray-500 uppercase tracking-wider flex-shrink-0 leading-5 sm:leading-6 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""}`}>LEGEND:</span>
+                <span className={`text-content-faint uppercase tracking-wider flex-shrink-0 leading-5 sm:leading-6 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""}`}>LEGEND:</span>
                 
                 {/* Staff list with horizontal scroll - hidden on small mobile */}
                 <div className="hidden sm:flex flex-1 overflow-x-auto custom-scrollbar h-6">
@@ -1360,46 +1268,46 @@ function VacationCalendarModal({
                       <div key={staff.id} className="flex items-center gap-2 flex-shrink-0 h-6">
                         <div 
                           className={`${isFullscreen ? "w-3 h-3" : "w-2.5 h-2.5"} rounded-full flex-shrink-0`}
-                          style={{ backgroundColor: staff.color || "#3F74FF" }}
+                          style={{ backgroundColor: staff.color || "var(--color-secondary)" }}
                         />
-                        <span className={`text-gray-400 ${isFullscreen ? "text-sm" : "text-xs"} whitespace-nowrap leading-6`}>{staff.firstName}</span>
+                        <span className={`text-content-muted ${isFullscreen ? "text-sm" : "text-xs"} whitespace-nowrap leading-6`}>{staff.firstName}</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 
-                <div className="hidden sm:block w-px h-4 bg-gray-700 flex-shrink-0" />
+                <div className="hidden sm:block w-px h-4 bg-surface-button flex-shrink-0" />
                 <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 h-5 sm:h-6">
                   <div className="flex items-center gap-1.5 sm:gap-2 h-5 sm:h-6">
                     <div className={`w-4 h-2.5 sm:w-5 sm:h-3 ${isFullscreen ? "sm:w-6 sm:h-4" : ""} rounded hatched-pending border border-yellow-500/50`} />
-                    <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6`}>Pending</span>
+                    <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6`}>Pending</span>
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2 h-5 sm:h-6">
                     <div className={`w-4 h-2.5 sm:w-5 sm:h-3 ${isFullscreen ? "sm:w-6 sm:h-4" : ""} rounded hatched-closing`} />
-                    <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 hidden sm:inline`}>Closing Days</span>
-                    <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 sm:hidden`}>Closed</span>
+                    <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 hidden sm:inline`}>Closing Days</span>
+                    <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 sm:hidden`}>Closed</span>
                   </div>
                 </div>
               </>
             ) : (
               // Individual view: Status legend
               <>
-                <span className={`text-gray-500 uppercase tracking-wider flex-shrink-0 leading-5 sm:leading-6 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""}`}>LEGEND:</span>
+                <span className={`text-content-faint uppercase tracking-wider flex-shrink-0 leading-5 sm:leading-6 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""}`}>LEGEND:</span>
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 h-5 sm:h-6">
                   <div 
                     className={`w-5 h-3 sm:w-6 sm:h-4 ${isFullscreen ? "sm:w-8 sm:h-5" : ""} rounded`}
-                    style={{ backgroundColor: currentStaff?.color || "#3F74FF" }}
+                    style={{ backgroundColor: currentStaff?.color || "var(--color-secondary)" }}
                   />
-                  <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6`}>Approved</span>
+                  <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6`}>Approved</span>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 h-5 sm:h-6">
                   <div className={`w-5 h-3 sm:w-6 sm:h-4 ${isFullscreen ? "sm:w-8 sm:h-5" : ""} rounded hatched-pending border border-yellow-500/50`} />
-                  <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6`}>Pending</span>
+                  <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6`}>Pending</span>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 h-5 sm:h-6">
                   <div className={`w-5 h-3 sm:w-6 sm:h-4 ${isFullscreen ? "sm:w-8 sm:h-5" : ""} rounded hatched-closing`} />
-                  <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 hidden sm:inline`}>Closing Days</span>
-                  <span className={`text-gray-400 text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 sm:hidden`}>Closed</span>
+                  <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 hidden sm:inline`}>Closing Days</span>
+                  <span className={`text-content-muted text-[10px] sm:text-xs ${isFullscreen ? "sm:text-sm" : ""} leading-5 sm:leading-6 sm:hidden`}>Closed</span>
                 </div>
               </>
             )}

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { ChevronLeft, ChevronRight, X, Download, Users, Calendar, Plus, PanelLeftClose, PanelLeft, Sun, FileText, Clock } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronDown, X, Download, Users, Calendar, Plus, PanelLeftClose, PanelLeft, Sun, FileText, Clock } from "lucide-react"
 import { useMemo, useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import * as XLSX from 'xlsx'
@@ -13,72 +13,59 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, total
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000002] p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000002] p-4">
+      <div className="bg-surface-card rounded-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-white text-lg font-medium">Confirm Export</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
+          <h2 className="text-xl text-content-primary font-bold">Confirm Export</h2>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
+            <X size={24} />
           </button>
         </div>
         <div className="mb-6">
-          <p className="text-gray-300 mb-4">Are you sure you want to export the attendance data as Excel?</p>
+          <p className="text-content-secondary mb-4">Are you sure you want to export the attendance data as Excel?</p>
           
           {/* Export Details */}
           <div className="space-y-2">
             {/* Selected Period Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <Calendar className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Export Period</p>
-                <p className="text-white text-sm font-medium">{selectedPeriod || "All Data"}</p>
+                <p className="text-content-muted text-xs">Export Period</p>
+                <p className="text-content-primary text-sm font-medium">{selectedPeriod || "All Data"}</p>
               </div>
             </div>
             
             {/* Staff Count Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <Users className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <Users className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Staff Members</p>
-                <p className="text-white text-sm font-medium">{staffCount} {staffCount === 1 ? 'member' : 'members'}</p>
+                <p className="text-content-muted text-xs">Staff Members</p>
+                <p className="text-content-primary text-sm font-medium">{staffCount} {staffCount === 1 ? 'member' : 'members'}</p>
               </div>
             </div>
 
             {/* Total Shifts Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <FileText className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <FileText className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Total Shifts</p>
-                <p className="text-white text-sm font-medium">{totalShifts} {totalShifts === 1 ? 'shift' : 'shifts'}</p>
+                <p className="text-content-muted text-xs">Total Shifts</p>
+                <p className="text-content-primary text-sm font-medium">{totalShifts} {totalShifts === 1 ? 'shift' : 'shifts'}</p>
               </div>
             </div>
 
             {/* Total Hours Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <Clock className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <Clock className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Total Hours</p>
-                <p className="text-white text-sm font-medium">{totalHours}h</p>
+                <p className="text-content-muted text-xs">Total Hours</p>
+                <p className="text-content-primary text-sm font-medium">{totalHours}h</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-[#2F2F2F] text-white px-4 py-2.5 rounded-xl hover:bg-[#3F3F3F] transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              onConfirm()
-              onClose()
-            }}
-            className="flex-1 bg-gray-600 text-white px-4 py-2.5 rounded-xl hover:bg-gray-700 transition-colors"
-          >
-            Export
-          </button>
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">Cancel</button>
+          <button onClick={() => { onConfirm(); onClose() }} className="px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors">Export</button>
         </div>
       </div>
     </div>
@@ -103,6 +90,23 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [collapsedStaff, setCollapsedStaff] = useState(new Set())
+
+  // Collapse all staff by default
+  useEffect(() => {
+    if (staffMembers?.length) {
+      setCollapsedStaff(new Set(staffMembers.map(s => s.id)))
+    }
+  }, [staffMembers])
+
+  const toggleStaffCollapse = (staffId) => {
+    setCollapsedStaff(prev => {
+      const next = new Set(prev)
+      if (next.has(staffId)) next.delete(staffId)
+      else next.add(staffId)
+      return next
+    })
+  }
 
   // Handle initialTab prop - open the correct view on mount
   useEffect(() => {
@@ -344,11 +348,11 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   // ============ Left Menu (Desktop) ============
   const renderLeftMenu = () => (
     <div className={`hidden md:block transition-all duration-300 flex-shrink-0 ${sidebarCollapsed ? "w-12" : "w-48"}`}>
-      <div className="bg-[#141414] rounded-xl p-2 h-full">
+      <div className="bg-surface-card rounded-xl p-2 h-full">
         {/* Collapse Toggle */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="w-full p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors flex items-center justify-center mb-2"
+          className="w-full p-2 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors flex items-center justify-center mb-2"
           title={sidebarCollapsed ? "Expand menu" : "Collapse menu"}
         >
           {sidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
@@ -363,8 +367,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
             }}
             className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${
               activeMenuItem === "attendance" && !showVacationCalendar && !showShiftSchedule
-                ? "bg-blue-600 text-white"
-                : "hover:bg-gray-700 text-gray-300"
+                ? "bg-primary text-white"
+                : "hover:bg-surface-button-hover text-content-secondary"
             } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
             title="Attendance Overview"
           >
@@ -379,7 +383,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               setShowShiftSchedule(true)
             }}
             className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${
-              showShiftSchedule ? "bg-blue-600 text-white" : "hover:bg-gray-700 text-gray-300"
+              showShiftSchedule ? "bg-primary text-white" : "hover:bg-surface-button-hover text-content-secondary"
             } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
             title="Shift Schedule"
           >
@@ -394,7 +398,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               setShowShiftSchedule(false)
             }}
             className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${
-              showVacationCalendar ? "bg-blue-600 text-white" : "hover:bg-gray-700 text-gray-300"
+              showVacationCalendar ? "bg-primary text-white" : "hover:bg-surface-button-hover text-content-secondary"
             } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
             title="Vacation Calendar"
           >
@@ -408,7 +412,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
 
   // ============ Mobile Tab Bar ============
   const renderMobileTabBar = () => (
-    <div className="md:hidden flex bg-[#141414] rounded-xl p-1 gap-1">
+    <div className="md:hidden flex bg-surface-card rounded-xl p-1 gap-1">
       <button
         onClick={() => {
           setActiveMenuItem("attendance")
@@ -417,8 +421,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         }}
         className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${
           activeMenuItem === "attendance" && !showVacationCalendar && !showShiftSchedule
-            ? "bg-blue-600 text-white"
-            : "text-gray-400"
+            ? "bg-primary text-white"
+            : "text-content-muted"
         }`}
       >
         <Users size={14} />
@@ -432,7 +436,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           setShowShiftSchedule(true)
         }}
         className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${
-          showShiftSchedule ? "bg-blue-600 text-white" : "text-gray-400"
+          showShiftSchedule ? "bg-primary text-white" : "text-content-muted"
         }`}
       >
         <Calendar size={14} />
@@ -446,7 +450,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           setShowShiftSchedule(false)
         }}
         className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${
-          showVacationCalendar ? "bg-blue-600 text-white" : "text-gray-400"
+          showVacationCalendar ? "bg-primary text-white" : "text-content-muted"
         }`}
       >
         <Sun size={14} />
@@ -456,139 +460,124 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   )
 
   const renderPeriodDisplay = () => {
+    const navBtnClass = "p-1.5 sm:p-2 bg-surface-dark hover:bg-surface-hover rounded-lg flex-shrink-0"
+    const dateBtnClass = "bg-surface-dark hover:bg-surface-hover rounded-lg font-medium text-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[140px] truncate"
+
     if (selectedPeriod === "month") {
       return (
-        <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
-          <button onClick={goToPreviousMonth} className="p-1.5 sm:p-1 bg-[#1C1C1C] rounded hover:bg-gray-700 flex-shrink-0">
-            <ChevronLeft size={16} />
+        <>
+          <button onClick={goToPreviousMonth} className={navBtnClass}>
+            <ChevronLeft size={16} className="text-content-muted" />
           </button>
-          <div className="bg-[#1C1C1C] rounded px-2 sm:px-3 py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[120px] text-center">
+          <button onClick={() => setCurrentOverviewMonth(new Date())} className={dateBtnClass}>
             {currentOverviewMonth.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-          </div>
-          <button onClick={goToNextMonth} className="p-1.5 sm:p-1 bg-[#1C1C1C] rounded hover:bg-gray-700 flex-shrink-0">
-            <ChevronRight size={16} />
           </button>
-        </div>
+          <button onClick={goToNextMonth} className={navBtnClass}>
+            <ChevronRight size={16} className="text-content-muted" />
+          </button>
+        </>
       )
     } else if (selectedPeriod === "week") {
       const weekRange = getWeekDateRange(currentWeek)
       const weekNumber = getWeekNumber(currentWeek)
       const showThisWeek = isCurrentWeek(currentWeek)
       return (
-        <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
-          <button onClick={goToPreviousWeek} className="p-1.5 sm:p-1 bg-[#1C1C1C] rounded hover:bg-gray-700 flex-shrink-0">
-            <ChevronLeft size={16} />
+        <>
+          <button onClick={goToPreviousWeek} className={navBtnClass}>
+            <ChevronLeft size={16} className="text-content-muted" />
           </button>
-          <div className="bg-[#1C1C1C] rounded px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[180px] text-center">
+          <button onClick={() => setCurrentWeek(new Date())} className={`${dateBtnClass} sm:min-w-[200px]`}>
             <div>{showThisWeek ? "This Week" : `Week ${weekNumber}`}</div>
-            <div className="text-[10px] sm:text-xs text-gray-400">
+            <div className="text-[10px] sm:text-xs text-content-muted">
               {weekRange.start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {weekRange.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </div>
-          </div>
-          <button onClick={goToNextWeek} className="p-1.5 sm:p-1 bg-[#1C1C1C] rounded hover:bg-gray-700 flex-shrink-0">
-            <ChevronRight size={16} />
           </button>
-        </div>
+          <button onClick={goToNextWeek} className={navBtnClass}>
+            <ChevronRight size={16} className="text-content-muted" />
+          </button>
+        </>
       )
     } else if (selectedPeriod === "year") {
       return (
-        <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
-          <button 
-            onClick={() => setSelectedYear(selectedYear - 1)} 
-            className="p-1.5 sm:p-1 bg-[#1C1C1C] rounded hover:bg-gray-700 flex-shrink-0"
-          >
-            <ChevronLeft size={16} />
+        <>
+          <button onClick={() => setSelectedYear(selectedYear - 1)} className={navBtnClass}>
+            <ChevronLeft size={16} className="text-content-muted" />
           </button>
-          <div className="bg-[#1C1C1C] rounded px-3 py-2 text-sm flex-1 sm:flex-none sm:min-w-[80px] text-center">
+          <button onClick={() => setSelectedYear(new Date().getFullYear())} className={dateBtnClass}>
             {selectedYear}
-          </div>
-          <button 
-            onClick={() => setSelectedYear(selectedYear + 1)} 
-            className="p-1.5 sm:p-1 bg-[#1C1C1C] rounded hover:bg-gray-700 flex-shrink-0"
-          >
-            <ChevronRight size={16} />
           </button>
-        </div>
-      )
-    } else if (selectedPeriod === "custom") {
-      return (
-        <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
-          <div className="flex items-center gap-1 flex-1 xs:flex-none">
-            <span className="text-xs text-gray-400 w-10 xs:w-auto">From:</span>
-            <input
-              type="date"
-              value={customStartDate}
-              onChange={(e) => setCustomStartDate(e.target.value)}
-              className="bg-[#1C1C1C] white-calendar-icon rounded px-2 py-1.5 text-xs sm:text-sm flex-1 xs:flex-none"
-            />
-          </div>
-          <div className="flex items-center gap-1 flex-1 xs:flex-none">
-            <span className="text-xs text-gray-400 w-10 xs:w-auto">To:</span>
-            <input
-              type="date"
-              value={customEndDate}
-              onChange={(e) => setCustomEndDate(e.target.value)}
-              className="bg-[#1C1C1C] white-calendar-icon rounded px-2 py-1.5 text-xs sm:text-sm flex-1 xs:flex-none"
-            />
-          </div>
-        </div>
+          <button onClick={() => setSelectedYear(selectedYear + 1)} className={navBtnClass}>
+            <ChevronRight size={16} className="text-content-muted" />
+          </button>
+        </>
       )
     } else {
       // Day view
       return (
-        <input
-          type="date"
-          value={currentDate.toISOString().split("T")[0]}
-          onChange={(e) => setCurrentDate(new Date(e.target.value))}
-          className="bg-[#1C1C1C] white-calendar-icon rounded px-3 py-2 text-sm md:text-base w-full sm:w-auto"
-        />
+        <>
+          <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1))} className={navBtnClass}>
+            <ChevronLeft size={16} className="text-content-muted" />
+          </button>
+          <button onClick={() => setCurrentDate(new Date())} className={dateBtnClass}>
+            {currentDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+          </button>
+          <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1))} className={navBtnClass}>
+            <ChevronRight size={16} className="text-content-muted" />
+          </button>
+        </>
       )
     }
   }
 
   // ============ Attendance Overview ============
   const renderAttendanceOverview = () => (
-    <div className="bg-[#141414] rounded-xl p-3 sm:p-4 h-full flex flex-col">
+    <div className="bg-surface-card rounded-xl p-3 sm:p-4 h-full flex flex-col">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <h3 className="text-base sm:text-lg font-semibold">Attendance Overview</h3>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg sm:rounded-xl flex-shrink-0">
+            <Clock className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <h3 className="font-semibold text-content-primary text-lg sm:text-xl">Attendance Overview</h3>
+        </div>
         <button
           onClick={() => setExportModalOpen(true)}
-          className="bg-gray-700 cursor-pointer hover:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm flex items-center gap-2 w-fit"
+          className="bg-surface-button cursor-pointer hover:bg-surface-button-hover text-content-secondary px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm flex items-center gap-2 w-fit"
         >
           <Download className="h-4 w-4" />
           <span className="hidden xs:inline">Export</span> Excel
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="mb-4 grid grid-cols-1 xs:grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 items-start sm:items-center sm:flex-wrap">
+      {/* Controls Row - matches Shifts/Vacation layout */}
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        {/* Navigation + Period Toggle */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {renderPeriodDisplay()}
+
+          {/* Period Toggle - right next to date */}
+          <div className="flex bg-surface-dark rounded-lg p-0.5">
+            {["day", "week", "month", "year"].map(p => (
+              <button key={p} onClick={() => handlePeriodChange(p)} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm capitalize ${selectedPeriod === p ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>{p.charAt(0).toUpperCase()}<span className="hidden sm:inline">{p.slice(1)}</span></button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 hidden sm:block" />
+
+        {/* Staff Filter */}
         <select
           value={selectedStaffId}
           onChange={(e) => setSelectedStaffId(e.target.value)}
-          className="bg-[#1C1C1C] rounded px-3 py-2 text-sm w-full sm:w-auto"
+          className="bg-surface-dark border border-border rounded-xl text-content-primary px-3 py-2 text-sm"
         >
-          <option value="all">All Staff</option>
+          <option value="all">All Staff ({staffMembersWithColors.length})</option>
           {staffMembersWithColors.map((staff) => (
             <option key={staff.id} value={staff.id}>
               {staff.firstName} {staff.lastName}
             </option>
           ))}
         </select>
-        <select
-          value={selectedPeriod}
-          onChange={(e) => handlePeriodChange(e.target.value)}
-          className="bg-[#1C1C1C] rounded px-3 py-2 text-sm w-full sm:w-auto"
-        >
-          <option value="day">Day</option>
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-          <option value="year">Year</option>
-          <option value="custom">Custom</option>
-        </select>
-        <div className="col-span-1 xs:col-span-2 sm:col-span-1">
-          {renderPeriodDisplay()}
-        </div>
       </div>
 
       {/* Content - Desktop Table / Mobile Cards */}
@@ -596,8 +585,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         {/* Desktop Table View */}
         <div className="hidden sm:block">
           <table className="w-full min-w-[600px]">
-            <thead className="sticky top-0 bg-[#141414] z-10">
-              <tr className="text-sm border-b border-gray-700">
+            <thead className="sticky top-0 bg-surface-card z-10">
+              <tr className="text-sm border-b border-border">
                 <th className="text-left py-3">Staff Name</th>
                 <th className="text-left py-3">Date</th>
                 <th className="text-left py-3">Check in</th>
@@ -609,23 +598,25 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
             <tbody>
               {filteredStaff.map((staff) => (
                 <>
-                  {/* Staff Header Row */}
-                  <tr key={`header-${staff.id}`} className="bg-[#1C1C1C]">
+                  {/* Staff Header Row - Clickable */}
+                  <tr key={`header-${staff.id}`} className="bg-surface-base cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff.id)}>
                     <td colSpan={6} className="py-3 px-2">
                       <div className="flex items-center gap-2 font-semibold">
+                        <ChevronDown size={16} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff.id) ? '-rotate-90' : ''}`} />
                         <div 
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: staff.color }}
                         />
                         {staff.firstName} {staff.lastName}
+                        <span className="text-content-faint text-xs font-normal ml-auto">{staff.shifts.length} shifts · {calculateTotalHours(staff.shifts)}h</span>
                       </div>
                     </td>
                   </tr>
                   
-                  {/* Shift Rows */}
-                  {staff.shifts.map((shift, index) => (
-                    <tr key={`${staff.id}-${index}`} className="text-sm border-b border-gray-800/50">
-                      <td className="py-2.5 pl-6 text-gray-400">—</td>
+                  {/* Shift Rows - Collapsible */}
+                  {!collapsedStaff.has(staff.id) && staff.shifts.map((shift, index) => (
+                    <tr key={`${staff.id}-${index}`} className="text-sm border-b border-border">
+                      <td className="py-2.5 pl-6"></td>
                       <td className="py-2.5">{new Date(shift.date).toLocaleDateString()}</td>
                       <td className="py-2.5">{shift.startTime}</td>
                       <td className="py-2.5">{shift.endTime}</td>
@@ -634,10 +625,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             shift.status === "completed"
-                              ? "bg-orange-500/20 text-orange-400"
+                              ? "bg-primary/20 text-primary"
                               : shift.status === "scheduled"
-                                ? "bg-blue-600/20 text-blue-400"
-                                : "bg-gray-600 text-white"
+                                ? "bg-secondary/20 text-secondary"
+                                : "bg-surface-button text-content-secondary"
                           }`}
                         >
                           {shift.status}
@@ -647,14 +638,16 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                   ))}
                   
                   {/* Staff Total Row */}
-                  <tr key={`total-${staff.id}`} className="border-b-2 border-gray-700">
+                  {!collapsedStaff.has(staff.id) && (
+                  <tr key={`total-${staff.id}`} className="border-b-2 border-border">
                     <td className="py-2.5 pl-6"></td>
                     <td className="py-2.5"></td>
                     <td className="py-2.5"></td>
-                    <td className="py-2.5 text-right font-medium text-gray-400">Total:</td>
-                    <td className="py-2.5 font-bold text-white">{calculateTotalHours(staff.shifts)}h</td>
-                    <td className="py-2.5 text-gray-400 text-sm">{staff.shifts.length} shifts</td>
+                    <td className="py-2.5 text-right font-medium text-content-muted">Total:</td>
+                    <td className="py-2.5 font-bold text-content-primary">{calculateTotalHours(staff.shifts)}h</td>
+                    <td className="py-2.5 text-content-muted text-sm">{staff.shifts.length} shifts</td>
                   </tr>
+                  )}
                 </>
               ))}
             </tbody>
@@ -664,10 +657,11 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         {/* Mobile Card View */}
         <div className="sm:hidden space-y-4">
           {filteredStaff.map((staff) => (
-            <div key={staff.id} className="bg-[#1C1C1C] rounded-xl overflow-hidden">
-              {/* Staff Header */}
-              <div className="p-3 border-b border-gray-800 flex items-center justify-between">
+            <div key={staff.id} className="bg-surface-base rounded-xl overflow-hidden">
+              {/* Staff Header - Clickable */}
+              <div className="p-3 border-b border-border flex items-center justify-between cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff.id)}>
                 <div className="flex items-center gap-2">
+                  <ChevronDown size={14} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff.id) ? '-rotate-90' : ''}`} />
                   <div 
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: staff.color }}
@@ -675,17 +669,18 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                   <span className="font-semibold text-sm">{staff.firstName} {staff.lastName}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-white font-bold text-sm">{calculateTotalHours(staff.shifts)}h</span>
-                  <span className="text-gray-400 text-xs ml-1">({staff.shifts.length})</span>
+                  <span className="text-content-primary font-bold text-sm">{calculateTotalHours(staff.shifts)}h</span>
+                  <span className="text-content-muted text-xs ml-1">({staff.shifts.length})</span>
                 </div>
               </div>
               
-              {/* Shifts */}
-              <div className="divide-y divide-gray-800/50">
+              {/* Shifts - Collapsible */}
+              {!collapsedStaff.has(staff.id) && (
+              <div className="divide-y divide-border">
                 {staff.shifts.slice(0, 5).map((shift, index) => (
                   <div key={index} className="p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-400">{new Date(shift.date).toLocaleDateString()}</p>
+                      <p className="text-xs text-content-muted">{new Date(shift.date).toLocaleDateString()}</p>
                       <p className="text-sm">{shift.startTime} - {shift.endTime}</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -693,10 +688,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-medium ${
                           shift.status === "completed"
-                            ? "bg-orange-500/20 text-orange-400"
+                            ? "bg-primary/20 text-primary"
                             : shift.status === "scheduled"
-                              ? "bg-blue-600/20 text-blue-400"
-                              : "bg-gray-600 text-white"
+                              ? "bg-secondary/20 text-secondary"
+                              : "bg-surface-button text-content-secondary"
                         }`}
                       >
                         {shift.status}
@@ -705,33 +700,34 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                   </div>
                 ))}
                 {staff.shifts.length > 5 && (
-                  <div className="p-2 text-center text-xs text-gray-400">
+                  <div className="p-2 text-center text-xs text-content-muted">
                     +{staff.shifts.length - 5} more shifts
                   </div>
                 )}
               </div>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       {/* Summary */}
-      <div className="mt-3 sm:mt-4 bg-[#1C1C1C] rounded-lg p-3 sm:p-4 flex-shrink-0">
+      <div className="mt-3 sm:mt-4 bg-surface-base rounded-lg p-3 sm:p-4 flex-shrink-0">
         <h4 className="text-sm sm:text-base font-semibold mb-2">Summary</h4>
         <div className="grid grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
           <div>
-            <p className="text-gray-400">Staff</p>
-            <p className="font-bold text-white">{filteredStaff.length}</p>
+            <p className="text-content-muted">Staff</p>
+            <p className="font-bold text-content-primary">{filteredStaff.length}</p>
           </div>
           <div>
-            <p className="text-gray-400">Shifts</p>
-            <p className="font-bold text-white">
+            <p className="text-content-muted">Shifts</p>
+            <p className="font-bold text-content-primary">
               {filteredStaff.reduce((total, staff) => total + staff.shifts.length, 0)}
             </p>
           </div>
           <div>
-            <p className="text-gray-400">Hours</p>
-            <p className="font-bold text-white">
+            <p className="text-content-muted">Hours</p>
+            <p className="font-bold text-content-primary">
               {filteredStaff.reduce((total, staff) => total + calculateTotalHours(staff.shifts), 0)}h
             </p>
           </div>
@@ -743,11 +739,11 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   // ============ Main Modal ============
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-1 sm:p-2 md:p-4">
-      <div className="bg-[#181818] text-white rounded-xl w-full max-w-[98vw] h-[98vh] sm:h-[95vh] flex flex-col overflow-hidden">
+      <div className="bg-surface-base text-content-primary rounded-xl w-full max-w-[98vw] h-[98vh] sm:h-[95vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-800 flex-shrink-0">
+        <div className="flex justify-between items-center p-3 sm:p-4 border-b border-border flex-shrink-0">
           <h2 className="text-base sm:text-lg md:text-xl font-bold">Staff Planning</h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white p-1.5 sm:p-2 hover:bg-gray-800 rounded-lg transition-colors">
+          <button onClick={onClose} className="text-content-secondary hover:text-content-primary p-1.5 sm:p-2 hover:bg-surface-hover rounded-lg transition-colors">
             <X size={18} className="sm:hidden" />
             <X size={20} className="hidden sm:block" />
           </button>

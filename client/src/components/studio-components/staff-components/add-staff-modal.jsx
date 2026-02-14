@@ -6,6 +6,8 @@ import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries";
 import DatePickerField from "../../shared/DatePickerField";
+import ColorPickerModal from "../../shared/ColorPickerModal";
+import CustomSelect from "../../shared/CustomSelect";
 
 // Initials Avatar Component - Blue background with initials (like members)
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -23,7 +25,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-surface-button rounded-xl flex items-center justify-center text- font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -93,7 +95,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1100] p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1100] p-4">
       <div className="bg-surface-card rounded-xl w-full max-w-md overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-border">
           <h3 className="text-content-primary font-semibold">Take Photo</h3>
@@ -129,14 +131,14 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
               <div className="flex gap-3">
                 <button
                   onClick={toggleCamera}
-                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-content-primary rounded-xl text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm flex items-center justify-center gap-2"
                 >
                   <Camera size={16} />
                   Flip
                 </button>
                 <button
                   onClick={handleCapture}
-                  className="flex-[2] py-2.5 bg-surface-button bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium"
+                  className="flex-[2] py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium"
                 >
                   Capture Photo
                 </button>
@@ -155,6 +157,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   const [activeTab, setActiveTab] = useState("details")
   const [showPassword, setShowPassword] = useState(false)
   const [showCameraModal, setShowCameraModal] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
   const [newStaff, setNewStaff] = useState({
     firstName: "",
     lastName: "",
@@ -175,7 +178,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     vacationEntitlement: 30,
     vacationDaysCurrentYear: 30,
     birthday: "",
-    color: "#3F74FF",
+    color: "#6366f1",
   })
 
   // Calculate pro-rated vacation days when component mounts or vacationEntitlement changes
@@ -402,7 +405,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">
-                        First Name<span className="text-red-500 ml-1">*</span>
+                        First Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
@@ -410,13 +413,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.firstName}
                         onChange={handleInputChange}
                         placeholder="John"
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">
-                        Last Name<span className="text-red-500 ml-1">*</span>
+                        Last Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
@@ -424,7 +427,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.lastName}
                         onChange={handleInputChange}
                         placeholder="Doe"
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
@@ -432,7 +435,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">
-                      Email<span className="text-red-500 ml-1">*</span>
+                      Email<span className="text-accent-red ml-1">*</span>
                     </label>
                     <input
                       type="email"
@@ -440,7 +443,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       value={newStaff.email}
                       onChange={handleInputChange}
                       placeholder="john@example.com"
-                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       required
                     />
                   </div>
@@ -448,7 +451,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">
-                        Mobile Number<span className="text-red-500 ml-1">*</span>
+                        Mobile Number<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="tel"
@@ -456,7 +459,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.mobileNumber}
                         onChange={handlePhoneChange}
                         placeholder="+49 123 456789"
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
@@ -468,7 +471,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.telephoneNumber}
                         onChange={handlePhoneChange}
                         placeholder="+49 123 456789"
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
@@ -476,24 +479,24 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
-                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm">
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
                         <span className={newStaff.birthday ? "text-content-primary" : "text-content-faint"}>{newStaff.birthday ? (() => { const [y,m,d] = newStaff.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={newStaff.birthday} onChange={(val) => setNewStaff(prev => ({ ...prev, birthday: val }))} />
                       </div>
                     </div>
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Gender</label>
-                      <select
+                      <CustomSelect
                         name="gender"
                         value={newStaff.gender}
                         onChange={handleInputChange}
-                        className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
-                      >
-                        <option value="">Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
+                        placeholder="Select gender"
+                        options={[
+                          { value: "male", label: "Male" },
+                          { value: "female", label: "Female" },
+                          { value: "other", label: "Other" },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>
@@ -510,7 +513,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       value={newStaff.street}
                       onChange={handleInputChange}
                       placeholder="123 Main St"
-                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -523,7 +526,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.zipCode}
                         onChange={handleInputChange}
                         placeholder="12345"
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
@@ -534,30 +537,25 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.city}
                         onChange={handleInputChange}
                         placeholder="Berlin"
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Country</label>
-                    <select
+                    <CustomSelect
                       name="country"
                       value={newStaff.country}
                       onChange={handleInputChange}
-                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
-                    >
-                      <option value="">Select a country</option>
-                      {loading ? (
-                        <option value="" disabled>Loading countries...</option>
-                      ) : (
-                        countries.map((country) => (
-                          <option key={country.code} value={country.name}>
-                            {country.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
+                      placeholder={loading ? "Loading countries..." : "Select a country"}
+                      searchable
+                      options={countries.map((country) => ({
+                        value: country.name,
+                        label: country.name,
+                      }))}
+                      disabled={loading}
+                    />
                   </div>
                 </div>
 
@@ -567,46 +565,44 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                   
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">
-                      Role<span className="text-red-500 ml-1">*</span>
+                      Role<span className="text-accent-red ml-1">*</span>
                     </label>
-                    <select
+                    <CustomSelect
                       name="role"
                       value={newStaff.role}
                       onChange={handleInputChange}
-                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
+                      placeholder="Select role"
                       required
-                    >
-                      <option value="">Select role</option>
-                      <option value="admin">Admin</option>
-                      <option value="manager">Manager</option>
-                      <option value="employee">Employee</option>
-                    </select>
+                      options={[
+                        { value: "admin", label: "Admin" },
+                        { value: "manager", label: "Manager" },
+                        { value: "employee", label: "Employee" },
+                      ]}
+                    />
                   </div>
 
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Staff Identification Color</label>
-                    <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
-                      <input
-                        type="color"
-                        name="color"
-                        value={newStaff.color}
-                        onChange={handleColorChange}
-                        className="w-10 h-10 bg-transparent rounded-lg cursor-pointer border-0"
-                      />
-                      <span className="text-sm text-content-secondary">{newStaff.color}</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowColorPicker(true)}
+                      className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
+                    >
+                      <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: newStaff.color }} />
+                      <span className="text-content-primary">{newStaff.color}</span>
+                    </button>
                   </div>
 
                   {/* Vacation Section */}
-                  <div className="space-y-4 p-4 bg-surface-dark rounded-xl">
+                  <div className="space-y-4 pt-3 border-t border-border">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2 flex items-center gap-2">
                         Annual Vacation Entitlement (Days)
                         <div className="relative group">
                           <Info size={14} className="text-content-faint cursor-help" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-content-primary text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-surface-dark text-content-primary text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
                             Full vacation days per complete year
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-surface-dark"></div>
                           </div>
                         </div>
                       </label>
@@ -617,7 +613,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         onChange={handleVacationEntitlementChange}
                         min="0"
                         max="365"
-                        className="w-full bg-[#1a1a1a] text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
+                        className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
@@ -630,7 +626,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         <button
                           type="button"
                           onClick={recalculateProRatedVacation}
-                          className="flex items-center gap-1 text-xs text-[#3F74FF] hover:text-[#3F74FF]/80 transition-colors"
+                          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
                           title="Recalculate pro-rated vacation"
                         >
                           <Calculator size={12} />
@@ -645,11 +641,11 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                           onChange={handleVacationDaysCurrentYearChange}
                           min="0"
                           max={newStaff.vacationEntitlement}
-                          className="w-full bg-[#1a1a1a] text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
+                          className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                         />
                         {newStaff.hasManualAdjustment && (
                           <div className="absolute top-1/2 -translate-y-1/2 right-3">
-                            <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-1 rounded">
+                            <span className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-lg">
                               Manual
                             </span>
                           </div>
@@ -658,7 +654,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       <p className="text-xs text-content-faint mt-2">
                         Automatically calculated based on current date. You can manually adjust this value.
                         {newStaff.vacationDaysCurrentYear < newStaff.vacationEntitlement && (
-                          <span className="block text-yellow-400/80 mt-1">
+                          <span className="block text-content-secondary mt-1">
                             Pro-rated: {newStaff.vacationDaysCurrentYear} of {newStaff.vacationEntitlement} days
                           </span>
                         )}
@@ -678,7 +674,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       value={newStaff.about}
                       onChange={handleInputChange}
                       placeholder="Enter more details..."
-                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none min-h-[100px]"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none min-h-[100px] border border-transparent focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
@@ -691,7 +687,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 
                 <div>
                   <label className="text-sm text-content-secondary block mb-2">
-                    Username<span className="text-red-500 ml-1">*</span>
+                    Username<span className="text-accent-red ml-1">*</span>
                   </label>
                   <input
                     type="text"
@@ -699,14 +695,14 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                     value={newStaff.username}
                     onChange={handleInputChange}
                     placeholder="johndoe"
-                    className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                    className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="text-sm text-content-secondary block mb-2">
-                    Password<span className="text-red-500 ml-1">*</span>
+                    Password<span className="text-accent-red ml-1">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -715,7 +711,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       value={newStaff.password}
                       onChange={handleInputChange}
                       placeholder="Enter password"
-                      className="w-full bg-surface-dark rounded-xl px-4 py-2 pr-16 text-content-primary outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 pr-16 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       required
                     />
                     <button
@@ -755,6 +751,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
         isOpen={showCameraModal}
         onClose={() => setShowCameraModal(false)}
         onCapture={handleCameraCapture}
+      />
+      <ColorPickerModal
+        isOpen={showColorPicker}
+        onClose={() => setShowColorPicker(false)}
+        onSelectColor={(color) => setNewStaff(prev => ({ ...prev, color }))}
+        currentColor={newStaff.color}
+        title="Staff Identification Color"
       />
     </div>
   )

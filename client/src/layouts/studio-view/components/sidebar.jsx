@@ -487,7 +487,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto sidebar-scrollbar">
           <ul className="space-y-2 px-4 pt-1 pb-4">
             {menuItems.map((item) => {
               const hasActiveSubmenu = isSubmenuActive(item.submenu)

@@ -20,30 +20,30 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90]">
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6 mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+      <div className="bg-surface-card rounded-xl w-full max-w-md p-6 mx-4">
         <div className="flex items-center gap-3 mb-4">
           <div>
-            <h3 className="text-white text-lg font-medium">Delete Document</h3>
-            <p className="text-gray-400 text-sm">This action cannot be undone</p>
+            <h3 className="text-content-primary text-xl font-bold">Delete Document</h3>
+            <p className="text-content-muted text-sm">This action cannot be undone</p>
           </div>
         </div>
         
-        <div className="bg-[#141414] p-4 rounded-xl mb-6">
-          <p className="text-gray-300 mb-2">Are you sure you want to delete this document?</p>
-          <p className="text-white font-medium truncate">{documentName}</p>
+        <div className="bg-surface-dark p-4 rounded-xl mb-6">
+          <p className="text-content-secondary mb-2">Are you sure you want to delete this document?</p>
+          <p className="text-content-primary font-medium truncate">{documentName}</p>
         </div>
         
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 text-sm bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+            className="flex-1 px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+            className="flex-1 px-4 py-2 text-sm bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
           >
             Delete
           </button>
@@ -203,8 +203,8 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-400">Loading document...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-content-muted">Loading document...</p>
         </div>
       )
     }
@@ -212,12 +212,12 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
     if (error) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
-          <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-          <p className="text-white text-lg mb-2">Error Loading Document</p>
-          <p className="text-gray-400 mb-6">{error}</p>
+          <AlertCircle className="w-16 h-16 text-accent-red mb-4" />
+          <p className="text-content-primary text-lg mb-2">Error Loading Document</p>
+          <p className="text-content-muted mb-6">{error}</p>
           <button
             onClick={() => onDownload && onDownload(document)}
-            className="px-6 py-3 bg-[#3F74FF] text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
           >
             <Download className="w-5 h-5" />
             Download Instead
@@ -254,7 +254,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       case 'text':
         return (
           <div className="p-6 h-full overflow-auto">
-            <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-[#0d0d0d] p-4 rounded-lg">
+            <pre className="text-content-secondary text-sm whitespace-pre-wrap font-mono bg-surface-base p-4 rounded-lg">
               {content.text}
             </pre>
           </div>
@@ -343,8 +343,8 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
                     onClick={() => setCurrentPage(idx + 1)}
                     className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                       currentPage === idx + 1
-                        ? 'bg-[#3F74FF] text-white'
-                        : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]'
+                        ? 'bg-primary text-white'
+                        : 'bg-surface-dark text-content-secondary hover:bg-surface-button'
                     }`}
                   >
                     {sheet.name}
@@ -352,15 +352,15 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
                 ))}
               </div>
             )}
-            <div className="overflow-auto bg-[#0d0d0d] rounded-lg">
+            <div className="overflow-auto bg-surface-base rounded-lg">
               <table className="min-w-full text-sm">
                 <tbody>
                   {currentSheet?.data.map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx === 0 ? 'bg-[#1a1a1a] font-semibold' : 'hover:bg-[#1a1a1a]'}>
+                    <tr key={rowIdx} className={rowIdx === 0 ? 'bg-surface-dark font-semibold' : 'hover:bg-surface-dark'}>
                       {row.map((cell, cellIdx) => (
                         <td 
                           key={cellIdx} 
-                          className="px-4 py-2 border border-gray-800 text-gray-300 whitespace-nowrap"
+                          className="px-4 py-2 border border-border text-content-secondary whitespace-nowrap"
                         >
                           {cell ?? ''}
                         </td>
@@ -376,47 +376,47 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <File className="w-16 h-16 text-gray-500 mb-4" />
-            <p className="text-white text-lg mb-2">Preview not available</p>
-            <p className="text-gray-400">Please download the file to view it.</p>
+            <File className="w-16 h-16 text-content-faint mb-4" />
+            <p className="text-content-primary text-lg mb-2">Preview not available</p>
+            <p className="text-content-muted">Please download the file to view it.</p>
           </div>
         )
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[90] p-2 sm:p-4">
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-7xl h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4">
+      <div className="bg-surface-card rounded-xl w-full max-w-7xl h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-800 flex-shrink-0">
+        <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <h3 className="text-white text-lg font-medium truncate">{document.name}</h3>
-            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded uppercase flex-shrink-0">
+            <h3 className="text-content-primary text-lg font-medium truncate">{document.name}</h3>
+            <span className="text-xs text-content-faint bg-surface-dark px-2 py-1 rounded uppercase flex-shrink-0">
               {document.type}
             </span>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
+            <X size={24} />
           </button>
         </div>
         
         {/* Viewer Content - takes all available space */}
-        <div className="flex-1 overflow-auto bg-[#161616]">
+        <div className="flex-1 overflow-auto bg-surface-dark">
           {renderContent()}
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-gray-800 flex gap-3 flex-shrink-0">
+        <div className="p-4 border-t border-border flex gap-3 flex-shrink-0">
           <button
             onClick={() => onDownload && onDownload(document)}
-            className="flex-1 py-2.5 bg-[#3F74FF] text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
             Download
           </button>
           <button
             onClick={() => onPrint && onPrint(document)}
-            className="flex-1 py-2.5 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
           >
             <Printer className="w-4 h-4" />
             Print
@@ -1154,15 +1154,15 @@ export default function DocumentManagementModal({
       return <ClipboardList className="w-5 h-5 text-white" />
     }
     
-    if (!type) return <File className="w-5 h-5 text-gray-400" />
+    if (!type) return <File className="w-5 h-5 text-content-muted" />
 
     const fileType = type.toLowerCase()
     switch (fileType) {
       case "pdf":
-        return <FileText className="w-5 h-5 text-red-500" />
+        return <FileText className="w-5 h-5 text-accent-red" />
       case "xlsx":
       case "xls":
-        return <FileText className="w-5 h-5 text-green-500" />
+        return <FileText className="w-5 h-5 text-accent-green" />
       case "docx":
       case "doc":
         return <FileText className="w-5 h-5 text-blue-500" />
@@ -1171,14 +1171,14 @@ export default function DocumentManagementModal({
       case "png":
         return <File className="w-5 h-5 text-purple-500" />
       case "txt":
-        return <FileText className="w-5 h-5 text-gray-500" />
+        return <FileText className="w-5 h-5 text-content-faint" />
       default:
-        return <File className="w-5 h-5 text-gray-400" />
+        return <File className="w-5 h-5 text-content-muted" />
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4">
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={!!documentToDelete}
@@ -1207,23 +1207,23 @@ export default function DocumentManagementModal({
       />
 
       {/* Main Modal */}
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface-card rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-800">
-          <h3 className="text-white text-lg sm:text-xl font-medium">
+        <div className="flex justify-between items-center p-3 sm:p-4 border-b border-border">
+          <h3 className="text-content-primary text-xl font-bold">
             Document Management
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary p-1">
+            <X size={24} />
           </button>
         </div>
 
         {/* Entity Info & Actions */}
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-border">
           <div className="flex flex-col sm:items-start gap-3">
-            <p className="text-gray-300">
-              Manage documents for <span className="font-medium text-white">{entityName}</span>
-              <span className="text-gray-500 text-sm block sm:inline sm:ml-2">
+            <p className="text-content-secondary">
+              Manage documents for <span className="font-medium text-content-primary">{entityName}</span>
+              <span className="text-content-faint text-sm block sm:inline sm:ml-2">
                 {entityType === "lead" ? `Lead #${entity.id}` : entityType === "staff" ? `Staff #${entity.id}` : `Member #${entity.id}`}
               </span>
             </p>
@@ -1232,7 +1232,7 @@ export default function DocumentManagementModal({
                 <button
                   onClick={handleUploadClick}
                   disabled={isUploading}
-                  className="text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-sm gap-2 px-4 py-2 bg-primary text-white rounded-xl transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   {isUploading ? "Uploading..." : "Upload Document"}
@@ -1240,7 +1240,7 @@ export default function DocumentManagementModal({
                 {activeSection === "medicalHistory" && onCreateAssessment && (
                   <button
                     onClick={handleCreateAssessmentClick}
-                    className="text-sm gap-2 px-4 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors w-full sm:w-auto flex items-center justify-center"
+                    className="text-sm gap-2 px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors w-full sm:w-auto flex items-center justify-center"
                   >
                     <Pencil className="w-4 h-4 mr-2" />
                     Fill Out Medical History
@@ -1249,7 +1249,7 @@ export default function DocumentManagementModal({
               </div>
               <button
                 onClick={() => setIsTagManagerOpen(true)}
-                className="text-sm gap-2 px-4 py-2 bg-[#2a2a2a] text-white rounded-xl hover:bg-[#333] transition-colors w-full sm:w-auto flex items-center justify-center border border-gray-700"
+                className="text-sm gap-2 px-4 py-2 bg-surface-dark text-content-primary rounded-xl hover:bg-surface-button transition-colors w-full sm:w-auto flex items-center justify-center border border-border"
               >
                 <Tag className="w-4 h-4 mr-2" />
                 Tags
@@ -1267,7 +1267,7 @@ export default function DocumentManagementModal({
         </div>
 
         {/* Section Tabs */}
-        <div className="flex border-b border-gray-800">
+        <div className="flex border-b border-border">
           {sections.map((section) => {
             const Icon = section.icon
             return (
@@ -1276,8 +1276,8 @@ export default function DocumentManagementModal({
                 onClick={() => setActiveSection(section.id)}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                   activeSection === section.id
-                    ? "text-white border-b-2 border-[#3F74FF]"
-                    : "text-gray-400 hover:text-white"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-content-muted hover:text-content-primary"
                 }`}
               >
                 {Icon && <Icon className="w-4 h-4" />}
@@ -1290,19 +1290,19 @@ export default function DocumentManagementModal({
         {/* Document List */}
         <div className="flex-1 overflow-y-auto p-4">
           {isUploading && (
-            <div className="bg-[#141414] p-4 rounded-xl mb-3 animate-pulse">
+            <div className="bg-surface-dark p-4 rounded-xl mb-3 animate-pulse">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-700 rounded-md flex items-center justify-center">
-                  <FilePlus className="w-5 h-5 text-gray-500" />
+                <div className="w-10 h-10 bg-surface-button rounded-md flex items-center justify-center">
+                  <FilePlus className="w-5 h-5 text-content-faint" />
                 </div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-700 rounded w-1/4"></div>
+                  <div className="h-4 bg-surface-button rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-surface-button rounded w-1/4"></div>
                 </div>
                 <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
-                  <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
-                  <div className="w-8 h-8 bg-gray-700 rounded-md"></div>
+                  <div className="w-8 h-8 bg-surface-button rounded-md"></div>
+                  <div className="w-8 h-8 bg-surface-button rounded-md"></div>
+                  <div className="w-8 h-8 bg-surface-button rounded-md"></div>
                 </div>
               </div>
             </div>
@@ -1310,15 +1310,15 @@ export default function DocumentManagementModal({
 
           {filteredDocuments.length === 0 ? (
             <div className="text-center py-8">
-              <div className="bg-[#141414] p-6 rounded-xl">
-                <File className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">
+              <div className="bg-surface-dark p-6 rounded-xl">
+                <File className="w-12 h-12 text-content-faint mx-auto mb-4" />
+                <p className="text-content-muted mb-4">
                   {activeSection === "general" 
                     ? `No documents uploaded yet for ${entityName}`
                     : "No medical history records yet"
                   }
                 </p>
-                <p className="text-gray-500 text-sm">
+                <p className="text-content-faint text-sm">
                   {activeSection === "general"
                     ? "Click 'Upload Document' to add files"
                     : "Click 'Fill Out Medical History' to get started"
@@ -1329,17 +1329,17 @@ export default function DocumentManagementModal({
           ) : (
             <div className="space-y-3">
               {filteredDocuments.map((doc) => (
-                <div key={doc.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors">
+                <div key={doc.id} className="bg-surface-dark p-4 rounded-xl hover:bg-surface-dark transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     {/* Document Info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 bg-[#2a2a2a] rounded-md flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-surface-dark rounded-md flex items-center justify-center flex-shrink-0">
                         {getDocumentIcon(doc.type, doc.section)}
                       </div>
                       <div className="flex-1 min-w-0">
                         {editingDocId === doc.id ? (
                           <div className="flex flex-col sm:flex-row gap-2">
-                            <div className="flex-1 flex items-center bg-black text-white px-2 py-1 rounded border border-gray-700 w-full">
+                            <div className="flex-1 flex items-center bg-surface-dark text-content-primary px-2 py-1 rounded border border-border w-full">
                               <input
                                 type="text"
                                 value={newDocName}
@@ -1352,19 +1352,19 @@ export default function DocumentManagementModal({
                                 }}
                               />
                               {doc.type !== "medicalHistory" && (
-                                <span className="text-gray-500 text-sm">.{getFileExtension(doc.name)}</span>
+                                <span className="text-content-faint text-sm">.{getFileExtension(doc.name)}</span>
                               )}
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => saveDocName(doc.id)}
-                                className="p-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+                                className="p-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors"
                               >
                                 <Check className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setEditingDocId(null)}
-                                className="p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                                className="p-2 bg-surface-button text-content-primary rounded-md hover:bg-surface-button-hover transition-colors"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -1372,13 +1372,13 @@ export default function DocumentManagementModal({
                           </div>
                         ) : (
                           <>
-                            <h4 className="text-white font-medium text-sm truncate">{doc.name}</h4>
+                            <h4 className="text-content-primary font-medium text-sm truncate">{doc.name}</h4>
                             <div className="flex flex-wrap items-center gap-2 mt-1">
-                              <p className="text-gray-400 text-xs">{doc.size}</p>
-                              <span className="text-gray-600">-</span>
-                              <p className="text-gray-400 text-xs">{doc.uploadDate}</p>
+                              <p className="text-content-muted text-xs">{doc.size}</p>
+                              <span className="text-content-faint">-</span>
+                              <p className="text-content-muted text-xs">{doc.uploadDate}</p>
                               {doc.type === "medicalHistory" && doc.answers && (
-                                <span className="text-gray-400 text-xs">â€¢ {Object.keys(doc.answers).length} answers</span>
+                                <span className="text-content-muted text-xs">â€¢ {Object.keys(doc.answers).length} answers</span>
                               )}
                             </div>
                             
@@ -1427,7 +1427,7 @@ export default function DocumentManagementModal({
                                 e.target.value = ""
                               }
                             }}
-                            className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md text-xs border border-gray-700 hover:bg-[#333] hover:border-[#3F74FF] transition-colors cursor-pointer"
+                            className="p-2 bg-surface-dark text-content-secondary rounded-md text-xs border border-border hover:bg-surface-button hover:border-primary transition-colors cursor-pointer"
                             title="Add tag"
                           >
                             <option value="">+ Tag</option>
@@ -1442,35 +1442,35 @@ export default function DocumentManagementModal({
                         
                         <button
                           onClick={() => handleViewDocument(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDownload(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors"
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handlePrint(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors"
                           title="Print"
                         >
                           <Printer className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => startEditing(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors"
                           title="Rename"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
-                          className="p-2 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
+                          className="p-2 bg-surface-dark text-accent-red rounded-md hover:bg-surface-button transition-colors"
                           title="Delete"
                         >
                           <Trash className="w-4 h-4" />
@@ -1485,15 +1485,15 @@ export default function DocumentManagementModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-border">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-content-faint">
               <p>Supported: PDF, JPG, PNG, DOC, DOCX, TXT</p>
               <p>Max size: 10MB per file</p>
             </div>
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-blue-600 transition-colors w-full sm:w-auto"
+              className="px-6 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors w-full sm:w-auto"
             >
               Close
             </button>

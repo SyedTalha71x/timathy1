@@ -59,20 +59,20 @@ const AssessmentSelectionModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-2xl border border-gray-700">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1000]">
+      <div className="bg-surface-card p-6 rounded-xl w-full max-w-2xl">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-white">Fill Out Medical History</h2>
+          <h2 className="text-xl font-bold text-content-primary">Fill Out Medical History</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white text-lg"
+            className="text-content-muted hover:text-content-primary transition-colors"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-300 mb-4">
+          <p className="text-content-secondary mb-4">
             Select a medical history form for {selectedLead?.firstName} {selectedLead?.surname}
           </p>
           
@@ -83,13 +83,13 @@ const AssessmentSelectionModal = ({
                 onClick={() => handleAssessmentSelect(assessment)}
                 className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                   selectedAssessment?.id === assessment.id
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-gray-600 hover:border-gray-500'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-border'
                 }`}
               >
                 <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-white">{assessment.title}</h3>
-                  <div className="text-gray-400 text-sm">
+                  <h3 className="font-semibold text-content-primary">{assessment.title}</h3>
+                  <div className="text-content-muted text-sm">
                     {assessment.sections} Sections • {assessment.questions} Questions
                   </div>
                 </div>
@@ -102,7 +102,7 @@ const AssessmentSelectionModal = ({
           {!fromDocumentManagement && (
             <button
               onClick={onProceedToContract}
-              className="px-4 py-3 text-sm text-white bg-black rounded-xl border border-slate-600 hover:border-slate-400 active:scale-95 transition-all"
+              className="px-4 py-3 text-sm text-content-primary bg-surface-button rounded-xl hover:bg-surface-button-hover active:scale-95 transition-all"
             >
               Proceed to Contract
             </button>
@@ -110,7 +110,7 @@ const AssessmentSelectionModal = ({
           <button
             onClick={handleCreateAssessment}
             disabled={!selectedAssessment}
-            className="px-4 py-3 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-xl active:scale-95 transition-transform font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="px-4 py-3 text-sm bg-primary hover:bg-primary-hover text-white rounded-xl active:scale-95 transition-transform font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Pencil className="w-4 h-4" />
             Fill Out Medical History

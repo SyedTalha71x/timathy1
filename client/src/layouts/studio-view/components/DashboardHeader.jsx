@@ -198,16 +198,16 @@ const DashboardHeader = ({
   const ThemeToggle = ({ isMobile = false }) => (
     <button
       onClick={toggleTheme}
-      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-hover transition-colors cursor-pointer flex items-center gap-1 ${
+      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
         isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
       }`}
       aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
       {isDarkMode ? (
-        <Sun size={isMobile ? 18 : 18} className="text-yellow-500" />
+        <Sun size={isMobile ? 18 : 18} className="text-content-muted" />
       ) : (
-        <Moon size={isMobile ? 18 : 18} className="text-blue-500" />
+        <Moon size={isMobile ? 18 : 18} className="text-content-muted" />
       )}
     </button>
   )
@@ -219,7 +219,7 @@ const DashboardHeader = ({
     <div className="relative" ref={languageDropdownRef}>
       <button
         onClick={toggleLanguageDropdown}
-        className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-hover transition-colors cursor-pointer flex items-center gap-1 ${
+        className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
           isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
         }`}
         aria-label="Language Selection"
@@ -268,7 +268,7 @@ const DashboardHeader = ({
       <div 
         onClick={toggleProfileDropdown} 
         className={`flex items-center cursor-pointer ${
-          isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-hover transition-colors"
+          isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"
         }`}
       >
         <img draggable="false" src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
@@ -344,7 +344,7 @@ const DashboardHeader = ({
   const SidebarToggleButton = ({ isMobile = false }) => (
     <div 
       onClick={toggleRightSidebar} 
-      className={`cursor-pointer relative ${isMobile ? "p-2 px-3 rounded-xl bg-surface-card" : "p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-hover transition-colors"}`}
+      className={`cursor-pointer relative ${isMobile ? "p-2 px-3 rounded-xl bg-surface-card" : "p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"}`}
     >
       {showShoppingCartToggle ? (
         // Shopping Cart Mode (Selling page)
@@ -381,7 +381,7 @@ const DashboardHeader = ({
       )}
       
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border-default py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
+      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
         <div className="flex items-center gap-2">
           <div className="bg-primary p-2 rounded-md">
             <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
@@ -432,7 +432,7 @@ const DashboardHeader = ({
           {toggleLeftSidebarCollapse && (
             <div
               onClick={toggleLeftSidebarCollapse}
-              className="p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-hover transition-colors cursor-pointer"
+              className="p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer"
             >
               {isLeftSidebarCollapsed ? (
                 <img draggable="false" key="collapsed" src='/expand-sidebar mirrored.svg' className="theme-icon h-5 w-5" alt="Open sidebar" />
@@ -458,7 +458,7 @@ const DashboardHeader = ({
             {/* Activity Log */}
             <button
               onClick={handleActivityLogClick}
-              className="p-1.5 px-2.5 rounded-xl text-content-muted bg-surface-card hover:bg-surface-hover transition-colors cursor-pointer flex items-center gap-1"
+              className="p-1.5 px-2.5 rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1"
               aria-label="Activity Log"
             >
               <History size={18} />

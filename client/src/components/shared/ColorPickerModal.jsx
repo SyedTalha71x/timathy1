@@ -117,15 +117,18 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
     setSelectedColor(currentColor)
     setHexInput(currentColor)
     setHsv(hexToHsv(currentColor))
-  }, [currentColor])
+    setActiveTab('presets')
+  }, [currentColor, isOpen])
 
   useEffect(() => {
-    if (activeTab === 'custom') drawSvCanvas(svCanvasRef.current, hsv.h)
-  }, [hsv.h, activeTab])
-
-  useEffect(() => {
-    if (activeTab === 'custom') drawHueCanvas(hueCanvasRef.current)
-  }, [activeTab])
+    if (isOpen && activeTab === 'custom') {
+      // Use requestAnimationFrame to ensure canvas is mounted
+      requestAnimationFrame(() => {
+        drawSvCanvas(svCanvasRef.current, hsv.h)
+        drawHueCanvas(hueCanvasRef.current)
+      })
+    }
+  }, [hsv.h, activeTab, isOpen])
 
   const updateFromHsv = useCallback((newHsv) => {
     setHsv(newHsv)
@@ -194,23 +197,23 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
   const hueColor = hsvToHex(hsv.h, 1, 1)
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1002] p-4">
-      <div className="bg-surface-base rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1002] p-4">
+      <div className="bg-surface-card p-6 rounded-xl w-full max-w-sm">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border">
-          <h2 className="text-lg font-semibold text-content-primary">{title}</h2>
-          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors p-1">
-            <X size={20} />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl text-content-primary font-bold">{title}</h2>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
+            <X size={24} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border">
+        <div className="flex border-b border-border mb-4">
           <button
             onClick={() => setActiveTab('presets')}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 py-2 text-sm font-medium transition-colors ${
               activeTab === 'presets'
-                ? 'text-content-primary border-b-2 border-primary'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-content-muted hover:text-content-primary'
             }`}
           >
@@ -218,9 +221,9 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
           </button>
           <button
             onClick={() => setActiveTab('custom')}
-            className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
               activeTab === 'custom'
-                ? 'text-content-primary border-b-2 border-primary'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-content-muted hover:text-content-primary'
             }`}
           >
@@ -230,7 +233,7 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
         </div>
 
         {/* Content */}
-        <div className="p-5">
+        <div>
           {activeTab === 'presets' ? (
             <div className="grid grid-cols-5 gap-2">
               {PRESET_COLORS.map((color) => (
@@ -239,7 +242,7 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
                   onClick={() => handlePresetClick(color)}
                   className={`w-full aspect-square rounded-xl transition-all duration-150 hover:scale-110 ${
                     selectedColor.toLowerCase() === color.toLowerCase()
-                      ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-base scale-110'
+                      ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-card scale-110'
                       : 'hover:shadow-lg'
                   }`}
                   style={{ backgroundColor: color }}
@@ -329,16 +332,16 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-5 border-t border-border">
+        <div className="flex justify-end gap-2 pt-4">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors text-sm font-medium"
+            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+            className="px-4 py-2 text-sm bg-primary hover:bg-primary-hover text-white rounded-xl transition-colors"
           >
             Confirm
           </button>

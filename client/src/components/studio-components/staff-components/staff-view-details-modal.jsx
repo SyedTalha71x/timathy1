@@ -19,7 +19,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-[#3F74FF] rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -187,18 +187,18 @@ const StaffViewDetailsModal = ({
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
+      <div className="bg-surface-card rounded-xl w-full max-w-2xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
         {/* Header */}
         <div className="p-4 md:p-6 pb-4 flex-shrink-0">
           <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h2 className="text-white text-lg font-semibold">Staff Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className="text-content-primary text-lg font-semibold">Staff Details</h2>
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
 
           {/* Staff Avatar and Name */}
-          <div className="flex items-center gap-4 pb-4 border-b border-gray-700">
+          <div className="flex items-center gap-4 pb-4 border-b border-border">
             {selectedStaff.img ? (
               <img
                 src={selectedStaff.img}
@@ -214,55 +214,55 @@ const StaffViewDetailsModal = ({
               />
             )}
             <div>
-              <h3 className="text-white text-xl font-semibold">
+              <h3 className="text-content-primary text-xl font-semibold">
                 {selectedStaff.firstName} {selectedStaff.lastName}
               </h3>
-              <p className="text-gray-400 capitalize">{selectedStaff.role}</p>
+              <p className="text-content-muted capitalize">{selectedStaff.role}</p>
             </div>
           </div>
         </div>
 
         {/* Scrollable Content */}
         <div className="p-4 md:p-6 pt-0 overflow-y-auto flex-1 custom-scrollbar">
-          <div className="space-y-4 text-white">
+          <div className="space-y-4 text-content-primary">
             {/* Personal Information */}
             <div className="space-y-4">
-              <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">First Name</p>
+                  <p className="text-sm text-content-muted">First Name</p>
                   <div className="flex items-center gap-3">
                     <p>{selectedStaff.firstName || "-"}</p>
                     {selectedStaff.firstName && (
                       <button
                         onClick={handleCopyFirstName}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded transition-colors"
                         title="Copy first name"
                       >
                         {copiedFirstName ? (
                           <Check size={14} className="text-green-500" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Last Name</p>
+                  <p className="text-sm text-content-muted">Last Name</p>
                   <div className="flex items-center gap-3">
                     <p>{selectedStaff.lastName || "-"}</p>
                     {selectedStaff.lastName && (
                       <button
                         onClick={handleCopyLastName}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded transition-colors"
                         title="Copy last name"
                       >
                         {copiedLastName ? (
                           <Check size={14} className="text-green-500" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
@@ -272,34 +272,34 @@ const StaffViewDetailsModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">Gender</p>
+                  <p className="text-sm text-content-muted">Gender</p>
                   <p className="capitalize">{selectedStaff.gender || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Birthday</p>
+                  <p className="text-sm text-content-muted">Birthday</p>
                   <p>{formatBirthday(selectedStaff.birthday)}</p>
                 </div>
               </div>
             </div>
 
             {/* Contact Information */}
-            <div className="space-y-4 pt-4 border-t border-gray-700">
-              <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+            <div className="space-y-4 pt-4 border-t border-border">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
               
               <div>
-                <p className="text-sm text-gray-400">Email</p>
+                <p className="text-sm text-content-muted">Email</p>
                 <div className="flex items-center gap-3">
                   <p>{selectedStaff.email || "-"}</p>
                   {selectedStaff.email && (
                     <button
                       onClick={handleCopyEmail}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-hover rounded transition-colors"
                       title="Copy email"
                     >
                       {copiedEmail ? (
                         <Check size={14} className="text-green-500" />
                       ) : (
-                        <Copy size={14} className="text-gray-400 hover:text-white" />
+                        <Copy size={14} className="text-content-muted hover:text-content-primary" />
                       )}
                     </button>
                   )}
@@ -308,38 +308,38 @@ const StaffViewDetailsModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">Mobile Number</p>
+                  <p className="text-sm text-content-muted">Mobile Number</p>
                   <div className="flex items-center gap-3">
                     <p>{selectedStaff.mobileNumber || selectedStaff.phone || "-"}</p>
                     {(selectedStaff.mobileNumber || selectedStaff.phone) && (
                       <button
                         onClick={handleCopyMobile}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded transition-colors"
                         title="Copy mobile number"
                       >
                         {copiedMobile ? (
                           <Check size={14} className="text-green-500" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Telephone Number</p>
+                  <p className="text-sm text-content-muted">Telephone Number</p>
                   <div className="flex items-center gap-3">
                     <p>{selectedStaff.telephoneNumber || "-"}</p>
                     {selectedStaff.telephoneNumber && (
                       <button
                         onClick={handleCopyTelephone}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded transition-colors"
                         title="Copy telephone number"
                       >
                         {copiedTelephone ? (
                           <Check size={14} className="text-green-500" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
@@ -349,23 +349,23 @@ const StaffViewDetailsModal = ({
             </div>
 
             {/* Address */}
-            <div className="space-y-4 pt-4 border-t border-gray-700">
-              <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+            <div className="space-y-4 pt-4 border-t border-border">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
               
               <div>
-                <p className="text-sm text-gray-400">Street & Number</p>
+                <p className="text-sm text-content-muted">Street & Number</p>
                 <div className="flex items-center gap-3">
                   <p>{selectedStaff.street || "-"}</p>
                   {selectedStaff.street && (
                     <button
                       onClick={handleCopyStreet}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-hover rounded transition-colors"
                       title="Copy street"
                     >
                       {copiedStreet ? (
                         <Check size={14} className="text-green-500" />
                       ) : (
-                        <Copy size={14} className="text-gray-400 hover:text-white" />
+                        <Copy size={14} className="text-content-muted hover:text-content-primary" />
                       )}
                     </button>
                   )}
@@ -374,38 +374,38 @@ const StaffViewDetailsModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">ZIP Code & City</p>
+                  <p className="text-sm text-content-muted">ZIP Code & City</p>
                   <div className="flex items-center gap-3">
                     <p>{`${selectedStaff.zipCode || ""} ${selectedStaff.city || ""}`.trim() || "-"}</p>
                     {(selectedStaff.zipCode || selectedStaff.city) && (
                       <button
                         onClick={handleCopyZipCity}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded transition-colors"
                         title="Copy ZIP & city"
                       >
                         {copiedZipCity ? (
                           <Check size={14} className="text-green-500" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Country</p>
+                  <p className="text-sm text-content-muted">Country</p>
                   <div className="flex items-center gap-3">
                     <p>{selectedStaff.country || "-"}</p>
                     {selectedStaff.country && (
                       <button
                         onClick={handleCopyCountry}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded transition-colors"
                         title="Copy country"
                       >
                         {copiedCountry ? (
                           <Check size={14} className="text-green-500" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
@@ -415,27 +415,27 @@ const StaffViewDetailsModal = ({
             </div>
 
             {/* Employment */}
-            <div className="space-y-4 pt-4 border-t border-gray-700">
-              <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Employment</div>
+            <div className="space-y-4 pt-4 border-t border-border">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Employment</div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">Role</p>
+                  <p className="text-sm text-content-muted">Role</p>
                   <p className="capitalize">{selectedStaff.role || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Staff Identification Color</p>
+                  <p className="text-sm text-content-muted">Staff Identification Color</p>
                   <div className="flex items-center gap-2">
                     {selectedStaff.color ? (
                       <>
                         <div 
-                          className="w-6 h-6 rounded"
-                          style={{ backgroundColor: selectedStaff.color }}
+                          className="w-6 h-6 rounded-lg border border-border"
+                          style={{ backgroundColor: selectedStaff.color?.startsWith("var(") ? "var(--color-secondary)" : selectedStaff.color }}
                         />
-                        <span className="text-gray-300 text-sm">{selectedStaff.color}</span>
+                        <span className="text-content-secondary text-sm">{selectedStaff.color?.startsWith("var(") ? "Default" : selectedStaff.color}</span>
                       </>
                     ) : (
-                      <span>-</span>
+                      <span className="text-content-faint">-</span>
                     )}
                   </div>
                 </div>
@@ -443,29 +443,29 @@ const StaffViewDetailsModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">Vacation Entitlement (per Year)</p>
+                  <p className="text-sm text-content-muted">Vacation Entitlement (per Year)</p>
                   <p>{selectedStaff.vacationEntitlement || 30} days</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Vacation Days Remaining</p>
+                  <p className="text-sm text-content-muted">Vacation Days Remaining</p>
                   <p>{selectedStaff.vacationDays ?? selectedStaff.vacationDaysCurrentYear ?? "-"} days</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-sm text-gray-400">Username</p>
+                <p className="text-sm text-content-muted">Username</p>
                 <div className="flex items-center gap-3">
                   <p>{selectedStaff.username || "-"}</p>
                   {selectedStaff.username && (
                     <button
                       onClick={handleCopyUsername}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-hover rounded transition-colors"
                       title="Copy username"
                     >
                       {copiedUsername ? (
                         <Check size={14} className="text-green-500" />
                       ) : (
-                        <Copy size={14} className="text-gray-400 hover:text-white" />
+                        <Copy size={14} className="text-content-muted hover:text-content-primary" />
                       )}
                     </button>
                   )}
@@ -473,19 +473,19 @@ const StaffViewDetailsModal = ({
               </div>
 
               <div>
-                <p className="text-sm text-gray-400">Staff ID</p>
+                <p className="text-sm text-content-muted">Staff ID</p>
                 <div className="flex items-center gap-3">
                   <p>{selectedStaff.id || "-"}</p>
                   {selectedStaff.id && (
                     <button
                       onClick={handleCopyStaffId}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-hover rounded transition-colors"
                       title="Copy staff ID"
                     >
                       {copiedStaffId ? (
                         <Check size={14} className="text-green-500" />
                       ) : (
-                        <Copy size={14} className="text-gray-400 hover:text-white" />
+                        <Copy size={14} className="text-content-muted hover:text-content-primary" />
                       )}
                     </button>
                   )}
@@ -495,11 +495,11 @@ const StaffViewDetailsModal = ({
 
             {/* Additional Information */}
             {(selectedStaff.about || selectedStaff.description) && (
-              <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Additional Information</div>
+              <div className="space-y-4 pt-4 border-t border-border">
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
                 
                 <div>
-                  <p className="text-sm text-gray-400">About</p>
+                  <p className="text-sm text-content-muted">About</p>
                   <p className="whitespace-pre-wrap">{selectedStaff.about || selectedStaff.description || "-"}</p>
                 </div>
               </div>
@@ -508,7 +508,7 @@ const StaffViewDetailsModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 bg-[#1C1C1C] px-4 md:px-6 py-4 border-t border-gray-700">
+        <div className="flex-shrink-0 bg-surface-card px-4 md:px-6 py-4 border-t border-border">
           <div className="flex justify-end">
             <button
               onClick={() => {
@@ -517,7 +517,7 @@ const StaffViewDetailsModal = ({
                   onEditStaff(selectedStaff);
                 }
               }}
-              className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+              className="bg-primary text-sm text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
             >
               Edit Staff
             </button>

@@ -11,6 +11,7 @@ import {
   Trash2,
   UserPlus,
   ShoppingCart,
+  ChevronDown,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { formatCurrency, getCurrencySymbol } from "../../../utils/studio-states/selling-states"
@@ -60,12 +61,13 @@ const SidebarAreaSelling = ({
   handleCheckout,
 }) => {
   const currencySymbol = getCurrencySymbol()
+  const [isDiscountOpen, setIsDiscountOpen] = useState(false)
 
   return (
     <aside
       className={`
         fixed top-0 right-0 h-full text-content-primary w-full sm:w-96 bg-surface-base border-l border-border z-50
-        transform transition-transform duration-500 ease-in-out
+        transform transition-transform duration-500 ease-in-out flex flex-col
         ${isOpen ? "translate-x-0" : "translate-x-full"}
       `}
     >
@@ -74,7 +76,7 @@ const SidebarAreaSelling = ({
         .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
         .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
       `}</style>
-      <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
+      <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto flex-1 min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -88,7 +90,7 @@ const SidebarAreaSelling = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl"
+            className="p-2 text-content-muted hover:bg-surface-hover rounded-xl"
             aria-label="Close sidebar"
           >
             <X size={16} />
@@ -159,7 +161,7 @@ const SidebarAreaSelling = ({
                   <div className="absolute z-10 mt-1 w-full bg-surface-dark rounded-xl shadow-lg border border-border max-h-48 overflow-y-auto">
                     <div
                       onClick={() => setIsTempMemberModalOpen()}
-                      className="px-4 py-2 hover:bg-surface-base cursor-pointer text-sm border-b border-border text-[#3F74FF] flex items-center gap-2"
+                      className="px-4 py-2 hover:bg-surface-base cursor-pointer text-sm border-b border-border text-primary flex items-center gap-2"
                     >
                       <UserPlus size={16} /> Create Temporary Member
                     </div>
@@ -185,12 +187,18 @@ const SidebarAreaSelling = ({
         )}
 
         {/* Cart Items */}
-        <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
+        <div className="divide-y divide-border mb-4">
           {cart.length === 0 ? (
             <div className="text-center py-6 text-content-muted">Your basket is empty</div>
           ) : (
             cart.map((item) => (
-              <div key={item.id} className="bg-surface-base rounded-lg p-4 relative">
+              <div key={item.id} className="py-4 first:pt-0 relative">
+                <button
+                  onClick={() => removeFromCart(item.id)}
+                  className="absolute top-4 right-0 text-content-faint hover:text-red-500 transition-colors duration-200"
+                >
+                  <Trash2 size={14} />
+                </button>
                 <div className="flex gap-3">
                   {/* Image or Orange Box */}
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
@@ -211,7 +219,7 @@ const SidebarAreaSelling = ({
                     <h3 className="mb-1 oxanium_font truncate">{item.name}</h3>
 
                     {item.type === "product" && item.articalNo && (
-                      <p className="text-xs text-zinc-400 mb-1 truncate">Art. No: {item.articalNo}</p>
+                      <p className="text-xs text-content-faint mb-1 truncate">Art. No: {item.articalNo}</p>
                     )}
 
                     <p className="text-sm font-bold">{formatCurrency(item.price)}</p>
@@ -234,7 +242,7 @@ const SidebarAreaSelling = ({
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center justify-center mt-3">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -250,21 +258,16 @@ const SidebarAreaSelling = ({
                       <Plus size={14} />
                     </button>
                   </div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-zinc-500 hover:text-red-500 transition-colors duration-200"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               </div>
             ))
           )}
         </div>
+      </div>
 
-        {/* Payment Options & Summary */}
-        {cart.length > 0 && (
-          <>
+      {/* Sticky Bottom Section */}
+      {cart.length > 0 && (
+        <div className="flex-shrink-0 border-t border-border p-4 md:p-5">
             <div className="space-y-4 mb-4">
               {/* Payment Method */}
               <div>
@@ -294,10 +297,17 @@ const SidebarAreaSelling = ({
                 </div>
               </div>
 
-              {/* Discount */}
+              {/* Discount - Collapsible */}
               <div>
-                <label className="text-sm text-content-primary block mb-2">Discount</label>
-                <div className="relative">
+                <button
+                  onClick={() => setIsDiscountOpen(!isDiscountOpen)}
+                  className="flex items-center justify-between w-full text-sm text-content-primary"
+                >
+                  <span>Discount</span>
+                  <ChevronDown size={16} className={`text-content-primary transition-transform duration-200 ${isDiscountOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isDiscountOpen && (
+                  <div className="relative mt-2">
                   <input
                     type="text"
                     value={discount}
@@ -312,6 +322,7 @@ const SidebarAreaSelling = ({
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-content-muted text-sm pointer-events-none">%</span>
                 </div>
+                )}
               </div>
             </div>
 
@@ -356,7 +367,7 @@ const SidebarAreaSelling = ({
                     <span className="text-content-primary">
                       Member: {members.find((m) => m.id === selectedMemberMain)?.name}
                     </span>
-                    <div className="text-xs text-zinc-400 mt-1">
+                    <div className="text-xs text-content-faint mt-1">
                       Type: {members.find((m) => m.id === selectedMemberMain)?.type}
                     </div>
                   </div>
@@ -378,9 +389,8 @@ const SidebarAreaSelling = ({
             >
               Checkout
             </button>
-          </>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   )
 }
