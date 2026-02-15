@@ -8,18 +8,18 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirm
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
       <div
-        className="bg-[#181818] rounded-xl p-6 max-w-md mx-4"
+        className="bg-surface-base rounded-xl p-6 max-w-md mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <h3 className="text-lg font-semibold mb-4 text-white">{title}</h3>
+          <h3 className="text-lg font-semibold mb-4 text-content-primary">{title}</h3>
         )}
-        <div className="text-gray-300 mb-6">{message}</div>
+        <div className="text-content-secondary mb-6">{message}</div>
         <div className="flex gap-3 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+            className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
           >
             {cancelText}
           </button>

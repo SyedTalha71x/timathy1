@@ -3,6 +3,8 @@ import { X, Users, Trash2, Plus, Search, ChevronDown, ChevronUp, Pencil } from "
 import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 
 /* eslint-disable react/prop-types */
 
@@ -113,14 +115,14 @@ const AddLeadModal = ({
       Website: "bg-blue-600 text-blue-100",
       "Google Ads": "bg-green-600 text-green-100",
       "Social Media Ads": "bg-purple-600 text-purple-100",
-      "Email Campaign": "bg-orange-600 text-orange-100",
+      "Email Campaign": "bg-primary-hover text-orange-100",
       "Cold Call (Outbound)": "bg-red-600 text-red-100",
       "Inbound Call": "bg-emerald-600 text-emerald-100",
       Event: "bg-yellow-600 text-yellow-100",
       "Offline Advertising": "bg-pink-600 text-pink-100",
-      Other: "bg-gray-600 text-gray-100",
+      Other: "bg-surface-button text-content-secondary",
     }
-    return sourceColors[source] || "bg-gray-600 text-gray-100"
+    return sourceColors[source] || "bg-surface-button text-content-secondary"
   }
 
   // Get status options from columns (exclude trial column)
@@ -474,23 +476,23 @@ const AddLeadModal = ({
       className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1001]"
     >
       <div 
-        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md"
+        className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[95vh] md:max-h-[90vh] flex flex-col"
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-white font-bold">Create Lead</h2>
-          <button onClick={handleCloseClick} className="text-gray-400 hover:text-white">
+          <h2 className="text-xl text-content-primary font-bold">Create Lead</h2>
+          <button onClick={handleCloseClick} className="text-content-muted hover:text-content-primary">
             <X size={24} />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-700 mb-6">
+        <div className="flex border-b border-border mb-6">
           <button 
             onClick={(e) => handleTabClick("details", e)}
             className={`px-4 py-2 text-sm font-medium ${
               activeTab === "details" 
-                ? "text-blue-400 border-b-2 border-blue-400" 
-                : "text-gray-400 hover:text-white"
+                ? "text-primary border-b-2 border-primary" 
+                : "text-content-muted hover:text-content-primary"
             }`}
           >
             Details
@@ -499,8 +501,8 @@ const AddLeadModal = ({
             onClick={(e) => handleTabClick("note", e)}
             className={`px-4 py-2 text-sm font-medium ${
               activeTab === "note" 
-                ? "text-blue-400 border-b-2 border-blue-400" 
-                : "text-gray-400 hover:text-white"
+                ? "text-primary border-b-2 border-primary" 
+                : "text-content-muted hover:text-content-primary"
             }`}
           >
             Special Notes
@@ -509,45 +511,45 @@ const AddLeadModal = ({
             onClick={(e) => handleTabClick("relations", e)}
             className={`px-4 py-2 text-sm font-medium ${
               activeTab === "relations" 
-                ? "text-blue-400 border-b-2 border-blue-400" 
-                : "text-gray-400 hover:text-white"
+                ? "text-primary border-b-2 border-primary" 
+                : "text-content-muted hover:text-content-primary"
             }`}
           >
             Relations
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
                 {/* Personal Information */}
                 <div className="space-y-4">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        First Name<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        First Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => updateFormData("firstName", e.target.value)}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Last Name<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        Last Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => updateFormData("lastName", e.target.value)}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
@@ -555,51 +557,49 @@ const AddLeadModal = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
-                      <select
+                      <label className="text-sm text-content-secondary block mb-2">Gender</label>
+                      <CustomSelect
                         name="gender"
                         value={formData.gender || ""}
                         onChange={(e) => updateFormData("gender", e.target.value)}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
+                        placeholder="Select gender"
+                        options={[
+                          { value: "male", label: "Male" },
+                          { value: "female", label: "Female" },
+                          { value: "other", label: "Other" },
+                        ]}
+                      />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
-                      <input
-                        type="date"
-                        value={formData.birthday}
-                        onChange={(e) => updateFormData("birthday", e.target.value)}
-                        className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
+                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                        <span className={formData.birthday ? "text-content-primary" : "text-content-faint"}>{formData.birthday ? (() => { const [y,m,d] = (formData.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <DatePickerField value={formData.birthday || ""} onChange={(val) => updateFormData("birthday", val)} />
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Contact Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Email<span className="text-red-500 ml-1">*</span>
+                    <label className="text-sm text-content-secondary block mb-2">
+                      Email<span className="text-accent-red ml-1">*</span>
                     </label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => updateFormData("email", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       required
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Mobile Number</label>
+                      <label className="text-sm text-content-secondary block mb-2">Mobile Number</label>
                       <input
                         type="tel"
                         value={formData.phone}
@@ -609,11 +609,11 @@ const AddLeadModal = ({
                           updateFormData("phone", sanitized)
                         }}
                         placeholder="+49 123 456789"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <label className="text-sm text-content-secondary block mb-2">Telephone Number</label>
                       <input
                         type="tel"
                         value={formData.telephoneNumber}
@@ -623,81 +623,76 @@ const AddLeadModal = ({
                           updateFormData("telephoneNumber", sanitized)
                         }}
                         placeholder="030 12345678"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Address Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street & Number</label>
+                    <label className="text-sm text-content-secondary block mb-2">Street & Number</label>
                     <input
                       type="text"
                       value={formData.street}
                       onChange={(e) => updateFormData("street", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <label className="text-sm text-content-secondary block mb-2">ZIP Code</label>
                       <input
                         type="text"
                         value={formData.zipCode}
                         onChange={(e) => updateFormData("zipCode", e.target.value)}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <label className="text-sm text-content-secondary block mb-2">City</label>
                       <input
                         type="text"
                         value={formData.city}
                         onChange={(e) => updateFormData("city", e.target.value)}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Country</label>
-                    <select
+                    <label className="text-sm text-content-secondary block mb-2">Country</label>
+                    <CustomSelect
                       name="country"
                       value={formData.country}
                       onChange={(e) => updateFormData("country", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    >
-                      <option value="">Select a country</option>
-                      {loading ? (
-                        <option value="" disabled>Loading countries...</option>
-                      ) : (
-                        countries.map((country) => (
-                          <option key={country.code} value={country.name}>
-                            {country.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
+                      placeholder={loading ? "Loading countries..." : "Select a country"}
+                      searchable
+                      options={countries.map((country) => ({
+                        value: country.name,
+                        label: country.name,
+                      }))}
+                      disabled={loading}
+                    />
                   </div>
                 </div>
 
                 {/* Lead Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lead Information</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Lead Information</div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Source</label>
+                      <label className="text-sm text-content-secondary block mb-2">Source</label>
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setIsSourceDropdownOpen(!isSourceDropdownOpen)}
-                          className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white text-sm flex items-center justify-between"
+                          className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary text-sm flex items-center justify-between border border-transparent"
                         >
                           {formData.source ? (
                             <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getSourceColor(formData.source)}`}>
@@ -722,7 +717,7 @@ const AddLeadModal = ({
                               className="fixed inset-0 z-10"
                               onClick={() => setIsSourceDropdownOpen(false)}
                             />
-                            <div className="absolute z-20 w-full mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto">
+                            <div className="absolute z-20 w-full mt-1 bg-surface-card border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
                               {sourceOptions.map(option => (
                                 <button
                                   key={option}
@@ -731,7 +726,7 @@ const AddLeadModal = ({
                                     updateFormData("source", option)
                                     setIsSourceDropdownOpen(false)
                                   }}
-                                  className="w-full text-left px-4 py-3 hover:bg-gray-800 text-white text-sm transition-colors"
+                                  className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-primary text-sm transition-colors"
                                 >
                                   <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getSourceColor(option)}`}>
                                     {option}
@@ -744,12 +739,12 @@ const AddLeadModal = ({
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Status</label>
+                      <label className="text-sm text-content-secondary block mb-2">Status</label>
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                          className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white text-sm flex items-center justify-between"
+                          className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary text-sm flex items-center justify-between border border-transparent"
                         >
                           <div className="flex items-center gap-2">
                             {formData.status && statusOptions.find(col => col.id === formData.status) && (
@@ -776,7 +771,7 @@ const AddLeadModal = ({
                               className="fixed inset-0 z-10"
                               onClick={() => setIsStatusDropdownOpen(false)}
                             />
-                            <div className="absolute z-20 w-full mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto">
+                            <div className="absolute z-20 w-full mt-1 bg-surface-card border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
                               {statusOptions.map(column => (
                                 <button
                                   key={column.id}
@@ -785,7 +780,7 @@ const AddLeadModal = ({
                                     updateFormData("status", column.id)
                                     setIsStatusDropdownOpen(false)
                                   }}
-                                  className="w-full text-left px-4 py-3 hover:bg-gray-800 text-white text-sm flex items-center gap-3 transition-colors"
+                                  className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-primary text-sm flex items-center gap-3 transition-colors"
                                 >
                                   <div
                                     className="w-3 h-3 rounded-full shrink-0"
@@ -802,11 +797,11 @@ const AddLeadModal = ({
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <label className="text-sm text-content-secondary block mb-2">About</label>
                     <textarea
                       value={formData.details}
                       onChange={(e) => updateFormData("details", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none min-h-[100px] border border-transparent focus:border-primary transition-colors"
                       placeholder="Enter more details..."
                     />
                   </div>
@@ -816,15 +811,15 @@ const AddLeadModal = ({
 
             {/* Notes Tab */}
             {activeTab === "note" && (
-              <div className="border border-slate-700 rounded-xl p-4">
+              <div className="border border-border rounded-xl p-4">
                 {/* Lead Name Header */}
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
-                    <p className="text-white font-medium">
+                    <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-content-primary font-medium">
                       {formData.firstName || formData.lastName 
                         ? `${formData.firstName || ''} ${formData.lastName || ''}`.trim() 
-                        : <span className="text-gray-500 italic">New Lead</span>}
+                        : <span className="text-content-faint italic">New Lead</span>}
                     </p>
                   </div>
                   <button
@@ -842,10 +837,10 @@ const AddLeadModal = ({
                       }
                       setIsAddingNote(!isAddingNote)
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium ${
                       isAddingNote 
-                        ? "bg-gray-600 text-white" 
-                        : "bg-blue-600 text-white"
+                        ? "bg-surface-button text-content-primary" 
+                        : "bg-primary text-white"
                     }`}
                   >
                     {isAddingNote ? (
@@ -858,30 +853,30 @@ const AddLeadModal = ({
                 
                 {/* Add/Edit Note Form */}
                 {isAddingNote && (
-                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                  <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     {/* Status Selection */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                      <label className="text-xs text-content-muted block mb-1.5">Status</label>
                       <select
+                        name="noteStatus"
                         value={newNote.status}
                         onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
-                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                       >
-                        {NOTE_STATUSES.map((status) => (
-                          <option key={status.id} value={status.id}>
-                            {status.label}
-                          </option>
+                        {NOTE_STATUSES.map(s => (
+                          <option key={s.id} value={s.id}>{s.label}</option>
                         ))}
                       </select>
                     </div>
                     
                     {/* Note Text */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <label className="text-xs text-content-muted block mb-1.5">Note</label>
                       <textarea
                         value={newNote.text}
                         onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
-                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
+                        className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors"
                         placeholder="Enter note..."
                       />
                     </div>
@@ -893,31 +888,27 @@ const AddLeadModal = ({
                           type="checkbox"
                           checked={newNote.isImportant}
                           onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
-                          className="h-4 w-4 accent-blue-500"
+                          className="h-4 w-4 accent-primary"
                         />
-                        <span className="text-sm text-gray-300">Important</span>
+                        <span className="text-sm text-content-secondary">Important</span>
                       </label>
                     </div>
                     
                     {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
-                        <input
-                          type="date"
-                          value={newNote.startDate}
-                          onChange={(e) => setNewNote({ ...newNote, startDate: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
-                        />
+                        <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                          <DatePickerField value={newNote.startDate || ""} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
+                        </div>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
-                        <input
-                          type="date"
-                          value={newNote.endDate}
-                          onChange={(e) => setNewNote({ ...newNote, endDate: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
-                        />
+                        <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                          <DatePickerField value={newNote.endDate || ""} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
+                        </div>
                       </div>
                     </div>
                     
@@ -925,10 +916,10 @@ const AddLeadModal = ({
                       type="button"
                       onClick={editingNoteId ? handleUpdateNote : handleAddNote}
                       disabled={!newNote.text.trim()}
-                      className={`w-full py-2 rounded-lg text-sm font-medium ${
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
                         !newNote.text.trim()
-                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
-                          : "bg-blue-600 text-white"
+                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                          : "bg-primary hover:bg-primary-hover text-white"
                       }`}
                     >
                       {editingNoteId ? "Update Note" : "Add Note"}
@@ -949,7 +940,7 @@ const AddLeadModal = ({
                       return (
                         <div
                           key={note.id}
-                          className="bg-[#101010] rounded-lg overflow-hidden"
+                          className="bg-surface-dark rounded-lg overflow-hidden"
                         >
                           {/* Note Header */}
                           <div 
@@ -957,11 +948,11 @@ const AddLeadModal = ({
                             onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
                                 {statusInfo.label}
                               </span>
                               {note.isImportant && (
-                                <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                                <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
                                   Important
                                 </span>
                               )}
@@ -973,21 +964,21 @@ const AddLeadModal = ({
                                   e.stopPropagation()
                                   handleEditNoteClick(note, e)
                                 }}
-                                className="text-gray-500 hover:text-blue-400 p-1"
+                                className="text-content-faint hover:text-primary p-1"
                               >
                                 <Pencil size={14} />
                               </button>
                               <button
                                 type="button"
                                 onClick={(e) => handleDeleteNote(note.id, e)}
-                                className="text-gray-500 hover:text-red-400 p-1"
+                                className="text-content-faint hover:text-red-400 p-1"
                               >
                                 <Trash2 size={14} />
                               </button>
                               {isExpanded ? (
-                                <ChevronUp size={16} className="text-gray-400" />
+                                <ChevronUp size={16} className="text-content-muted" />
                               ) : (
-                                <ChevronDown size={16} className="text-gray-400" />
+                                <ChevronDown size={16} className="text-content-muted" />
                               )}
                             </div>
                           </div>
@@ -995,11 +986,11 @@ const AddLeadModal = ({
                           {/* Preview & Valid Date (always visible when collapsed) */}
                           {!isExpanded && (
                             <div className="px-3 pb-2">
-                              <p className="text-gray-400 text-sm truncate">
+                              <p className="text-content-muted text-sm truncate">
                                 {note.text}
                               </p>
                               {(note.startDate || note.endDate) && (
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-content-faint mt-1">
                                   {note.startDate && note.endDate ? (
                                     <>Valid: {note.startDate} - {note.endDate}</>
                                   ) : note.startDate ? (
@@ -1014,12 +1005,12 @@ const AddLeadModal = ({
                           
                           {/* Note Content (expandable) */}
                           {isExpanded && (
-                            <div className="px-3 pb-3 border-t border-gray-800">
-                              <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                            <div className="px-3 pb-3 border-t border-border-subtle">
+                              <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
                                 {note.text}
                               </p>
                               {(note.startDate || note.endDate) && (
-                                <div className="mt-2 text-xs text-gray-500">
+                                <div className="mt-2 text-xs text-content-faint">
                                   {note.startDate && note.endDate ? (
                                     <>Valid: {note.startDate} - {note.endDate}</>
                                   ) : note.startDate ? (
@@ -1035,7 +1026,7 @@ const AddLeadModal = ({
                       )
                     })
                   ) : (
-                    <div className="text-gray-500 text-sm text-center py-8">
+                    <div className="text-content-faint text-sm text-center py-8">
                       No special notes yet. Click "Add Note" to create one.
                     </div>
                   )}
@@ -1046,33 +1037,33 @@ const AddLeadModal = ({
 
             {/* Relations Tab */}
             {activeTab === "relations" && (
-              <div className="border border-slate-700 rounded-xl p-4">
+              <div className="border border-border rounded-xl p-4">
                 {/* Lead Name Header */}
-                <div className="mb-4 pb-3 border-b border-slate-700">
-                  <p className="text-xs text-gray-400 uppercase tracking-wider">Relations for</p>
-                  <p className="text-white font-medium">
+                <div className="mb-4 pb-3 border-b border-border">
+                  <p className="text-xs text-content-muted uppercase tracking-wider">Relations for</p>
+                  <p className="text-content-primary font-medium">
                     {formData.firstName || formData.lastName 
                       ? `${formData.firstName || ''} ${formData.lastName || ''}`.trim() 
-                      : <span className="text-gray-500 italic">New Lead</span>}
+                      : <span className="text-content-faint italic">New Lead</span>}
                   </p>
                 </div>
                 
                 <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm text-gray-200 font-medium">Relations</label>
+                  <label className="text-sm text-content-secondary font-medium">Relations</label>
                   <button
                     type="button"
                     onClick={handleEditingRelationsToggle}
-                    className="text-sm text-blue-400 hover:text-blue-300"
+                    className="text-sm text-primary hover:text-blue-300"
                   >
                     {editingRelations ? "Done" : "Add New"}
                   </button>
                 </div>
 
                 {editingRelations && (
-                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                  <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     {/* Step 1: Person Selection */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Person</label>
+                      <label className="text-xs text-content-muted block mb-1.5">Person</label>
                       <div className="flex gap-2 mb-2">
                         <button
                           type="button"
@@ -1082,8 +1073,8 @@ const AddLeadModal = ({
                           }}
                           className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
                             newRelation.type === "manual" 
-                              ? "bg-blue-600 text-white" 
-                              : "bg-[#222] text-gray-400 hover:text-white"
+                              ? "bg-primary text-white" 
+                              : "bg-surface-button text-content-muted hover:text-content-primary"
                           }`}
                         >
                           Manual Entry
@@ -1096,8 +1087,8 @@ const AddLeadModal = ({
                           }}
                           className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
                             newRelation.type === "member" 
-                              ? "bg-blue-600 text-white" 
-                              : "bg-[#222] text-gray-400 hover:text-white"
+                              ? "bg-primary text-white" 
+                              : "bg-surface-button text-content-muted hover:text-content-primary"
                           }`}
                         >
                           Member
@@ -1110,8 +1101,8 @@ const AddLeadModal = ({
                           }}
                           className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
                             newRelation.type === "lead" 
-                              ? "bg-blue-600 text-white" 
-                              : "bg-[#222] text-gray-400 hover:text-white"
+                              ? "bg-primary text-white" 
+                              : "bg-surface-button text-content-muted hover:text-content-primary"
                           }`}
                         >
                           Lead
@@ -1124,12 +1115,12 @@ const AddLeadModal = ({
                           placeholder="Enter name..."
                           value={newRelation.name}
                           onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                         />
                       ) : (
                         <div className="relative" ref={personSearchRef}>
                           <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
                             <input
                               type="text"
                               placeholder={`Search ${newRelation.type}s...`}
@@ -1139,13 +1130,13 @@ const AddLeadModal = ({
                                 setShowPersonDropdown(true)
                               }}
                               onFocus={() => setShowPersonDropdown(true)}
-                              className="w-full bg-[#222] text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-full bg-surface-dark text-content-primary rounded-xl pl-9 pr-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                             />
                           </div>
                           {newRelation.name && (
                             <div className="mt-2 flex items-center gap-2">
-                              <span className="text-xs text-gray-400">Selected:</span>
-                              <span className="bg-blue-600/20 text-blue-400 text-xs px-2 py-1 rounded-lg flex items-center gap-1">
+                              <span className="text-xs text-content-muted">Selected:</span>
+                              <span className="bg-blue-600/20 text-primary text-xs px-2 py-1 rounded-lg flex items-center gap-1">
                                 {newRelation.name}
                                 <button
                                   type="button"
@@ -1153,7 +1144,7 @@ const AddLeadModal = ({
                                     setNewRelation({ ...newRelation, name: "", selectedMemberId: null })
                                     setPersonSearchQuery("")
                                   }}
-                                  className="hover:text-white"
+                                  className="hover:text-content-primary"
                                 >
                                   <X size={12} />
                                 </button>
@@ -1161,7 +1152,7 @@ const AddLeadModal = ({
                             </div>
                           )}
                           {showPersonDropdown && personSearchQuery && (
-                            <div className="absolute z-20 w-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                            <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
                               {availableMembersLeads
                                 .filter((p) => 
                                   p.type === newRelation.type && 
@@ -1180,7 +1171,7 @@ const AddLeadModal = ({
                                       setPersonSearchQuery("")
                                       setShowPersonDropdown(false)
                                     }}
-                                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-[#222] transition-colors"
+                                    className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
                                   >
                                     {person.name}
                                   </button>
@@ -1189,7 +1180,7 @@ const AddLeadModal = ({
                                 p.type === newRelation.type && 
                                 p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
                               ).length === 0 && (
-                                <div className="px-3 py-2 text-sm text-gray-500">No results found</div>
+                                <div className="px-3 py-2 text-sm text-content-faint">No results found</div>
                               )}
                             </div>
                           )}
@@ -1200,8 +1191,9 @@ const AddLeadModal = ({
                     {/* Step 2: Category & Relation */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Category</label>
-                        <select
+                        <label className="text-xs text-content-muted block mb-1.5">Category</label>
+                        <CustomSelect
+                          name="category"
                           value={newRelation.category}
                           onChange={(e) => setNewRelation({
                             ...newRelation,
@@ -1209,49 +1201,47 @@ const AddLeadModal = ({
                             relation: "",
                             customRelation: ""
                           })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="family">Family</option>
-                          <option value="friendship">Friendship</option>
-                          <option value="relationship">Relationship</option>
-                          <option value="work">Work</option>
-                          <option value="other">Other</option>
-                        </select>
+                          options={[
+                            { value: "family", label: "Family" },
+                            { value: "friendship", label: "Friendship" },
+                            { value: "relationship", label: "Relationship" },
+                            { value: "work", label: "Work" },
+                            { value: "other", label: "Other" },
+                          ]}
+                        />
                       </div>
 
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Relation Type</label>
-                        <select
+                        <label className="text-xs text-content-muted block mb-1.5">Relation Type</label>
+                        <CustomSelect
+                          name="relationType"
                           value={newRelation.relation}
                           onChange={(e) => setNewRelation({ 
                             ...newRelation, 
                             relation: e.target.value,
                             customRelation: e.target.value === "custom" ? newRelation.customRelation : ""
                           })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="">Select...</option>
-                          {relationOptions[newRelation.category]?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                          <option disabled>────────────</option>
-                          <option value="custom">Custom...</option>
-                        </select>
+                          placeholder="Select..."
+                          options={[
+                            ...(relationOptions[newRelation.category]?.map((option) => ({
+                              value: option, label: option
+                            })) || []),
+                            { value: "custom", label: "Custom..." },
+                          ]}
+                        />
                       </div>
                     </div>
 
                     {/* Custom Relation Input */}
                     {newRelation.relation === "custom" && (
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Custom Relation</label>
+                        <label className="text-xs text-content-muted block mb-1.5">Custom Relation</label>
                         <input
                           type="text"
                           placeholder="Enter custom relation..."
                           value={newRelation.customRelation}
                           onChange={(e) => setNewRelation({ ...newRelation, customRelation: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                         />
                       </div>
                     )}
@@ -1260,10 +1250,10 @@ const AddLeadModal = ({
                       type="button"
                       onClick={addRelation}
                       disabled={!newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation))}
-                      className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
                         !newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation))
-                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
-                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                          : "bg-primary hover:bg-primary-hover text-white"
                       }`}
                     >
                       Add Relation
@@ -1276,14 +1266,14 @@ const AddLeadModal = ({
                     relations.map((relation) => (
                       <div
                         key={relation.id}
-                        className="flex items-center justify-between bg-[#101010] rounded-lg px-3 py-2"
+                        className="flex items-center justify-between bg-surface-dark rounded-lg px-3 py-2"
                       >
                         <div className="text-sm flex items-center flex-wrap gap-1.5">
-                          <span className="text-white font-medium">{relation.name}</span>
-                          <span className="text-gray-400">({relation.relation})</span>
-                          <span className="text-gray-500">•</span>
-                          <span className="text-gray-400 capitalize">{category}</span>
-                          <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
+                          <span className="text-content-primary font-medium">{relation.name}</span>
+                          <span className="text-content-muted">({relation.relation})</span>
+                          <span className="text-content-faint">•</span>
+                          <span className="text-content-muted capitalize">{category}</span>
+                          <span className="bg-surface-button text-content-secondary text-xs px-2 py-0.5 rounded capitalize">
                             {relation.type}
                           </span>
                         </div>
@@ -1301,7 +1291,7 @@ const AddLeadModal = ({
                   )}
 
                   {Object.values(formData.relations).every(arr => arr.length === 0) && (
-                    <div className="text-gray-500 text-sm text-center py-4">
+                    <div className="text-content-faint text-sm text-center py-4">
                       No relations added yet
                     </div>
                   )}
@@ -1311,11 +1301,11 @@ const AddLeadModal = ({
           </div>
 
           {/* Footer with action buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
             <button
               type="button"
               onClick={handleCloseClick}
-              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
+              className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
             >
               Cancel
             </button>
@@ -1324,8 +1314,8 @@ const AddLeadModal = ({
               disabled={!formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)}
               className={`px-4 py-2 text-sm text-white rounded-xl flex items-center gap-2 transition-colors ${
                 !formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)
-                  ? "bg-orange-500/50 cursor-not-allowed opacity-50"
-                  : "bg-orange-500 hover:bg-orange-600"
+                  ? "bg-primary/50 cursor-not-allowed opacity-50"
+                  : "bg-primary hover:bg-primary-hover"
               }`}
             >
               <Plus size={16} />

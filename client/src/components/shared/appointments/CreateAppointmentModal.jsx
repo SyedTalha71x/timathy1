@@ -5,6 +5,7 @@ import { Search, X, Plus, Users, Calendar, Clock, ChevronDown, AlertTriangle, Ch
 import { useState, useRef, useEffect } from "react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
+import NotifyMemberModalMain from '../NotifyMemberModal';
 
 const MAX_PARTICIPANTS = 5;
 
@@ -32,7 +33,7 @@ const InitialsAvatar = ({ firstName, lastName, size = 32, className = "" }) => {
 
   return (
     <div
-      className={`bg-orange-500 rounded-lg flex items-center justify-center text-white font-semibold ${className}`}
+      className={`bg-secondary rounded-lg flex items-center justify-center text-content-primary font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}
@@ -56,7 +57,7 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
   };
 
   return (
-    <div className="flex items-center gap-2 bg-[#2a2a2a] border border-gray-700 rounded-xl px-2.5 py-1.5">
+    <div className="flex items-center gap-2 bg-surface-hover border border-border rounded-xl px-2.5 py-1.5">
       <MemberSpecialNoteIcon
         member={member}
         onEditMember={handleEditNote}
@@ -72,12 +73,12 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
           size={28} 
         />
       )}
-      <span className="text-white text-sm font-medium">
+      <span className="text-content-primary text-sm font-medium">
         {member.name || `${member.firstName} ${member.lastName}`}
       </span>
       <button
         onClick={handleRelationsClick}
-        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-1.5 py-0.5 rounded transition-colors"
+        className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
         title="View Relations"
       >
         <Users size={12} />
@@ -85,9 +86,9 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        className="p-0.5 hover:bg-gray-600 rounded transition-colors ml-0.5"
+        className="p-0.5 hover:bg-surface-button-hover rounded transition-colors ml-0.5"
       >
-        <X className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+        <X className="w-3.5 h-3.5 text-content-muted hover:text-content-primary" />
       </button>
     </div>
   );
@@ -149,7 +150,7 @@ const MemberTagInput = ({
 
   return (
     <div ref={containerRef} className="relative">
-      <div className={`bg-[#222222] rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text ${isFull ? 'opacity-75' : ''}`}
+      <div className={`bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text ${isFull ? 'opacity-75' : ''}`}
         onClick={() => !isFull && inputRef.current?.focus()}>
         {members.map((member, index) => (
           <MemberTag 
@@ -162,21 +163,21 @@ const MemberTagInput = ({
         ))}
         {!isFull && (
           <input ref={inputRef} type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}
-            placeholder={members.length === 0 ? placeholder : "Add more..."} className="flex-1 min-w-[120px] bg-transparent text-sm text-white placeholder-gray-500 outline-none" />
+            placeholder={members.length === 0 ? placeholder : "Add more..."} className="flex-1 min-w-[120px] bg-transparent text-sm text-content-primary placeholder-content-faint outline-none" />
         )}
       </div>
       <div className="flex items-center justify-between mt-1.5">
-        <div className={`text-xs ${isFull ? 'text-orange-400' : 'text-gray-500'}`}>{members.length} / {maxMembers} participants</div>
+        <div className={`text-xs ${isFull ? 'text-primary' : 'text-content-faint'}`}>{members.length} / {maxMembers} participants</div>
       </div>
       {showDropdown && !isFull && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-48 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-48 overflow-y-auto">
           {searchResults.length > 0 ? searchResults.map((member) => (
-            <button key={member.id} onClick={() => selectMember(member)} className="w-full text-left p-3 hover:bg-[#2a2a2a] flex items-center gap-3">
+            <button key={member.id} onClick={() => selectMember(member)} className="w-full text-left p-3 hover:bg-surface-hover flex items-center gap-3">
               {member.image ? <img src={member.image} alt="" className="w-8 h-8 rounded-lg object-cover" /> : 
                 <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size={32} />}
-              <div><div className="text-sm text-white">{member.name || `${member.firstName} ${member.lastName}`}</div></div>
+              <div><div className="text-sm text-content-primary">{member.name || `${member.firstName} ${member.lastName}`}</div></div>
             </button>
-          )) : <div className="p-3 text-sm text-gray-500 text-center">No members found</div>}
+          )) : <div className="p-3 text-sm text-content-faint text-center">No members found</div>}
         </div>
       )}
     </div>
@@ -203,24 +204,24 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
 
   return (
     <div ref={dropdownRef} className="relative">
-      <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-[#2a2a2a]">
+      <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-surface-hover">
         {selectedType ? (
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getColorHex(selectedType) }} />
-            <span className="text-white">{selectedType.name}</span>
-            <span className="text-gray-500 text-xs">({selectedType.duration} min)</span>
+            <span className="text-content-primary">{selectedType.name}</span>
+            <span className="text-content-faint text-xs">({selectedType.duration} min)</span>
           </div>
-        ) : <span className="text-gray-500">Select type...</span>}
-        <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        ) : <span className="text-content-faint">Select type...</span>}
+        <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
           {filteredTypes.map((type) => (
             <button key={type.name} onClick={() => { onChange(type.name); setIsOpen(false); }}
-              className={`w-full text-left p-3 flex items-center gap-3 ${value === type.name ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}>
+              className={`w-full text-left p-3 flex items-center gap-3 ${value === type.name ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`}>
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getColorHex(type) }} />
-              <div className="flex-1"><div className="text-sm text-white">{type.name}</div><div className="text-xs text-gray-500">{type.duration} min</div></div>
-              {value === type.name && <Check size={16} className="text-orange-500" />}
+              <div className="flex-1"><div className="text-sm text-content-primary">{type.name}</div><div className="text-xs text-content-faint">{type.duration} min</div></div>
+              {value === type.name && <Check size={16} className="text-primary" />}
             </button>
           ))}
         </div>
@@ -267,8 +268,6 @@ const AddAppointmentModal = ({
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingAppointmentData, setPendingAppointmentData] = useState(null);
-  const [emailNotification, setEmailNotification] = useState(true);
-  const [pushNotification, setPushNotification] = useState(true);
   
   // Recurring options state
   const [recurringOptions, setRecurringOptions] = useState({
@@ -376,7 +375,7 @@ const AddAppointmentModal = ({
   };
 
   // Actually create the appointments after notify decision
-  const handleConfirmBooking = (shouldNotify) => {
+  const handleConfirmBooking = (shouldNotify, notificationOptions) => {
     if (pendingAppointmentData && onSubmit) {
       pendingAppointmentData.forEach((aptData) => {
         onSubmit(aptData);
@@ -388,9 +387,8 @@ const AddAppointmentModal = ({
     setPendingAppointmentData(null);
     onClose();
     
-    // If notification was requested, you could handle it here or pass to parent
     if (shouldNotify) {
-      console.log("Notification requested:", { email: emailNotification, push: pushNotification });
+      console.log("Notification requested:", notificationOptions);
     }
   };
 
@@ -410,33 +408,33 @@ const AddAppointmentModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000000] p-4" onClick={onClose}>
-      <div className="bg-[#181818] w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">New Appointment</h2>
-          <button onClick={onClose} className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg"><X size={20} /></button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4" onClick={onClose}>
+      <div className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-content-primary">New Appointment</h2>
+          <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
         </div>
         <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2"><Users size={14} className="text-gray-500" />Participants</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2 flex items-center gap-2"><Users size={14} className="text-content-faint" />Participants</label>
             <MemberTagInput members={appointmentData.members} setMembers={(m) => updateAppointment("members", m)} 
               searchMembers={handleSearchMembers} onEditMemberNote={handleEditMemberNote} memberRelations={memberRelations} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Appointment Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
             <AppointmentTypeDropdown value={appointmentData.type} onChange={(t) => updateAppointment("type", t)} appointmentTypes={appointmentTypesMain} />
           </div>
           
           {/* Booking Type Toggle */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Booking Type</label>
-            <div className="flex bg-[#222222] p-1 rounded-xl">
+            <label className="block text-sm font-medium text-content-secondary mb-2">Booking Type</label>
+            <div className="flex bg-surface-dark p-1 rounded-xl">
               <button type="button" onClick={() => setShowRecurringOptions(false)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
                 Single
               </button>
               <button type="button" onClick={() => setShowRecurringOptions(true)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
                 Recurring
               </button>
             </div>
@@ -446,16 +444,16 @@ const AddAppointmentModal = ({
           {!showRecurringOptions && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-2">Date</label>
-                <div className="w-full flex items-center justify-between bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5">
-                  <span className={appointmentData.date ? "text-white" : "text-gray-500"}>{appointmentData.date ? (() => { const [y,m,d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <label className="block text-xs text-content-faint mb-2">Date</label>
+                <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
+                  <span className={appointmentData.date ? "text-content-primary" : "text-content-faint"}>{appointmentData.date ? (() => { const [y,m,d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                   <DatePickerField value={appointmentData.date} onChange={(val) => updateAppointment("date", val)} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+                <label className="block text-xs text-content-faint mb-2">Time Slot</label>
                 <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
-                  disabled={!appointmentData.date} className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none disabled:opacity-50">
+                  disabled={!appointmentData.date} className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none disabled:opacity-50">
                   <option value="">Select time...</option>
                   {availableSlots.map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
                 </select>
@@ -465,12 +463,12 @@ const AddAppointmentModal = ({
           
           {/* Recurring Options */}
           {showRecurringOptions && (
-            <div className="space-y-4 bg-[#222222] rounded-xl p-4">
+            <div className="space-y-4 bg-surface-dark rounded-xl p-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-2">Frequency</label>
+                  <label className="block text-xs text-content-faint mb-2">Frequency</label>
                   <select value={recurringOptions.frequency} onChange={(e) => updateRecurringOptions("frequency", e.target.value)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
+                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                     <option value="biweekly">Bi-weekly</option>
@@ -478,9 +476,9 @@ const AddAppointmentModal = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-2">Day</label>
+                  <label className="block text-xs text-content-faint mb-2">Day</label>
                   <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
+                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
                     <option value="1">Monday</option>
                     <option value="2">Tuesday</option>
                     <option value="3">Wednesday</option>
@@ -494,25 +492,25 @@ const AddAppointmentModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-2">Start Date</label>
-                  <div className="w-full flex items-center justify-between bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5">
-                    <span className={recurringOptions.startDate ? "text-white" : "text-gray-500"}>{recurringOptions.startDate ? (() => { const [y,m,d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                  <label className="block text-xs text-content-faint mb-2">Start Date</label>
+                  <div className="w-full flex items-center justify-between bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5">
+                    <span className={recurringOptions.startDate ? "text-content-primary" : "text-content-faint"}>{recurringOptions.startDate ? (() => { const [y,m,d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                     <DatePickerField value={recurringOptions.startDate} onChange={(val) => updateRecurringOptions("startDate", val)} />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-2">Occurrences</label>
+                  <label className="block text-xs text-content-faint mb-2">Occurrences</label>
                   <input type="number" min={1} max={52} value={recurringOptions.occurrences}
                     onChange={(e) => updateRecurringOptions("occurrences", parseInt(e.target.value) || 1)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-orange-500/50" />
+                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary focus:outline-none focus:border-primary" />
                 </div>
               </div>
               
               {/* Time Slot for recurring */}
               <div>
-                <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+                <label className="block text-xs text-content-faint mb-2">Time Slot</label>
                 <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
-                  className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
+                  className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
                   <option value="">Select time...</option>
                   {getAvailableSlots(recurringOptions.startDate).map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
                 </select>
@@ -520,99 +518,32 @@ const AddAppointmentModal = ({
             </div>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-gray-700 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-400 bg-gray-700 hover:bg-gray-600 rounded-xl">Cancel</button>
+        <div className="px-6 py-4 border-t border-border flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Cancel</button>
           <button disabled={!appointmentData.type || !appointmentData.members.length || (!showRecurringOptions ? (!appointmentData.date || !appointmentData.timeSlot) : (!recurringOptions.startDate || !appointmentData.timeSlot))}
-            onClick={handleBook} className="flex-1 py-2.5 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 rounded-xl">
+            onClick={handleBook} className="flex-1 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-hover disabled:bg-surface-button rounded-xl">
             {showRecurringOptions ? "Book Series" : "Book Appointment"}
           </button>
         </div>
       </div>
 
-      {/* Integrated Notify Member Modal */}
-      {showNotifyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000001] p-4" onClick={handleCancelNotify}>
-          <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
-              <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <p className="text-white text-sm">
-                {showRecurringOptions ? (
-                  <>
-                    New <span className="font-semibold text-orange-400">recurring appointment</span> for <span className="font-semibold text-orange-400">{getMemberNames()}</span> starting{" "}
-                    <span className="font-semibold text-orange-400">
-                      {recurringOptions.startDate && new Date(recurringOptions.startDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span> ({recurringOptions.occurrences} occurrences, {recurringOptions.frequency}).
-                  </>
-                ) : (
-                  <>
-                    New appointment for <span className="font-semibold text-orange-400">{getMemberNames()}</span> on{" "}
-                    <span className="font-semibold text-orange-400">
-                      {pendingAppointmentData?.[0]?.date && new Date(pendingAppointmentData[0].date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span> at{" "}
-                    <span className="font-semibold text-orange-400">{pendingAppointmentData?.[0]?.time}</span>.
-                  </>
-                )}
-                <br /><br />
-                Do you want to notify the member about this booking?
-              </p>
-
-              {/* Notification Options */}
-              <div className="mt-4 space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailNotification}
-                    onChange={(e) => setEmailNotification(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
-                  />
-                  <span className="text-white text-sm">Email Notification</span>
-                </label>
-                
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={pushNotification}
-                    onChange={(e) => setPushNotification(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
-                  />
-                  <span className="text-white text-sm">App Push Notification</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
-              <button
-                onClick={handleCancelNotify}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
-              >
-                Back
-              </button>
-
-              <div className="flex flex-col-reverse sm:flex-row gap-2">
-                <button
-                  onClick={() => handleConfirmBooking(false)}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors border border-gray-600"
-                >
-                  No, Don't Notify
-                </button>
-
-                <button
-                  onClick={() => handleConfirmBooking(true)}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
-                >
-                  Yes, Notify Member
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Notify Member Modal (shared component) */}
+      <NotifyMemberModalMain
+        isOpen={showNotifyModal}
+        onClose={handleCancelNotify}
+        onConfirm={handleConfirmBooking}
+        action="book"
+        entityType="member"
+        entityName={getMemberNames()}
+        date={
+          showRecurringOptions
+            ? recurringOptions.startDate && new Date(recurringOptions.startDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+            : pendingAppointmentData?.[0]?.date && new Date(pendingAppointmentData[0].date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+        }
+        time={pendingAppointmentData?.[0]?.time || ""}
+        isRecurring={showRecurringOptions}
+        recurringInfo={showRecurringOptions ? recurringOptions : null}
+      />
     </div>
   );
 };

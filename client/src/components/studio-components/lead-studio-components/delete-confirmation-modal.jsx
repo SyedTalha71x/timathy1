@@ -12,25 +12,25 @@ const DeleteConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4">
-      <div className="bg-[#1C1C1C] w-full max-w-md rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+      <div className="bg-surface-base w-full max-w-md rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-content-primary flex items-center gap-2">
             <AlertTriangle size={20} className="text-red-400" />
             {title}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg">
             <X size={20} />
           </button>
         </div>
 
         <div className="px-6 py-6">
-          <p className="text-gray-300 text-sm leading-relaxed">{message}</p>
+          <p className="text-content-secondary text-sm leading-relaxed">{message}</p>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
+        <div className="px-6 py-4 border-t border-border flex flex-col-reverse sm:flex-row gap-2">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-5 py-2.5 bg-gray-600 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 bg-surface-button text-sm font-medium text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>

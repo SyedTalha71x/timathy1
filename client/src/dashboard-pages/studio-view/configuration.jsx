@@ -786,6 +786,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setCountries(config.countries)
   }, [config])
 
+  // ============================================
+  // Sync configurable colors to CSS custom properties
+  // This allows Tailwind classes like bg-trial, text-trial, border-trial
+  // to automatically use the color set in Configuration.
+  // ============================================
+  useEffect(() => {
+    if (trialTraining.color) {
+      document.documentElement.style.setProperty('--color-trial', trialTraining.color)
+    }
+  }, [trialTraining.color])
+
   // Create branded QR image with studio name
   const createBrandedQRImage = (callback) => {
     if (!qrCodeRef.current) return

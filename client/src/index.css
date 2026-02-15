@@ -28,6 +28,9 @@
   --color-accent-red: #dc2626;
   --color-accent-yellow: #ca8a04;
 
+  /* ---- Trial Training Color (configurable via Configuration) ---- */
+  --color-trial: #3B82F6;
+
   /* ---- Surface / Background Colors ---- */
   --color-surface-base:         #1c1c1c;  /* Page background */
   --color-surface-card:         #141414;  /* Cards, tables, panels */

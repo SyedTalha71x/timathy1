@@ -80,34 +80,34 @@ const SortableColumn = ({
   // Determine which arrow icon to show
   const getSortIcon = () => {
     if (sortSettings.sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
+      return <ArrowUpDown size={14} className="text-content-muted" />
     }
     // White arrows when sorting is active
     return sortSettings.sortOrder === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   return (
     <div
       ref={setNodeRef}
       id={`column-${id}`}
-      className={`bg-[#141414] rounded-xl h-full flex flex-col min-h-[300px] sm:min-h-[400px] transition-all duration-200 ${
-        isOver ? "ring-2 ring-blue-500/50 bg-[#1a1a2e]" : ""
+      className={`bg-surface-card rounded-xl h-full flex flex-col min-h-[300px] sm:min-h-[400px] transition-all duration-200 ${
+        isOver ? "ring-2 ring-primary/50 bg-surface-hover" : ""
       }`}
       data-column-id={id}
     >
       {/* Column Header */}
       <div 
         className="p-2 sm:p-3 flex justify-between items-center rounded-t-xl overflow-visible" 
-        style={{ backgroundColor: `${color}20` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` }}
       >
         <div className="flex items-center min-w-0 flex-1 gap-2">
           <div 
             className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0" 
             style={{ backgroundColor: color }}
           />
-          <h3 className="font-medium text-white text-xs sm:text-sm truncate" title={title}>
+          <h3 className="font-medium text-content-primary text-xs sm:text-sm truncate" title={title}>
             {title}
           </h3>
           <span className="shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full">
@@ -121,7 +121,7 @@ const SortableColumn = ({
           <div className="relative group hover:z-[100]" ref={sortDropdownRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg flex items-center gap-1"
+              className="text-content-muted hover:text-content-primary p-1 hover:bg-surface-hover rounded-lg flex items-center gap-1"
             >
               {getSortIcon()}
             </button>
@@ -135,19 +135,19 @@ const SortableColumn = ({
 
             {/* Sort Dropdown */}
             {showSortDropdown && (
-              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[160px]">
+              <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[160px]">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                  <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
                     Sort by
                   </div>
                   {sortOptions.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => handleSortOptionClick(option.value)}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                         sortSettings.sortBy === option.value 
-                          ? 'text-white bg-gray-800/50' 
-                          : 'text-gray-300'
+                          ? 'text-content-primary bg-surface-hover/50' 
+                          : 'text-content-secondary'
                       }`}
                     >
                       <span>{option.label}</span>
@@ -157,7 +157,7 @@ const SortableColumn = ({
                             e.stopPropagation()
                             onToggleSortOrder()
                           }}
-                          className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                          className="p-1 hover:bg-surface-button-hover rounded text-content-muted"
                           title={`Change to ${sortSettings.sortOrder === 'asc' ? 'descending' : 'ascending'}`}
                         >
                           {sortSettings.sortOrder === 'asc' 
@@ -177,7 +177,7 @@ const SortableColumn = ({
           {isTrialColumn && (
             <div className="relative group hover:z-[100]">
               <button
-                className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg"
+                className="text-content-muted hover:text-content-primary p-1 hover:bg-surface-hover rounded-lg"
               >
                 <Lock size={14} className="sm:w-3.5 sm:h-3.5 shrink-0" />
               </button>
@@ -189,12 +189,12 @@ const SortableColumn = ({
             </div>
           )}
 
-          {/* Edit Column Button (3-Punkte-MenÃƒÂ¼) with Tooltip */}
+          {/* Edit Column Button (3-Punkte-MenÃƒÆ’Ã‚Â¼) with Tooltip */}
           {isEditable && (
             <div className="relative group hover:z-[100]">
               <button
                 onClick={() => onEditColumn(id, title, color)}
-                className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg"
+                className="text-content-muted hover:text-content-primary p-1 hover:bg-surface-hover rounded-lg"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -225,7 +225,7 @@ const SortableColumn = ({
             <div className="relative group hover:z-[100]">
               <button
                 onClick={onToggleCollapse}
-                className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg ml-1"
+                className="text-content-muted hover:text-content-primary p-1 hover:bg-surface-hover rounded-lg ml-1"
               >
                 {/* ChevronUp on mobile, ChevronLeft on desktop */}
                 <ChevronLeft size={14} className="hidden md:block" />
@@ -295,9 +295,9 @@ const SortableColumn = ({
             className={`
               h-full min-h-[200px]
               border-2 border-dashed rounded-xl 
-              flex items-center justify-center text-gray-500 text-sm
+              flex items-center justify-center text-content-faint text-sm
               transition-colors duration-200
-              ${isOver ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-700"}
+              ${isOver ? "border-primary bg-primary/10 text-primary" : "border-border"}
             `}
           >
             {isOver ? "Drop here" : "No leads"}

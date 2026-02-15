@@ -280,12 +280,12 @@ const SharedSpecialNoteIcon = ({
       ) : (
         <div
           ref={iconRef}
-          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed border-white/70 hover:border-white rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
+          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed border-content-muted hover:border-content-primary rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
           onClick={handleNoteClick}
           onPointerDown={(e) => e.stopPropagation()}
           title="Add special note"
         >
-          <StickyNote size={iconSize} className="text-white/70 group-hover:text-white transition-colors" />
+          <StickyNote size={iconSize} className="text-content-muted group-hover:text-content-primary transition-colors" />
         </div>
       )}
       
@@ -294,7 +294,7 @@ const SharedSpecialNoteIcon = ({
         createPortal(
           <div
             ref={noteRef}
-            className="fixed w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg flex flex-col"
+            className="fixed w-72 sm:w-80 bg-surface-card backdrop-blur-xl rounded-lg border border-border shadow-lg flex flex-col"
             style={{
               top: notePosition.top,
               left: notePosition.left,
@@ -305,21 +305,21 @@ const SharedSpecialNoteIcon = ({
             onMouseLeave={handlePopupMouseLeave}
           >
             {/* Header */}
-            <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2 flex-shrink-0">
-              <h4 className="text-white flex gap-2 items-center font-medium text-sm">
+            <div className="bg-surface-dark p-2 sm:p-3 rounded-t-lg border-b border-border flex items-center gap-2 flex-shrink-0">
+              <h4 className="text-content-primary flex gap-2 items-center font-medium text-sm">
                 <span>Special Notes</span>
-                <span className="text-xs text-gray-500">({entityNotes.length})</span>
+                <span className="text-xs text-content-faint">({entityNotes.length})</span>
               </h4>
               <button
                 onClick={handleEditNote}
-                className="ml-auto text-gray-400 p-1 hover:text-white"
+                className="ml-auto text-content-muted p-1 hover:text-content-primary"
                 title="Edit notes"
               >
                 <Edit size={14} />
               </button>
               <button
                 onClick={closePopover}
-                className="text-gray-400 p-1 hover:text-white"
+                className="text-content-muted p-1 hover:text-content-primary"
               >
                 <X size={16} />
               </button>
@@ -331,11 +331,11 @@ const SharedSpecialNoteIcon = ({
                 width: 6px;
               }
               .special-note-scrollable::-webkit-scrollbar-track {
-                background: #1F2937;
+                background: var(--color-surface-dark);
                 border-radius: 4px;
               }
               .special-note-scrollable::-webkit-scrollbar-thumb {
-                background: #4B5563;
+                background: var(--color-surface-button);
                 border-radius: 4px;
               }
             `}</style>
@@ -343,29 +343,29 @@ const SharedSpecialNoteIcon = ({
               className="p-2 overflow-y-auto flex-1 min-h-0 special-note-scrollable space-y-2"
               style={{
                 scrollbarWidth: 'thin',
-                scrollbarColor: '#4B5563 #1F2937'
+                scrollbarColor: 'var(--color-surface-button) var(--color-surface-dark)'
               }}
             >
               {[...entityNotes]
                 .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
                 .slice(0, maxVisibleNotes)
                 .map((note, index) => (
-                <div key={note.id || index} className="bg-gray-800/50 rounded-lg p-2.5">
+                <div key={note.id || index} className="bg-surface-dark/50 rounded-lg p-2.5">
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
                       {getStatusLabel(note.status)}
                     </span>
                     {note.isImportant && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-red-500">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
                         Important
                       </span>
                     )}
                   </div>
-                  <p className="text-white text-xs leading-relaxed whitespace-pre-wrap">
+                  <p className="text-content-primary text-xs leading-relaxed whitespace-pre-wrap">
                     {note.text}
                   </p>
                   {(note.startDate || note.endDate) && (
-                    <p className="text-gray-500 text-xs mt-1.5 flex items-center gap-1">
+                    <p className="text-content-faint text-xs mt-1.5 flex items-center gap-1">
                       <Calendar size={10} />
                       {note.startDate && note.endDate ? (
                         <>Valid: {note.startDate} - {note.endDate}</>
@@ -381,7 +381,7 @@ const SharedSpecialNoteIcon = ({
               {entityNotes.length > maxVisibleNotes && (
                 <button
                   onClick={handleEditNote}
-                  className="w-full text-center text-xs text-blue-400 py-1"
+                  className="w-full text-center text-xs text-primary py-1"
                 >
                   +{entityNotes.length - maxVisibleNotes} more notes...
                 </button>

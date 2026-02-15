@@ -130,21 +130,21 @@ export const SpecialNoteModal = ({
 
   const modalContent = (
     <div 
-      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
       style={{ zIndex: 1000010 }}
     >
-      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+      <div className="bg-surface-card rounded-xl w-full max-w-md mx-4">
         <div className="p-6 space-y-4">
           {/* Header */}
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600/20 rounded-lg">
-                <StickyNote size={20} className="text-blue-400" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <StickyNote size={20} className="text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Add Special Note</h2>
+                <h2 className="text-lg font-semibold text-content-primary">Add Special Note</h2>
                 {getEntityName() && (
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-content-muted">
                     {entityType === "lead" ? "Lead" : "Member"}: {getEntityName()}
                   </p>
                 )}
@@ -152,21 +152,21 @@ export const SpecialNoteModal = ({
             </div>
             <button 
               onClick={handleClose} 
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-button-hover transition-colors"
             >
               <X size={16} />
             </button>
           </div>
 
           {/* Special Note Form */}
-          <div className="border border-slate-700 rounded-xl p-4 space-y-4">
+          <div className="border border-border rounded-xl p-4 space-y-4">
             {/* Status Selection */}
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Status</label>
+              <label className="text-sm text-content-secondary block mb-2">Status</label>
               <select
                 value={formData.status}
                 onChange={(e) => updateFormData("status", e.target.value)}
-                className="w-full bg-[#101010] text-white rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 border border-transparent focus:border-blue-500"
+                className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
               >
                 {NOTE_STATUSES.map((status) => (
                   <option key={status.id} value={status.id}>
@@ -179,7 +179,7 @@ export const SpecialNoteModal = ({
             {/* Note Text */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm text-gray-200">Note</label>
+                <label className="text-sm text-content-secondary">Note</label>
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -188,9 +188,9 @@ export const SpecialNoteModal = ({
                     onChange={(e) => {
                       updateFormData("noteImportance", e.target.checked ? "important" : "unimportant")
                     }}
-                    className="mr-2 h-4 w-4 accent-blue-500"
+                    className="mr-2 h-4 w-4 accent-primary"
                   />
-                  <label htmlFor="noteImportance" className="text-sm text-gray-200">
+                  <label htmlFor="noteImportance" className="text-sm text-content-secondary">
                     Important
                   </label>
                 </div>
@@ -198,7 +198,7 @@ export const SpecialNoteModal = ({
               <textarea
                 value={formData.note}
                 onChange={(e) => updateFormData("note", e.target.value)}
-                className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] border border-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-surface-dark resize-none rounded-xl px-4 py-2 text-content-primary outline-none text-sm min-h-[100px] border border-transparent focus:border-primary transition-colors"
                 placeholder="Enter note..."
               />
             </div>
@@ -206,21 +206,21 @@ export const SpecialNoteModal = ({
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Valid From (optional)</label>
+                <label className="text-sm text-content-secondary block mb-2">Valid From (optional)</label>
                 <input
                   type="date"
                   value={formData.noteStartDate}
                   onChange={(e) => updateFormData("noteStartDate", e.target.value)}
-                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm [color-scheme:dark] border border-transparent focus:border-blue-500"
+                  className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Valid Until (optional)</label>
+                <label className="text-sm text-content-secondary block mb-2">Valid Until (optional)</label>
                 <input
                   type="date"
                   value={formData.noteEndDate}
                   onChange={(e) => updateFormData("noteEndDate", e.target.value)}
-                  className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm [color-scheme:dark] border border-transparent focus:border-blue-500"
+                  className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                 />
               </div>
             </div>
@@ -230,13 +230,13 @@ export const SpecialNoteModal = ({
           <div className="flex gap-3 justify-end pt-4">
             <button 
               onClick={handleClose} 
-              className="px-4 py-2 text-sm rounded-xl text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 text-sm rounded-xl text-content-secondary hover:text-content-primary hover:bg-surface-button-hover transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              className="px-4 py-2 text-sm rounded-xl bg-primary hover:bg-primary-hover text-white transition-colors"
             >
               Add Note
             </button>

@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react"
 import AddLeadModal from "../../studio-components/lead-studio-components/add-lead-modal"
 import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
 import DatePickerField from '../../shared/DatePickerField';
+import NotifyMemberModalMain from '../../shared/NotifyMemberModal';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -47,7 +48,7 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
   const fullName = `${lead.firstName} ${lead.lastName || lead.surname || ""}`.trim();
 
   return (
-    <div className="flex items-center gap-2 bg-[#2a2a2a] border border-gray-700 rounded-xl px-2.5 py-1.5">
+    <div className="flex items-center gap-2 bg-surface-hover border border-border rounded-xl px-2.5 py-1.5">
       {/* Special Note Icon */}
       <MemberSpecialNoteIcon
         member={memberData}
@@ -57,12 +58,12 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
       />
       
       {/* Name */}
-      <span className="text-white text-sm font-medium">{fullName}</span>
+      <span className="text-content-primary text-sm font-medium">{fullName}</span>
       
       {/* Relations Button - always show, even when locked (for viewing) */}
       <button
         onClick={handleRelationsClick}
-        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-1.5 py-0.5 rounded transition-colors"
+        className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
         title="View Relations"
       >
         <Users size={12} />
@@ -73,9 +74,9 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
       {!isLocked && (
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="p-0.5 hover:bg-gray-600 rounded transition-colors ml-0.5"
+          className="p-0.5 hover:bg-surface-button-hover rounded transition-colors ml-0.5"
         >
-          <X className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+          <X className="w-3.5 h-3.5 text-content-muted hover:text-content-primary" />
         </button>
       )}
     </div>
@@ -102,25 +103,25 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [] }) => 
   return (
     <div ref={dropdownRef} className="relative">
       <button type="button" onClick={() => setIsOpen(!isOpen)} 
-        className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-[#2a2a2a]">
+        className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-surface-hover">
         {selectedType ? (
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getColorHex(selectedType) }} />
-            <span className="text-white">{selectedType.name}</span>
+            <span className="text-content-primary">{selectedType.name}</span>
           </div>
-        ) : <span className="text-gray-500">Select type...</span>}
-        <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        ) : <span className="text-content-faint">Select type...</span>}
+        <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
           {filteredTypes.map((type) => (
             <button key={type.name} onClick={() => { onChange(type.name); setIsOpen(false); }}
-              className={`w-full text-left p-3 flex items-center gap-3 ${value === type.name ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}>
+              className={`w-full text-left p-3 flex items-center gap-3 ${value === type.name ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`}>
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getColorHex(type) }} />
               <div className="flex-1">
-                <div className="text-sm text-white">{type.name}</div>
+                <div className="text-sm text-content-primary">{type.name}</div>
               </div>
-              {value === type.name && <Check size={16} className="text-green-500" />}
+              {value === type.name && <Check size={16} className="text-accent-green" />}
             </button>
           ))}
         </div>
@@ -173,10 +174,8 @@ const TrialTrainingModal = ({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
   
-  // Internal NotifyModal state
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingTrialData, setPendingTrialData] = useState(null);
-  const [emailNotification, setEmailNotification] = useState(true);
 
   const [trialData, setTrialData] = useState({
     date: initialDate,
@@ -322,7 +321,7 @@ const TrialTrainingModal = ({
       startTime: trialData.timeSlot,
       endTime: endTime,
       time: `${trialData.timeSlot} - ${endTime}`,
-      color: "bg-[#3F74FF]", // Blue for trial training
+      color: "bg-primary", // Blue for trial training
       colorHex: "#3F74FF",
       isTrial: true,
     };
@@ -333,7 +332,7 @@ const TrialTrainingModal = ({
   };
 
   // Actually create the booking after notify decision
-  const handleConfirmBooking = (shouldNotify) => {
+  const handleConfirmBooking = (shouldNotify, notificationOptions) => {
     if (pendingTrialData && onSubmit) {
       onSubmit(pendingTrialData);
     }
@@ -344,7 +343,7 @@ const TrialTrainingModal = ({
     onClose();
     
     if (shouldNotify) {
-      console.log("Notification requested:", { email: emailNotification });
+      console.log("Notification requested:", notificationOptions);
     }
   };
 
@@ -369,12 +368,12 @@ const TrialTrainingModal = ({
     : "";
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000000] p-4" onClick={onClose}>
-      <div className="bg-[#181818] w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4" onClick={onClose}>
+      <div className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Book Trial Training</h2>
-          <button onClick={onClose} className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-content-primary">Book Trial Training</h2>
+          <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg">
             <X size={20} />
           </button>
         </div>
@@ -383,10 +382,10 @@ const TrialTrainingModal = ({
         <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
           {/* Lead Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Lead</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">Lead</label>
             <div ref={containerRef} className="relative">
               <div 
-                className="bg-[#222222] rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text"
+                className="bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text"
                 onClick={() => !selectedLead && !isLeadLocked && searchInputRef.current?.focus()}
               >
                 {selectedLead ? (
@@ -399,7 +398,7 @@ const TrialTrainingModal = ({
                   />
                 ) : !isLeadLocked ? (
                   <>
-                    <Search className="text-gray-400 flex-shrink-0" size={16} />
+                    <Search className="text-content-muted flex-shrink-0" size={16} />
                     <input
                       ref={searchInputRef}
                       type="text"
@@ -408,28 +407,28 @@ const TrialTrainingModal = ({
                       onFocus={() => setIsSearchFocused(true)}
                       onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                       placeholder="Search leads"
-                      className="flex-1 min-w-[120px] bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+                      className="flex-1 min-w-[120px] bg-transparent text-sm text-content-primary placeholder-content-faint outline-none"
                     />
                   </>
                 ) : (
-                  <span className="text-gray-500 text-sm">No lead selected</span>
+                  <span className="text-content-faint text-sm">No lead selected</span>
                 )}
               </div>
 
               {/* Lead Suggestions Dropdown - only show if not locked */}
               {!isLeadLocked && showLeadSuggestions && filteredLeads.length > 0 && (
-                <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-60 overflow-y-auto">
+                <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-60 overflow-y-auto">
                   {filteredLeads.map((lead) => {
                     const fullName = `${lead.firstName} ${lead.lastName || lead.surname || ""}`.trim();
                     return (
                       <button
                         key={lead.id}
                         onClick={() => selectLead(lead)}
-                        className="w-full text-left p-3 hover:bg-[#2a2a2a] flex items-center gap-3 border-b border-gray-800 last:border-b-0"
+                        className="w-full text-left p-3 hover:bg-surface-hover flex items-center gap-3 border-b border-border last:border-b-0"
                       >
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm text-white font-medium">{fullName}</span>
-                          {lead.phone && <div className="text-xs text-gray-500 mt-0.5">{lead.phone}</div>}
+                          <span className="text-sm text-content-primary font-medium">{fullName}</span>
+                          {lead.phone && <div className="text-xs text-content-faint mt-0.5">{lead.phone}</div>}
                         </div>
                       </button>
                     );
@@ -439,8 +438,8 @@ const TrialTrainingModal = ({
 
               {/* No results / Create new lead - only show if not locked */}
               {!isLeadLocked && isSearchFocused && searchQuery.trim() && filteredLeads.length === 0 && !selectedLead && (
-                <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] p-3">
-                  <p className="text-sm text-gray-500 text-center mb-2">No leads found</p>
+                <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] p-3">
+                  <p className="text-sm text-content-faint text-center mb-2">No leads found</p>
                 </div>
               )}
             </div>
@@ -450,7 +449,7 @@ const TrialTrainingModal = ({
               <button
                 type="button"
                 onClick={() => setIsAddLeadModalOpen(true)}
-                className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors"
+                className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl transition-colors"
               >
                 <span>+</span> Create New Lead
               </button>
@@ -458,19 +457,19 @@ const TrialTrainingModal = ({
           </div>
 
           {/* Trial Training Info */}
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#3F74FF] flex items-center justify-center flex-shrink-0">
+          <div className="bg-trial/10 border border-trial/30 rounded-xl p-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-trial flex items-center justify-center flex-shrink-0">
               <Clock size={16} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-medium text-blue-400">Trial Training</p>
-              <p className="text-xs text-gray-400">Duration: {getTrialDuration()} minutes</p>
+              <p className="text-sm font-medium text-trial">Trial Training</p>
+              <p className="text-xs text-content-muted">Duration: {getTrialDuration()} minutes</p>
             </div>
           </div>
 
           {/* Appointment Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Appointment Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
             <AppointmentTypeDropdown 
               value={trialData.appointmentType} 
               onChange={(type) => updateTrialData("appointmentType", type)} 
@@ -481,118 +480,64 @@ const TrialTrainingModal = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-2">Date</label>
-              <div className="w-full flex items-center justify-between bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5">
-                <span className={trialData.date ? "text-white" : "text-gray-500"}>{trialData.date ? (() => { const [y,m,d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+              <label className="block text-xs text-content-faint mb-2">Date</label>
+              <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
+                <span className={trialData.date ? "text-content-primary" : "text-content-faint"}>{trialData.date ? (() => { const [y,m,d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                 <DatePickerField value={trialData.date} onChange={(val) => updateTrialData("date", val)} />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+              <label className="block text-xs text-content-faint mb-2">Time Slot</label>
               <div className="relative">
                 <select 
                   value={trialData.timeSlot} 
                   onChange={(e) => updateTrialData("timeSlot", e.target.value)}
                   disabled={!trialData.date}
-                  className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none disabled:opacity-50 focus:outline-none focus:border-blue-500/50"
+                  className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none disabled:opacity-50 focus:outline-none focus:border-primary"
                 >
                   <option value="">Select time...</option>
                   {availableSlots.map((slot, idx) => (
                     <option key={idx} value={slot.time}>{slot.time}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
               </div>
               {trialData.date && availableSlots.length === 0 && (
-                <p className="text-xs text-amber-400 mt-1">No available slots for this date</p>
+                <p className="text-xs text-accent-yellow mt-1">No available slots for this date</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-700 flex gap-3">
+        <div className="px-6 py-4 border-t border-border flex gap-3">
           <button 
             onClick={onClose} 
-            className="flex-1 py-2.5 text-sm font-medium text-gray-400 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+            className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
           >
             Cancel
           </button>
           <button 
             disabled={!selectedLead || !trialData.date || !trialData.timeSlot || !trialData.appointmentType}
             onClick={handleBook} 
-            className="flex-1 py-2.5 text-sm font-medium text-white bg-[#3F74FF] hover:bg-[#3F74FF]/90 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl transition-colors"
+            className="flex-1 py-2.5 text-sm font-medium text-white bg-trial hover:bg-trial/80 disabled:bg-surface-button disabled:cursor-not-allowed rounded-xl transition-colors"
           >
             Book Trial Training
           </button>
         </div>
 
-        {/* Integrated Notify Lead Modal */}
-        {showNotifyModal && pendingTrialData && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000001] p-4" onClick={handleCancelNotify}>
-            <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">Notify Lead</h2>
-                <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="p-6">
-                <p className="text-white text-sm">
-                  New <span className="font-semibold text-blue-400">Trial Training</span> for{" "}
-                  <span className="font-semibold text-blue-400">{leadFullName}</span> on{" "}
-                  <span className="font-semibold text-blue-400">
-                    {pendingTrialData.date && new Date(pendingTrialData.date).toLocaleDateString('en-US', { 
-                      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
-                    })}
-                  </span> at{" "}
-                  <span className="font-semibold text-blue-400">{pendingTrialData.time}</span>.
-                  <br /><br />
-                  Do you want to notify the lead about this booking?
-                </p>
-
-                {/* Notification Options - Only Email for Leads */}
-                <div className="mt-4 space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={emailNotification}
-                      onChange={(e) => setEmailNotification(e.target.checked)}
-                      className="w-4 h-4 text-blue-500 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <span className="text-white text-sm">Email Notification</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
-                <button
-                  onClick={handleCancelNotify}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
-                >
-                  Back
-                </button>
-
-                <div className="flex flex-col-reverse sm:flex-row gap-2">
-                  <button
-                    onClick={() => handleConfirmBooking(false)}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors border border-gray-600"
-                  >
-                    No, Don't Notify
-                  </button>
-
-                  <button
-                    onClick={() => handleConfirmBooking(true)}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                  >
-                    Yes, Notify Lead
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Notify Lead Modal (shared component) */}
+        <NotifyMemberModalMain
+          isOpen={showNotifyModal && !!pendingTrialData}
+          onClose={handleCancelNotify}
+          onConfirm={handleConfirmBooking}
+          action="book"
+          entityType="lead"
+          entityName={leadFullName}
+          isTrial={true}
+          date={pendingTrialData?.date && new Date(pendingTrialData.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          time={pendingTrialData?.time || ""}
+        />
       </div>
 
       {/* Add Lead Modal - only render if not locked */}

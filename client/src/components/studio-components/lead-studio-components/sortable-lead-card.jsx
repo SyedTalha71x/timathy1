@@ -138,7 +138,7 @@ const SortableLeadCard = ({
     if (isCompactCollapsed) {
       return (
         <div
-          className="bg-[#1C1C1C] rounded-xl p-3 shadow-2xl border-2 border-blue-500/50 rotate-2"
+          className="bg-surface-base rounded-xl p-3 shadow-2xl border-2 border-primary/50 rotate-2"
           data-lead-id={lead.id}
         >
           <div className="flex items-center gap-3">
@@ -150,7 +150,7 @@ const SortableLeadCard = ({
               position="relative"
             />
             
-            <span className="text-white font-medium text-sm truncate">
+            <span className="text-content-primary font-medium text-sm truncate">
               {lead.firstName} {lead.surname}
             </span>
           </div>
@@ -160,7 +160,7 @@ const SortableLeadCard = ({
     
     return (
       <div
-        className="bg-[#1C1C1C] rounded-xl p-3 sm:p-4 min-h-[120px] sm:min-h-[140px] shadow-2xl border-2 border-blue-500/50 rotate-2"
+        className="bg-surface-base rounded-xl p-3 sm:p-4 min-h-[120px] sm:min-h-[140px] shadow-2xl border-2 border-primary/50 rotate-2"
         data-lead-id={lead.id}
       >
         <div className="flex items-center mb-2 sm:mb-3 relative">
@@ -172,10 +172,10 @@ const SortableLeadCard = ({
             position="absolute"
           />
           
-          <div className="flex-1 mt-6">
-            <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
-            <p className="text-gray-400 text-sm">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
-            <p className="text-gray-400 text-sm">{lead.email}</p>
+          <div className="flex-1 mt-6 min-w-0">
+            <h4 className="font-medium text-content-primary text-lg mb-1 line-clamp-2 break-words">{`${lead.firstName} ${lead.surname}`}</h4>
+            <p className="text-content-muted text-sm truncate">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
+            <p className="text-content-muted text-sm truncate">{lead.email}</p>
           </div>
         </div>
       </div>
@@ -189,7 +189,7 @@ const SortableLeadCard = ({
         <div
           ref={setNodeRef}
           style={style}
-          className="bg-[#1C1C1C] rounded-xl p-3 mb-3 hover:bg-[#242424] transition-colors"
+          className="bg-surface-base rounded-xl p-3 mb-3 hover:bg-surface-hover transition-colors"
           data-lead-id={lead.id}
         >
           <div className="flex items-center justify-between gap-3">
@@ -208,7 +208,7 @@ const SortableLeadCard = ({
               />
               
               <div className="flex-1 min-w-0">
-                <span className="text-white font-medium text-sm truncate block">
+                <span className="text-content-primary font-medium text-sm truncate block">
                   {lead.firstName} {lead.surname}
                 </span>
               </div>
@@ -218,10 +218,10 @@ const SortableLeadCard = ({
                 e.stopPropagation()
                 setExpandedLeadId(lead.id)
               }}
-              className="p-1 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
+              className="p-1 bg-surface-button rounded-lg border border-border hover:border-content-muted transition-colors flex-shrink-0"
               title="Expand"
             >
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3 h-3 text-content-muted" />
             </button>
           </div>
         </div>
@@ -230,8 +230,8 @@ const SortableLeadCard = ({
         <div
           ref={setNodeRef}
           style={style}
-          className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 min-h-[120px] sm:min-h-[140px] ${
-            isDragging ? "ring-2 ring-blue-500/50 select-none" : ""
+          className={`bg-surface-base rounded-xl p-3 sm:p-4 mb-3 min-h-[120px] sm:min-h-[140px] ${
+            isDragging ? "ring-2 ring-primary/50 select-none" : ""
           }`}
           data-lead-id={lead.id}
         >
@@ -243,10 +243,10 @@ const SortableLeadCard = ({
                   e.stopPropagation()
                   setExpandedLeadId(null)
                 }}
-                className="p-1 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors"
+                className="p-1 bg-surface-button rounded-lg border border-border hover:border-content-muted transition-colors"
                 title="Collapse"
               >
-                <ChevronUp className="w-3 h-3 text-gray-400" />
+                <ChevronUp className="w-3 h-3 text-content-muted" />
               </button>
             </div>
           )}
@@ -266,17 +266,17 @@ const SortableLeadCard = ({
             position="absolute"
           />
           
-          <div className="flex-1 mt-6">
-            <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
-            <p className="text-gray-400 text-sm">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
-            <p className="text-gray-400 text-sm">{lead.email}</p>
-            <p className="text-gray-500 text-xs">
+          <div className="flex-1 mt-6 min-w-0">
+            <h4 className="font-medium text-content-primary text-lg mb-1 line-clamp-2 break-words">{`${lead.firstName} ${lead.surname}`}</h4>
+            <p className="text-content-muted text-sm truncate">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
+            <p className="text-content-muted text-sm truncate">{lead.email}</p>
+            <p className="text-content-faint text-xs">
               Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
             </p>
       
             <div className="mt-2">
               <div
-                className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer hover:text-blue-300 transition-colors active:scale-95"
+                className="text-xs text-primary flex items-center gap-1 cursor-pointer hover:text-primary/80 transition-colors active:scale-95"
                 onClick={(e) => {
                   e.stopPropagation()
                   onViewDetails(lead, "relations")
@@ -295,7 +295,7 @@ const SortableLeadCard = ({
                 e.stopPropagation()
                 setIsMenuOpen(!isMenuOpen)
               }}
-              className="p-1 rounded-lg cursor-pointer text-gray-400 hover:text-orange-400 hover:bg-gray-800 active:scale-95 transition-colors"
+              className="p-1 rounded-lg cursor-pointer text-content-muted hover:text-primary hover:bg-surface-hover active:scale-95 transition-colors"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -304,14 +304,14 @@ const SortableLeadCard = ({
             {isMenuOpen && (
               <div
                 ref={menuRef}
-                className="absolute right-0 top-4 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-48"
+                className="absolute right-0 top-4 mt-1 bg-surface-base border border-border rounded-lg shadow-lg z-50 w-48"
               >
                 <button
                   onClick={() => {
                     onViewDetails(lead)
                     setIsMenuOpen(false)
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2"
                 >
                   <Info size={14} /> View Details
                 </button>
@@ -320,13 +320,13 @@ const SortableLeadCard = ({
                     onEditLead(lead)
                     setIsMenuOpen(false)
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2"
                 >
                   <Edit size={14} /> Edit
                 </button>
                 <button
                   onClick={handleOpenDocuments}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2"
                 >
                   <FileText size={14} /> Documents
                 </button>
@@ -336,7 +336,7 @@ const SortableLeadCard = ({
                     setShowHistoryModalLead(true)
                     setIsMenuOpen(false)
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2"
                 >
                   <MdHistory size={18} /> View History
                 </button>
@@ -345,7 +345,7 @@ const SortableLeadCard = ({
                     onDeleteLead(lead.id)
                     setIsMenuOpen(false)
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2"
                 >
                   <Trash2 size={14} /> Delete
                 </button>
@@ -361,7 +361,7 @@ const SortableLeadCard = ({
               {!hasAssessment ? (
                 <button
                   onClick={handleCreateAssessment}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
+                  className="flex-1 bg-surface-button hover:bg-surface-button-hover text-content-primary text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
                 >
                   <Pencil size={14} /> Fill Out Medical History
                 </button>
@@ -371,7 +371,7 @@ const SortableLeadCard = ({
                     e.stopPropagation()
                     onCreateContract(lead)
                   }}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
+                  className="flex-1 bg-primary hover:bg-primary-hover text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
                 >
                   <Plus size={14} /> Create Contract
                 </button>
@@ -381,7 +381,7 @@ const SortableLeadCard = ({
                   e.stopPropagation()
                   onManageTrialAppointments(lead)
                 }}
-                className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-2 hover:border-slate-400 transition-colors text-sm flex items-center justify-center active:scale-95"
+                className="text-content-primary bg-surface-button cursor-pointer rounded-xl border border-border py-2 px-2 hover:border-content-muted hover:bg-surface-button-hover transition-colors text-sm flex items-center justify-center active:scale-95"
               >
                 <CalendarIcon size={16} />
               </button>
@@ -394,7 +394,7 @@ const SortableLeadCard = ({
                   e.stopPropagation()
                   onAddTrial(lead)
                 }}
-                className="flex-1 bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
+                className="flex-1 bg-trial hover:bg-trial/80 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
               >
                 <Plus size={14} /> Book Trial Training
               </button>
@@ -403,7 +403,7 @@ const SortableLeadCard = ({
                   e.stopPropagation()
                   onManageTrialAppointments(lead)
                 }}
-                className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-2 hover:border-slate-400 transition-colors text-sm flex items-center justify-center active:scale-95"
+                className="text-content-primary bg-surface-button cursor-pointer rounded-xl border border-border py-2 px-2 hover:border-content-muted hover:bg-surface-button-hover transition-colors text-sm flex items-center justify-center active:scale-95"
               >
                 <CalendarIcon size={16} />
               </button>
@@ -415,7 +415,7 @@ const SortableLeadCard = ({
                 e.stopPropagation()
                 onAddTrial(lead)
               }}
-              className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform flex items-center justify-center gap-1"
+              className="bg-trial hover:bg-trial/80 text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform flex items-center justify-center gap-1"
             >
               <Plus size={14} /> Book Trial Training
             </button>

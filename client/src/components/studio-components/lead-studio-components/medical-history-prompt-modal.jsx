@@ -13,7 +13,7 @@ const MedicalHistoryPromptModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md border border-gray-700">
+      <div className="bg-surface-base rounded-xl p-6 w-full max-w-md border border-border">
         <div className="text-center mb-6">
           <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg 
@@ -30,10 +30,10 @@ const MedicalHistoryPromptModal = ({
               />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">
+          <h3 className="text-xl font-bold text-content-primary mb-2">
             Trial Training Booked Successfully!
           </h3>
-          <p className="text-gray-300">
+          <p className="text-content-secondary">
             Would you like to proceed with filling out the Medical History for {leadName}?
           </p>
         </div>
@@ -41,7 +41,7 @@ const MedicalHistoryPromptModal = ({
         <div className="space-y-3">
           <button
             onClick={onConfirm}
-            className="w-full py-3 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 font-medium"
+            className="w-full py-3 text-sm bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 font-medium"
           >
             <Pencil className="w-4 h-4" />
             Fill out Medical History

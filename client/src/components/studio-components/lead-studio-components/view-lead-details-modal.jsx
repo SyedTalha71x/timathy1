@@ -241,29 +241,29 @@ const ViewLeadDetailsModal = ({
       "Inbound Call": "bg-emerald-900 text-emerald-300",
       Event: "bg-yellow-900 text-yellow-300",
       "Offline Advertising": "bg-pink-900 text-pink-300",
-      Other: "bg-gray-900 text-gray-300",
+      Other: "bg-surface-dark text-content-secondary",
     }
-    return sourceColors[source] || "bg-gray-900 text-gray-300"
+    return sourceColors[source] || "bg-surface-dark text-content-secondary"
   }
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
+      <div className="bg-surface-card rounded-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
         {/* Sticky Header */}
         <div className="p-4 md:p-6 pb-0 flex-shrink-0">
           <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h2 className="text-white text-lg font-semibold">Lead Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className="text-content-primary text-lg font-semibold">Lead Details</h2>
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-700">
+          <div className="flex border-b border-border">
             <button
               onClick={() => setActiveTab("details")}
               className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                activeTab === "details" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
               }`}
             >
               Details
@@ -271,7 +271,7 @@ const ViewLeadDetailsModal = ({
             <button
               onClick={() => setActiveTab("note")}
               className={`px-4 py-2 text-sm font-medium ${
-                activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                activeTab === "note" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
               }`}
             >
               Special Notes
@@ -280,8 +280,8 @@ const ViewLeadDetailsModal = ({
               onClick={() => setActiveTab("relations")}
               className={`px-4 py-2 text-sm font-medium ${
                 activeTab === "relations"
-                  ? "text-blue-400 border-b-2 border-blue-400"
-                  : "text-gray-400 hover:text-white"
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               Relations
@@ -293,45 +293,45 @@ const ViewLeadDetailsModal = ({
         <div className="p-4 md:p-6 pt-4 md:pt-6 overflow-y-auto flex-1">
           {/* Tab Content */}
           {activeTab === "details" && (
-            <div className="space-y-4 text-white">
+            <div className="space-y-4 text-content-primary">
               {/* Personal Information */}
               <div className="space-y-4">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">First Name</p>
+                    <p className="text-sm text-content-muted">First Name</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.firstName || "-"}</p>
                       {leadData.firstName && (
                         <button
                           onClick={handleCopyFirstName}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy first name"
                         >
                           {copiedFirstName ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Last Name</p>
+                    <p className="text-sm text-content-muted">Last Name</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.surname || "-"}</p>
                       {leadData.surname && (
                         <button
                           onClick={handleCopyLastName}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy last name"
                         >
                           {copiedLastName ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
@@ -341,11 +341,11 @@ const ViewLeadDetailsModal = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Gender</p>
+                    <p className="text-sm text-content-muted">Gender</p>
                     <p className="capitalize">{leadData.gender || "-"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Birthday</p>
+                    <p className="text-sm text-content-muted">Birthday</p>
                     <div className="flex items-center gap-3">
                       <p>
                         {leadData.birthday 
@@ -364,13 +364,13 @@ const ViewLeadDetailsModal = ({
                       {leadData.birthday && (
                         <button
                           onClick={handleCopyBirthday}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy birthday"
                         >
                           {copiedBirthday ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
@@ -380,23 +380,23 @@ const ViewLeadDetailsModal = ({
               </div>
 
               {/* Contact Information */}
-              <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+              <div className="space-y-4 pt-4 border-t border-border">
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
                 
                 <div>
-                  <p className="text-sm text-gray-400">Email</p>
+                  <p className="text-sm text-content-muted">Email</p>
                   <div className="flex items-center gap-3">
                     <p>{leadData.email || "-"}</p>
                     {leadData.email && (
                       <button
                         onClick={handleCopyEmail}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-button rounded transition-colors"
                         title="Copy email"
                       >
                         {copiedEmail ? (
-                          <Check size={14} className="text-green-500" />
+                          <Check size={14} className="text-accent-green" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
@@ -405,38 +405,38 @@ const ViewLeadDetailsModal = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Mobile Number</p>
+                    <p className="text-sm text-content-muted">Mobile Number</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.phoneNumber || "-"}</p>
                       {leadData.phoneNumber && (
                         <button
                           onClick={handleCopyPhone}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy mobile number"
                         >
                           {copiedPhone ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Telephone Number</p>
+                    <p className="text-sm text-content-muted">Telephone Number</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.telephoneNumber || "-"}</p>
                       {leadData.telephoneNumber && (
                         <button
                           onClick={handleCopyTelephone}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy telephone number"
                         >
                           {copiedTelephone ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
@@ -446,23 +446,23 @@ const ViewLeadDetailsModal = ({
               </div>
 
               {/* Address */}
-              <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+              <div className="space-y-4 pt-4 border-t border-border">
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
                 
                 <div>
-                  <p className="text-sm text-gray-400">Street & Number</p>
+                  <p className="text-sm text-content-muted">Street & Number</p>
                   <div className="flex items-center gap-3">
                     <p>{leadData.street || "-"}</p>
                     {leadData.street && (
                       <button
                         onClick={handleCopyStreet}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-button rounded transition-colors"
                         title="Copy street address"
                       >
                         {copiedStreet ? (
-                          <Check size={14} className="text-green-500" />
+                          <Check size={14} className="text-accent-green" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
@@ -471,7 +471,7 @@ const ViewLeadDetailsModal = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">ZIP Code & City</p>
+                    <p className="text-sm text-content-muted">ZIP Code & City</p>
                     <div className="flex items-center gap-3">
                       <p>
                         {leadData.zipCode && leadData.city 
@@ -481,32 +481,32 @@ const ViewLeadDetailsModal = ({
                       {(leadData.zipCode || leadData.city) && (
                         <button
                           onClick={handleCopyZipCity}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy ZIP code and city"
                         >
                           {copiedZipCity ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Country</p>
+                    <p className="text-sm text-content-muted">Country</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.country || "-"}</p>
                       {leadData.country && (
                         <button
                           onClick={handleCopyCountry}
-                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-button rounded transition-colors"
                           title="Copy country"
                         >
                           {copiedCountry ? (
-                            <Check size={14} className="text-green-500" />
+                            <Check size={14} className="text-accent-green" />
                           ) : (
-                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                            <Copy size={14} className="text-content-muted hover:text-content-primary" />
                           )}
                         </button>
                       )}
@@ -515,19 +515,19 @@ const ViewLeadDetailsModal = ({
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-400">Lead ID</p>
+                  <p className="text-sm text-content-muted">Lead ID</p>
                   <div className="flex items-center gap-3">
                     <p>{leadData.id || "-"}</p>
                     {leadData.id && (
                       <button
                         onClick={handleCopyLeadId}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-button rounded transition-colors"
                         title="Copy lead ID"
                       >
                         {copiedLeadId ? (
-                          <Check size={14} className="text-green-500" />
+                          <Check size={14} className="text-accent-green" />
                         ) : (
-                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                          <Copy size={14} className="text-content-muted hover:text-content-primary" />
                         )}
                       </button>
                     )}
@@ -536,12 +536,12 @@ const ViewLeadDetailsModal = ({
               </div>
 
               {/* Lead Information */}
-              <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lead Information</div>
+              <div className="space-y-4 pt-4 border-t border-border">
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Lead Information</div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Lead Source</p>
+                    <p className="text-sm text-content-muted">Lead Source</p>
                     {leadData.leadSource ? (
                       <span className={`px-2 py-0.5 text-xs rounded-full ${getSourceColor(leadData.leadSource)}`}>
                         {leadData.leadSource}
@@ -551,7 +551,7 @@ const ViewLeadDetailsModal = ({
                     )}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Status</p>
+                    <p className="text-sm text-content-muted">Status</p>
                     {(() => {
                       const column = getColumnWithColor(leadData.columnId || leadData.status)
                       return column ? (
@@ -572,32 +572,32 @@ const ViewLeadDetailsModal = ({
               
               {/* About section */}
               {leadData.details && (
-                <div className="pt-4 border-t border-gray-700">
+                <div className="pt-4 border-t border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-400">About</p>
+                    <p className="text-sm text-content-muted">About</p>
                     <button
                       onClick={handleCopyDetails}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-button rounded transition-colors"
                       title="Copy about text"
                     >
                       {copiedDetails ? (
-                        <Check size={14} className="text-green-500" />
+                        <Check size={14} className="text-accent-green" />
                       ) : (
-                        <Copy size={14} className="text-gray-400 hover:text-white" />
+                        <Copy size={14} className="text-content-muted hover:text-content-primary" />
                       )}
                     </button>
                   </div>
-                  <div className="bg-[#141414] rounded-xl px-4 py-3 text-sm break-words overflow-wrap-anywhere">
+                  <div className="bg-surface-dark rounded-xl px-4 py-3 text-sm break-words overflow-wrap-anywhere">
                     <p className="whitespace-pre-wrap">{leadData.details}</p>
                   </div>
                 </div>
               )}
               
               {/* Created Date */}
-              <div className="pt-4 border-t border-gray-700">
+              <div className="pt-4 border-t border-border">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Created Date</p>
+                    <p className="text-sm text-content-muted">Created Date</p>
                     <p>
                       {leadData.createdAt 
                         ? new Date(leadData.createdAt).toLocaleDateString('en-US', { 
@@ -614,11 +614,11 @@ const ViewLeadDetailsModal = ({
           )}
 
           {activeTab === "note" && (
-            <div className="space-y-4 text-white pb-16">
+            <div className="space-y-4 text-content-primary pb-16">
               {/* Lead Name Header */}
-              <div className="mb-2 pb-3 border-b border-slate-700">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
-                <p className="text-white font-medium">{leadData.firstName} {leadData.surname}</p>
+              <div className="mb-2 pb-3 border-b border-border-subtle">
+                <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
+                <p className="text-content-primary font-medium">{leadData.firstName} {leadData.surname}</p>
               </div>
               
               {/* Notes List */}
@@ -633,7 +633,7 @@ const ViewLeadDetailsModal = ({
                     return (
                       <div
                         key={note.id}
-                        className="bg-[#1a1a1a] rounded-lg overflow-hidden"
+                        className="bg-surface-dark rounded-lg overflow-hidden"
                       >
                         {/* Note Header */}
                         <div 
@@ -641,20 +641,20 @@ const ViewLeadDetailsModal = ({
                           onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
                         >
                           <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
                               {statusInfo.label}
                             </span>
                             {note.isImportant && (
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
                                 Important
                               </span>
                             )}
                           </div>
                           <div className="flex items-center">
                             {isExpanded ? (
-                              <ChevronUp size={16} className="text-gray-400" />
+                              <ChevronUp size={16} className="text-content-muted" />
                             ) : (
-                              <ChevronDown size={16} className="text-gray-400" />
+                              <ChevronDown size={16} className="text-content-muted" />
                             )}
                           </div>
                         </div>
@@ -662,11 +662,11 @@ const ViewLeadDetailsModal = ({
                         {/* Preview & Valid Date (always visible when collapsed) */}
                         {!isExpanded && (
                           <div className="px-3 pb-2">
-                            <p className="text-gray-400 text-sm truncate">
+                            <p className="text-content-muted text-sm truncate">
                               {note.text}
                             </p>
                             {(note.startDate || note.endDate) && (
-                              <p className="text-xs text-gray-600 mt-1">
+                              <p className="text-xs text-content-faint mt-1">
                                 {note.startDate && note.endDate ? (
                                   <>Valid: {note.startDate} - {note.endDate}</>
                                 ) : note.startDate ? (
@@ -681,12 +681,12 @@ const ViewLeadDetailsModal = ({
                         
                         {/* Note Content (expandable) */}
                         {isExpanded && (
-                          <div className="px-3 pb-3 border-t border-gray-800">
-                            <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                          <div className="px-3 pb-3 border-t border-border-subtle">
+                            <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
                               {note.text}
                             </p>
                             {(note.startDate || note.endDate) && (
-                              <div className="mt-2 text-xs text-gray-500">
+                              <div className="mt-2 text-xs text-content-faint">
                                 {note.startDate && note.endDate ? (
                                   <>Valid: {note.startDate} - {note.endDate}</>
                                 ) : note.startDate ? (
@@ -702,7 +702,7 @@ const ViewLeadDetailsModal = ({
                     )
                   })
                 ) : (
-                  <div className="text-gray-400 text-center py-8">No special notes for this lead.</div>
+                  <div className="text-content-muted text-center py-8">No special notes for this lead.</div>
                 )}
               </div>
             </div>
@@ -712,31 +712,31 @@ const ViewLeadDetailsModal = ({
             <>
               <div className="space-y-6 max-h-[60vh] overflow-y-auto pb-16">
                 {/* Relations Tree Visualization */}
-                <div className="bg-[#161616] rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
+                <div className="bg-surface-dark rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-content-primary mb-4 text-center">Relationship Tree</h3>
                   <div className="flex flex-col items-center space-y-8">
                     {/* Central Lead */}
-                    <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
+                    <div className="bg-primary text-white px-4 py-2 rounded-lg border-2 border-primary-hover font-semibold">
                       {leadData.firstName} {leadData.surname}
                     </div>
                     {/* Connection Lines and Categories */}
                     <div className="relative w-full">
-                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-content-muted"></div>
                       <div className="grid grid-cols-5 gap-4 pt-8">
                         {Object.entries(memberRelationsLead[leadData.id] || {}).map(([category, relations]) => (
                           <div key={category} className="flex flex-col items-center space-y-4">
-                            <div className="w-0.5 h-8 bg-gray-600"></div>
+                            <div className="w-0.5 h-8 bg-content-muted"></div>
                             <div
                               className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
                                 category === "family"
-                                  ? "bg-yellow-600 text-yellow-100"
+                                  ? "bg-accent-yellow text-white"
                                   : category === "friendship"
-                                    ? "bg-green-600 text-green-100"
+                                    ? "bg-accent-green text-white"
                                     : category === "relationship"
-                                      ? "bg-red-600 text-red-100"
+                                      ? "bg-accent-red text-white"
                                       : category === "work"
-                                        ? "bg-blue-600 text-blue-100"
-                                        : "bg-gray-600 text-gray-100"
+                                        ? "bg-accent-blue text-white"
+                                        : "border border-border text-content-secondary"
                               }`}
                             >
                               {category}
@@ -745,21 +745,21 @@ const ViewLeadDetailsModal = ({
                               {relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
+                                  className={`bg-surface-button rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-surface-button-hover ${
                                     relation.type === "member" || relation.type === "lead"
-                                      ? "border border-blue-500/30"
+                                      ? "border border-primary/30"
                                       : ""
                                   }`}
                                 >
-                                  <div className="text-white text-sm font-medium">{relation.name}</div>
-                                  <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                  <div className="bg-gray-700 text-gray-300 text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
+                                  <div className="text-content-primary text-sm font-medium">{relation.name}</div>
+                                  <div className="text-content-muted text-xs">({relation.relation})</div>
+                                  <div className="bg-surface-dark text-content-secondary text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
                                     {relation.type}
                                   </div>
                                 </div>
                               ))}
                               {relations.length === 0 && (
-                                <div className="text-gray-500 text-xs text-center">No relations</div>
+                                <div className="text-content-faint text-xs text-center">No relations</div>
                               )}
                             </div>
                           </div>
@@ -769,34 +769,34 @@ const ViewLeadDetailsModal = ({
                   </div>
                 </div>
                 {/* Relations List */}
-                <div className="bg-[#161616] rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
+                <div className="bg-surface-dark rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-content-primary mb-4">All Relations</h3>
                   <div className="space-y-4">
                     {Object.entries(memberRelationsLead[leadData.id] || {}).map(([category, relations]) => (
                       <div key={category}>
-                        <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
+                        <h4 className="text-md font-medium text-content-secondary capitalize mb-2">{category}</h4>
                         <div className="space-y-2 ml-4">
                           {relations.length > 0 ? (
                             relations.map((relation) => (
                               <div
                                 key={relation.id}
-                                className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
+                                className={`flex items-center justify-between bg-surface-button rounded-lg p-3 ${
                                   relation.type === "member" || relation.type === "lead"
-                                    ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
+                                    ? "cursor-pointer hover:bg-surface-button-hover border border-primary/30"
                                     : ""
                                 }`}
                               >
                                 <div className="flex items-center flex-wrap gap-1.5">
-                                  <span className="text-white font-medium">{relation.name}</span>
-                                  <span className="text-gray-400">- {relation.relation}</span>
-                                  <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
+                                  <span className="text-content-primary font-medium">{relation.name}</span>
+                                  <span className="text-content-muted">- {relation.relation}</span>
+                                  <span className="bg-surface-dark text-content-secondary text-xs px-2 py-0.5 rounded capitalize">
                                     {relation.type}
                                   </span>
                                 </div>
                               </div>
                             ))
                           ) : (
-                            <p className="text-gray-500 text-sm">No {category} relations</p>
+                            <p className="text-content-faint text-sm">No {category} relations</p>
                           )}
                         </div>
                       </div>
@@ -809,7 +809,7 @@ const ViewLeadDetailsModal = ({
         </div>
 
         {/* Sticky Footer with Edit Buttons */}
-        <div className="flex-shrink-0 bg-[#1C1C1C] px-4 md:px-6 py-4 border-t border-gray-700">
+        <div className="flex-shrink-0 bg-surface-card px-4 md:px-6 py-4 border-t border-border">
           <div className="flex justify-end">
             {activeTab === "details" && (
               <button
@@ -817,7 +817,7 @@ const ViewLeadDetailsModal = ({
                   onClose()
                   onEditLead(leadData)
                 }}
-                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+                className="bg-primary text-sm text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
               >
                 Edit Lead
               </button>
@@ -825,7 +825,7 @@ const ViewLeadDetailsModal = ({
             {activeTab === "note" && (
               <button
                 onClick={handleEditNote}
-                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl"
+                className="bg-primary text-sm text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
               >
                 Edit Special Notes
               </button>
@@ -833,7 +833,7 @@ const ViewLeadDetailsModal = ({
             {activeTab === "relations" && (
               <button
                 onClick={handleEditRelations}
-                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+                className="bg-primary text-sm text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
               >
                 Edit Relations
               </button>

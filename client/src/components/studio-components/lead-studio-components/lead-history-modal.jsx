@@ -1,7 +1,104 @@
-
 /* eslint-disable react/prop-types */
-import { X } from "lucide-react"
+import { X, UserCog, Activity, ArrowRight, Clock, CheckCircle, XCircle } from "lucide-react"
 import { useState } from "react"
+
+
+// Tab Button Component
+const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+      active
+        ? "text-primary border-b-2 border-primary"
+        : "text-content-muted hover:text-content-primary"
+    }`}
+  >
+    <Icon size={16} />
+    <span>{label}</span>
+    {count !== undefined && (
+      <span className={`px-1.5 py-0.5 rounded-md text-xs ${active ? "bg-primary/20 text-primary" : "bg-surface-button text-content-muted"}`}>
+        {count}
+      </span>
+    )}
+  </button>
+)
+
+// Change Card Component
+const ChangeCard = ({ change }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-secondary" />
+        <h4 className="font-medium text-content-primary">{change.field}</h4>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-content-faint">
+        <Clock size={12} />
+        <span>{change.date} • {change.time}</span>
+      </div>
+    </div>
+    
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 text-sm mb-3">
+      <div className="flex items-center gap-2 bg-secondary/10 text-content-secondary px-3 py-1.5 rounded-lg w-full sm:w-auto">
+        <XCircle size={14} className="flex-shrink-0 text-content-muted" />
+        <span className="truncate">{change.oldValue}</span>
+      </div>
+      <ArrowRight size={16} className="text-content-faint hidden sm:block flex-shrink-0" />
+      <div className="flex items-center gap-2 bg-secondary/10 text-content-primary px-3 py-1.5 rounded-lg w-full sm:w-auto">
+        <CheckCircle size={14} className="flex-shrink-0 text-secondary" />
+        <span className="truncate">{change.newValue}</span>
+      </div>
+    </div>
+    
+    <p className="text-xs text-content-faint">
+      Changed by <span className="text-content-secondary">{change.changedBy}</span>
+    </p>
+  </div>
+)
+
+// Trial Training Card Component
+const TrialCard = ({ activity }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/10">
+          <Activity size={18} className="text-secondary" />
+        </div>
+        <div>
+          <p className="font-medium text-content-primary">{activity.action}</p>
+          <div className="flex items-center gap-2 text-xs text-content-faint mt-0.5">
+            <Clock size={12} />
+            <span>{activity.date} • {activity.time}</span>
+          </div>
+        </div>
+      </div>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
+        {activity.status}
+      </span>
+    </div>
+    
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+      <span className="text-content-faint">
+        Type: <span className="text-content-muted">{activity.trialType}</span>
+        {" • "}
+        Trial Date: <span className="text-content-muted">{activity.trialDate} at {activity.trialTime}</span>
+      </span>
+      <span className="text-content-faint">
+        By: <span className="text-content-muted">{activity.bookedBy}</span>
+      </span>
+    </div>
+  </div>
+)
+
+// Empty State Component
+const EmptyState = ({ icon: Icon, title, description }) => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="w-16 h-16 rounded-2xl bg-surface-button flex items-center justify-center mb-4">
+      <Icon size={24} className="text-content-faint" />
+    </div>
+    <h4 className="text-content-primary font-medium mb-1">{title}</h4>
+    <p className="text-sm text-content-faint">{description}</p>
+  </div>
+)
 
 function LeadHistoryModal({ lead, onClose }) {
   const [activeTab, setActiveTab] = useState("general")
@@ -77,115 +174,104 @@ function LeadHistoryModal({ lead, onClose }) {
     },
   ]
 
+  const tabs = [
+    { id: "general", label: "General Changes", icon: UserCog, count: generalChanges.length },
+    { id: "trial", label: "Trial Training", icon: Activity, count: trialTrainingHistory.length },
+  ]
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#181818] rounded-xl text-white p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">
-            History - {lead.firstName} {lead.surname}
-          </h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white">
-            <X size={20} />
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000] overflow-y-auto">
+      <div className="bg-surface-card p-6 rounded-xl w-full max-w-4xl my-8 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="text-xl text-content-primary font-bold">
+                  {lead.firstName} {lead.surname}
+                </h2>
+                <p className="text-sm text-content-muted">Lead History</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose} 
+              className="text-content-muted hover:text-content-primary transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
-        <div className="flex space-x-1 mb-6 bg-[#141414] rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab("general")}
-            className={`px-4 py-2 rounded-md text-sm transition-colors ${
-              activeTab === "general" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-            }`}
-          >
-            General Changes
-          </button>
-          <button
-            onClick={() => setActiveTab("trial")}
-            className={`px-4 py-2 rounded-md text-sm transition-colors ${
-              activeTab === "trial" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
-            }`}
-          >
-            Trial Training
-          </button>
+
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 overflow-x-auto scrollbar-hide">
+          {tabs.map((tab) => (
+            <TabButton
+              key={tab.id}
+              active={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              icon={tab.icon}
+              label={tab.label}
+              count={tab.count}
+            />
+          ))}
         </div>
-        <div className="bg-[#141414] rounded-xl p-4">
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === "general" && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">General Changes</h3>
-              <div className="space-y-3">
-                {generalChanges.map((change) => (
-                  <div key={change.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-medium text-white">{change.field} Changed</p>
-                        <p className="text-sm text-gray-400">
-                          {change.date} at {change.time} by {change.changedBy}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-gray-300">
-                        <span className="text-red-400">From:</span> {change.oldValue}
-                      </p>
-                      <p className="text-gray-300">
-                        <span className="text-green-400">To:</span> {change.newValue}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {generalChanges.length > 0 ? (
+                generalChanges.map((change) => (
+                  <ChangeCard key={change.id} change={change} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={UserCog} 
+                  title="No General Changes" 
+                  description="No changes have been recorded yet."
+                />
+              )}
             </div>
           )}
+
           {activeTab === "trial" && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Trial Training History</h3>
-              <div className="space-y-3">
-                {trialTrainingHistory.map((activity) => (
-                  <div key={activity.id} className="bg-[#1C1C1C] rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-white flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              activity.status === "Completed"
-                                ? "bg-green-500"
-                                : activity.status === "Scheduled"
-                                  ? "bg-blue-500"
-                                  : "bg-red-500"
-                            }`}
-                          ></span>
-                          {activity.action}
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          {activity.date} at {activity.time} by {activity.bookedBy}
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          Type: {activity.trialType} • Trial Date: {activity.trialDate} at {activity.trialTime}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          activity.status === "Completed"
-                            ? "bg-green-600 text-white"
-                            : activity.status === "Scheduled"
-                              ? "bg-blue-600 text-white"
-                              : "bg-red-600 text-white"
-                        }`}
-                      >
-                        {activity.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {trialTrainingHistory.length > 0 ? (
+                trialTrainingHistory.map((activity) => (
+                  <TrialCard key={activity.id} activity={activity} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={Activity} 
+                  title="No Trial Training History" 
+                  description="No trial training activities have been recorded yet."
+                />
+              )}
             </div>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="mt-6 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
-        >
-          Close
-        </button>
+
+        {/* Footer */}
+        <div className="flex justify-end pt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
+          >
+            Close
+          </button>
+        </div>
       </div>
+
+      {/* Custom scrollbar hide utility */}
+      <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }

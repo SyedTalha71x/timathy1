@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Clock, User, ChevronDown, AlertTriangle, Check, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
+import NotifyMemberModalMain from '../NotifyMemberModal';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -58,7 +59,7 @@ const InitialsAvatar = ({ firstName, lastName, name, size = 32, className = "" }
 
   return (
     <div
-      className={`bg-orange-500 rounded-lg flex items-center justify-center text-white font-semibold ${className}`}
+      className={`bg-secondary rounded-lg flex items-center justify-center text-content-primary font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}
@@ -88,28 +89,28 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
   return (
     <div ref={dropdownRef} className="relative">
       <button type="button" onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors">
+        className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-surface-hover transition-colors">
         {selectedType ? (
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: getColorHex(selectedType) }} />
-            <span className="text-white">{selectedType.name}</span>
-            {!hideDuration && <span className="text-gray-500 text-xs">({selectedType.duration} min)</span>}
+            <span className="text-content-primary">{selectedType.name}</span>
+            {!hideDuration && <span className="text-content-faint text-xs">({selectedType.duration} min)</span>}
           </div>
-        ) : <span className="text-gray-500">Select type...</span>}
-        <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        ) : <span className="text-content-faint">Select type...</span>}
+        <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
           {filteredTypes.map((type) => (
             <button key={type.name} onClick={() => { onChange(type.name); setIsOpen(false); }}
-              className={`w-full text-left p-3 flex items-center gap-3 transition-colors ${value === type.name ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}>
+              className={`w-full text-left p-3 flex items-center gap-3 transition-colors ${value === type.name ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`}>
               <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: getColorHex(type) }} />
               <div className="flex-1">
-                <div className="text-sm text-white">{type.name}</div>
-                {!hideDuration && <div className="text-xs text-gray-500">{type.duration} min</div>}
+                <div className="text-sm text-content-primary">{type.name}</div>
+                {!hideDuration && <div className="text-xs text-content-faint">{type.duration} min</div>}
               </div>
-              {value === type.name && <Check size={16} className="text-green-500" />}
+              {value === type.name && <Check size={16} className="text-accent-green" />}
             </button>
           ))}
         </div>
@@ -159,8 +160,6 @@ const EditAppointmentModalMain = ({
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(null);
   const [notifyAction, setNotifyAction] = useState("change"); // "change" or "cancel"
-  const [emailNotification, setEmailNotification] = useState(true);
-  const [pushNotification, setPushNotification] = useState(true);
 
   // Local state for editing
   const [editDate, setEditDate] = useState(parsedDate);
@@ -273,7 +272,7 @@ const EditAppointmentModalMain = ({
   };
 
   // Actually apply the changes after notify decision
-  const handleConfirmChanges = (shouldNotify) => {
+  const handleConfirmChanges = (shouldNotify, notificationOptions) => {
     if (notifyAction === "cancel") {
       // Cancel appointment - mark as cancelled
       const updatedAppointments = appointmentsMain.map((app) =>
@@ -296,9 +295,8 @@ const EditAppointmentModalMain = ({
     setNotifyAction("change");
     handleClose();
     
-    // If notification was requested, you could handle it here or pass to parent
     if (shouldNotify) {
-      console.log(`Notification requested for ${notifyAction}:`, { email: emailNotification, push: !isLead && pushNotification });
+      console.log(`Notification requested for ${notifyAction}:`, notificationOptions);
     }
   };
 
@@ -386,13 +384,13 @@ const EditAppointmentModalMain = ({
     : selectedAppointmentMain.type;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000001] p-4" onClick={handleClose}>
-      <div className="bg-[#181818] w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4" onClick={handleClose}>
+      <div className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-700">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Edit Appointment</h2>
-            <button onClick={handleClose} className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors">
+            <h2 className="text-lg font-semibold text-content-primary">Edit Appointment</h2>
+            <button onClick={handleClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -402,12 +400,12 @@ const EditAppointmentModalMain = ({
         <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-5">
           {/* Member Tag with Special Note Icon and Relations */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-              <User size={14} className="text-gray-500" />
+            <label className="block text-sm font-medium text-content-secondary mb-2 flex items-center gap-2">
+              <User size={14} className="text-content-faint" />
               {isLead ? "Lead" : "Member"}
             </label>
-            <div className="bg-[#222222] rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 bg-[#2a2a2a] border border-gray-700 rounded-xl px-2.5 py-1.5">
+            <div className="bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 bg-surface-hover border border-border rounded-xl px-2.5 py-1.5">
                 {/* Special Note Icon */}
                 <MemberSpecialNoteIcon
                   member={memberData}
@@ -430,11 +428,11 @@ const EditAppointmentModalMain = ({
                 )}
                 
                 {/* Name */}
-                <span className="text-white text-sm font-medium">{fullName}</span>
+                <span className="text-content-primary text-sm font-medium">{fullName}</span>
 
                 {/* Relations Button - for both members and leads */}
                 <button onClick={handleRelationsClick}
-                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-1.5 py-0.5 rounded transition-colors"
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
                   title="View Relations">
                   <Users size={12} />
                   <span>{getRelationsCount(memberData.id)}</span>
@@ -445,20 +443,20 @@ const EditAppointmentModalMain = ({
 
           {/* Trial Training Info - only for leads */}
           {isLead && (
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#3B82F6] flex items-center justify-center flex-shrink-0">
+            <div className="bg-trial/10 border border-trial/30 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-trial flex items-center justify-center flex-shrink-0">
                 <Clock size={16} className="text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium text-blue-400">Trial Training</p>
-                <p className="text-xs text-gray-400">Duration: 60 minutes</p>
+                <p className="text-sm font-medium text-trial">Trial Training</p>
+                <p className="text-xs text-content-muted">Duration: 60 minutes</p>
               </div>
             </div>
           )}
 
           {/* Appointment Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Appointment Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
             <AppointmentTypeDropdown
               value={editType}
               onChange={(type) => setEditType(type)}
@@ -470,40 +468,40 @@ const EditAppointmentModalMain = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-2">Date</label>
-              <div className="w-full flex items-center justify-between bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5">
-                <span className={editDate ? "text-white" : "text-gray-500"}>{editDate ? (() => { const [y,m,d] = editDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+              <label className="block text-xs text-content-faint mb-2">Date</label>
+              <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
+                <span className={editDate ? "text-content-primary" : "text-content-faint"}>{editDate ? (() => { const [y,m,d] = editDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                 <DatePickerField value={editDate} onChange={setEditDate} />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+              <label className="block text-xs text-content-faint mb-2">Time Slot</label>
               <div className="relative">
                 <select value={editTime} onChange={(e) => setEditTime(e.target.value)}
-                  className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-colors">
+                  className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary transition-colors">
                   {getAvailableSlots(editDate).map((slot, idx) => (
                     <option key={idx} value={slot.time}>{slot.time}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
               </div>
             </div>
           </div>
 
           {/* Alternative Slots Warning */}
           {showAlternatives && alternativeSlots.length > 0 && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+            <div className="bg-accent-yellow/10 border border-accent-yellow/30 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <Clock className="w-5 h-5 text-accent-yellow flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-amber-400 mb-2">Selected time unavailable</p>
-                  <p className="text-xs text-gray-400 mb-3">Choose an alternative:</p>
+                  <p className="text-sm font-medium text-accent-yellow mb-2">Selected time unavailable</p>
+                  <p className="text-xs text-content-muted mb-3">Choose an alternative:</p>
                   <div className="grid grid-cols-2 gap-2">
                     {alternativeSlots.slice(0, 4).map((alt, idx) => (
                       <button key={idx} onClick={() => selectAlternative(alt)}
-                        className="text-left px-3 py-2 bg-[#181818] hover:bg-[#222222] rounded-lg text-xs transition-colors">
-                        <div className="text-white">{alt.time}</div>
-                        <div className="text-gray-500">{alt.date}</div>
+                        className="text-left px-3 py-2 bg-surface-card hover:bg-surface-dark rounded-lg text-xs transition-colors">
+                        <div className="text-content-primary">{alt.time}</div>
+                        <div className="text-content-faint">{alt.date}</div>
                       </button>
                     ))}
                   </div>
@@ -514,14 +512,14 @@ const EditAppointmentModalMain = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-700 flex gap-3">
+        <div className="px-6 py-4 border-t border-border flex gap-3">
           <button onClick={() => { setNotifyAction("cancel"); setShowNotifyModal(true); }}
-            className="px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors">
+            className="px-4 py-2.5 text-sm font-medium text-accent-red hover:text-accent-red hover:bg-accent-red/10 rounded-xl transition-colors">
             Cancel Appointment
           </button>
           <div className="flex-1" />
           <button onClick={handleClose}
-            className="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors">
+            className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors">
             Close
           </button>
           <button 
@@ -529,104 +527,34 @@ const EditAppointmentModalMain = ({
             disabled={!hasChanges}
             className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
               hasChanges 
-                ? "text-white bg-orange-500 hover:bg-orange-600" 
-                : "text-gray-500 bg-gray-600 cursor-not-allowed"
+                ? "text-white bg-primary hover:bg-primary-hover" 
+                : "text-content-faint bg-surface-button cursor-not-allowed"
             }`}>
             Save Changes
           </button>
         </div>
 
-        {/* Integrated Notify Member Modal */}
-        {showNotifyModal && (notifyAction === "cancel" || pendingChanges) && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000002] p-4" onClick={handleCancelNotify}>
-            <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">Notify {EntityLabel}</h2>
-                <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="p-6">
-                {notifyAction === "cancel" ? (
-                  <p className="text-white text-sm">
-                    <span className="font-semibold text-orange-400">{fullName}'s</span>
-                    <span className="text-gray-400"> ({appointmentTypeDisplay})</span> appointment on{" "}
-                    <span className="font-semibold text-orange-400">
-                      {selectedAppointmentMain.date && new Date(parseDateFromAppointment(selectedAppointmentMain.date)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span> at{" "}
-                    <span className="font-semibold text-orange-400">{selectedAppointmentMain.time || `${selectedAppointmentMain.startTime} - ${selectedAppointmentMain.endTime}`}</span>{" "}
-                    will be <span className="font-semibold text-red-400">cancelled</span>.
-                    <br /><br />
-                    Do you want to notify the {entityLabel} about this cancellation?
-                  </p>
-                ) : (
-                  <p className="text-white text-sm">
-                    <span className="font-semibold text-orange-400">{fullName}'s</span>
-                    <span className="text-gray-400"> ({appointmentTypeDisplay})</span> appointment will be changed to{" "}
-                    <span className="font-semibold text-orange-400">
-                      {pendingChanges?.date && new Date(parseDateFromAppointment(pendingChanges.date)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span> at{" "}
-                    <span className="font-semibold text-orange-400">{pendingChanges?.time}</span>.
-                    <br /><br />
-                    Do you want to notify the {entityLabel} about this change?
-                  </p>
-                )}
-
-                {/* Notification Options */}
-                <div className="mt-4 space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={emailNotification}
-                      onChange={(e) => setEmailNotification(e.target.checked)}
-                      className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
-                    />
-                    <span className="text-white text-sm">Email Notification</span>
-                  </label>
-                  
-                  {/* App Push Notification - only for members, not leads */}
-                  {!isLead && (
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={pushNotification}
-                        onChange={(e) => setPushNotification(e.target.checked)}
-                        className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
-                      />
-                      <span className="text-white text-sm">App Push Notification</span>
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
-                <button
-                  onClick={handleCancelNotify}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
-                >
-                  Back
-                </button>
-
-                <div className="flex flex-col-reverse sm:flex-row gap-2">
-                  <button
-                    onClick={() => handleConfirmChanges(false)}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors border border-gray-600"
-                  >
-                    No, Don't Notify
-                  </button>
-
-                  <button
-                    onClick={() => handleConfirmChanges(true)}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
-                  >
-                    Yes, Notify {EntityLabel}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Notify Member/Lead Modal (shared component) */}
+        <NotifyMemberModalMain
+          isOpen={showNotifyModal && (notifyAction === "cancel" || !!pendingChanges)}
+          onClose={handleCancelNotify}
+          onConfirm={handleConfirmChanges}
+          action={notifyAction}
+          entityType={isLead ? "lead" : "member"}
+          entityName={fullName}
+          appointmentType={appointmentTypeDisplay}
+          isTrial={!!isLead}
+          date={
+            notifyAction === "cancel"
+              ? selectedAppointmentMain.date && new Date(parseDateFromAppointment(selectedAppointmentMain.date)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+              : pendingChanges?.date && new Date(parseDateFromAppointment(pendingChanges.date)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+          }
+          time={
+            notifyAction === "cancel"
+              ? (selectedAppointmentMain.time || `${selectedAppointmentMain.startTime} - ${selectedAppointmentMain.endTime}`)
+              : (pendingChanges?.time || "")
+          }
+        />
       </div>
     </div>
   );
