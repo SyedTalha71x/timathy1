@@ -3,6 +3,8 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useState } from "react"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 
 const contractTypes = [
   {
@@ -90,24 +92,29 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center justify-center z-[1001]">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
+      <div className="bg-surface-base rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
           <X size={20} />
         </button>
 
-        <h3 className="text-white text-lg font-semibold mb-4">Renew Contract</h3>
+        <h3 className="text-content-primary text-lg font-semibold mb-4">Renew Contract</h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm text-gray-400">Contract Information</label>
-            <div className="bg-[#141414] p-3 rounded-xl border border-gray-800">
-              <p className="text-white text-sm">Current Contract: {contract?.contractType}</p>
-              <p className="text-gray-400 text-xs">Expires: {contract?.endDate}</p>
+            <label className="text-sm text-content-muted">Contract Information</label>
+            <div className="bg-surface-dark p-3 rounded-xl border border-border">
+              <p className="text-content-primary text-sm">Current Contract: {contract?.contractType}</p>
+              <p className="text-content-muted text-xs">Expires: {contract?.endDate}</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-gray-400">Start Date</label>
+            <label className="text-sm text-content-muted">Start Date</label>
             <div className="space-y-2">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -115,84 +122,79 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
                   name="startAfterCurrent"
                   checked={renewalData.startAfterCurrent}
                   onChange={handleInputChange}
-                  className="form-checkbox h-4 w-4 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                  className="primary-check"
                 />
-                <span className="text-white text-sm">Start after current contract period</span>
+                <span className="text-content-primary text-sm">Start after current contract period</span>
               </label>
 
               {!renewalData.startAfterCurrent && (
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1">Custom Start Date</label>
-                  <input
-                    type="date"
-                    name="customStartDate"
-                    value={renewalData.customStartDate}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
-                    required={!renewalData.startAfterCurrent}
-                  />
+                  <label className="text-xs text-content-muted block mb-1">Custom Start Date</label>
+                  <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border border-border">
+                    <span className={`flex-1 text-sm ${renewalData.customStartDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                      {renewalData.customStartDate ? new Date(renewalData.customStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                    </span>
+                    <DatePickerField
+                      value={renewalData.customStartDate}
+                      onChange={(val) => setRenewalData({ ...renewalData, customStartDate: val })}
+                    />
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="duration" className="text-sm text-gray-400">
+            <label htmlFor="duration" className="text-sm text-content-muted">
               Duration (months)
             </label>
-            <select
-              id="duration"
+            <CustomSelect
               name="duration"
               value={renewalData.duration}
               onChange={handleInputChange}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800 appearance-none"
-            >
-              <option value="6">6 months</option>
-              <option value="12">12 months</option>
-              <option value="24">24 months</option>
-            </select>
+              options={[
+                { value: "6", label: "6 months" },
+                { value: "12", label: "12 months" },
+                { value: "24", label: "24 months" },
+              ]}
+              placeholder="Select duration"
+            />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="contractType" className="text-sm text-gray-400">
+            <label htmlFor="contractType" className="text-sm text-content-muted">
               Contract Type
             </label>
-            <select
-              id="contractType"
+            <CustomSelect
               name="contractType"
               value={renewalData.contractType}
               onChange={handleInputChange}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800 appearance-none"
-            >
-              {contractTypes.map((type) => (
-                <option key={type.id} value={type.name}>
-                  {type.name} - {type.cost}
-                </option>
-              ))}
-            </select>
+              options={contractTypes.map((type) => ({ value: type.name, label: `${type.name} - ${type.cost}` }))}
+              placeholder="Select contract type"
+            />
           </div>
 
           {selectedContractType && (
-            <div className="bg-[#141414]/60 p-4 rounded-xl border border-gray-800">
-              <h4 className="text-white text-sm font-medium mb-2">Contract Details</h4>
+            <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
+              <h4 className="text-content-primary text-sm font-medium mb-2">Contract Details</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="block text-gray-400 text-xs">Cost</span>
-                  <span className="text-white">{selectedContractType.cost}</span>
+                  <span className="block text-content-muted text-xs">Cost</span>
+                  <span className="text-content-primary">{selectedContractType.cost}</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400 text-xs">Billing Period</span>
-                  <span className="text-white">{selectedContractType.billingPeriod}</span>
+                  <span className="block text-content-muted text-xs">Billing Period</span>
+                  <span className="text-content-primary">{selectedContractType.billingPeriod}</span>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="bg-[#141414]/60 p-4 rounded-xl border border-gray-800">
-            <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
+          <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
+            <h4 className="text-content-primary text-sm font-medium mb-2">Discount</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
+                <label className="block text-content-muted text-xs mb-1">Percentage (%)</label>
                 <input
                   type="number"
                   name="percentage"
@@ -200,11 +202,11 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
                   max="100"
                   value={discount.percentage}
                   onChange={handleDiscountChange}
-                  className="w-full bg-[#141414] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none border border-gray-800"
+                  className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2 text-content-primary placeholder-content-faint outline-none border border-border"
                 />
               </div>
               <div className={discount.isPermanent ? "opacity-50" : ""}>
-                <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
+                <label className="block text-content-muted text-xs mb-1">Billing Periods</label>
                 <input
                   type="number"
                   name="duration"
@@ -212,7 +214,7 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
                   value={discount.duration}
                   onChange={handleDiscountChange}
                   disabled={discount.isPermanent}
-                  className="w-full bg-[#141414] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none border border-gray-800"
+                  className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2 text-content-primary placeholder-content-faint outline-none border border-border"
                 />
               </div>
             </div>
@@ -223,33 +225,33 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
                   name="isPermanent"
                   checked={discount.isPermanent}
                   onChange={handleDiscountChange}
-                  className="form-checkbox h-4 w-4 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                  className="primary-check"
                 />
-                <span className="text-gray-400 text-xs">Till End of Contract</span>
+                <span className="text-content-muted text-xs">Till End of Contract</span>
               </label>
             </div>
 
             {priceCalculation && (
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
+              <div className="mt-4 pt-4 border-t border-border">
+                <h5 className="text-content-primary text-sm font-medium mb-2">Price Calculation</h5>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Original Price:</span>
-                    <span className="text-white">
+                    <span className="text-content-muted">Original Price:</span>
+                    <span className="text-content-primary">
                       {priceCalculation.currency}
                       {priceCalculation.originalPrice.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Discount ({discount.percentage}%):</span>
-                    <span className="text-red-400">
+                    <span className="text-content-muted">Discount ({discount.percentage}%):</span>
+                    <span className="text-accent-red">
                       -{priceCalculation.currency}
                       {priceCalculation.discountAmount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between border-t border-gray-700 pt-2">
-                    <span className="text-white font-medium">Final Price:</span>
-                    <span className="text-green-400 font-medium">
+                  <div className="flex justify-between border-t border-border pt-2">
+                    <span className="text-content-primary font-medium">Final Price:</span>
+                    <span className="text-accent-green font-medium">
                       {priceCalculation.currency}
                       {priceCalculation.finalPrice.toFixed(2)}
                     </span>
@@ -261,7 +263,7 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+            className="w-full py-2 px-4 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
           >
             Renew Contract
           </button>

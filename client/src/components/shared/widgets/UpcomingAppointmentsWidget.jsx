@@ -122,13 +122,13 @@ const UpcomingAppointmentsWidget = ({
 
   return (
     <div 
-      className={`rounded-xl ${backgroundColor} flex flex-col ${
-        isCollapsed 
-          ? 'h-auto' 
-          : useFixedHeight 
-            ? 'h-[320px] md:h-[340px]' 
-            : 'h-auto'
-      }`}
+className={`rounded-xl ${backgroundColor} flex flex-col ${
+  isCollapsed 
+    ? 'h-auto' 
+    : useFixedHeight 
+      ? 'h-[320px] md:h-[340px]' 
+      : 'flex-1 min-h-0'
+}`}
     >
       {/* Full Header with title */}
       {showHeader && (
@@ -242,7 +242,7 @@ const UpcomingAppointmentsWidget = ({
 
       {/* Appointments List */}
       {!isCollapsed && (
-        <div className={`overflow-y-auto custom-scrollbar px-3 pb-2 space-y-2 ${useFixedHeight ? 'flex-1' : ''}`}>
+       <div className="overflow-y-auto custom-scrollbar px-3 pb-2 space-y-2 flex-1 min-h-0">
           {upcomingAppointments.length > 0 ? (
             (maxItems ? upcomingAppointments.slice(0, maxItems) : upcomingAppointments).map((appointment) => {
               const firstName = appointment.name || ""

@@ -161,8 +161,8 @@ const Dashboardlayout = () => {
             <DashboardHeader 
               onToggleSidebar={toggleSidebar}
               isSidebarOpen={isSidebarOpen}
-              isRightSidebarOpen={isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen}
-              toggleRightSidebar={isSellingPage ? toggleExternalSidebar : toggleRightSidebar}
+              isRightSidebarOpen={isRightSidebarOpen}
+              toggleRightSidebar={toggleRightSidebar}
               isLeftSidebarCollapsed={isLeftSidebarCollapsed}
               toggleLeftSidebarCollapse={toggleLeftSidebarCollapse}
               hideRightSidebarToggle={hasNoRightSidebar}
@@ -172,9 +172,8 @@ const Dashboardlayout = () => {
             <Outlet />
           </main>
 
-          {/* Central Sidebar (Right) - Hidden on Selling and Leads pages */}
-          {!hasNoRightSidebar && (
-            <CentralSidebar 
+          {/* Central Sidebar (Right) - Always available, toggle hidden on desktop for Selling/Leads/MyArea */}
+          <CentralSidebar 
               isRightSidebarOpen={isRightSidebarOpen} 
               toggleRightSidebar={toggleRightSidebar} 
               isSidebarEditing={isSidebarEditing} 
@@ -228,7 +227,6 @@ const Dashboardlayout = () => {
               notifications={notifications} 
               setTodos={setTodos} 
             />
-          )}
 
           {/* Widget Selection Modal */}
           <WidgetSelectionModal 

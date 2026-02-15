@@ -1,6 +1,8 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useState } from "react"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 
 export function PauseContractModal({ onClose, onSubmit }) {
   const [reason, setReason] = useState("")
@@ -40,69 +42,74 @@ export function PauseContractModal({ onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center justify-center z-[1001]">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-sm relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+      <div className="bg-surface-base rounded-xl p-6 w-full max-w-sm relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
           <X size={20} />
         </button>
-        <h3 className="text-white text-lg font-semibold mb-4">Pause Contract</h3>
+        <h3 className="text-content-primary text-lg font-semibold mb-4">Pause Contract</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="reason" className="text-sm text-gray-400">
-              Reason <span className="text-red-400">*</span>
+            <label htmlFor="reason" className="text-sm text-content-muted">
+              Reason <span className="text-accent-red">*</span>
             </label>
-            <select
-              id="reason"
+            <CustomSelect
+              name="reason"
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value)
                 if (errors.reason) setErrors({ ...errors, reason: null })
               }}
-              className={`w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border ${errors.reason ? 'border-red-500' : 'border-gray-800'} appearance-none`}
-            >
-              <option value="">Select a reason</option>
-              <option value="vacation">Vacation</option>
-              <option value="medical">Medical Leave</option>
-              <option value="pregnancy">Pregnancy</option>
-              <option value="financial">Financial Reasons</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.reason && <p className="text-red-400 text-xs">{errors.reason}</p>}
+              options={[
+                { value: "vacation", label: "Vacation" },
+                { value: "medical", label: "Medical Leave" },
+                { value: "pregnancy", label: "Pregnancy" },
+                { value: "financial", label: "Financial Reasons" },
+                { value: "other", label: "Other" },
+              ]}
+              placeholder="Select a reason"
+              className={errors.reason ? '!border-accent-red' : ''}
+            />
+            {errors.reason && <p className="text-accent-red text-xs">{errors.reason}</p>}
           </div>
           <div className="space-y-2">
-            <label htmlFor="startDate" className="text-sm text-gray-400">
-              Start Date <span className="text-red-400">*</span>
+            <label htmlFor="startDate" className="text-sm text-content-muted">
+              Start Date <span className="text-accent-red">*</span>
             </label>
-            <input
-              type="date"
-              id="startDate"
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value)
-                if (errors.startDate) setErrors({ ...errors, startDate: null })
-              }}
-              className={`w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border ${errors.startDate ? 'border-red-500' : 'border-gray-800'}`}
-            />
-            {errors.startDate && <p className="text-red-400 text-xs">{errors.startDate}</p>}
+            <div className={`flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border ${errors.startDate ? 'border-accent-red' : 'border-border'}`}>
+              <span className={`flex-1 text-sm ${startDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                {startDate ? new Date(startDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select start date'}
+              </span>
+              <DatePickerField
+                value={startDate}
+                onChange={(val) => {
+                  setStartDate(val)
+                  if (errors.startDate) setErrors({ ...errors, startDate: null })
+                }}
+              />
+            </div>
+            {errors.startDate && <p className="text-accent-red text-xs">{errors.startDate}</p>}
           </div>
           <div className="space-y-2">
-            <label htmlFor="endDate" className="text-sm text-gray-400">
-              End Date <span className="text-red-400">*</span>
+            <label htmlFor="endDate" className="text-sm text-content-muted">
+              End Date <span className="text-accent-red">*</span>
             </label>
-            <input
-              type="date"
-              id="endDate"
-              value={endDate}
-              onChange={(e) => {
-                setEndDate(e.target.value)
-                if (errors.endDate) setErrors({ ...errors, endDate: null })
-              }}
-              className={`w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border ${errors.endDate ? 'border-red-500' : 'border-gray-800'}`}
-            />
-            {errors.endDate && <p className="text-red-400 text-xs">{errors.endDate}</p>}
+            <div className={`flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border ${errors.endDate ? 'border-accent-red' : 'border-border'}`}>
+              <span className={`flex-1 text-sm ${endDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                {endDate ? new Date(endDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select end date'}
+              </span>
+              <DatePickerField
+                value={endDate}
+                onChange={(val) => {
+                  setEndDate(val)
+                  if (errors.endDate) setErrors({ ...errors, endDate: null })
+                }}
+              />
+            </div>
+            {errors.endDate && <p className="text-accent-red text-xs">{errors.endDate}</p>}
           </div>
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+            className="w-full py-2 px-4 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
           >
             Pause Contract
           </button>

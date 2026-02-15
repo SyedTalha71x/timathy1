@@ -4028,7 +4028,12 @@ export const DEFAULT_APPEARANCE_SETTINGS = {
   primaryColor: "#FF843E",
   secondaryColor: "#1890ff",
   allowStaffThemeToggle: true,
-  allowMemberThemeToggle: true
+  allowMemberThemeToggle: true,
+  autoThemeSchedule: {
+    enabled: false,
+    lightModeStart: "07:00",
+    darkModeStart: "20:00",
+  },
 };
 
 export const DEFAULT_INTRODUCTORY_MATERIALS = [

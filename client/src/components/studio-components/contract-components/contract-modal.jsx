@@ -6,12 +6,12 @@ import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye }
 import { useState, useEffect } from "react"
 import { DEFAULT_CONTRACT_TYPES, DEFAULT_INTRODUCTORY_MATERIALS, DEFAULT_CONTRACT_FORMS, studioData } from "../../../utils/studio-states/configuration-states"
 import { leadsData } from "../../../utils/studio-states/leads-states"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 import { membersData } from "../../../utils/studio-states/members-states"
 import IntroMaterialEditorModal from "../../shared/IntroMaterialEditorModal"
 import { ContractFormFillModal } from "./ContractFormFillModal"
 import { toast } from "react-hot-toast"
-import DatePickerField from "../../shared/DatePickerField"
-import CustomSelect from "../../shared/CustomSelect"
 
 // Add print-specific styles
 const printStyles = `
@@ -50,7 +50,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   // Mode detection
   const isEditMode = contract !== null
   const isLeadPreSelected = leadData !== null
-  const currency = studioData?.currency || "€"
+  const currency = studioData?.currency || "â‚¬"
 
   // Parse name helper
   const parseName = (fullName) => {
@@ -161,7 +161,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       // Map gender to salutation (Herr/Frau), skip "other"
       let salutation = ""
       const gender = (leadData.gender || "").toLowerCase()
-      if (gender === "male" || gender === "männlich" || gender === "m") {
+      if (gender === "male" || gender === "mÃ¤nnlich" || gender === "m") {
         salutation = "Herr"
       } else if (gender === "female" || gender === "weiblich" || gender === "f") {
         salutation = "Frau"
@@ -356,7 +356,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     // Map gender to salutation (Herr/Frau), skip "other"
     let salutation = ""
     const gender = (lead.gender || "").toLowerCase()
-    if (gender === "male" || gender === "männlich" || gender === "m") {
+    if (gender === "male" || gender === "mÃ¤nnlich" || gender === "m") {
       salutation = "Herr"
     } else if (gender === "female" || gender === "weiblich" || gender === "f") {
       salutation = "Frau"
@@ -604,6 +604,11 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
 
       {/* Introductory Materials Selection Modal */}
       {showIntroductoryMaterials && (
@@ -628,7 +633,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
               <div className="bg-surface-dark rounded-xl p-8 text-center">
                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-content-faint" />
                 <p className="text-content-muted">No introductory materials available</p>
-                <p className="text-sm text-content-faint mt-1">Materials can be created in Settings â†’ Introductory Materials</p>
+                <p className="text-sm text-content-faint mt-1">Materials can be created in Settings Ã¢â€ â€™ Introductory Materials</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -1087,7 +1092,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                   disabled={!selectedContractType}
                   className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
                     selectedContractType
-                      ? "bg-orange-500 text-white hover:bg-orange-600"
+                      ? "bg-orange-500 text-content-primary hover:bg-orange-600"
                       : "bg-surface-button text-content-muted cursor-not-allowed"
                   }`}
                 >

@@ -1364,7 +1364,7 @@ Payment: ${sale.paymentMethod}
       {!isRightSidebarOpen && (
         <button
           onClick={toggleRightSidebar}
-          className="md:hidden fixed bottom-4 right-4 bg-surface-button hover:bg-surface-button-hover text-content-primary p-4 rounded-xl shadow-2xl transition-all active:scale-95 z-[100]"
+          className="md:hidden fixed bottom-4 right-4 bg-surface-button hover:bg-surface-button-hover text-content-primary p-4 rounded-xl shadow-2xl transition-all active:scale-95 z-30"
           aria-label="Open Shopping Cart"
         >
           <ShoppingCart size={22} />

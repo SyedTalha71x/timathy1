@@ -4736,26 +4736,26 @@ export default function Communications() {
       */}
 
       <ContingentModal
-        show={showContingentModal}
-        setShow={setShowContingentModal}
-        selectedMember={selectedMember}
-        getBillingPeriods={getBillingPeriods}
-        selectedBillingPeriod={selectedBillingPeriod}
-        handleBillingPeriodChange={setSelectedBillingPeriod}
-        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-        tempContingent={tempContingent}
-        setTempContingent={setTempContingent}
-        currentBillingPeriod={currentBillingPeriod}
-        handleSaveContingent={handleSaveContingent}
-      />
+  showContingentModalMain={showContingentModal}
+  setShowContingentModalMain={setShowContingentModal}
+  selectedMemberForAppointmentsMain={selectedMember}
+  getBillingPeriodsMain={getBillingPeriods}
+  selectedBillingPeriodMain={selectedBillingPeriod}
+  handleBillingPeriodChange={setSelectedBillingPeriod}
+  setShowAddBillingPeriodModalMain={setShowAddBillingPeriodModal}
+  tempContingentMain={tempContingent}
+  setTempContingentMain={setTempContingent}
+  currentBillingPeriodMain={currentBillingPeriod}
+  handleSaveContingentMain={handleSaveContingent}
+/>
 
-      <AddBillingPeriodModal
-        show={showAddBillingPeriodModal}
-        setShow={setShowAddBillingPeriodModal}
-        newBillingPeriod={newBillingPeriod}
-        setNewBillingPeriod={setNewBillingPeriod}
-        handleAddBillingPeriod={handleAddBillingPeriod}
-      />
+     <AddBillingPeriodModal
+  open={showAddBillingPeriodModal}
+  onClose={() => setShowAddBillingPeriodModal(false)}
+  newBillingPeriodMain={newBillingPeriod}
+  setNewBillingPeriodMain={setNewBillingPeriod}
+  onAdd={handleAddBillingPeriod}
+/>
 
       <NotifyMemberModal
         isOpen={isNotifyMemberOpen}

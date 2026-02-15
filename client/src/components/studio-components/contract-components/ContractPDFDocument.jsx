@@ -213,6 +213,16 @@ const safeNum = (val, defaultVal = 0) => {
 // =============================================================================
 // PDF ELEMENT RENDERER
 // =============================================================================
+// Read primary color from CSS variable so PDF checkboxes match the app theme
+const getPrimaryColor = () => {
+  try {
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+    return color || '#3b82f6';
+  } catch {
+    return '#3b82f6';
+  }
+};
+
 const PDFElement = ({ element, formValues, systemValues }) => {
   if (!element || element.visible === false) return null;
 
@@ -383,10 +393,18 @@ const PDFElement = ({ element, formValues, systemValues }) => {
       const labelSize = pxToPt(element.checkboxLabelSize || 16);
       const descSize = pxToPt(element.checkboxDescriptionSize || 14);
 
+      const primaryColor = getPrimaryColor();
       return (
         <View style={wrapperStyle}>
           <View style={styles.checkboxContainer}>
-            <View style={isChecked ? styles.checkboxChecked : styles.checkbox}>
+            <View style={isChecked ? {
+                  ...styles.checkboxChecked,
+                  backgroundColor: primaryColor,
+                  borderTopColor: primaryColor,
+                  borderRightColor: primaryColor,
+                  borderBottomColor: primaryColor,
+                  borderLeftColor: primaryColor,
+                } : styles.checkbox}>
               {isChecked ? (
                 <Svg width={10} height={10} viewBox="0 0 24 24">
                   <Path d="M4 12 L10 18 L20 6" stroke="#ffffff" strokeWidth={3} fill="none" />

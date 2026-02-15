@@ -3,6 +3,8 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useState } from "react"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 
 export function CancelContractModal({ contract, onClose, onSubmit }) {
   const [cancelData, setCancelData] = useState({
@@ -74,68 +76,66 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center justify-center z-[1001]">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
+      <div className="bg-surface-base rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
           <X size={20} />
         </button>
 
-        <h3 className="text-white text-lg font-semibold mb-4">Cancel Contract</h3>
+        <h3 className="text-content-primary text-lg font-semibold mb-4">Cancel Contract</h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {cancellationInfo && (
-            <div className="bg-[#141414] p-4 rounded-xl border border-gray-800">
-              <h4 className="text-white text-sm font-medium mb-3">Cancellation Information</h4>
+            <div className="bg-surface-dark p-4 rounded-xl border border-border">
+              <h4 className="text-content-primary text-sm font-medium mb-3">Cancellation Information</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Cancellation Period:</span>
-                  <span className="text-white">{cancellationInfo.cancellationPeriod}</span>
+                  <span className="text-content-muted">Cancellation Period:</span>
+                  <span className="text-content-primary">{cancellationInfo.cancellationPeriod}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Latest Possible Cancellation:</span>
-                  <span className="text-white">{cancellationInfo.latestCancellationDate}</span>
+                  <span className="text-content-muted">Latest Possible Cancellation:</span>
+                  <span className="text-content-primary">{cancellationInfo.latestCancellationDate}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Contract End Date:</span>
-                  <span className="text-white">{cancellationInfo.contractEndDate}</span>
+                  <span className="text-content-muted">Contract End Date:</span>
+                  <span className="text-content-primary">{cancellationInfo.contractEndDate}</span>
                 </div>
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <label htmlFor="reason" className="text-sm text-gray-400">
+            <label htmlFor="reason" className="text-sm text-content-muted">
               Cancellation Reason
             </label>
-            <select
-              id="reason"
+            <CustomSelect
               name="reason"
               value={cancelData.reason}
               onChange={handleInputChange}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800 appearance-none"
-              required
-            >
-              <option value="">Select cancellation reason...</option>
-              {cancellationReasons.map((reason) => (
-                <option key={reason} value={reason}>
-                  {reason}
-                </option>
-              ))}
-            </select>
+              options={cancellationReasons.map((reason) => ({ value: reason, label: reason }))}
+              placeholder="Select cancellation reason..."
+              searchable
+            />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="cancelDate" className="text-sm text-gray-400">
+            <label htmlFor="cancelDate" className="text-sm text-content-muted">
               Cancellation Entry Date
             </label>
-            <input
-              type="date"
-              id="cancelDate"
-              name="cancelDate"
-              value={cancelData.cancelDate}
-              onChange={handleInputChange}
-              className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
-              required
-            />
+            <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border border-border">
+              <span className={`flex-1 text-sm ${cancelData.cancelDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                {cancelData.cancelDate ? new Date(cancelData.cancelDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+              </span>
+              <DatePickerField
+                value={cancelData.cancelDate}
+                onChange={(val) => setCancelData({ ...cancelData, cancelDate: val })}
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -145,9 +145,9 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
                 name="extraordinaryCancellation"
                 checked={cancelData.extraordinaryCancellation}
                 onChange={handleInputChange}
-                className="form-checkbox h-4 w-4 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                className="primary-check"
               />
-              <span className="text-white text-sm">Extraordinary Cancellation</span>
+              <span className="text-content-primary text-sm">Extraordinary Cancellation</span>
             </label>
 
             <label className="flex items-center space-x-2 cursor-pointer">
@@ -156,50 +156,49 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
                 name="cancellationThroughStudio"
                 checked={cancelData.cancellationThroughStudio}
                 onChange={handleInputChange}
-                className="form-checkbox h-4 w-4 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                className="primary-check"
               />
-              <span className="text-white text-sm">Cancellation through Studio</span>
+              <span className="text-content-primary text-sm">Cancellation through Studio</span>
             </label>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="cancelToDate" className="text-sm text-gray-400">
+            <label htmlFor="cancelToDate" className="text-sm text-content-muted">
               Cancel to Date
             </label>
-            <input
-              type="date"
-              id="cancelToDate"
-              name="cancelToDate"
-              value={cancelData.cancelToDate}
-              onChange={handleInputChange}
-              min={today}
-              max={contractEndDateISO}
-              className="w-full bg-[#141414] text-white white-calendar-icon text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
-            />
+            <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border border-border">
+              <span className={`flex-1 text-sm ${cancelData.cancelToDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                {cancelData.cancelToDate ? new Date(cancelData.cancelToDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+              </span>
+              <DatePickerField
+                value={cancelData.cancelToDate}
+                onChange={(val) => setCancelData({ ...cancelData, cancelToDate: val })}
+              />
+            </div>
             {contractEndDateISO && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-content-faint">
                 Must be between today and {new Date(contractEndDateISO).toLocaleDateString("en-GB")}
               </p>
             )}
           </div>
 
-          <div className="bg-[#141414] p-4 rounded-xl border border-gray-800">
-            <h4 className="text-white text-sm font-medium mb-2">Notification Rule</h4>
+          <div className="bg-surface-dark p-4 rounded-xl border border-border">
+            <h4 className="text-content-primary text-sm font-medium mb-2">Notification Rule</h4>
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
                 name="notificationRule"
                 checked={cancelData.notificationRule}
                 onChange={handleInputChange}
-                className="form-checkbox h-4 w-4 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                className="primary-check"
               />
-              <span className="text-gray-300 text-sm">
+              <span className="text-content-secondary text-sm">
                 Send "Regular Cancellation" notification via email immediately
               </span>
             </label>
           </div>
 
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-content-muted">
             Note: The cancellation will be effective according to the contract terms and selected date.
           </p>
 
@@ -207,13 +206,13 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 px-4 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3a3a3a] transition-colors"
+              className="flex-1 py-2 px-4 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 px-4 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              className="flex-1 py-2 px-4 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
             >
               Confirm Cancellation
             </button>

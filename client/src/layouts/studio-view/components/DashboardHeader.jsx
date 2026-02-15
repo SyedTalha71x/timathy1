@@ -388,7 +388,7 @@ const DashboardHeader = ({
           </div>
           <button
             onClick={onToggleSidebar}
-            className="p-1.5 px-2.5 rounded-xl bg-surface-card text-content-primary"
+            className="p-2 px-3 rounded-xl bg-surface-card text-content-primary"
             aria-label="Toggle Sidebar"
           >
             {isSidebarOpen ? (
@@ -420,8 +420,8 @@ const DashboardHeader = ({
           {/* Profile Dropdown */}
           <ProfileDropdown isMobile={true} />
 
-          {/* Right Sidebar Toggle - Shows cart icon on Selling page, sidebar icon elsewhere */}
-          {(!hideRightSidebarToggle || showShoppingCartToggle) && <SidebarToggleButton isMobile={true} />}
+          {/* Right Sidebar Toggle - Always visible on mobile, conditionally on desktop */}
+          <SidebarToggleButton isMobile={true} />
         </div>
       </div>
       

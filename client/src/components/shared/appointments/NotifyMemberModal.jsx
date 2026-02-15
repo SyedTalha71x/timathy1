@@ -17,7 +17,7 @@ import { useState, useEffect } from "react"
 //   appointmentType: "EMS Strength" (optional)
 //   date:          "Monday, January 27, 2025" (pre-formatted)
 //   time:          "09:00 - 10:00" (pre-formatted)
-//   isTrial:       boolean - controls highlight color (text-trial vs text-primary)
+//   isTrial:       boolean
 //   isRecurring:   boolean
 //   recurringInfo: { frequency: "weekly", occurrences: 5 }
 //   onConfirm:     (shouldNotify, { email, push }) => void
@@ -41,7 +41,7 @@ const NotifyMemberModalMain = ({
   appointmentType, // e.g. "EMS Strength" or "Trial Training - EMS Strength"
   date,            // pre-formatted date string
   time,            // pre-formatted time string
-  isTrial = false, // highlight color: text-trial vs text-primary
+  isTrial = false,
   isRecurring = false,
   recurringInfo,   // { frequency, occurrences }
   onConfirm,       // (shouldNotify, { email, push }) => void
@@ -117,7 +117,7 @@ const NotifyMemberModalMain = ({
   const isLead = resolved.entityType === "lead"
   const entityLabel = isLead ? "lead" : "member"
   const EntityLabel = isLead ? "Lead" : "Member"
-  const highlightClass = resolved.isTrial ? "font-semibold text-trial" : "font-semibold text-primary"
+  const hl = "font-semibold text-primary"
 
   // =============================================
   // Handlers
@@ -145,9 +145,9 @@ const NotifyMemberModalMain = ({
       if (isRecurring && recurringInfo) {
         return (
           <p className="text-content-primary text-sm">
-            New <span className={highlightClass}>recurring appointment</span> for{" "}
-            <span className={highlightClass}>{name}</span> starting{" "}
-            <span className={highlightClass}>{d}</span>{" "}
+            New <span className={hl}>recurring appointment</span> for{" "}
+            <span className={hl}>{name}</span> starting{" "}
+            <span className={hl}>{d}</span>{" "}
             ({recurringInfo.occurrences} occurrences, {recurringInfo.frequency}).
             <br /><br />
             Do you want to notify the {entityLabel} about this booking?
@@ -158,10 +158,10 @@ const NotifyMemberModalMain = ({
       if (resolved.isTrial) {
         return (
           <p className="text-content-primary text-sm">
-            New <span className={highlightClass}>Trial Training</span> for{" "}
-            <span className={highlightClass}>{name}</span> on{" "}
-            <span className={highlightClass}>{d}</span> at{" "}
-            <span className={highlightClass}>{t}</span>.
+            New <span className={hl}>Trial Training</span> for{" "}
+            <span className={hl}>{name}</span> on{" "}
+            <span className={hl}>{d}</span> at{" "}
+            <span className={hl}>{t}</span>.
             <br /><br />
             Do you want to notify the {entityLabel} about this booking?
           </p>
@@ -170,9 +170,9 @@ const NotifyMemberModalMain = ({
 
       return (
         <p className="text-content-primary text-sm">
-          New appointment for <span className={highlightClass}>{name}</span> on{" "}
-          <span className={highlightClass}>{d}</span> at{" "}
-          <span className={highlightClass}>{t}</span>.
+          New appointment for <span className={hl}>{name}</span> on{" "}
+          <span className={hl}>{d}</span> at{" "}
+          <span className={hl}>{t}</span>.
           <br /><br />
           Do you want to notify the {entityLabel} about this booking?
         </p>
@@ -182,11 +182,11 @@ const NotifyMemberModalMain = ({
     if (act === "cancel") {
       return (
         <p className="text-content-primary text-sm">
-          <span className={highlightClass}>{name}'s</span>
+          <span className={hl}>{name}'s</span>
           {type && <span className="text-content-muted"> ({type})</span>} appointment on{" "}
-          <span className={highlightClass}>{d}</span> at{" "}
-          <span className={highlightClass}>{t}</span>{" "}
-          will be <span className="font-semibold text-accent-red">cancelled</span>.
+          <span className={hl}>{d}</span> at{" "}
+          <span className={hl}>{t}</span>{" "}
+          will be <span className={hl}>cancelled</span>.
           <br /><br />
           Do you want to notify the {entityLabel} about this cancellation?
         </p>
@@ -196,10 +196,10 @@ const NotifyMemberModalMain = ({
     // "change" (default)
     return (
       <p className="text-content-primary text-sm">
-        <span className={highlightClass}>{name}'s</span>
+        <span className={hl}>{name}'s</span>
         {type && <span className="text-content-muted"> ({type})</span>} appointment will be moved to{" "}
-        <span className={highlightClass}>{d}</span> at{" "}
-        <span className={highlightClass}>{t}</span>.
+        <span className={hl}>{d}</span> at{" "}
+        <span className={hl}>{t}</span>.
         <br /><br />
         Do you want to notify the {entityLabel} about this change?
       </p>
@@ -211,6 +211,13 @@ const NotifyMemberModalMain = ({
   // =============================================
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={handleClose}>
+      {/* Custom checkbox style — matches selling sidebar */}
+      <style>{`
+        .notify-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .notify-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .notify-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
+
       <div
         className="bg-surface-card w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -234,7 +241,7 @@ const NotifyMemberModalMain = ({
                 type="checkbox"
                 checked={emailNotification}
                 onChange={(e) => setEmailNotification(e.target.checked)}
-                className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary focus:ring-2"
+                className="notify-check"
               />
               <span className="text-content-primary text-sm">Email Notification</span>
             </label>
@@ -246,7 +253,7 @@ const NotifyMemberModalMain = ({
                   type="checkbox"
                   checked={pushNotification}
                   onChange={(e) => setPushNotification(e.target.checked)}
-                  className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary focus:ring-2"
+                  className="notify-check"
                 />
                 <span className="text-content-primary text-sm">App Push Notification</span>
               </label>

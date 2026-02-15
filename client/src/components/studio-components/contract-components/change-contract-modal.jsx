@@ -3,9 +3,11 @@
 import { X, ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 import { DEFAULT_CONTRACT_TYPES, studioData } from "../../../utils/studio-states/configuration-states"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 
 export function ChangeContractModal({ contract, onClose, onSubmit, initialData = null }) {
-  const currency = studioData?.currency || "€"
+  const currency = studioData?.currency || "â‚¬"
 
   // Use DEFAULT_CONTRACT_TYPES, excluding the current contract type
   const contractTypes = (DEFAULT_CONTRACT_TYPES || []).filter(
@@ -157,77 +159,75 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center justify-center z-[1001]">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
+      <div className="bg-surface-base rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
           <X size={20} />
         </button>
 
-        <h3 className="text-white text-lg font-semibold mb-4">Change Contract</h3>
+        <h3 className="text-content-primary text-lg font-semibold mb-4">Change Contract</h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Current Contract Info */}
           <div className="space-y-2">
-            <label className="text-sm text-gray-400">Current Contract</label>
-            <div className="bg-[#101010]/60 p-3 rounded-xl border border-gray-800">
-              <p className="text-white text-sm">Type: {contract?.contractType}</p>
-              <p className="text-gray-400 text-xs">
+            <label className="text-sm text-content-muted">Current Contract</label>
+            <div className="bg-surface-dark/60 p-3 rounded-xl border border-border">
+              <p className="text-content-primary text-sm">Type: {contract?.contractType}</p>
+              <p className="text-content-muted text-xs">
                 Cost: {currentContractType ? formatCost(currentContractType) : (contract?.cost ? `${currency}${contract.cost}` : "N/A")} / {currentContractType?.billingPeriod || contract?.billingPeriod || "Monthly"}
               </p>
-              <p className="text-gray-400 text-xs">Expires: {contract?.endDate}</p>
+              <p className="text-content-muted text-xs">Expires: {contract?.endDate}</p>
             </div>
           </div>
 
           {/* New Contract Type Dropdown - excludes current contract type */}
           <div className="space-y-1.5">
-            <label htmlFor="newContractType" className="text-xs text-gray-200 block pl-1">
+            <label htmlFor="newContractType" className="text-xs text-content-secondary block pl-1">
               New Contract Type
             </label>
-            <select
-              id="newContractType"
+            <CustomSelect
               name="newContractType"
               value={changeData.newContractType}
               onChange={handleInputChange}
-              className="w-full bg-[#101010] text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none"
-            >
-              <option value="">Select contract type</option>
-              {contractTypes.map((type) => (
-                <option key={type.id} value={type.name}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
+              options={contractTypes.map((type) => ({ value: type.name, label: type.name }))}
+              placeholder="Select contract type"
+              searchable
+            />
           </div>
 
           {/* Date Fields - only show when contract type is selected */}
           {selectedContractType && (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label htmlFor="startDate" className="text-xs text-gray-200 block pl-1">
+                <label htmlFor="startDate" className="text-xs text-content-secondary block pl-1">
                   Change Start Date
                 </label>
-                <input
-                  type="date"
-                  id="startDate"
-                  name="startDate"
-                  value={changeData.startDate}
-                  min={getTomorrowDate()}
-                  onChange={handleInputChange}
-                  className={`w-full bg-[#101010] text-white white-calendar-icon text-sm rounded-xl px-3 py-2.5 outline-none transition-shadow duration-200 ${
+                <div className={`flex items-center bg-surface-dark rounded-xl px-3 py-2.5 transition-shadow duration-200 ${
                     dateError 
-                      ? "ring-2 ring-red-500" 
-                      : "focus:ring-2 focus:ring-[#3F74FF]"
-                  }`}
-                  required
-                />
+                      ? "ring-2 ring-accent-red" 
+                      : ""
+                  }`}>
+                  <span className={`flex-1 text-sm ${changeData.startDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                    {changeData.startDate ? new Date(changeData.startDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                  </span>
+                  <DatePickerField
+                    value={changeData.startDate}
+                    onChange={(val) => handleInputChange({ target: { name: 'startDate', value: val } })}
+                  />
+                </div>
                 {dateError && (
-                  <p className="text-red-400 text-xs pl-1">{dateError}</p>
+                  <p className="text-accent-red text-xs pl-1">{dateError}</p>
                 )}
               </div>
 
               {/* Contract End Date - calculated, read-only */}
               {contractEndDate && (
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">
+                  <label className="text-xs text-content-secondary block pl-1">
                     Contract End Date ({getDurationDisplay()})
                   </label>
                   <input
@@ -235,7 +235,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
                     value={contractEndDate}
                     readOnly
                     disabled
-                    className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-400 outline-none cursor-not-allowed pointer-events-none"
+                    className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-muted outline-none cursor-not-allowed pointer-events-none"
                   />
                 </div>
               )}
@@ -244,20 +244,20 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
 
           {/* Contract Details Box */}
           {selectedContractType && (
-            <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-              <h4 className="text-white text-sm font-medium mb-2">New Contract Details</h4>
+            <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
+              <h4 className="text-content-primary text-sm font-medium mb-2">New Contract Details</h4>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="block text-gray-400 text-xs">Duration</span>
-                  <span className="text-white">{getDurationDisplay()}</span>
+                  <span className="block text-content-muted text-xs">Duration</span>
+                  <span className="text-content-primary">{getDurationDisplay()}</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400 text-xs">Cost</span>
-                  <span className="text-white">{formatCost(selectedContractType)}</span>
+                  <span className="block text-content-muted text-xs">Cost</span>
+                  <span className="text-content-primary">{formatCost(selectedContractType)}</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400 text-xs">Billing Period</span>
-                  <span className="text-white">{selectedContractType.billingPeriod || "Monthly"}</span>
+                  <span className="block text-content-muted text-xs">Billing Period</span>
+                  <span className="text-content-primary">{selectedContractType.billingPeriod || "Monthly"}</span>
                 </div>
               </div>
             </div>
@@ -265,17 +265,17 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
 
           {/* Discount Section - Collapsible, collapsed by default */}
           {selectedContractType && (
-            <div className="bg-[#101010]/60 rounded-xl border border-gray-800 overflow-hidden">
+            <div className="bg-surface-dark/60 rounded-xl border border-border overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsDiscountExpanded(!isDiscountExpanded)}
-                className="w-full p-4 flex items-center justify-between text-white hover:bg-[#1a1a1a] transition-colors"
+                className="w-full p-4 flex items-center justify-between text-content-primary hover:bg-surface-card transition-colors"
               >
                 <h4 className="text-sm font-medium">Discount</h4>
                 {isDiscountExpanded ? (
-                  <ChevronUp size={16} className="text-gray-400" />
+                  <ChevronUp size={16} className="text-content-muted" />
                 ) : (
-                  <ChevronDown size={16} className="text-gray-400" />
+                  <ChevronDown size={16} className="text-content-muted" />
                 )}
               </button>
 
@@ -283,7 +283,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
                 <div className="px-4 pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
+                      <label className="block text-content-muted text-xs mb-1">Percentage (%)</label>
                       <input
                         type="number"
                         name="percentage"
@@ -291,11 +291,11 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
                         max="100"
                         value={discount.percentage}
                         onChange={handleDiscountChange}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
                       />
                     </div>
                     <div className={discount.isPermanent ? "opacity-50" : ""}>
-                      <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
+                      <label className="block text-content-muted text-xs mb-1">Billing Periods</label>
                       <input
                         type="number"
                         name="duration"
@@ -303,51 +303,51 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
                         value={discount.duration}
                         onChange={handleDiscountChange}
                         disabled={discount.isPermanent}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
+                      <label className="block text-content-muted mt-7 text-xs mb-1"></label>
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="checkbox"
                           name="isPermanent"
                           checked={discount.isPermanent}
                           onChange={handleDiscountChange}
-                          className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                          className="primary-check"
                         />
-                        <span className="text-gray-400 text-xs">Till End of Contract</span>
+                        <span className="text-content-muted text-xs">Till End of Contract</span>
                       </label>
                     </div>
                   </div>
 
                   {/* Final Price Display */}
                   {priceCalculation && (
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <h5 className="text-content-primary text-sm font-medium mb-2">Price Calculation</h5>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Original Price:</span>
-                          <span className="text-white">
+                          <span className="text-content-muted">Original Price:</span>
+                          <span className="text-content-primary">
                             {priceCalculation.currency}
                             {priceCalculation.originalPrice.toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Discount ({discount.percentage}%):</span>
-                          <span className="text-red-400">
+                          <span className="text-content-muted">Discount ({discount.percentage}%):</span>
+                          <span className="text-accent-red">
                             -{priceCalculation.currency}
                             {priceCalculation.discountAmount.toFixed(2)}
                           </span>
                         </div>
-                        <div className="flex justify-between border-t border-gray-700 pt-2">
-                          <span className="text-white font-medium">Final Price:</span>
-                          <span className="text-green-400 font-medium">
+                        <div className="flex justify-between border-t border-border pt-2">
+                          <span className="text-content-primary font-medium">Final Price:</span>
+                          <span className="text-accent-green font-medium">
                             {priceCalculation.currency}
                             {priceCalculation.finalPrice.toFixed(2)}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-content-faint">
                           {discount.isPermanent
                             ? "Discount applies for the entire contract duration"
                             : `Discount applies for ${discount.duration} billing period${Number(discount.duration) > 1 ? "s" : ""}`}
@@ -363,10 +363,10 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
           <button
             type="submit"
             disabled={!isFormValid}
-            className={`w-full py-2 px-4 text-white text-sm rounded-xl transition-colors ${
+            className={`w-full py-2 px-4 text-content-primary text-sm rounded-xl transition-colors ${
               isFormValid
                 ? "bg-orange-500 hover:bg-orange-600"
-                : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-surface-button text-content-muted cursor-not-allowed"
             }`}
           >
             Change Contract

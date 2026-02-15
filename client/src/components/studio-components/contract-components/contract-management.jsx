@@ -122,8 +122,8 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-400">Loading document...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-content-muted">Loading document...</p>
         </div>
       )
     }
@@ -131,12 +131,12 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
     if (error) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
-          <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-          <p className="text-white text-lg mb-2">Error Loading Document</p>
-          <p className="text-gray-400 mb-6">{error}</p>
+          <AlertCircle className="w-16 h-16 text-accent-red mb-4" />
+          <p className="text-content-primary text-lg mb-2">Error Loading Document</p>
+          <p className="text-content-muted mb-6">{error}</p>
           <button
             onClick={() => onDownload && onDownload(document)}
-            className="px-6 py-3 bg-[#3F74FF] text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
           >
             <Download className="w-5 h-5" />
             Download Instead
@@ -163,7 +163,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       case 'text':
         return (
           <div className="p-6 h-full overflow-auto">
-            <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-[#0d0d0d] p-4 rounded-lg">{content.text}</pre>
+            <pre className="text-content-secondary text-sm whitespace-pre-wrap font-mono bg-surface-dark p-4 rounded-lg">{content.text}</pre>
           </div>
         )
       case 'html':
@@ -187,7 +187,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
                     key={sheet.name}
                     onClick={() => setCurrentPage(idx + 1)}
                     className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                      currentPage === idx + 1 ? 'bg-[#3F74FF] text-white' : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]'
+                      currentPage === idx + 1 ? 'bg-primary text-white' : 'bg-surface-hover text-content-secondary hover:bg-surface-button-hover'
                     }`}
                   >
                     {sheet.name}
@@ -195,13 +195,13 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
                 ))}
               </div>
             )}
-            <div className="overflow-auto bg-[#0d0d0d] rounded-lg">
+            <div className="overflow-auto bg-surface-dark rounded-lg">
               <table className="min-w-full text-sm">
                 <tbody>
                   {currentSheet?.data.map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx === 0 ? 'bg-[#1a1a1a] font-semibold' : 'hover:bg-[#1a1a1a]'}>
+                    <tr key={rowIdx} className={rowIdx === 0 ? 'bg-surface-card font-semibold' : 'hover:bg-surface-card'}>
                       {row.map((cell, cellIdx) => (
-                        <td key={cellIdx} className="px-4 py-2 border border-gray-800 text-gray-300 whitespace-nowrap">{cell ?? ''}</td>
+                        <td key={cellIdx} className="px-4 py-2 border border-border text-content-secondary whitespace-nowrap">{cell ?? ''}</td>
                       ))}
                     </tr>
                   ))}
@@ -213,9 +213,9 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <File className="w-16 h-16 text-gray-500 mb-4" />
-            <p className="text-white text-lg mb-2">Preview not available</p>
-            <p className="text-gray-400">Please download the file to view it.</p>
+            <File className="w-16 h-16 text-content-faint mb-4" />
+            <p className="text-content-primary text-lg mb-2">Preview not available</p>
+            <p className="text-content-muted">Please download the file to view it.</p>
           </div>
         )
     }
@@ -223,25 +223,25 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1002] p-2 sm:p-4">
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-7xl h-[95vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b border-gray-800 flex-shrink-0">
+      <div className="bg-surface-base rounded-2xl w-full max-w-7xl h-[95vh] overflow-hidden flex flex-col">
+        <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <h3 className="text-white text-lg font-medium truncate">{document.name}</h3>
-            <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded uppercase flex-shrink-0">{document.type}</span>
+            <h3 className="text-content-primary text-lg font-medium truncate">{document.name}</h3>
+            <span className="text-xs text-content-faint bg-surface-button px-2 py-1 rounded uppercase flex-shrink-0">{document.type}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => onDownload && onDownload(document)} className="p-2 bg-[#2a2a2a] text-gray-300 rounded-lg hover:bg-[#333] transition-colors" title="Download">
+            <button onClick={() => onDownload && onDownload(document)} className="p-2 bg-surface-hover text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors" title="Download">
               <Download className="w-5 h-5" />
             </button>
-            <button onClick={() => onPrint && onPrint(document)} className="p-2 bg-[#2a2a2a] text-gray-300 rounded-lg hover:bg-[#333] transition-colors" title="Print">
+            <button onClick={() => onPrint && onPrint(document)} className="p-2 bg-surface-hover text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors" title="Print">
               <Printer className="w-5 h-5" />
             </button>
-            <button onClick={onClose} className="p-2 text-gray-400 hover:text-white transition-colors">
+            <button onClick={onClose} className="p-2 text-content-muted hover:text-content-primary transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-auto bg-[#141414]">{renderContent()}</div>
+        <div className="flex-1 overflow-auto bg-surface-dark">{renderContent()}</div>
       </div>
     </div>
   )
@@ -251,11 +251,11 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
 const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, pauseEndDate = null, cancelReason = null, cancelDate = null }) => {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'bg-green-600';
-      case 'Ongoing': return 'bg-gray-600';
-      case 'Paused': return 'bg-yellow-600';
-      case 'Cancelled': return 'bg-red-600';
-      default: return 'bg-gray-600';
+      case 'Active': return 'bg-accent-green';
+      case 'Ongoing': return 'bg-surface-button';
+      case 'Paused': return 'bg-accent-yellow';
+      case 'Cancelled': return 'bg-accent-red';
+      default: return 'bg-surface-button';
     }
   };
 
@@ -272,19 +272,19 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
       <>
         {pauseReason && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span className="text-accent-yellow font-medium">Reason:</span>
             <span>{pauseReason}</span>
           </div>
         )}
         {pauseStartDate && pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Period:</span>
+            <span className="text-accent-yellow font-medium">Period:</span>
             <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
           </div>
         )}
         {pauseStartDate && !pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Since:</span>
+            <span className="text-accent-yellow font-medium">Since:</span>
             <span>{formatD(pauseStartDate)}</span>
           </div>
         )}
@@ -302,13 +302,13 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
       <>
         {cancelReason && (
           <div className="flex items-center gap-2">
-            <span className="text-red-400 font-medium">Reason:</span>
+            <span className="text-accent-red font-medium">Reason:</span>
             <span>{cancelReason}</span>
           </div>
         )}
         {cancelDate && (
           <div className="flex items-center gap-2">
-            <span className="text-red-400 font-medium">Cancelled:</span>
+            <span className="text-accent-red font-medium">Cancelled:</span>
             <span>{formatD(cancelDate)}</span>
           </div>
         )}
@@ -326,13 +326,13 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
       </span>
       {/* Custom Tooltip */}
       {hasTooltip && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
           <div className="flex flex-col gap-1">
             {renderPauseTooltip()}
             {renderCancelTooltip()}
           </div>
           {/* Arrow pointing up */}
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
         </div>
       )}
     </div>
@@ -748,13 +748,13 @@ export function ContractManagement({ contract, onClose }) {
   const getDocumentIcon = (type) => {
     switch (type) {
       case "pdf":
-        return <FileText className="w-5 h-5 text-red-500" />
+        return <FileText className="w-5 h-5 text-accent-red" />
       case "xlsx":
       case "xls":
-        return <File className="w-5 h-5 text-green-500" />
+        return <File className="w-5 h-5 text-accent-green" />
       case "docx":
       case "doc":
-        return <FileText className="w-5 h-5 text-blue-500" />
+        return <FileText className="w-5 h-5 text-primary" />
       case "jpg":
       case "jpeg":
       case "png":
@@ -762,7 +762,7 @@ export function ContractManagement({ contract, onClose }) {
       case "unsigned":
         return <FileText className="w-5 h-5 text-orange-500" />
       default:
-        return <File className="w-5 h-5 text-gray-400" />
+        return <File className="w-5 h-5 text-content-muted" />
     }
   }
 
@@ -909,22 +909,22 @@ export function ContractManagement({ contract, onClose }) {
     return (
       <div 
         key={contractItem.id} 
-        className={`bg-[#1a1a1a] rounded-xl overflow-hidden border ${
-          isExpanded ? 'border-orange-500/50' : 'border-gray-800'
+        className={`bg-surface-card rounded-xl overflow-hidden border ${
+          isExpanded ? 'border-orange-500/50' : 'border-border'
         } transition-all duration-200`}
       >
         {/* Contract Header - Always visible */}
-        <div className="p-4 flex items-center justify-between hover:bg-[#222] transition-colors">
+        <div className="p-4 flex items-center justify-between hover:bg-surface-hover transition-colors">
           <button
             onClick={() => setExpandedContractId(isExpanded ? null : contractItem.id)}
             className="flex items-center gap-4 flex-1"
           >
-            <div className="w-10 h-10 bg-[#2a2a2a] rounded-xl flex items-center justify-center">
-              <FileText size={20} className={isCurrent ? "text-orange-400" : "text-gray-500"} />
+            <div className="w-10 h-10 bg-surface-hover rounded-xl flex items-center justify-center">
+              <FileText size={20} className={isCurrent ? "text-orange-400" : "text-content-faint"} />
             </div>
             <div className="text-left">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-white font-medium">
+                <span className="text-content-primary font-medium">
                   Contract {contractItem.contractNumber || contractItem.id}
                 </span>
                 <ContractStatusTag 
@@ -941,7 +941,7 @@ export function ContractManagement({ contract, onClose }) {
                       <RefreshCw size={10} /> Auto Renewal
                     </span>
                     {/* Custom Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                       <div className="flex items-center gap-2">
                         <RefreshCw size={10} className="text-orange-400" />
                         <span>
@@ -953,17 +953,17 @@ export function ContractManagement({ contract, onClose }) {
                         </span>
                       </div>
                       {/* Arrow */}
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                     </div>
                   </div>
                 )}
                 {shouldShowExpiring(contractItem) && contractItem.status === 'Active' && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 flex items-center gap-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-accent-red/20 text-accent-red flex items-center gap-1">
                     <AlertTriangle size={10} /> Expiring
                   </span>
                 )}
                 {shouldShowExpired(contractItem) && contractItem.status === 'Active' && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-accent-red/20 text-accent-red">
                     Expired
                   </span>
                 )}
@@ -972,7 +972,7 @@ export function ContractManagement({ contract, onClose }) {
                     <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
                       <Gift size={10} /> Bonus ({contractItem.bonusTime.bonusAmount} {contractItem.bonusTime.bonusUnit})
                     </span>
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
                       {(() => {
                         const eff = getEffectiveEndDate(contractItem)
                         return (
@@ -980,27 +980,27 @@ export function ContractManagement({ contract, onClose }) {
                             <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
                             <div className="min-w-0 overflow-hidden">
                               <span className="font-medium whitespace-nowrap">{contractItem.bonusTime.bonusAmount} {contractItem.bonusTime.bonusUnit}</span>
-                              {contractItem.bonusTime.reason && <span className="text-gray-300 block truncate"> — {contractItem.bonusTime.reason}</span>}
-                              {eff.bonusPeriod && <span className="text-gray-400 block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
+                              {contractItem.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contractItem.bonusTime.reason}</span>}
+                              {eff.bonusPeriod && <span className="text-content-muted block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
                               {contractItem.bonusTime.withExtension 
-                                ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
-                                : <span className="text-gray-500 block text-[10px] mt-0.5">Without extension</span>
+                                ? <span className="text-accent-green block text-[10px] mt-0.5">+ Contract extension</span>
+                                : <span className="text-content-faint block text-[10px] mt-0.5">Without extension</span>
                               }
                             </div>
                           </div>
                         )
                       })()}
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                     </div>
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-3 text-sm text-gray-400 mt-0.5">
+              <div className="flex items-center gap-3 text-sm text-content-muted mt-0.5">
                 <span>{contractItem.contractType}</span>
                 <span>•</span>
                 <span>{formatDate(contractItem.startDate)} - {(() => {
                   const eff = getEffectiveEndDate(contractItem)
-                  if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contractItem.endDate)}</span>
+                  if (eff.isCancelledEarly) return <span className="text-accent-red font-medium">{formatDate(contractItem.endDate)}</span>
                   if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
                   return formatDate(contractItem.endDate)
                 })()}</span>
@@ -1016,7 +1016,7 @@ export function ContractManagement({ contract, onClose }) {
               className={`p-2 rounded-lg transition-colors ${
                 canPerformActions 
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
-                  : 'bg-[#2a2a2a] text-gray-500 cursor-not-allowed'
+                  : 'bg-surface-hover text-content-faint cursor-not-allowed'
               }`}
               title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "View Contract" : "No form data available"}
             >
@@ -1028,7 +1028,7 @@ export function ContractManagement({ contract, onClose }) {
               className={`p-2 rounded-lg transition-colors ${
                 canPerformActions 
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
-                  : 'bg-[#2a2a2a] text-gray-500 cursor-not-allowed'
+                  : 'bg-surface-hover text-content-faint cursor-not-allowed'
               }`}
               title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "Download Contract" : "No form data available"}
             >
@@ -1040,7 +1040,7 @@ export function ContractManagement({ contract, onClose }) {
               className={`p-2 rounded-lg transition-colors ${
                 canPerformActions 
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
-                  : 'bg-[#2a2a2a] text-gray-500 cursor-not-allowed'
+                  : 'bg-surface-hover text-content-faint cursor-not-allowed'
               }`}
               title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "Print Contract" : "No form data available"}
             >
@@ -1054,48 +1054,48 @@ export function ContractManagement({ contract, onClose }) {
           >
             <ChevronDown 
               size={20} 
-              className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              className={`text-content-muted transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
             />
           </button>
         </div>
 
         {/* Expanded Content */}
         {isExpanded && (
-          <div className="border-t border-gray-800">
+          <div className="border-t border-border">
             {/* Contract Details */}
-            <div className="p-4 bg-[#141414] space-y-3">
+            <div className="p-4 bg-surface-dark space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 {/* Contract Number */}
-                <div className="bg-[#1a1a1a] rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Contract Number</p>
+                <div className="bg-surface-card rounded-lg p-3">
+                  <p className="text-xs text-content-faint mb-1">Contract Number</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-white">{contractItem.contractNumber || contractItem.id}</span>
+                    <span className="text-sm text-content-primary">{contractItem.contractNumber || contractItem.id}</span>
                     <button
                       onClick={() => handleCopy(contractItem.contractNumber || contractItem.id, `number-${contractItem.id}`)}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-button rounded transition-colors"
                     >
                       {copiedField === `number-${contractItem.id}` ? (
                         <Check size={12} className="text-orange-500" />
                       ) : (
-                        <Copy size={12} className="text-gray-400" />
+                        <Copy size={12} className="text-content-muted" />
                       )}
                     </button>
                   </div>
                 </div>
 
                 {/* Contract Type */}
-                <div className="bg-[#1a1a1a] rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Contract Type</p>
+                <div className="bg-surface-card rounded-lg p-3">
+                  <p className="text-xs text-content-faint mb-1">Contract Type</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-white">{contractItem.contractType}</span>
+                    <span className="text-sm text-content-primary">{contractItem.contractType}</span>
                     <button
                       onClick={() => handleCopy(contractItem.contractType, `type-${contractItem.id}`)}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 hover:bg-surface-button rounded transition-colors"
                     >
                       {copiedField === `type-${contractItem.id}` ? (
                         <Check size={12} className="text-orange-500" />
                       ) : (
-                        <Copy size={12} className="text-gray-400" />
+                        <Copy size={12} className="text-content-muted" />
                       )}
                     </button>
                   </div>
@@ -1103,18 +1103,18 @@ export function ContractManagement({ contract, onClose }) {
 
                 {/* IBAN */}
                 {contractItem.iban && (
-                  <div className="bg-[#1a1a1a] rounded-lg p-3">
-                    <p className="text-xs text-gray-500 mb-1">IBAN</p>
+                  <div className="bg-surface-card rounded-lg p-3">
+                    <p className="text-xs text-content-faint mb-1">IBAN</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-white font-mono text-xs">{contractItem.iban}</span>
+                      <span className="text-sm text-content-primary font-mono text-xs">{contractItem.iban}</span>
                       <button
                         onClick={() => handleCopy(contractItem.iban, `iban-${contractItem.id}`)}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-button rounded transition-colors"
                       >
                         {copiedField === `iban-${contractItem.id}` ? (
                           <Check size={12} className="text-orange-500" />
                         ) : (
-                          <Copy size={12} className="text-gray-400" />
+                          <Copy size={12} className="text-content-muted" />
                         )}
                       </button>
                     </div>
@@ -1123,18 +1123,18 @@ export function ContractManagement({ contract, onClose }) {
 
                 {/* SEPA Mandate */}
                 {contractItem.sepaMandate && (
-                  <div className="bg-[#1a1a1a] rounded-lg p-3">
-                    <p className="text-xs text-gray-500 mb-1">SEPA Mandate</p>
+                  <div className="bg-surface-card rounded-lg p-3">
+                    <p className="text-xs text-content-faint mb-1">SEPA Mandate</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-white">{contractItem.sepaMandate}</span>
+                      <span className="text-sm text-content-primary">{contractItem.sepaMandate}</span>
                       <button
                         onClick={() => handleCopy(contractItem.sepaMandate, `sepa-${contractItem.id}`)}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        className="p-1 hover:bg-surface-button rounded transition-colors"
                       >
                         {copiedField === `sepa-${contractItem.id}` ? (
                           <Check size={12} className="text-orange-500" />
                         ) : (
-                          <Copy size={12} className="text-gray-400" />
+                          <Copy size={12} className="text-content-muted" />
                         )}
                       </button>
                     </div>
@@ -1142,9 +1142,9 @@ export function ContractManagement({ contract, onClose }) {
                 )}
 
                 {/* Auto Renewal */}
-                <div className="bg-[#1a1a1a] rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Auto Renewal</p>
-                  <span className={`text-sm ${contractItem.autoRenewal ? 'text-orange-400' : 'text-gray-400'}`}>
+                <div className="bg-surface-card rounded-lg p-3">
+                  <p className="text-xs text-content-faint mb-1">Auto Renewal</p>
+                  <span className={`text-sm ${contractItem.autoRenewal ? 'text-orange-400' : 'text-content-muted'}`}>
                     {contractItem.autoRenewal ? (
                       <span className="flex items-center gap-1 flex-wrap">
                         <RefreshCw size={12} /> Yes
@@ -1162,9 +1162,9 @@ export function ContractManagement({ contract, onClose }) {
 
                 {/* Cancel Reason (if cancelled) */}
                 {contractItem.status === 'Cancelled' && contractItem.cancelReason && (
-                  <div className="bg-[#1a1a1a] rounded-lg p-3 col-span-2">
-                    <p className="text-xs text-gray-500 mb-1">Cancellation Reason</p>
-                    <span className="text-sm text-red-400">{contractItem.cancelReason}</span>
+                  <div className="bg-surface-card rounded-lg p-3 col-span-2">
+                    <p className="text-xs text-content-faint mb-1">Cancellation Reason</p>
+                    <span className="text-sm text-accent-red">{contractItem.cancelReason}</span>
                   </div>
                 )}
 
@@ -1172,15 +1172,15 @@ export function ContractManagement({ contract, onClose }) {
                 {contractItem.status === 'Paused' && (
                   <>
                     {contractItem.pauseReason && (
-                      <div className="bg-[#1a1a1a] rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-1">Pause Reason</p>
-                        <span className="text-sm text-yellow-400">{contractItem.pauseReason}</span>
+                      <div className="bg-surface-card rounded-lg p-3">
+                        <p className="text-xs text-content-faint mb-1">Pause Reason</p>
+                        <span className="text-sm text-accent-yellow">{contractItem.pauseReason}</span>
                       </div>
                     )}
                     {contractItem.pauseStartDate && contractItem.pauseEndDate && (
-                      <div className="bg-[#1a1a1a] rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-1">Pause Period</p>
-                        <span className="text-sm text-yellow-400">
+                      <div className="bg-surface-card rounded-lg p-3">
+                        <p className="text-xs text-content-faint mb-1">Pause Period</p>
+                        <span className="text-sm text-accent-yellow">
                           {formatDate(contractItem.pauseStartDate)} - {formatDate(contractItem.pauseEndDate)}
                         </span>
                       </div>
@@ -1197,12 +1197,12 @@ export function ContractManagement({ contract, onClose }) {
                 className="w-full flex items-center justify-between py-3 text-left"
               >
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-medium text-gray-300">Additional Documents</h4>
-                  <span className="text-xs text-gray-500">({additionalDocsCount})</span>
+                  <h4 className="text-sm font-medium text-content-secondary">Additional Documents</h4>
+                  <span className="text-xs text-content-faint">({additionalDocsCount})</span>
                 </div>
                 <ChevronDown 
                   size={16} 
-                  className={`text-gray-400 transition-transform duration-200 ${isDocsExpanded ? 'rotate-180' : ''}`}
+                  className={`text-content-muted transition-transform duration-200 ${isDocsExpanded ? 'rotate-180' : ''}`}
                 />
               </button>
 
@@ -1211,7 +1211,7 @@ export function ContractManagement({ contract, onClose }) {
                   <div className="flex justify-end mb-3">
                     <button
                       onClick={() => handleUploadClick(contractItem.id)}
-                      className="text-xs gap-1 px-3 py-1.5 bg-[#3F74FF] text-white rounded-lg hover:bg-[#2563eb] transition-colors flex items-center"
+                      className="text-xs gap-1 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors flex items-center"
                     >
                       <Upload className="w-3 h-3" />
                       Upload
@@ -1219,15 +1219,15 @@ export function ContractManagement({ contract, onClose }) {
                   </div>
 
                   {documents.length === 0 ? (
-                    <div className="text-center py-4 bg-[#141414] rounded-lg">
-                      <p className="text-gray-500 text-sm">No additional documents uploaded</p>
+                    <div className="text-center py-4 bg-surface-dark rounded-lg">
+                      <p className="text-content-faint text-sm">No additional documents uploaded</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {documents.map((doc) => (
-                        <div key={doc.id} className="bg-[#141414] p-3 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+                        <div key={doc.id} className="bg-surface-dark p-3 rounded-lg hover:bg-surface-card transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#2a2a2a] rounded-md flex items-center justify-center">
+                            <div className="w-8 h-8 bg-surface-hover rounded-md flex items-center justify-center">
                               {getDocumentIcon(doc.type)}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1237,26 +1237,26 @@ export function ContractManagement({ contract, onClose }) {
                                     type="text"
                                     value={newDocName}
                                     onChange={(e) => setNewDocName(e.target.value)}
-                                    className="flex-1 bg-black text-white px-2 py-1 rounded border border-gray-700 text-sm"
+                                    className="flex-1 bg-surface-dark text-content-primary px-2 py-1 rounded border border-border text-sm"
                                     autoFocus
                                   />
                                   <button
                                     onClick={() => saveDocName(doc.id, contractItem.id)}
-                                    className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                                    className="px-2 py-1 bg-primary text-white rounded text-xs"
                                   >
                                     Save
                                   </button>
                                   <button
                                     onClick={() => setEditingDocId(null)}
-                                    className="px-2 py-1 bg-gray-600 text-white rounded text-xs"
+                                    className="px-2 py-1 bg-surface-button text-content-primary rounded text-xs"
                                   >
                                     Cancel
                                   </button>
                                 </div>
                               ) : (
                                 <>
-                                  <p className="text-white text-sm truncate">{doc.name}</p>
-                                  <p className="text-[10px] text-gray-500">
+                                  <p className="text-content-primary text-sm truncate">{doc.name}</p>
+                                  <p className="text-[10px] text-content-faint">
                                     {doc.size !== "N/A" && `${doc.size} • `}{doc.uploadDate}
                                   </p>
                                 </>
@@ -1266,35 +1266,35 @@ export function ContractManagement({ contract, onClose }) {
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => handleViewDocument(doc)}
-                                  className="p-1.5 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                                  className="p-1.5 bg-surface-hover text-content-secondary rounded-md hover:bg-surface-button-hover transition-colors"
                                   title="View"
                                 >
                                   <Eye className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => handleDownload(doc)}
-                                  className="p-1.5 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                                  className="p-1.5 bg-surface-hover text-content-secondary rounded-md hover:bg-surface-button-hover transition-colors"
                                   title="Download"
                                 >
                                   <Download className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => handlePrint(doc)}
-                                  className="p-1.5 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                                  className="p-1.5 bg-surface-hover text-content-secondary rounded-md hover:bg-surface-button-hover transition-colors"
                                   title="Print"
                                 >
                                   <Printer className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => startEditing(doc)}
-                                  className="p-1.5 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                                  className="p-1.5 bg-surface-hover text-content-secondary rounded-md hover:bg-surface-button-hover transition-colors"
                                   title="Rename"
                                 >
                                   <Edit2 className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteClick({ ...doc, contractId: contractItem.id })}
-                                  className="p-1.5 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
+                                  className="p-1.5 bg-surface-hover text-accent-red rounded-md hover:bg-surface-button-hover transition-colors"
                                   title="Delete"
                                 >
                                   <Trash className="w-3 h-3" />
@@ -1308,7 +1308,7 @@ export function ContractManagement({ contract, onClose }) {
                   )}
                   
                   {/* Supported file types info */}
-                  <p className="text-[10px] text-gray-500 mt-3">
+                  <p className="text-[10px] text-content-faint mt-3">
                     Supported: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX, TXT • Max size: 10MB
                   </p>
                 </div>
@@ -1325,29 +1325,29 @@ export function ContractManagement({ contract, onClose }) {
       {/* Delete Confirmation Modal - High z-index to appear above other modals */}
       {deleteModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1003]">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6 mx-4">
+          <div className="bg-surface-base rounded-2xl w-full max-w-md p-6 mx-4">
             <div className="flex items-center gap-3 mb-4">
               <div>
-                <h3 className="text-white text-lg font-medium">Delete Document</h3>
-                <p className="text-gray-400 text-sm">This action cannot be undone</p>
+                <h3 className="text-content-primary text-lg font-medium">Delete Document</h3>
+                <p className="text-content-muted text-sm">This action cannot be undone</p>
               </div>
             </div>
             
-            <div className="bg-[#141414] p-4 rounded-xl mb-6">
-              <p className="text-gray-300 mb-2">Are you sure you want to delete this document?</p>
-              <p className="text-white font-medium truncate">{documentToDelete?.name || ""}</p>
+            <div className="bg-surface-dark p-4 rounded-xl mb-6">
+              <p className="text-content-secondary mb-2">Are you sure you want to delete this document?</p>
+              <p className="text-content-primary font-medium truncate">{documentToDelete?.name || ""}</p>
             </div>
             
             <div className="flex gap-3">
               <button
                 onClick={handleDeleteModalClose}
-                className="flex-1 px-4 py-2 text-sm bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+                className="flex-1 px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+                className="flex-1 px-4 py-2 text-sm bg-accent-red text-white rounded-xl hover:bg-accent-red/80 transition-colors"
               >
                 Delete
               </button>
@@ -1377,16 +1377,16 @@ export function ContractManagement({ contract, onClose }) {
 
       {/* Main Modal */}
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1001]">
-        <div className="bg-[#0E0E0E] rounded-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col border border-gray-800/50 shadow-2xl">
+        <div className="bg-surface-dark rounded-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col border border-border/50 shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold">
                 {firstName.charAt(0)}{lastName.charAt(0)}
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">{contract.memberName}</h2>
-                <p className="text-xs text-gray-400">
+                <h2 className="text-lg font-semibold text-content-primary">{contract.memberName}</h2>
+                <p className="text-xs text-content-muted">
                   {contract.contractNumber ? `#${contract.contractNumber}` : contract.contractType}
                 </p>
               </div>
@@ -1394,7 +1394,7 @@ export function ContractManagement({ contract, onClose }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={redirectToMember}
-                className="flex items-center gap-2 px-3 py-1.5 bg-[#2a2a2a] text-gray-300 rounded-lg hover:bg-[#333] transition-colors text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 bg-surface-hover text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors text-sm"
               >
                 <User size={14} />
                 Go to Member
@@ -1403,7 +1403,7 @@ export function ContractManagement({ contract, onClose }) {
                 onClick={onClose}
                 className="p-2 hover:bg-white/5 rounded-xl transition-colors"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-content-muted" />
               </button>
             </div>
           </div>
@@ -1416,10 +1416,10 @@ export function ContractManagement({ contract, onClose }) {
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-800 flex justify-end flex-shrink-0">
+          <div className="p-4 border-t border-border flex justify-end flex-shrink-0">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#2563eb] transition-colors"
+              className="px-4 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors"
             >
               Close
             </button>

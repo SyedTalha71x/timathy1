@@ -59,6 +59,7 @@ import ImageCropModal from "../../components/shared/image-handler/ImageCropModal
 import DatePickerField from "../../components/shared/DatePickerField"
 import IntroMaterialEditorModal from "../../components/shared/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
+import ColorPickerModal from "../../components/shared/ColorPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 // ============================================
@@ -695,6 +696,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   // Appearance
   const [appearance, setAppearance] = useState({})
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
 
   // Countries
   const [countries, setCountries] = useState([])
@@ -796,6 +798,47 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       document.documentElement.style.setProperty('--color-trial', trialTraining.color)
     }
   }, [trialTraining.color])
+
+  // ============================================
+  // Live-sync appearance settings to CSS
+  // Changes are visible immediately across the entire app.
+  // Backend-friendly: config is still the source of truth,
+  // localStorage bridges reloads before config loads.
+  // ============================================
+
+  // Sync theme (light / dark)
+  useEffect(() => {
+    if (!appearance.theme) return
+    const root = document.documentElement
+
+    if (appearance.theme === "light") {
+      root.classList.add("light")
+      root.style.setProperty("color-scheme", "light")
+    } else {
+      root.classList.remove("light")
+      root.style.setProperty("color-scheme", "dark")
+    }
+
+    localStorage.setItem("theme", appearance.theme)
+  }, [appearance.theme])
+
+  // Sync primary color
+  useEffect(() => {
+    if (!appearance.primaryColor || !/^#[0-9A-Fa-f]{6}$/.test(appearance.primaryColor)) return
+    const root = document.documentElement
+
+    root.style.setProperty("--color-primary", appearance.primaryColor)
+
+    // Compute a darker hover variant (~12% darker)
+    const hex = appearance.primaryColor
+    const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - 30)
+    const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - 30)
+    const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - 30)
+    const hover = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`
+    root.style.setProperty("--color-primary-hover", hover)
+
+    localStorage.setItem("primaryColor", appearance.primaryColor)
+  }, [appearance.primaryColor])
 
   // Create branded QR image with studio name
   const createBrandedQRImage = (callback) => {
@@ -4634,34 +4677,86 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-3 block">Default Theme</label>
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="inline-flex p-1 bg-surface-dark rounded-xl border border-border">
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "light" })}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         appearance.theme === "light"
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-border"
+                          ? "bg-surface-card text-content-primary shadow-sm"
+                          : "text-content-muted hover:text-content-primary"
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                        <Sun className="w-4 h-4 text-amber-500" />
-                      </div>
-                      <span className="text-content-primary">Light</span>
+                      <Sun className="w-4 h-4" />
+                      Light
                     </button>
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "dark" })}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         appearance.theme === "dark"
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-border"
+                          ? "bg-surface-card text-content-primary shadow-sm"
+                          : "text-content-muted hover:text-content-primary"
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-surface-base flex items-center justify-center border border-border">
-                        <Moon className="w-4 h-4 text-content-primary" />
-                      </div>
-                      <span className="text-content-primary">Dark</span>
+                      <Moon className="w-4 h-4" />
+                      Dark
                     </button>
                   </div>
+                </div>
+
+                {/* Automatic Theme Schedule */}
+                <div className="pt-4 border-t border-border space-y-4">
+                  <Toggle
+                    label="Automatic Theme Schedule"
+                    helpText="Automatically switch between light and dark mode at set times"
+                    checked={appearance.autoThemeSchedule?.enabled || false}
+                    onChange={(v) => setAppearance({
+                      ...appearance,
+                      autoThemeSchedule: {
+                        ...(appearance.autoThemeSchedule || { lightModeStart: "07:00", darkModeStart: "20:00" }),
+                        enabled: v,
+                      },
+                    })}
+                  />
+                  {appearance.autoThemeSchedule?.enabled && (
+                    <div className="flex flex-col sm:flex-row gap-4 p-4 bg-surface-dark rounded-xl border border-border">
+                      <div className="flex-1 space-y-1.5">
+                        <label className="text-xs font-medium text-content-muted flex items-center gap-1.5">
+                          <Sun className="w-3.5 h-3.5" />
+                          Switch to Light Mode
+                        </label>
+                        <input
+                          type="time"
+                          value={appearance.autoThemeSchedule?.lightModeStart || "07:00"}
+                          onChange={(e) => setAppearance({
+                            ...appearance,
+                            autoThemeSchedule: {
+                              ...appearance.autoThemeSchedule,
+                              lightModeStart: e.target.value,
+                            },
+                          })}
+                          className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary outline-none transition-colors"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <label className="text-xs font-medium text-content-muted flex items-center gap-1.5">
+                          <Moon className="w-3.5 h-3.5" />
+                          Switch to Dark Mode
+                        </label>
+                        <input
+                          type="time"
+                          value={appearance.autoThemeSchedule?.darkModeStart || "20:00"}
+                          onChange={(e) => setAppearance({
+                            ...appearance,
+                            autoThemeSchedule: {
+                              ...appearance.autoThemeSchedule,
+                              darkModeStart: e.target.value,
+                            },
+                          })}
+                          className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <Toggle
@@ -4681,11 +4776,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-content-secondary">Color Scheme</label>
                       <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={appearance.primaryColor}
-                          onChange={(e) => setAppearance({ ...appearance, primaryColor: e.target.value })}
-                          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border"
+                        <button
+                          onClick={() => setIsColorPickerOpen(true)}
+                          className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                          style={{ backgroundColor: appearance.primaryColor }}
+                          title="Pick a color"
                         />
                         <input
                           type="text"
@@ -4711,12 +4806,93 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </button>
                       </div>
                     </div>
-                    
+
+                    {/* Color Scheme Preview */}
+                    <div className="space-y-2 pt-3 mt-1 border-t border-border">
+                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Preview
+                      </label>
+                      <div className="p-4 bg-surface-dark rounded-xl border border-border space-y-4">
+                        {/* Buttons Preview */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            className="px-4 py-2 text-white text-sm rounded-xl transition-colors"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            Primary Button
+                          </button>
+                          <button
+                            className="px-4 py-2 text-sm rounded-xl border transition-colors"
+                            style={{ borderColor: appearance.primaryColor, color: appearance.primaryColor }}
+                          >
+                            Outlined
+                          </button>
+                          <span
+                            className="px-2.5 py-1 text-white text-xs rounded-full font-medium"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            Badge
+                          </span>
+                        </div>
+                        
+                        {/* Toggle Preview */}
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="relative w-11 h-6 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full translate-x-5" />
+                          </div>
+                          <span className="text-sm text-content-muted">Toggle Active</span>
+                        </div>
+                        
+                        {/* Progress / Accent Bar Preview */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-content-muted">
+                            <span>Progress</span>
+                            <span style={{ color: appearance.primaryColor }}>68%</span>
+                          </div>
+                          <div className="w-full h-2 bg-surface-button rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{ backgroundColor: appearance.primaryColor, width: "68%" }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Checkbox Preview */}
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="text-sm text-content-muted">Checkbox Checked</span>
+                        </div>
+
+                        {/* Link / Accent Text Preview */}
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-content-muted">Accent color on</span>
+                          <span className="font-medium" style={{ color: appearance.primaryColor }}>links & highlights</span>
+                        </div>
+                      </div>
+                    </div>
 
                   </div>
                 </div>
               </div>
             </SettingsCard>
+
+            {/* Shared Color Picker Modal */}
+            <ColorPickerModal
+              isOpen={isColorPickerOpen}
+              onClose={() => setIsColorPickerOpen(false)}
+              onSelectColor={(color) => setAppearance({ ...appearance, primaryColor: color })}
+              currentColor={appearance.primaryColor || "#FF843E"}
+              title="Choose Primary Color"
+            />
           </div>
         )
 

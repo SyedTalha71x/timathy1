@@ -18,8 +18,6 @@ import {
   Printer,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
-import DatePickerField from "../../shared/DatePickerField"
-import CustomSelect from "../../shared/CustomSelect"
 import { pdf } from "@react-pdf/renderer"
 import { DEFAULT_CONTRACT_FORMS, DEFAULT_CONTRACT_TYPES, studioData } from "../../../utils/studio-states/configuration-states"
 import { SYSTEM_VARIABLES, USER_VARIABLES } from "../../studio-components/configuration-components/contract-builder-components/constants/elementConstants"
@@ -182,7 +180,7 @@ const SignaturePad = ({ value, onChange, width = 300, height = 80 }) => {
         <button
           type="button"
           onClick={clearSignature}
-          className="absolute top-1 right-1 p-1 bg-accent-red/20 hover:bg-accent-red/30 rounded text-accent-red"
+          className="absolute top-1 right-1 p-1 bg-red-100 hover:bg-red-200 rounded text-red-600"
           title="Clear signature"
         >
           <Trash2 size={14} />
@@ -310,57 +308,22 @@ const RenderElement = ({
                 {element.required && <span className="text-accent-red ml-1">*</span>}
               </div>
             )}
-            {userVariable === 'Salutation' ? (
-              <CustomSelect
-                name="salutation"
-                value={currentValue}
-                onChange={(e) => setUserValue(userVariable, e.target.value)}
-                options={[
-                  { value: "Mr.", label: "Mr." },
-                  { value: "Mrs.", label: "Mrs." },
-                  { value: "Ms.", label: "Ms." },
-                ]}
-                placeholder="Select salutation..."
-                className="flex-1 w-full !bg-white !text-black !border-border !rounded"
-              />
-            ) : userVariable === 'Date of Birth' ? (
-              <div className="flex items-center border border-border rounded bg-white px-2" style={{ minHeight: '28px' }}>
-                <span
-                  className="flex-1"
-                  style={{
-                    fontSize: `${inputFontSize}px`,
-                    fontFamily: inputFontFamily,
-                    fontWeight: element.inputBold ? 'bold' : 'normal',
-                    fontStyle: element.inputItalic ? 'italic' : 'normal',
-                    color: currentValue ? (inputColor || '#374151') : '#9ca3af',
-                  }}
-                >
-                  {currentValue ? new Date(currentValue + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date...'}
-                </span>
-                <DatePickerField
-                  value={currentValue}
-                  onChange={(val) => setUserValue(userVariable, val)}
-                  iconSize={14}
-                />
-              </div>
-            ) : (
-              <input
-                type="text"
-                value={currentValue}
-                onChange={(e) => setUserValue(userVariable, e.target.value)}
-                placeholder={userVariable || '...'}
-                className="flex-1 w-full border border-border rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                style={{
-                  fontSize: `${inputFontSize}px`,
-                  fontFamily: inputFontFamily,
-                  fontWeight: element.inputBold ? 'bold' : 'normal',
-                  fontStyle: element.inputItalic ? 'italic' : 'normal',
-                  color: inputColor,
-                  minHeight: '28px',
-                }}
-                required={element.required}
-              />
-            )}
+            <input
+              type={userVariable === 'Date of Birth' ? 'date' : 'text'}
+              value={currentValue}
+              onChange={(e) => setUserValue(userVariable, e.target.value)}
+              placeholder={userVariable || '...'}
+              className="flex-1 w-full border border-border rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              style={{
+                fontSize: `${inputFontSize}px`,
+                fontFamily: inputFontFamily,
+                fontWeight: element.inputBold ? 'bold' : 'normal',
+                fontStyle: element.inputItalic ? 'italic' : 'normal',
+                color: inputColor,
+                minHeight: '28px',
+              }}
+              required={element.required}
+            />
           </div>
         </div>
       );
@@ -464,7 +427,7 @@ const RenderElement = ({
                 id={checkboxId}
                 checked={isChecked}
                 onChange={(e) => onValueChange?.(`checkbox_${element.id}`, e.target.checked)}
-                className="primary-check mt-1"
+                className="w-4 h-4 mt-1 flex-shrink-0 cursor-pointer"
                 required={element.required}
               />
               <label htmlFor={checkboxId} className="flex-1 cursor-pointer">
@@ -1021,11 +984,6 @@ export function ContractFormFillModal({
 
   return (
     <div className={`fixed inset-0 bg-black/70 flex items-center justify-center z-50 ${isFullscreen ? 'p-0' : 'p-4'}`}>
-      <style>{`
-        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
-        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
-        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
-      `}</style>
       
       {/* Generate Contract Confirmation Prompt */}
       {showGeneratePrompt && (
@@ -1052,7 +1010,7 @@ export function ContractFormFillModal({
               </button>
               <button
                 onClick={handleGenerateConfirm}
-                className="flex-1 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
+                className="flex-1 px-4 py-3 bg-orange-500 text-content-primary rounded-xl hover:bg-orange-600 transition-colors"
               >
                 Yes, Generate
               </button>
@@ -1086,7 +1044,7 @@ export function ContractFormFillModal({
               </button>
               <button
                 onClick={handlePrintConfirm}
-                className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
+                className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary transition-colors"
               >
                 Yes, Print
               </button>
@@ -1122,7 +1080,7 @@ export function ContractFormFillModal({
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleSaveAsDraft}
-                className="w-full px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
+                className="w-full px-4 py-3 bg-orange-500 text-content-primary rounded-xl hover:bg-orange-600 transition-colors"
               >
                 Save as Draft (Pending)
               </button>
@@ -1185,13 +1143,13 @@ export function ContractFormFillModal({
                   onClick={() => setCurrentPageIndex(index)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
                     index === currentPageIndex
-                      ? 'bg-orange-500 text-white'
+                      ? 'bg-orange-500 text-content-primary'
                       : 'bg-surface-hover text-content-muted hover:bg-surface-button-hover'
                   }`}
                 >
                   {page.title || `Page ${index + 1}`}
                   {pageErrors.length > 0 && (
-                    <span className="w-5 h-5 bg-secondary rounded-full text-xs flex items-center justify-center text-white">
+                    <span className="w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center text-content-primary">
                       {pageErrors.length}
                     </span>
                   )}
@@ -1304,7 +1262,7 @@ export function ContractFormFillModal({
 
         {/* Error Messages */}
         {errors.length > 0 && (
-          <div className="px-4 py-2 bg-accent-red/10 border-t border-accent-red/30 flex-shrink-0">
+          <div className="px-4 py-2 bg-red-900/30 border-t border-red-800 flex-shrink-0">
             <div className="flex items-center gap-2 text-accent-red text-sm">
               <AlertCircle size={16} />
               <span>
@@ -1336,7 +1294,7 @@ export function ContractFormFillModal({
                 Next <ChevronRight size={18} />
               </button>
             ) : (
-              <button onClick={handleGenerateClick} className="flex items-center gap-2 px-6 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600">
+              <button onClick={handleGenerateClick} className="flex items-center gap-2 px-6 py-2 bg-orange-500 text-content-primary rounded-xl hover:bg-orange-600">
                 <Check size={18} /> Generate Contract
               </button>
             )}

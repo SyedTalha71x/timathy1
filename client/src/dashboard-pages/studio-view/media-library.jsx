@@ -6,6 +6,7 @@ import {
   useSensor, 
   useSensors,
   DragOverlay,
+  useDroppable,
 } from '@dnd-kit/core';
 import { 
   Plus, 
@@ -46,12 +47,20 @@ import { templates } from '../../components/studio-components/media-library-comp
 const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit, onDelete }) => {
   const [showMenu, setShowMenu] = useState(false);
   
+  const { setNodeRef, isOver } = useDroppable({
+    id: `folder-${folder.id}`,
+    data: { type: 'folder', folderId: folder.id },
+  });
+  
   return (
     <div
+      ref={setNodeRef}
       className={`relative group bg-surface-base rounded-xl p-4 border transition-all cursor-pointer ${
-        isSelected 
-          ? 'border-orange-500 ring-2 ring-orange-500/20' 
-          : 'border-border hover:border-orange-500/50'
+        isOver
+          ? 'border-orange-500 ring-2 ring-orange-500/30 bg-orange-500/5'
+          : isSelected 
+            ? 'border-orange-500 ring-2 ring-orange-500/20' 
+            : 'border-border hover:border-orange-500/50'
       }`}
       onClick={() => onSelect(folder.id === onSelect ? null : folder.id)}
     >
