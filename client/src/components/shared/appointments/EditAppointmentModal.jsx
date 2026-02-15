@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Clock, User, ChevronDown, AlertTriangle, Check, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
-import NotifyMemberModalMain from '../NotifyMemberModal';
+import NotifyMemberModalMain from './NotifyMemberModal';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {

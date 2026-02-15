@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react"
 import AddLeadModal from "../../studio-components/lead-studio-components/add-lead-modal"
 import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
 import DatePickerField from '../../shared/DatePickerField';
-import NotifyMemberModalMain from '../../shared/NotifyMemberModal';
+import NotifyMemberModalMain from './NotifyMemberModal';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {

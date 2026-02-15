@@ -5,7 +5,7 @@ import { Search, X, Plus, Users, Calendar, Clock, ChevronDown, AlertTriangle, Ch
 import { useState, useRef, useEffect } from "react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
-import NotifyMemberModalMain from '../NotifyMemberModal';
+import NotifyMemberModalMain from './NotifyMemberModal';
 
 const MAX_PARTICIPANTS = 5;
 
