@@ -11,7 +11,7 @@ const AdminModel = UserModel.discriminator('admin', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Appointment'
     }],
-     tasks: [{
+    tasks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Task'
     }],
@@ -22,7 +22,12 @@ const AdminModel = UserModel.discriminator('admin', new mongoose.Schema({
     studio: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
-    }]
+    }],
+    video: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TrainingVideo'
+    }],
+
 }));
 
 const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
@@ -49,10 +54,14 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'IdlePeriod',
     },
-    studio:{
+    studio: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
-    }
+    },
+    createdPlans: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TrainingPlan'
+    }],
 }))
 
 
@@ -111,6 +120,10 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'BlockedSlot',
     }],
+    video: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TrainingVideo'
+    }]
 }))
 
 module.exports = { AdminModel, MemberModel, StaffModel }

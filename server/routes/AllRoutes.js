@@ -4,8 +4,8 @@ const AdminRoutes = require('./AdminRoutes')
 const StaffRoutes = require('./StaffRoutes');
 const MemberRoutes = require('./MemberRoutes');
 const AppointmentRoutes = require('./AppointmentRoutes');
-
-
+const TrainingVideoUploadRoutes = require('./TrainingVideoUploadRoutes');
+const TrainingPlanRoutes = require('./TrainingPlanRoutes');
 const StudioRoutes = require('./StudioRoutes');
 const ServiceRoutes = require('./ServiceRoutes');
 
@@ -47,7 +47,8 @@ router.use('/appointment', AppointmentRoutes)
 
 router.use('/studio', StudioRoutes)
 router.use('/service', ServiceRoutes)
-
+router.use('/training', TrainingVideoUploadRoutes)
+router.use('/plan', TrainingPlanRoutes)
 
 
 

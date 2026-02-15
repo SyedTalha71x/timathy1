@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { useSelector, useDispatch } from 'react-redux'
 import {
   Play,
   Pause,
@@ -29,8 +30,12 @@ import AddToPlanModal from "../../components/member-panel-components/training-co
 import CreatePlanModal from "../../components/member-panel-components/training-components/CreatePlanModal"
 import { EditPlanModal } from "../../components/member-panel-components/training-components/EditPlanModal"
 import { ViewPlanModal } from "../../components/member-panel-components/training-components/ViewPlanModal"
+import { fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 
 export default function Training() {
+  const { training, loading, myPlans } = useSelector((state) => state.trainings)
+  const { user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
   const [activeTab, setActiveTab] = useState("videos")
   const [selectedCategories, setSelectedCategories] = useState(["all"])
   const [searchQuery, setSearchQuery] = useState("")
@@ -83,8 +88,8 @@ export default function Training() {
 
   // Filter videos based on category and search
   const filteredVideos = trainingVideos.filter((video) => {
-    const matchesCategory = 
-      selectedCategories.includes("all") || 
+    const matchesCategory =
+      selectedCategories.includes("all") ||
       selectedCategories.includes(video.category)
     const matchesSearch =
       video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,14 +101,26 @@ export default function Training() {
   const availableVideos = filteredVideos
 
   // Filter plans based on selected staff member
-  const filteredPlans = trainingPlans.filter((plan) => {
+  // const filteredPlans = myPlans.filter((plan) => {
+  //   if (selectedStaffMember === "own") {
+  //     return plan.createdBy === "Current User"
+  //   } else if (selectedStaffMember === "all") {
+  //     return true
+  //   } else {
+  //     const staffMember = staffMembers.find((s) => s.id === selectedStaffMember)
+  //     return plan.createdBy === staffMember?.name
+  //   }
+  // })
+  const filteredPlans = myPlans.filter((plan) => {
+    const creatorName = `${plan.createdBy?.firstName || ''} ${plan.createdBy?.lastName || ''}`.trim()
+
     if (selectedStaffMember === "own") {
-      return plan.createdBy === "Current User"
+      return creatorName === `${user.firstName} ${user.lastName}`.trim()
     } else if (selectedStaffMember === "all") {
       return true
     } else {
       const staffMember = staffMembers.find((s) => s.id === selectedStaffMember)
-      return plan.createdBy === staffMember?.name
+      return creatorName === staffMember?.name
     }
   })
 
@@ -125,6 +142,23 @@ export default function Training() {
       setIsMuted(!isMuted)
     }
   }
+
+  // testing fetching videos
+  useEffect(() => {
+    dispatch(fetchTrainingVideos());
+    dispatch(fetchMyPlans());
+  }, [dispatch])
+
+
+  const normalizeExercise = (exercise) => {
+    return {
+      video: exercise.video,
+      sets: exercise.sets || 3,
+      reps: exercise.reps || "10-12",
+      rest: exercise.rest || "60s",
+    }
+  }
+
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
@@ -202,7 +236,7 @@ export default function Training() {
     if (!videoToAdd) return
 
     const exercise = {
-      videoId: videoToAdd.id,
+      video: videoToAdd._id,
       sets: 3,
       reps: "10-12",
       rest: "60s",
@@ -220,42 +254,45 @@ export default function Training() {
 
   const handleAddExercise = (video) => {
     const exercise = {
-      videoId: video.id,
+      video,
       sets: 3,
       reps: "10-12",
       rest: "60s",
     }
-    setSelectedExercises([...selectedExercises, exercise])
-    setPlanForm((prevForm) => ({
-      ...prevForm,
-      exercises: [...prevForm.exercises, exercise],
+
+    setSelectedExercises((prev) => [...prev, exercise])
+    setPlanForm((prev) => ({
+      ...prev,
+      exercises: [...prev.exercises, exercise],
     }))
   }
 
+
   const handleRemoveExercise = (index) => {
-    const updatedExercises = selectedExercises.filter((_, i) => i !== index)
-    setSelectedExercises(updatedExercises)
-    setPlanForm((prevForm) => ({
-      ...prevForm,
-      exercises: updatedExercises,
+    setSelectedExercises((prev) => prev.filter((_, i) => i !== index))
+    setPlanForm((prev) => ({
+      ...prev,
+      exercises: prev.exercises.filter((_, i) => i !== index),
     }))
   }
+
 
   const openEditPlan = (plan) => {
     setEditingPlan(plan)
     setPlanForm({
       name: plan.name || "",
       description: plan.description || "",
-      difficulty: plan.difficulty || "Beginner",
       duration: plan.duration || "",
+      difficulty: plan.difficulty || "Beginner",
       category: plan.category || "Full Body",
       workoutsPerWeek: plan.workoutsPerWeek || "",
-      exercises: plan.exercises || [],
+      exercises: plan.exercises.map(normalizeExercise),
       isPublic: plan.isPublic !== undefined ? plan.isPublic : true,
     })
-    setSelectedExercises(plan.exercises || [])
+    setSelectedExercises(plan.exercises.map(normalizeExercise))
     setIsEditPlanModalOpen(true)
   }
+
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -270,13 +307,14 @@ export default function Training() {
     }
   }
 
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
+  const getVideoById = (id) => trainingVideos.find((video) => video._id === id)
+
 
   const canEditPlan = (plan) => {
-    return plan.createdBy === "Current User"
+    const creatorName = `${plan.createdBy?.firstName || ''} ${plan.createdBy?.lastName || ''}`.trim()
+    return creatorName === "Umair Khan" // match with your logged-in user
   }
+
 
   const handleAddToPlan = (selectedVideo) => {
     setVideoToAdd(selectedVideo)
@@ -319,7 +357,7 @@ export default function Training() {
             <div>
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
-           
+
           </div>
 
           <div className="w-full sm:max-w-sm mb-6">
@@ -360,44 +398,42 @@ export default function Training() {
               </div>
 
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
-  <button
-    onClick={() => setSelectedCategories(["all"])}
-    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-      selectedCategories.includes("all")
-        ? "bg-blue-600 text-white"
-        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-    }`}
-  >
-    All
-  </button>
-  {categories.map((category) => (
-    <button
-      key={category.id}
-      onClick={(e) => {
-        e.preventDefault()
-        setSelectedCategories(prev => {
-          if (prev.includes("all")) {
-            return [category.id]
-          }
-          
-          if (prev.includes(category.id)) {
-            const newCategories = prev.filter(cat => cat !== category.id)
-            return newCategories.length === 0 ? ["all"] : newCategories
-          } else {
-            return [...prev, category.id]
-          }
-        })
-      }}
-      className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-        selectedCategories.includes(category.id)
-          ? `bg-blue-600 text-white`
-          : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-      }`}
-    >
-      {category.name}
-    </button>
-  ))}
-</div>
+                <button
+                  onClick={() => setSelectedCategories(["all"])}
+                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes("all")
+                    ? "bg-blue-600 text-white"
+                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    }`}
+                >
+                  All
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setSelectedCategories(prev => {
+                        if (prev.includes("all")) {
+                          return [category.id]
+                        }
+
+                        if (prev.includes(category.id)) {
+                          const newCategories = prev.filter(cat => cat !== category.id)
+                          return newCategories.length === 0 ? ["all"] : newCategories
+                        } else {
+                          return [...prev, category.id]
+                        }
+                      })
+                    }}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes(category.id)
+                      ? `bg-blue-600 text-white`
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredVideos.map((video) => (
@@ -477,36 +513,36 @@ export default function Training() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredPlans.map((plan) => (
                   <div
-                    key={plan.id}
+                    key={plan?._id}
                     className="bg-[#161616] rounded-xl p-4 sm:p-6 hover:bg-[#1F1F1F] transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white mb-2 truncate">{plan.name}</h3>
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{plan.description}</p>
+                        <h3 className="font-semibold text-white mb-2 truncate">{plan?.name}</h3>
+                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{plan?.description}</p>
                       </div>
                       <div
-                        className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan.difficulty)}`}
+                        className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan?.difficulty)}`}
                       >
-                        {plan.difficulty}
+                        {plan?.difficulty}
                       </div>
                     </div>
                     <div className="space-y-2 mb-4">
                       {plan.duration && (
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Clock size={14} />
-                          <span>{plan.duration}</span>
+                          <span>{plan?.duration}</span>
                         </div>
                       )}
                       {plan.workoutsPerWeek && (
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Calendar size={14} />
-                          <span>{plan.workoutsPerWeek}x per week</span>
+                          <span>{plan?.workoutsPerWeek}x per week</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-sm text-gray-400">
                         <User size={14} />
-                        <span className="truncate">by {plan.createdBy}</span>
+                        <span className="truncate">by {plan?.createdBy?.firstName}{plan?.createdBy?.lastName}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-2">
