@@ -40,3 +40,4 @@ server.listen(port, () => {
     console.log(`Server running ${port}`)
 })
 
+server.setTimeout(15 * 60 * 1000); // 15 minutes

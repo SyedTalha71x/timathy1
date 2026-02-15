@@ -20,6 +20,7 @@ app.use(cors({
 }))
 
 app.options(/.*/, cors());
+
 // const allowedOrigins = [
 //     'https://fitness-web-kappa.vercel.app',
 //     'http://localhost:5173', // add this

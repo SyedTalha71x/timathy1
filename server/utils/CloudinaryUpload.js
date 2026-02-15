@@ -98,4 +98,58 @@ const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
 };
 
 
-module.exports = { uploadToCloudinary, uploadService, uploadContract, uploadIdlePeriod };
+// --- video thumbnail to cloudinary ---
+const uploadThumbnail = (fileBuffer, folder = "Timathy/trainingVideo/thumbnail") => {
+  return new Promise((resolve, reject) => {
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
+
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    bufferStream.pipe(stream);
+  });
+};
+
+
+
+// --- upload training plan videos upload ---
+
+const uploadTrainingPlanVideo = (fileBuffer, folder = "Timathy/trainingVideo/videos") => {
+  return new Promise((resolve, reject) => {
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
+
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        overwrite: true,
+        chunk_size: 6 * 1024 * 1024,
+        resource_type: "video"
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+          duration: result.duration
+        });
+      }
+    );
+    bufferStream.pipe(stream)
+  })
+}
+
+
+
+
+
+
+module.exports = { uploadToCloudinary, uploadService, uploadContract, uploadIdlePeriod, uploadThumbnail, uploadTrainingPlanVideo };
