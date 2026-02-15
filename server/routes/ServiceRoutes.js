@@ -1,11 +1,11 @@
 const express = require('express');
-const upload = require('../config/upload');
-const { 
-  createService, 
-  deleteService, 
-  getServiceById, 
-  getAllServices, 
-//   myServices 
+const { upload } = require('../config/upload');
+const {
+  createService,
+  deleteService,
+  getServiceById,
+  getAllServices,
+  //   myServices 
 } = require('../controllers/ServiceController');
 const { verifyAccessToken } = require('../middleware/verifyToken');
 const { isAdmin } = require('../middleware/RoleCheck');
