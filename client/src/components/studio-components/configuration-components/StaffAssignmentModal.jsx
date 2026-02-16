@@ -85,42 +85,42 @@ export const StaffAssignmentModal = ({
       />
 
       {/* Modal */}
-      <div className="relative bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="relative bg-surface-base rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#333333]">
+        <div className="flex items-center justify-between p-5 border-b border-border">
           <div>
-            <h2 className="text-lg font-semibold text-white">Assign Staff to Role</h2>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <h2 className="text-lg font-semibold text-content-primary">Assign Staff to Role</h2>
+            <p className="text-sm text-content-muted mt-0.5">
               <span style={{ color: role?.color }}>{role?.name || "Role"}</span> • {assignedStaff.length} assigned
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-[#333333] rounded-xl transition-colors"
+            className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b border-[#333333]">
+        <div className="p-4 border-b border-border">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
             <input
               type="text"
               placeholder="Search staff..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500 transition-colors"
+              className="w-full bg-surface-dark text-content-primary rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none border border-border focus:border-primary transition-colors"
             />
           </div>
         </div>
 
         {/* Info Notice */}
-        <div className="mx-4 mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+        <div className="mx-4 mt-4 p-3 bg-primary/10 border border-primary/20 rounded-xl">
           <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-blue-300">
+            <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-primary">
               Each staff member can only have one role. Selecting a staff member will automatically remove them from their current role.
             </p>
           </div>
@@ -129,7 +129,7 @@ export const StaffAssignmentModal = ({
         {/* Staff List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {filteredStaff.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-content-faint">
               <p>No staff found</p>
             </div>
           ) : (
@@ -150,27 +150,27 @@ export const StaffAssignmentModal = ({
                   className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
                     isDisabled
                       ? "cursor-not-allowed opacity-60"
-                      : "cursor-pointer hover:border-[#444444]"
+                      : "cursor-pointer hover:border-border"
                   } ${
                     isAssigned
-                      ? "bg-orange-500/10 border-orange-500/30"
+                      ? "bg-primary/10 border-primary/30"
                       : currentRole
-                        ? "bg-[#1a1a1a] border-[#333333]"
-                        : "bg-[#141414] border-[#333333]"
+                        ? "bg-surface-card border-border"
+                        : "bg-surface-dark border-border"
                   }`}
                 >
                   {/* Checkbox */}
                   <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                     isAssigned
-                      ? "bg-orange-500 border-orange-500"
-                      : "border-[#444444]"
+                      ? "bg-primary border-primary"
+                      : "border-border"
                   }`}>
-                    {isAssigned && <Check className="w-3 h-3 text-white" />}
+                    {isAssigned && <Check className="w-3 h-3 text-content-primary" />}
                   </div>
 
                   {/* Avatar */}
                   <div 
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-medium text-sm"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-content-primary font-medium text-sm"
                     style={{ backgroundColor: isAssigned ? (role?.color || "#FF843E") : (currentRole?.color || "#444444") }}
                   >
                     {staff.avatar ? (
@@ -186,9 +186,9 @@ export const StaffAssignmentModal = ({
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium text-sm truncate">{staff.name}</p>
+                    <p className="text-content-primary font-medium text-sm truncate">{staff.name}</p>
                     {isLastAdminStaff && !role?.isAdmin ? (
-                      <p className="text-xs text-orange-400 truncate">
+                      <p className="text-xs text-primary truncate">
                         Last Admin - cannot be reassigned
                       </p>
                     ) : currentRole && !isAssigned ? (
@@ -196,14 +196,14 @@ export const StaffAssignmentModal = ({
                         Currently: {currentRole.name}
                       </p>
                     ) : (
-                      <p className="text-gray-500 text-xs truncate">{staff.email}</p>
+                      <p className="text-content-faint text-xs truncate">{staff.email}</p>
                     )}
                   </div>
 
                   {/* Current Role Badge or Warning */}
                   {isLastAdminStaff && !role?.isAdmin ? (
                     <div className="flex-shrink-0" title="Last admin cannot be reassigned">
-                      <AlertCircle className="w-4 h-4 text-orange-400" />
+                      <AlertCircle className="w-4 h-4 text-primary" />
                     </div>
                   ) : currentRole && !isAssigned ? (
                     <div 
@@ -217,7 +217,7 @@ export const StaffAssignmentModal = ({
                   {/* Last Admin Warning in Admin Role */}
                   {isLastAdminInCurrentRole && (
                     <div className="flex-shrink-0" title="Cannot remove the last admin">
-                      <AlertCircle className="w-4 h-4 text-orange-400" />
+                      <AlertCircle className="w-4 h-4 text-primary" />
                     </div>
                   )}
                 </button>
@@ -228,10 +228,10 @@ export const StaffAssignmentModal = ({
 
         {/* Admin Notice */}
         {role?.isAdmin && (
-          <div className="mx-4 mb-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+          <div className="mx-4 mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-orange-300">
+              <AlertCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-primary">
                 At least one staff member must remain assigned to the Admin role.
               </p>
             </div>
@@ -239,17 +239,17 @@ export const StaffAssignmentModal = ({
         )}
 
         {/* Footer */}
-        <div className="flex gap-3 p-4 border-t border-[#333333]">
+        <div className="flex gap-3 p-4 border-t border-border">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+            className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={role?.isAdmin && assignedStaff.length === 0}
-            className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Changes
           </button>

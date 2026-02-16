@@ -89,13 +89,13 @@ const TopToolbar = ({
   const isPdfPage = contractPages?.[currentPage]?.locked;
   
   return (
-    <div className="bg-white border-b border-gray-200 flex-shrink-0">
+    <div className="bg-surface-card border-b border-border flex-shrink-0">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <KeyboardTooltip label="New Page" shortcut="N">
             <button
               onClick={() => setShowAddPageModal(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
             >
               <PlusIcon size={18} />
               <span className="text-sm font-medium">New Page</span>
@@ -103,8 +103,8 @@ const TopToolbar = ({
           </KeyboardTooltip>
 
           <KeyboardTooltip label="Add PDF" shortcut="A">
-            <label className="flex items-center gap-2 bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors cursor-pointer relative">
-              <FilePlusIcon size={18} className="text-white" />
+            <label className="flex items-center gap-2 bg-surface-button text-content-primary px-4 py-2 rounded-xl hover:bg-surface-button-hover transition-colors cursor-pointer relative">
+              <FilePlusIcon size={18} className="text-content-primary" />
               <span className="text-sm font-medium">Add PDF</span>
               <input
                 type="file"
@@ -121,7 +121,7 @@ const TopToolbar = ({
                 disabled={isPdfProcessing}
               />
               {isPdfProcessing && (
-                <span className="ml-2 text-xs text-white/80">Processing...</span>
+                <span className="ml-2 text-xs text-content-muted">Processing...</span>
               )}
             </label>
           </KeyboardTooltip>
@@ -131,18 +131,18 @@ const TopToolbar = ({
           <KeyboardTooltip label="Zoom Out" shortcut="Ctrl+Scroll ↓">
             <button
               onClick={() => setCanvasZoom(prev => Math.max(0.5, prev - 0.05))}
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-content-secondary hover:bg-surface-hover rounded-xl"
             >
               <ZoomOutIcon size={18} />
             </button>
           </KeyboardTooltip>
-          <span className="text-sm font-medium text-gray-700 w-12 text-center">
+          <span className="text-sm font-medium text-content-secondary w-12 text-center">
             {Math.round(canvasZoom * 100)}%
           </span>
           <KeyboardTooltip label="Zoom In" shortcut="Ctrl+Scroll ↑">
             <button
               onClick={() => setCanvasZoom(prev => Math.min(1.2, prev + 0.05))}
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-content-secondary hover:bg-surface-hover rounded-xl"
             >
               <ZoomInIcon size={18} />
             </button>
@@ -154,10 +154,10 @@ const TopToolbar = ({
             <button
               onClick={() => setHeaderFooterSettingsOpen(true)}
               disabled={isPdfPage}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
                 isPdfPage 
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  ? 'bg-surface-hover text-content-muted cursor-not-allowed' 
+                  : 'bg-surface-button text-content-primary hover:bg-surface-button-hover'
               }`}
             >
               <span className="text-sm font-medium">Header/Footer</span>
@@ -171,7 +171,7 @@ const TopToolbar = ({
                 setPreviewPage(0);
                 setPreviewZoom(0.7);
               }}
-              className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              className="flex items-center gap-2 bg-surface-button text-content-primary px-4 py-2 rounded-xl hover:bg-surface-button-hover transition-colors"
             >
               <EyeIcon size={18} />
               <span className="text-sm font-medium">Preview</span>
@@ -181,19 +181,19 @@ const TopToolbar = ({
           <KeyboardTooltip label="Save Contract" shortcut="Ctrl+S">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 bg-[#fb923c] text-white px-4 py-2 rounded-lg hover:bg-[#f97316] transition-colors"
+              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
             >
               <SaveIcon size={18} />
               <span className="text-sm font-medium">Save</span>
             </button>
           </KeyboardTooltip>
 
-          <div className="flex items-center gap-2 border-l border-gray-300 pl-2">
+          <div className="flex items-center gap-2 border-l border-border pl-2">
             <KeyboardTooltip label="Undo" shortcut="Ctrl+Z" disabled={historyIndex <= 0}>
               <button
                 onClick={undo}
                 disabled={historyIndex <= 0}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${historyIndex <= 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${historyIndex <= 0 ? 'bg-surface-hover text-content-muted cursor-not-allowed' : 'bg-surface-button text-content-primary hover:bg-surface-button-hover'}`}
               >
                 <UndoIcon size={18} />
               </button>
@@ -202,7 +202,7 @@ const TopToolbar = ({
               <button
                 onClick={redo}
                 disabled={historyIndex >= history.length - 1}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${historyIndex >= history.length - 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${historyIndex >= history.length - 1 ? 'bg-surface-hover text-content-muted cursor-not-allowed' : 'bg-surface-button text-content-primary hover:bg-surface-button-hover'}`}
               >
                 <RedoIcon size={18} />
               </button>
@@ -211,11 +211,11 @@ const TopToolbar = ({
 
           {/* Close Button - only shown when onClose is provided */}
           {onClose && (
-            <div className="border-l border-gray-300 pl-2 ml-1">
+            <div className="border-l border-border pl-2 ml-1">
               <KeyboardTooltip label="Close" shortcut="Esc">
                 <button
                   onClick={onClose}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-gray-100 text-gray-800 hover:bg-red-100 hover:text-red-600"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl transition-colors bg-surface-button text-content-primary hover:bg-surface-button-hover"
                 >
                   <XIcon size={18} />
                 </button>

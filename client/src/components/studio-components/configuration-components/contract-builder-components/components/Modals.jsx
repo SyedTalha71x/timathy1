@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import ColorPickerModal from '../../../../shared/ColorPickerModal';
 import {
   FileIcon, ChevronLeftIcon, ChevronRightIcon,
   ZoomInIcon, ZoomOutIcon,
   ChevronRightIcon as ChevronRight,
-  LayoutIcon, CheckSquareIcon, FileTextIcon
+  LayoutIcon, CheckSquareIcon, FileTextIcon,
+  XIcon
 } from 'lucide-react';
 import { PAGE_WIDTH_PX, PAGE_HEIGHT_PX, MARGIN_PX, CONTENT_WIDTH_PX, CONTENT_HEIGHT_PX, calculateDynamicContentArea } from '../utils/layoutUtils';
 
@@ -483,14 +485,14 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
   return (
     <div className="space-y-3">
       {/* Formatting Toolbar */}
-      <div className="bg-gray-50 border border-gray-300 rounded-lg p-2 flex flex-wrap gap-2 items-center">
-        <div className="text-xs font-medium text-gray-700 mr-2">Format:</div>
+      <div className="bg-surface-hover border border-border rounded-xl p-2 flex flex-wrap gap-2 items-center">
+        <div className="text-xs font-medium text-content-secondary mr-2">Format:</div>
         
         {/* Font Family */}
         <select
           value={currentFontFamily}
           onChange={(e) => applyFormat('fontName', e.target.value)}
-          className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-900 font-medium"
+          className="text-xs bg-surface-dark border border-transparent rounded-xl px-2 py-1 text-content-primary font-medium outline-none focus:border-primary transition-colors"
           title="Font Family"
         >
           <option value="Arial, sans-serif">Arial</option>
@@ -507,7 +509,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
           max="72"
           value={currentFontSize}
           onChange={(e) => handleFontSizeChange(parseInt(e.target.value) || 10)}
-          className="w-16 text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-900 font-medium"
+          className="w-16 text-xs bg-surface-dark border border-transparent rounded-xl px-2 py-1 text-content-primary font-medium outline-none focus:border-primary transition-colors"
           title="Font Size"
         />
 
@@ -516,16 +518,16 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
           type="color"
           value={currentColor}
           onChange={(e) => applyFormat('foreColor', e.target.value)}
-          className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+          className="w-8 h-8 border border-border rounded-xl cursor-pointer"
           title="Text Color"
         />
 
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="w-px h-6 bg-border" />
 
         {/* Bold, Italic, Underline */}
         <button
           onClick={() => applyFormat('bold')}
-          className={`p-1.5 rounded ${isBold ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          className={`p-1.5 rounded-xl ${isBold ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
           title="Bold (Ctrl+B)"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -535,7 +537,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         </button>
         <button
           onClick={() => applyFormat('italic')}
-          className={`p-1.5 rounded ${isItalic ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          className={`p-1.5 rounded-xl ${isItalic ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
           title="Italic (Ctrl+I)"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -546,7 +548,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         </button>
         <button
           onClick={() => applyFormat('underline')}
-          className={`p-1.5 rounded ${isUnderline ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          className={`p-1.5 rounded-xl ${isUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
           title="Underline (Ctrl+U)"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -555,12 +557,12 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
           </svg>
         </button>
 
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="w-px h-6 bg-border" />
 
         {/* Alignment */}
         <button
           onClick={() => applyFormat('justifyLeft')}
-          className={`p-1.5 rounded ${currentAlignment === 'left' ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          className={`p-1.5 rounded-xl ${currentAlignment === 'left' ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
           title="Align Left"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -572,7 +574,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         </button>
         <button
           onClick={() => applyFormat('justifyCenter')}
-          className={`p-1.5 rounded ${currentAlignment === 'center' ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          className={`p-1.5 rounded-xl ${currentAlignment === 'center' ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
           title="Align Center"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -584,7 +586,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         </button>
         <button
           onClick={() => applyFormat('justifyRight')}
-          className={`p-1.5 rounded ${currentAlignment === 'right' ? 'bg-blue-100 text-blue-700' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          className={`p-1.5 rounded-xl ${currentAlignment === 'right' ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
           title="Align Right"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -598,11 +600,11 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
 
       {/* Editor Area */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 mb-2">
+        <label className="block text-sm font-medium text-content-primary mb-2">
           {editorId.includes('header') ? 'Header Content' : 'Footer Content'}
         </label>
         
-        <div className="border border-gray-300 rounded-lg bg-white relative" style={{ width: `${CONTENT_WIDTH_PX + 16}px`, padding: '8px' }}>
+        <div className="border border-border rounded-xl bg-white relative" style={{ width: `${CONTENT_WIDTH_PX + 16}px`, padding: '8px' }}>
           <div
             id={editorId}
             contentEditable
@@ -640,7 +642,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
           />
           {!content && (
             <div 
-              className="text-gray-400 text-xs pointer-events-none absolute"
+              className="text-content-muted text-xs pointer-events-none absolute"
               style={{ 
                 fontSize: '10px', 
                 top: '8px',
@@ -738,6 +740,9 @@ const Modals = ({
   const cropAreaRef = useRef(null);
   const imageRef = useRef(null);
 
+  // Color picker modal state for folder colors
+  const [folderColorPicker, setFolderColorPicker] = useState({ isOpen: false, target: null });
+
   // Calculate dynamic content area for preview (MOVED OUT OF renderPreview)
   const previewDynamicContentArea = useMemo(() => {
     if (!showPreview || !contractPages[previewPage]) {
@@ -759,8 +764,13 @@ const Modals = ({
     const headerHeight = previewMeasuredHeaderHeight || 0;
     const footerHeight = previewMeasuredFooterHeight || 0;
 
-    const contentTop = MARGIN_PX + headerHeight;
-    const contentHeight = CONTENT_HEIGHT_PX - headerHeight - footerHeight;
+    // Must match builder calculation from layoutUtils.js:
+    // Only subtract the overflow beyond the margin area, not the full height
+    const headerOverflow = Math.max(0, headerHeight - (MARGIN_PX - 25));
+    const footerOverflow = Math.max(0, footerHeight - (MARGIN_PX - 25));
+
+    const contentTop = MARGIN_PX + headerOverflow;
+    const contentHeight = CONTENT_HEIGHT_PX - headerOverflow - footerOverflow;
 
     return {
       top: contentTop,
@@ -840,7 +850,7 @@ const Modals = ({
       const currentCropRight = cropImageElement.cropRight ?? 0;
       const currentCropBottom = cropImageElement.cropBottom ?? 0;
       
-      console.log('🖼️ Crop Modal Opened - Loading crop values from element:', {
+      console.log('🖼️ Crop Modal Opened - Loading crop values from element:', {
         elementId: cropImageElement.id,
         cropLeft: currentCropLeft,
         cropTop: currentCropTop,
@@ -856,7 +866,7 @@ const Modals = ({
       setCropBottom(currentCropBottom);
     } else if (!showImageCropModal) {
       // Reset crop values when modal closes
-      console.log('🖼️ Crop Modal Closed - Resetting crop values');
+      console.log('🖼️ Crop Modal Closed - Resetting crop values');
       setCropLeft(0);
       setCropTop(0);
       setCropRight(0);
@@ -1176,7 +1186,7 @@ const Modals = ({
                   fontStyle: labelItalic ? 'italic' : 'normal',
                   textDecoration: labelUnderline ? 'underline' : 'none',
                   textTransform: labelCapsLock ? 'uppercase' : undefined,
-                  // Wenn KEIN custom Label: unsichtbar machen, damit Div trotzdem richtige HÃ¶he hat
+                  // Wenn KEIN custom Label: unsichtbar machen, damit Div trotzdem richtige Höhe hat
                   opacity: hasCustomLabel ? 1 : 0
                 }}
               >
@@ -1185,8 +1195,10 @@ const Modals = ({
             </div>
           )}
           <div 
-            className="w-full h-full border border-gray-300 rounded bg-gray-50 flex-grow flex items-center" 
+            className="w-full h-full border rounded flex-grow flex items-center"
             style={{ 
+              borderColor: '#d1d5db', 
+              backgroundColor: '#f9fafb',
               paddingLeft: '8px', 
               paddingRight: '12px'
             }}
@@ -1240,7 +1252,7 @@ const Modals = ({
                   fontStyle: labelItalic ? 'italic' : 'normal',
                   textDecoration: labelUnderline ? 'underline' : 'none',
                   textTransform: labelCapsLock ? 'uppercase' : undefined,
-                  // Wenn KEIN custom Label: unsichtbar machen, damit Div trotzdem richtige HÃ¶he hat
+                  // Wenn KEIN custom Label: unsichtbar machen, damit Div trotzdem richtige Höhe hat
                   opacity: hasCustomLabel ? 1 : 0
                 }}
               >
@@ -1249,8 +1261,10 @@ const Modals = ({
             </div>
           )}
           <div 
-            className="w-full h-full border border-gray-300 rounded bg-gray-50 flex-grow flex items-center" 
+            className="w-full h-full border rounded flex-grow flex items-center"
             style={{ 
+              borderColor: '#d1d5db', 
+              backgroundColor: '#f9fafb',
               paddingLeft: '8px', 
               paddingRight: '12px'
             }}
@@ -1308,6 +1322,19 @@ const Modals = ({
             disabled 
             checked={isChecked}
             className="w-4 h-4 mt-1 flex-shrink-0" 
+            style={{ 
+              appearance: 'none', 
+              WebkitAppearance: 'none', 
+              width: '16px', 
+              height: '16px', 
+              border: '1.5px solid #d1d5db', 
+              borderRadius: '3px', 
+              backgroundColor: isChecked ? 'var(--color-primary)' : '#ffffff',
+              cursor: 'default',
+              backgroundImage: isChecked ? "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E\")" : 'none',
+              backgroundSize: '100% 100%',
+              borderColor: isChecked ? 'var(--color-primary)' : '#d1d5db'
+            }} 
           />
           <div className="flex-1">
             {element.showTitle !== false && hasCustomLabel && (
@@ -1486,7 +1513,7 @@ const Modals = ({
           </div>
           
           {/* Signature line - direkt unter dem Text/Unterschrift */}
-          <div className="w-full border-t-2 border-gray-400"></div>
+          <div className="w-full border-t-2 border-border"></div>
         </div>
         
         {/* Below signature text */}
@@ -1518,32 +1545,32 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-7xl h-[95vh] flex flex-col">
           <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold text-black">
+            <h2 className="text-xl font-semibold text-content-primary">
               Contract Preview - {contractPages[previewPage]?.title || `Page ${previewPage + 1}`}
-              {page?.locked && <span className="text-gray-500 ml-2">(PDF)</span>}
+              {page?.locked && <span className="text-content-muted ml-2">(PDF)</span>}
             </h2>
             <div className="flex items-center gap-4">
               {/* View Mode Switcher */}
-              <div className="flex items-center gap-1 border-r border-gray-300 pr-4">
+              <div className="flex items-center gap-1 border-r border-border pr-4">
                 <button
                   onClick={() => setPreviewMode('builder')}
-                  className={`p-1.5 rounded ${previewMode === 'builder' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-1.5 rounded-xl ${previewMode === 'builder' ? 'bg-primary/20 text-primary' : 'text-content-secondary hover:bg-surface-hover'}`}
                   title="Builder View"
                 >
                   <LayoutIcon size={16} />
                 </button>
                 <button
                   onClick={() => setPreviewMode('filled')}
-                  className={`p-1.5 rounded ${previewMode === 'filled' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-1.5 rounded-xl ${previewMode === 'filled' ? 'bg-primary/20 text-primary' : 'text-content-secondary hover:bg-surface-hover'}`}
                   title="Filled Preview"
                 >
                   <CheckSquareIcon size={16} />
                 </button>
                 <button
                   onClick={() => setPreviewMode('empty')}
-                  className={`p-1.5 rounded ${previewMode === 'empty' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-1.5 rounded-xl ${previewMode === 'empty' ? 'bg-primary/20 text-primary' : 'text-content-secondary hover:bg-surface-hover'}`}
                   title="Empty Preview"
                 >
                   <FileTextIcon size={16} />
@@ -1554,17 +1581,17 @@ const Modals = ({
                 <button
                   onClick={() => setPreviewPage(prev => Math.max(0, prev - 1))}
                   disabled={previewPage === 0}
-                  className={`p-2 rounded-lg ${previewPage === 0 ? 'text-gray-400' : 'text-gray-700 hover:bg-gray-100'}`}
+                  className={`p-2 rounded-xl ${previewPage === 0 ? 'text-content-muted' : 'text-content-secondary hover:bg-surface-hover'}`}
                 >
                   <ChevronLeftIcon size={20} />
                 </button>
-                <span className="text-sm font-medium text-black flex items-center gap-2">
+                <span className="text-sm font-medium text-content-primary flex items-center gap-2">
                   Page {previewPage + 1} of {contractPages.length}
                 </span>
                 <button
                   onClick={() => setPreviewPage(prev => Math.min(contractPages.length - 1, prev + 1))}
                   disabled={previewPage === contractPages.length - 1}
-                  className={`p-2 rounded-lg ${previewPage === contractPages.length - 1 ? 'text-gray-400' : 'text-gray-700 hover:bg-gray-100'}`}
+                  className={`p-2 rounded-xl ${previewPage === contractPages.length - 1 ? 'text-content-muted' : 'text-content-secondary hover:bg-surface-hover'}`}
                 >
                   <ChevronRightIcon size={20} />
                 </button>
@@ -1573,16 +1600,16 @@ const Modals = ({
                 <KeyboardTooltip label="Zoom Out" shortcut="Ctrl+Scroll ↓">
                   <button
                     onClick={() => setPreviewZoom(prev => Math.max(0.4, prev - 0.1))}
-                    className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-content-secondary hover:bg-surface-hover rounded-xl"
                   >
                     <ZoomOutIcon size={20} />
                   </button>
                 </KeyboardTooltip>
-                <span className="text-sm font-medium text-black">{Math.round(previewZoom * 100)}%</span>
+                <span className="text-sm font-medium text-content-primary">{Math.round(previewZoom * 100)}%</span>
                 <KeyboardTooltip label="Zoom In" shortcut="Ctrl+Scroll ↑">
                   <button
                     onClick={() => setPreviewZoom(prev => Math.min(1.0, prev + 0.1))}
-                    className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-content-secondary hover:bg-surface-hover rounded-xl"
                   >
                     <ZoomInIcon size={20} />
                   </button>
@@ -1591,7 +1618,7 @@ const Modals = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowPreview(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
                   Close
                 </button>
@@ -1600,7 +1627,7 @@ const Modals = ({
           </div>
           
           <div 
-            className="flex-1 bg-gray-100" 
+            className="flex-1 bg-surface-hover" 
             style={{ 
               overflow: 'auto',
               position: 'relative'
@@ -1719,7 +1746,7 @@ const Modals = ({
                 })}
                 
                 {!page?.locked && page?.elements.length === 0 && (
-                  <div className="text-center py-12 text-gray-400">
+                  <div className="text-center py-12 text-content-muted">
                     <FileIcon size={48} className="mx-auto mb-4" />
                     <p>No elements on this page</p>
                   </div>
@@ -1764,12 +1791,20 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="bg-surface-card rounded-xl w-full max-w-md">
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Page</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-content-primary">Add Page</h2>
+              <button
+                onClick={() => { setShowAddPageModal(false); setNewPageName('Contract Page'); }}
+                className="text-content-muted hover:text-content-primary transition-colors"
+              >
+                <XIcon size={20} />
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">Page Name</label>
+                <label className="text-sm text-content-secondary block mb-2">Page Name</label>
                 <input
                   ref={newPageNameInputRef}
                   type="text"
@@ -1785,7 +1820,7 @@ const Modals = ({
                       setNewPageName('Contract Page');
                     }
                   }}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                   placeholder="Contract Page"
                   autoFocus
                 />
@@ -1796,13 +1831,13 @@ const Modals = ({
                     setShowAddPageModal(false);
                     setNewPageName('Contract Page');
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => addPage(newPageName)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
                 >
                   Add
                 </button>
@@ -1819,38 +1854,39 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="bg-surface-card rounded-xl w-full max-w-md">
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Create Folder</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-content-primary">Create Folder</h2>
+              <button
+                onClick={() => { setShowCreateFolderModal(false); setNewFolderName(''); setNewFolderColor('#3b82f6'); }}
+                className="text-content-muted hover:text-content-primary transition-colors"
+              >
+                <XIcon size={20} />
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">Folder Name</label>
+                <label className="text-sm text-content-secondary block mb-2">Folder Name</label>
                 <input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                   placeholder="My Folder"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">Folder Color</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={newFolderColor}
-                    onChange={(e) => setNewFolderColor(e.target.value)}
-                    className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={newFolderColor}
-                    onChange={(e) => setNewFolderColor(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="#3b82f6"
-                  />
-                </div>
+                <label className="text-sm text-content-secondary block mb-2">Folder Color</label>
+                <button
+                  type="button"
+                  onClick={() => setFolderColorPicker({ isOpen: true, target: 'create' })}
+                  className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
+                >
+                  <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: newFolderColor }} />
+                  <span className="text-content-primary">{newFolderColor}</span>
+                </button>
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <button
@@ -1859,13 +1895,13 @@ const Modals = ({
                     setNewFolderName('');
                     setNewFolderColor('#3b82f6');
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => createFolder(newFolderName, newFolderColor)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
                 >
                   Create Folder
                 </button>
@@ -1882,38 +1918,39 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="bg-surface-card rounded-xl w-full max-w-md">
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Edit Folder</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-content-primary">Edit Folder</h2>
+              <button
+                onClick={() => { setShowEditFolderModal(false); setEditingFolderId(null); }}
+                className="text-content-muted hover:text-content-primary transition-colors"
+              >
+                <XIcon size={20} />
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">Folder Name</label>
+                <label className="text-sm text-content-secondary block mb-2">Folder Name</label>
                 <input
                   type="text"
                   value={editingFolderName}
                   onChange={(e) => setEditingFolderName(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                   placeholder="My Folder"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">Folder Color</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={editingFolderColor}
-                    onChange={(e) => setEditingFolderColor(e.target.value)}
-                    className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={editingFolderColor}
-                    onChange={(e) => setEditingFolderColor(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="#3b82f6"
-                  />
-                </div>
+                <label className="text-sm text-content-secondary block mb-2">Folder Color</label>
+                <button
+                  type="button"
+                  onClick={() => setFolderColorPicker({ isOpen: true, target: 'edit' })}
+                  className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
+                >
+                  <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: editingFolderColor }} />
+                  <span className="text-content-primary">{editingFolderColor}</span>
+                </button>
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <button
@@ -1923,7 +1960,7 @@ const Modals = ({
                     setEditingFolderName('');
                     setEditingFolderColor('');
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
                   Cancel
                 </button>
@@ -1936,7 +1973,7 @@ const Modals = ({
                       setEditingFolderColor('');
                     }
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
                 >
                   Save Changes
                 </button>
@@ -1953,14 +1990,14 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
           <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Header/Footer Settings</h2>
+            <h2 className="text-xl font-semibold text-content-primary">Header/Footer Settings</h2>
             <button
               onClick={() => setHeaderFooterSettingsOpen(false)}
-              className="text-gray-500 hover:text-gray-700 text-2xl px-2"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
-              x
+              <XIcon size={20} />
             </button>
           </div>
           
@@ -1969,10 +2006,10 @@ const Modals = ({
             {/* Header Section */}
             <div className="space-y-4">
               <div 
-                className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-between cursor-pointer p-3 bg-surface-hover rounded-xl hover:bg-surface-hover transition-colors"
                 onClick={() => setHeaderSettingsExpanded(!headerSettingsExpanded)}
               >
-                <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                <h3 className="text-lg font-medium text-content-primary flex items-center gap-2">
                   Header (global)
                   <ChevronRight 
                     size={18} 
@@ -1989,7 +2026,7 @@ const Modals = ({
                     onChange={(e) => updateGlobalHeader({ enabled: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-surface-button-hover peer-focus:outline-none peer-focus:ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
               
@@ -2003,7 +2040,7 @@ const Modals = ({
                   />
                   
                   <div className="space-y-3 border-t pt-4">
-                    <label className="block text-sm font-medium text-gray-900">Show header on:</label>
+                    <label className="block text-sm font-medium text-content-primary">Show header on:</label>
                     <div className="space-y-2">
                       <label className="flex items-center gap-2">
                         <input
@@ -2015,9 +2052,9 @@ const Modals = ({
                             showOnFirstPage: true,
                             showOnOtherPages: true 
                           })}
-                          className="text-blue-600 focus:ring-blue-500"
+                          className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-gray-900">All Pages</span>
+                        <span className="text-sm text-content-primary">All Pages</span>
                       </label>
                       <label className="flex items-center gap-2">
                         <input
@@ -2029,9 +2066,9 @@ const Modals = ({
                             showOnFirstPage: true,
                             showOnOtherPages: false 
                           })}
-                          className="text-blue-600 focus:ring-blue-500"
+                          className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-gray-900">First Page Only</span>
+                        <span className="text-sm text-content-primary">First Page Only</span>
                       </label>
                     </div>
                   </div>
@@ -2042,10 +2079,10 @@ const Modals = ({
             {/* Footer Section */}
             <div className="space-y-4">
               <div 
-                className="flex items-center justify-between cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-between cursor-pointer p-3 bg-surface-hover rounded-xl hover:bg-surface-hover transition-colors"
                 onClick={() => setFooterSettingsExpanded(!footerSettingsExpanded)}
               >
-                <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                <h3 className="text-lg font-medium text-content-primary flex items-center gap-2">
                   Footer (global)
                   <ChevronRight 
                     size={18} 
@@ -2062,7 +2099,7 @@ const Modals = ({
                     onChange={(e) => updateGlobalFooter({ enabled: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-surface-button-hover peer-focus:outline-none peer-focus:ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
               
@@ -2076,7 +2113,7 @@ const Modals = ({
                   />
                   
                   <div className="space-y-3 border-t pt-4">
-                    <label className="block text-sm font-medium text-gray-900">Show footer on:</label>
+                    <label className="block text-sm font-medium text-content-primary">Show footer on:</label>
                     <div className="space-y-2">
                       <label className="flex items-center gap-2">
                         <input
@@ -2088,9 +2125,9 @@ const Modals = ({
                             showOnFirstPage: true,
                             showOnOtherPages: true 
                           })}
-                          className="text-blue-600 focus:ring-blue-500"
+                          className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-gray-900">All Pages</span>
+                        <span className="text-sm text-content-primary">All Pages</span>
                       </label>
                       <label className="flex items-center gap-2">
                         <input
@@ -2102,9 +2139,9 @@ const Modals = ({
                             showOnFirstPage: true,
                             showOnOtherPages: false 
                           })}
-                          className="text-blue-600 focus:ring-blue-500"
+                          className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-gray-900">First Page Only</span>
+                        <span className="text-sm text-content-primary">First Page Only</span>
                       </label>
                     </div>
                   </div>
@@ -2113,10 +2150,10 @@ const Modals = ({
             </div>
           </div>
           
-          <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+          <div className="p-4 border-t bg-surface-hover flex justify-end gap-2">
             <button
               onClick={() => setHeaderFooterSettingsOpen(false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
             >
               Save & Close
             </button>
@@ -2131,22 +2168,22 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
           <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Crop Image</h2>
+            <h2 className="text-xl font-semibold text-content-primary">Crop Image</h2>
             <button
               onClick={() => setShowImageCropModal(false)}
-              className="text-gray-500 hover:text-gray-700 text-2xl px-2"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
-              x
+              <XIcon size={20} />
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto p-6">
-            <div className="text-sm text-gray-600 mb-4 bg-blue-50 border border-blue-200 rounded p-3">
+            <div className="text-sm text-content-secondary mb-4 bg-primary/10 border border-primary/30 rounded p-3">
               <strong>Tip:</strong> Drag the frame to move the crop area. Drag the corners/edges to resize it.
               {(cropLeft > 0 || cropTop > 0 || cropRight > 0 || cropBottom > 0) && (
-                <div className="mt-2 text-xs text-blue-700">
+                <div className="mt-2 text-xs text-primary">
                   Current crop: Left {cropLeft.toFixed(0)}%, Top {cropTop.toFixed(0)}%, Right {cropRight.toFixed(0)}%, Bottom {cropBottom.toFixed(0)}%
                 </div>
               )}
@@ -2204,23 +2241,23 @@ const Modals = ({
                   }}
                 >
                   {/* Corner handles */}
-                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'nw'); }} />
-                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-ne-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'ne'); }} />
-                  <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-sw-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'sw'); }} />
-                  <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-se-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'se'); }} />
+                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-nw-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'nw'); }} />
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-ne-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'ne'); }} />
+                  <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-sw-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'sw'); }} />
+                  <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-se-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'se'); }} />
                   
                   {/* Edge handles */}
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-n-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'n'); }} />
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-s-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 's'); }} />
-                  <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-w-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'w'); }} />
-                  <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-e-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'e'); }} />
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-n-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'n'); }} />
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-s-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 's'); }} />
+                  <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-w-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'w'); }} />
+                  <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-e-resize shadow-md" onMouseDown={(e) => { e.stopPropagation(); handleCropMouseDown(e, 'e'); }} />
                 </div>
               </div>
             </div>
 
           </div>
           
-          <div className="p-4 border-t bg-gray-50 flex justify-between">
+          <div className="p-4 border-t bg-surface-hover flex justify-between">
             <div className="flex gap-2">
               <button
                 onClick={() => {
@@ -2229,7 +2266,7 @@ const Modals = ({
                   setCropRight(0);
                   setCropBottom(0);
                 }}
-                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-surface-hover text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
                 Reset
               </button>
@@ -2240,7 +2277,7 @@ const Modals = ({
                   setCropRight(25);
                   setCropBottom(25);
                 }}
-                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-surface-hover text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
                 Center
               </button>
@@ -2248,13 +2285,13 @@ const Modals = ({
             <div className="flex gap-2">
               <button
                 onClick={() => setShowImageCropModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-surface-hover text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApplyCrop}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
               >
                 Apply
               </button>
@@ -2275,35 +2312,35 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
           <div className="flex justify-between items-center p-6 border-b">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Validation Warning</h2>
-                <p className="text-sm text-gray-600 mt-1">Potential issues have been found</p>
+                <h2 className="text-xl font-semibold text-content-primary">Validation Warning</h2>
+                <p className="text-sm text-content-secondary mt-1">Potential issues have been found</p>
               </div>
             </div>
             <button
               onClick={() => setShowValidationWarning(false)}
-              className="text-gray-400 hover:text-gray-600 text-2xl px-2"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
-              x
+              <XIcon size={20} />
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Permanent Important Notice */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
               <div className="flex gap-2">
-                <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <div className="text-sm text-red-800">
+                <div className="text-sm text-content-primary">
                   <strong>Important:</strong> Data from input fields without an assigned variable will not be captured during contract creation and therefore will not be saved when creating a member.
                 </div>
               </div>
@@ -2313,28 +2350,28 @@ const Modals = ({
             {hasUnassignedVars && (
               <div className="space-y-3">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <div className="flex-1">
-                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                    <h3 className="text-base font-semibold text-content-primary mb-2">
                       Unassigned Variables ({unassignedVariables.length})
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-content-secondary mb-3">
                       These variables are currently not assigned to any field and will not be considered during contract creation.
                     </p>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    <div className="bg-surface-hover border border-border rounded-xl p-4 max-h-48 overflow-y-auto">
                       <div className="space-y-2">
                         {unassignedVariables.map((item, index) => (
                           <div key={index} className="flex items-center gap-2 text-sm">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
                               item.type === 'System' 
-                                ? 'bg-purple-100 text-purple-700' 
-                                : 'bg-blue-100 text-blue-700'
+                                ? 'bg-primary/10 text-primary' 
+                                : 'bg-primary/20 text-primary'
                             }`}>
                               {item.type}
                             </span>
-                            <span className="text-gray-900 font-medium">{item.variable}</span>
+                            <span className="text-content-primary font-medium">{item.variable}</span>
                           </div>
                         ))}
                       </div>
@@ -2348,31 +2385,31 @@ const Modals = ({
             {hasFieldsWithoutVars && (
               <div className="space-y-3">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <div className="flex-1">
-                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                    <h3 className="text-base font-semibold text-content-primary mb-2">
                       Fields Without Assigned Variable ({fieldsWithoutVariables.length})
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-content-secondary mb-3">
                       These fields have no assigned variable and will not capture any data during contract creation.
                     </p>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    <div className="bg-surface-hover border border-border rounded-xl p-4 max-h-48 overflow-y-auto">
                       <div className="space-y-3">
                         {fieldsWithoutVariables.map((item, index) => (
-                          <div key={index} className="border-b border-yellow-200 last:border-b-0 pb-2 last:pb-0">
+                          <div key={index} className="border-b border-border last:border-b-0 pb-2 last:pb-0">
                             <div className="flex items-start gap-2 text-sm">
                               <span className={`px-2 py-1 rounded text-xs font-medium ${
                                 item.fieldType === 'System' 
-                                  ? 'bg-purple-100 text-purple-700' 
-                                  : 'bg-blue-100 text-blue-700'
+                                  ? 'bg-primary/10 text-primary' 
+                                  : 'bg-primary/20 text-primary'
                               }`}>
                                 {item.fieldType}
                               </span>
                               <div className="flex-1">
-                                <div className="text-gray-900 font-medium">{item.fieldLabel}</div>
-                                <div className="text-gray-600 text-xs mt-1">
+                                <div className="text-content-primary font-medium">{item.fieldLabel}</div>
+                                <div className="text-content-secondary text-xs mt-1">
                                   Page {item.pageIndex}: {item.pageTitle}
                                 </div>
                               </div>
@@ -2387,17 +2424,17 @@ const Modals = ({
             )}
           </div>
           
-          <div className="p-6 border-t bg-gray-50 flex justify-end items-center gap-4">
+          <div className="p-6 border-t bg-surface-hover flex justify-end items-center gap-4">
             <div className="flex gap-3">
               <button
                 onClick={() => setShowValidationWarning(false)}
-                className="px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                className="px-6 py-2.5 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveAnyway}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium"
               >
                 Save Anyway
               </button>
@@ -2414,14 +2451,14 @@ const Modals = ({
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
           <div className="flex justify-between items-center p-6 border-b">
-            <h2 className="text-2xl font-semibold text-black">Keyboard Shortcuts</h2>
+            <h2 className="text-2xl font-semibold text-content-primary">Keyboard Shortcuts</h2>
             <button
               onClick={() => setShowHotkeysModal(false)}
-              className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center"
+              className="text-content-muted hover:text-content-primary transition-colors"
             >
-              ×
+              <XIcon size={20} />
             </button>
           </div>
 
@@ -2430,53 +2467,53 @@ const Modals = ({
               
               {/* Navigation & Views */}
               <div>
-                <h3 className="text-lg font-semibold text-black mb-3">
+                <h3 className="text-lg font-semibold text-content-primary mb-3">
                   Navigation & Views
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">New Page</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">N</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">New Page</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">N</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Add PDF</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">A</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Add PDF</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">A</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Preview Contract</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">P</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Preview Contract</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">P</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Header/Footer Settings</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">H</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Header/Footer Settings</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">H</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Next Page (Canvas & Preview)</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">→</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Next Page (Canvas & Preview)</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">→</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Previous Page (Canvas & Preview)</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">←</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Previous Page (Canvas & Preview)</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">←</kbd>
                   </div>
                 </div>
               </div>
 
               {/* Element Editing */}
               <div>
-                <h3 className="text-lg font-semibold text-black mb-3">
+                <h3 className="text-lg font-semibold text-content-primary mb-3">
                   Element Editing
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Copy Element</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">C</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Copy Element</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">C</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Delete Element</span>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Delete Element</span>
                     <div className="flex gap-2">
-                      <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Del</kbd>
-                      <span className="text-gray-400">or</span>
-                      <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Backspace</kbd>
+                      <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Del</kbd>
+                      <span className="text-content-muted">or</span>
+                      <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Backspace</kbd>
                     </div>
                   </div>
                 </div>
@@ -2484,54 +2521,54 @@ const Modals = ({
 
               {/* Zoom */}
               <div>
-                <h3 className="text-lg font-semibold text-black mb-3">
+                <h3 className="text-lg font-semibold text-content-primary mb-3">
                   Zoom
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Zoom In (Canvas & Preview)</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Ctrl + Scroll ↑</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Zoom In (Canvas & Preview)</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Scroll ↑</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Zoom Out (Canvas & Preview)</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Ctrl + Scroll ↓</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Zoom Out (Canvas & Preview)</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Scroll ↓</kbd>
                   </div>
                 </div>
               </div>
 
               {/* Save & History */}
               <div>
-                <h3 className="text-lg font-semibold text-black mb-3">
+                <h3 className="text-lg font-semibold text-content-primary mb-3">
                   Save & History
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Save Contract</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Ctrl + S</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Save Contract</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + S</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Undo</span>
-                    <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Ctrl + Z</kbd>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Undo</span>
+                    <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Z</kbd>
                   </div>
-                  <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">Redo</span>
+                  <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
+                    <span className="text-content-secondary">Redo</span>
                     <div className="flex gap-2">
-                      <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Ctrl + Y</kbd>
-                      <span className="text-gray-400">or</span>
-                      <kbd className="px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded shadow-sm font-mono text-sm">Ctrl + Shift + Z</kbd>
+                      <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Y</kbd>
+                      <span className="text-content-muted">or</span>
+                      <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Shift + Z</kbd>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Notes */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Note</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+                <h4 className="font-semibold text-primary mb-2">Note</h4>
+                <ul className="text-sm text-primary space-y-1">
                   <li>• Shortcuts work only when no input field is focused</li>
                   <li>• Shortcuts are disabled when modals are open (except in Preview)</li>
                   <li>• Arrow keys (← →) work in both Canvas and Preview mode for page navigation</li>
-                  <li>• On Mac, use <kbd className="px-2 py-0.5 bg-gray-700 text-white border border-gray-600 rounded font-mono text-xs">Cmd</kbd> instead of <kbd className="px-2 py-0.5 bg-gray-700 text-white border border-gray-600 rounded font-mono text-xs">Ctrl</kbd></li>
+                  <li>• On Mac, use <kbd className="px-2 py-0.5 bg-surface-dark text-content-primary border border-border rounded font-mono text-xs">Cmd</kbd> instead of <kbd className="px-2 py-0.5 bg-surface-dark text-content-primary border border-border rounded font-mono text-xs">Ctrl</kbd></li>
                 </ul>
               </div>
 
@@ -2541,7 +2578,7 @@ const Modals = ({
           <div className="flex justify-end gap-3 p-6 border-t">
             <button
               onClick={() => setShowHotkeysModal(false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
             >
               Got it!
             </button>
@@ -2561,6 +2598,21 @@ const Modals = ({
       {renderImageCropModal()}
       {renderValidationWarningModal()}
       {renderHotkeysModal()}
+
+      {/* Folder Color Picker Modal */}
+      <ColorPickerModal
+        isOpen={folderColorPicker.isOpen}
+        onClose={() => setFolderColorPicker({ isOpen: false, target: null })}
+        onSelectColor={(color) => {
+          if (folderColorPicker.target === 'create') {
+            setNewFolderColor(color);
+          } else if (folderColorPicker.target === 'edit') {
+            setEditingFolderColor(color);
+          }
+        }}
+        currentColor={folderColorPicker.target === 'edit' ? editingFolderColor : newFolderColor}
+        title="Folder Color"
+      />
     </>
   );
 };

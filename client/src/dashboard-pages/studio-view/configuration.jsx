@@ -52,7 +52,6 @@ import dayjs from "dayjs"
 import ContractBuilder from "../../components/studio-components/configuration-components/ContractBuilder"
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import { PermissionModal } from "../../components/studio-components/configuration-components/PermissionModal"
-import { RoleItem } from "../../components/studio-components/configuration-components/RoleItem"
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../components/shared/image-handler/ImageCropModal"
@@ -412,21 +411,6 @@ const NumberInput = ({ label, value, onChange, min = 0, max, step = 1, suffix, h
   </div>
 )
 
-// Color Picker Component
-const ColorPickerField = ({ label, value, onChange }) => (
-  <div className="space-y-1.5">
-    {label && <label className="text-sm font-medium text-content-secondary">{label}</label>}
-    <div className="flex items-center gap-3">
-      <input
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1"
-      />
-    </div>
-  </div>
-)
-
 // Time Picker Component
 const TimePickerField = ({ label, value, onChange, placeholder = "HH:MM" }) => (
   <div className="space-y-1.5">
@@ -696,7 +680,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   // Appearance
   const [appearance, setAppearance] = useState({})
-  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
+  const [colorPickerState, setColorPickerState] = useState({ isOpen: false, currentColor: '#FF843E', title: 'Choose Color', onSelect: null })
+
+  const openColorPicker = (currentColor, title, onSelect) => {
+    setColorPickerState({ isOpen: true, currentColor, title, onSelect })
+  }
 
   // Countries
   const [countries, setCountries] = useState([])
@@ -2522,11 +2510,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
-                  <input
-                    type="color"
-                    value={trialTraining.color}
-                    onChange={(e) => setTrialTraining({ ...trialTraining, color: e.target.value })}
-                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1"
+                  <button
+                    onClick={() => openColorPicker(trialTraining.color || '#3B82F6', 'Calendar Color', (color) => setTrialTraining({ ...trialTraining, color }))}
+                    className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                    style={{ backgroundColor: trialTraining.color }}
+                    title="Pick a color"
                   />
                 </div>
               </div>
@@ -2607,11 +2595,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 <SettingsCard key={role.id}>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Color Picker */}
-                    <input
-                      type="color"
-                      value={role.color || "#3B82F6"}
-                      onChange={(e) => handleUpdateRole(index, "color", e.target.value)}
-                      className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1 flex-shrink-0"
+                    <button
+                      onClick={() => openColorPicker(role.color || '#3B82F6', 'Role Color', (color) => handleUpdateRole(index, 'color', color))}
+                      className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                      style={{ backgroundColor: role.color || '#3B82F6' }}
+                      title="Pick a color"
                     />
                     
                     {/* Role Name */}
@@ -2765,11 +2753,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 <div className="space-y-3">
                   {leadSources.map((source) => (
                     <div key={source.id} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
-                      <input
-                        type="color"
-                        value={source.color}
-                        onChange={(e) => handleUpdateLeadSource(source.id, "color", e.target.value)}
-                        className="w-8 h-8 rounded cursor-pointer flex-shrink-0"
+                      <button
+                        onClick={() => openColorPicker(source.color || '#3B82F6', 'Source Color', (color) => handleUpdateLeadSource(source.id, 'color', color))}
+                        className="w-8 h-8 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                        style={{ backgroundColor: source.color }}
+                        title="Pick a color"
                       />
                       <input
                         type="text"
@@ -4777,7 +4765,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <label className="text-sm font-medium text-content-secondary">Color Scheme</label>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setIsColorPickerOpen(true)}
+                          onClick={() => openColorPicker(appearance.primaryColor || '#FF843E', 'Choose Primary Color', (color) => setAppearance({ ...appearance, primaryColor: color }))}
                           className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
                           style={{ backgroundColor: appearance.primaryColor }}
                           title="Pick a color"
@@ -4884,15 +4872,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               </div>
             </SettingsCard>
-
-            {/* Shared Color Picker Modal */}
-            <ColorPickerModal
-              isOpen={isColorPickerOpen}
-              onClose={() => setIsColorPickerOpen(false)}
-              onSelectColor={(color) => setAppearance({ ...appearance, primaryColor: color })}
-              currentColor={appearance.primaryColor || "#FF843E"}
-              title="Choose Primary Color"
-            />
           </div>
         )
 
@@ -5544,11 +5523,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                   </Tooltip>
                 </label>
-                <input
-                  type="color"
-                  value={appointmentTypeForm.color}
-                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, color: e.target.value })}
-                  className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1"
+                <button
+                  onClick={() => openColorPicker(appointmentTypeForm.color || '#3B82F6', 'Calendar Color', (color) => setAppointmentTypeForm({ ...appointmentTypeForm, color }))}
+                  className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                  style={{ backgroundColor: appointmentTypeForm.color }}
+                  title="Pick a color"
                 />
               </div>
             </div>
@@ -5623,6 +5602,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           setEditingIntroMaterialIndex(null)
           notification.success({ message: "Material saved successfully" })
         }}
+      />
+
+      {/* Shared Color Picker Modal */}
+      <ColorPickerModal
+        isOpen={colorPickerState.isOpen}
+        onClose={() => setColorPickerState(prev => ({ ...prev, isOpen: false }))}
+        onSelectColor={(color) => {
+          if (colorPickerState.onSelect) colorPickerState.onSelect(color)
+        }}
+        currentColor={colorPickerState.currentColor}
+        title={colorPickerState.title}
       />
     </div>
   )

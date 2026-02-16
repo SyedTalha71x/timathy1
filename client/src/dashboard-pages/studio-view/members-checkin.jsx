@@ -558,7 +558,7 @@ export default function CheckIns() {
                   key={appointment.id}
                   className={`bg-surface-card rounded-xl p-3 border transition-all ${
                     appointment.isNoShow 
-                      ? 'border-accent-red/30 bg-accent-red/5' 
+                      ? 'border-secondary/30 bg-secondary/5' 
                       : appointment.isCheckedIn 
                         ? 'border-primary/30 bg-primary/5' 
                         : 'border-border hover:border-border'
@@ -596,7 +596,7 @@ export default function CheckIns() {
                     <div className="flex items-center gap-2 justify-end sm:flex-shrink-0">
                       {appointment.isNoShow ? (
                         <>
-                          <span className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-accent-red/20 text-accent-red rounded-lg text-[10px] sm:text-xs font-medium">
+                          <span className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-secondary/20 text-secondary rounded-lg text-[10px] sm:text-xs font-medium">
                             <UserX size={10} className="sm:w-3 sm:h-3" />
                             No Show
                           </span>
@@ -626,7 +626,7 @@ export default function CheckIns() {
                         <>
                           <button
                             onClick={() => handleNoShow(appointment.id)}
-                            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-surface-button hover:bg-accent-red/20 text-content-secondary hover:text-accent-red rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1"
+                            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-surface-button hover:bg-secondary/20 text-content-secondary hover:text-secondary rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1"
                           >
                             <UserX size={12} className="sm:w-3 sm:h-3" />
                             <span className="hidden sm:inline">No Show</span>

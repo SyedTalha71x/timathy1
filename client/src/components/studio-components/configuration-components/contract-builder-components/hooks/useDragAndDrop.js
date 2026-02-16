@@ -234,7 +234,7 @@ export const useDragAndDrop = (
         e.currentTarget.style.borderTop = '';
         e.currentTarget.style.borderBottom = '';
         e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-        e.currentTarget.style.outline = '2px dashed #3b82f6';
+        e.currentTarget.style.outline = '2px dashed var(--color-primary)';
         e.currentTarget.style.outlineOffset = '-2px';
         
         // Add a visual indicator icon
@@ -246,7 +246,7 @@ export const useDragAndDrop = (
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: #3b82f6;
+            background: var(--color-primary);
             color: white;
             padding: 4px 8px;
             border-radius: 4px;
@@ -270,12 +270,12 @@ export const useDragAndDrop = (
         
         if (relativeY <= height * 0.20) {
           dropZoneRef.current = 'before';
-          e.currentTarget.style.borderTop = '3px solid #3b82f6';
+          e.currentTarget.style.borderTop = '3px solid var(--color-primary)';
           e.currentTarget.style.borderBottom = '';
         } else {
           dropZoneRef.current = 'after';
           e.currentTarget.style.borderTop = '';
-          e.currentTarget.style.borderBottom = '3px solid #3b82f6';
+          e.currentTarget.style.borderBottom = '3px solid var(--color-primary)';
         }
       }
     } else {
@@ -284,11 +284,11 @@ export const useDragAndDrop = (
       e.currentTarget.style.outline = '';
       
       if (dropZone === 'before') {
-        e.currentTarget.style.borderTop = '3px solid #3b82f6';
+        e.currentTarget.style.borderTop = '3px solid var(--color-primary)';
         e.currentTarget.style.borderBottom = '';
       } else {
         e.currentTarget.style.borderTop = '';
-        e.currentTarget.style.borderBottom = '3px solid #3b82f6';
+        e.currentTarget.style.borderBottom = '3px solid var(--color-primary)';
       }
     }
     

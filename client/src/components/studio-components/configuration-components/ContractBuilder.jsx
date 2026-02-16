@@ -580,12 +580,19 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
   }, [contractPages, folders, history.length, saveToHistory]);
 
   // Sync with props - ONLY on initial mount or when contractForm ID changes
-  // This prevents the infinite loop: onUpdate → parent sets new contractForm → sync fires → setContractPages → onUpdate → ...
+  // This prevents the infinite loop: onUpdate â†’ parent sets new contractForm â†’ sync fires â†’ setContractPages â†’ onUpdate â†’ ...
   const initializedFormRef = useRef(null);
   useEffect(() => {
     if (contractForm?.pages && contractForm?.id !== initializedFormRef.current) {
       initializedFormRef.current = contractForm.id;
-      setContractPages(contractForm.pages);
+      // Sanitize page titles: remove trailing " 1" from default "Contract Page 1" on initial pages
+      const sanitizedPages = contractForm.pages.map((page, idx) => {
+        if (idx === 0 && page.title === 'Contract Page 1') {
+          return { ...page, title: 'Contract Page' };
+        }
+        return page;
+      });
+      setContractPages(sanitizedPages);
       const maxId = contractForm.pages.reduce((max, page) => {
         const pageMax = (page.elements || []).reduce((pageMax, el) => Math.max(pageMax, el.id || 0), 0);
         return Math.max(max, pageMax);
@@ -880,7 +887,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
   return (
     <>
       <style>{scrollbarStyles}</style>
-      <div className="contract-builder-container flex h-screen bg-gray-100">
+      <div className="contract-builder-container flex h-screen bg-surface-base">
         {/* Sidebar */}
         <Sidebar
           sidebarOpen={sidebarOpen}
@@ -1099,13 +1106,13 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
         {/* Close Confirmation Modal */}
         {showCloseConfirmModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Close Contract Builder?</h3>
-              <p className="text-gray-600 mb-6">Do you want to save your changes before closing?</p>
+            <div className="bg-surface-card rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
+              <h3 className="text-lg font-bold text-content-primary mb-2">Close Contract Builder?</h3>
+              <p className="text-content-faint mb-6">Do you want to save your changes before closing?</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowCloseConfirmModal(false)}
-                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
                   Cancel
                 </button>
@@ -1114,7 +1121,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
                     setShowCloseConfirmModal(false);
                     onClose?.();
                   }}
-                  className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors"
                 >
                   Discard
                 </button>
@@ -1124,7 +1131,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
                     setShowCloseConfirmModal(false);
                     onClose?.();
                   }}
-                  className="flex-1 px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
                 >
                   Save & Close
                 </button>

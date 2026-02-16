@@ -148,19 +148,19 @@ export const useFolderManagement = (
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
             >
               Cancel
             </button>
             <button
               onClick={handleDeleteFolderOnly}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
             >
               Delete Folder Only
             </button>
             <button
               onClick={handleDeleteAll}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
             >
               Delete Folder + Elements
             </button>

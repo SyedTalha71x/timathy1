@@ -70,30 +70,30 @@ const PageTabs = ({
             onDragEnd={handlePageDragEnd}
             className={`flex items-center px-4 py-2 border-b-2 flex-shrink-0 transition-all cursor-move relative ${
               currentPage === index 
-                ? 'border-blue-600 text-blue-700 bg-blue-50' 
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            } ${page.locked ? 'bg-gray-100' : ''} ${isDraggingThisPdfBlock ? 'ring-2 ring-orange-400 bg-orange-50' : ''}`}
+                ? 'border-primary text-primary bg-primary/10' 
+                : 'border-transparent text-content-secondary hover:text-content-primary'
+            } ${page.locked ? 'bg-surface-hover' : ''} ${isDraggingThisPdfBlock ? 'ring-2 ring-primary bg-primary/10' : ''}`}
           >
             {/* Drop indicator - vertical line */}
             {dragOverPageIndex === index && dropPosition && (
               <div 
-                className={`absolute top-0 bottom-0 w-1 bg-blue-500 z-10 ${
+                className={`absolute top-0 bottom-0 w-1 bg-primary z-10 ${
                   dropPosition === 'before' ? '-left-0.5' : '-right-0.5'
                 }`}
                 style={{
-                  boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)'
+                  boxShadow: '0 0 8px var(--color-primary-glow, rgba(59, 130, 246, 0.6))'
                 }}
               />
             )}
             
             <GripVerticalIcon 
               size={14} 
-              className="text-gray-400 mr-2 flex-shrink-0" 
+              className="text-content-muted mr-2 flex-shrink-0" 
             />
             
             <div 
               className="w-4 h-4 rounded mr-2 flex-shrink-0"
-              style={{ backgroundColor: page.locked ? '#9ca3af' : '#fb923c' }}
+              style={{ backgroundColor: page.locked ? '#9ca3af' : 'var(--color-primary)' }}
             >
               <span className="text-xs text-white font-bold flex items-center justify-center h-full">
                 {index + 1}
@@ -127,7 +127,7 @@ const PageTabs = ({
                     setEditingPageTitle(null);
                   }
                 }}
-                className="px-2 py-1 border border-gray-300 rounded text-sm w-40"
+                className="px-2 py-1 bg-surface-dark rounded-xl text-sm w-40 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                 autoFocus
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
@@ -150,13 +150,13 @@ const PageTabs = ({
                     }
                     setCurrentPage(index);
                   }}
-                  className="mr-2 text-sm font-medium text-black hover:text-blue-600"
+                  className="mr-2 text-sm font-medium text-content-primary hover:text-primary"
                   onDragStart={(e) => e.stopPropagation()}
                   draggable={false}
                 >
                   {page.title}
                   {page.locked && (
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-content-muted ml-2">
                       (PDF {page.pdfPageNum}/{page.pdfTotalPages})
                     </span>
                   )}
@@ -168,7 +168,7 @@ const PageTabs = ({
                     e.stopPropagation();
                     setEditingPageTitle(index);
                   }}
-                  className="text-gray-400 hover:text-blue-500 p-1 rounded hover:bg-blue-50"
+                  className="text-content-muted hover:text-primary p-1 rounded hover:bg-primary/10"
                   title="Rename page"
                   onDragStart={(e) => e.stopPropagation()}
                   draggable={false}
@@ -184,7 +184,7 @@ const PageTabs = ({
                   e.stopPropagation();
                   removePage(index);
                 }}
-                className="text-gray-400 hover:text-red-500 p-1 rounded hover:bg-red-50 ml-1"
+                className="text-content-muted hover:text-content-primary p-1 rounded hover:bg-surface-hover ml-1"
                 title={page.locked ? "Delete PDF block" : "Delete page"}
                 onDragStart={(e) => e.stopPropagation()}
                 draggable={false}

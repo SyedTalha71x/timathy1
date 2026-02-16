@@ -318,17 +318,17 @@ export const PermissionModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
-      <div className="relative bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="relative bg-surface-base rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#333333]">
+        <div className="flex items-center justify-between p-5 border-b border-border">
           <div className="flex items-center gap-3">
-            <Shield className="w-6 h-6 text-gray-400" />
+            <Shield className="w-6 h-6 text-content-muted" />
             <div>
-              <h2 className="text-lg font-semibold text-white">Manage Permissions</h2>
+              <h2 className="text-lg font-semibold text-content-primary">Manage Permissions</h2>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm text-gray-400">{role?.name || "Role"}</span>
+                <span className="text-sm text-content-muted">{role?.name || "Role"}</span>
                 {isAdminRole && (
-                  <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-lg">
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-lg">
                     Admin
                   </span>
                 )}
@@ -337,7 +337,7 @@ export const PermissionModal = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-[#333333] rounded-xl transition-colors"
+            className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -345,10 +345,10 @@ export const PermissionModal = ({
 
         {/* Admin Notice */}
         {isAdminRole && (
-          <div className="mx-5 mt-5 p-3 bg-[#2F2F2F] border border-[#444444] rounded-xl">
+          <div className="mx-5 mt-5 p-3 bg-surface-button border border-border rounded-xl">
             <div className="flex items-start gap-2">
-              <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-gray-300">
+              <Info className="w-4 h-4 text-content-muted flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-content-secondary">
                 Admin role — all permissions granted and cannot be modified.
               </p>
             </div>
@@ -356,7 +356,7 @@ export const PermissionModal = ({
         )}
 
         {/* Toolbar */}
-        <div className="p-5 border-b border-[#333333]">
+        <div className="p-5 border-b border-border">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[180px]">
               <input
@@ -364,7 +364,7 @@ export const PermissionModal = ({
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#2F2F2F] border border-[#444444] rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                className="w-full bg-surface-button border border-border rounded-xl px-4 py-2 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary/50 transition-colors"
               />
             </div>
             <button
@@ -372,8 +372,8 @@ export const PermissionModal = ({
               disabled={isAdminRole}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 isAdminRole
-                  ? "bg-[#2F2F2F] text-gray-500 cursor-not-allowed"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] hover:text-white"
+                  ? "bg-surface-button text-content-faint cursor-not-allowed"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover hover:text-content-primary"
               }`}
             >
               Clear All
@@ -383,17 +383,17 @@ export const PermissionModal = ({
               disabled={isAdminRole}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 isAdminRole
-                  ? "bg-[#2F2F2F] text-gray-500 cursor-not-allowed"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] hover:text-white"
+                  ? "bg-surface-button text-content-faint cursor-not-allowed"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover hover:text-content-primary"
               }`}
             >
               Select All
             </button>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-lg text-sm font-medium bg-[#333333] text-white">
+              <span className="px-3 py-1 rounded-lg text-sm font-medium bg-surface-button text-content-primary">
                 {selectedNonView.length}
               </span>
-              <span className="text-sm text-gray-400">of {nonViewPermissions.length}</span>
+              <span className="text-sm text-content-muted">of {nonViewPermissions.length}</span>
             </div>
           </div>
         </div>
@@ -410,8 +410,8 @@ export const PermissionModal = ({
                 key={group.group}
                 className={`rounded-xl border p-3 transition-all ${
                   groupVisible
-                    ? "border-[#333333] bg-[#1F1F1F]"
-                    : "border-[#2A2A2A] bg-[#191919] opacity-50"
+                    ? "border-border bg-surface-dark"
+                    : "border-border bg-surface-dark opacity-50"
                 }`}
               >
                 <div className="flex items-start gap-2.5">
@@ -422,10 +422,10 @@ export const PermissionModal = ({
                     title={groupVisible ? "Hide menu" : "Show menu"}
                     className={`flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0 transition-all mt-0.5 ${
                       isAdminRole
-                        ? "text-gray-500 cursor-not-allowed"
+                        ? "text-content-faint cursor-not-allowed"
                         : groupVisible
-                          ? "text-orange-400 bg-orange-500/15 hover:bg-orange-500/25"
-                          : "text-gray-600 bg-[#2A2A2A] hover:bg-[#333333] hover:text-gray-400"
+                          ? "text-primary bg-primary/15 hover:bg-primary/25"
+                          : "text-content-faint bg-surface-button hover:bg-surface-button hover:text-content-muted"
                     }`}
                   >
                     {groupVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -435,12 +435,12 @@ export const PermissionModal = ({
                   <div className="flex items-center gap-2.5 min-w-[140px] flex-shrink-0 mt-1">
                     <IconComponent
                       className={`w-[18px] h-[18px] flex-shrink-0 ${
-                        groupVisible ? "text-gray-300" : "text-gray-600"
+                        groupVisible ? "text-content-secondary" : "text-content-faint"
                       }`}
                     />
                     <span
                       className={`text-sm font-medium whitespace-nowrap ${
-                        groupVisible ? "text-white" : "text-gray-600"
+                        groupVisible ? "text-content-primary" : "text-content-faint"
                       }`}
                     >
                       {group.group}
@@ -466,8 +466,8 @@ export const PermissionModal = ({
                                 : "cursor-pointer"
                             } ${
                               isSelected
-                                ? "bg-orange-500/15 border-orange-500/40 text-orange-300 hover:bg-orange-500/25"
-                                : "bg-[#181818] border-[#333333] text-gray-500 hover:border-[#444444] hover:text-gray-300"
+                                ? "bg-primary/15 border-primary/40 text-primary hover:bg-primary/25"
+                                : "bg-surface-card border-border text-content-faint hover:border-border hover:text-content-secondary"
                             }`}
                           >
                             {perm.chip || perm.label}
@@ -479,7 +479,7 @@ export const PermissionModal = ({
 
                   {/* No chips state */}
                   {groupVisible && nonViewItems.length === 0 && (
-                    <span className="text-xs text-gray-600 mt-1.5">View only</span>
+                    <span className="text-xs text-content-faint mt-1.5">View only</span>
                   )}
                 </div>
               </div>
@@ -488,16 +488,16 @@ export const PermissionModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-5 border-t border-[#333333]">
+        <div className="flex gap-3 p-5 border-t border-border">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+            className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
           >
             <Check className="w-4 h-4" />
             Save Permissions

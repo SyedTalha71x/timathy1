@@ -19,13 +19,13 @@ const Sidebar = ({
   const isPdfPage = contractPages?.[currentPage]?.locked;
   
   return (
-    <div className="hidden lg:flex lg:w-64 bg-white border-r border-gray-200 flex-col shadow-sm">
-      <div className="p-4 border-b border-gray-200">
+    <div className="hidden lg:flex lg:w-64 bg-surface-card border-r border-border flex-col shadow-sm">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold text-lg text-black">Contract Builder</h2>
+          <h2 className="font-semibold text-lg text-content-primary">Contract Builder</h2>
           <button
             onClick={() => setShowHotkeysModal(true)}
-            className="text-gray-400 hover:text-blue-500 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="text-content-muted hover:text-primary p-1 rounded-xl hover:bg-surface-hover transition-colors"
             title="Keyboard Shortcuts"
           >
             <HelpCircle size={18} />
@@ -64,10 +64,10 @@ const Sidebar = ({
             />
           ) : (
             <>
-              <span className="text-sm text-black flex-1 truncate">{contractName}</span>
+              <span className="text-sm text-content-primary flex-1 truncate">{contractName}</span>
               <button
                 onClick={() => setEditingContractName(true)}
-                className="text-gray-400 hover:text-blue-500 p-1"
+                className="text-content-muted hover:text-primary p-1"
                 title="Rename contract"
               >
                 <EditIcon size={14} />
@@ -80,18 +80,18 @@ const Sidebar = ({
       <div className="flex-1 overflow-y-auto p-4 relative">
         {/* PDF page overlay for element area */}
         {isPdfPage && (
-          <div className="absolute inset-0 bg-gray-600 bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center">
             <div className="text-center p-4">
-              <FileIcon size={48} className="mx-auto mb-3 text-gray-200" />
+              <FileIcon size={48} className="mx-auto mb-3 text-white/80" />
               <p className="text-white font-medium mb-1">PDF page selected.</p>
-              <p className="text-gray-200 text-sm">PDF pages cannot be edited.</p>
+              <p className="text-white/80 text-sm">PDF pages cannot be edited.</p>
             </div>
           </div>
         )}
         
         {ELEMENT_CATEGORIES.map(category => (
           <div key={category.category} className="mb-6">
-            <h3 className="font-medium text-sm text-black mb-2 uppercase tracking-wide">
+            <h3 className="font-medium text-sm text-content-primary mb-2 uppercase tracking-wide">
               {category.category}
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -99,11 +99,11 @@ const Sidebar = ({
                 <button
                   key={type.value}
                   onClick={() => addElement(type.value)}
-                  className={`flex flex-col items-center justify-center p-3 border rounded-lg transition-colors ${type.color}`}
+                  className={`flex flex-col items-center justify-center p-3 border rounded-xl transition-colors ${type.color}`}
                   disabled={isPdfPage}
                 >
-                  <span className="mb-1 text-black">{type.icon}</span>
-                  <span className="text-xs text-black">{type.label}</span>
+                  <span className="mb-1 text-content-primary">{type.icon}</span>
+                  <span className="text-xs text-content-primary">{type.label}</span>
                 </button>
               ))}
             </div>

@@ -8,7 +8,7 @@ import {
   CONTENT_HEIGHT_PX
 } from '../utils/layoutUtils';
 
-// Minimale AbstÃ¤nde fÃ¼r Kopf-/FuÃŸzeile vom Blattrand
+// Minimale Abstände für Kopf-/Fußzeile vom Blattrand
 const HEADER_TOP_MARGIN = 20; // 20px vom oberen Blattrand
 const FOOTER_BOTTOM_MARGIN = 20; // 20px vom unteren Blattrand
 const HEADER_FOOTER_HORIZONTAL_PADDING = 20; // 20px links/rechts Padding
@@ -134,7 +134,7 @@ const CanvasArea = ({
   const renderSnapLines = () => {
     return snapLines.map((line, index) => {
       // Determine color based on snap type
-      let color = '#3b82f6'; // Default blue for element alignment
+      let color = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#3b82f6'; // Default blue for element alignment
       let opacity = 0.8;
       let isDashed = false;
       
@@ -220,15 +220,15 @@ const CanvasArea = ({
       }}>
       <div
         ref={containerRef}
-        className="bg-white border border-gray-300 rounded-lg relative flex items-start justify-center"
+        className="bg-surface-hover border border-border rounded-xl relative flex items-start justify-center"
         style={{
           minHeight: '600px',
           height: 'auto',
           backgroundImage: `
-            linear-gradient(45deg, #f8f9fa 25%, transparent 25%),
-            linear-gradient(-45deg, #f8f9fa 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, #f8f9fa 75%),
-            linear-gradient(-45deg, transparent 75%, #f8f9fa 75%)
+            linear-gradient(45deg, var(--color-surface-card) 25%, transparent 25%),
+            linear-gradient(-45deg, var(--color-surface-card) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, var(--color-surface-card) 75%),
+            linear-gradient(-45deg, transparent 75%, var(--color-surface-card) 75%)
           `,
           backgroundSize: '20px 20px',
           backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
@@ -288,7 +288,7 @@ const CanvasArea = ({
               left: `${MARGIN_PX}px`,
               width: `${CONTENT_WIDTH_PX}px`,
               height: `${dynamicContentArea.height}px`,
-              border: contractPages[currentPage]?.locked ? 'none' : '2px dashed #3b82f6',
+              border: contractPages[currentPage]?.locked ? 'none' : '2px dashed var(--color-primary)',
               backgroundColor: 'transparent',
               boxSizing: 'content-box',
               overflow: 'visible',

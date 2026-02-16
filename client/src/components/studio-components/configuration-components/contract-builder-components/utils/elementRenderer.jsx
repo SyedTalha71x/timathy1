@@ -75,7 +75,7 @@ const KeyboardTooltip = ({ label, shortcut, children }) => {
   );
 };
 
-export const renderElementContent = (element) => {
+export const renderElementContent = (element, isSelected = false) => {
   if (!element.visible) return null;
 
   switch (element.type) {
@@ -162,13 +162,13 @@ export const renderElementContent = (element) => {
                 {labelText}
               </span>
               {element.required && element.type !== 'system-text' && (
-                <span className="text-red-500 ml-1">*</span>
+                <span className="text-primary ml-1">*</span>
               )}
             </div>
           )}
           {element.showTitle === false && element.required && element.type !== 'system-text' && (
             <div className="text-right mb-1">
-              <span className="text-red-500 text-sm">*</span>
+              <span className="text-primary text-sm">*</span>
             </div>
           )}
           <div className="w-full h-full border border-gray-300 rounded bg-gray-50 flex-grow flex items-center" style={{ paddingLeft: '8px', paddingRight: '12px' }}>
@@ -356,7 +356,21 @@ export const renderElementContent = (element) => {
       return (
         <div className="flex flex-col w-full min-h-full">
           <div className="flex items-start gap-2 p-2">
-            <input type="checkbox" disabled className="w-4 h-4 mt-1 flex-shrink-0" />
+            <input 
+              type="checkbox" 
+              disabled 
+              className="w-4 h-4 mt-1 flex-shrink-0" 
+              style={{ 
+                appearance: 'none', 
+                WebkitAppearance: 'none', 
+                width: '16px', 
+                height: '16px', 
+                border: '1.5px solid #d1d5db', 
+                borderRadius: '3px', 
+                backgroundColor: '#ffffff',
+                cursor: 'default'
+              }} 
+            />
             <div className="flex-1">
               {element.showTitle !== false && (
                 <div 
@@ -378,13 +392,13 @@ export const renderElementContent = (element) => {
                     {checkboxLabel}
                   </span>
                   {element.required && (
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-primary ml-1">*</span>
                   )}
                 </div>
               )}
               {/* Required Asterisk auch anzeigen wenn Titel deaktiviert ist */}
               {element.showTitle === false && element.required && (
-                <span className="text-red-500 text-sm">*</span>
+                <span className="text-primary text-sm">*</span>
               )}
             </div>
           </div>
@@ -484,13 +498,13 @@ export const renderElementContent = (element) => {
                 {locationDateText}
               </span>
               {element.required && (
-                <span className="text-red-500 ml-1">*</span>
+                <span className="text-primary ml-1">*</span>
               )}
             </div>
           )}
           {((element.showLocationDate === false && element.required) || (element.showLocationDate !== false && !locationDateText && element.required)) && (
             <div className="text-right w-full" style={{ marginBottom: '8px' }}>
-              <span className="text-red-500 text-sm">*</span>
+              <span className="text-primary text-sm">*</span>
             </div>
           )}
           <div className="w-full border-t-2 border-gray-400">
@@ -578,12 +592,12 @@ export const renderElementContent = (element) => {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center h-full w-full p-2">
-          <div className="text-gray-400 text-center p-4 border-2 border-dashed border-gray-300 rounded-lg w-full h-full flex flex-col items-center justify-center">
-            <ImageIcon size={24} className="mx-auto mb-2 text-gray-300" />
-            <span className="text-xs">Insert image here</span>
+        <div className="flex flex-col items-center justify-center h-full w-full p-1">
+          <div className="text-gray-400 text-center border-2 border-dashed border-gray-300 rounded-xl w-full h-full flex flex-col items-center justify-center gap-1">
+            <ImageIcon size={48} className="mx-auto text-gray-300" />
+            <span className="text-xs text-gray-400">Insert image here</span>
             {element.fileName && (
-              <span className="text-xs mt-1 text-gray-500">
+              <span className="text-xs text-gray-500">
                 Last file: {element.fileName}
               </span>
             )}
@@ -867,7 +881,7 @@ export const renderBuilderElement = (
     >
       {isSelected && (
         <>
-          {/* Wrapper for selection border and handles - rotates with element */}
+          {/* Selection border only - BELOW content */}
           <div style={{
             position: 'absolute',
             top: '-2px',
@@ -877,21 +891,52 @@ export const renderBuilderElement = (
             transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none',
             transformOrigin: 'center center',
             pointerEvents: 'none',
-            zIndex: 9
+            zIndex: 1
           }}>
-            {/* Selection border */}
             <div style={{
               position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              border: '2px solid #3b82f6',
+              border: '2px solid var(--color-primary)',
               borderRadius: '4px',
               pointerEvents: 'none'
             }} />
-            
-            {/* Resize handles - 8 points */}
+          </div>
+        </>
+      )}
+      
+      {/* Content wrapper with overflow hidden and rotation */}
+      <div 
+        style={{
+          width: '100%',
+          height: '100%',
+          overflow: ['heading', 'subheading', 'text', 'system-text', 'textarea', 'checkbox', 'signature'].includes(element.type) 
+            ? 'hidden'   // Text elements need clipping
+            : 'visible', // Decorative elements (shapes, images) need visible overflow for SVG
+          position: 'relative',
+          zIndex: 5,
+          transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none',
+          transformOrigin: 'center center',
+        }}>
+        {renderElementContent(element, isSelected)}
+      </div>
+
+      {isSelected && (
+        <>
+          {/* Resize handles - ABOVE content */}
+          <div style={{
+            position: 'absolute',
+            top: '-2px',
+            left: '-2px',
+            right: '-2px',
+            bottom: '-2px',
+            transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none',
+            transformOrigin: 'center center',
+            pointerEvents: 'none',
+            zIndex: 15
+          }}>
             {renderResizeHandle('nw', -4, -4, 'nw-resize', element.id, handleResizeStart)}
             {renderResizeHandle('n', '50%', -4, 'n-resize', element.id, handleResizeStart, { transform: 'translateX(-50%)' })}
             {renderResizeHandle('ne', null, -4, 'ne-resize', element.id, handleResizeStart, { right: '-4px' })}
@@ -909,7 +954,7 @@ export const renderBuilderElement = (
             left: 0, 
             display: 'flex', 
             gap: 4, 
-            background: '#3b82f6', 
+            background: 'var(--color-primary)', 
             color: '#fff', 
             padding: '4px 8px', 
             borderRadius: 6, 
@@ -922,7 +967,7 @@ export const renderBuilderElement = (
                   e.stopPropagation();
                   removeElement(element.id);
                 }}
-                className="hover:bg-blue-600 p-1 rounded"
+                className="hover:bg-primary p-1 rounded"
               >
                 <TrashIcon size={14} />
               </button>
@@ -960,12 +1005,12 @@ export const renderBuilderElement = (
                   setSelectedElement(newElement.id);
                   saveToHistory(newPages, folders, 'duplicate_element');
                 }}
-                className="hover:bg-blue-600 p-1 rounded"
+                className="hover:bg-primary p-1 rounded"
               >
                 <CopyIcon size={14} />
               </button>
             </KeyboardTooltip>
-            <div className="h-4 border-l border-blue-400 mx-1"></div>
+            <div className="h-4 border-l border-white/30 mx-1"></div>
             {/* Rotation button - only for decorative elements and images */}
             {['rectangle', 'circle', 'triangle', 'semicircle', 'arrow', 'divider', 'image'].includes(element.type) && (
               <>
@@ -978,7 +1023,7 @@ export const renderBuilderElement = (
                     e.stopPropagation();
                     handleResizeStart(element.id, 'rotate', e);
                   }}
-                  className="hover:bg-blue-600 p-1 rounded"
+                  className="hover:bg-primary p-1 rounded"
                   title="Rotate"
                   style={{ cursor: 'grab' }}
                 >
@@ -986,27 +1031,13 @@ export const renderBuilderElement = (
                     <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
                   </svg>
                 </button>
-                <div className="h-4 border-l border-blue-400 mx-1"></div>
+                <div className="h-4 border-l border-white/30 mx-1"></div>
               </>
             )}
-            <MoveIcon size={14} className="text-blue-200" />
+            <MoveIcon size={14} className="text-white/40" />
           </div>
         </>
       )}
-      
-      {/* Content wrapper with overflow hidden and rotation */}
-      <div style={{
-        width: '100%',
-        height: '100%',
-        overflow: ['heading', 'subheading', 'text', 'system-text', 'textarea', 'checkbox', 'signature'].includes(element.type) 
-          ? 'hidden'   // Text elements need clipping
-          : 'visible', // Decorative elements (shapes, images) need visible overflow for SVG
-        position: 'relative',
-        transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none',
-        transformOrigin: 'center center'
-      }}>
-        {renderElementContent(element)}
-      </div>
     </div>
   );
 };
@@ -1025,7 +1056,7 @@ function renderResizeHandle(handle, left, top, cursor, elementId, handleResizeSt
           left: left,
           width: '8px',
           height: '8px',
-          backgroundColor: '#3b82f6',
+          backgroundColor: 'var(--color-primary)',
           border: '1px solid #fff',
           borderRadius: '50%',
           cursor: cursor,
@@ -1047,7 +1078,7 @@ function renderResizeHandle(handle, left, top, cursor, elementId, handleResizeSt
         left: left,
         width: '8px',
         height: '8px',
-        backgroundColor: '#3b82f6',
+        backgroundColor: 'var(--color-primary)',
         border: '1px solid #fff',
         borderRadius: '50%',
         cursor: cursor,

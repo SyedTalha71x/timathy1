@@ -635,61 +635,67 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                 {DEFAULT_INTRODUCTORY_MATERIALS.map((material) => (
                   <div 
                     key={material.id} 
-                    className="bg-surface-dark rounded-xl p-4 border border-border hover:border-primary transition-colors"
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
                   >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-content-primary font-medium truncate">
-                            {material.name || "Untitled Material"}
-                          </h4>
-                          <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
-                            <BookOpen className="w-4 h-4" />
-                            {material.pages?.length || 0} page{(material.pages?.length || 0) !== 1 ? 's' : ''}
+                    <div className="p-4 sm:p-5">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-content-primary font-medium truncate">
+                              {material.name || "Untitled Material"}
+                            </h4>
+                            <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
+                              <BookOpen className="w-4 h-4" />
+                              {material.pages?.length || 0} page{(material.pages?.length || 0) !== 1 ? 's' : ''}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      {/* Page previews */}
-                      {material.pages && material.pages.length > 0 && (
-                        <div className="flex gap-1 overflow-x-auto pb-1">
-                          {material.pages.slice(0, 5).map((page) => (
-                            <div 
-                              key={page.id} 
-                              className="w-10 h-14 bg-white border border-border rounded flex-shrink-0 overflow-hidden"
-                            >
+                        
+                        {/* Page previews with content thumbnails */}
+                        {material.pages && material.pages.length > 0 && (
+                          <div className="flex gap-1.5 overflow-x-auto pb-1">
+                            {material.pages.slice(0, 4).map((page, pageIndex) => (
                               <div 
-                                className="w-full h-full overflow-hidden pointer-events-none"
-                                style={{ 
-                                  transform: 'scale(0.1)', 
-                                  transformOrigin: 'top left', 
-                                  width: '1000%', 
-                                  height: '1000%',
-                                  fontSize: '10px',
-                                  padding: '4px',
-                                  color: '#000',
-                                  lineHeight: '1.2',
-                                  fontFamily: 'Arial, sans-serif'
-                                }}
-                                dangerouslySetInnerHTML={{ __html: page.content || '<p style="color:#ccc">Empty</p>' }}
-                              />
-                            </div>
-                          ))}
-                          {material.pages.length > 5 && (
-                            <div className="w-10 h-14 bg-surface-base border border-border rounded flex-shrink-0 flex items-center justify-center text-xs text-content-faint">
-                              +{material.pages.length - 5}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
+                                key={page.id} 
+                                className="w-14 h-[72px] bg-white border border-border rounded-lg flex-shrink-0 overflow-hidden relative"
+                              >
+                                <div 
+                                  className="w-full h-full overflow-hidden pointer-events-none"
+                                  style={{ 
+                                    transform: 'scale(0.12)', 
+                                    transformOrigin: 'top left', 
+                                    width: '833%', 
+                                    height: '833%',
+                                    fontSize: '11px',
+                                    padding: '4px',
+                                    color: '#000',
+                                    lineHeight: '1.3',
+                                    fontFamily: 'Arial, sans-serif'
+                                  }}
+                                  dangerouslySetInnerHTML={{ __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` }}
+                                />
+                                <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
+                                  {pageIndex + 1}
+                                </div>
+                              </div>
+                            ))}
+                            {material.pages.length > 4 && (
+                              <div className="w-14 h-[72px] bg-surface-card border border-border rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-content-muted font-medium">
+                                +{material.pages.length - 4}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="px-4 py-3 bg-surface-card border-t border-border">
                       <button 
                         onClick={() => {
                           setSelectedMaterial(material)
                           setShowMaterialPreview(true)
                           setShowIntroductoryMaterials(false)
                         }}
-                        className="w-full px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Eye className="w-4 h-4" />
                         Preview
