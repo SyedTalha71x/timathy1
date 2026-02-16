@@ -12,7 +12,7 @@ export const EditPlanModal = ({
   onAddExercise,
   onRemoveExercise,
   onEditPlan,
-  // getVideoById,
+  getVideoById,
   getDifficultyColor
 }) => {
   if (!isOpen || !editingPlan) return null;
@@ -135,7 +135,7 @@ export const EditPlanModal = ({
                   <div key={video._id} className="bg-[#161616] rounded-xl p-3">
                     <div className="flex items-start gap-3">
                       <img
-                        src={video.thumbnail || "/placeholder.svg"}
+                        src={video.thumbnail?.url || "/placeholder.svg"}
                         alt={video.title}
                         className="w-10 sm:w-12 h-8 sm:h-9 object-cover rounded flex-shrink-0"
                       />
@@ -182,8 +182,11 @@ export const EditPlanModal = ({
               ) : (
                 <div className="space-y-4 max-h-64 sm:max-h-96 overflow-y-auto">
                   {selectedExercises.map((exercise, index) => {
-                    const video =  exercise.video; 
-                    if(!video) return null// <- use the video object directly
+                    const video =
+                      typeof exercise.video === "string"
+                        ? getVideoById(exercise.video)
+                        : exercise.video;
+                    if (!video) return null// <- use the video object directly
                     return (
                       <div key={exercise.video?._id} className="bg-[#161616] rounded-xl p-3 sm:p-4">
                         <div className="flex items-start gap-3 sm:gap-4">

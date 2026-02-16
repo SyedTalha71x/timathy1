@@ -24,16 +24,17 @@ import {
   Edit,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import { newtrainingPlansState, newtrainingVideosState } from "../../utils/member-panel-states/training-states"
+// import { newtrainingPlansState, newtrainingVideosState } from "../../utils/member-panel-states/training-states"
 import VideoModal from "../../components/member-panel-components/training-components/VideoModal"
 import AddToPlanModal from "../../components/member-panel-components/training-components/AddToPlanModal"
 import CreatePlanModal from "../../components/member-panel-components/training-components/CreatePlanModal"
 import { EditPlanModal } from "../../components/member-panel-components/training-components/EditPlanModal"
 import { ViewPlanModal } from "../../components/member-panel-components/training-components/ViewPlanModal"
-import { fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+import { createPlan, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+
 
 export default function Training() {
-  const { training, loading, myPlans } = useSelector((state) => state.trainings)
+  const { trainings, loading, myPlans } = useSelector((state) => state.trainings)
   const { user } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const [activeTab, setActiveTab] = useState("videos")
@@ -69,8 +70,24 @@ export default function Training() {
     { id: "glutes", name: "Glutes", color: "bg-purple-800" },
     { id: "core", name: "Core", color: "bg-orange-600" },
   ]
-  const [trainingVideos] = useState(newtrainingVideosState)
-  const [trainingPlans, setTrainingPlans] = useState(newtrainingPlansState)
+
+
+  // *** Help in future to check who created plan for user is it admin staff or himself and show badge accordingly ****
+  // const getUserRoleBadge = (role) => {
+  //   switch (role) {
+  //     case "admin":
+  //       return "bg-red-100 text-red-700";
+  //     case "staff":
+  //       return "bg-yellow-100 text-yellow-700";
+  //     case "member":
+  //       return "bg-green-100 text-green-700";
+  //     default:
+  //       return "bg-gray-100 text-gray-500";
+  //   }
+  // };
+
+  //  const [trainingVideos] = useState(newtrainingVideosState)
+  // const [trainingPlans, setTrainingPlans] = useState(newtrainingPlansState)
   const [planForm, setPlanForm] = useState({
     name: "",
     description: "",
@@ -87,16 +104,27 @@ export default function Training() {
   const [videoToAdd, setVideoToAdd] = useState(null)
 
   // Filter videos based on category and search
-  const filteredVideos = trainingVideos.filter((video) => {
-    const matchesCategory =
-      selectedCategories.includes("all") ||
-      selectedCategories.includes(video.category)
+  const filteredVideos = trainings.filter((video) => {
+    const videoCategory = (video.category || "").toLowerCase()
+    const activeCategories = (selectedCategories?.filter(Boolean) || ["all"]).map(c =>
+      c.toLowerCase()
+    )
+
+    // If "all" is selected, include everything
+    const matchesCategory = activeCategories.includes("all") || activeCategories.includes(videoCategory)
+
+    const search = searchQuery.toLowerCase()
+    const instructorName = `${video.instructor?.firstName || ""} ${video.instructor?.lastName || ""}`.toLowerCase()
+
     const matchesSearch =
-      video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      video.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      video.instructor.toLowerCase().includes(searchQuery.toLowerCase())
+      !search ||
+      video.title?.toLowerCase().includes(search) ||
+      video.description?.toLowerCase().includes(search) ||
+      instructorName.includes(search)
+
     return matchesCategory && matchesSearch
   })
+
 
   const availableVideos = filteredVideos
 
@@ -186,32 +214,45 @@ export default function Training() {
   }
 
   const handleCreatePlan = () => {
+    if (!user) return; // safety check
+
     const newPlan = {
-      id: trainingPlans.length + 1,
       ...planForm,
-      createdBy: "Current User",
-      createdAt: new Date().toISOString().split("T")[0],
+      createdBy: user._id, // current logged-in user ID
+      createdAt: new Date().toISOString(),
       likes: 0,
       uses: 0,
+      exercises: planForm.exercises.map(ex => ({
+        video: ex.video,
+        sets: ex.sets || 3,
+        reps: ex.reps || "10-12",
+        rest: ex.rest || "60s"
+      })),
     }
-    setTrainingPlans([...trainingPlans, newPlan])
-    setIsCreatePlanModalOpen(false)
-    resetPlanForm()
-    toast.success("Training plan created successfully!")
+
+    dispatch(createPlan(newPlan))
+      .unwrap()
+      .then(() => {
+        setIsCreatePlanModalOpen(false)
+        resetPlanForm()
+        toast.success("Training plan created successfully!")
+        dispatch(fetchMyPlans()) // refresh plans
+      })
+      .catch(err => toast.error(err.message || "Failed to create plan"))
   }
 
   const handleEditPlan = () => {
-    const updatedPlans = trainingPlans.map((plan) =>
-      plan.id === editingPlan.id
+    const updatedPlans = myPlans.map((plan) =>
+      plan._id === editingPlan.id
         ? {
           ...editingPlan, // Keep the original plan structure
           ...planForm, // Override with form data
-          id: editingPlan.id, // Ensure ID is preserved
+          id: editingPlan._id, // Ensure ID is preserved
           exercises: selectedExercises, // Use selectedExercises instead of planForm.exercises
         }
         : plan,
     )
-    setTrainingPlans(updatedPlans)
+    // setTrainingPlans(updatedPlans)
     setIsEditPlanModalOpen(false)
     setEditingPlan(null)
     resetPlanForm()
@@ -242,11 +283,11 @@ export default function Training() {
       rest: "60s",
     }
 
-    const updatedPlans = trainingPlans.map((plan) =>
-      plan.id === planId ? { ...plan, exercises: [...plan.exercises, exercise] } : plan,
+    const updatedPlans = myPlans.map((plan) =>
+      plan._id === planId ? { ...plan, exercises: [...plan.exercises, exercise] } : plan,
     )
 
-    setTrainingPlans(updatedPlans)
+    // setTrainingPlans(updatedPlans)
     setIsAddToPlanModalOpen(false)
     setVideoToAdd(null)
     toast.success("Exercise added to training plan!")
@@ -254,10 +295,10 @@ export default function Training() {
 
   const handleAddExercise = (video) => {
     const exercise = {
-      video,
-      sets: 3,
-      reps: "10-12",
-      rest: "60s",
+      video: video._id,
+      sets: "",
+      reps: "",
+      rest: "",
     }
 
     setSelectedExercises((prev) => [...prev, exercise])
@@ -307,13 +348,15 @@ export default function Training() {
     }
   }
 
-  const getVideoById = (id) => trainingVideos.find((video) => video._id === id)
+  const getVideoById = (id) => trainings.find((video) => video._id === id)
 
 
   const canEditPlan = (plan) => {
-    const creatorName = `${plan.createdBy?.firstName || ''} ${plan.createdBy?.lastName || ''}`.trim()
-    return creatorName === "Umair Khan" // match with your logged-in user
-  }
+    const creatorName = `${plan.createdBy?.firstName || ''} ${plan.createdBy?.lastName || ''}`.trim();
+    const currentUserName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+    return creatorName === currentUserName;
+  };
+
 
 
   const handleAddToPlan = (selectedVideo) => {
@@ -368,7 +411,7 @@ export default function Training() {
                   }`}
               >
                 <Play size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Videos ({trainingVideos.length})
+                <span className="hidden sm:inline">Training </span>Videos ({trainings.length})
               </button>
               <button
                 onClick={() => setActiveTab("plans")}
@@ -376,7 +419,7 @@ export default function Training() {
                   }`}
               >
                 <Target size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Plans ({trainingPlans.length})
+                <span className="hidden sm:inline">Training </span>Plans ({myPlans.length})
               </button>
             </div>
           </div>
@@ -438,13 +481,13 @@ export default function Training() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredVideos.map((video) => (
                   <div
-                    key={video.id}
+                    key={video._id}
                     className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors cursor-pointer group"
                     onClick={() => handleVideoClick(video)}
                   >
                     <div className="relative">
                       <img
-                        src={video.thumbnail || "/placeholder.svg"}
+                        src={video.thumbnail?.url || "/placeholder.svg"}
                         alt={video.title}
                         className="w-full h-36 sm:h-48 object-cover"
                       />
@@ -542,8 +585,18 @@ export default function Training() {
                       )}
                       <div className="flex items-center gap-2 text-sm text-gray-400">
                         <User size={14} />
-                        <span className="truncate">by {plan?.createdBy?.firstName}{plan?.createdBy?.lastName}</span>
+                        <span className="truncate">
+                          by {plan.createdBy?.firstName} {plan.createdBy?.lastName}
+                        </span>
+                        {/* {plan.createdBy?.role && (
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getUserRoleBadge(plan.createdBy.role)}`}
+                          >
+                            {plan.createdBy.role}
+                          </span>
+                        )} */}
                       </div>
+
                     </div>
                     <div className="flex items-center justify-end gap-2">
                       <button
@@ -592,7 +645,7 @@ export default function Training() {
         isOpen={isAddToPlanModalOpen}
         onClose={() => { setIsAddToPlanModalOpen(false); setVideoToAdd(null); }}
         videoToAdd={videoToAdd}
-        trainingPlans={trainingPlans}
+        // trainingPlans={trainingPlans}
         onAddToExistingPlan={handleAddToExistingPlan}
         onCreateNewPlan={createNewPlan}
         getDifficultyColor={getDifficultyColor}

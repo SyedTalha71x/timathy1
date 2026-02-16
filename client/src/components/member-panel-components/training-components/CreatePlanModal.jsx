@@ -131,10 +131,10 @@ const CreatePlanModal = ({
               <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Exercise Library</h3>
               <div className="space-y-3 max-h-64 sm:max-h-96 overflow-y-auto">
                 {availableVideos.map((video) => (
-                  <div key={video.id} className="bg-[#161616] rounded-xl p-3">
+                  <div key={video._id} className="bg-[#161616] rounded-xl p-3">
                     <div className="flex items-start gap-3">
                       <img
-                        src={video.thumbnail || "/placeholder.svg"}
+                        src={video.thumbnail?.url || "/placeholder.svg"}
                         alt={video.title}
                         className="w-10 sm:w-12 h-8 sm:h-9 object-cover rounded flex-shrink-0"
                       />
@@ -181,18 +181,22 @@ const CreatePlanModal = ({
               ) : (
                 <div className="space-y-4 max-h-64 sm:max-h-96 overflow-y-auto">
                   {selectedExercises.map((exercise, index) => {
-                    const video = getVideoById(exercise.videoId);
+                    const video =
+                      typeof exercise.video === "string"
+                        ? getVideoById(exercise.video)
+                        : exercise.video;
+
                     return (
                       <div key={index} className="bg-[#161616] rounded-xl p-3 sm:p-4">
                         <div className="flex items-start gap-3 sm:gap-4">
                           <img
-                            src={video?.thumbnail || "/placeholder.svg"}
-                            alt={video?.title}
+                            src={video.thumbnail?.url || "/placeholder.svg"}
+                            alt={video.title}
                             className="w-12 sm:w-16 h-9 sm:h-12 object-cover rounded flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white mb-1 text-sm truncate">{video?.title}</h4>
-                            <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
+                            <h4 className="font-medium text-white mb-1 text-sm truncate">{video.title}</h4>
+                            <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video.instructor?.firstName} {video.instructor?.lastName}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <span
                                 className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video?.difficulty)}`}
