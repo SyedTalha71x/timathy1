@@ -7,11 +7,24 @@ const { NotFoundError, BadRequestError } = require('../middleware/error/httpErro
 const createPlan = async (req, res, next) => {
     try {
         const userId = req.user?._id;
-        const { name, description, duration, difficulty, category, workoutsPerWeek, exercises } = req.body;
+        const role = req.user?.role;
+        const { name, description, duration, difficulty, category, workoutsPerWeek, exercises, memberId: bodyMemberId } = req.body;
 
         // checking all field is filled or not?
         if (!name || !description || !duration || !difficulty || !category || !workoutsPerWeek || !Array.isArray(exercises) || !exercises.length === 0) {
             throw new BadRequestError('All fields are required');
+        }
+
+
+        // to know who create plan (admin || staff) or member himself
+        let finalMemberId;
+        if (role === 'admin' || role === "staff") {
+            if (!bodyMemberId) {
+                throw new BadRequestError('Member ID is required for admin and staff');
+            }
+            finalMemberId = bodyMemberId;
+        } else {
+            finalMemberId = userId;
         }
 
 
@@ -34,7 +47,8 @@ const createPlan = async (req, res, next) => {
             category,
             workoutsPerWeek,
             exercises,
-            createdBy: userId
+            createdBy: userId,
+            member: finalMemberId
         });
 
 
@@ -54,9 +68,9 @@ const showMyPlan = async (req, res, next) => {
         const userId = req.user?._id
 
         const myPlans = await TrainingPlanModel.find({ createdBy: userId })
-        .populate('exercises', 'video reps sets rest')
-        .populate('exercises.video', 'title description videoUrl thumbnail duration difficulty')
-        .populate('createdBy', 'firstName lastName');
+            .populate('exercises', 'video reps sets rest')
+            .populate('exercises.video', 'title description videoUrl thumbnail duration difficulty')
+            .populate('createdBy', 'firstName lastName');
         res.status(200).json({ success: true, plans: myPlans });
 
     }

@@ -1,28 +1,37 @@
 import api from '../../services/apiClient'
 
 
-
-
+//   ==== All Training Video Api are Below ====
+// training videos
 
 export const getAllMyTrainings = async () => {
-    try {
-        const response = await api.get('/training/training-videos', {}, { withCredentials: true });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching trainings:', error);
-        throw error;
-    }
-} 
+
+    const response = await api.get('/training/training-videos', {}, { withCredentials: true });
+    return response.data;
+
+}
+
+// upload video in training video center
+export const uploadVideo = async (videoData) => {
+    const res = await api.post('/training/upload/video', videoData, { withCredentials: true })
+    return res.data;
+}
 
 
-// myPlans
+// === All Training Plan Api are Below ===
+
+// --- myPlans ---
 
 export const getMyTrainingPlans = async () => {
-    try {
-        const response = await api.get('/plan/myPlan', {}, { withCredentials: true });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching my training plans:', error);
-        throw error;
-    }
+
+    const response = await api.get('/plan/myPlan', {}, { withCredentials: true });
+    return response.data;
+
+}
+
+// create Plan
+
+export const createTrainingPlan = async (planData) => {
+    const res = await api.post('/plan/create', planData, { withCredentials: true })
+    return res.data
 }

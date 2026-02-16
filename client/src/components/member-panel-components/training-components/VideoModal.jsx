@@ -2,11 +2,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Play, Pause, Volume2, VolumeX, Maximize, Plus } from 'lucide-react';
 
-const VideoModal = ({ 
-  isOpen, 
-  video, 
-  onClose, 
-  onAddToPlan 
+const VideoModal = ({
+  isOpen,
+  video,
+  onClose,
+  onAddToPlan
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -56,6 +56,9 @@ const VideoModal = ({
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+  const progress =
+    duration > 0 ? (currentTime / duration) * 100 : 0
+
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
@@ -97,7 +100,7 @@ const VideoModal = ({
               onLoadedMetadata={handleLoadedMetadata}
               onEnded={() => setIsPlaying(false)}
             >
-              <source src={video.videoUrl} type="video/mp4" />
+              <source src={video.videoUrl?.url} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
 
@@ -121,10 +124,10 @@ const VideoModal = ({
                   <div className="flex-1 bg-white/20 rounded-full h-1">
                     <div
                       className="bg-blue-500 h-1 rounded-full transition-all"
-                      style={{ width: `${(currentTime / duration) * 100}%` }}
+                      style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <span>{formatTime(duration)}</span>
+                  <span>{video.duration}</span>
                 </div>
                 <button className="p-1.5 sm:p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
                   <Maximize size={16} />
