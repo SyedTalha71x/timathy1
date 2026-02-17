@@ -4,7 +4,7 @@ const { uploadThumbnail, uploadTrainingPlanVideo } = require('../utils/Cloudinar
 const { NotFoundError } = require('../middleware/error/httpErrors')
 const { AdminModel, StaffModel } = require('../models/Discriminators');
 
-
+const fs = require('fs');
 
 
 
@@ -24,22 +24,27 @@ const createTrainingVideoUpload = async (req, res, next) => {
         const videoFile = req.files?.videoUrl?.[0];
         const thumbnailFile = req.files?.thumbnail?.[0];
 
-        if (!videoFile) {
-            throw new NotFoundError("Video file is required");
-        }
+        // console.log('Uploading files:', req.files);
 
-        if (!thumbnailFile) {
-            throw new NotFoundError("Thumbnail is required");
-        }
+      
+    // Validate files
+    if (!videoFile || !videoFile.path || fs.statSync(videoFile.path).size === 0) {
+      throw new NotFoundError("Video file is missing or empty");
+    }
+
+    if (!thumbnailFile || !thumbnailFile.path || thumbnailFile.size === 0) {
+      throw new NotFoundError("Thumbnail is missing or empty");
+    }
+
 
         // Upload thumbnail
         const cloudinaryThumbnailUpload = await uploadThumbnail(
-            thumbnailFile.buffer
+            thumbnailFile.path
         );
 
         // Upload video
         const cloudinaryVideoUpload = await uploadTrainingPlanVideo(
-            videoFile.buffer
+            videoFile.path
         );
 
         const videoUpload = await TrainingVideoModel.create({

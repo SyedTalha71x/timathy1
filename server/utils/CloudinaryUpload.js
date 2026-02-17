@@ -1,15 +1,9 @@
 const cloudinary = require("./Cloudinary");
-const { Readable } = require("stream");
-
+const fs = require("fs");
 
 // --- Profile Images ---
-
 const uploadToCloudinary = (fileBuffer, folder = "Timathy/profiles") => {
   return new Promise((resolve, reject) => {
-    const bufferStream = new Readable();
-    bufferStream.push(fileBuffer);
-    bufferStream.push(null);
-
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: "image" },
       (error, result) => {
@@ -18,18 +12,17 @@ const uploadToCloudinary = (fileBuffer, folder = "Timathy/profiles") => {
       }
     );
 
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
     bufferStream.pipe(stream);
   });
 };
 
-// --- upload products and services ---
-
+// --- Services / Products ---
 const uploadService = (fileBuffer, folder = "Timathy/servicesImg") => {
   return new Promise((resolve, reject) => {
-    const bufferStream = new Readable();
-    bufferStream.push(fileBuffer);
-    bufferStream.push(null);
-
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: "image" },
       (error, result) => {
@@ -38,18 +31,17 @@ const uploadService = (fileBuffer, folder = "Timathy/servicesImg") => {
       }
     );
 
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
     bufferStream.pipe(stream);
   });
 };
 
-// --- Idle Period Document Upload
-
+// --- Idle Period Documents ---
 const uploadIdlePeriod = (fileBuffer, folder = "Timathy/vacation") => {
   return new Promise((resolve, reject) => {
-    const bufferStream = new Readable();
-    bufferStream.push(fileBuffer);
-    bufferStream.push(null);
-
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: "raw" },
       (error, result) => {
@@ -58,20 +50,17 @@ const uploadIdlePeriod = (fileBuffer, folder = "Timathy/vacation") => {
       }
     );
 
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
     bufferStream.pipe(stream);
   });
 };
 
-
-
-// --- Contract Upload to Cloudinary ---
-
+// --- Contracts ---
 const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
   return new Promise((resolve, reject) => {
-    const bufferStream = new Readable();
-    bufferStream.push(fileBuffer);
-    bufferStream.push(null);
-
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
@@ -82,7 +71,7 @@ const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
         use_filename: true,
         unique_filename: false,
         overwrite: true,
-        access_mode: "public", // Ensure files are publicly accessible
+        access_mode: "public",
       },
       (error, result) => {
         if (error) return reject(error);
@@ -93,63 +82,55 @@ const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
       }
     );
 
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
     bufferStream.pipe(stream);
   });
 };
 
-
-// --- video thumbnail to cloudinary ---
-const uploadThumbnail = (fileBuffer, folder = "Timathy/trainingVideo/thumbnail") => {
+// --- Video Thumbnails ---
+const uploadThumbnail = (filePath, folder = "Timathy/trainingVideo/thumbnail") => {
   return new Promise((resolve, reject) => {
-    const bufferStream = new Readable();
-    bufferStream.push(fileBuffer);
-    bufferStream.push(null);
+    cloudinary.uploader.upload(filePath, { folder, resource_type: "image" }, (err, result) => {
+      if (err) return reject(err);
 
-    const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: "image" },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
+      // Optionally delete local file
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn("Failed to delete file:", e.message);
       }
-    );
 
-    bufferStream.pipe(stream);
+      resolve(result);
+    });
   });
 };
 
+// --- Training Plan Videos (diskStorage + upload_large) ---
 
-
-// --- upload training plan videos upload ---
-
-const uploadTrainingPlanVideo = (fileBuffer, folder = "Timathy/trainingVideo/videos") => {
+const uploadTrainingPlanVideo = (filePath, folder = "Timathy/trainingVideo/videos") => {
   return new Promise((resolve, reject) => {
-    const bufferStream = new Readable();
-    bufferStream.push(fileBuffer);
-    bufferStream.push(null);
+    cloudinary.uploader.upload_large(filePath, { resource_type: "video", folder, chunk_size: 6 * 1024 * 1024 }, (err, result) => {
+      if (err) return reject(err);
 
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder,
-        overwrite: true,
-        chunk_size: 6 * 1024 * 1024,
-        resource_type: "video"
-      },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve({
-          url: result.secure_url,
-          public_id: result.public_id,
-          duration: result.duration
-        });
-      }
-    );
-    bufferStream.pipe(stream)
-  })
-}
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
+      resolve({
+        url: result.secure_url,
+        public_id: result.public_id,
+        duration: result.duration,
+      });
+    });
+  });
+};
 
-
-
-
-
-module.exports = { uploadToCloudinary, uploadService, uploadContract, uploadIdlePeriod, uploadThumbnail, uploadTrainingPlanVideo };
+module.exports = {
+  uploadToCloudinary,
+  uploadService,
+  uploadContract,
+  uploadIdlePeriod,
+  uploadThumbnail,
+  uploadTrainingPlanVideo,
+};

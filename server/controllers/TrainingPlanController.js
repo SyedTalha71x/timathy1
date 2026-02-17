@@ -1,7 +1,7 @@
 const TrainingPlanModel = require('../models/trainingModels/TrainingPlanModel');
 const TrainingVideoModel = require('../models/trainingModels/TrainingVideoModel');
 const { MemberModel } = require('../models/Discriminators');
-const { NotFoundError, BadRequestError } = require('../middleware/error/httpErrors');
+const { NotFoundError, BadRequestError, UnAuthorizedError } = require('../middleware/error/httpErrors');
 
 
 const createPlan = async (req, res, next) => {
@@ -79,8 +79,36 @@ const showMyPlan = async (req, res, next) => {
     }
 }
 
+const updateTrainingPlan = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const planId = req.params;
+
+        const existingPlan = await TrainingPlanModel.findById(planId);
+        if (!existingPlan) {
+            throw new NotFoundError('Training plan not Found')
+        }
+        if (existingPlan.createdBy.toString() !== userId.toString() || existingPlan.member.toString() !== userId.toString()) {
+            throw new UnAuthorizedError("You cannot Update plan")
+        }
+
+        const videoId = req.body.exercises.map(ex => ex.video);
+        const findVideo = await TrainingVideoModel.find({ _id: { $in: videoId } });
+        if (!findVideo || findVideo.length === 0) {
+            throw new NotFoundError('Training video not found');
+        }
+
+        const updatedPlan = await TrainingPlanModel.findByIdAndUpdate(planId, req.body, { new: true });
+        res.status(200).json({ success: true, plan: updatedPlan });
+
+    }
+    catch (error) {
+        next(error)
+    }
+}
 
 module.exports = {
     createPlan,
-    showMyPlan
+    showMyPlan,
+    updateTrainingPlan
 }
