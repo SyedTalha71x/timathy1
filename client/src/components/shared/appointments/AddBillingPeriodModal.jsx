@@ -64,8 +64,8 @@ export default function AddBillingPeriodModalMain({
               </p>
             </div>
 
-            <div className="p-3 bg-accent-blue/10 border border-accent-blue/30 rounded-xl">
-              <p className="text-accent-blue text-sm">
+            <div className="p-3 bg-primary/10 border border-primary/30 rounded-xl">
+              <p className="text-primary text-sm">
                 <Info className="inline mr-1" size={14} />
                 New billing periods will start with 0 used appointments and 0 total appointments. 
                 You can edit these values after creation.
@@ -83,7 +83,7 @@ export default function AddBillingPeriodModalMain({
             <button
               onClick={onAdd}
               disabled={!newBillingPeriodMain.trim()}
-              className="px-4 py-2 bg-accent-blue hover:bg-accent-blue/80 disabled:bg-surface-button disabled:cursor-not-allowed text-content-primary rounded-xl text-sm"
+              className="px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-surface-button disabled:cursor-not-allowed text-white rounded-xl text-sm"
             >
               Add Period
             </button>

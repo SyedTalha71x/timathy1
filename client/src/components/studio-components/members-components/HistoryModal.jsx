@@ -1,7 +1,189 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, UserCog, Calendar, Activity, CreditCard, FileText, ArrowRight, Clock, CheckCircle, XCircle } from "lucide-react";
+
+// Initials Avatar Component
+const InitialsAvatar = ({ firstName, lastName, size = "md" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  const sizeClasses = {
+    sm: "w-8 h-8 text-xs",
+    md: "w-10 h-10 text-sm",
+    lg: "w-12 h-12 text-base",
+  }
+
+  return (
+    <div className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]}`}>
+      {getInitials()}
+    </div>
+  )
+}
+
+// Tab Button Component
+const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+      active
+        ? "text-primary border-b-2 border-primary"
+        : "text-content-muted hover:text-content-primary"
+    }`}
+  >
+    <Icon size={16} />
+    <span>{label}</span>
+    {count !== undefined && (
+      <span className={`px-1.5 py-0.5 rounded-md text-xs ${active ? "bg-primary/20 text-primary" : "bg-surface-button text-content-muted"}`}>
+        {count}
+      </span>
+    )}
+  </button>
+)
+
+// Change Card Component (Profile / General Changes)
+const ChangeCard = ({ change }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-primary" />
+        <h4 className="font-medium text-content-primary">{change.field} Changed</h4>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-content-faint">
+        <Clock size={12} />
+        <span>{change.date} • {change.time}</span>
+      </div>
+    </div>
+    
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 text-sm mb-3">
+      <div className="flex items-center gap-2 bg-primary/5 text-content-secondary px-3 py-1.5 rounded-lg w-full sm:w-auto">
+        <XCircle size={14} className="flex-shrink-0 text-content-muted" />
+        <span className="truncate">{change.oldValue}</span>
+      </div>
+      <ArrowRight size={16} className="text-content-faint hidden sm:block flex-shrink-0" />
+      <div className="flex items-center gap-2 bg-primary/10 text-content-primary px-3 py-1.5 rounded-lg w-full sm:w-auto">
+        <CheckCircle size={14} className="flex-shrink-0 text-primary" />
+        <span className="truncate">{change.newValue}</span>
+      </div>
+    </div>
+    
+    <p className="text-xs text-content-faint">
+      Changed by <span className="text-content-secondary">{change.changedBy}</span>
+    </p>
+  </div>
+)
+
+// Appointment Card Component
+const AppointmentCard = ({ activity }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
+          <Calendar size={18} />
+        </div>
+        <div>
+          <h4 className="font-medium text-content-primary">{activity.action}</h4>
+          <p className="text-xs text-content-faint mt-0.5">{activity.date} • {activity.time}</p>
+        </div>
+      </div>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border bg-primary/10 text-primary border-primary/20">
+        {activity.status}
+      </span>
+    </div>
+    
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-content-faint">
+      <span>Type: <span className="text-content-muted">{activity.appointmentType}</span></span>
+      <span>Date: <span className="text-content-muted">{activity.appointmentDate} at {activity.appointmentTime}</span></span>
+      <span>By: <span className="text-content-muted">{activity.bookedBy}</span></span>
+    </div>
+  </div>
+)
+
+// Check-in Card Component
+const CheckinCard = ({ activity }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
+          <Activity size={18} />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-content-primary">{activity.type}</span>
+            <span className="w-2 h-2 rounded-full bg-primary" />
+          </div>
+          <p className="text-xs text-content-faint mt-0.5">
+            {new Date(activity.date).toLocaleDateString()} • {new Date(activity.date).toLocaleTimeString()}
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <div className="mt-3 pt-3 border-t border-border text-xs text-content-faint">
+      Location: <span className="text-content-muted">{activity.location}</span>
+    </div>
+  </div>
+)
+
+// Finance Card Component
+const FinanceCard = ({ transaction }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <CreditCard size={18} className="text-primary" />
+        </div>
+        <div>
+          <h4 className="font-medium text-content-primary">{transaction.type} — {transaction.amount}</h4>
+          <p className="text-xs text-content-faint mt-0.5">{transaction.date}</p>
+        </div>
+      </div>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border bg-primary/10 text-primary border-primary/20">
+        {transaction.status === "completed" && <CheckCircle size={12} />}
+        {transaction.status}
+      </span>
+    </div>
+    
+    <p className="text-sm text-content-secondary">{transaction.description}</p>
+  </div>
+)
+
+// Contract Card Component
+const ContractCard = ({ contract }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <FileText size={18} className="text-primary" />
+        </div>
+        <div>
+          <h4 className="font-medium text-content-primary">{contract.action}</h4>
+          <p className="text-xs text-content-faint mt-0.5">{contract.date}</p>
+        </div>
+      </div>
+    </div>
+    
+    <p className="text-sm text-content-secondary mb-2">{contract.details}</p>
+    
+    <p className="text-xs text-content-faint">
+      By <span className="text-content-secondary">{contract.user}</span>
+    </p>
+  </div>
+)
+
+// Empty State Component
+const EmptyState = ({ icon: Icon, title, description }) => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="w-16 h-16 rounded-2xl bg-surface-button flex items-center justify-center mb-4">
+      <Icon size={24} className="text-content-faint" />
+    </div>
+    <h4 className="text-content-primary font-medium mb-1">{title}</h4>
+    <p className="text-sm text-content-faint">{description}</p>
+  </div>
+)
 
 export default function HistoryModalMain({
   show,
@@ -15,75 +197,15 @@ export default function HistoryModalMain({
 
   if (!show || !member) return null;
 
-  // Check if member is a full member (not temporary)
-  const isFullMember = member.memberType === "full";
+  // Temporary members: no Finance & Contracts tabs
+  const isTemporary = member.memberType === "temporary";
 
-  // Dummy history data for members (matching leads structure)
-  const generalChanges = memberHistoryMain?.[member.id]?.general || [
-    {
-      id: 1,
-      date: "2024-01-15",
-      time: "14:30",
-      field: "Status",
-      oldValue: "Active",
-      newValue: "Inactive",
-      changedBy: "Admin",
-    },
-    {
-      id: 2,
-      date: "2024-01-10",
-      time: "09:15",
-      field: "Phone Number",
-      oldValue: "+1234567890",
-      newValue: "+1234567891",
-      changedBy: "Self",
-    },
-    {
-      id: 3,
-      date: "2024-01-05",
-      time: "16:45",
-      field: "Email",
-      oldValue: "old@email.com",
-      newValue: "new@email.com",
-      changedBy: "Admin",
-    },
-  ];
-
-  const appointmentHistory = memberHistoryMain?.[member.id]?.appointments || [
-    {
-      id: 1,
-      date: "2024-01-20",
-      time: "10:00",
-      action: "Appointment Booked",
-      appointmentType: "Personal Training",
-      appointmentDate: "2024-01-25",
-      appointmentTime: "14:00",
-      status: "Scheduled",
-      bookedBy: "Admin",
-    },
-    {
-      id: 2,
-      date: "2024-01-18",
-      time: "15:30",
-      action: "Appointment Completed",
-      appointmentType: "Group Class",
-      appointmentDate: "2024-01-18",
-      appointmentTime: "15:00",
-      status: "Completed",
-      bookedBy: "Admin",
-    },
-    {
-      id: 3,
-      date: "2024-01-15",
-      time: "11:00",
-      action: "Appointment Cancelled",
-      appointmentType: "Consultation",
-      appointmentDate: "2024-01-16",
-      appointmentTime: "09:00",
-      status: "Cancelled",
-      bookedBy: "Admin",
-    },
-  ];
+  // History data (from states, with safe fallbacks)
+  const generalChanges = memberHistoryMain?.[member.id]?.general || [];
+  const appointmentHistory = memberHistoryMain?.[member.id]?.appointments || [];
+  const checkinHistory = memberHistoryMain?.[member.id]?.checkins || [];
+  const financeHistory = memberHistoryMain?.[member.id]?.finance || [];
+  const contractHistory = memberHistoryMain?.[member.id]?.contracts || [];
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -92,224 +214,168 @@ export default function HistoryModalMain({
     }
   };
 
+  // Build tabs: everyone gets General, Appointments, Check-ins
+  // Only non-temporary get Finance & Contracts
+  const tabs = [
+    { id: "general", label: "General", icon: UserCog, count: generalChanges.length },
+    { id: "appointments", label: "Appointments", icon: Calendar, count: appointmentHistory.length },
+    { id: "checkins", label: "Check-ins", icon: Activity, count: checkinHistory.length },
+    ...(!isTemporary ? [
+      { id: "finance", label: "Finance", icon: CreditCard, count: financeHistory.length },
+      { id: "contracts", label: "Contracts", icon: FileText, count: contractHistory.length },
+    ] : []),
+  ];
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-surface-card rounded-xl text-content-primary p-4 md:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">
-            History - {member.firstName} {member.lastName}
-          </h2>
-          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
-            <X size={20} />
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000] overflow-y-auto">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-4xl my-8 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              {member.image || member.img ? (
+                <img
+                  src={member.image || member.img}
+                  alt={`${member.firstName} ${member.lastName}`}
+                  className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                />
+              ) : (
+                <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size="md" />
+              )}
+              <div>
+                <h2 className="text-xl text-content-primary font-bold">
+                  {member.firstName} {member.lastName}
+                </h2>
+                <p className="text-sm text-content-muted">Activity History</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose} 
+              className="text-content-muted hover:text-content-primary transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
-        <div className="flex space-x-1 mb-6 bg-surface-dark rounded-lg p-1">
-          <button
-            onClick={() => handleTabChange("general")}
-            className={`px-4 py-2 rounded-md text-sm transition-colors ${
-              activeTab === "general" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"
-            }`}
-          >
-            General Changes
-          </button>
-          <button
-            onClick={() => handleTabChange("appointments")}
-            className={`px-4 py-2 rounded-md text-sm transition-colors ${
-              activeTab === "appointments" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"
-            }`}
-          >
-            Appointments
-          </button>
-          {isFullMember && (
-            <>
-              <button
-                onClick={() => handleTabChange("checkins")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === "checkins" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"
-                }`}
-              >
-                Check-ins
-              </button>
-              <button
-                onClick={() => handleTabChange("finance")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === "finance" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"
-                }`}
-              >
-                Finance
-              </button>
-              <button
-                onClick={() => handleTabChange("contracts")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === "contracts" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"
-                }`}
-              >
-                Contracts
-              </button>
-            </>
-          )}
+
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 overflow-x-auto scrollbar-hide flex-shrink-0">
+          {tabs.map((tab) => (
+            <TabButton
+              key={tab.id}
+              active={activeTab === tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              icon={tab.icon}
+              label={tab.label}
+              count={tab.count}
+            />
+          ))}
         </div>
-        <div className="bg-surface-dark rounded-xl p-4">
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
           {activeTab === "general" && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">General Changes</h3>
-              <div className="space-y-3">
-                {generalChanges.map((change) => (
-                  <div key={change.id} className="bg-surface-base rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-medium text-content-primary">{change.field} Changed</p>
-                        <p className="text-sm text-content-muted">
-                          {change.date} at {change.time} by {change.changedBy}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-content-secondary">
-                        <span className="text-accent-red">From:</span> {change.oldValue}
-                      </p>
-                      <p className="text-content-secondary">
-                        <span className="text-accent-green">To:</span> {change.newValue}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {generalChanges.length > 0 ? (
+                generalChanges.map((change) => (
+                  <ChangeCard key={change.id} change={change} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={UserCog} 
+                  title="No General Changes" 
+                  description="No profile changes have been recorded yet."
+                />
+              )}
             </div>
           )}
+
           {activeTab === "appointments" && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Appointment History</h3>
-              <div className="space-y-3">
-                {appointmentHistory.map((activity) => (
-                  <div key={activity.id} className="bg-surface-base rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-content-primary flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              activity.status === "Completed"
-                                ? "bg-accent-green"
-                                : activity.status === "Scheduled"
-                                  ? "bg-accent-blue"
-                                  : "bg-accent-red"
-                            }`}
-                          ></span>
-                          {activity.action}
-                        </p>
-                        <p className="text-sm text-content-muted">
-                          {activity.date} at {activity.time} by {activity.bookedBy}
-                        </p>
-                        <p className="text-sm text-content-secondary">
-                          Type: {activity.appointmentType} • Date: {activity.appointmentDate} at {activity.appointmentTime}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-2 py-1 rounded text-xs text-white ${
-                          activity.status === "Completed"
-                            ? "bg-accent-green"
-                            : activity.status === "Scheduled"
-                              ? "bg-accent-blue"
-                              : "bg-accent-red"
-                        }`}
-                      >
-                        {activity.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {appointmentHistory.length > 0 ? (
+                appointmentHistory.map((activity) => (
+                  <AppointmentCard key={activity.id} activity={activity} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={Calendar} 
+                  title="No Appointments" 
+                  description="No appointment history has been recorded yet."
+                />
+              )}
             </div>
           )}
-          {activeTab === "checkins" && isFullMember && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Check-ins & Check-outs</h3>
-              <div className="space-y-3">
-                {(memberHistoryMain?.[member.id]?.checkins || []).length > 0 ? (
-                  memberHistoryMain[member.id].checkins.map((activity) => (
-                    <div key={activity.id} className="bg-surface-base rounded-lg p-4">
-                      <p className="font-medium text-content-primary flex items-center gap-2">
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            activity.type === "Check-in" ? "bg-accent-green" : "bg-accent-red"
-                          }`}
-                        ></span>
-                        {activity.type}
-                      </p>
-                      <p className="text-sm text-content-muted">
-                        {new Date(activity.date).toLocaleDateString()} at{" "}
-                        {new Date(activity.date).toLocaleTimeString()}
-                      </p>
-                      <p className="text-sm text-content-secondary">Location: {activity.location}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-content-muted text-sm">No check-in history</p>
-                )}
-              </div>
+
+          {activeTab === "checkins" && (
+            <div className="space-y-3">
+              {checkinHistory.length > 0 ? (
+                checkinHistory.map((activity) => (
+                  <CheckinCard key={activity.id} activity={activity} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={Activity} 
+                  title="No Check-ins" 
+                  description="No check-in activity has been recorded yet."
+                />
+              )}
             </div>
           )}
-          {activeTab === "finance" && isFullMember && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Finance Transactions</h3>
-              <div className="space-y-3">
-                {(memberHistoryMain?.[member.id]?.finance || []).length > 0 ? (
-                  memberHistoryMain[member.id].finance.map((transaction) => (
-                    <div key={transaction.id} className="bg-surface-base rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-content-primary">
-                            {transaction.type} - {transaction.amount}
-                          </p>
-                          <p className="text-sm text-content-muted">{transaction.date}</p>
-                          <p className="text-sm text-content-secondary">{transaction.description}</p>
-                        </div>
-                        <span
-                          className={`px-2 py-1 rounded text-xs text-white ${
-                            transaction.status === "completed"
-                              ? "bg-accent-green"
-                              : "bg-accent-yellow"
-                          }`}
-                        >
-                          {transaction.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-content-muted text-sm">No finance transactions</p>
-                )}
-              </div>
+
+          {activeTab === "finance" && !isTemporary && (
+            <div className="space-y-3">
+              {financeHistory.length > 0 ? (
+                financeHistory.map((transaction) => (
+                  <FinanceCard key={transaction.id} transaction={transaction} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={CreditCard} 
+                  title="No Transactions" 
+                  description="No finance transactions have been recorded yet."
+                />
+              )}
             </div>
           )}
-          {activeTab === "contracts" && isFullMember && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Contract Changes</h3>
-              <div className="space-y-3">
-                {(memberHistoryMain?.[member.id]?.contracts || []).length > 0 ? (
-                  memberHistoryMain[member.id].contracts.map((contract) => (
-                    <div key={contract.id} className="bg-surface-base rounded-lg p-4">
-                      <p className="font-medium text-content-primary">{contract.action}</p>
-                      <p className="text-sm text-content-muted">
-                        {contract.date} by {contract.user}
-                      </p>
-                      <p className="text-sm text-content-secondary">{contract.details}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-content-muted text-sm">No contract changes</p>
-                )}
-              </div>
+
+          {activeTab === "contracts" && !isTemporary && (
+            <div className="space-y-3">
+              {contractHistory.length > 0 ? (
+                contractHistory.map((contract) => (
+                  <ContractCard key={contract.id} contract={contract} />
+                ))
+              ) : (
+                <EmptyState 
+                  icon={FileText} 
+                  title="No Contract Changes" 
+                  description="No contract changes have been recorded yet."
+                />
+              )}
             </div>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="mt-6 bg-surface-button hover:bg-surface-button-hover text-content-primary px-4 py-2 rounded-lg text-sm transition-colors"
-        >
-          Close
-        </button>
+
+        {/* Footer */}
+        <div className="flex justify-end pt-4 flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
+          >
+            Close
+          </button>
+        </div>
       </div>
+
+      {/* Scrollbar hide utility */}
+      <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }

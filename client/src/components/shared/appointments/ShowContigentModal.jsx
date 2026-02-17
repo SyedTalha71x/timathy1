@@ -61,20 +61,20 @@ export default function CreditsModalMain({
       onClick={() => setIsOpen(false)}
     >
       <div 
-        className="bg-[#181818] rounded-xl w-full max-w-sm overflow-hidden"
+        className="bg-surface-card rounded-xl w-full max-w-sm overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <h2 className="text-lg font-medium text-white">Credits</h2>
-            <p className="text-gray-500 text-sm">
+            <h2 className="text-lg font-medium text-content-primary">Credits</h2>
+            <p className="text-content-faint text-sm">
               {selectedMemberForAppointmentsMain?.name || "Member"}
             </p>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-button-hover text-content-muted hover:text-content-primary rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -84,10 +84,10 @@ export default function CreditsModalMain({
           {/* Main Display */}
           <div className="text-center">
             <div className="flex items-end justify-center gap-2">
-              <span className="text-5xl font-bold text-white">{remaining}</span>
-              <span className="text-2xl text-gray-500 mb-1">/ {tempData.total}</span>
+              <span className="text-5xl font-bold text-content-primary">{remaining}</span>
+              <span className="text-2xl text-content-faint mb-1">/ {tempData.total}</span>
             </div>
-            <div className="text-gray-400 text-sm mt-1">
+            <div className="text-content-muted text-sm mt-1">
               credits remaining
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function CreditsModalMain({
             <button
               onClick={() => adjustRemaining(-1)}
               disabled={remaining <= 0}
-              className="w-16 h-16 flex items-center justify-center bg-[#222222] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+              className="w-16 h-16 flex items-center justify-center bg-surface-dark hover:bg-surface-button-hover disabled:opacity-30 disabled:cursor-not-allowed text-content-primary rounded-xl transition-colors"
             >
               <Minus size={28} />
             </button>
@@ -105,36 +105,36 @@ export default function CreditsModalMain({
             <button
               onClick={() => adjustRemaining(1)}
               disabled={remaining >= tempData.total}
-              className="w-16 h-16 flex items-center justify-center bg-[#222222] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+              className="w-16 h-16 flex items-center justify-center bg-surface-dark hover:bg-surface-button-hover disabled:opacity-30 disabled:cursor-not-allowed text-content-primary rounded-xl transition-colors"
             >
               <Plus size={28} />
             </button>
           </div>
 
           {/* Visual Progress */}
-          <div className="bg-[#222222] rounded-xl p-3">
-            <div className="flex justify-between text-xs text-gray-500 mb-2">
+          <div className="bg-surface-dark rounded-xl p-3">
+            <div className="flex justify-between text-xs text-content-faint mb-2">
               <span>Used: {tempData.used}</span>
               <span>Total: {tempData.total}</span>
             </div>
-            <div className="h-2 bg-[#333333] rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-button rounded-full overflow-hidden">
               <div 
-                className="h-full rounded-full transition-all duration-300 bg-blue-500"
+                className="h-full rounded-full transition-all duration-300 bg-primary"
                 style={{ width: `${(remaining / tempData.total) * 100}%` }}
               />
             </div>
           </div>
 
           {/* Billing Period - Compact */}
-          <div className="bg-[#222222] rounded-xl p-3">
+          <div className="bg-surface-dark rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500 flex items-center gap-1">
+              <span className="text-xs text-content-faint flex items-center gap-1">
                 <Calendar size={12} />
                 Period
               </span>
               <button
                 onClick={() => setShowAddBillingPeriodModalMain(true)}
-                className="text-xs text-blue-400 hover:text-blue-300"
+                className="text-xs text-primary hover:text-primary/80"
               >
                 + Add
               </button>
@@ -149,12 +149,12 @@ export default function CreditsModalMain({
                     onClick={() => handleBillingPeriodChange(period.id)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between text-sm ${
                       isSelected
-                        ? "bg-blue-600/20 text-blue-400"
-                        : "hover:bg-[#2a2a2a] text-gray-300"
+                        ? "bg-primary/20 text-primary"
+                        : "hover:bg-surface-button-hover text-content-secondary"
                     }`}
                   >
                     <span>{period.label}</span>
-                    <span className={isSelected ? "text-blue-300" : "text-gray-500"}>
+                    <span className={isSelected ? "text-primary" : "text-content-faint"}>
                       {periodRemaining} left
                     </span>
                   </button>
@@ -165,16 +165,16 @@ export default function CreditsModalMain({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-5 py-4 border-t border-gray-700">
+        <div className="flex gap-3 px-5 py-4 border-t border-border">
           <button
             onClick={() => setIsOpen(false)}
-            className="flex-1 py-2.5 text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+            className="flex-1 py-2.5 text-sm text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 py-2.5 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
+            className="flex-1 py-2.5 text-sm text-white bg-primary hover:bg-primary-hover rounded-xl transition-colors"
           >
             Save
           </button>

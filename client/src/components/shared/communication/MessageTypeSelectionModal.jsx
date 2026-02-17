@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import { X, MessageCircle, Mail } from "lucide-react";
 
-// Initials Avatar Component
-const InitialsAvatar = ({ firstName, lastName, size = 48, className = "" }) => {
+// Initials Avatar Component - color based on context
+const InitialsAvatar = ({ firstName, lastName, size = 48, className = "", colorClass = "bg-primary" }) => {
   const getInitials = () => {
     const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
     const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
@@ -11,7 +11,7 @@ const InitialsAvatar = ({ firstName, lastName, size = 48, className = "" }) => {
 
   return (
     <div
-      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold ${className}`}
+      className={`${colorClass} rounded-xl flex items-center justify-center text-white font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}
@@ -29,7 +29,11 @@ const MessageTypeSelectionModal = ({
 }) => {
   if (!isOpen || !member) return null;
 
-  const avatarImage = member.image || member.img;
+  // Support both member (image/avatar) and staff (img) field names
+  const avatarImage = member.image || member.img || member.avatar;
+
+  // Members use primary, staff uses secondary
+  const avatarColorClass = context === "staff" ? "bg-secondary" : "bg-primary";
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
@@ -48,6 +52,7 @@ const MessageTypeSelectionModal = ({
                 firstName={member.firstName}
                 lastName={member.lastName}
                 size={44}
+                colorClass={avatarColorClass}
               />
             )}
             <div>
@@ -80,8 +85,8 @@ const MessageTypeSelectionModal = ({
             className="w-full bg-surface-dark hover:bg-surface-button border border-transparent hover:border-primary/50 rounded-xl p-4 transition-all"
           >
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 bg-secondary/20 rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-secondary" />
+              <div className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <div className="text-left flex-1">
                 <h4 className="text-content-primary font-medium text-sm">App Chat</h4>
@@ -101,8 +106,8 @@ const MessageTypeSelectionModal = ({
             className="w-full bg-surface-dark hover:bg-surface-button border border-transparent hover:border-primary/50 rounded-xl p-4 transition-all"
           >
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 bg-secondary/20 rounded-xl flex items-center justify-center">
-                <Mail className="w-5 h-5 text-secondary" />
+              <div className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center">
+                <Mail className="w-5 h-5 text-white" />
               </div>
               <div className="text-left flex-1">
                 <h4 className="text-content-primary font-medium text-sm">Email</h4>

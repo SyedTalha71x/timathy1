@@ -16,6 +16,7 @@ export default function CheckIns() {
   const [memberFilters, setMemberFilters] = useState([])
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const sortDropdownRef = useRef(null)
+  const sortDropdownMobileRef = useRef(null)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
 
@@ -71,7 +72,8 @@ export default function CheckIns() {
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target) &&
+          sortDropdownMobileRef.current && !sortDropdownMobileRef.current.contains(event.target)) {
         setShowSortDropdown(false)
       }
       if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
@@ -302,6 +304,44 @@ export default function CheckIns() {
           {/* Top Row: Title */}
           <div className="flex items-center justify-between">
             <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Check-In</h1>
+            
+            {/* Sort Button - Mobile only (next to title) */}
+            <div className="relative sm:hidden" ref={sortDropdownMobileRef}>
+              <button
+                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+              >
+                {getSortIcon()}
+                <span>{currentSortLabel}</span>
+              </button>
+
+              {showSortDropdown && (
+                <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
+                  <div className="py-1">
+                    <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">Sort by</div>
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSortOptionClick(option.value)
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-button transition-colors flex items-center justify-between ${
+                          sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        {sortBy === option.value && (
+                          <span className="text-content-muted">
+                            {sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Date Range Picker - Second Row on Mobile */}
@@ -486,8 +526,8 @@ export default function CheckIns() {
             </button>
           </div>
 
-          {/* Sort Button */}
-          <div className="relative flex-shrink-0" ref={sortDropdownRef}>
+          {/* Sort Button - Desktop only */}
+          <div className="relative flex-shrink-0 hidden sm:block" ref={sortDropdownRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"

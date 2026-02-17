@@ -4,6 +4,7 @@ import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Info, Camera, 
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import DatePickerField from "../DatePickerField"
+import CustomSelect from "../CustomSelect"
 
 // Initials Avatar Component - Orange background with initials
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -21,7 +22,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]} ${className}`}
+      className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]} ${className}`}
     >
       {getInitials()}
     </div>
@@ -91,10 +92,10 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000020] p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h3 className="text-white font-semibold">Take Photo</h3>
-          <button onClick={() => { stopCamera(); onClose(); }} className="text-gray-400 hover:text-white">
+      <div className="bg-surface-card rounded-xl w-full max-w-md overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <h3 className="text-content-primary font-semibold">Take Photo</h3>
+          <button onClick={() => { stopCamera(); onClose(); }} className="text-content-muted hover:text-content-primary">
             <X size={20} />
           </button>
         </div>
@@ -102,10 +103,10 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
-              <p className="text-red-400 text-sm mb-4">{error}</p>
+              <p className="text-accent-red text-sm mb-4">{error}</p>
               <button 
                 onClick={startCamera}
-                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+                className="px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary-hover transition-colors"
               >
                 Try Again
               </button>
@@ -127,7 +128,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
                 <button
                   type="button"
                   onClick={toggleCamera}
-                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm flex items-center justify-center gap-2 transition-colors"
                 >
                   <Camera size={16} />
                   Flip
@@ -135,7 +136,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
                 <button
                   type="button"
                   onClick={handleCapture}
-                  className="flex-[2] py-2.5 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white rounded-xl text-sm font-medium"
+                  className="flex-[2] py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-colors"
                 >
                   Capture Photo
                 </button>
@@ -574,21 +575,23 @@ const CreateTempMemberModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[10000] overflow-y-auto">
-      <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-white font-bold">Create Temporary Member</h2>
-          <button onClick={handleCloseClick} className="text-gray-400 hover:text-white">
+          <h2 className="text-xl text-content-primary font-bold">Create Temporary Member</h2>
+          <button onClick={handleCloseClick} className="text-content-muted hover:text-content-primary transition-colors">
             <X size={24} />
           </button>
         </div>
 
         {/* Info Box */}
-        <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 mb-6">
+        <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
-            <Info className="text-yellow-500 flex-shrink-0" size={24} />
+            <div className="bg-primary/20 rounded-lg p-1.5 flex-shrink-0">
+              <Info className="text-primary" size={16} />
+            </div>
             <div>
-              <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
-              <p className="text-yellow-300/80 text-xs">
+              <p className="text-content-primary text-sm font-medium mb-1">Temporary Member Information</p>
+              <p className="text-content-secondary text-xs leading-relaxed">
                 Temporary members are members without a contract and are not included in payment runs. They will be
                 automatically archived after the specified period.
               </p>
@@ -597,11 +600,11 @@ const CreateTempMemberModal = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-700 mb-6">
+        <div className="flex border-b border-border mb-6">
           <button
             onClick={(e) => handleTabClick("details", e)}
             className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              activeTab === "details" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
             }`}
           >
             Details
@@ -609,7 +612,7 @@ const CreateTempMemberModal = ({
           <button
             onClick={(e) => handleTabClick("note", e)}
             className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              activeTab === "note" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
             }`}
           >
             Special Notes
@@ -617,15 +620,15 @@ const CreateTempMemberModal = ({
           <button
             onClick={(e) => handleTabClick("relations", e)}
             className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "relations" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              activeTab === "relations" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
             }`}
           >
             Relations
           </button>
         </div>
 
-        <form onSubmit={handleFormSubmit} className="space-y-4">
-          <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
+        <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
@@ -663,7 +666,7 @@ const CreateTempMemberModal = ({
                     <input type="file" id="avatar-upload-temp" className="hidden" accept="image/*" onChange={handleImageUpload} />
                     <label
                       htmlFor="avatar-upload-temp"
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
+                      className="bg-primary hover:bg-primary-hover px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2 transition-colors"
                     >
                       <Upload size={16} />
                       Upload
@@ -671,7 +674,7 @@ const CreateTempMemberModal = ({
                     <button
                       type="button"
                       onClick={() => setShowCameraModal(true)}
-                      className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-4 py-2 rounded-xl text-sm text-white flex items-center gap-2"
+                      className="bg-surface-button hover:bg-surface-button-hover px-4 py-2 rounded-xl text-sm text-content-primary flex items-center gap-2 transition-colors"
                     >
                       <Camera size={16} />
                       Camera
@@ -681,32 +684,32 @@ const CreateTempMemberModal = ({
 
                 {/* Personal Information */}
                 <div className="space-y-4">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        First Name<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        First Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Last Name<span className="text-red-500 ml-1">*</span>
+                      <label className="text-sm text-content-secondary block mb-2">
+                        Last Name<span className="text-accent-red ml-1">*</span>
                       </label>
                       <input
                         type="text"
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
                       />
                     </div>
@@ -714,23 +717,23 @@ const CreateTempMemberModal = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
-                      <select
+                      <label className="text-sm text-content-secondary block mb-2">Gender</label>
+                      <CustomSelect
                         name="gender"
                         value={formData.gender || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
+                        placeholder="Select gender"
+                        options={[
+                          { value: "male", label: "Male" },
+                          { value: "female", label: "Female" },
+                          { value: "other", label: "Other" },
+                        ]}
+                      />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
-                      <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
-                        <span className={formData.dateOfBirth ? "text-white" : "text-gray-500"}>{formData.dateOfBirth ? (() => { const [y,m,d] = (formData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                        <span className={formData.dateOfBirth ? "text-content-primary" : "text-content-faint"}>{formData.dateOfBirth ? (() => { const [y,m,d] = (formData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={formData.dateOfBirth || ""} onChange={(val) => setFormData(prev => ({ ...prev, dateOfBirth: val }))} />
                       </div>
                     </div>
@@ -738,26 +741,26 @@ const CreateTempMemberModal = ({
                 </div>
 
                 {/* Contact Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Email<span className="text-red-500 ml-1">*</span>
+                    <label className="text-sm text-content-secondary block mb-2">
+                      Email<span className="text-accent-red ml-1">*</span>
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       required
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Mobile Number</label>
+                      <label className="text-sm text-content-secondary block mb-2">Mobile Number</label>
                       <input
                         type="tel"
                         name="phone"
@@ -767,11 +770,11 @@ const CreateTempMemberModal = ({
                           handleInputChange({ target: { name: "phone", value: sanitized } })
                         }}
                         placeholder="+49 123 456789"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <label className="text-sm text-content-secondary block mb-2">Telephone Number</label>
                       <input
                         type="tel"
                         name="telephoneNumber"
@@ -781,48 +784,48 @@ const CreateTempMemberModal = ({
                           handleInputChange({ target: { name: "telephoneNumber", value: sanitized } })
                         }}
                         placeholder="030 12345678"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Address Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street & Number</label>
+                    <label className="text-sm text-content-secondary block mb-2">Street & Number</label>
                     <input
                       type="text"
                       name="street"
                       value={formData.street || ""}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       placeholder="Main Street 123"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <label className="text-sm text-content-secondary block mb-2">ZIP Code</label>
                       <input
                         type="text"
                         name="zipCode"
                         value={formData.zipCode || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         placeholder="12345"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <label className="text-sm text-content-secondary block mb-2">City</label>
                       <input
                         type="text"
                         name="city"
                         value={formData.city || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         placeholder="Berlin"
                       />
                     </div>
@@ -830,52 +833,45 @@ const CreateTempMemberModal = ({
 
                   {countries.length > 0 && (
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Country</label>
-                      <select
+                      <label className="text-sm text-content-secondary block mb-2">Country</label>
+                      <CustomSelect
                         name="country"
                         value={formData.country || ""}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
-                      >
-                        <option value="">Select a country</option>
-                        {countriesLoading ? (
-                          <option value="" disabled>
-                            Loading countries...
-                          </option>
-                        ) : (
-                          countries.map((country) => (
-                            <option key={country.code || country.name} value={country.name}>
-                              {country.name}
-                            </option>
-                          ))
-                        )}
-                      </select>
+                        placeholder={countriesLoading ? "Loading countries..." : "Select a country"}
+                        searchable
+                        options={countries.map((country) => ({
+                          value: country.name,
+                          label: country.name,
+                        }))}
+                        disabled={countriesLoading}
+                      />
                     </div>
                   )}
                 </div>
 
                 {/* Additional Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Additional Information</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <label className="text-sm text-content-secondary block mb-2">About</label>
                     <textarea
                       name="about"
                       value={formData.about || ""}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none min-h-[100px] border border-transparent focus:border-primary transition-colors"
                       placeholder="Enter more details..."
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Auto-Archive Due Date</label>
-                    <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
-                      <span className={formData.autoArchiveDate ? "text-white" : "text-gray-500"}>{formData.autoArchiveDate ? (() => { const [y,m,d] = (formData.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    <label className="text-sm text-content-secondary block mb-2">Auto-Archive Due Date</label>
+                    <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                      <span className={formData.autoArchiveDate ? "text-content-primary" : "text-content-faint"}>{formData.autoArchiveDate ? (() => { const [y,m,d] = (formData.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                       <DatePickerField value={formData.autoArchiveDate || ""} onChange={(val) => setFormData(prev => ({ ...prev, autoArchiveDate: val }))} />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-content-faint mt-1">
                       The temporary member will be automatically archived after this date.
                     </p>
                   </div>
@@ -885,12 +881,12 @@ const CreateTempMemberModal = ({
 
             {/* Notes Tab */}
             {activeTab === "note" && (
-              <div className="border border-slate-700 rounded-xl p-4">
+              <div className="border border-border rounded-xl p-4">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
-                    <p className="text-white font-medium">
+                    <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-content-primary font-medium">
                       {formData.firstName || "New"} {formData.lastName || "Member"}
                     </p>
                   </div>
@@ -909,8 +905,8 @@ const CreateTempMemberModal = ({
                       }
                       setIsAddingNote(!isAddingNote)
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                      isAddingNote ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+                      isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"
                     }`}
                   >
                     {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
@@ -919,14 +915,16 @@ const CreateTempMemberModal = ({
 
                 {/* Add/Edit Note Form */}
                 {isAddingNote && (
-                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                  <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     {/* Status Selection */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                      <label className="text-xs text-content-muted block mb-1.5">Status</label>
                       <select
+                        name="noteStatus"
                         value={newNote.status}
                         onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
-                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                       >
                         {NOTE_STATUSES.map((status) => (
                           <option key={status.id} value={status.id}>
@@ -938,12 +936,12 @@ const CreateTempMemberModal = ({
 
                     {/* Note Text */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <label className="text-xs text-content-muted block mb-1.5">Note</label>
                       <textarea
                         ref={specialNoteTextareaRef}
                         value={newNote.text}
                         onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
-                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
+                        className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors"
                         placeholder="Enter note..."
                       />
                     </div>
@@ -955,25 +953,25 @@ const CreateTempMemberModal = ({
                           type="checkbox"
                           checked={newNote.isImportant}
                           onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
-                          className="h-4 w-4 accent-blue-500"
+                          className="h-4 w-4 accent-primary"
                         />
-                        <span className="text-sm text-gray-300">Important</span>
+                        <span className="text-sm text-content-secondary">Important</span>
                       </label>
                     </div>
 
                     {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-sm text-gray-200 block mb-2">Valid From (optional)</label>
-                        <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
-                          <span className={newNote.startDate ? "text-white" : "text-gray-500"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                        <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-200 block mb-2">Valid Until (optional)</label>
-                        <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
-                          <span className={newNote.endDate ? "text-white" : "text-gray-500"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                        <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
                         </div>
                       </div>
@@ -983,10 +981,10 @@ const CreateTempMemberModal = ({
                       type="button"
                       onClick={editingNoteId ? handleUpdateNote : handleAddNote}
                       disabled={!newNote.text.trim()}
-                      className={`w-full py-2 rounded-lg text-sm font-medium ${
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
                         !newNote.text.trim()
-                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
-                          : "bg-blue-600 text-white"
+                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                          : "bg-primary hover:bg-primary-hover text-white"
                       }`}
                     >
                       {editingNoteId ? "Update Note" : "Add Note"}
@@ -1005,56 +1003,57 @@ const CreateTempMemberModal = ({
                           const isExpanded = expandedNoteId === note.id
 
                           return (
-                            <div key={note.id} className="bg-[#101010] rounded-lg overflow-hidden">
+                            <div key={note.id} className="bg-surface-dark rounded-lg overflow-hidden">
                               {/* Note Header */}
                               <div
                                 className="flex items-center justify-between p-3 cursor-pointer"
                                 onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
                               >
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                                  <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
                                     {statusInfo.label}
                                   </span>
                                   {note.isImportant && (
-                                    <span className="text-xs font-medium px-2 py-0.5 rounded bg-red-900/50 text-red-400">
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
                                       Important
                                     </span>
                                   )}
-                                  <span className="text-white text-sm truncate">{note.text}</span>
+                                  
                                 </div>
-                                <div className="flex items-center gap-1 ml-2">
+                                <div className="flex items-center gap-2">
                                   <button
                                     type="button"
-                                    onClick={(e) => handleEditNoteClick(note, e)}
-                                    className="p-1 text-gray-400 hover:text-white"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleEditNoteClick(note, e)
+                                    }}
+                                    className="text-content-faint hover:text-primary p-1 transition-colors"
                                   >
                                     <Pencil size={14} />
                                   </button>
                                   <button
                                     type="button"
                                     onClick={(e) => handleDeleteNote(note.id, e)}
-                                    className="p-1 text-gray-400 hover:text-red-400"
+                                    className="text-content-faint hover:text-accent-red p-1 transition-colors"
                                   >
                                     <Trash2 size={14} />
                                   </button>
                                   {isExpanded ? (
-                                    <ChevronUp size={16} className="text-gray-400" />
+                                    <ChevronUp size={16} className="text-content-muted" />
                                   ) : (
-                                    <ChevronDown size={16} className="text-gray-400" />
+                                    <ChevronDown size={16} className="text-content-muted" />
                                   )}
                                 </div>
                               </div>
 
-                              {/* Expanded Content */}
-                              {isExpanded && (
-                                <div className="px-3 pb-3 border-t border-gray-800">
-                                  <p className="text-white text-sm mt-2 whitespace-pre-wrap">{note.text}</p>
+                              {/* Preview (collapsed) */}
+                              {!isExpanded && (
+                                <div className="px-3 pb-2">
+                                  <p className="text-content-muted text-sm truncate">{note.text}</p>
                                   {(note.startDate || note.endDate) && (
-                                    <p className="text-gray-500 text-xs mt-2">
+                                    <p className="text-xs text-content-faint mt-1">
                                       {note.startDate && note.endDate ? (
-                                        <>
-                                          Valid: {note.startDate} - {note.endDate}
-                                        </>
+                                        <>Valid: {note.startDate} - {note.endDate}</>
                                       ) : note.startDate ? (
                                         <>Valid from: {note.startDate}</>
                                       ) : (
@@ -1064,11 +1063,29 @@ const CreateTempMemberModal = ({
                                   )}
                                 </div>
                               )}
+
+                              {/* Expanded Content */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-border-subtle">
+                                  <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">{note.text}</p>
+                                  {(note.startDate || note.endDate) && (
+                                    <div className="mt-2 text-xs text-content-faint">
+                                      {note.startDate && note.endDate ? (
+                                        <>Valid: {note.startDate} - {note.endDate}</>
+                                      ) : note.startDate ? (
+                                        <>Valid from: {note.startDate}</>
+                                      ) : (
+                                        <>Valid until: {note.endDate}</>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           )
                         })
                     ) : (
-                      <div className="text-gray-500 text-sm text-center py-8">
+                      <div className="text-content-faint text-sm text-center py-8">
                         No notes yet. Click "Add Note" to create one.
                       </div>
                     )}
@@ -1079,19 +1096,19 @@ const CreateTempMemberModal = ({
 
             {/* Relations Tab */}
             {activeTab === "relations" && (
-              <div className="border border-slate-700 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
+              <div className="border border-border rounded-xl p-4">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Relations for</p>
-                    <p className="text-white font-medium">
+                    <p className="text-xs text-content-muted uppercase tracking-wider">Relations for</p>
+                    <p className="text-content-primary font-medium">
                       {formData.firstName || "New"} {formData.lastName || "Member"}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setEditingRelations(!editingRelations)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                      editingRelations ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+                      editingRelations ? "bg-surface-button text-content-primary" : "bg-primary text-white"
                     }`}
                   >
                     {editingRelations ? <>Done</> : <><Pencil size={14} /> Edit</>}
@@ -1100,12 +1117,13 @@ const CreateTempMemberModal = ({
 
                 {/* Add Relation Form */}
                 {editingRelations && (
-                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                  <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     {/* Step 1: Type & Name */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Entry Type</label>
-                        <select
+                        <label className="text-xs text-content-muted block mb-1.5">Entry Type</label>
+                        <CustomSelect
+                          name="entryType"
                           value={newRelation.type}
                           onChange={(e) =>
                             setNewRelation({
@@ -1115,36 +1133,34 @@ const CreateTempMemberModal = ({
                               selectedMemberId: null,
                             })
                           }
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="manual">Manual Entry</option>
-                          {availableMembersLeads.length > 0 && (
-                            <>
-                              <option value="member">Existing Member</option>
-                              <option value="lead">Existing Lead</option>
-                            </>
-                          )}
-                        </select>
+                          options={[
+                            { value: "manual", label: "Manual Entry" },
+                            ...(availableMembersLeads.length > 0 ? [
+                              { value: "member", label: "Existing Member" },
+                              { value: "lead", label: "Existing Lead" },
+                            ] : []),
+                          ]}
+                        />
                       </div>
 
                       {newRelation.type === "manual" ? (
                         <div>
-                          <label className="text-xs text-gray-400 block mb-1.5">Name</label>
+                          <label className="text-xs text-content-muted block mb-1.5">Name</label>
                           <input
                             type="text"
                             placeholder="Enter name..."
                             value={newRelation.name}
                             onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
-                            className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                           />
                         </div>
                       ) : (
                         <div className="relative" ref={personSearchRef}>
-                          <label className="text-xs text-gray-400 block mb-1.5">
+                          <label className="text-xs text-content-muted block mb-1.5">
                             Search {newRelation.type === "member" ? "Member" : "Lead"}
                           </label>
                           <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
                             <input
                               type="text"
                               placeholder={`Search ${newRelation.type}s...`}
@@ -1155,12 +1171,12 @@ const CreateTempMemberModal = ({
                                 setShowPersonDropdown(true)
                               }}
                               onFocus={() => setShowPersonDropdown(true)}
-                              className="w-full bg-[#222] text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-full bg-surface-dark text-content-primary rounded-xl pl-9 pr-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                             />
                           </div>
 
                           {showPersonDropdown && (
-                            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg max-h-40 overflow-y-auto z-10">
+                            <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
                               {availableMembersLeads
                                 .filter(
                                   (p) =>
@@ -1180,7 +1196,7 @@ const CreateTempMemberModal = ({
                                       setPersonSearchQuery("")
                                       setShowPersonDropdown(false)
                                     }}
-                                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-[#222] transition-colors"
+                                    className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
                                   >
                                     {person.name}
                                   </button>
@@ -1189,7 +1205,7 @@ const CreateTempMemberModal = ({
                                 (p) =>
                                   p.type === newRelation.type &&
                                   p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
-                              ).length === 0 && <div className="px-3 py-2 text-sm text-gray-500">No results found</div>}
+                              ).length === 0 && <div className="px-3 py-2 text-sm text-content-faint">No results found</div>}
                             </div>
                           )}
                         </div>
@@ -1199,8 +1215,9 @@ const CreateTempMemberModal = ({
                     {/* Step 2: Category & Relation */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Category</label>
-                        <select
+                        <label className="text-xs text-content-muted block mb-1.5">Category</label>
+                        <CustomSelect
+                          name="category"
                           value={newRelation.category}
                           onChange={(e) =>
                             setNewRelation({
@@ -1210,19 +1227,20 @@ const CreateTempMemberModal = ({
                               customRelation: "",
                             })
                           }
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="family">Family</option>
-                          <option value="friendship">Friendship</option>
-                          <option value="relationship">Relationship</option>
-                          <option value="work">Work</option>
-                          <option value="other">Other</option>
-                        </select>
+                          options={[
+                            { value: "family", label: "Family" },
+                            { value: "friendship", label: "Friendship" },
+                            { value: "relationship", label: "Relationship" },
+                            { value: "work", label: "Work" },
+                            { value: "other", label: "Other" },
+                          ]}
+                        />
                       </div>
 
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Relation Type</label>
-                        <select
+                        <label className="text-xs text-content-muted block mb-1.5">Relation Type</label>
+                        <CustomSelect
+                          name="relationType"
                           value={newRelation.relation}
                           onChange={(e) =>
                             setNewRelation({
@@ -1231,30 +1249,27 @@ const CreateTempMemberModal = ({
                               customRelation: e.target.value === "custom" ? newRelation.customRelation : "",
                             })
                           }
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="">Select...</option>
-                          {relationOptions[newRelation.category]?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                          <option disabled>────────────</option>
-                          <option value="custom">Custom...</option>
-                        </select>
+                          placeholder="Select..."
+                          options={[
+                            ...(relationOptions[newRelation.category]?.map((option) => ({
+                              value: option, label: option
+                            })) || []),
+                            { value: "custom", label: "Custom..." },
+                          ]}
+                        />
                       </div>
                     </div>
 
                     {/* Custom Relation Input */}
                     {newRelation.relation === "custom" && (
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Custom Relation</label>
+                        <label className="text-xs text-content-muted block mb-1.5">Custom Relation</label>
                         <input
                           type="text"
                           placeholder="Enter custom relation..."
                           value={newRelation.customRelation}
                           onChange={(e) => setNewRelation({ ...newRelation, customRelation: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                         />
                       </div>
                     )}
@@ -1267,12 +1282,12 @@ const CreateTempMemberModal = ({
                         !newRelation.relation ||
                         (newRelation.relation === "custom" && !newRelation.customRelation)
                       }
-                      className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
                         !newRelation.name ||
                         !newRelation.relation ||
                         (newRelation.relation === "custom" && !newRelation.customRelation)
-                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
-                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                          : "bg-primary hover:bg-primary-hover text-white"
                       }`}
                     >
                       Add Relation
@@ -1287,14 +1302,14 @@ const CreateTempMemberModal = ({
                       relations.map((relation) => (
                         <div
                           key={relation.id}
-                          className="flex items-center justify-between bg-[#101010] rounded-lg px-3 py-2"
+                          className="flex items-center justify-between bg-surface-dark rounded-lg px-3 py-2"
                         >
                           <div className="text-sm flex items-center flex-wrap gap-1.5">
-                            <span className="text-white font-medium">{relation.name}</span>
-                            <span className="text-gray-400">({relation.relation})</span>
-                            <span className="text-gray-500">•</span>
-                            <span className="text-gray-400 capitalize">{category}</span>
-                            <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
+                            <span className="text-content-primary font-medium">{relation.name}</span>
+                            <span className="text-content-muted">({relation.relation})</span>
+                            <span className="text-content-faint">•</span>
+                            <span className="text-content-muted capitalize">{category}</span>
+                            <span className="bg-surface-button text-content-secondary text-xs px-2 py-0.5 rounded capitalize">
                               {relation.type}
                             </span>
                           </div>
@@ -1302,7 +1317,7 @@ const CreateTempMemberModal = ({
                             <button
                               type="button"
                               onClick={(e) => handleDeleteRelation(category, relation.id, e)}
-                              className="text-red-400 hover:text-red-300 ml-2"
+                              className="text-accent-red hover:text-accent-red/80 ml-2 transition-colors"
                             >
                               <Trash2 size={14} />
                             </button>
@@ -1312,7 +1327,7 @@ const CreateTempMemberModal = ({
                     )}
 
                   {(!localRelations || Object.values(localRelations || {}).every((arr) => arr.length === 0)) && (
-                    <div className="text-gray-500 text-sm text-center py-4">No relations added yet</div>
+                    <div className="text-content-faint text-sm text-center py-4">No relations added yet</div>
                   )}
                 </div>
               </div>
@@ -1320,16 +1335,16 @@ const CreateTempMemberModal = ({
           </div>
 
           {/* Footer with action buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
             <button
               type="button"
               onClick={handleCloseClick}
-              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
+              className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
             >
               Cancel
             </button>
 
-            <button type="submit" className="px-4 py-2 text-sm text-white rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
+            <button type="submit" className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover flex items-center gap-2 transition-colors">
               <Plus size={16} />
               Create Temporary Member
             </button>

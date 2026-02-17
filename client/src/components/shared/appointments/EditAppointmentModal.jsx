@@ -59,7 +59,7 @@ const InitialsAvatar = ({ firstName, lastName, name, size = 32, className = "" }
 
   return (
     <div
-      className={`bg-secondary rounded-lg flex items-center justify-center text-content-primary font-semibold ${className}`}
+      className={`bg-primary rounded-lg flex items-center justify-center text-white font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}

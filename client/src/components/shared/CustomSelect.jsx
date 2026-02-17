@@ -60,7 +60,7 @@ const CustomSelect = ({
       position: "fixed",
       left: rect.left,
       width: rect.width,
-      zIndex: 9999,
+      zIndex: 99999999,
       ...(openAbove
         ? { bottom: window.innerHeight - rect.top + 4 }
         : { top: rect.bottom + 4 }),

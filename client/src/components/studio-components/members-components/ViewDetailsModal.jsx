@@ -589,11 +589,11 @@ const ViewDetailsModal = ({
                           onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
                         >
                           <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-button text-content-secondary">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
                               {statusInfo.label}
                             </span>
                             {note.isImportant && (
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-button text-accent-red">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
                                 Important
                               </span>
                             )}
@@ -669,11 +669,11 @@ const ViewDetailsModal = ({
                     </div>
                     {/* Connection Lines and Categories */}
                     <div className="relative w-full">
-                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-border-subtle"></div>
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-content-muted"></div>
                       <div className="grid grid-cols-5 gap-4 pt-8">
                         {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
                           <div key={category} className="flex flex-col items-center space-y-4">
-                            <div className="w-0.5 h-8 bg-border-subtle"></div>
+                            <div className="w-0.5 h-8 bg-content-muted"></div>
                             <div
                               className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
                                 category === "family"
@@ -684,7 +684,7 @@ const ViewDetailsModal = ({
                                       ? "bg-accent-red text-white"
                                       : category === "work"
                                         ? "bg-accent-blue text-white"
-                                        : "bg-surface-button text-content-secondary"
+                                        : "border border-border text-content-secondary"
                               }`}
                             >
                               {category}

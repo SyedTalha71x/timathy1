@@ -736,7 +736,7 @@ export default function NotesApp() {
         {/* Main Content Area: Sidebar + Content */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 min-h-0 overflow-hidden">
           {/* Left Sidebar - Notes List */}
-          <div className="w-full md:w-[22rem] flex flex-col bg-surface-card rounded-xl border border-border overflow-hidden h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
+          <div className="w-full md:w-[22rem] flex flex-col bg-surface-card rounded-xl border border-border h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
             {/* Desktop: Buttons Row + Search Row */}
             {/* Mobile: Single Row with Search + Icon Buttons */}
             
@@ -745,19 +745,19 @@ export default function NotesApp() {
               <div className="relative group">
                 <button
                   onClick={handleCreateNote}
-                  className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium whitespace-nowrap flex-shrink-0"
+                  className="bg-primary hover:bg-primary-hover text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium whitespace-nowrap flex-shrink-0"
                 >
                   <Plus size={16} />
                   <span className="hidden min-[400px]:inline">Create Note</span>
                 </button>
                 
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Create Note</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
                   </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                 </div>
               </div>
               
@@ -815,12 +815,12 @@ export default function NotesApp() {
                 </button>
                 
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Manage Tags</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     T
                   </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                 </div>
               </div>
             </div>
@@ -829,14 +829,16 @@ export default function NotesApp() {
             <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-border flex gap-2">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={14} />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-surface-dark outline-none text-sm text-content-primary rounded-lg px-3 py-2 pl-8 border border-border focus:border-primary transition-colors selection:bg-primary selection:text-white"
-                />
+                <div className="bg-surface-dark rounded-xl px-3 py-2 min-h-[42px] flex items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text">
+                  <Search className="text-content-muted flex-shrink-0" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 min-w-0 bg-transparent outline-none text-sm text-content-primary selection:bg-primary selection:text-white"
+                  />
+                </div>
               </div>
               
               {/* Mobile Only: Sort Icon Button */}
@@ -1140,7 +1142,7 @@ export default function NotesApp() {
                   </p>
                   <button
                     onClick={handleCreateNote}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
+                    className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
                   >
                     <Plus size={16} />
                     Create Note
@@ -1502,7 +1504,7 @@ export default function NotesApp() {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={handleCreateNote}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label="Create Note"
       >
         <Plus size={22} />

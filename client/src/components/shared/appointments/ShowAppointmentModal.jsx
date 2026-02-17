@@ -49,17 +49,17 @@ const AppointmentModalMain = ({
       onClick={onClose}
     >
       <div 
-        className="bg-[#181818] rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden"
+        className="bg-surface-card rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
-          <h2 className="text-lg font-medium text-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <h2 className="text-lg font-medium text-content-primary">
             {selectedMemberMain.title}'s Appointments
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-button-hover text-content-muted hover:text-content-primary rounded-lg transition-colors"
           >
             <X size={18} />
           </button>
@@ -67,12 +67,12 @@ const AppointmentModalMain = ({
 
         {/* Credits Card */}
         <div className="mx-4 mt-4">
-          <div className="bg-[#222222] rounded-xl p-4">
+          <div className="bg-surface-dark rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-400">Credits ({currentBillingPeriodMain})</span>
+              <span className="text-sm text-content-muted">Credits ({currentBillingPeriodMain})</span>
               <button
                 onClick={() => manageCreditsHandler(selectedMemberMain.id)}
-                className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
               >
                 <Edit3 size={14} />
                 Manage
@@ -80,14 +80,14 @@ const AppointmentModalMain = ({
             </div>
             
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-white">{remaining}</span>
-              <span className="text-gray-500 text-lg mb-0.5">/ {credits.total}</span>
-              <span className="text-gray-500 text-sm mb-1 ml-1">remaining</span>
+              <span className="text-3xl font-bold text-content-primary">{remaining}</span>
+              <span className="text-content-faint text-lg mb-0.5">/ {credits.total}</span>
+              <span className="text-content-faint text-sm mb-1 ml-1">remaining</span>
             </div>
 
-            <div className="mt-3 h-1.5 bg-[#333333] rounded-full overflow-hidden">
+            <div className="mt-3 h-1.5 bg-surface-button rounded-full overflow-hidden">
               <div 
-                className="h-full rounded-full transition-all bg-blue-500"
+                className="h-full rounded-full transition-all bg-primary"
                 style={{ width: `${credits.total > 0 ? (remaining / credits.total) * 100 : 0}%` }}
               />
             </div>
@@ -96,7 +96,7 @@ const AppointmentModalMain = ({
 
         {/* Appointments List */}
         <div className="p-4 overflow-y-auto max-h-[50vh]">
-          <h3 className="text-sm font-medium text-gray-400 mb-3">Upcoming Appointments</h3>
+          <h3 className="text-sm font-medium text-content-muted mb-3">Upcoming Appointments</h3>
           
           {appointments.length > 0 ? (
             <div className="space-y-3">
@@ -164,17 +164,17 @@ const AppointmentModalMain = ({
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400 bg-[#222222] rounded-xl">
+            <div className="text-center py-8 text-content-muted bg-surface-dark rounded-xl">
               No appointments scheduled
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-border">
           <button
             onClick={handleCreateNewAppointmentMain}
-            className="w-full py-3 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-3 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-xl flex items-center justify-center gap-2 transition-colors"
           >
             <Plus size={16} />
             Create New Appointment

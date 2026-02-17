@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 
 // Initials Avatar Component - Uses primary color from theme
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -510,7 +511,7 @@ const EditMemberModalMain = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000010] overflow-y-auto">
-      <div className="bg-surface-card p-6 rounded-xl w-full max-w-md my-8">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-content-primary font-bold">Edit Member</h2>
           <button onClick={handleCloseClick} className="text-content-muted hover:text-content-primary transition-colors">
@@ -552,8 +553,8 @@ const EditMemberModalMain = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
@@ -608,12 +609,17 @@ const EditMemberModalMain = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Gender</label>
-                      <select name="gender" value={editFormMain.gender || ""} onChange={handleInputChangeMain} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors">
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
+                      <CustomSelect
+                        name="gender"
+                        value={editFormMain.gender || ""}
+                        onChange={handleInputChangeMain}
+                        placeholder="Select gender"
+                        options={[
+                          { value: "male", label: "Male" },
+                          { value: "female", label: "Female" },
+                          { value: "other", label: "Other" },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
@@ -668,16 +674,18 @@ const EditMemberModalMain = ({
 
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Country</label>
-                    <select name="country" value={editFormMain.country} onChange={handleInputChangeMain} className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors">
-                      <option value="">Select a country</option>
-                      {loading ? (
-                        <option value="" disabled>Loading countries...</option>
-                      ) : (
-                        countries.map((country) => (
-                          <option key={country.code} value={country.name}>{country.name}</option>
-                        ))
-                      )}
-                    </select>
+                    <CustomSelect
+                      name="country"
+                      value={editFormMain.country}
+                      onChange={handleInputChangeMain}
+                      placeholder={loading ? "Loading countries..." : "Select a country"}
+                      searchable
+                      options={countries.map((country) => ({
+                        value: country.name,
+                        label: country.name,
+                      }))}
+                      disabled={loading}
+                    />
                   </div>
                 </div>
 
@@ -705,29 +713,35 @@ const EditMemberModalMain = ({
 
             {/* Notes Tab */}
             {activeTab === "note" && (
-              <div className="border border-border-subtle rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border-subtle">
+              <div className="border border-border rounded-xl p-4">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
                     <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
                     <p className="text-content-primary font-medium">{selectedMemberMain?.firstName} {selectedMemberMain?.lastName}</p>
                   </div>
-                  <button type="button" onClick={() => { if (isAddingNote) { setEditingNoteId(null); setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" }); } setIsAddingNote(!isAddingNote) }} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"}`}>
+                  <button type="button" onClick={() => { if (isAddingNote) { setEditingNoteId(null); setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" }); } setIsAddingNote(!isAddingNote) }} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"}`}>
                     {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
                   </button>
                 </div>
                 
                 {isAddingNote && (
-                  <div className="mb-4 p-4 bg-surface-dark rounded-xl space-y-3">
+                  <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Status</label>
-                      <select value={newNote.status} onChange={(e) => setNewNote({ ...newNote, status: e.target.value })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary">
+                      <select
+                        name="noteStatus"
+                        value={newNote.status}
+                        onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+                        className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+                      >
                         {NOTE_STATUSES.map((status) => (<option key={status.id} value={status.id}>{status.label}</option>))}
                       </select>
                     </div>
                     
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Note</label>
-                      <textarea ref={specialNoteTextareaRef} value={newNote.text} onChange={(e) => setNewNote({ ...newNote, text: e.target.value })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none min-h-[80px]" placeholder="Enter note..." />
+                      <textarea ref={specialNoteTextareaRef} value={newNote.text} onChange={(e) => setNewNote({ ...newNote, text: e.target.value })} className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors" placeholder="Enter note..." />
                     </div>
                     
                     <div className="flex items-center gap-4">
@@ -739,14 +753,14 @@ const EditMemberModalMain = ({
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-sm text-content-secondary block mb-2">Valid From (optional)</label>
+                        <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
                           <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm text-content-secondary block mb-2">Valid Until (optional)</label>
+                        <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
                           <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
@@ -754,7 +768,7 @@ const EditMemberModalMain = ({
                       </div>
                     </div>
                     
-                    <button type="button" onClick={editingNoteId ? handleUpdateNote : handleAddNote} disabled={!newNote.text.trim()} className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${!newNote.text.trim() ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover"}`}>
+                    <button type="button" onClick={editingNoteId ? handleUpdateNote : handleAddNote} disabled={!newNote.text.trim()} className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newNote.text.trim() ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover"}`}>
                       {editingNoteId ? "Update Note" : "Add Note"}
                     </button>
                   </div>
@@ -771,8 +785,8 @@ const EditMemberModalMain = ({
                         <div key={note.id} className="bg-surface-dark rounded-lg overflow-hidden">
                           <div className="flex items-center justify-between p-3 cursor-pointer" onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}>
                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-button text-content-secondary">{statusInfo.label}</span>
-                              {note.isImportant && (<span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-button text-accent-red">Important</span>)}
+                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">{statusInfo.label}</span>
+                              {note.isImportant && (<span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">Important</span>)}
                             </div>
                             <div className="flex items-center gap-2">
                               <button type="button" onClick={(e) => { e.stopPropagation(); handleEditNoteClick(note, e) }} className="text-content-faint hover:text-primary p-1 transition-colors"><Pencil size={14} /></button>
@@ -806,7 +820,7 @@ const EditMemberModalMain = ({
                       )
                     })
                   ) : (
-                    <div className="text-content-faint text-sm text-center py-4">No special notes yet. Click "Add Note" to create one.</div>
+                    <div className="text-content-faint text-sm text-center py-8">No special notes yet. Click "Add Note" to create one.</div>
                   )}
                 </div>
                 )}
@@ -815,46 +829,46 @@ const EditMemberModalMain = ({
 
             {/* Relations Tab */}
             {activeTab === "relations" && (
-              <div className="border border-border-subtle rounded-xl p-4">
-                <div className="mb-4 pb-3 border-b border-border-subtle">
+              <div className="border border-border rounded-xl p-4">
+                <div className="mb-4 pb-3 border-b border-border">
                   <p className="text-xs text-content-muted uppercase tracking-wider">Relations for</p>
                   <p className="text-content-primary font-medium">{selectedMemberMain?.firstName} {selectedMemberMain?.lastName}</p>
                 </div>
                 
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-content-secondary font-medium">Relations</label>
-                  <button type="button" onClick={handleEditingRelationsToggle} className="text-sm text-primary hover:text-primary-hover transition-colors">{editingRelations ? "Done" : "Add New"}</button>
+                  <button type="button" onClick={handleEditingRelationsToggle} className="text-sm text-primary hover:text-primary/80">{editingRelations ? "Done" : "Add New"}</button>
                 </div>
 
                 {editingRelations && (
-                  <div className="mb-4 p-4 bg-surface-dark rounded-xl space-y-3">
+                  <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Person</label>
                       <div className="flex gap-2 mb-2">
-                        <button type="button" onClick={() => { setNewRelation({ ...newRelation, type: "manual", name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelation.type === "manual" ? "bg-primary text-white" : "bg-surface-base text-content-muted hover:text-content-primary"}`}>Manual Entry</button>
-                        <button type="button" onClick={() => { setNewRelation({ ...newRelation, type: "member", name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelation.type === "member" ? "bg-primary text-white" : "bg-surface-base text-content-muted hover:text-content-primary"}`}>Member</button>
-                        <button type="button" onClick={() => { setNewRelation({ ...newRelation, type: "lead", name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelation.type === "lead" ? "bg-primary text-white" : "bg-surface-base text-content-muted hover:text-content-primary"}`}>Lead</button>
+                        <button type="button" onClick={() => { setNewRelation({ ...newRelation, type: "manual", name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelation.type === "manual" ? "bg-primary text-white" : "bg-surface-button text-content-muted hover:text-content-primary"}`}>Manual Entry</button>
+                        <button type="button" onClick={() => { setNewRelation({ ...newRelation, type: "member", name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelation.type === "member" ? "bg-primary text-white" : "bg-surface-button text-content-muted hover:text-content-primary"}`}>Member</button>
+                        <button type="button" onClick={() => { setNewRelation({ ...newRelation, type: "lead", name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelation.type === "lead" ? "bg-primary text-white" : "bg-surface-button text-content-muted hover:text-content-primary"}`}>Lead</button>
                       </div>
 
                       {newRelation.type === "manual" ? (
-                        <input type="text" placeholder="Enter name..." value={newRelation.name} onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />
+                        <input type="text" placeholder="Enter name..." value={newRelation.name} onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })} className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors" />
                       ) : (
                         <div className="relative" ref={personSearchRef}>
                           <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
-                            <input type="text" placeholder={`Search ${newRelation.type}s...`} value={personSearchQuery} onChange={(e) => { setPersonSearchQuery(e.target.value); setShowPersonDropdown(true) }} onFocus={() => setShowPersonDropdown(true)} className="w-full bg-surface-base text-content-primary rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />
+                            <input type="text" placeholder={`Search ${newRelation.type}s...`} value={personSearchQuery} onChange={(e) => { setPersonSearchQuery(e.target.value); setShowPersonDropdown(true) }} onFocus={() => setShowPersonDropdown(true)} className="w-full bg-surface-dark text-content-primary rounded-xl pl-9 pr-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors" />
                           </div>
                           {newRelation.name && (
                             <div className="mt-2 flex items-center gap-2">
                               <span className="text-xs text-content-muted">Selected:</span>
-                              <span className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-lg flex items-center gap-1">
+                              <span className="bg-blue-600/20 text-primary text-xs px-2 py-1 rounded-lg flex items-center gap-1">
                                 {newRelation.name}
                                 <button type="button" onClick={() => { setNewRelation({ ...newRelation, name: "", selectedMemberId: null }); setPersonSearchQuery("") }} className="hover:text-content-primary transition-colors"><X size={12} /></button>
                               </span>
                             </div>
                           )}
                           {showPersonDropdown && personSearchQuery && (
-                            <div className="absolute z-20 w-full mt-1 bg-surface-card border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                            <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
                               {membersLeads.filter((p) => p.type === newRelation.type && p.name.toLowerCase().includes(personSearchQuery.toLowerCase())).map((person) => (
                                 <button key={person.id} type="button" onClick={() => { setNewRelation({ ...newRelation, selectedMemberId: person.id, name: person.name }); setPersonSearchQuery(""); setShowPersonDropdown(false) }} className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors">{person.name}</button>
                               ))}
@@ -870,34 +884,45 @@ const EditMemberModalMain = ({
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Category</label>
-                        <select value={newRelation.category} onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value, relation: "", customRelation: "" })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary">
-                          <option value="family">Family</option>
-                          <option value="friendship">Friendship</option>
-                          <option value="relationship">Relationship</option>
-                          <option value="work">Work</option>
-                          <option value="other">Other</option>
-                        </select>
+                        <CustomSelect
+                          name="category"
+                          value={newRelation.category}
+                          onChange={(e) => setNewRelation({ ...newRelation, category: e.target.value, relation: "", customRelation: "" })}
+                          options={[
+                            { value: "family", label: "Family" },
+                            { value: "friendship", label: "Friendship" },
+                            { value: "relationship", label: "Relationship" },
+                            { value: "work", label: "Work" },
+                            { value: "other", label: "Other" },
+                          ]}
+                        />
                       </div>
 
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Relation Type</label>
-                        <select value={newRelation.relation} onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value, customRelation: e.target.value === "custom" ? newRelation.customRelation : "" })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary">
-                          <option value="">Select...</option>
-                          {relationOptionsMain[newRelation.category]?.map((option) => (<option key={option} value={option}>{option}</option>))}
-                          <option disabled>────────────</option>
-                          <option value="custom">Custom...</option>
-                        </select>
+                        <CustomSelect
+                          name="relationType"
+                          value={newRelation.relation}
+                          onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value, customRelation: e.target.value === "custom" ? newRelation.customRelation : "" })}
+                          placeholder="Select..."
+                          options={[
+                            ...(relationOptionsMain[newRelation.category]?.map((option) => ({
+                              value: option, label: option
+                            })) || []),
+                            { value: "custom", label: "Custom..." },
+                          ]}
+                        />
                       </div>
                     </div>
 
                     {newRelation.relation === "custom" && (
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Custom Relation</label>
-                        <input type="text" placeholder="Enter custom relation..." value={newRelation.customRelation} onChange={(e) => setNewRelation({ ...newRelation, customRelation: e.target.value })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />
+                        <input type="text" placeholder="Enter custom relation..." value={newRelation.customRelation} onChange={(e) => setNewRelation({ ...newRelation, customRelation: e.target.value })} className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors" />
                       </div>
                     )}
 
-                    <button type="button" onClick={handleAddRelation} disabled={!newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation))} className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${!newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation)) ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary hover:bg-primary-hover text-white"}`}>Add Relation</button>
+                    <button type="button" onClick={handleAddRelation} disabled={!newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation))} className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation)) ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary hover:bg-primary-hover text-white"}`}>Add Relation</button>
                   </div>
                 )}
 
@@ -928,7 +953,7 @@ const EditMemberModalMain = ({
           </div>
 
           {/* Footer with action buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
             <button type="button" onClick={handleCloseClick} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">Cancel</button>
 
             {selectedMemberMain && selectedMemberMain.memberType === "temporary" && (

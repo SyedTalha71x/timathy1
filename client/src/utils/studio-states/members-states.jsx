@@ -47,7 +47,7 @@ export const membersData = [
     email: "sarah.w@example.com", phone: "+1234567893",
     street: "321 Elm Ave", zipCode: "54321", city: "Houston", country: "United States",
     memberNumber: "M004", gender: "female", image: null,
-    isActive: true, isArchived: false, memberType: "premium",
+    isActive: true, isArchived: false, memberType: "full",
     note: "VIP member - priority scheduling", noteStartDate: "2024-01-01", noteEndDate: "2024-12-31", noteImportance: "important",
     dateOfBirth: "1992-03-18", about: "Yoga instructor and wellness coach.",
     joinDate: "2023-01-10", contractStart: "2023-01-10", contractEnd: "2026-02-10",
@@ -80,11 +80,11 @@ export const membersData = [
     email: "robert.m@example.com", phone: "+1234567896",
     street: "147 Birch Rd", zipCode: "55667", city: "San Antonio", country: "United States",
     memberNumber: "M007", gender: "male", image: null,
-    isActive: true, isArchived: false, memberType: "trial",
+    isActive: true, isArchived: false, memberType: "temporary",
     note: "New potential member - scheduled for gym tour", noteStartDate: "2025-01-01", noteEndDate: "2025-01-31", noteImportance: "important",
     dateOfBirth: "1993-04-22", about: "Interested in joining the gym.",
     joinDate: "2025-01-24", contractStart: null, contractEnd: null,
-    autoArchiveDate: null, documents: [],
+    autoArchiveDate: "2025-03-07", documents: [],
   },
   {
     id: 8, firstName: "Lisa", lastName: "Garcia", title: "Lisa Garcia",
@@ -126,21 +126,213 @@ export const membersData = [
 // =============================================================================
 export const memberHistoryData = {
   1: {
-    general: [{ id: 1, date: "2025-01-15", action: "Email updated", details: "Changed email", user: "Admin" }],
-    checkins: [{ id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "John Doe" }],
-    appointments: [{ id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "John Trainer" }],
-    finance: [{ id: 1, date: "2025-01-01", type: "Payment", amount: "$99.99", description: "Monthly fee", status: "completed" }],
-    contracts: [{ id: 1, date: "2024-03-01", action: "Contract signed", details: "12-month membership", user: "Admin" }],
+    general: [
+      { id: 1, date: "2025-01-15", time: "14:30", field: "Email", oldValue: "john.old@example.com", newValue: "john@example.com", changedBy: "Admin" },
+      { id: 2, date: "2025-01-10", time: "09:15", field: "Phone Number", oldValue: "+1234567880", newValue: "+1234567890", changedBy: "Self" },
+      { id: 3, date: "2024-11-20", time: "11:00", field: "Status", oldValue: "Inactive", newValue: "Active", changedBy: "Admin" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-02-17T08:15:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-02-17T10:30:00", type: "Check-out", location: "Main Entrance" },
+      { id: 3, date: "2025-02-14T07:45:00", type: "Check-in", location: "Side Entrance" },
+      { id: 4, date: "2025-02-14T09:50:00", type: "Check-out", location: "Side Entrance" },
+      { id: 5, date: "2025-02-12T09:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 6, date: "2025-02-12T11:20:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-15", time: "10:00", action: "Appointment Completed", appointmentType: "Personal Training", appointmentDate: "2025-02-15", appointmentTime: "10:00", status: "Completed", bookedBy: "Admin" },
+      { id: 2, date: "2025-02-20", time: "14:00", action: "Appointment Booked", appointmentType: "Body Assessment", appointmentDate: "2025-02-25", appointmentTime: "14:00", status: "Scheduled", bookedBy: "Self" },
+      { id: 3, date: "2025-01-28", time: "16:00", action: "Appointment Cancelled", appointmentType: "Group Yoga", appointmentDate: "2025-01-30", appointmentTime: "16:00", status: "Cancelled", bookedBy: "Admin" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€49.99", description: "February 2025 membership fee", status: "completed" },
+      { id: 2, date: "2025-01-01", type: "Monthly Fee", amount: "€49.99", description: "January 2025 membership fee", status: "completed" },
+      { id: 3, date: "2025-01-15", type: "Extra Service", amount: "€25.00", description: "Personal training session (single)", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2024-03-01", action: "Contract Signed", details: "48-month membership — Premium All-Access", user: "Admin" },
+      { id: 2, date: "2024-12-15", action: "Contract Amended", details: "Added personal training add-on (4x/month)", user: "Admin" },
+    ],
   },
-  2: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  5: { general: [{ id: 1, date: "2025-01-25", action: "Birthday", details: "Happy Birthday!", user: "System" }], checkins: [], appointments: [], finance: [], contracts: [] },
-  6: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  7: { general: [{ id: 1, date: "2025-01-24", action: "Inquiry received", details: "Scheduled tour", user: "Reception" }], checkins: [], appointments: [], finance: [], contracts: [] },
-  8: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  9: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  10: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
+  2: {
+    general: [
+      { id: 1, date: "2025-01-08", time: "10:20", field: "Status", oldValue: "Active", newValue: "Inactive", changedBy: "Admin" },
+      { id: 2, date: "2025-01-08", time: "10:22", field: "Reason", oldValue: "—", newValue: "Vacation Leave", changedBy: "Admin" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-01-07T17:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-01-07T18:30:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-01-05", time: "09:00", action: "Appointment Completed", appointmentType: "Pilates Class", appointmentDate: "2025-01-05", appointmentTime: "09:00", status: "Completed", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€39.99", description: "February 2025 — paused (vacation credit pending)", status: "pending" },
+      { id: 2, date: "2025-01-01", type: "Monthly Fee", amount: "€39.99", description: "January 2025 membership fee", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2021-11-15", action: "Contract Signed", details: "Standard membership — 24 months", user: "Reception" },
+      { id: 2, date: "2023-11-15", action: "Contract Renewed", details: "Extended for another 24 months", user: "Admin" },
+    ],
+  },
+  3: {
+    general: [
+      { id: 1, date: "2025-02-01", time: "08:00", field: "Address", oldValue: "456 Old Pine St", newValue: "789 Pine St", changedBy: "Self" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-02-17T06:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-02-17T07:45:00", type: "Check-out", location: "Main Entrance" },
+      { id: 3, date: "2025-02-16T06:15:00", type: "Check-in", location: "Main Entrance" },
+      { id: 4, date: "2025-02-16T08:00:00", type: "Check-out", location: "Main Entrance" },
+      { id: 5, date: "2025-02-15T06:05:00", type: "Check-in", location: "Main Entrance" },
+      { id: 6, date: "2025-02-15T07:50:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-10", time: "06:30", action: "Appointment Completed", appointmentType: "Running Coach Session", appointmentDate: "2025-02-10", appointmentTime: "06:30", status: "Completed", bookedBy: "Self" },
+      { id: 2, date: "2025-02-18", time: "06:30", action: "Appointment Booked", appointmentType: "Running Coach Session", appointmentDate: "2025-02-24", appointmentTime: "06:30", status: "Scheduled", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€49.99", description: "February 2025 membership fee", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2022-06-15", action: "Contract Signed", details: "60-month membership — Fitness Plus", user: "Admin" },
+    ],
+  },
+  4: {
+    general: [
+      { id: 1, date: "2025-01-20", time: "13:00", field: "Member Type", oldValue: "Full", newValue: "Premium", changedBy: "Admin" },
+      { id: 2, date: "2025-01-20", time: "13:05", field: "Note", oldValue: "—", newValue: "VIP member - priority scheduling", changedBy: "Admin" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-02-16T10:00:00", type: "Check-in", location: "VIP Lounge" },
+      { id: 2, date: "2025-02-16T12:00:00", type: "Check-out", location: "VIP Lounge" },
+      { id: 3, date: "2025-02-14T09:30:00", type: "Check-in", location: "Yoga Studio" },
+      { id: 4, date: "2025-02-14T11:00:00", type: "Check-out", location: "Yoga Studio" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-14", time: "09:30", action: "Appointment Completed", appointmentType: "Private Yoga", appointmentDate: "2025-02-14", appointmentTime: "09:30", status: "Completed", bookedBy: "Self" },
+      { id: 2, date: "2025-02-16", time: "10:00", action: "Appointment Completed", appointmentType: "Wellness Coaching", appointmentDate: "2025-02-16", appointmentTime: "10:00", status: "Completed", bookedBy: "Admin" },
+      { id: 3, date: "2025-02-17", time: "11:00", action: "Appointment Booked", appointmentType: "Spa Treatment", appointmentDate: "2025-02-22", appointmentTime: "11:00", status: "Scheduled", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€89.99", description: "February 2025 premium membership", status: "completed" },
+      { id: 2, date: "2025-01-01", type: "Monthly Fee", amount: "€89.99", description: "January 2025 premium membership", status: "completed" },
+      { id: 3, date: "2025-01-20", type: "Upgrade Fee", amount: "€50.00", description: "One-time upgrade to premium tier", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2023-01-10", action: "Contract Signed", details: "Standard membership — 36 months", user: "Reception" },
+      { id: 2, date: "2025-01-20", action: "Contract Upgraded", details: "Upgraded to Premium tier with VIP access", user: "Admin" },
+    ],
+  },
+  5: {
+    general: [
+      { id: 1, date: "2025-01-25", time: "00:00", field: "Birthday", oldValue: "—", newValue: "Happy Birthday! 🎂", changedBy: "System" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-02-15T18:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-02-15T19:30:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-12", time: "18:30", action: "Appointment Completed", appointmentType: "Strength Training", appointmentDate: "2025-02-12", appointmentTime: "18:30", status: "Completed", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€49.99", description: "February 2025 membership fee", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2023-09-01", action: "Contract Signed", details: "Standard membership — 36 months", user: "Admin" },
+    ],
+  },
+  6: {
+    general: [
+      { id: 1, date: "2025-01-05", time: "09:00", field: "Note", oldValue: "—", newValue: "Focus on knee rehabilitation exercises", changedBy: "Trainer" },
+      { id: 2, date: "2025-01-05", time: "09:05", field: "Note Importance", oldValue: "Normal", newValue: "Important", changedBy: "Trainer" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-02-17T10:00:00", type: "Check-in", location: "Rehab Center" },
+      { id: 2, date: "2025-02-17T11:30:00", type: "Check-out", location: "Rehab Center" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-17", time: "10:00", action: "Appointment Booked", appointmentType: "Physio Rehab Session", appointmentDate: "2025-02-19", appointmentTime: "10:00", status: "Scheduled", bookedBy: "Trainer" },
+      { id: 2, date: "2025-02-10", time: "10:00", action: "Appointment Completed", appointmentType: "Physio Rehab Session", appointmentDate: "2025-02-10", appointmentTime: "10:00", status: "Completed", bookedBy: "Trainer" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€49.99", description: "February 2025 membership fee", status: "completed" },
+      { id: 2, date: "2025-02-10", type: "Rehab Package", amount: "€120.00", description: "8-session knee rehab package", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2024-06-01", action: "Contract Signed", details: "Standard membership — 24 months", user: "Admin" },
+    ],
+  },
+  7: {
+    general: [
+      { id: 1, date: "2025-01-24", time: "15:30", field: "Account Created", oldValue: "—", newValue: "Trial member registered", changedBy: "Reception" },
+      { id: 2, date: "2025-01-24", time: "15:35", field: "Note", oldValue: "—", newValue: "New potential member - scheduled for gym tour", changedBy: "Reception" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-01-25T11:00:00", type: "Check-in", location: "Reception (Tour)" },
+      { id: 2, date: "2025-01-25T12:00:00", type: "Check-out", location: "Reception" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-01-24", time: "15:40", action: "Appointment Booked", appointmentType: "Gym Tour & Consultation", appointmentDate: "2025-01-25", appointmentTime: "11:00", status: "Completed", bookedBy: "Reception" },
+      { id: 2, date: "2025-02-01", time: "10:00", action: "Appointment Booked", appointmentType: "Trial Workout", appointmentDate: "2025-02-05", appointmentTime: "10:00", status: "Scheduled", bookedBy: "Admin" },
+    ],
+    finance: [],
+    contracts: [],
+  },
+  8: {
+    general: [],
+    checkins: [
+      { id: 1, date: "2025-02-16T17:30:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-02-16T19:00:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-13", time: "17:30", action: "Appointment Completed", appointmentType: "Group HIIT Class", appointmentDate: "2025-02-13", appointmentTime: "17:30", status: "Completed", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€39.99", description: "February 2025 membership fee", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2024-02-01", action: "Contract Signed", details: "Standard membership — 24 months", user: "Reception" },
+    ],
+  },
+  9: {
+    general: [
+      { id: 1, date: "2024-12-20", time: "16:00", field: "About", oldValue: "—", newValue: "Business professional focused on stress relief.", changedBy: "Self" },
+    ],
+    checkins: [
+      { id: 1, date: "2025-02-14T12:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-02-14T13:00:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-14", time: "12:00", action: "Appointment Completed", appointmentType: "Lunchtime Express Workout", appointmentDate: "2025-02-14", appointmentTime: "12:00", status: "Completed", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€49.99", description: "February 2025 membership fee", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2024-03-15", action: "Contract Signed", details: "Standard membership — 24 months", user: "Admin" },
+    ],
+  },
+  10: {
+    general: [],
+    checkins: [
+      { id: 1, date: "2025-02-17T07:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 2, date: "2025-02-17T08:30:00", type: "Check-out", location: "Main Entrance" },
+      { id: 3, date: "2025-02-15T07:00:00", type: "Check-in", location: "Main Entrance" },
+      { id: 4, date: "2025-02-15T08:45:00", type: "Check-out", location: "Main Entrance" },
+    ],
+    appointments: [
+      { id: 1, date: "2025-02-17", time: "07:00", action: "Appointment Completed", appointmentType: "Cardio Bootcamp", appointmentDate: "2025-02-17", appointmentTime: "07:00", status: "Completed", bookedBy: "Self" },
+      { id: 2, date: "2025-02-15", time: "07:00", action: "Appointment Completed", appointmentType: "Weight Training", appointmentDate: "2025-02-15", appointmentTime: "07:00", status: "Completed", bookedBy: "Self" },
+    ],
+    finance: [
+      { id: 1, date: "2025-02-01", type: "Monthly Fee", amount: "€49.99", description: "February 2025 membership fee", status: "completed" },
+      { id: 2, date: "2025-01-01", type: "Monthly Fee", amount: "€49.99", description: "January 2025 membership fee", status: "completed" },
+    ],
+    contracts: [
+      { id: 1, date: "2024-01-01", action: "Contract Signed", details: "Standard membership — 24 months", user: "Admin" },
+    ],
+  },
 };
 
 // =============================================================================

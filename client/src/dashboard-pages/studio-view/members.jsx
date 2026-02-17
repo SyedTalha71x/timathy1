@@ -649,19 +649,17 @@ useEffect(() => {
   }
 
   // 
-  const handleArchiveMemberMain = (memberId) => {
+const handleArchiveMemberMain = (memberId) => {
     const member = members.find((m) => m.id === memberId)
     if (member && member.memberType === "temporary") {
-      if (window.confirm("Are you sure you want to archive this temporary member?")) {
-        setMembers((prev) =>
-          prev.map((member) =>
-            member.id === memberId
-              ? { ...member, isArchived: true, archivedDate: new Date().toISOString().split("T")[0] }
-              : member,
-          ),
-        )
-        toast.success("Temporary member archived successfully")
-      }
+      setMembers((prev) =>
+        prev.map((member) =>
+          member.id === memberId
+            ? { ...member, isArchived: true, archivedDate: new Date().toISOString().split("T")[0] }
+            : member,
+        ),
+      )
+      toast.success("Temporary member archived successfully")
     } else {
       toast.error("Only temporary members can be archived")
     }
@@ -1430,7 +1428,7 @@ const AdminBanner = () => {
         </svg>
       </div>
       <div>
-        <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+        <p className="text-sm font-medium text-blue-300">Admin Mode – {studioNameProp || `Studio #${studioIdProp}`}</p>
         <p className="text-xs text-content-muted">Viewing members for this studio. Changes are saved per-studio.</p>
       </div>
     </div>
@@ -1517,9 +1515,9 @@ const AdminBanner = () => {
 
                 {/* Sort Dropdown - Mobile */}
                 {showMobileSortDropdown && (
-                  <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
                         Sort by
                       </div>
                       {sortOptions.map((option) => (
@@ -1567,12 +1565,12 @@ const AdminBanner = () => {
                   </button>
                   
                   {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                     <span className="font-medium">Grid View</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                       V
                     </span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
                 
@@ -1589,17 +1587,17 @@ const AdminBanner = () => {
                   </button>
                   
                   {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                     <span className="font-medium">List View</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                       V
                     </span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
 
                 {/* Compact/Detailed Toggle */}
-                <div className="h-6 w-px bg-border-subtle mx-1"></div>
+                <div className="h-6 w-px bg-border mx-1"></div>
                 <div className="relative group">
                   <button
                     onClick={() => setIsCompactView(!isCompactView)}
@@ -1607,21 +1605,21 @@ const AdminBanner = () => {
                   >
                     <div className="flex flex-col gap-0.5">
                       <div className="flex gap-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
                       </div>
                       <div className="flex gap-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
                       </div>
                     </div>
                     
                   </button>
                   
                   {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                     <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
             </div>
@@ -1639,13 +1637,13 @@ const AdminBanner = () => {
                 </button>
                 
                 {/* Tooltip - YouTube Style */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Create Temporary Member</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
                   </span>
                   {/* Arrow pointing up */}
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                 </div>
               </div>
             </div>
@@ -1788,9 +1786,9 @@ const AdminBanner = () => {
 
                 {/* Sort Dropdown - Desktop */}
                 {showSortDropdown && (
-                  <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
                         Sort by
                       </div>
                       {sortOptions.map((option) => (
@@ -1868,7 +1866,7 @@ const AdminBanner = () => {
                 </button>
 
                 {/* Member Type Pills */}
-                <div className="h-6 w-px bg-border-subtle mx-1 hidden sm:block self-center"></div>
+                <div className="h-6 w-px bg-border mx-1 hidden sm:block self-center"></div>
                 <button
                   onClick={() => setMemberTypeFilter('all')}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
@@ -1908,7 +1906,7 @@ const AdminBanner = () => {
               // LIST VIEW - Table structure for both compact and detailed
               <div className="bg-surface-card rounded-xl overflow-hidden">
                 {/* Table Header - Desktop only */}
-                <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border-subtle text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
+                <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
                   <div className="col-span-3">Member</div>
                   <div className="col-span-1">Gender</div>
                   <div className="col-span-1">Age</div>
@@ -1923,7 +1921,7 @@ const AdminBanner = () => {
                     <div 
                       key={member.id}
                       className={`group hover:bg-surface-hover transition-colors ${
-                        index !== filteredAndSortedMembers().length - 1 ? 'border-b border-border-subtle' : ''
+                        index !== filteredAndSortedMembers().length - 1 ? 'border-b border-border' : ''
                       }`}
                     >
                       {/* Desktop Table Row */}
@@ -1963,7 +1961,7 @@ const AdminBanner = () => {
                                 {member.title}
                               </span>
                             </div>
-                            {member.memberType !== "full" && member.autoArchiveDate ? (
+                            {member.memberType !== "full" && member.autoArchiveDate && !member.isArchived ? (
                               <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint`}>
                                 Auto-archive: {member.autoArchiveDate}
                               </span>
@@ -2014,7 +2012,7 @@ const AdminBanner = () => {
                         <div className="col-span-1">
                           <button
                             onClick={() => handleRelationClick(member)}
-                            className={`${isCompactView ? 'text-xs' : 'text-sm'} text-secondary hover:text-secondary-hover inline-flex items-center gap-1`}
+                            className={`${isCompactView ? 'text-xs' : 'text-sm'} text-primary hover:text-primary-hover inline-flex items-center gap-1`}
                           >
                             <Users size={isCompactView ? 12 : 14} />
                             {Object.values(memberRelationsMain[member.id] || {}).flat().length}
@@ -2060,7 +2058,7 @@ const AdminBanner = () => {
     <MessageCircle size={isCompactView ? 16 : 18} />
   </button>
 )}
-                          <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border-subtle/50 mx-1`} />
+                          <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
                           <button
                             onClick={() => handleViewDetails(member)}
                             className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
@@ -2326,7 +2324,7 @@ const AdminBanner = () => {
                             )}
                             <button
                               onClick={() => handleRelationClick(member)}
-                              className="text-[10px] text-content-muted bg-surface-dark px-1.5 py-0.5 rounded flex items-center gap-0.5"
+                              className="text-[10px] text-primary bg-surface-dark px-1.5 py-0.5 rounded flex items-center gap-0.5"
                             >
                               <Users size={9} />
                               {Object.values(memberRelationsMain[member.id] || {}).flat().length}
@@ -2500,7 +2498,7 @@ const AdminBanner = () => {
                                 </span>
                               </div>
 
-                              {member.memberType !== "full" && member.autoArchiveDate && (
+                              {member.memberType !== "full" && member.autoArchiveDate && !member.isArchived && (
                                 <p className="text-content-muted text-sm truncate mt-1 text-center sm:text-left flex items-center">
                                   Auto-archive: {member.autoArchiveDate}
                                   {new Date(member.autoArchiveDate) <= new Date() && (
@@ -2511,7 +2509,7 @@ const AdminBanner = () => {
                               <div className="mt-2">
                                 <button
                                   onClick={() => handleRelationClick(member)}
-                                  className="text-xs text-secondary hover:text-secondary-hover flex items-center gap-1"
+                                  className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
                                 >
                                   <Users size={12} />
                                   Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
