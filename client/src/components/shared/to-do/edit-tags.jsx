@@ -59,7 +59,7 @@ const TagsModal = ({ task, configuredTags, onClose, onUpdate }) => {
           </button>
           <button
             onClick={handleSave}
-            className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition-colors"
+            className="bg-primary text-sm text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors"
           >
             Save Changes
           </button>

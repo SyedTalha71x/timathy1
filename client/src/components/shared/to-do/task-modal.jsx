@@ -198,7 +198,7 @@ const TaskModal = ({
                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                   isCompleted ? "bg-green-500/20 text-green-400" :
                   isCanceled ? "bg-red-500/20 text-red-400" :
-                  "bg-amber-500/20 text-amber-400"
+                  "bg-primary/20 text-primary"
                 }`}>
                   {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                 </span>
@@ -521,7 +521,7 @@ const TaskModal = ({
               disabled={!taskTitle.trim()}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 taskTitle.trim()
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
+                  ? "bg-primary text-white hover:bg-primary-hover"
                   : "bg-surface-button text-content-faint cursor-not-allowed"
               }`}
             >

@@ -483,106 +483,107 @@ export default function SortableTaskCard({
             </svg>
           </button>
 
-          {/* Dropdown Menu */}
+          {/* Dropdown Menu - Compact */}
           {showDropdown && (
-            <div className="absolute right-0 top-10 bg-surface-base border border-border rounded-xl shadow-lg py-1 z-[9999] min-w-[180px] overflow-hidden">
-              {/* Date/Time */}
-              <button
-                onClick={handleCalendarClick}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                <Calendar size={16} /> Date & Time
-              </button>
-
-              {/* Assign */}
-              <button
-                onClick={handleAssignClick}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                <Users size={16} /> Assign
-              </button>
-
-              {/* Tags */}
-              <button
-                onClick={handleTagsClick}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                <Tag size={16} /> Tags
-              </button>
-
-              <div className="border-t border-border my-1"></div>
-
-              {/* Pin/Unpin */}
-              <button
-                onClick={handlePinToggle}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
-                {task.isPinned ? "Unpin" : "Pin"}
-              </button>
-
-              {/* Duplicate */}
-              <button
-                onClick={handleDuplicate}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                <Copy size={16} /> Duplicate
-              </button>
-
-              {/* Repeat */}
-              <button
-                onClick={handleRepeat}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                <Repeat size={16} /> Repeat
-              </button>
-
-              <div className="border-t border-border my-1"></div>
-
-              {/* Status changes */}
-              {!isCanceled ? (
+            <div className="absolute right-0 top-10 bg-surface-base border border-border rounded-xl shadow-lg z-[9999] overflow-hidden w-[160px]">
+              {/* Icon Grid - Common actions */}
+              <div className="grid grid-cols-3 gap-0.5 p-1.5">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowDropdown(false)
-                    handleStatusChange("canceled")
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
+                  onClick={handleCalendarClick}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-surface-hover text-content-secondary transition-colors active:bg-surface-button group"
+                  title="Date & Time"
                 >
-                  <X size={16} /> Cancel Task
+                  <Calendar size={16} />
+                  <span className="text-[10px] text-content-faint group-hover:text-content-secondary">Date</span>
                 </button>
-              ) : (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowDropdown(false)
-                      handleStatusChange("ongoing")
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-                  >
-                    <Edit size={16} /> Set Ongoing
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowDropdown(false)
-                      handleStatusChange("completed")
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-surface-hover text-green-400 text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-                  >
-                    <Check size={16} /> Complete
-                  </button>
-                </>
-              )}
+                <button
+                  onClick={handleAssignClick}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-surface-hover text-content-secondary transition-colors active:bg-surface-button group"
+                  title="Assign"
+                >
+                  <Users size={16} />
+                  <span className="text-[10px] text-content-faint group-hover:text-content-secondary">Assign</span>
+                </button>
+                <button
+                  onClick={handleTagsClick}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-surface-hover text-content-secondary transition-colors active:bg-surface-button group"
+                  title="Tags"
+                >
+                  <Tag size={16} />
+                  <span className="text-[10px] text-content-faint group-hover:text-content-secondary">Tags</span>
+                </button>
+                <button
+                  onClick={handlePinToggle}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-surface-hover text-content-secondary transition-colors active:bg-surface-button group"
+                  title={task.isPinned ? "Unpin" : "Pin"}
+                >
+                  {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
+                  <span className="text-[10px] text-content-faint group-hover:text-content-secondary">{task.isPinned ? "Unpin" : "Pin"}</span>
+                </button>
+                <button
+                  onClick={handleDuplicate}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-surface-hover text-content-secondary transition-colors active:bg-surface-button group"
+                  title="Duplicate"
+                >
+                  <Copy size={16} />
+                  <span className="text-[10px] text-content-faint group-hover:text-content-secondary">Copy</span>
+                </button>
+                <button
+                  onClick={handleRepeat}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-surface-hover text-content-secondary transition-colors active:bg-surface-button group"
+                  title="Repeat"
+                >
+                  <Repeat size={16} />
+                  <span className="text-[10px] text-content-faint group-hover:text-content-secondary">Repeat</span>
+                </button>
+              </div>
 
-              {/* Delete */}
-              <button
-                onClick={openDeleteConfirmation}
-                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-3 transition-colors active:bg-surface-button"
-              >
-                <Trash2 size={16} /> Delete
-              </button>
+              <div className="border-t border-border"></div>
+
+              {/* Text List - Status & destructive actions */}
+              <div className="py-1">
+                {!isCanceled ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowDropdown(false)
+                      handleStatusChange("canceled")
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2.5 transition-colors"
+                  >
+                    <X size={14} /> Cancel Task
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowDropdown(false)
+                        handleStatusChange("ongoing")
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2.5 transition-colors"
+                    >
+                      <Edit size={14} /> Set Ongoing
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowDropdown(false)
+                        handleStatusChange("completed")
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-surface-hover text-green-400 text-sm flex items-center gap-2.5 transition-colors"
+                    >
+                      <Check size={14} /> Complete
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={openDeleteConfirmation}
+                  className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2.5 transition-colors"
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
             </div>
           )}
         </div>

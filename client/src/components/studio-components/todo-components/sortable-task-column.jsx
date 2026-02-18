@@ -278,9 +278,9 @@ const SortableTaskColumn = ({
                 {pinnedTasks.length > 0 && (
                   <>
                     <div className="flex items-center gap-2 px-2 py-1">
-                      <Pin size={12} className="text-amber-500 fill-amber-500" />
-                      <span className="text-xs text-amber-500 font-medium">Pinned</span>
-                      <div className="flex-1 h-px bg-amber-500/30"></div>
+                      <Pin size={12} className="text-primary fill-primary" />
+                      <span className="text-xs text-primary font-medium">Pinned</span>
+                      <div className="flex-1 h-px bg-primary/30"></div>
                     </div>
                     {pinnedTasks.map((task, index) => (
                       <SortableTaskCard

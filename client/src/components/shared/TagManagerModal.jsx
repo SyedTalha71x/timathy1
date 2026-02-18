@@ -78,7 +78,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
             <button
               onClick={handleAddTag}
               disabled={!newTagName.trim()}
-              className="w-full py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-surface-button disabled:text-content-faint disabled:cursor-not-allowed transition-colors text-sm flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-surface-button disabled:text-content-faint disabled:cursor-not-allowed transition-colors text-sm flex items-center justify-center gap-2"
             >
               <Plus size={16} />
               Add Tag
@@ -129,7 +129,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
         <div className="flex justify-end p-6 border-t border-border">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+            className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"
           >
             Done
           </button>

@@ -43,6 +43,13 @@ import useFolders from '../../components/studio-components/media-library-compone
 import { generateThumbnail, generateId, deepClone, applyPersonalization } from '../../components/studio-components/media-library-components/utils/canvasUtils';
 import { templates } from '../../components/studio-components/media-library-components/constants/templates';
 
+// Read the primary color from the global CSS variable --color-primary
+const getPrimaryColor = () => {
+  if (typeof document === 'undefined') return '#f97316'
+  const value = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim()
+  return value || '#f97316'
+}
+
 // Custom FolderCard with 3-dot menu always visible
 const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit, onDelete }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -57,10 +64,10 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
       ref={setNodeRef}
       className={`relative group bg-surface-base rounded-xl p-4 border transition-all cursor-pointer ${
         isOver
-          ? 'border-orange-500 ring-2 ring-orange-500/30 bg-orange-500/5'
+          ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
           : isSelected 
-            ? 'border-orange-500 ring-2 ring-orange-500/20' 
-            : 'border-border hover:border-orange-500/50'
+            ? 'border-primary ring-2 ring-primary/20' 
+            : 'border-border hover:border-primary/50'
       }`}
       onClick={() => onSelect(folder.id === onSelect ? null : folder.id)}
     >
@@ -68,18 +75,18 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div 
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${folder.color || '#FF843E'}20` }}
+            style={{ backgroundColor: `${folder.color || getPrimaryColor()}20` }}
           >
             <FolderIcon 
               size={20} 
-              style={{ color: folder.color || '#FF843E' }}
+              style={{ color: folder.color || getPrimaryColor() }}
             />
           </div>
           <div className="min-w-0 flex-1">
             <h4 className="text-sm font-medium text-content-primary truncate">{folder.name}</h4>
             <p className="text-xs text-content-faint">
               {designCount} design{designCount !== 1 ? 's' : ''}
-              {folder.isDefault && <span className="ml-1.5 text-orange-400">• Default</span>}
+              {folder.isDefault && <span className="ml-1.5 text-primary">• Default</span>}
             </p>
           </div>
         </div>
@@ -91,7 +98,7 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
               e.stopPropagation();
               setShowMenu(!showMenu);
             }}
-            className="p-1.5 rounded-lg text-content-muted hover:text-orange-400 hover:bg-surface-hover transition-colors"
+            className="p-1.5 rounded-lg text-content-muted hover:text-primary hover:bg-surface-hover transition-colors"
           >
             <MoreHorizontal size={16} />
           </button>
@@ -411,6 +418,7 @@ const MediaLibrary = () => {
 
     setShowEditor(false);
     setCurrentDesign(null);
+    setSelectedFolderId(newDesign.folderId);
   };
 
   // Handle save as draft
@@ -639,7 +647,7 @@ const MediaLibrary = () => {
             {showMobileInfoTooltip && (
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-surface-button border border-border rounded-lg shadow-xl p-4 z-50">
                 <div className="text-sm space-y-2">
-                  <p className="text-orange-400 font-medium">Desktop Only</p>
+                  <p className="text-primary font-medium">Desktop Only</p>
                   <p className="text-content-secondary text-xs leading-relaxed">
                     Creating and editing designs is only available on desktop devices for the best experience.
                   </p>
@@ -655,19 +663,19 @@ const MediaLibrary = () => {
           <div className="hidden sm:block relative group">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-medium rounded-xl transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-medium rounded-xl transition-colors"
             >
               <Plus size={14} className="sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Create Design</span>
             </button>
             
             {/* Tooltip */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
               <span className="font-medium">Create Design</span>
               <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                 C
               </span>
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
             </div>
           </div>
         </div>
@@ -681,7 +689,7 @@ const MediaLibrary = () => {
           placeholder="Search all designs..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors"
+          className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
         />
         {searchQuery && (
           <button
@@ -701,7 +709,7 @@ const MediaLibrary = () => {
               <div className="flex items-center justify-between mb-3">
                 <button
                   onClick={() => setShowFoldersSection(!showFoldersSection)}
-                  className="flex items-center gap-2 text-content-primary hover:text-orange-500 transition-colors"
+                  className="flex items-center gap-2 text-content-primary hover:text-primary transition-colors"
                 >
                   {showFoldersSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                   <FolderIcon size={18} />
@@ -711,7 +719,7 @@ const MediaLibrary = () => {
                 
                 <button
                   onClick={() => handleOpenFolderModal()}
-                  className="flex items-center gap-1.5 text-orange-500 hover:text-orange-400 text-xs transition-colors"
+                  className="flex items-center gap-1.5 text-primary hover:text-primary text-xs transition-colors"
                 >
                   <FolderPlus size={14} />
                   New Folder
@@ -722,7 +730,7 @@ const MediaLibrary = () => {
                 <>
                   {/* Drag hint when dragging a design */}
                   {draggingDesign && (
-                    <div className="mb-3 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl flex items-center gap-2 text-orange-400 text-sm">
+                    <div className="mb-3 p-3 bg-primary/10 border border-primary/30 rounded-xl flex items-center gap-2 text-primary text-sm">
                       <GripVertical size={16} />
                       <span>Drop "<strong>{draggingDesign.name}</strong>" on a folder to move it</span>
                     </div>
@@ -750,7 +758,7 @@ const MediaLibrary = () => {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setShowDesignsSection(!showDesignsSection)}
-                className="flex items-center gap-2 text-content-primary hover:text-orange-500 transition-colors"
+                className="flex items-center gap-2 text-content-primary hover:text-primary transition-colors"
               >
                 {showDesignsSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 <Palette size={18} />
@@ -816,7 +824,7 @@ const MediaLibrary = () => {
                     <>
                       <button
                         onClick={() => setShowCreateModal(true)}
-                        className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+                        className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"
                       >
                         <Plus size={16} />
                         Create Design
@@ -836,7 +844,7 @@ const MediaLibrary = () => {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setShowDraftsSection(!showDraftsSection)}
-                className="flex items-center gap-2 text-content-primary hover:text-orange-500 transition-colors"
+                className="flex items-center gap-2 text-content-primary hover:text-primary transition-colors"
               >
                 {showDraftsSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 <FileText size={18} />
@@ -864,7 +872,7 @@ const MediaLibrary = () => {
                     return (
                       <div
                         key={draft.id}
-                        className="group relative bg-surface-hover rounded-xl overflow-hidden border border-dashed border-border hover:border-orange-500/50 transition-all"
+                        className="group relative bg-surface-hover rounded-xl overflow-hidden border border-dashed border-border hover:border-primary/50 transition-all"
                       >
                         {/* Fixed-size Preview Container - same height as DesignCard */}
                         <div className="relative w-full h-[180px] bg-surface-button flex items-center justify-center overflow-hidden">
@@ -883,7 +891,7 @@ const MediaLibrary = () => {
                           )}
 
                           {/* Draft badge */}
-                          <div className="absolute top-2 left-2 px-2 py-1 bg-orange-500/80 text-white text-[10px] font-medium rounded-lg">
+                          <div className="absolute top-2 left-2 px-2 py-1 bg-primary/80 text-white text-[10px] font-medium rounded-lg">
                             DRAFT
                           </div>
 
@@ -891,7 +899,7 @@ const MediaLibrary = () => {
                           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                             <button
                               onClick={() => handleEditDraft(draft)}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-all hover:scale-105"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-all hover:scale-105"
                             >
                               <Edit2 size={14} />
                               Continue
@@ -908,7 +916,7 @@ const MediaLibrary = () => {
 
                         {/* Info - consistent with DesignCard */}
                         <div className="p-3 bg-surface-hover">
-                          <h4 className="text-content-primary font-medium text-sm truncate group-hover:text-orange-400 transition-colors">
+                          <h4 className="text-content-primary font-medium text-sm truncate group-hover:text-primary transition-colors">
                             {draft.name}
                           </h4>
                           <div className="flex items-center justify-between mt-1.5">
@@ -1013,7 +1021,7 @@ const MediaLibrary = () => {
         onSave={handleSaveFolder}
         showColorPicker={true}
         showDefaultCheckbox={true}
-        defaultColor="#FF843E"
+
       />
 
       {/* Folder Delete Confirmation Modal */}
@@ -1192,7 +1200,7 @@ const MediaLibrary = () => {
                   setShowPreviewModal(false);
                   handleEditDesign(previewDesign);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"
               >
                 <Edit2 size={14} />
                 Edit
@@ -1208,7 +1216,7 @@ const MediaLibrary = () => {
     {/* Drag Overlay - shows preview while dragging */}
     <DragOverlay>
       {draggingDesign ? (
-        <div className="bg-surface-hover rounded-xl border-2 border-orange-500 shadow-2xl shadow-orange-500/20 p-3 w-48 opacity-90">
+        <div className="bg-surface-hover rounded-xl border-2 border-primary shadow-2xl shadow-primary/20 p-3 w-48 opacity-90">
           <div className="h-24 bg-surface-button rounded-lg mb-2 flex items-center justify-center overflow-hidden">
             {draggingDesign.thumbnail && draggingDesign.thumbnail !== 'data:,' ? (
               <img 
@@ -1222,7 +1230,7 @@ const MediaLibrary = () => {
             )}
           </div>
           <p className="text-content-primary text-sm font-medium truncate">{draggingDesign.name}</p>
-          <p className="text-orange-400 text-xs mt-1">Drop on folder to move</p>
+          <p className="text-primary text-xs mt-1">Drop on folder to move</p>
         </div>
       ) : null}
     </DragOverlay>

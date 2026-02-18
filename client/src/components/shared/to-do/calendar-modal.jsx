@@ -1,8 +1,17 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Clock, Bell, Repeat, X, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import ConfirmationModal from "./confirmation-modal";
+import CustomSelect from "../CustomSelect";
+import DatePickerField from "../DatePickerField";
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_HEADERS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 const CalendarModal = ({
   isOpen,
@@ -16,11 +25,18 @@ const CalendarModal = ({
   initialRepeatEnd = null
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [showClearConfirmation, setShowClearConfirmation] = useState(false)
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   
-  // Mobile collapsible sections - collapsed by default
-  const [isReminderExpanded, setIsReminderExpanded] = useState(false)
-  const [isRepeatExpanded, setIsRepeatExpanded] = useState(false)
+  // Calendar view mode: "days" | "months" | "years"
+  const [calendarView, setCalendarView] = useState("days");
+  const [yearRangeStart, setYearRangeStart] = useState(() => {
+    const y = new Date().getFullYear();
+    return y - (y % 20);
+  });
+  
+  // Mobile collapsible sections
+  const [isReminderExpanded, setIsReminderExpanded] = useState(false);
+  const [isRepeatExpanded, setIsRepeatExpanded] = useState(false);
 
   const [tempDate, setTempDate] = useState(initialDate);
   const [tempTime, setTempTime] = useState(initialTime);
@@ -33,7 +49,7 @@ const CalendarModal = ({
   const [repeatEndDate, setRepeatEndDate] = useState(initialRepeatEnd?.date || "");
   const [repeatOccurrences, setRepeatOccurrences] = useState(initialRepeatEnd?.occurrences || "");
 
-  // Reset form when modal opens with new initial values
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setTempDate(initialDate || "");
@@ -41,7 +57,6 @@ const CalendarModal = ({
       setTempReminder(initialReminder || "");
       setTempRepeat(initialRepeat || "");
 
-      // Handle custom reminder
       if (initialReminder === "Custom") {
         setShowCustomReminder(true);
         setCustomValue(initialCustomReminder?.value || "");
@@ -50,7 +65,6 @@ const CalendarModal = ({
         setShowCustomReminder(false);
       }
 
-      // Handle repeat end settings
       if (initialRepeatEnd) {
         setRepeatEndType(initialRepeatEnd.type || "never");
         setRepeatEndDate(initialRepeatEnd.date || "");
@@ -61,66 +75,94 @@ const CalendarModal = ({
         setRepeatOccurrences("");
       }
 
-      // Set current date to selected date if it exists
       if (initialDate) {
         const dateParts = initialDate.split('-');
         if (dateParts.length === 3) {
-          setCurrentDate(new Date(
-            parseInt(dateParts[0]),
-            parseInt(dateParts[1]) - 1,
-            parseInt(dateParts[2])
-          ));
+          setCurrentDate(new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])));
         }
       }
-      
-      // Expand sections if they have values, otherwise collapse on mobile
-      setIsReminderExpanded(!!initialReminder && initialReminder !== "")
-      setIsRepeatExpanded(!!initialRepeat && initialRepeat !== "")
+
+      setCalendarView("days");
+      setIsReminderExpanded(!!initialReminder && initialReminder !== "");
+      setIsRepeatExpanded(!!initialRepeat && initialRepeat !== "");
     } else {
-      // Reset collapsed state when modal closes
-      setIsReminderExpanded(false)
-      setIsRepeatExpanded(false)
+      setIsReminderExpanded(false);
+      setIsRepeatExpanded(false);
     }
   }, [isOpen, initialDate, initialTime, initialReminder, initialRepeat, initialCustomReminder, initialRepeatEnd]);
 
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  // Calendar computations
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; // Monday-first
 
-  // Highlight the selected date on the calendar
-  const getDayClassName = (day) => {
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const isSelected = tempDate === dateStr;
-    const isToday = dateStr === new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayYear = new Date().getFullYear();
+  const todayMonth = new Date().getMonth();
 
-    let className = "w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-all duration-200 ";
+  const selectedYear = tempDate ? +tempDate.split('-')[0] : null;
+  const selectedMonth = tempDate ? +tempDate.split('-')[1] - 1 : null;
 
-    if (isSelected) {
-      className += "bg-orange-500 text-white font-medium";
-    } else if (isToday) {
-      className += "bg-orange-500/30 text-orange-400 font-medium";
-    } else {
-      className += "text-content-secondary hover:bg-surface-button";
-    }
-
-    return className;
+  const handleDateClick = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    setTempDate(dateStr);
   };
 
-  const generateTimeOptions = () => {
-    const options = [];
+  const handleMonthSelect = (m) => {
+    setCurrentDate(new Date(year, m, 1));
+    setCalendarView("days");
+  };
+
+  const handleYearSelect = (y) => {
+    setCurrentDate(new Date(y, month, 1));
+    setCalendarView("months");
+  };
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // Time options
+  const timeOptions = useMemo(() => {
+    const opts = [{ value: "", label: "Select time" }];
     for (let hour = 0; hour < 24; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-        options.push(timeString);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const formattedHour = hour % 12 || 12;
+        opts.push({ value: timeString, label: `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}` });
       }
     }
-    return options;
-  };
+    return opts;
+  }, []);
 
-  const handleDateClick = (day) => {
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    setTempDate(dateStr);
-  };
+  // Reminder options
+  const reminderOptions = [
+    { value: "", label: "None" },
+    { value: "On time", label: "On time" },
+    { value: "5 minutes before", label: "5 minutes before" },
+    { value: "15 minutes before", label: "15 minutes before" },
+    { value: "30 minutes before", label: "30 minutes before" },
+    { value: "1 hour before", label: "1 hour before" },
+    { value: "1 day before", label: "1 day before" },
+    { value: "Custom", label: "Custom" },
+  ];
+
+  // Repeat options
+  const repeatOptions = [
+    { value: "", label: "Never" },
+    { value: "Daily", label: "Daily" },
+    { value: "Weekly", label: "Weekly" },
+    { value: "Monthly", label: "Monthly" },
+  ];
+
+  // Custom unit options
+  const customUnitOptions = [
+    { value: "Minutes", label: "Minutes" },
+    { value: "Hours", label: "Hours" },
+    { value: "Days", label: "Days" },
+    { value: "Weeks", label: "Weeks" },
+  ];
 
   const handleTimeChange = (time) => {
     setTempTime(time);
@@ -131,11 +173,7 @@ const CalendarModal = ({
 
   const handleReminderChange = (reminder) => {
     setTempReminder(reminder);
-    if (reminder === "Custom") {
-      setShowCustomReminder(true);
-    } else {
-      setShowCustomReminder(false);
-    }
+    setShowCustomReminder(reminder === "Custom");
   };
 
   const handleOK = () => {
@@ -151,46 +189,38 @@ const CalendarModal = ({
         occurrences: repeatOccurrences
       } : null
     };
-
     onSave(result);
     onClose();
   };
 
-
   if (!isOpen) return null;
 
-
   const handleClear = () => {
-    setShowClearConfirmation(true)
-  }
-
+    setShowClearConfirmation(true);
+  };
 
   const confirmClear = () => {
-    setTempDate("")
-    setTempTime("")
-    setTempReminder("")
-    setTempRepeat("")
-    setCustomValue("")
-    setShowCustomReminder(false)
-    setRepeatEndType("never")
-    setRepeatEndDate("")
-    setRepeatOccurrences("")
-    setShowClearConfirmation(false)
-    // Reset calendar view to current month
-    setCurrentDate(new Date())
-  }
+    setTempDate("");
+    setTempTime("");
+    setTempReminder("");
+    setTempRepeat("");
+    setCustomValue("");
+    setShowCustomReminder(false);
+    setRepeatEndType("never");
+    setRepeatEndDate("");
+    setRepeatOccurrences("");
+    setShowClearConfirmation(false);
+    setCurrentDate(new Date());
+    setCalendarView("days");
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-2 md:p-4 pt-8 md:pt-4">
-      {/* Modal Container - Flex column with fixed footer */}
       <div className="bg-surface-card rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
-        {/* Header - Fixed */}
+        {/* Header */}
         <div className="flex justify-between items-center p-4 md:p-6 pb-4 md:pb-5 flex-shrink-0 border-b border-border">
           <h2 className="text-content-primary text-lg font-semibold">Date & Time</h2>
-          <button
-            onClick={onClose}
-            className="text-content-muted hover:text-content-primary transition-colors"
-          >
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -199,49 +229,187 @@ const CalendarModal = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pt-4">
           {/* Calendar Section */}
           <div className="mb-5 bg-surface-dark rounded-xl p-4">
-            <div className="flex justify-between items-center mb-4">
-              <button
-                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-button rounded-lg transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <span className="text-content-primary font-medium text-sm">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </span>
-              <button
-                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-button rounded-lg transition-colors"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
 
-            <div className="grid grid-cols-7 gap-1 mb-2">
-              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, idx) => (
-                <div key={idx} className="text-center text-content-faint text-xs font-medium py-1">
-                  {day}
-                </div>
-              ))}
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: firstDayOfMonth }).map((_, index) => (
-                <div key={`empty-${index}`} className="w-8 h-8"></div>
-              ))}
-              {Array.from({ length: daysInMonth }).map((_, index) => {
-                const day = index + 1;
-                return (
+            {/* DAYS VIEW */}
+            {calendarView === "days" && (
+              <>
+                <div className="flex justify-between items-center mb-3">
                   <button
-                    key={day}
-                    onClick={() => handleDateClick(day)}
-                    className={getDayClassName(day)}
+                    type="button"
+                    onClick={prevMonth}
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
                   >
-                    {day}
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
-                );
-              })}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarView("months")}
+                    className="text-content-primary font-medium text-sm hover:bg-surface-button px-2 py-1 rounded-lg transition-colors"
+                  >
+                    {MONTH_NAMES[month]} {year}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextMonth}
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {DAY_HEADERS.map(d => (
+                    <div key={d} className="text-center text-content-faint text-xs font-medium py-1">{d}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: firstDay }).map((_, i) => (
+                    <div key={`e-${i}`} className="w-8 h-8" />
+                  ))}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1;
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const isSelected = tempDate === dateStr;
+                    const isToday = dateStr === todayStr;
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => handleDateClick(day)}
+                        className={`w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-all duration-200 ${
+                          isSelected ? "bg-primary text-white font-medium"
+                            : isToday ? "bg-primary/20 text-primary font-medium"
+                            : "text-content-secondary hover:bg-surface-button"
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Today / Clear footer */}
+                <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      setCurrentDate(now);
+                      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                      setTempDate(dateStr);
+                    }}
+                    className="text-xs text-primary hover:text-primary-hover transition-colors"
+                  >
+                    Today
+                  </button>
+                  {tempDate && (
+                    <button
+                      type="button"
+                      onClick={() => setTempDate("")}
+                      className="text-xs text-content-faint hover:text-red-400 transition-colors"
+                    >
+                      Clear date
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* MONTHS VIEW */}
+            {calendarView === "months" && (
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentDate(new Date(year - 1, month, 1))}
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setYearRangeStart(year - (year % 20)); setCalendarView("years"); }}
+                    className="text-content-primary font-medium text-sm hover:bg-surface-button px-2 py-1 rounded-lg transition-colors"
+                  >
+                    {year}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentDate(new Date(year + 1, month, 1))}
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {MONTH_SHORT.map((name, i) => {
+                    const isCurrent = year === todayYear && i === todayMonth;
+                    const isSelected = year === selectedYear && i === selectedMonth;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => handleMonthSelect(i)}
+                        className={`py-2.5 text-sm rounded-lg transition-all duration-200 ${
+                          isSelected ? "bg-primary text-white font-medium"
+                            : isCurrent ? "bg-primary/20 text-primary font-medium"
+                            : "text-content-secondary hover:bg-surface-button"
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* YEARS VIEW */}
+            {calendarView === "years" && (
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setYearRangeStart(yearRangeStart - 20)}
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-content-primary font-medium text-sm">
+                    {yearRangeStart} – {yearRangeStart + 19}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setYearRangeStart(yearRangeStart + 20)}
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 20 }).map((_, i) => {
+                    const y = yearRangeStart + i;
+                    const isCurrent = y === todayYear;
+                    const isSelected = y === selectedYear;
+                    return (
+                      <button
+                        key={y}
+                        type="button"
+                        onClick={() => handleYearSelect(y)}
+                        className={`py-2 text-sm rounded-lg transition-all duration-200 ${
+                          isSelected ? "bg-primary text-white font-medium"
+                            : isCurrent ? "bg-primary/20 text-primary font-medium"
+                            : "text-content-secondary hover:bg-surface-button"
+                        }`}
+                      >
+                        {y}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Time, Reminder, and Repeat Sections */}
@@ -252,24 +420,14 @@ const CalendarModal = ({
                 <Clock size={16} className="text-content-muted" />
                 Time
               </label>
-              <select
+              <CustomSelect
+                name="time"
                 value={tempTime}
                 onChange={(e) => handleTimeChange(e.target.value)}
-                className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2.5 text-content-primary outline-none border border-transparent focus:border-orange-500 transition-colors"
-              >
-                <option value="">Select time</option>
-                {generateTimeOptions().map((time) => (
-                  <option key={time} value={time}>
-                    {(() => {
-                      const [hours, minutes] = time.split(':');
-                      const hour = parseInt(hours);
-                      const ampm = hour >= 12 ? 'PM' : 'AM';
-                      const formattedHour = hour % 12 || 12;
-                      return `${formattedHour}:${minutes} ${ampm}`;
-                    })()}
-                  </option>
-                ))}
-              </select>
+                options={timeOptions}
+                placeholder="Select time"
+                searchable
+              />
             </div>
 
             {/* Reminder - Collapsible on mobile */}
@@ -283,7 +441,7 @@ const CalendarModal = ({
                   <Bell size={16} className="text-content-muted" />
                   Reminder
                   {tempReminder && tempReminder !== "" && (
-                    <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-primary bg-primary/20 px-2 py-0.5 rounded-full">
                       {tempReminder}
                     </span>
                   )}
@@ -300,22 +458,15 @@ const CalendarModal = ({
                 Reminder
               </label>
               
-              {/* Content - Always visible on desktop, collapsible on mobile */}
+              {/* Content */}
               <div className={`${isReminderExpanded ? 'block' : 'hidden'} md:block`}>
-                <select
+                <CustomSelect
+                  name="reminder"
                   value={tempReminder}
                   onChange={(e) => handleReminderChange(e.target.value)}
-                  className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2.5 text-content-primary outline-none border border-transparent focus:border-orange-500 transition-colors"
-                >
-                  <option value="">None</option>
-                  <option value="On time">On time</option>
-                  <option value="5 minutes before">5 minutes before</option>
-                  <option value="15 minutes before">15 minutes before</option>
-                  <option value="30 minutes before">30 minutes before</option>
-                  <option value="1 hour before">1 hour before</option>
-                  <option value="1 day before">1 day before</option>
-                  <option value="Custom">Custom</option>
-                </select>
+                  options={reminderOptions}
+                  placeholder="None"
+                />
 
                 {showCustomReminder && (
                   <div className="flex items-center gap-2 mt-2 ml-1">
@@ -323,20 +474,18 @@ const CalendarModal = ({
                       type="number"
                       value={customValue}
                       onChange={(e) => setCustomValue(e.target.value)}
-                      className="bg-surface-dark text-content-primary px-3 py-2 rounded-xl text-sm w-20 outline-none border border-transparent focus:border-orange-500"
+                      className="bg-surface-dark text-content-primary px-3 py-2 rounded-xl text-sm w-20 outline-none border border-transparent focus:border-primary"
                       placeholder="30"
                       min="1"
                     />
-                    <select
-                      value={customUnit}
-                      onChange={(e) => setCustomUnit(e.target.value)}
-                      className="bg-surface-dark text-content-primary px-3 py-2 rounded-xl text-sm outline-none"
-                    >
-                      <option value="Minutes">Minutes</option>
-                      <option value="Hours">Hours</option>
-                      <option value="Days">Days</option>
-                      <option value="Weeks">Weeks</option>
-                    </select>
+                    <div className="w-28">
+                      <CustomSelect
+                        name="customUnit"
+                        value={customUnit}
+                        onChange={(e) => setCustomUnit(e.target.value)}
+                        options={customUnitOptions}
+                      />
+                    </div>
                     <span className="text-sm text-content-muted">before</span>
                   </div>
                 )}
@@ -354,7 +503,7 @@ const CalendarModal = ({
                   <Repeat size={16} className="text-content-muted" />
                   Repeat
                   {tempRepeat && tempRepeat !== "" && (
-                    <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-primary bg-primary/20 px-2 py-0.5 rounded-full">
                       {tempRepeat}
                     </span>
                   )}
@@ -371,72 +520,111 @@ const CalendarModal = ({
                 Repeat
               </label>
               
-              {/* Content - Always visible on desktop, collapsible on mobile */}
+              {/* Content */}
               <div className={`${isRepeatExpanded ? 'block' : 'hidden'} md:block`}>
-                <select
+                <CustomSelect
+                  name="repeat"
                   value={tempRepeat}
                   onChange={(e) => setTempRepeat(e.target.value)}
-                  className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2.5 text-content-primary outline-none border border-transparent focus:border-orange-500 transition-colors"
-                >
-                  <option value="">Never</option>
-                  <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
-                </select>
+                  options={repeatOptions}
+                  placeholder="Never"
+                />
 
                 {tempRepeat && tempRepeat !== "" && (
-                  <div className="mt-3 ml-1 space-y-2">
+                  <div className="mt-3 space-y-1">
                     <div className="text-sm text-content-muted mb-2">Ends:</div>
-                    <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
+                    
+                    {/* Never */}
+                    <label 
+                      className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${
+                        repeatEndType === "never" ? "bg-surface-dark" : "hover:bg-surface-dark/50"
+                      }`}
+                      onClick={() => setRepeatEndType("never")}
+                    >
                       <input
                         type="radio"
                         name="repeatEnd"
                         value="never"
                         checked={repeatEndType === "never"}
                         onChange={() => setRepeatEndType("never")}
-                        className="w-4 h-4 text-orange-500 bg-surface-dark border-border focus:ring-orange-500"
+                        className="primary-radio"
                       />
-                      Never
+                      <span className="text-sm text-content-secondary">Never</span>
                     </label>
-                    <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-                      <input
-                        type="radio"
-                        name="repeatEnd"
-                        value="onDate"
-                        checked={repeatEndType === "onDate"}
-                        onChange={() => setRepeatEndType("onDate")}
-                        className="w-4 h-4 text-orange-500 bg-surface-dark border-border focus:ring-orange-500"
-                      />
-                      On date:
-                      <input
-                        type="date"
-                        value={repeatEndDate}
-                        onChange={(e) => setRepeatEndDate(e.target.value)}
+                    
+                    {/* On date */}
+                    <div 
+                      className={`rounded-xl transition-colors ${
+                        repeatEndType === "onDate" ? "bg-surface-dark" : "hover:bg-surface-dark/50"
+                      }`}
+                    >
+                      <label 
+                        className="flex items-center gap-3 p-2.5 cursor-pointer"
                         onClick={() => setRepeatEndType("onDate")}
-                        className="bg-surface-dark text-sm rounded-xl px-3 py-1.5 text-content-primary outline-none border border-border focus:border-orange-500 ml-1"
-                      />
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-content-secondary cursor-pointer">
-                      <input
-                        type="radio"
-                        name="repeatEnd"
-                        value="after"
-                        checked={repeatEndType === "after"}
-                        onChange={() => setRepeatEndType("after")}
-                        className="w-4 h-4 text-orange-500 bg-surface-dark border-border focus:ring-orange-500"
-                      />
-                      After
-                      <input
-                        type="number"
-                        value={repeatOccurrences}
-                        onChange={(e) => setRepeatOccurrences(e.target.value)}
+                      >
+                        <input
+                          type="radio"
+                          name="repeatEnd"
+                          value="onDate"
+                          checked={repeatEndType === "onDate"}
+                          onChange={() => setRepeatEndType("onDate")}
+                          className="primary-radio"
+                        />
+                        <span className="text-sm text-content-secondary">On date</span>
+                      </label>
+                      {repeatEndType === "onDate" && (
+                        <div className="flex items-center gap-2 px-2.5 pb-2.5 ml-7">
+                          <div className="flex items-center gap-2 bg-surface-button rounded-xl px-3 py-2 border border-border flex-1">
+                            <span className={`text-sm flex-1 ${repeatEndDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                              {repeatEndDate || "Pick a date"}
+                            </span>
+                            <DatePickerField
+                              value={repeatEndDate}
+                              onChange={(val) => {
+                                setRepeatEndDate(val);
+                                setRepeatEndType("onDate");
+                              }}
+                              iconSize={14}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* After X occurrences */}
+                    <div 
+                      className={`rounded-xl transition-colors ${
+                        repeatEndType === "after" ? "bg-surface-dark" : "hover:bg-surface-dark/50"
+                      }`}
+                    >
+                      <label 
+                        className="flex items-center gap-3 p-2.5 cursor-pointer"
                         onClick={() => setRepeatEndType("after")}
-                        min="1"
-                        placeholder="5"
-                        className="w-16 bg-surface-dark text-sm rounded-xl px-3 py-1.5 text-content-primary outline-none border border-border focus:border-orange-500 ml-1"
-                      />
-                      <span className="text-content-muted">occurrences</span>
-                    </label>
+                      >
+                        <input
+                          type="radio"
+                          name="repeatEnd"
+                          value="after"
+                          checked={repeatEndType === "after"}
+                          onChange={() => setRepeatEndType("after")}
+                          className="primary-radio"
+                        />
+                        <span className="text-sm text-content-secondary">After occurrences</span>
+                      </label>
+                      {repeatEndType === "after" && (
+                        <div className="flex items-center gap-2 px-2.5 pb-2.5 ml-7">
+                          <input
+                            type="number"
+                            value={repeatOccurrences}
+                            onChange={(e) => setRepeatOccurrences(e.target.value)}
+                            min="1"
+                            placeholder="5"
+                            className="w-20 bg-surface-button text-sm rounded-xl px-3 py-2 text-content-primary outline-none border border-border focus:border-primary"
+                          />
+                          <span className="text-sm text-content-muted">times</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -444,9 +632,9 @@ const CalendarModal = ({
           </div>
         </div>
 
-        {/* Footer Buttons - Fixed at bottom */}
+        {/* Footer Buttons */}
         <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-border bg-surface-card rounded-b-xl">
-          {/* Clear All - small on mobile */}
+          {/* Clear All - mobile */}
           <div className="flex justify-center mb-3 md:hidden">
             <button
               onClick={handleClear}
@@ -457,9 +645,8 @@ const CalendarModal = ({
             </button>
           </div>
           
-          {/* Main buttons row */}
           <div className="flex justify-between items-center">
-            {/* Clear All - Desktop only */}
+            {/* Clear All - Desktop */}
             <button
               onClick={handleClear}
               className="hidden md:block px-4 py-2 text-red-400 hover:text-red-300 text-sm hover:bg-red-500/10 rounded-xl transition-colors"
@@ -468,17 +655,16 @@ const CalendarModal = ({
               Clear All
             </button>
             
-            {/* Cancel and Save */}
             <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-end">
               <button
                 onClick={onClose}
-                className="flex-1 md:flex-none px-4 py-2 bg-surface-button text-sm text-content-secondary rounded-xl hover:bg-surface-button transition-colors"
+                className="flex-1 md:flex-none px-4 py-2 bg-surface-button text-sm text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleOK}
-                className="flex-1 md:flex-none px-4 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors whitespace-nowrap"
+                className="flex-1 md:flex-none px-4 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors whitespace-nowrap"
               >
                 Save
               </button>
@@ -498,6 +684,39 @@ const CalendarModal = ({
       />
 
       <style jsx>{`
+        .primary-radio {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          width: 1.125rem;
+          height: 1.125rem;
+          border-radius: 50%;
+          border: 2px solid var(--color-border, #444);
+          background: var(--color-surface-card, #1a1a1a);
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.15s ease;
+          position: relative;
+        }
+        .primary-radio:checked {
+          border-color: var(--color-primary, #f97316);
+          background: var(--color-primary, #f97316);
+        }
+        .primary-radio:checked::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 0.375rem;
+          height: 0.375rem;
+          border-radius: 50%;
+          background: white;
+        }
+        .primary-radio:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #f97316) 40%, transparent);
+        }
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }

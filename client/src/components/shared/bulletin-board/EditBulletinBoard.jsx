@@ -106,14 +106,14 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
       .bulletin-edit-editor {
         border-radius: 12px;
         overflow: hidden;
-        border: 1px solid #333333;
+        border: 1px solid var(--color-border);
       }
       .bulletin-edit-editor:focus-within {
-        border-color: #3F74FF;
+        border-color: var(--color-primary);
       }
       .bulletin-edit-editor .ql-editor {
-        color: #e5e7eb !important;
-        background-color: #101010 !important;
+        color: var(--color-content-secondary) !important;
+        background-color: var(--color-surface-base) !important;
         min-height: 100px;
         max-height: 150px;
         font-size: 14px;
@@ -121,28 +121,28 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
         overflow-y: auto;
       }
       .bulletin-edit-editor .ql-editor.ql-blank::before {
-        color: #6b7280 !important;
+        color: var(--color-content-faint) !important;
         font-style: normal !important;
       }
       .bulletin-edit-editor .ql-toolbar.ql-snow {
         border: none !important;
-        border-bottom: 1px solid #333333 !important;
-        background-color: #101010 !important;
+        border-bottom: 1px solid var(--color-border) !important;
+        background-color: var(--color-surface-base) !important;
         padding: 6px 8px !important;
       }
       .bulletin-edit-editor .ql-container.ql-snow {
         border: none !important;
       }
-      .bulletin-edit-editor .ql-snow .ql-stroke { stroke: #9ca3af !important; }
-      .bulletin-edit-editor .ql-snow .ql-fill { fill: #9ca3af !important; }
-      .bulletin-edit-editor .ql-snow .ql-picker-label { color: #9ca3af !important; }
-      .bulletin-edit-editor .ql-snow .ql-picker-options { background-color: #1f1f1f !important; border-color: #404040 !important; }
-      .bulletin-edit-editor .ql-snow .ql-picker-item { color: #e5e7eb !important; }
-      .bulletin-edit-editor .ql-snow .ql-picker-item:hover { color: #3F74FF !important; }
-      .bulletin-edit-editor .ql-snow button:hover .ql-stroke { stroke: #3F74FF !important; }
-      .bulletin-edit-editor .ql-snow button:hover .ql-fill { fill: #3F74FF !important; }
-      .bulletin-edit-editor .ql-snow button.ql-active .ql-stroke { stroke: #3F74FF !important; }
-      .bulletin-edit-editor .ql-snow button.ql-active .ql-fill { fill: #3F74FF !important; }
+      .bulletin-edit-editor .ql-snow .ql-stroke { stroke: var(--color-content-muted) !important; }
+      .bulletin-edit-editor .ql-snow .ql-fill { fill: var(--color-content-muted) !important; }
+      .bulletin-edit-editor .ql-snow .ql-picker-label { color: var(--color-content-muted) !important; }
+      .bulletin-edit-editor .ql-snow .ql-picker-options { background-color: var(--color-surface-dark) !important; border-color: var(--color-border) !important; }
+      .bulletin-edit-editor .ql-snow .ql-picker-item { color: var(--color-content-secondary) !important; }
+      .bulletin-edit-editor .ql-snow .ql-picker-item:hover { color: var(--color-primary) !important; }
+      .bulletin-edit-editor .ql-snow button:hover .ql-stroke { stroke: var(--color-primary) !important; }
+      .bulletin-edit-editor .ql-snow button:hover .ql-fill { fill: var(--color-primary) !important; }
+      .bulletin-edit-editor .ql-snow button.ql-active .ql-stroke { stroke: var(--color-primary) !important; }
+      .bulletin-edit-editor .ql-snow button.ql-active .ql-fill { fill: var(--color-primary) !important; }
     `
     document.head.appendChild(style)
     return () => document.head.removeChild(style)
@@ -272,7 +272,7 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
   const tagsDisplay = useMemo(() => {
     if (!availableTags || availableTags.length === 0) {
       return (
-        <p className="text-gray-500 text-xs">No tags available. Create tags in Tag Manager.</p>
+        <p className="text-content-faint text-xs">No tags available. Create tags in Tag Manager.</p>
       )
     }
     return (
@@ -284,8 +284,8 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             onClick={() => handleTagToggle(tag.id)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               formData.tags.includes(tag.id) 
-                ? "text-white" 
-                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                ? "text-content-primary" 
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
             }`}
             style={{ backgroundColor: formData.tags.includes(tag.id) ? tag.color : undefined }}
           >
@@ -301,11 +301,11 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1000]">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface-dark rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
-          <h2 className="text-white text-lg font-semibold">Edit Post</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <h2 className="text-content-primary text-lg font-semibold">Edit Post</h2>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -318,9 +318,9 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
           <div className="space-y-3 custom-scrollbar overflow-y-auto px-6 py-4 flex-1">
             {/* Cover Image */}
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Cover Image</label>
+              <label className="text-sm text-content-secondary block mb-2">Cover Image</label>
               {formData.image ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
+                <div className="relative rounded-xl overflow-hidden border border-border bg-surface-dark">
                   <div className="aspect-video">
                     <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
                   </div>
@@ -328,7 +328,7 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
                     <button
                       type="button"
                       onClick={handleReCrop}
-                      className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
+                      className="bg-surface-dark/60 hover:bg-surface-dark/90 text-white p-2 rounded-lg transition-colors"
                       title="Adjust crop"
                     >
                       <Crop size={16} />
@@ -336,7 +336,7 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
+                      className="bg-surface-dark/60 hover:bg-surface-dark/90 text-white p-2 rounded-lg transition-colors"
                       title="Remove image"
                     >
                       <X size={16} />
@@ -346,11 +346,11 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
               ) : (
                 <div
                   onClick={() => setShowImageSourceModal(true)}
-                  className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-[#3F74FF]/50 transition-colors"
+                  className="border-2 border-dashed border-border rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
                 >
-                  <ImageIcon className="w-8 h-8 mb-2 text-gray-500" />
-                  <p className="text-gray-400 text-sm">Click to upload</p>
-                  <p className="text-gray-500 text-xs mt-1">16:9 ratio - Max 5MB</p>
+                  <ImageIcon className="w-8 h-8 mb-2 text-content-faint" />
+                  <p className="text-content-muted text-sm">Click to upload</p>
+                  <p className="text-content-faint text-xs mt-1">16:9 ratio - Max 5MB</p>
                 </div>
               )}
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -358,12 +358,12 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
 
             {/* Title */}
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Title *</label>
+              <label className="text-sm text-content-secondary block mb-2">Title *</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={handleInputChange('title')}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary placeholder-content-faint outline-none border border-transparent focus:border-primary transition-colors"
                 placeholder="Enter post title..."
                 required
               />
@@ -371,7 +371,7 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
 
             {/* Content - Rich Text Editor */}
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Content *</label>
+              <label className="text-sm text-content-secondary block mb-2">Content *</label>
               <div className="bulletin-edit-editor">
                 <ReactQuill
                   value={formData.content}
@@ -387,24 +387,24 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             {/* Tags */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm text-gray-200 flex items-center gap-1.5">
-                  <Tag size={14} className="text-gray-400" />
+                <label className="text-sm text-content-secondary flex items-center gap-1.5">
+                  <Tag size={14} className="text-content-muted" />
                   Tags
                 </label>
                 <button type="button" onClick={onOpenTagManager} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
                   Manage
                 </button>
               </div>
-              <div className="bg-[#101010] border border-[#333333] rounded-xl p-2.5">
+              <div className="bg-surface-dark border border-border rounded-xl p-2.5">
                 {tagsDisplay}
               </div>
             </div>
 
             {/* Schedule Section - Compact */}
             <div>
-              <label className="text-sm text-gray-200 block mb-2">
+              <label className="text-sm text-content-secondary block mb-2">
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={14} className="text-gray-400" />
+                  <Calendar size={14} className="text-content-muted" />
                   Schedule
                 </span>
               </label>
@@ -412,27 +412,27 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
                 <button
                   type="button"
                   onClick={() => setShowScheduleModal(true)}
-                  className="flex-1 bg-[#101010] border border-[#333333] rounded-xl px-3 py-2.5 text-left hover:border-[#3F74FF]/50 transition-colors group"
+                  className="flex-1 bg-surface-dark border border-border rounded-xl px-3 py-2.5 text-left hover:border-primary/50 transition-colors group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                         {schedule.type === 'immediate' ? (
-                          <Clock size={14} className="text-orange-400" />
+                          <Clock size={14} className="text-primary" />
                         ) : (
-                          <Calendar size={14} className="text-orange-400" />
+                          <Calendar size={14} className="text-primary" />
                         )}
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-orange-400">
+                        <p className="text-xs font-medium text-primary">
                           {schedule.type === 'immediate' ? 'Publish Immediately' : 'Scheduled'}
                         </p>
-                        <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">
+                        <p className="text-[10px] text-content-muted mt-0.5 line-clamp-1">
                           {schedule.type === 'immediate' ? 'On save' : `${schedule.startDate}`}
                         </p>
                       </div>
                     </div>
-                    <span className="text-gray-500 group-hover:text-blue-400 transition-colors text-xs">
+                    <span className="text-content-faint group-hover:text-blue-400 transition-colors text-xs">
                       Edit
                     </span>
                   </div>
@@ -441,10 +441,10 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
                   <button
                     type="button"
                     onClick={handleRemoveSchedule}
-                    className="bg-[#101010] border border-[#333333] rounded-xl px-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
+                    className="bg-surface-dark border border-border rounded-xl px-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
                     title="Remove Schedule"
                   >
-                    <Trash2 size={16} className="text-gray-500 group-hover:text-red-400 transition-colors" />
+                    <Trash2 size={16} className="text-content-faint group-hover:text-red-400 transition-colors" />
                   </button>
                 )}
               </div>
@@ -453,34 +453,34 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             {/* Status - Only show if immediate */}
             {schedule.type === 'immediate' && (
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Status</label>
+                <label className="text-sm text-content-secondary block mb-2">Status</label>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, status: prev.status === "Active" ? "Inactive" : "Active" }))}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-gray-600"}`}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-surface-button"}`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-7" : "translate-x-1"}`} />
                   </button>
-                  <span className="text-sm text-gray-300">{formData.status}</span>
+                  <span className="text-sm text-content-secondary">{formData.status}</span>
                 </div>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex flex-row-reverse gap-3 p-6 pt-4 border-t border-[#333333] bg-[#181818] flex-shrink-0">
+          <div className="flex flex-row-reverse gap-3 p-6 pt-4 border-t border-border bg-surface-dark flex-shrink-0">
             <button
               type="submit"
               disabled={!formData.title.trim() || !stripHtmlTags(formData.content).trim() || (schedule.type === 'scheduled' && !schedule.startDate)}
-              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-sm text-white rounded-xl transition-colors font-medium"
+              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-surface-button disabled:cursor-not-allowed text-sm text-white rounded-xl transition-colors font-medium"
             >
               Save Changes
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-gray-600 hover:bg-gray-500 text-sm text-white rounded-xl transition-colors"
+              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-surface-button hover:bg-surface-button-hover text-sm text-content-primary rounded-xl transition-colors"
             >
               Cancel
             </button>
