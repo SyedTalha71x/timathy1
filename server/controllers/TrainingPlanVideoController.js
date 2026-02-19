@@ -1,7 +1,7 @@
 // const TrainingModel = require('../models/trainingModels/TrainingPlanModel')
 const TrainingVideoModel = require('../models/trainingModels/TrainingVideoModel');
 const { uploadThumbnail, uploadTrainingPlanVideo } = require('../utils/CloudinaryUpload');
-const { NotFoundError } = require('../middleware/error/httpErrors')
+const { NotFoundError, UnAuthorizedError } = require('../middleware/error/httpErrors')
 const { AdminModel, StaffModel } = require('../models/Discriminators');
 
 const fs = require('fs');
@@ -26,15 +26,15 @@ const createTrainingVideoUpload = async (req, res, next) => {
 
         // console.log('Uploading files:', req.files);
 
-      
-    // Validate files
-    if (!videoFile || !videoFile.path || fs.statSync(videoFile.path).size === 0) {
-      throw new NotFoundError("Video file is missing or empty");
-    }
 
-    if (!thumbnailFile || !thumbnailFile.path || thumbnailFile.size === 0) {
-      throw new NotFoundError("Thumbnail is missing or empty");
-    }
+        // Validate files
+        if (!videoFile || !videoFile.path || fs.statSync(videoFile.path).size === 0) {
+            throw new NotFoundError("Video file is missing or empty");
+        }
+
+        if (!thumbnailFile || !thumbnailFile.path || thumbnailFile.size === 0) {
+            throw new NotFoundError("Thumbnail is missing or empty");
+        }
 
 
         // Upload thumbnail
@@ -98,4 +98,27 @@ const getAllTrainingVideos = async (req, res, next) => {
     }
 };
 
-module.exports = { createTrainingVideoUpload, getAllTrainingVideos }
+
+// delete video using id 
+const deleteTrainingVideoById = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const { videoId } = req.params;
+        console.log("vedio Id", videoId);
+
+        const vedioExisted = await TrainingVideoModel.findById(videoId);
+        if (!vedioExisted) throw new NotFoundError("Invalid Id")
+        if (vedioExisted.instructor?.toString() !== userId.toString()) throw new UnAuthorizedError("You cannot Delete video, only admin can")
+
+        await TrainingVideoModel.findByIdAndDelete(videoId)
+
+        return res.status(200).json({
+            success: true,
+            message: "Vedio Deleted Successfully"
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+module.exports = { createTrainingVideoUpload, getAllTrainingVideos, deleteTrainingVideoById }

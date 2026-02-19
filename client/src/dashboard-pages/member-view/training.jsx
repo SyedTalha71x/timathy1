@@ -253,7 +253,7 @@ export default function Training() {
       .unwrap()
       .then(() => {
         toast.success("Training plan updated successfully!");
-        dispatch(myPlans());
+        dispatch(fetchMyPlans());
       })
       .catch(err => {
         toast.error(err.message || "Failed to update plan");
