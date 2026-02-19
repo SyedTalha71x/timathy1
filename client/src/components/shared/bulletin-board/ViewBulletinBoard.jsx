@@ -112,7 +112,7 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
           )}
 
           {/* Content - Rich Text */}
-          <div className="bg-surface-dark rounded-xl p-4">
+          <div className="border border-border rounded-xl p-4">
             <div 
               className="text-content-secondary text-sm leading-normal view-rich-content"
               dangerouslySetInnerHTML={{ __html: post?.content }}

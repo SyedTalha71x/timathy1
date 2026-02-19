@@ -15,7 +15,7 @@ const UpcomingAppointmentsWidget = ({
   getMemberById,
   showCollapseButton = true,  // Control collapse button visibility
   useFixedHeight = false,     // Use fixed height (340px) vs full height
-  backgroundColor = "bg-[#000000]", // Background color - can be customized per context
+  backgroundColor = "bg-surface-base", // Background color - can be customized per context
   showDatePicker = false,     // Show date picker in header (for my-area)
   initialDate = null,         // Initial date to show (defaults to today)
   filterDate = null,          // External date to filter by (from parent component)
@@ -134,11 +134,11 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0 px-3 pt-2.5 pb-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-white">Upcoming Appointments</h2>
+            <h2 className="text-sm font-semibold text-content-primary">Upcoming Appointments</h2>
             
             {/* Show selected date indicator when explicitly enabled */}
             {showDateIndicator && filterDate && !showDatePicker && (
-              <span className="text-xs text-gray-400 bg-[#2F2F2F] px-2 py-0.5 rounded-lg">
+              <span className="text-xs text-content-muted bg-surface-button px-2 py-0.5 rounded-lg">
                 {formatDisplayDate(selectedDate)}
               </span>
             )}
@@ -148,7 +148,7 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
               <div className="relative" ref={datePickerRef}>
                 <button
                   onClick={() => setShowDatePickerInput(!showDatePickerInput)}
-                  className="flex items-center gap-1.5 px-2 py-1 bg-black hover:bg-gray-900 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1 bg-surface-base hover:bg-surface-dark rounded-lg text-xs text-content-secondary hover:text-content-primary transition-colors"
                   title="Select Date"
                 >
                   <Calendar size={12} />
@@ -157,12 +157,12 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                 
                 {/* Date Picker Dropdown */}
                 {showDatePickerInput && (
-                  <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
+                  <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400 font-medium">Select Date</span>
+                      <span className="text-xs text-content-muted font-medium">Select Date</span>
                       <button
                         onClick={() => setShowDatePickerInput(false)}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-content-muted hover:text-content-primary transition-colors"
                       >
                         <X size={14} />
                       </button>
@@ -171,11 +171,11 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                       type="date"
                       value={selectedDate.toISOString().split('T')[0]}
                       onChange={handleDateChange}
-                      className="w-full bg-[#2F2F2F] text-white text-xs rounded-lg px-2 py-1.5 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-surface-button text-content-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-primary focus:outline-none"
                     />
                     <button
                       onClick={handleResetToToday}
-                      className="w-full mt-2 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
+                      className="w-full mt-2 px-2 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs rounded-lg transition-colors"
                     >
                       Today
                     </button>
@@ -188,7 +188,7 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
           {!isSidebarEditing && showCollapseButton && (
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1 bg-[#2F2F2F] hover:bg-gray-700 rounded-lg cursor-pointer transition-colors text-white"
+              className="p-1 bg-surface-button hover:bg-surface-button-hover rounded-lg cursor-pointer transition-colors text-content-primary"
             title={isCollapsed ? "Expand" : "Collapse"}
           >
             {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -203,7 +203,7 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
           <div className="relative" ref={datePickerRef}>
             <button
               onClick={() => setShowDatePickerInput(!showDatePickerInput)}
-              className="flex items-center gap-1.5 px-2 py-1 bg-black hover:bg-gray-900 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 bg-surface-base hover:bg-surface-dark rounded-lg text-xs text-content-secondary hover:text-content-primary transition-colors"
               title="Select Date"
             >
               <Calendar size={12} />
@@ -212,12 +212,12 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
             
             {/* Date Picker Dropdown */}
             {showDatePickerInput && (
-              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
+              <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-400 font-medium">Select Date</span>
+                  <span className="text-xs text-content-muted font-medium">Select Date</span>
                   <button
                     onClick={() => setShowDatePickerInput(false)}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-content-muted hover:text-content-primary transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -226,11 +226,11 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                   type="date"
                   value={selectedDate.toISOString().split('T')[0]}
                   onChange={handleDateChange}
-                  className="w-full bg-[#2F2F2F] text-white text-xs rounded-lg px-2 py-1.5 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-surface-button text-content-primary text-xs rounded-lg px-2 py-1.5 border border-border focus:border-primary focus:outline-none"
                 />
                 <button
                   onClick={handleResetToToday}
-                  className="w-full mt-2 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
+                  className="w-full mt-2 px-2 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs rounded-lg transition-colors"
                 >
                   Today
                 </button>
@@ -267,11 +267,11 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                 <div
                   key={appointment.id}
                   className={`${appointment.color} ${
-                    appointment.isCancelled ? "bg-gray-700" : ""
+                    appointment.isCancelled ? "bg-surface-button" : ""
                   } ${
                     appointment.isPast && !appointment.isCancelled ? "opacity-45" : ""
                   } ${
-                    isBlocked ? "bg-gray-800" : ""
+                    isBlocked ? "bg-surface-dark" : ""
                   } rounded-xl cursor-pointer p-2.5 relative w-full transition-all hover:brightness-110`}
                   onClick={() => handleAppointmentClick(appointment)}
                 >
@@ -290,6 +290,7 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                           }}
                           size="sm"
                           position="relative"
+                          onColoredBackground
                         />
                       )}
                       {!isBlocked && !appointment.isTrial && onOpenTrainingPlansModal && (
@@ -353,9 +354,9 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
               )
             })
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-              <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-                <Calendar size={20} className="text-gray-600" />
+            <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+              <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+                <Calendar size={20} className="text-content-faint" />
               </div>
               <p className="text-sm">No upcoming appointments</p>
             </div>

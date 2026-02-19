@@ -46,6 +46,12 @@ const Calendar = forwardRef(({
   calendarSettings = DEFAULT_CALENDAR_SETTINGS,
 }, ref) => {
   const navigate = useNavigate();
+  // Read CSS variable value for dynamic event coloring
+  const getCssVar = (varName) => {
+    if (typeof document === 'undefined') return '';
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  };
+
   const [isMobile, setIsMobile] = useState(false)
   const [screenSize, setScreenSize] = useState("desktop")
   const [freeAppointments, setFreeAppointments] = useState(freeAppointmentsData)
@@ -1052,9 +1058,9 @@ const Calendar = forwardRef(({
         borderColor = "#6B7280"
         textColor = "#FFFFFF"
       } else if (viewMode === "free") { 
-        backgroundColor = "#2a2a2a"
-        borderColor = "#333333"
-        textColor = "#666666"
+        backgroundColor = getCssVar('--color-surface-dark') || "#2a2a2a"
+        borderColor = getCssVar('--color-border') || "#333333"
+        textColor = getCssVar('--color-content-faint') || "#666666"
       }
 
       const isBlockedEvent = appointment.isBlocked || appointment.type === "Blocked Time";
@@ -1084,8 +1090,8 @@ const Calendar = forwardRef(({
         title: "Available", 
         start: startDateTimeStr,
         end: endDateTimeStr,
-        backgroundColor: "#f97316", // Orange color
-        borderColor: "#ea580c",
+        backgroundColor: getCssVar('--color-primary') || "#f97316",
+        borderColor: getCssVar('--color-primary-hover') || "#ea580c",
         textColor: "#FFFFFF",
         extendedProps: { 
           isFree: true, 
@@ -1126,7 +1132,7 @@ const Calendar = forwardRef(({
           right: 0 !important;
           transform: translateY(-50%) !important;
           z-index: 10 !important;
-          background: #000 !important;
+          background: var(--color-surface-base) !important;
           user-select: none !important;
         }
         .fc .fc-timegrid-slots tbody tr:first-child .fc-timegrid-slot-label-cushion {
@@ -1159,21 +1165,21 @@ const Calendar = forwardRef(({
           border: none !important;
         }
         .fc-theme-standard td, .fc-theme-standard th {
-          border-color: #333 !important;
+          border-color: var(--color-border) !important;
         }
         .fc th.fc-day-today {
-          background: linear-gradient(to bottom, #f97316 0%, #f97316 3px, transparent 3px) !important;
+          background: linear-gradient(to bottom, var(--color-primary) 0%, var(--color-primary) 3px, transparent 3px) !important;
         }
         .fc th.fc-day-today .fc-col-header-cell-cushion {
           font-weight: 700 !important;
-          color: #ffffff !important;
+          color: var(--color-content-primary) !important;
           font-size: 12px !important;
         }
         .fc td.fc-day-today {
-          background-color: rgba(249, 115, 22, 0.14) !important;
+          background-color: color-mix(in srgb, var(--color-primary) 14%, transparent) !important;
         }
         .fc-dayGridMonth-view td.fc-day-today {
-          background-color: rgba(249, 115, 22, 0.14) !important;
+          background-color: color-mix(in srgb, var(--color-primary) 14%, transparent) !important;
         }
         .fc .fc-timegrid-slots {
           overflow: visible !important;
@@ -1182,7 +1188,7 @@ const Calendar = forwardRef(({
           display: none !important;
         }
         .fc .fc-timegrid-now-indicator-line {
-          border-color: #f97316 !important;
+          border-color: var(--color-primary) !important;
           border-width: 1px !important;
           position: relative !important;
         }
@@ -1196,7 +1202,7 @@ const Calendar = forwardRef(({
           height: 0 !important;
           border-top: 5px solid transparent !important;
           border-bottom: 5px solid transparent !important;
-          border-left: 6px solid #f97316 !important;
+          border-left: 6px solid var(--color-primary) !important;
         }
         .fc .fc-timegrid-col {
           cursor: pointer !important;
@@ -1288,13 +1294,13 @@ const Calendar = forwardRef(({
           background: rgba(75, 85, 99, 0.2) !important;
         }
         .fc th.fc-day-closed .fc-col-header-cell-cushion {
-          color: #9ca3af !important;
+          color: var(--color-content-muted) !important;
         }
         .fc-col-header-cell .closed-label {
           display: block;
           font-size: 9px !important;
           font-weight: 500 !important;
-          color: #ffffff !important;
+          color: var(--color-content-primary) !important;
           line-height: 1.1 !important;
           white-space: nowrap;
           overflow: hidden;
@@ -1319,7 +1325,7 @@ const Calendar = forwardRef(({
           background: rgba(75, 85, 99, 0.1) !important;
         }
         .fc-dayGridMonth-view .fc-day-closed .fc-daygrid-day-number {
-          color: #6b7280 !important;
+          color: var(--color-content-faint) !important;
         }
         /* Modern event styling */
         .fc-timegrid-event {
@@ -1423,7 +1429,7 @@ const Calendar = forwardRef(({
           visibility: visible !important;
         }
         .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-number {
-          color: #888888 !important;
+          color: var(--color-content-faint) !important;
           opacity: 1 !important;
           visibility: visible !important;
           display: block !important;
@@ -1434,7 +1440,7 @@ const Calendar = forwardRef(({
           color: inherit !important;
         }
         .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-top span {
-          color: #888888 !important;
+          color: var(--color-content-faint) !important;
           opacity: 1 !important;
           visibility: visible !important;
           display: inline !important;
@@ -1466,11 +1472,11 @@ const Calendar = forwardRef(({
           position: relative !important;
         }
         .fc-dayGridMonth-view .fc-day-today .fc-daygrid-day-number {
-          color: #e5e7eb !important;
+          color: var(--color-content-primary) !important;
           font-weight: 700 !important;
         }
         .fc-dayGridMonth-view .fc-day-today .fc-daygrid-day-top span {
-          color: #e5e7eb !important;
+          color: var(--color-content-primary) !important;
           font-weight: 700 !important;
         }
         /* More link hover styling */
@@ -1485,30 +1491,30 @@ const Calendar = forwardRef(({
       {tooltip.show && tooltip.content && (
         <div className="fixed z-[9999] pointer-events-none tooltip-container"
           style={{ left: `${tooltip.x}px`, top: `${tooltip.y}px`, transform: "translate(-50%, -100%)" }}>
-          <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs">
+          <div className="bg-surface-dark text-content-primary p-3 rounded-lg shadow-lg border border-border max-w-xs">
             <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
-            <div className="text-xs text-gray-300 mb-0.5">{tooltip.content.time}</div>
-            <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
+            <div className="text-xs text-content-secondary mb-0.5">{tooltip.content.time}</div>
+            <div className="text-xs text-content-secondary mb-1">{tooltip.content.date}</div>
             {/* Don't show type for blocked slots - it's redundant */}
             {!tooltip.content.isBlocked && (
-              <div className="text-xs text-white">{tooltip.content.type}</div>
+              <div className="text-xs text-content-primary">{tooltip.content.type}</div>
             )}
             {/* Show note for blocked slots - with overflow protection */}
             {tooltip.content.note && (
-              <div className="text-xs text-white/80 mt-2 pt-2 border-t border-gray-600 italic overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', maxHeight: '4.5em' }}>
+              <div className="text-xs text-content-muted mt-2 pt-2 border-t border-border italic overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', maxHeight: '4.5em' }}>
                 {tooltip.content.note}
               </div>
             )}
           </div>
           {/* Pfeil nach unten */}
           <div className="w-full flex justify-center -mt-[1px]">
-            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-gray-800"></div>
+            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px]" style={{ borderTopColor: 'var(--color-surface-dark)' }}></div>
           </div>
         </div>
       )}
 
       <div className="h-full w-full flex flex-col">
-        <div className="w-full bg-black flex-1 flex flex-col min-h-0">
+        <div className="w-full bg-surface-base flex-1 flex flex-col min-h-0">
           <div className="flex-1 min-h-0 overflow-auto pt-0">
             <FullCalendar
               ref={calendarRef}
@@ -1723,7 +1729,7 @@ const Calendar = forwardRef(({
                         {isClosed && (
                           <span style={{ 
                             fontSize: '8px', 
-                            color: '#ffffff', 
+                            color: 'var(--color-content-primary)', 
                             fontWeight: '500',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
@@ -1738,7 +1744,7 @@ const Calendar = forwardRef(({
                         {/* Day number on the right */}
                         <span 
                           style={{ 
-                            color: isClosed ? '#6b7280' : (isCurrentMonth ? '#e5e7eb' : '#888888'),
+                            color: isClosed ? 'var(--color-content-faint)' : (isCurrentMonth ? 'var(--color-content-primary)' : 'var(--color-content-faint)'),
                             fontWeight: isToday ? '700' : (isCurrentMonth ? '500' : '400'),
                             fontSize: '13px'
                           }}
@@ -1831,7 +1837,7 @@ const Calendar = forwardRef(({
                             className="month-more-link"
                             style={{ 
                               fontSize: "10px", 
-                              color: "#9ca3af", 
+                              color: "var(--color-content-muted)", 
                               cursor: "pointer", 
                               padding: "2px 6px", 
                               height: "18px", 
@@ -1906,20 +1912,21 @@ const Calendar = forwardRef(({
                 const fullName = lastName ? `${name} ${lastName}` : name;
                 const isBlocked = appointment?.isBlocked || appointment?.type === "Blocked Time";
                 const blockNote = isBlocked ? (appointment?.specialNote?.text || "") : "";
+                const isDimmed = eventInfo.event.extendedProps.viewMode === "free";
                 
                 return (
                   <div className="px-1 pt-[2px] overflow-hidden">
                     {/* Name hat Prioritaet */}
-                    <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
+                    <div className={`text-[10px] leading-tight overflow-hidden whitespace-nowrap font-medium ${isDimmed ? "text-content-faint" : "text-white"}`}>
                       {fullName}
                     </div>
                     {/* Start- und Endzeit */}
-                    <div className="text-[9px] text-white/80">
+                    <div className={`text-[9px] ${isDimmed ? "text-content-faint opacity-60" : "text-white/80"}`}>
                       {startTime}{endTime ? ` - ${endTime}` : ''}
                     </div>
                     {/* Show note for blocked slots */}
                     {isBlocked && blockNote && (
-                      <div className="text-[10px] text-white/90 mt-0.5 leading-tight overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      <div className={`text-[10px] mt-0.5 leading-tight overflow-hidden ${isDimmed ? "text-content-faint opacity-50" : "text-white/90"}`} style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                         {blockNote}
                       </div>
                     )}
@@ -2020,16 +2027,16 @@ const Calendar = forwardRef(({
       {showSelectedAppointmentModal && selectedAppointmentData && <EditAppointmentModalMain selectedAppointmentMain={selectedAppointmentData} setSelectedAppointmentMain={setSelectedAppointmentData} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointments} handleAppointmentChange={(changes) => setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpen} setNotifyActionMain={setNotifyAction} onDelete={handleDeleteAppointment} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />}
       {showAllAppointmentsModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseAllAppointmentsModal}>
-          <div className="bg-[#181818] rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
-              <h3 className="text-lg font-medium text-white">{new Date(selectedDayDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h3>
-              <button onClick={handleCloseAllAppointmentsModal} className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors">
+          <div className="bg-surface-card rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <h3 className="text-lg font-medium text-content-primary">{new Date(selectedDayDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h3>
+              <button onClick={handleCloseAllAppointmentsModal} className="p-2 hover:bg-surface-hover text-content-muted hover:text-content-primary rounded-lg transition-colors">
                 <X size={18} />
               </button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[60vh]">
               {allAppointmentsForDay.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 bg-[#222222] rounded-xl">No appointments for this day</div>
+                <div className="text-center py-8 text-content-muted bg-surface-dark rounded-xl">No appointments for this day</div>
               ) : (
                 <div className="space-y-3">
                   {allAppointmentsForDay.map((apt) => {
@@ -2094,8 +2101,8 @@ const Calendar = forwardRef(({
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-gray-700">
-              <button onClick={handleCloseAllAppointmentsModal} className="w-full py-2.5 px-4 bg-zinc-700 hover:bg-zinc-600 text-white rounded-xl transition-colors">Close</button>
+            <div className="p-4 border-t border-border">
+              <button onClick={handleCloseAllAppointmentsModal} className="w-full py-2.5 px-4 bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-xl transition-colors">Close</button>
             </div>
           </div>
         </div>

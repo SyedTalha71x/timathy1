@@ -71,6 +71,7 @@ export const extractNotes = (entity, entityType = "member") => {
  * - size: Icon size ("sm" | "md") - default "md"
  * - position: Position style ("absolute" | "relative") - default "absolute"
  * - maxVisibleNotes: Maximum notes to show in popover - default 5
+ * - onColoredBackground: Use white icon/border for empty state on colored backgrounds - default false
  */
 const SharedSpecialNoteIcon = ({
   entity,
@@ -79,6 +80,7 @@ const SharedSpecialNoteIcon = ({
   size = "md",
   position = "absolute",
   maxVisibleNotes = 5,
+  onColoredBackground = false,
 }) => {
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
@@ -280,12 +282,20 @@ const SharedSpecialNoteIcon = ({
       ) : (
         <div
           ref={iconRef}
-          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed border-content-muted hover:border-content-primary rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
+          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed ${
+            onColoredBackground 
+              ? "border-white/60 hover:border-white" 
+              : "border-content-muted hover:border-content-primary"
+          } rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
           onClick={handleNoteClick}
           onPointerDown={(e) => e.stopPropagation()}
           title="Add special note"
         >
-          <StickyNote size={iconSize} className="text-content-muted group-hover:text-content-primary transition-colors" />
+          <StickyNote size={iconSize} className={`${
+            onColoredBackground 
+              ? "text-white/60 group-hover:text-white" 
+              : "text-content-muted group-hover:text-content-primary"
+          } transition-colors`} />
         </div>
       )}
       

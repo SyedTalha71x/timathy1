@@ -88,7 +88,7 @@ const PostSchedulerModal = ({
     } else if (isInRange) {
       className += "bg-primary/20 text-primary-hover"
     } else if (isToday) {
-      className += "bg-blue-500/30 text-blue-400 font-medium hover:bg-blue-500/40"
+      className += "bg-primary/20 text-primary font-medium hover:bg-primary/30"
     } else if (!isForEndDate && endDate === dateStr) {
       // Show end date marker in start calendar
       className += "bg-surface-button/30 text-content-muted font-medium"
@@ -163,7 +163,7 @@ const PostSchedulerModal = ({
 
   // Render calendar component
   const renderCalendar = (isForEndDate = false) => (
-    <div className="bg-surface-dark rounded-xl p-4">
+    <div className="border border-border rounded-xl p-4">
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
@@ -220,7 +220,7 @@ const PostSchedulerModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-[60] p-2 md:p-4 pt-8 md:pt-4">
-      <div className="bg-surface-dark rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
+      <div className="bg-surface-card rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-4 md:p-6 pb-4 md:pb-5 flex-shrink-0 border-b border-border">
           <h2 className="text-content-primary text-lg font-semibold">Schedule Post</h2>
@@ -369,7 +369,7 @@ const PostSchedulerModal = ({
 
           {/* Immediate posting info */}
           {scheduleType === 'immediate' && (
-            <div className="bg-surface-dark rounded-xl p-4">
+            <div className="border border-border rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                   <Calendar size={20} className="text-primary" />
@@ -416,7 +416,7 @@ const PostSchedulerModal = ({
             <button
               onClick={handleSave}
               disabled={scheduleType === 'scheduled' && !startDate}
-              className="px-4 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors disabled:bg-surface-button disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors disabled:bg-primary/50 disabled:text-white/50 disabled:cursor-not-allowed"
             >
               Apply Schedule
             </button>

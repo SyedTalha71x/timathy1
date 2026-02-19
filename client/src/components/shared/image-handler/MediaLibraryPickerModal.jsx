@@ -79,17 +79,17 @@ export default function MediaLibraryPickerModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[1002]">
-      <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1002]">
+      <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <ImageIcon className="text-orange-400" size={24} />
-            <h2 className="text-lg md:text-xl font-semibold text-white">Select from Media Library</h2>
+            <ImageIcon className="text-primary" size={24} />
+            <h2 className="text-lg md:text-xl font-semibold text-content-primary">Select from Media Library</h2>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="text-content-muted hover:text-content-primary transition-colors p-1"
           >
             <X size={24} />
           </button>
@@ -98,9 +98,9 @@ export default function MediaLibraryPickerModal({
         {/* Content */}
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar - Folders */}
-          <div className="hidden md:flex flex-col w-56 border-r border-gray-700 bg-[#141414]">
+          <div className="hidden md:flex flex-col w-56 border-r border-border bg-surface-dark">
             <div className="p-4">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Folders</h3>
+              <h3 className="text-xs font-semibold text-content-faint uppercase tracking-wider mb-3">Folders</h3>
               <div className="space-y-1">
                 {activeFolders.map((folder) => (
                   <button
@@ -108,8 +108,8 @@ export default function MediaLibraryPickerModal({
                     onClick={() => setSelectedFolderId(folder.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
                       selectedFolderId === folder.id
-                        ? 'bg-orange-500/20 text-orange-400'
-                        : 'text-gray-300 hover:bg-[#2F2F2F]'
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-content-secondary hover:bg-surface-button'
                     }`}
                   >
                     <FolderIcon size={18} style={{ color: folder.color }} />
@@ -123,16 +123,16 @@ export default function MediaLibraryPickerModal({
           {/* Main Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Search & Mobile Folder Select */}
-            <div className="p-4 space-y-3 border-b border-gray-700/50">
+            <div className="p-4 space-y-3 border-b border-border">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={18} />
                 <input
                   type="text"
                   placeholder="Search designs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0a0a0a] border border-gray-700 rounded-xl py-2.5 pl-10 pr-4 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                  className="w-full bg-surface-dark border border-border rounded-xl py-2.5 pl-10 pr-4 text-content-primary text-sm placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
                 />
               </div>
 
@@ -141,7 +141,7 @@ export default function MediaLibraryPickerModal({
                 <select
                   value={selectedFolderId}
                   onChange={(e) => setSelectedFolderId(e.target.value)}
-                  className="w-full bg-[#0a0a0a] border border-gray-700 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-surface-dark border border-border rounded-xl py-2.5 px-4 text-content-primary text-sm focus:outline-none focus:border-primary"
                 >
                   {activeFolders.map((folder) => (
                     <option key={folder.id} value={folder.id}>
@@ -153,12 +153,12 @@ export default function MediaLibraryPickerModal({
 
               {/* Current folder indicator */}
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500">Showing:</span>
-                <span className="text-white font-medium flex items-center gap-2">
+                <span className="text-content-faint">Showing:</span>
+                <span className="text-content-primary font-medium flex items-center gap-2">
                   <FolderIcon size={14} style={{ color: selectedFolder?.color }} />
                   {selectedFolder?.name || 'All'}
                 </span>
-                <span className="text-gray-500">({filteredDesigns.length} designs)</span>
+                <span className="text-content-faint">({filteredDesigns.length} designs)</span>
               </div>
             </div>
 
@@ -172,8 +172,8 @@ export default function MediaLibraryPickerModal({
                       onClick={() => setSelectedDesign(design)}
                       className={`group relative rounded-xl overflow-hidden border-2 transition-all ${
                         selectedDesign?.id === design.id
-                          ? 'border-orange-500 ring-2 ring-orange-500/30'
-                          : 'border-transparent hover:border-gray-600'
+                          ? 'border-primary ring-2 ring-primary/30'
+                          : 'border-transparent hover:border-border'
                       }`}
                     >
                       <div className="aspect-video bg-black">
@@ -183,6 +183,7 @@ export default function MediaLibraryPickerModal({
                           className="w-full h-full object-cover"
                         />
                       </div>
+                      {/* Image overlays stay theme-independent */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="absolute bottom-0 left-0 right-0 p-2">
                         <p className="text-white text-xs font-medium truncate opacity-0 group-hover:opacity-100 transition-opacity">
@@ -190,7 +191,7 @@ export default function MediaLibraryPickerModal({
                         </p>
                       </div>
                       {selectedDesign?.id === design.id && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
@@ -201,9 +202,9 @@ export default function MediaLibraryPickerModal({
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                  <ImageIcon size={48} className="text-gray-600 mb-4" />
-                  <p className="text-gray-400 text-sm">No designs found</p>
-                  <p className="text-gray-500 text-xs mt-1">Try a different search or folder</p>
+                  <ImageIcon size={48} className="text-content-faint mb-4" />
+                  <p className="text-content-muted text-sm">No designs found</p>
+                  <p className="text-content-faint text-xs mt-1">Try a different search or folder</p>
                 </div>
               )}
             </div>
@@ -211,10 +212,10 @@ export default function MediaLibraryPickerModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-t border-gray-700 bg-[#141414]">
-          <div className="text-sm text-gray-400">
+        <div className="flex items-center justify-between p-4 md:p-6 border-t border-border bg-surface-dark">
+          <div className="text-sm text-content-muted">
             {selectedDesign ? (
-              <span>Selected: <span className="text-white font-medium">{selectedDesign.name}</span></span>
+              <span>Selected: <span className="text-content-primary font-medium">{selectedDesign.name}</span></span>
             ) : (
               <span>Select a design to use as cover image</span>
             )}
@@ -222,14 +223,14 @@ export default function MediaLibraryPickerModal({
           <div className="flex gap-3">
             <button
               onClick={handleClose}
-              className="px-4 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm font-medium transition-colors"
+              className="px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSelect}
               disabled={!selectedDesign}
-              className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
+              className="px-4 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-primary/50 disabled:text-white/50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
             >
               Use Selected
             </button>
@@ -242,15 +243,15 @@ export default function MediaLibraryPickerModal({
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2F2F2F;
+          background: var(--color-surface-button);
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #555;
+          background: var(--color-content-faint);
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777;
+          background: var(--color-content-muted);
         }
       `}</style>
     </div>

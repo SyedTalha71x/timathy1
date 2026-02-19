@@ -117,15 +117,15 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
   const calendarDays = generateCalendarDays();
   
   return (
-    <div className="bg-[#000000] rounded-xl lg:block md:block hidden p-3 w-full">
+    <div className="bg-surface-base rounded-xl lg:block md:block hidden p-3 w-full">
       <div className="grid grid-cols-7 gap-0.5 mb-2">
         <button
           onClick={handlePrevMonth}
-          className="text-white hover:text-gray-300 p-0.5 flex items-center justify-center"
+          className="text-content-primary hover:text-content-secondary p-0.5 flex items-center justify-center"
         >
           <ChevronLeft size={14} />
         </button>
-        <h2 className="text-white text-xs font-semibold col-span-5 text-center">
+        <h2 className="text-content-primary text-xs font-semibold col-span-5 text-center">
           {currentDate.toLocaleString("en-US", {
             month: "long",
             year: "numeric",
@@ -133,7 +133,7 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
         </h2>
         <button
           onClick={handleNextMonth}
-          className="text-white hover:text-gray-300 p-0.5 flex items-center justify-center"
+          className="text-content-primary hover:text-content-secondary p-0.5 flex items-center justify-center"
         >
           <ChevronRight size={14} />
         </button>
@@ -141,7 +141,7 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
       
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {days.map((day) => (
-          <div key={day} className="text-gray-400 font-medium text-[10px] py-0.5">
+          <div key={day} className="text-content-muted font-medium text-[10px] py-0.5">
             {day.charAt(0)}
           </div>
         ))}
@@ -161,12 +161,12 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
               onClick={() => handleDateClick(dateInfo.day, dateInfo.monthOffset)}
               className={`h-6 w-6 flex items-center justify-center rounded-lg text-[11px] font-medium transition-all duration-200 ${
                 isSelected
-                  ? "bg-orange-500 text-white"
+                  ? "bg-primary text-white"
                   : isToday
-                  ? "bg-orange-500/30 text-orange-400"
+                  ? "bg-primary/30 text-primary"
                   : dateInfo.isCurrentMonth
-                  ? "text-gray-300 hover:bg-[#2F2F2F]"
-                  : "text-gray-600 hover:bg-[#2F2F2F]"
+                  ? "text-content-secondary hover:bg-surface-button"
+                  : "text-content-faint hover:bg-surface-button"
               }`}
             >
               {dateInfo.day}

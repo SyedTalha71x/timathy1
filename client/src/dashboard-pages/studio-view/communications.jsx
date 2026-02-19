@@ -135,7 +135,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
   }
 
   // Blue for staff, Orange for members
-  const bgColor = isStaff ? "bg-primary" : "bg-orange-500"
+  const bgColor = isStaff ? "bg-primary" : "bg-primary"
 
   return (
     <div 
@@ -205,7 +205,7 @@ const MobileEmailItem = ({
         >
           <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${
             selectedEmailIds.includes(email.id)
-              ? "bg-orange-500"
+              ? "bg-primary"
               : "border-2 border-border"
           }`}>
             {selectedEmailIds.includes(email.id) && (
@@ -220,7 +220,7 @@ const MobileEmailItem = ({
             <Mail size={18} className="text-content-faint" />
           </div>
           {!email.isRead && (
-            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-[#1C1C1C]" />
+            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-surface-card" />
           )}
         </div>
 
@@ -2438,9 +2438,9 @@ export default function Communications() {
         onClick={() => onSelect(chat)}
         className={`
           relative flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none
-          transition-all duration-200 group border-b border-slate-700
+          transition-all duration-200 group border-b border-border
           ${isSelected 
-            ? "bg-surface-card border-l-2 border-l-orange-500" 
+            ? "bg-surface-card border-l-2 border-l-primary" 
             : "hover:bg-surface-card border-l-2 border-l-transparent"
           }
         `}
@@ -2501,7 +2501,7 @@ export default function Communications() {
         <div className="flex-1 min-w-0">
           {/* Row 1: Name + New Chat Badge */}
           <div className="flex items-center gap-2">
-            <span className={`font-medium truncate ${isSelected ? 'text-orange-400' : 'text-content-primary'}`}>
+            <span className={`font-medium truncate ${isSelected ? 'text-primary' : 'text-content-primary'}`}>
               {chat.name}
             </span>
             {chat.isNewChat && (
@@ -2527,12 +2527,12 @@ export default function Communications() {
           <div className="h-[18px] flex items-center justify-center">
             {getUnreadCount(chat) > 0 ? (
               // Real unread messages - show count
-              <span className="bg-orange-600 text-white text-[10px] rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center font-medium">
+              <span className="bg-primary text-white text-[10px] rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center font-medium">
                 {getUnreadCount(chat)}
               </span>
             ) : chat.markedUnread ? (
               // Manually marked as unread - show dot without number
-              <span className="bg-orange-600 rounded-full h-[10px] w-[10px]" />
+              <span className="bg-primary rounded-full h-[10px] w-[10px]" />
             ) : (
               <span className="w-[18px]" /> 
             )}
@@ -2550,7 +2550,7 @@ export default function Communications() {
                 e.stopPropagation();
                 onMenuClick(chat.id);
               }}
-              className="w-[18px] h-[18px] flex items-center justify-center text-content-muted hover:text-orange-400 rounded hover:bg-surface-hover transition-colors"
+              className="w-[18px] h-[18px] flex items-center justify-center text-content-muted hover:text-primary rounded hover:bg-surface-hover transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -2629,7 +2629,7 @@ export default function Communications() {
       {/* Chat List Sidebar - Fixed height container */}
       <div
         className={`fixed md:relative inset-y-0 left-0 md:w-[400px] w-full md:rounded-none rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          } bg-black z-30 select-none md:top-0 top-[52px] md:h-[92vh] h-[calc(100vh-52px)]`}
+          } bg-surface-base z-30 select-none md:top-0 top-[52px] md:h-[92vh] h-[calc(100vh-52px)] md:border-r md:border-border`}
         style={{ display: 'flex', flexDirection: 'column' }}
       >
         {/* Header Section - Fixed, doesn't scroll */}
@@ -2655,7 +2655,7 @@ export default function Communications() {
                 <User size={16} className="mr-2" />
                 Member
                 {getTotalUnreadCount("member") > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                     {getTotalUnreadCount("member")}
                   </span>
                 )}
@@ -2674,7 +2674,7 @@ export default function Communications() {
                 <Building2 size={16} className="mr-2" />
                 Studio
                 {getTotalUnreadCount("company") > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                     {getTotalUnreadCount("company")}
                   </span>
                 )}
@@ -2686,7 +2686,7 @@ export default function Communications() {
                 <Mail size={16} className="mr-2" />
                 Email
                 {getTotalUnreadEmails() > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                     {getTotalUnreadEmails()}
                   </span>
                 )}
@@ -2736,7 +2736,7 @@ export default function Communications() {
               {/* Send Email Button */}
               <button
                 onClick={() => setShowEmailModal(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-sm text-white font-medium transition-colors w-full mb-4"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-sm text-white font-medium transition-colors w-full mb-4"
               >
                 <Send className="w-4 h-4" />
                 Send Email
@@ -2871,18 +2871,18 @@ export default function Communications() {
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors border-l-2 ${
                       isActive 
-                        ? "bg-surface-card border-l-orange-500 text-content-primary" 
+                        ? "bg-surface-card border-l-primary text-content-primary" 
                         : "border-l-transparent text-content-muted hover:bg-surface-hover hover:text-content-primary"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon size={18} className={isActive ? "text-orange-400" : ""} />
-                      <span className={`text-sm font-medium ${isActive ? "text-orange-400" : ""}`}>
+                      <Icon size={18} className={isActive ? "text-primary" : ""} />
+                      <span className={`text-sm font-medium ${isActive ? "text-primary" : ""}`}>
                         {folder.label} <span className={isActive ? "text-content-muted" : "text-content-faint"}>[{totalCount}]</span>
                       </span>
                     </div>
                     {unreadCount > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500 text-white">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white">
                         {unreadCount}
                       </span>
                     )}
@@ -2897,7 +2897,7 @@ export default function Communications() {
         <div className="hidden md:block absolute bottom-6 right-6 z-50">
           <button
             onClick={() => setShowBroadcastModal(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95"
+            className="bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95"
           >
             <IoIosMegaphone size={22} />
           </button>
@@ -2927,7 +2927,7 @@ export default function Communications() {
               <div className="flex items-center gap-3">
                 {/* Clickable Profile Container */}
                 <div 
-                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
+                  className={`flex items-center gap-3 px-3 py-2 bg-surface-dark rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
                   onClick={(e) => {
                     const isStaffChat = chatType === "company" && selectedChat.id !== 100;
                     if (isStaffChat) {
@@ -3069,8 +3069,8 @@ export default function Communications() {
                         message.isDeleted
                           ? "bg-surface-hover text-content-faint italic"
                           : message.sender === "You"
-                            ? "bg-orange-500"
-                            : "bg-black"
+                            ? "bg-primary"
+                            : "bg-surface-dark"
                       }`}
                     >
                       {/* Reply/Quote Preview */}
@@ -3078,14 +3078,14 @@ export default function Communications() {
                         <div
                           className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${
                             message.sender === 'You'
-                              ? "bg-orange-600/50 border-l-white"
-                              : "bg-surface-button border-l-orange-500"
+                              ? "bg-primary/50 border-l-white"
+                              : "bg-surface-button border-l-primary"
                           }`}
                         >
-                          <p className="font-semibold mb-0.5 text-content-primary text-xs">
+                          <p className={`font-semibold mb-0.5 text-xs ${message.sender === 'You' ? 'text-white' : 'text-content-primary'}`}>
                             {message.replyTo.sender === 'You' ? 'You' : message.replyTo.sender}
                           </p>
-                          <p className={`${message.sender === 'You' ? 'text-orange-100/80' : 'text-content-muted'} text-xs`}>
+                          <p className={`${message.sender === 'You' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
                             {truncateText(message.replyTo.content, 50)}
                           </p>
                         </div>
@@ -3093,7 +3093,7 @@ export default function Communications() {
 
                       {/* Message Content */}
                       <p 
-                        className={`text-sm ${message.isDeleted ? "" : "text-content-primary"}`}
+                        className={`text-sm ${message.isDeleted ? "" : message.sender === "You" ? "text-white" : "text-content-primary"}`}
                         style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                       >
                         {message.isDeleted ? (
@@ -3114,7 +3114,7 @@ export default function Communications() {
                         {message.sender === "You" && !message.isDeleted && (
                           <span className="ml-1">
                             {message.status === "read" ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-primary" />
+                              <CheckCheck className="w-3.5 h-3.5 text-white" />
                             ) : message.status === "delivered" ? (
                               <CheckCheck className="w-3.5 h-3.5" />
                             ) : (
@@ -3203,9 +3203,9 @@ export default function Communications() {
             {replyingTo && (
               <div className="px-4 py-3 bg-surface-hover border-t border-border flex-shrink-0">
                 <div className="flex items-center gap-3 bg-surface-button rounded-xl p-3">
-                  <div className="w-1 h-10 bg-orange-500 rounded-full"></div>
+                  <div className="w-1 h-10 bg-primary rounded-full"></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-orange-400 text-xs font-semibold">
+                    <p className="text-primary text-xs font-semibold">
                       Replying to {replyingTo.sender === 'You' ? 'yourself' : replyingTo.sender}
                     </p>
                     <p className="text-content-secondary text-sm truncate">{truncateText(replyingTo.content, 50)}</p>
@@ -3222,7 +3222,7 @@ export default function Communications() {
 
             {/* Input Area - Fixed at bottom like WhatsApp */}
             <div className="px-4 pt-4 pb-6 border-t border-border flex-shrink-0 bg-surface-base relative">
-              <div className="flex items-end gap-2 bg-black rounded-xl p-2">
+              <div className="flex items-end gap-2 bg-surface-dark rounded-xl p-2">
                 <button
                   className="p-2 hover:bg-surface-button rounded-full flex items-center justify-center flex-shrink-0"
                   aria-label="Add emoji"
@@ -3255,7 +3255,7 @@ export default function Communications() {
                 <button
                   className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
                     messageText.trim() 
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                      ? 'bg-primary hover:bg-primary-hover text-white' 
                       : 'text-content-faint cursor-not-allowed'
                   }`}
                   aria-label="Send message"
@@ -3306,9 +3306,9 @@ export default function Communications() {
                   >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       selectedEmailIds.length > 0 && selectedEmailIds.length === [...getPinnedEmails(), ...getFilteredEmails(false)].length
-                        ? "bg-orange-500 border-orange-500"
+                        ? "bg-primary border-primary"
                         : selectedEmailIds.length > 0
-                        ? "bg-orange-500/50 border-orange-500"
+                        ? "bg-primary/50 border-primary"
                         : "border-border"
                     }`}>
                       {selectedEmailIds.length > 0 && (
@@ -3377,9 +3377,9 @@ export default function Communications() {
                     {getPinnedEmails().length > 0 && (
                       <>
                         <div className="flex items-center gap-2 px-2 py-1">
-                          <Pin size={12} className="text-orange-500 fill-orange-500" />
-                          <span className="text-xs text-orange-500 font-medium">Pinned</span>
-                          <div className="flex-1 h-px bg-orange-500/30"></div>
+                          <Pin size={12} className="text-primary fill-primary" />
+                          <span className="text-xs text-primary font-medium">Pinned</span>
+                          <div className="flex-1 h-px bg-primary/30"></div>
                         </div>
                         {getPinnedEmails().map((email) => (
                           <div
@@ -3403,9 +3403,9 @@ export default function Communications() {
                             }}
                             className={`
                               relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
-                              transition-all duration-200 group border-b border-slate-700
+                              transition-all duration-200 group border-b border-border
                               ${selectedEmail?.id === email.id 
-                                ? "bg-surface-card border-l-2 border-l-orange-500" 
+                                ? "bg-surface-card border-l-2 border-l-primary" 
                                 : "hover:bg-surface-card border-l-2 border-l-transparent"
                               }
                             `}
@@ -3420,7 +3420,7 @@ export default function Communications() {
                             >
                               <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
                                 selectedEmailIds.includes(email.id)
-                                  ? "bg-orange-500 border-orange-500"
+                                  ? "bg-primary border-primary"
                                   : "border-border hover:border-border"
                               }`}>
                                 {selectedEmailIds.includes(email.id) && (
@@ -3437,14 +3437,14 @@ export default function Communications() {
                                 <Mail size={20} className="text-content-faint" />
                               </div>
                               {!email.isRead && (
-                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full" />
+                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full" />
                               )}
                             </div>
 
                             {/* Content */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2 mb-0.5">
-                                <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-content-primary'}`}>
+                                <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-primary' : 'text-content-primary'}`}>
                                   {emailTab === "sent" ? email.recipient : email.sender}
                                 </span>
                                 <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
@@ -3499,9 +3499,9 @@ export default function Communications() {
                         }}
                         className={`
                           relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
-                          transition-all duration-200 group border-b border-slate-700
+                          transition-all duration-200 group border-b border-border
                           ${selectedEmail?.id === email.id 
-                            ? "bg-surface-card border-l-2 border-l-orange-500" 
+                            ? "bg-surface-card border-l-2 border-l-primary" 
                             : "hover:bg-surface-card border-l-2 border-l-transparent"
                           }
                         `}
@@ -3516,7 +3516,7 @@ export default function Communications() {
                         >
                           <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
                             selectedEmailIds.includes(email.id)
-                              ? "bg-orange-500 border-orange-500"
+                              ? "bg-primary border-primary"
                               : "border-border hover:border-border"
                           }`}>
                             {selectedEmailIds.includes(email.id) && (
@@ -3533,14 +3533,14 @@ export default function Communications() {
                             <Mail size={20} className="text-content-faint" />
                           </div>
                           {!email.isRead && (
-                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full" />
+                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full" />
                           )}
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-0.5">
-                            <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-content-primary'}`}>
+                            <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-primary' : 'text-content-primary'}`}>
                               {emailTab === "sent" ? email.recipient : email.sender}
                             </span>
                             <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
@@ -3697,7 +3697,7 @@ export default function Communications() {
                   <div 
                     className="max-w-none bg-white p-6 rounded-xl"
                     style={{ 
-                      color: '#1f2937',
+                      color: 'var(--color-content-primary)',
                       fontSize: '14px',
                       lineHeight: '1.5',
                       fontFamily: 'Arial, sans-serif'
@@ -3722,7 +3722,7 @@ export default function Communications() {
       {/* Broadcast Modal - Overlay on top of everything */}
       {showBroadcastModal && (
         <div className="fixed inset-0 z-[100] hidden md:flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowBroadcastModal(false)} />
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowBroadcastModal(false)} />
           <div className="relative z-10 w-full h-full max-w-[95vw] max-h-[95vh] m-4">
             <BroadcastModal
               onClose={() => setShowBroadcastModal(false)}
@@ -3864,7 +3864,7 @@ export default function Communications() {
               
               {/* Profile Container */}
               <div 
-                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
+                className={`flex items-center gap-2 px-2 py-1.5 bg-surface-dark rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
                 onClick={(e) => {
                   const isStaffChat = chatType === "company" && selectedChat.id !== 100;
                   if (isStaffChat) {
@@ -3947,7 +3947,7 @@ export default function Communications() {
                         message.isDeleted
                           ? "bg-surface-hover"
                           : message.sender === "You"
-                            ? "bg-orange-500"
+                            ? "bg-primary"
                             : "bg-surface-button"
                       }`}
                       style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }}
@@ -3984,7 +3984,7 @@ export default function Communications() {
                         className={`text-sm ${
                           message.isDeleted 
                             ? "text-content-faint italic" 
-                            : "text-content-primary"
+                            : message.sender === "You" ? "text-white" : "text-content-primary"
                         }`}
                         style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                       >
@@ -4002,7 +4002,7 @@ export default function Communications() {
                         {message.sender === "You" && !message.isDeleted && (
                           <span className="ml-1">
                             {message.status === "read" ? (
-                              <CheckCheck className="w-3 h-3 text-primary" />
+                              <CheckCheck className="w-3 h-3 text-white" />
                             ) : message.status === "delivered" ? (
                               <CheckCheck className="w-3 h-3" />
                             ) : (
@@ -4033,8 +4033,8 @@ export default function Communications() {
           {/* Mobile Reply Preview */}
           {replyingTo && (
             <div className="px-4 py-2 bg-surface-hover border-t border-border flex items-center gap-3">
-              <div className="flex-1 pl-3 border-l-2 border-orange-500">
-                <p className="text-xs font-medium text-orange-400">{replyingTo.sender}</p>
+              <div className="flex-1 pl-3 border-l-2 border-primary">
+                <p className="text-xs font-medium text-primary">{replyingTo.sender}</p>
                 <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.content || replyingTo.text, 50)}</p>
               </div>
               <button
@@ -4048,7 +4048,7 @@ export default function Communications() {
 
           {/* Mobile Input Area - Multi-line with auto-resize */}
           <div className="p-3 bg-surface-base border-t border-border flex-shrink-0 relative">
-            <div className="flex items-end gap-2 bg-black px-3 py-2 rounded-xl border border-border">
+            <div className="flex items-end gap-2 bg-surface-dark px-3 py-2 rounded-xl border border-border">
               <button
                 className="p-2 hover:bg-surface-button rounded-full flex-shrink-0"
                 aria-label="Add emoji"
@@ -4093,7 +4093,7 @@ export default function Communications() {
               <button
                 className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
                   messageText.trim() 
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                    ? 'bg-primary hover:bg-primary-hover text-white' 
                     : 'text-content-faint cursor-not-allowed'
                 }`}
                 aria-label="Send message"
@@ -4114,7 +4114,7 @@ export default function Communications() {
           className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center"
           onClick={() => setMobileContextMenu(null)}
         >
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/50" />
           <div 
             className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-8"
             onClick={(e) => e.stopPropagation()}
@@ -4171,7 +4171,7 @@ export default function Communications() {
 
             <button
               onClick={() => setMobileContextMenu(null)}
-              className="w-full mt-4 px-4 py-3 text-base bg-surface-button hover:bg-surface-button rounded-xl text-white font-medium"
+              className="w-full mt-4 px-4 py-3 text-base bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary font-medium"
             >
               Cancel
             </button>
@@ -4181,14 +4181,14 @@ export default function Communications() {
 
       {/* Global Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000]">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
           <div className="bg-surface-button rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-border">
-            <h4 className="text-white font-medium mb-2">Delete Message?</h4>
+            <h4 className="text-content-primary font-medium mb-2">Delete Message?</h4>
             <p className="text-content-muted text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2.5 bg-surface-button text-white text-sm rounded-xl hover:bg-surface-button transition-colors"
+                className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>
@@ -4250,7 +4250,7 @@ export default function Communications() {
             </div>
             <button
               onClick={() => setShowEmailModal(true)}
-              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
+              className="p-2 bg-primary hover:bg-primary-hover rounded-xl transition-colors"
             >
               <Send size={18} className="text-content-primary" />
             </button>
@@ -4273,7 +4273,7 @@ export default function Communications() {
                     }}
                     className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive 
-                        ? "bg-orange-500 text-white" 
+                        ? "bg-primary text-white" 
                         : "bg-surface-hover text-content-muted active:bg-surface-button"
                     }`}
                   >
@@ -4281,7 +4281,7 @@ export default function Communications() {
                     <span>{folder.label}</span>
                     {unreadCount > 0 && (
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        isActive ? "bg-white/20 text-white" : "bg-orange-500 text-white"
+                        isActive ? "bg-white/20 text-white" : "bg-primary text-white"
                       }`}>
                         {unreadCount}
                       </span>
@@ -4301,7 +4301,7 @@ export default function Communications() {
                 placeholder="Search emails..."
                 value={emailSearchQuery}
                 onChange={(e) => setEmailSearchQuery(e.target.value)}
-                className="w-full bg-surface-hover text-content-primary text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+                className="w-full bg-surface-hover text-content-primary text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
           </div>
@@ -4370,9 +4370,9 @@ export default function Communications() {
                 {getPinnedEmails().length > 0 && (
                   <>
                     <div className="flex items-center gap-2 px-4 py-2 bg-surface-dark">
-                      <Pin size={12} className="text-orange-500 fill-orange-500" />
-                      <span className="text-xs text-orange-500 font-medium">Pinned</span>
-                      <div className="flex-1 h-px bg-orange-500/30"></div>
+                      <Pin size={12} className="text-primary fill-primary" />
+                      <span className="text-xs text-primary font-medium">Pinned</span>
+                      <div className="flex-1 h-px bg-primary/30"></div>
                     </div>
                     {getPinnedEmails().map((email) => (
                       <MobileEmailItem 
@@ -4443,7 +4443,7 @@ export default function Communications() {
               {emailTab !== "trash" && emailTab !== "error" && (
                 <button
                   onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
-                  className={`p-2 hover:bg-surface-button-hover rounded-lg ${selectedEmail.isPinned ? "text-orange-500" : "text-content-muted hover:text-content-primary"}`}
+                  className={`p-2 hover:bg-surface-button-hover rounded-lg ${selectedEmail.isPinned ? "text-primary" : "text-content-muted hover:text-content-primary"}`}
                 >
                   {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
                 </button>
@@ -4517,7 +4517,7 @@ export default function Communications() {
             <div 
               className="max-w-none bg-white p-4 rounded-xl"
               style={{ 
-                color: '#1f2937',
+                color: 'var(--color-content-primary)',
                 fontSize: '14px',
                 lineHeight: '1.5',
                 fontFamily: 'Arial, sans-serif'
@@ -4540,7 +4540,7 @@ export default function Communications() {
               ) : (
                 <button
                   onClick={() => handleEmailReply(selectedEmail)}
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
                 >
                   <Reply size={16} />
                   Reply
@@ -4553,7 +4553,7 @@ export default function Communications() {
 
       {/* Copied Toast */}
       {showCopiedToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-content-primary px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
           Copied!
         </div>
       )}
@@ -4562,7 +4562,7 @@ export default function Communications() {
       {((activeScreen === "chat" && !selectedChat) || (activeScreen === "email-frontend" && !selectedEmail)) && (
         <button
           onClick={() => setShowBroadcastModal(true)}
-          className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[70]"
+          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[70]"
           aria-label="Broadcast Message"
         >
           <IoIosMegaphone size={22} />
@@ -4622,8 +4622,8 @@ export default function Communications() {
 
       {/* Permanent Delete Confirmation Modal */}
       {showPermanentDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90] p-4">
-          <div className="bg-surface-base rounded-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[90] p-4">
+          <div className="bg-surface-card rounded-xl w-full max-w-md p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
                 <Trash2 className="w-6 h-6 text-red-400" />

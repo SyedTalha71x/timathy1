@@ -20,7 +20,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
     return `${firstInitial}${lastInitial}` || "?"
   }
   const sizeClasses = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" }
-  const bgColor = isStaff ? "bg-blue-600" : "bg-orange-500"
+  const bgColor = "bg-primary"
   return (
     <div className={`${bgColor} rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}>
       {getInitials()}
@@ -332,26 +332,26 @@ export default function BroadcastModal({
   // MOBILE LAYOUT
   // ==========================================
   const MobileLayout = () => (
-    <div className="md:hidden fixed inset-0 bg-[#0E0E0E] z-50 flex flex-col">
+    <div className="md:hidden fixed inset-0 bg-surface-card z-50 flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800/50 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           {mobileStep !== "recipients" && activeSection === "compose" ? (
-            <button onClick={handleMobileBack} className="p-2 -ml-2 hover:bg-white/5 rounded-xl transition-colors">
-              <ChevronLeft className="w-5 h-5 text-gray-400" />
+            <button onClick={handleMobileBack} className="p-2 -ml-2 hover:bg-surface-hover rounded-xl transition-colors">
+              <ChevronLeft className="w-5 h-5 text-content-muted" />
             </button>
           ) : (
-            <button onClick={onClose} className="p-2 -ml-2 hover:bg-white/5 rounded-xl transition-colors">
-              <X className="w-5 h-5 text-gray-400" />
+            <button onClick={onClose} className="p-2 -ml-2 hover:bg-surface-hover rounded-xl transition-colors">
+              <X className="w-5 h-5 text-content-muted" />
             </button>
           )}
-          <h2 className="text-lg font-semibold text-white">Broadcast</h2>
+          <h2 className="text-lg font-semibold text-content-primary">Broadcast</h2>
         </div>
         
         {/* Channel Toggle */}
         <button 
           onClick={() => setShowMobileChannelSelect(!showMobileChannelSelect)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all bg-blue-500/20 text-blue-400`}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all bg-primary/20 text-primary`}
         >
           {activeChannel === "push" ? <Bell className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
           {activeChannel === "push" ? "Push" : "Email"}
@@ -360,17 +360,17 @@ export default function BroadcastModal({
 
       {/* Channel Selection Dropdown */}
       {showMobileChannelSelect && (
-        <div className="absolute top-16 right-4 bg-[#1a1a1a] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-16 right-4 bg-surface-dark border border-border rounded-xl shadow-xl z-50 overflow-hidden">
           <button 
             onClick={() => { setActiveChannel("push"); setShowMobileChannelSelect(false) }}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${activeChannel === "push" ? "bg-blue-500/20 text-blue-400" : "text-gray-300 hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${activeChannel === "push" ? "bg-primary/20 text-primary" : "text-content-secondary hover:bg-surface-hover"}`}
           >
             <Bell className="w-4 h-4" />
             Push Notification
           </button>
           <button 
             onClick={() => { setActiveChannel("email"); setShowMobileChannelSelect(false) }}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${activeChannel === "email" ? "bg-blue-500/20 text-blue-400" : "text-gray-300 hover:bg-white/5"}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${activeChannel === "email" ? "bg-primary/20 text-primary" : "text-content-secondary hover:bg-surface-hover"}`}
           >
             <Mail className="w-4 h-4" />
             Email
@@ -381,29 +381,29 @@ export default function BroadcastModal({
       {/* Success Message Toast - Mobile */}
       {showSuccessMessage && lastSentInfo && (
         <div className="absolute top-20 left-4 right-4 z-50">
-          <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-3 flex items-center gap-3 shadow-xl">
-            <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-              <Check className="w-4 h-4 text-orange-400" />
+          <div className="bg-surface-dark border border-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-xl">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Check className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">Broadcast sent!</p>
-              <p className="text-xs text-gray-400 truncate">
+              <p className="text-sm font-medium text-content-primary">Broadcast sent!</p>
+              <p className="text-xs text-content-muted truncate">
                 Sent to {lastSentInfo.recipientCount} recipient{lastSentInfo.recipientCount > 1 ? 's' : ''}
               </p>
             </div>
-            <button onClick={() => setShowSuccessMessage(false)} className="p-1 hover:bg-white/10 rounded-lg">
-              <X className="w-4 h-4 text-gray-400" />
+            <button onClick={() => setShowSuccessMessage(false)} className="p-1 hover:bg-surface-hover rounded-lg">
+              <X className="w-4 h-4 text-content-muted" />
             </button>
           </div>
         </div>
       )}
 
       {/* Mobile Section Tabs */}
-      <div className="flex bg-[#0a0a0a] border-b border-gray-800/50 flex-shrink-0 px-2">
+      <div className="flex bg-surface-dark border-b border-border flex-shrink-0 px-2">
         <button 
           onClick={() => { setActiveSection("compose"); setMobileStep("recipients") }}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all border-b-2 ${
-            activeSection === "compose" ? "border-orange-500 text-orange-400" : "border-transparent text-gray-400"
+            activeSection === "compose" ? "border-primary text-primary" : "border-transparent text-content-muted"
           }`}
         >
           <Send className="w-4 h-4" />
@@ -412,7 +412,7 @@ export default function BroadcastModal({
         <button 
           onClick={() => setActiveSection("templates")}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all border-b-2 ${
-            activeSection === "templates" ? "border-orange-500 text-orange-400" : "border-transparent text-gray-400"
+            activeSection === "templates" ? "border-primary text-primary" : "border-transparent text-content-muted"
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -421,7 +421,7 @@ export default function BroadcastModal({
         <button 
           onClick={() => setActiveSection("folders")}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all border-b-2 ${
-            activeSection === "folders" ? "border-orange-500 text-orange-400" : "border-transparent text-gray-400"
+            activeSection === "folders" ? "border-primary text-primary" : "border-transparent text-content-muted"
           }`}
         >
           <Folder className="w-4 h-4" />
@@ -435,28 +435,28 @@ export default function BroadcastModal({
         {activeSection === "compose" && (
           <>
             {/* Step Indicator */}
-            <div className="flex items-center justify-center gap-2 py-3 bg-[#0a0a0a] border-b border-gray-800/50">
-              <div className={`flex items-center gap-1.5 ${mobileStep === "recipients" ? "text-orange-400" : "text-gray-500"}`}>
+            <div className="flex items-center justify-center gap-2 py-3 bg-surface-dark border-b border-border">
+              <div className={`flex items-center gap-1.5 ${mobileStep === "recipients" ? "text-primary" : "text-content-faint"}`}>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                  mobileStep === "recipients" ? "bg-orange-500 text-white" : selectedRecipients.length > 0 ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"
+                  mobileStep === "recipients" ? "bg-primary text-white" : selectedRecipients.length > 0 ? "bg-primary text-white" : "bg-surface-button text-content-muted"
                 }`}>
                   {selectedRecipients.length > 0 && mobileStep !== "recipients" ? <Check className="w-3.5 h-3.5" /> : "1"}
                 </div>
                 <span className="text-xs">Recipients</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-              <div className={`flex items-center gap-1.5 ${mobileStep === "template" ? "text-orange-400" : "text-gray-500"}`}>
+              <ChevronRight className="w-4 h-4 text-content-faint" />
+              <div className={`flex items-center gap-1.5 ${mobileStep === "template" ? "text-primary" : "text-content-faint"}`}>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                  mobileStep === "template" ? "bg-orange-500 text-white" : selectedTemplate ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"
+                  mobileStep === "template" ? "bg-primary text-white" : selectedTemplate ? "bg-primary text-white" : "bg-surface-button text-content-muted"
                 }`}>
                   {selectedTemplate && mobileStep !== "template" ? <Check className="w-3.5 h-3.5" /> : "2"}
                 </div>
                 <span className="text-xs">Template</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-              <div className={`flex items-center gap-1.5 ${mobileStep === "review" ? "text-orange-400" : "text-gray-500"}`}>
+              <ChevronRight className="w-4 h-4 text-content-faint" />
+              <div className={`flex items-center gap-1.5 ${mobileStep === "review" ? "text-primary" : "text-content-faint"}`}>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                  mobileStep === "review" ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"
+                  mobileStep === "review" ? "bg-primary text-white" : "bg-surface-button text-content-muted"
                 }`}>
                   3
                 </div>
@@ -470,12 +470,12 @@ export default function BroadcastModal({
               {mobileStep === "recipients" && (
                 <div className="flex flex-col h-full">
                   {/* Audience Toggle */}
-                  <div className="p-4 border-b border-gray-800/50">
-                    <div className="flex bg-[#1a1a1a] rounded-xl p-1">
+                  <div className="p-4 border-b border-border">
+                    <div className="flex bg-surface-dark rounded-xl p-1">
                       <button 
                         onClick={() => setAudienceTab("member")} 
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          audienceTab === "member" ? "bg-white/10 text-white" : "text-gray-400"
+                          audienceTab === "member" ? "bg-surface-hover text-content-primary" : "text-content-muted"
                         }`}
                       >
                         <User className="w-4 h-4" />
@@ -484,7 +484,7 @@ export default function BroadcastModal({
                       <button 
                         onClick={() => setAudienceTab("staff")} 
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          audienceTab === "staff" ? "bg-white/10 text-white" : "text-gray-400"
+                          audienceTab === "staff" ? "bg-surface-hover text-content-primary" : "text-content-muted"
                         }`}
                       >
                         <Building2 className="w-4 h-4" />
@@ -494,23 +494,23 @@ export default function BroadcastModal({
                   </div>
 
                   {/* Search */}
-                  <div className="px-4 py-3 border-b border-gray-800/50">
+                  <div className="px-4 py-3 border-b border-border">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
                       <input 
                         type="text" 
                         value={searchMember} 
                         onChange={(e) => setSearchMember(e.target.value)} 
                         placeholder={`Search ${audienceTab}s...`} 
-                        className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl pl-10 pr-4 py-3 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50" 
+                        className="w-full bg-surface-dark text-content-primary text-sm rounded-xl pl-10 pr-4 py-3 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-primary/50" 
                       />
                     </div>
                   </div>
 
                   {/* Select All */}
-                  <div className="px-4 py-2 flex items-center justify-between bg-[#0a0a0a]">
-                    <span className="text-xs text-gray-400">{visibleRecipientList.length} available</span>
-                    <button onClick={handleSelectAll} className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
+                  <div className="px-4 py-2 flex items-center justify-between bg-surface-dark">
+                    <span className="text-xs text-content-muted">{visibleRecipientList.length} available</span>
+                    <button onClick={handleSelectAll} className="text-xs text-primary hover:text-primary-hover flex items-center gap-1">
                       {selectAll ? <><X className="w-3 h-3" />Deselect All</> : <><Check className="w-3 h-3" />Select All</>}
                     </button>
                   </div>
@@ -523,8 +523,8 @@ export default function BroadcastModal({
                         <div 
                           key={chat.id} 
                           onClick={() => handleMemberSelect(chat)} 
-                          className={`flex items-center gap-3 px-4 py-3 border-b border-gray-800/30 active:bg-white/5 ${
-                            isSelected ? "bg-orange-500/10" : ""
+                          className={`flex items-center gap-3 px-4 py-3 border-b border-border active:bg-surface-hover ${
+                            isSelected ? "bg-primary/10" : ""
                           }`}
                         >
                           {chat.logo ? (
@@ -533,13 +533,13 @@ export default function BroadcastModal({
                             <InitialsAvatar firstName={chat.firstName} lastName={chat.lastName} size="md" isStaff={audienceTab === "staff"} />
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white font-medium truncate">{chat.name}</p>
+                            <p className="text-sm text-content-primary font-medium truncate">{chat.name}</p>
                             {activeChannel === "email" && chat.email && (
-                              <p className="text-xs text-gray-500 truncate">{chat.email}</p>
+                              <p className="text-xs text-content-faint truncate">{chat.email}</p>
                             )}
                           </div>
                           <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
-                            isSelected ? "bg-orange-500 text-white" : "border-2 border-gray-600"
+                            isSelected ? "bg-primary text-white" : "border-2 border-border"
                           }`}>
                             {isSelected && <Check className="w-4 h-4" />}
                           </div>
@@ -549,9 +549,9 @@ export default function BroadcastModal({
                   </div>
 
                   {/* Selected Count & Next Button */}
-                  <div className="p-4 bg-[#0a0a0a] border-t border-gray-800/50">
+                  <div className="p-4 bg-surface-dark border-t border-border">
                     {selectedRecipients.length > 0 && (
-                      <p className="text-xs text-gray-400 mb-3 text-center">
+                      <p className="text-xs text-content-muted mb-3 text-center">
                         {memberCount > 0 && `${memberCount} member${memberCount > 1 ? 's' : ''}`}
                         {memberCount > 0 && staffCount > 0 && ' & '}
                         {staffCount > 0 && `${staffCount} staff`}
@@ -563,8 +563,8 @@ export default function BroadcastModal({
                       disabled={!canProceedToTemplate}
                       className={`w-full py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${
                         canProceedToTemplate 
-                          ? "bg-orange-500 text-white active:bg-orange-600" 
-                          : "bg-gray-700 text-gray-500"
+                          ? "bg-primary text-white active:bg-primary-hover" 
+                          : "bg-surface-button text-content-faint"
                       }`}
                     >
                       Continue
@@ -578,7 +578,7 @@ export default function BroadcastModal({
               {mobileStep === "template" && (
                 <div className="flex flex-col h-full">
                   {/* Folder Filter */}
-                  <div className="p-4 border-b border-gray-800/50">
+                  <div className="p-4 border-b border-border">
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                       <button
                         onClick={() => { 
@@ -586,7 +586,7 @@ export default function BroadcastModal({
                           else setSelectedEmailFolder(null)
                         }}
                         className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                          !selectedFolder ? "bg-orange-500 text-white" : "bg-[#1a1a1a] text-gray-400"
+                          !selectedFolder ? "bg-primary text-white" : "bg-surface-dark text-content-muted"
                         }`}
                       >
                         All
@@ -599,7 +599,7 @@ export default function BroadcastModal({
                             else setSelectedEmailFolder(folder)
                           }}
                           className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 ${
-                            selectedFolder?.id === folder.id ? "bg-orange-500 text-white" : "bg-[#1a1a1a] text-gray-400"
+                            selectedFolder?.id === folder.id ? "bg-primary text-white" : "bg-surface-dark text-content-muted"
                           }`}
                         >
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: folder.color || '#3B82F6' }} />
@@ -613,7 +613,7 @@ export default function BroadcastModal({
                   <div className="px-4 py-3">
                     <button 
                       onClick={() => handleOpenTemplateModal()}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-[#1a1a1a] hover:bg-[#222] text-orange-400 rounded-xl text-sm font-medium transition-colors"
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-surface-dark hover:bg-surface-hover text-primary rounded-xl text-sm font-medium transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       Create New Template
@@ -641,31 +641,31 @@ export default function BroadcastModal({
                               }}
                               className={`p-4 rounded-xl transition-all outline-none ${
                                 isSelected 
-                                  ? "bg-orange-500/20 border-2 border-orange-500" 
-                                  : "bg-[#1a1a1a] border-2 border-transparent active:bg-[#222]"
+                                  ? "bg-primary/20 border-2 border-primary" 
+                                  : "bg-surface-dark border-2 border-transparent active:bg-surface-hover"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-2 mb-1">
-                                <p className="text-sm font-medium text-white">{templateName}</p>
+                                <p className="text-sm font-medium text-content-primary">{templateName}</p>
                                 {isSelected && (
-                                  <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                                  <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                                     <Check className="w-3 h-3 text-white" />
                                   </div>
                                 )}
                               </div>
-                              {subtitle && <p className="text-xs text-gray-400 mb-1">{subtitle}</p>}
-                              {previewText && <p className="text-xs text-gray-500 line-clamp-2">{previewText}</p>}
+                              {subtitle && <p className="text-xs text-content-muted mb-1">{subtitle}</p>}
+                              {previewText && <p className="text-xs text-content-faint line-clamp-2">{previewText}</p>}
                             </div>
                           )
                         })}
                       </div>
                     ) : (
                       <div className="text-center py-12">
-                        <FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                        <p className="text-gray-500 mb-2">No templates found</p>
+                        <FileText className="w-12 h-12 text-content-faint mx-auto mb-3" />
+                        <p className="text-content-faint mb-2">No templates found</p>
                         <button 
                           onClick={() => handleOpenTemplateModal()} 
-                          className="text-sm text-orange-400"
+                          className="text-sm text-primary"
                         >
                           Create your first template
                         </button>
@@ -674,14 +674,14 @@ export default function BroadcastModal({
                   </div>
 
                   {/* Next Button */}
-                  <div className="p-4 bg-[#0a0a0a] border-t border-gray-800/50">
+                  <div className="p-4 bg-surface-dark border-t border-border">
                     <button 
                       onClick={handleMobileNext}
                       disabled={!canProceedToReview}
                       className={`w-full py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${
                         canProceedToReview 
-                          ? "bg-orange-500 text-white active:bg-orange-600" 
-                          : "bg-gray-700 text-gray-500"
+                          ? "bg-primary text-white active:bg-primary-hover" 
+                          : "bg-surface-button text-content-faint"
                       }`}
                     >
                       Review & Send
@@ -696,58 +696,58 @@ export default function BroadcastModal({
                 <div className="flex flex-col h-full">
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {/* Channel Info */}
-                    <div className="bg-[#1a1a1a] rounded-xl p-4">
+                    <div className="bg-surface-dark rounded-xl p-4">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-500/20">
-                          {activeChannel === "push" ? <Bell className="w-5 h-5 text-orange-400" /> : <Mail className="w-5 h-5 text-orange-400" />}
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/20">
+                          {activeChannel === "push" ? <Bell className="w-5 h-5 text-primary" /> : <Mail className="w-5 h-5 text-primary" />}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white">
+                          <p className="text-sm font-medium text-content-primary">
                             {activeChannel === "push" ? "Push Notification" : "Email"}
                           </p>
-                          <p className="text-xs text-gray-500">Channel</p>
+                          <p className="text-xs text-content-faint">Channel</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Recipients Summary */}
-                    <div className="bg-[#1a1a1a] rounded-xl p-4">
+                    <div className="bg-surface-dark rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-medium text-white">Recipients</p>
-                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-lg">
+                        <p className="text-sm font-medium text-content-primary">Recipients</p>
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-lg">
                           {selectedRecipients.length}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {selectedRecipients.slice(0, 6).map((recipient) => (
-                          <div key={recipient.id} className="flex items-center gap-1.5 bg-[#0E0E0E] rounded-lg px-2 py-1.5">
+                          <div key={recipient.id} className="flex items-center gap-1.5 bg-surface-card rounded-lg px-2 py-1.5">
                             {recipient.logo ? (
                               <img src={recipient.logo} alt="" className="w-5 h-5 rounded object-cover" />
                             ) : (
                               <InitialsAvatar firstName={recipient.firstName} lastName={recipient.lastName} size="sm" isStaff={recipient.role === "staff"} className="!w-5 !h-5 !text-[10px]" />
                             )}
-                            <span className="text-xs text-gray-300">{recipient.name.split(' ')[0]}</span>
+                            <span className="text-xs text-content-secondary">{recipient.name.split(' ')[0]}</span>
                           </div>
                         ))}
                         {selectedRecipients.length > 6 && (
-                          <div className="flex items-center px-2 py-1.5 bg-[#0E0E0E] rounded-lg">
-                            <span className="text-xs text-gray-400">+{selectedRecipients.length - 6} more</span>
+                          <div className="flex items-center px-2 py-1.5 bg-surface-card rounded-lg">
+                            <span className="text-xs text-content-muted">+{selectedRecipients.length - 6} more</span>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Template Preview */}
-                    <div className="bg-[#1a1a1a] rounded-xl p-4">
-                      <p className="text-sm font-medium text-white mb-3">Template</p>
-                      <div className="bg-[#0E0E0E] rounded-xl p-3">
-                        <p className="text-sm font-medium text-white mb-1">
+                    <div className="bg-surface-dark rounded-xl p-4">
+                      <p className="text-sm font-medium text-content-primary mb-3">Template</p>
+                      <div className="bg-surface-card rounded-xl p-3">
+                        <p className="text-sm font-medium text-content-primary mb-1">
                           {selectedTemplate?.name || "Untitled template"}
                         </p>
-                        <p className="text-xs text-gray-400 mb-2">
+                        <p className="text-xs text-content-muted mb-2">
                           {activeChannel === "push" ? selectedTemplate?.title : selectedTemplate?.subject}
                         </p>
-                        <p className="text-xs text-gray-500 line-clamp-3" dangerouslySetInnerHTML={{ 
+                        <p className="text-xs text-content-faint line-clamp-3" dangerouslySetInnerHTML={{ 
                           __html: activeChannel === "push" ? selectedTemplate?.message : selectedTemplate?.body 
                         }} />
                       </div>
@@ -755,10 +755,10 @@ export default function BroadcastModal({
                   </div>
 
                   {/* Send Button */}
-                  <div className="p-4 bg-[#0a0a0a] border-t border-gray-800/50">
+                  <div className="p-4 bg-surface-dark border-t border-border">
                     <button 
                       onClick={handleBroadcastClick}
-                      className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 active:from-orange-600 active:to-orange-700"
+                      className="w-full py-4 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-primary-hover"
                     >
                       <Send className="w-5 h-5" />
                       Send {activeChannel === "push" ? "Notification" : "Email"}
@@ -774,7 +774,7 @@ export default function BroadcastModal({
         {activeSection === "templates" && (
           <div className="flex-1 flex flex-col">
             {/* Folder Filter */}
-            <div className="p-4 border-b border-gray-800/50">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                 <button
                   onClick={() => { 
@@ -782,7 +782,7 @@ export default function BroadcastModal({
                     else setSelectedEmailFolder(null)
                   }}
                   className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                    !selectedFolder ? "bg-orange-500 text-white" : "bg-[#1a1a1a] text-gray-400"
+                    !selectedFolder ? "bg-primary text-white" : "bg-surface-dark text-content-muted"
                   }`}
                 >
                   All
@@ -795,7 +795,7 @@ export default function BroadcastModal({
                       else setSelectedEmailFolder(folder)
                     }}
                     className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 ${
-                      selectedFolder?.id === folder.id ? "bg-orange-500 text-white" : "bg-[#1a1a1a] text-gray-400"
+                      selectedFolder?.id === folder.id ? "bg-primary text-white" : "bg-surface-dark text-content-muted"
                     }`}
                   >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: folder.color || '#3B82F6' }} />
@@ -816,30 +816,30 @@ export default function BroadcastModal({
                     const previewText = stripHtmlTags(preview)
                     const folder = currentFolders.find(f => f.id === template.folderId)
                     return (
-                      <div key={template.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-gray-800/50">
+                      <div key={template.id} className="bg-surface-dark rounded-xl p-4 border border-border">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-white truncate">{templateName}</h4>
-                            {subtitle && <p className="text-xs text-gray-400 truncate">{subtitle}</p>}
+                            <h4 className="text-sm font-medium text-content-primary truncate">{templateName}</h4>
+                            {subtitle && <p className="text-xs text-content-muted truncate">{subtitle}</p>}
                           </div>
                           <div className="flex items-center gap-1">
                             <button 
                               onClick={() => handleOpenTemplateModal(template)}
-                              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                              className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
                             >
-                              <Edit className="w-4 h-4 text-gray-400" />
+                              <Edit className="w-4 h-4 text-content-muted" />
                             </button>
                             <button 
                               onClick={() => handleDeleteTemplate(template)}
-                              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                              className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4 text-red-400" />
                             </button>
                           </div>
                         </div>
-                        {previewText && <p className="text-xs text-gray-500 line-clamp-2 mb-2">{previewText}</p>}
+                        {previewText && <p className="text-xs text-content-faint line-clamp-2 mb-2">{previewText}</p>}
                         {folder && (
-                          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <div className="flex items-center gap-1.5 text-xs text-content-faint">
                             <Folder className="w-3 h-3" style={{ color: folder.color || '#3B82F6' }} />
                             {folder.name}
                           </div>
@@ -850,17 +850,17 @@ export default function BroadcastModal({
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-2">No templates yet</p>
+                  <FileText className="w-12 h-12 text-content-faint mx-auto mb-3" />
+                  <p className="text-content-faint mb-2">No templates yet</p>
                 </div>
               )}
             </div>
 
             {/* New Template Button */}
-            <div className="p-4 bg-[#0a0a0a] border-t border-gray-800/50">
+            <div className="p-4 bg-surface-dark border-t border-border">
               <button 
                 onClick={() => handleOpenTemplateModal()}
-                className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-orange-600"
+                className="w-full py-3 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-primary-hover"
               >
                 <Plus className="w-4 h-4" />
                 New Template
@@ -880,7 +880,7 @@ export default function BroadcastModal({
                       ? preConfiguredMessages?.filter(m => m.folderId === folder.id).length || 0 
                       : emailTemplates.filter(t => t.folderId === folder.id).length
                     return (
-                      <div key={folder.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-gray-800/50">
+                      <div key={folder.id} className="bg-surface-dark rounded-xl p-4 border border-border">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div 
@@ -890,20 +890,20 @@ export default function BroadcastModal({
                               <Folder className="w-6 h-6" style={{ color: folder.color || '#3B82F6' }} />
                             </div>
                             <div>
-                              <h4 className="text-sm font-medium text-white">{folder.name}</h4>
-                              <p className="text-xs text-gray-500">{templateCount} template{templateCount !== 1 ? "s" : ""}</p>
+                              <h4 className="text-sm font-medium text-content-primary">{folder.name}</h4>
+                              <p className="text-xs text-content-faint">{templateCount} template{templateCount !== 1 ? "s" : ""}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
                             <button 
                               onClick={() => handleOpenFolderModal(folder)}
-                              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                              className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
                             >
-                              <Edit className="w-4 h-4 text-gray-400" />
+                              <Edit className="w-4 h-4 text-content-muted" />
                             </button>
                             <button 
                               onClick={() => handleDeleteFolder(folder)}
-                              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                              className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4 text-red-400" />
                             </button>
@@ -915,17 +915,17 @@ export default function BroadcastModal({
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Folder className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-2">No folders yet</p>
+                  <Folder className="w-12 h-12 text-content-faint mx-auto mb-3" />
+                  <p className="text-content-faint mb-2">No folders yet</p>
                 </div>
               )}
             </div>
 
             {/* New Folder Button */}
-            <div className="p-4 bg-[#0a0a0a] border-t border-gray-800/50">
+            <div className="p-4 bg-surface-dark border-t border-border">
               <button 
                 onClick={() => handleOpenFolderModal()}
-                className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-orange-600"
+                className="w-full py-3 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-primary-hover"
               >
                 <FolderPlus className="w-4 h-4" />
                 New Folder
@@ -941,18 +941,18 @@ export default function BroadcastModal({
   // DESKTOP LAYOUT
   // ==========================================
   const DesktopLayout = () => (
-    <div className="hidden md:flex fixed inset-0 bg-black/80 items-center justify-center z-50">
-      <div ref={modalRef} className="bg-[#0E0E0E] rounded-2xl w-full max-w-5xl mx-4 max-h-[90vh] overflow-hidden border border-gray-800/50 shadow-2xl relative">
+    <div className="hidden md:flex fixed inset-0 bg-black/50 items-center justify-center z-50">
+      <div ref={modalRef} className="bg-surface-card rounded-xl w-full max-w-5xl mx-4 max-h-[90vh] overflow-hidden border border-border shadow-2xl relative">
         {/* Success Message Toast */}
         {showSuccessMessage && lastSentInfo && (
           <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50">
-            <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl px-5 py-3 flex items-center gap-3 shadow-xl">
-              <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                <Check className="w-4 h-4 text-orange-400" />
+            <div className="bg-surface-dark border border-border rounded-xl px-5 py-3 flex items-center gap-3 shadow-xl">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <Check className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">Broadcast sent successfully!</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm font-medium text-content-primary">Broadcast sent successfully!</p>
+                <p className="text-xs text-content-muted">
                   {lastSentInfo.channel === "push" ? "Push notification" : "Email"} sent to{" "}
                   {lastSentInfo.memberCount > 0 && `${lastSentInfo.memberCount} member${lastSentInfo.memberCount > 1 ? 's' : ''}`}
                   {lastSentInfo.memberCount > 0 && lastSentInfo.staffCount > 0 && ' & '}
@@ -961,56 +961,56 @@ export default function BroadcastModal({
               </div>
               <button 
                 onClick={() => setShowSuccessMessage(false)}
-                className="ml-2 p-1 hover:bg-white/10 rounded-lg transition-colors"
+                className="ml-2 p-1 hover:bg-surface-hover rounded-lg transition-colors"
               >
-                <X className="w-4 h-4 text-gray-400" />
+                <X className="w-4 h-4 text-content-muted" />
               </button>
             </div>
           </div>
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-          <h2 className="text-lg font-semibold text-white">Broadcast</h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
-            <X className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-content-primary">Broadcast</h2>
+          <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-xl transition-colors">
+            <X className="w-5 h-5 text-content-muted" />
           </button>
         </div>
 
         <div className="flex h-[calc(90vh-80px)]">
           {/* Left Sidebar */}
-          <div className="w-56 border-r border-gray-800/50 p-3 flex flex-col">
+          <div className="w-56 border-r border-border p-3 flex flex-col">
             <div className="mb-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-2">Channel</p>
+              <p className="text-xs text-content-faint uppercase tracking-wider mb-2 px-2">Channel</p>
               <div className="space-y-1">
-                <button onClick={() => setActiveChannel("push")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeChannel === "push" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                <button onClick={() => setActiveChannel("push")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeChannel === "push" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
                   <Bell className="w-4 h-4" />Push Notification
                 </button>
-                <button onClick={() => setActiveChannel("email")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeChannel === "email" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                <button onClick={() => setActiveChannel("email")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeChannel === "email" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
                   <Mail className="w-4 h-4" />Email
                 </button>
               </div>
             </div>
 
             <div className="flex-1">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-2">Sections</p>
+              <p className="text-xs text-content-faint uppercase tracking-wider mb-2 px-2">Sections</p>
               <div className="space-y-1">
-                <button onClick={() => setActiveSection("compose")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "compose" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                <button onClick={() => setActiveSection("compose")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "compose" ? "bg-surface-hover text-content-primary" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
                   <Send className="w-4 h-4" />Compose
                 </button>
-                <button onClick={() => setActiveSection("templates")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "templates" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                  <FileText className="w-4 h-4" />Templates<span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-lg">{currentTemplates.length}</span>
+                <button onClick={() => setActiveSection("templates")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "templates" ? "bg-surface-hover text-content-primary" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
+                  <FileText className="w-4 h-4" />Templates<span className="ml-auto text-xs bg-surface-hover px-2 py-0.5 rounded-lg">{currentTemplates.length}</span>
                 </button>
-                <button onClick={() => setActiveSection("folders")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "folders" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                  <Folder className="w-4 h-4" />Folders<span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-lg">{currentFolders.length}</span>
+                <button onClick={() => setActiveSection("folders")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "folders" ? "bg-surface-hover text-content-primary" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
+                  <Folder className="w-4 h-4" />Folders<span className="ml-auto text-xs bg-surface-hover px-2 py-0.5 rounded-lg">{currentFolders.length}</span>
                 </button>
               </div>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-gray-800/50">
-              <div className="bg-[#1a1a1a] rounded-xl p-3 space-y-2">
-                <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Recipients</span><span className="text-white font-medium">{selectedRecipients.length}</span></div>
-                <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Template</span><span className={selectedTemplate ? "text-white" : "text-gray-500"}>{selectedTemplate ? "Selected" : "None"}</span></div>
+            <div className="mt-auto pt-4 border-t border-border">
+              <div className="bg-surface-dark rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between text-xs"><span className="text-content-faint">Recipients</span><span className="text-content-primary font-medium">{selectedRecipients.length}</span></div>
+                <div className="flex items-center justify-between text-xs"><span className="text-content-faint">Template</span><span className={selectedTemplate ? "text-content-primary" : "text-content-faint"}>{selectedTemplate ? "Selected" : "None"}</span></div>
               </div>
             </div>
           </div>
@@ -1020,25 +1020,25 @@ export default function BroadcastModal({
             {activeSection === "compose" && (
               <div className="flex-1 flex overflow-hidden">
                 {/* Recipients Panel */}
-                <div className="w-80 border-r border-gray-800/50 flex flex-col">
-                  <div className="p-4 border-b border-gray-800/50">
-                    <h3 className="text-sm font-medium text-white mb-3">Select Recipients</h3>
-                    <div className="flex bg-[#1a1a1a] rounded-xl p-1 mb-3">
-                      <button onClick={() => setAudienceTab("member")} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${audienceTab === "member" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}>
+                <div className="w-80 border-r border-border flex flex-col">
+                  <div className="p-4 border-b border-border">
+                    <h3 className="text-sm font-medium text-content-primary mb-3">Select Recipients</h3>
+                    <div className="flex bg-surface-dark rounded-xl p-1 mb-3">
+                      <button onClick={() => setAudienceTab("member")} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${audienceTab === "member" ? "bg-surface-hover text-content-primary" : "text-content-muted hover:text-content-primary"}`}>
                         <User className="w-3.5 h-3.5" />Members
                       </button>
-                      <button onClick={() => setAudienceTab("staff")} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${audienceTab === "staff" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}>
+                      <button onClick={() => setAudienceTab("staff")} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${audienceTab === "staff" ? "bg-surface-hover text-content-primary" : "text-content-muted hover:text-content-primary"}`}>
                         <Building2 className="w-3.5 h-3.5" />Staff
                       </button>
                     </div>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                      <input type="text" value={searchMember} onChange={(e) => setSearchMember(e.target.value)} placeholder={`Search ${audienceTab}s...`} className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
+                      <input type="text" value={searchMember} onChange={(e) => setSearchMember(e.target.value)} placeholder={`Search ${audienceTab}s...`} className="w-full bg-surface-dark text-content-primary text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-primary/50" />
                     </div>
                   </div>
-                  <div className="px-4 py-2 border-b border-gray-800/50 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">{visibleRecipientList.length} available</span>
-                    <button onClick={handleSelectAll} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                  <div className="px-4 py-2 border-b border-border flex items-center justify-between">
+                    <span className="text-xs text-content-muted">{visibleRecipientList.length} available</span>
+                    <button onClick={handleSelectAll} className="text-xs text-primary hover:text-primary flex items-center gap-1">
                       {selectAll ? <><X className="w-3 h-3" />Deselect All</> : <><Check className="w-3 h-3" />Select All</>}
                     </button>
                   </div>
@@ -1046,13 +1046,13 @@ export default function BroadcastModal({
                     {visibleRecipientList.map((chat) => {
                       const isSelected = selectedRecipients.find(c => c.id === chat.id)
                       return (
-                        <div key={chat.id} onClick={() => handleMemberSelect(chat)} className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${isSelected ? "bg-blue-600/20 border border-blue-500/30" : "hover:bg-white/5"}`}>
+                        <div key={chat.id} onClick={() => handleMemberSelect(chat)} className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${isSelected ? "bg-primary/20 border border-primary/30" : "hover:bg-surface-hover"}`}>
                           {chat.logo ? <img src={chat.logo} alt={chat.name} className="w-9 h-9 rounded-xl object-cover" /> : <InitialsAvatar firstName={chat.firstName} lastName={chat.lastName} size="sm" isStaff={audienceTab === "staff"} />}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white truncate">{chat.name}</p>
-                            {activeChannel === "email" && chat.email && <p className="text-xs text-gray-500 truncate">{chat.email}</p>}
+                            <p className="text-sm text-content-primary truncate">{chat.name}</p>
+                            {activeChannel === "email" && chat.email && <p className="text-xs text-content-faint truncate">{chat.email}</p>}
                           </div>
-                          <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${isSelected ? "bg-blue-500 text-white" : "border border-gray-600"}`}>
+                          <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${isSelected ? "bg-primary text-white" : "border border-border"}`}>
                             {isSelected && <Check className="w-3 h-3" />}
                           </div>
                         </div>
@@ -1065,22 +1065,22 @@ export default function BroadcastModal({
                 <div ref={templatePanelRef} className="flex-1 flex flex-col p-4 overflow-y-auto">
                   {selectedRecipients.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-xs text-gray-500 mb-2">{selectedRecipients.length} recipient{selectedRecipients.length > 1 ? "s" : ""} selected</p>
+                      <p className="text-xs text-content-faint mb-2">{selectedRecipients.length} recipient{selectedRecipients.length > 1 ? "s" : ""} selected</p>
                       <div className="flex flex-wrap gap-2">
                         {selectedRecipients.slice(0, 8).map((recipient) => (
-                          <div key={recipient.id} className="flex items-center gap-2 bg-[#1a1a1a] rounded-lg px-2.5 py-1.5">
+                          <div key={recipient.id} className="flex items-center gap-2 bg-surface-dark rounded-lg px-2.5 py-1.5">
                             {recipient.logo ? <img src={recipient.logo} alt={recipient.name} className="w-5 h-5 rounded object-cover" /> : <InitialsAvatar firstName={recipient.firstName} lastName={recipient.lastName} size="sm" isStaff={recipient.role === "staff"} className="!w-5 !h-5 !text-[10px]" />}
-                            <span className="text-xs text-white">{recipient.name}</span>
-                            <button onClick={() => removeRecipient(recipient)} className="p-0.5 hover:bg-white/10 rounded transition-colors"><X className="w-3 h-3 text-gray-400" /></button>
+                            <span className="text-xs text-content-primary">{recipient.name}</span>
+                            <button onClick={() => removeRecipient(recipient)} className="p-0.5 hover:bg-surface-hover rounded transition-colors"><X className="w-3 h-3 text-content-muted" /></button>
                           </div>
                         ))}
-                        {selectedRecipients.length > 8 && <div className="flex items-center px-2.5 py-1.5 bg-[#1a1a1a] rounded-lg"><span className="text-xs text-gray-400">+{selectedRecipients.length - 8} more</span></div>}
+                        {selectedRecipients.length > 8 && <div className="flex items-center px-2.5 py-1.5 bg-surface-dark rounded-lg"><span className="text-xs text-content-muted">+{selectedRecipients.length - 8} more</span></div>}
                       </div>
                     </div>
                   )}
 
                   <div className="mb-4">
-                    <label className="text-xs text-gray-500 mb-2 block">Select Folder</label>
+                    <label className="text-xs text-content-faint mb-2 block">Select Folder</label>
                     <select value={selectedFolder?.id || ""} onChange={(e) => { 
                       const value = e.target.value;
                       if (value === "") {
@@ -1092,7 +1092,7 @@ export default function BroadcastModal({
                         if (activeChannel === "push") { setSelectedPushFolder(folder || null); setSelectedPushMessage(null) } 
                         else { setSelectedEmailFolder(folder || null); setSelectedEmailTemplate(null) }
                       }
-                    }} className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-orange-500/50">
+                    }} className="w-full bg-surface-dark text-content-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-primary/50">
                       <option value="">All Folders</option>
                       {currentFolders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
                     </select>
@@ -1100,10 +1100,10 @@ export default function BroadcastModal({
 
                   <div className="flex-1 mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs text-gray-500">Select Template</label>
-                      <button onClick={() => handleOpenTemplateModal()} className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"><Plus className="w-3 h-3" />New Template</button>
+                      <label className="text-xs text-content-faint">Select Template</label>
+                      <button onClick={() => handleOpenTemplateModal()} className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"><Plus className="w-3 h-3" />New Template</button>
                     </div>
-                    <div ref={templateListRef} className="bg-[#1a1a1a] rounded-xl max-h-64 overflow-y-auto">
+                    <div ref={templateListRef} className="bg-surface-dark rounded-xl max-h-64 overflow-y-auto">
                       {currentTemplates.length > 0 ? currentTemplates.map((template) => {
                         const isSelected = selectedTemplate?.id === template.id
                         const templateName = template.name || "Untitled template"
@@ -1134,16 +1134,16 @@ export default function BroadcastModal({
                                 templatePanelRef.current.scrollTop = panelScrollTop
                               }
                             }} 
-                            className={`p-3 cursor-pointer transition-all outline-none ${isSelected ? "bg-blue-600/20 border-l-4 border-blue-500" : "hover:bg-white/5 border-l-4 border-transparent"}`}
+                            className={`p-3 cursor-pointer transition-all outline-none ${isSelected ? "bg-primary/20 border-l-4 border-primary" : "hover:bg-surface-hover border-l-4 border-transparent"}`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-white truncate">{templateName}</p>
-                                {subtitle && <p className="text-xs text-gray-400 truncate">{subtitle}</p>}
-                                {previewText && <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{previewText}</p>}
+                                <p className="text-sm font-medium text-content-primary truncate">{templateName}</p>
+                                {subtitle && <p className="text-xs text-content-muted truncate">{subtitle}</p>}
+                                {previewText && <p className="text-xs text-content-faint line-clamp-2 mt-0.5">{previewText}</p>}
                               </div>
                               <div data-template-dropdown>
-                                <button onClick={(e) => handleDropdownClick(e, template.id, 'template')} className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors">
+                                <button onClick={(e) => handleDropdownClick(e, template.id, 'template')} className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-button transition-colors">
                                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg>
                                 </button>
                               </div>
@@ -1152,15 +1152,15 @@ export default function BroadcastModal({
                         )
                       }) : (
                         <div className="p-8 text-center">
-                          <FileText className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">No templates found</p>
-                          <button onClick={() => handleOpenTemplateModal()} className="mt-2 text-xs text-orange-400 hover:text-orange-300">Create your first template</button>
+                          <FileText className="w-8 h-8 text-content-faint mx-auto mb-2" />
+                          <p className="text-sm text-content-faint">No templates found</p>
+                          <button onClick={() => handleOpenTemplateModal()} className="mt-2 text-xs text-primary hover:text-primary-hover">Create your first template</button>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <button onClick={handleBroadcastClick} disabled={!canSend} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${canSend ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}>
+                  <button onClick={handleBroadcastClick} disabled={!canSend} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${canSend ? "bg-primary text-white hover:bg-primary-hover" : "bg-surface-button text-content-faint cursor-not-allowed"}`}>
                     <Send className="w-4 h-4" />Send {activeChannel === "push" ? "Push Notification" : "Email"}{getSendButtonText()}
                   </button>
                 </div>
@@ -1170,8 +1170,8 @@ export default function BroadcastModal({
             {activeSection === "templates" && (
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-white">{activeChannel === "push" ? "Push Templates" : "Email Templates"}</h3>
-                  <button onClick={() => handleOpenTemplateModal()} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"><Plus className="w-4 h-4" />New Template</button>
+                  <h3 className="text-lg font-medium text-content-primary">{activeChannel === "push" ? "Push Templates" : "Email Templates"}</h3>
+                  <button onClick={() => handleOpenTemplateModal()} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"><Plus className="w-4 h-4" />New Template</button>
                 </div>
                 <div className="mb-4">
                   <select value={selectedFolder?.id || ""} onChange={(e) => { 
@@ -1184,7 +1184,7 @@ export default function BroadcastModal({
                       if (activeChannel === "push") setSelectedPushFolder(folder || null); 
                       else setSelectedEmailFolder(folder || null);
                     }
-                  }} className="bg-[#1a1a1a] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-orange-500/50">
+                  }} className="bg-surface-dark text-content-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-primary/50">
                     <option value="">All Folders</option>
                     {currentFolders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
                   </select>
@@ -1197,48 +1197,48 @@ export default function BroadcastModal({
                     const previewText = stripHtmlTags(preview)
                     const folder = currentFolders.find(f => f.id === template.folderId)
                     return (
-                      <div key={template.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-gray-800/50 hover:border-gray-700/50 transition-colors">
+                      <div key={template.id} className="bg-surface-dark rounded-xl p-4 border border-border hover:border-border transition-colors">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-white truncate">{templateName}</h4>
-                            {subtitle && <p className="text-xs text-gray-400 truncate">{subtitle}</p>}
+                            <h4 className="text-sm font-medium text-content-primary truncate">{templateName}</h4>
+                            {subtitle && <p className="text-xs text-content-muted truncate">{subtitle}</p>}
                           </div>
                           <div data-template-dropdown>
-                            <button onClick={(e) => handleDropdownClick(e, `grid-${template.id}`, 'template')} className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors">
+                            <button onClick={(e) => handleDropdownClick(e, `grid-${template.id}`, 'template')} className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-button transition-colors">
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg>
                             </button>
                           </div>
                         </div>
-                        {previewText && <p className="text-xs text-gray-500 line-clamp-2 mb-3">{previewText}</p>}
-                        {folder && <div className="flex items-center gap-1.5 text-xs text-gray-600"><Folder className="w-3 h-3" style={{ color: folder.color || '#3B82F6' }} />{folder.name}</div>}
+                        {previewText && <p className="text-xs text-content-faint line-clamp-2 mb-3">{previewText}</p>}
+                        {folder && <div className="flex items-center gap-1.5 text-xs text-content-faint"><Folder className="w-3 h-3" style={{ color: folder.color || '#3B82F6' }} />{folder.name}</div>}
                       </div>
                     )
                   })}
                 </div>
-                {currentTemplates.length === 0 && <div className="text-center py-12"><FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" /><p className="text-gray-500 mb-2">No templates yet</p><button onClick={() => handleOpenTemplateModal()} className="text-sm text-orange-400 hover:text-orange-300">Create your first template</button></div>}
+                {currentTemplates.length === 0 && <div className="text-center py-12"><FileText className="w-12 h-12 text-content-faint mx-auto mb-3" /><p className="text-content-faint mb-2">No templates yet</p><button onClick={() => handleOpenTemplateModal()} className="text-sm text-primary hover:text-primary-hover">Create your first template</button></div>}
               </div>
             )}
 
             {activeSection === "folders" && (
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-white">{activeChannel === "push" ? "Push Folders" : "Email Folders"}</h3>
-                  <button onClick={() => handleOpenFolderModal()} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"><FolderPlus className="w-4 h-4" />New Folder</button>
+                  <h3 className="text-lg font-medium text-content-primary">{activeChannel === "push" ? "Push Folders" : "Email Folders"}</h3>
+                  <button onClick={() => handleOpenFolderModal()} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"><FolderPlus className="w-4 h-4" />New Folder</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {currentFolders.map((folder) => {
                     const templateCount = activeChannel === "push" ? preConfiguredMessages?.filter(m => m.folderId === folder.id).length || 0 : emailTemplates.filter(t => t.folderId === folder.id).length
                     return (
-                      <div key={folder.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-gray-800/50 hover:border-gray-700/50 transition-colors">
+                      <div key={folder.id} className="bg-surface-dark rounded-xl p-4 border border-border hover:border-border transition-colors">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${folder.color || '#3B82F6'}20` }}>
                               <Folder className="w-5 h-5" style={{ color: folder.color || '#3B82F6' }} />
                             </div>
-                            <div><h4 className="text-sm font-medium text-white">{folder.name}</h4><p className="text-xs text-gray-500">{templateCount} template{templateCount !== 1 ? "s" : ""}</p></div>
+                            <div><h4 className="text-sm font-medium text-content-primary">{folder.name}</h4><p className="text-xs text-content-faint">{templateCount} template{templateCount !== 1 ? "s" : ""}</p></div>
                           </div>
                           <div data-folder-dropdown>
-                            <button onClick={(e) => handleDropdownClick(e, folder.id, 'folder')} className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors">
+                            <button onClick={(e) => handleDropdownClick(e, folder.id, 'folder')} className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-button transition-colors">
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg>
                             </button>
                           </div>
@@ -1247,7 +1247,7 @@ export default function BroadcastModal({
                     )
                   })}
                 </div>
-                {currentFolders.length === 0 && <div className="text-center py-12"><Folder className="w-12 h-12 text-gray-700 mx-auto mb-3" /><p className="text-gray-500 mb-2">No folders yet</p><button onClick={() => handleOpenFolderModal()} className="text-sm text-orange-400 hover:text-orange-300">Create your first folder</button></div>}
+                {currentFolders.length === 0 && <div className="text-center py-12"><Folder className="w-12 h-12 text-content-faint mx-auto mb-3" /><p className="text-content-faint mb-2">No folders yet</p><button onClick={() => handleOpenFolderModal()} className="text-sm text-primary hover:text-primary-hover">Create your first folder</button></div>}
               </div>
             )}
           </div>
@@ -1255,16 +1255,16 @@ export default function BroadcastModal({
 
         {/* Portal Dropdowns */}
         {templateDropdownOpen && (
-          <div className="absolute bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-xl py-1 z-[200] min-w-[120px]" style={{ top: dropdownPosition.top, left: dropdownPosition.left }} data-template-dropdown>
-            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleOpenTemplateModal(template) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> Edit</button>
-            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleDeleteTemplate(template) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> Delete</button>
+          <div className="absolute bg-surface-card border border-border rounded-lg shadow-xl py-1 z-[200] min-w-[120px]" style={{ top: dropdownPosition.top, left: dropdownPosition.left }} data-template-dropdown>
+            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleOpenTemplateModal(template) }} className="w-full text-left px-3 py-2 hover:bg-surface-button text-content-secondary text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> Edit</button>
+            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleDeleteTemplate(template) }} className="w-full text-left px-3 py-2 hover:bg-surface-button text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> Delete</button>
           </div>
         )}
 
         {folderDropdownOpen && (
-          <div className="absolute bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-xl py-1 z-[200] min-w-[120px]" style={{ top: dropdownPosition.top, left: dropdownPosition.left }} data-folder-dropdown>
-            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleOpenFolderModal(folder) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> Edit</button>
-            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleDeleteFolder(folder) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> Delete</button>
+          <div className="absolute bg-surface-card border border-border rounded-lg shadow-xl py-1 z-[200] min-w-[120px]" style={{ top: dropdownPosition.top, left: dropdownPosition.left }} data-folder-dropdown>
+            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleOpenFolderModal(folder) }} className="w-full text-left px-3 py-2 hover:bg-surface-button text-content-secondary text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> Edit</button>
+            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleDeleteFolder(folder) }} className="w-full text-left px-3 py-2 hover:bg-surface-button text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> Delete</button>
           </div>
         )}
       </div>
@@ -1289,30 +1289,30 @@ export default function BroadcastModal({
       
       {/* Send Confirmation Modal */}
       {showSendConfirmModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[10000] p-4">
-          <div className="bg-[#0E0E0E] rounded-2xl w-full max-w-lg border border-gray-800/50 shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-              <h2 className="text-lg font-semibold text-white">Confirm Broadcast</h2>
-              <button onClick={() => setShowSendConfirmModal(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
-                <X className="w-5 h-5 text-gray-400" />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+          <div className="bg-surface-card rounded-xl w-full max-w-lg border border-border shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-content-primary">Confirm Broadcast</h2>
+              <button onClick={() => setShowSendConfirmModal(false)} className="p-2 hover:bg-surface-hover rounded-xl transition-colors">
+                <X className="w-5 h-5 text-content-muted" />
               </button>
             </div>
 
             <div className="p-4 space-y-4">
-              <p className="text-gray-300">Are you sure you want to send this broadcast?</p>
+              <p className="text-content-secondary">Are you sure you want to send this broadcast?</p>
               
-              <div className="bg-[#1a1a1a] rounded-xl p-4 space-y-3">
+              <div className="bg-surface-dark rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Channel</span>
-                  <span className="text-sm text-white font-medium flex items-center gap-2">
+                  <span className="text-sm text-content-faint">Channel</span>
+                  <span className="text-sm text-content-primary font-medium flex items-center gap-2">
                     {activeChannel === "push" ? <Bell className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
                     {activeChannel === "push" ? "Push Notification" : "Email"}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Recipients</span>
-                  <span className="text-sm text-white font-medium">
+                  <span className="text-sm text-content-faint">Recipients</span>
+                  <span className="text-sm text-content-primary font-medium">
                     {memberCount > 0 && `${memberCount} member${memberCount > 1 ? 's' : ''}`}
                     {memberCount > 0 && staffCount > 0 && ' & '}
                     {staffCount > 0 && `${staffCount} staff`}
@@ -1320,23 +1320,23 @@ export default function BroadcastModal({
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Template</span>
-                  <span className="text-sm text-white font-medium truncate max-w-[200px]">
+                  <span className="text-sm text-content-faint">Template</span>
+                  <span className="text-sm text-content-primary font-medium truncate max-w-[200px]">
                     {selectedTemplate?.name || selectedTemplate?.title || selectedTemplate?.subject || "Untitled"}
                   </span>
                 </div>
               </div>
               
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-content-faint">
                 This will send {activeChannel === "push" ? "a push notification" : "an email"} to {selectedRecipients.length} recipient{selectedRecipients.length > 1 ? 's' : ''}.
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-800/50 bg-[#0a0a0a]">
-              <button onClick={() => setShowSendConfirmModal(false)} className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] text-white text-sm font-medium rounded-xl transition-colors">
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-border bg-surface-dark">
+              <button onClick={() => setShowSendConfirmModal(false)} className="px-5 py-2.5 bg-surface-dark hover:bg-surface-button-hover text-content-secondary text-sm font-medium rounded-xl transition-colors">
                 Cancel
               </button>
-              <button onClick={handleConfirmBroadcast} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-medium rounded-xl transition-all flex items-center gap-2">
+              <button onClick={handleConfirmBroadcast} className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-all flex items-center gap-2">
                 <Send className="w-4 h-4" />
                 Send Now
               </button>

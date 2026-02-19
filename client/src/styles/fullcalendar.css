@@ -1,21 +1,22 @@
 /* ============================================
    FULLCALENDAR OVERRIDES
+   Uses global --color-* CSS variables from theme.
    All var() have fallback values for safety.
    ============================================ */
 
 .fc {
   background-color: transparent !important;
-  color: var(--theme-text, white) !important;
+  color: var(--color-content-primary, #ffffff) !important;
   font-size: 0.875rem !important;
 }
 
 .fc-theme-standard td,
 .fc-theme-standard th {
-  border-color: var(--theme-border-medium, #333) !important;
+  border-color: var(--color-border, #333) !important;
 }
 
 .fc-theme-standard .fc-scrollgrid {
-  border-color: var(--theme-border-medium, #333) !important;
+  border-color: var(--color-border, #333) !important;
 }
 
 .fc-timegrid-slot {
@@ -24,26 +25,26 @@
 }
 
 .fc-timegrid-slot-label {
-  color: var(--theme-text-secondary, #9CA3AF) !important;
+  color: var(--color-content-muted, #9CA3AF) !important;
   font-size: 0.75rem !important;
 }
 
 .fc-day-today {
-  background-color: var(--theme-highlight-today, rgba(255, 255, 255, 0.05)) !important;
+  background-color: color-mix(in srgb, var(--color-primary, #f97316) 14%, transparent) !important;
 }
 
 .fc-button-primary {
-  background-color: var(--theme-surface-button, #333) !important;
-  border-color: var(--theme-border-light, #444) !important;
-  color: var(--theme-text, white) !important;
+  background-color: var(--color-surface-button, #333) !important;
+  border-color: var(--color-border, #444) !important;
+  color: var(--color-content-primary, #ffffff) !important;
 }
 
 .fc-button-primary:hover {
-  background-color: var(--theme-surface-button-hover, #444) !important;
+  background-color: var(--color-surface-button-hover, #444) !important;
 }
 
 .fc-button-active {
-  background-color: var(--theme-surface-button-active, #555) !important;
+  background-color: var(--color-surface-hover, #555) !important;
 }
 
 .fc-col-header-cell {
@@ -51,12 +52,12 @@
 }
 
 .fc-col-header-cell-cushion {
-  color: var(--theme-text-secondary, #9CA3AF) !important;
+  color: var(--color-content-muted, #9CA3AF) !important;
   padding: 4px 2px !important;
 }
 
 .fc-toolbar-title {
-  color: var(--theme-text, white) !important;
+  color: var(--color-content-primary, #ffffff) !important;
 }
 
 .fc-scrollgrid-section-header th {

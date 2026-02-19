@@ -61,14 +61,14 @@ const TypeSelectionModalMain = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#181818] w-[90%] sm:w-[400px] rounded-xl overflow-hidden"
+        className="bg-surface-dark w-[90%] sm:w-[400px] rounded-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white">New Event</h2>
+        <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-content-primary">New Event</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -76,18 +76,18 @@ const TypeSelectionModalMain = ({
 
         {/* Date and Time Display */}
         {(dateDisplay || timeDisplay) && (
-          <div className="px-6 py-3 bg-[#1a1a1a] border-b border-gray-800">
+          <div className="px-6 py-3 bg-surface-dark border-b border-border">
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-content-muted">
                 <Calendar size={14} />
-                <span className="text-white">{dateDisplay || "No date selected"}</span>
+                <span className="text-content-primary">{dateDisplay || "No date selected"}</span>
               </div>
               {timeDisplay && (
                 <>
-                  <div className="w-1 h-1 rounded-full bg-gray-600"></div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="w-1 h-1 rounded-full bg-surface-button"></div>
+                  <div className="flex items-center gap-2 text-content-muted">
                     <Clock size={14} />
-                    <span className="text-white">{timeDisplay}</span>
+                    <span className="text-content-primary">{timeDisplay}</span>
                   </div>
                 </>
               )}
@@ -99,46 +99,46 @@ const TypeSelectionModalMain = ({
           {/* Book Appointment */}
           <button
             onClick={() => handleClick("appointment")}
-            className="w-full px-4 py-3.5 bg-[#1F1F1F] hover:bg-[#2a2a2a] text-left text-white rounded-xl transition-colors flex items-center gap-3 group"
+            className="w-full px-4 py-3.5 bg-surface-card hover:bg-surface-hover text-left text-content-primary rounded-xl transition-colors flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-              <Calendar size={20} className="text-orange-500" />
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+              <Calendar size={20} className="text-primary" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">Book Appointment</p>
-              <p className="text-xs text-gray-500">Schedule a session with a member</p>
+              <p className="text-xs text-content-faint">Schedule a session with a member</p>
             </div>
-            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <div className="w-2 h-2 rounded-full bg-primary"></div>
           </button>
 
           {/* Book Trial Training */}
           <button
             onClick={() => handleClick("trial")}
-            className="w-full px-4 py-3.5 bg-[#1F1F1F] hover:bg-[#2a2a2a] text-left text-white rounded-xl transition-colors flex items-center gap-3 group"
+            className="w-full px-4 py-3.5 bg-surface-card hover:bg-surface-hover text-left text-content-primary rounded-xl transition-colors flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#3F74FF]/20 flex items-center justify-center group-hover:bg-[#3F74FF]/30 transition-colors">
-              <Users size={20} className="text-[#3F74FF]" />
+            <div className="w-10 h-10 rounded-xl bg-trial/20 flex items-center justify-center group-hover:bg-trial/30 transition-colors">
+              <Users size={20} className="text-trial" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">Book Trial Training</p>
-              <p className="text-xs text-gray-500">Schedule a trial for a lead</p>
+              <p className="text-xs text-content-faint">Schedule a trial for a lead</p>
             </div>
-            <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
+            <div className="w-2 h-2 rounded-full bg-trial"></div>
           </button>
 
           {/* Block Time Slot */}
           <button
             onClick={() => handleClick("block")}
-            className="w-full px-4 py-3.5 bg-[#1F1F1F] hover:bg-[#2a2a2a] text-left text-white rounded-xl transition-colors flex items-center gap-3 group"
+            className="w-full px-4 py-3.5 bg-surface-card hover:bg-surface-hover text-left text-content-primary rounded-xl transition-colors flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gray-500/20 flex items-center justify-center group-hover:bg-gray-500/30 transition-colors">
-              <Clock size={20} className="text-gray-400" />
+            <div className="w-10 h-10 rounded-xl bg-content-faint/20 flex items-center justify-center group-hover:bg-content-faint/30 transition-colors">
+              <Clock size={20} className="text-content-muted" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">Block Time Slot</p>
-              <p className="text-xs text-gray-500">Block a time slot on the calendar</p>
+              <p className="text-xs text-content-faint">Block a time slot on the calendar</p>
             </div>
-            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+            <div className="w-2 h-2 rounded-full bg-content-faint"></div>
           </button>
         </div>
       </div>

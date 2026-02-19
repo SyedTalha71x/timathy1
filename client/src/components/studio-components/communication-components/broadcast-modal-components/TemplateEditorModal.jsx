@@ -6,28 +6,21 @@ import { WysiwygEditor } from "../../../shared/WysiwygEditor"
 // Import email signature from configuration (Single Source of Truth)
 import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../../utils/studio-states/configuration-states"
 
-// Get variables based on audience type
-const getInsertVariables = (audienceType) => {
-  if (audienceType === "staff") {
-    return [
-      { id: 'first_name', label: 'Staff First Name', value: '{Staff_First_Name}' },
-      { id: 'last_name', label: 'Staff Last Name', value: '{Staff_Last_Name}' },
-      { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
-    ]
-  }
-  return [
-    { id: 'first_name', label: 'Member First Name', value: '{Member_First_Name}' },
-    { id: 'last_name', label: 'Member Last Name', value: '{Member_Last_Name}' },
-    { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
-  ]
-}
+// Insert variables - always show all (Member + Staff + Studio)
+const insertVariables = [
+  { id: 'member_first_name', label: 'Member First Name', value: '{Member_First_Name}' },
+  { id: 'member_last_name', label: 'Member Last Name', value: '{Member_Last_Name}' },
+  { id: 'staff_first_name', label: 'Staff First Name', value: '{Staff_First_Name}' },
+  { id: 'staff_last_name', label: 'Staff Last Name', value: '{Staff_Last_Name}' },
+  { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
+]
 
 // Get file icon based on type
 const getFileIcon = (file) => {
   const type = file.type || ''
-  if (type.startsWith('image/')) return <Image className="w-4 h-4 text-blue-400" />
+  if (type.startsWith('image/')) return <Image className="w-4 h-4 text-primary" />
   if (type.includes('pdf')) return <FileText className="w-4 h-4 text-red-400" />
-  return <File className="w-4 h-4 text-gray-400" />
+  return <File className="w-4 h-4 text-content-muted" />
 }
 
 // Format file size
@@ -64,7 +57,6 @@ const TemplateEditorModal = ({
   const titleInputRef = useRef(null)
   const attachmentInputRef = useRef(null)
 
-  const insertVariables = getInsertVariables(audienceType)
 
   // Insert variable into the active field
   const insertVariableToField = (variable, field) => {
@@ -109,7 +101,7 @@ const TemplateEditorModal = ({
   const insertSignature = () => {
     if (isEmailTemplate && editorRef.current) {
       // Get signature from configuration (Single Source of Truth)
-      const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature || "<p>--<br>Mit freundlichen Grüßen</p>";
+      const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature || "<p>--<br>Mit freundlichen GrÃ¼ÃŸen</p>";
       const currentBody = templateData.body || "";
       const newBody = currentBody + `<br><br>${signatureHtml}`;
       setTemplateData(prev => ({ ...prev, body: newBody }));
@@ -200,20 +192,20 @@ const TemplateEditorModal = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[10000]">
-      <div className={`bg-[#0E0E0E] rounded-2xl w-full mx-4 overflow-hidden border border-gray-800/50 shadow-2xl flex flex-col ${
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
+      <div className={`bg-surface-card rounded-xl w-full mx-4 overflow-hidden border border-border shadow-2xl flex flex-col ${
         isEmailTemplate ? "max-w-4xl max-h-[95vh]" : "max-w-2xl max-h-[90vh]"
       }`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800/50 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-white">
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+          <h2 className="text-lg font-semibold text-content-primary">
             {template 
               ? `Edit ${isEmailTemplate ? "Email" : "Push"} Template` 
               : `Create ${isEmailTemplate ? "Email" : "Push"} Template`
             }
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
-            <X className="w-5 h-5 text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-xl transition-colors">
+            <X className="w-5 h-5 text-content-muted" />
           </button>
         </div>
 
@@ -224,7 +216,7 @@ const TemplateEditorModal = ({
             {/* Template Name & Folder Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-400 mb-2">
+                <label className="block text-sm font-medium text-content-muted mb-2">
                   Template Name
                 </label>
                 <input
@@ -232,20 +224,20 @@ const TemplateEditorModal = ({
                   value={templateData.name}
                   onChange={(e) => setTemplateData(prev => ({ ...prev, name: e.target.value }))}
                   onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                  className="w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-3 text-sm placeholder-content-faint focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="Untitled template"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Folder</label>
+                <label className="block text-sm font-medium text-content-muted mb-2">Folder</label>
                 <select
                   value={templateData.folderId}
                   onChange={(e) => {
                     setTemplateData(prev => ({ ...prev, folderId: e.target.value }))
                     setErrors(prev => ({ ...prev, folderId: "" }))
                   }}
-                  className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                  className={`w-full bg-surface-dark text-content-primary rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
                     errors.folderId ? "ring-2 ring-red-500/50" : ""
                   }`}
                 >
@@ -265,18 +257,18 @@ const TemplateEditorModal = ({
 
             {/* Subject Line (Email) or Title (Push) */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className="block text-sm font-medium text-content-muted mb-2">
                 {isEmailTemplate ? "Subject Line" : "Notification Title"}
               </label>
               {/* Variables Row for Subject/Title */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-content-faint">Variables:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
                     type="button"
                     onClick={() => insertVariableToField(variable, isEmailTemplate ? "subject" : "title")}
-                    className="px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
+                    className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80 transition-opacity"
                   >
                     {variable.label}
                   </button>
@@ -292,7 +284,7 @@ const TemplateEditorModal = ({
                   setErrors(prev => ({ ...prev, [field]: "" }))
                 }}
                 onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                className={`w-full bg-surface-dark text-content-primary rounded-xl px-4 py-3 text-sm placeholder-content-faint focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${
                   (isEmailTemplate ? errors.subject : errors.title) ? "ring-2 ring-red-500/50" : ""
                 }`}
                 placeholder={isEmailTemplate ? "Enter email subject..." : "Enter notification title..."}
@@ -307,31 +299,31 @@ const TemplateEditorModal = ({
 
             {/* Content Area */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className="block text-sm font-medium text-content-muted mb-2">
                 {isEmailTemplate ? "Email Body" : "Message Content"}
               </label>
 
               {/* Variables Row for Content */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-content-faint">Variables:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
                     type="button"
                     onClick={() => insertVariableToField(variable, isEmailTemplate ? "body" : "message")}
-                    className="px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
+                    className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80 transition-opacity"
                   >
                     {variable.label}
                   </button>
                 ))}
                 {isEmailTemplate && (
                   <>
-                    <span className="text-xs text-gray-500 mx-1">|</span>
-                    <span className="text-xs text-gray-500">Insert:</span>
+                    <span className="text-xs text-content-faint mx-1">|</span>
+                    <span className="text-xs text-content-faint">Insert:</span>
                     <button
                       type="button"
                       onClick={insertSignature}
-                      className="px-2.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg flex items-center gap-1 transition-colors"
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg flex items-center gap-1 hover:bg-primary-hover transition-colors"
                     >
                       <FileText className="w-3 h-3" />
                       Signature
@@ -341,7 +333,7 @@ const TemplateEditorModal = ({
               </div>
 
               {isEmailTemplate ? (
-                <div className={`bg-[#1a1a1a] rounded-xl overflow-hidden ${errors.body ? "ring-2 ring-red-500/50" : ""}`}>
+                <div className={`bg-surface-dark rounded-xl overflow-hidden ${errors.body ? "ring-2 ring-red-500/50" : ""}`}>
                   <WysiwygEditor
                     ref={editorRef}
                     value={templateData.body}
@@ -362,7 +354,7 @@ const TemplateEditorModal = ({
                     setTemplateData(prev => ({ ...prev, message: e.target.value }))
                     setErrors(prev => ({ ...prev, message: "" }))
                   }}
-                  className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none ${
+                  className={`w-full bg-surface-dark text-content-primary rounded-xl px-4 py-3 text-sm placeholder-content-faint focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none ${
                     errors.message ? "ring-2 ring-red-500/50" : ""
                   }`}
                   placeholder="Enter your push notification message..."
@@ -382,7 +374,7 @@ const TemplateEditorModal = ({
             {isEmailTemplate && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-400">Attachments</label>
+                  <label className="text-sm font-medium text-content-muted">Attachments</label>
                   <input
                     ref={attachmentInputRef}
                     type="file"
@@ -393,7 +385,7 @@ const TemplateEditorModal = ({
                   <button
                     type="button"
                     onClick={() => attachmentInputRef.current?.click()}
-                    className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-hover transition-colors"
                   >
                     <Paperclip className="w-3.5 h-3.5" />
                     Add Attachment
@@ -401,23 +393,23 @@ const TemplateEditorModal = ({
                 </div>
                 
                 {attachments.length > 0 ? (
-                  <div className="bg-[#1a1a1a] rounded-xl p-2 space-y-2">
+                  <div className="bg-surface-dark rounded-xl p-2 space-y-2">
                     {attachments.map((attachment) => (
                       <div
                         key={attachment.id}
-                        className="flex items-center justify-between bg-[#0E0E0E] rounded-lg px-3 py-2"
+                        className="flex items-center justify-between bg-surface-card rounded-lg px-3 py-2"
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           {getFileIcon(attachment)}
-                          <span className="text-sm text-white truncate">{attachment.name}</span>
-                          <span className="text-xs text-gray-500 flex-shrink-0">
+                          <span className="text-sm text-content-primary truncate">{attachment.name}</span>
+                          <span className="text-xs text-content-faint flex-shrink-0">
                             ({formatFileSize(attachment.size)})
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeAttachment(attachment.id)}
-                          className="p-1.5 text-gray-500 hover:text-red-400 transition-colors ml-2"
+                          className="p-1.5 text-content-faint hover:text-red-400 transition-colors ml-2"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -427,10 +419,10 @@ const TemplateEditorModal = ({
                 ) : (
                   <div 
                     onClick={() => attachmentInputRef.current?.click()}
-                    className="border border-dashed border-gray-700 rounded-xl p-4 text-center cursor-pointer hover:border-gray-600 transition-colors"
+                    className="border border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-border transition-colors"
                   >
-                    <Paperclip className="w-5 h-5 text-gray-500 mx-auto mb-1" />
-                    <p className="text-xs text-gray-500">Click to add attachments</p>
+                    <Paperclip className="w-5 h-5 text-content-faint mx-auto mb-1" />
+                    <p className="text-xs text-content-faint">Click to add attachments</p>
                   </div>
                 )}
               </div>
@@ -438,17 +430,17 @@ const TemplateEditorModal = ({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-800/50 flex-shrink-0">
+          <div className="flex items-center justify-end gap-3 p-4 border-t border-border flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] text-white text-sm font-medium rounded-xl transition-colors"
+              className="px-5 py-2.5 bg-surface-dark hover:bg-surface-button-hover text-content-secondary text-sm font-medium rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-medium rounded-xl transition-all"
+              className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-all"
             >
               {template ? "Update Template" : "Create Template"}
             </button>

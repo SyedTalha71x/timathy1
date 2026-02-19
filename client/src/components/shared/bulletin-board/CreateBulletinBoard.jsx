@@ -106,7 +106,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       }
       .bulletin-modal-editor .ql-editor {
         color: var(--color-content-secondary) !important;
-        background-color: var(--color-surface-base) !important;
+        background-color: transparent !important;
         min-height: 100px;
         max-height: 150px;
         font-size: 14px;
@@ -120,7 +120,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       .bulletin-modal-editor .ql-toolbar.ql-snow {
         border: none !important;
         border-bottom: 1px solid var(--color-border) !important;
-        background-color: var(--color-surface-base) !important;
+        background-color: transparent !important;
         padding: 6px 8px !important;
       }
       .bulletin-modal-editor .ql-container.ql-snow {
@@ -129,7 +129,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       .bulletin-modal-editor .ql-snow .ql-stroke { stroke: var(--color-content-muted) !important; }
       .bulletin-modal-editor .ql-snow .ql-fill { fill: var(--color-content-muted) !important; }
       .bulletin-modal-editor .ql-snow .ql-picker-label { color: var(--color-content-muted) !important; }
-      .bulletin-modal-editor .ql-snow .ql-picker-options { background-color: var(--color-surface-dark) !important; border-color: var(--color-border) !important; }
+      .bulletin-modal-editor .ql-snow .ql-picker-options { background-color: var(--color-surface-card) !important; border-color: var(--color-border) !important; }
       .bulletin-modal-editor .ql-snow .ql-picker-item { color: var(--color-content-secondary) !important; }
       .bulletin-modal-editor .ql-snow .ql-picker-item:hover { color: var(--color-primary) !important; }
       .bulletin-modal-editor .ql-snow button:hover .ql-stroke { stroke: var(--color-primary) !important; }
@@ -276,7 +276,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
             onClick={() => handleTagToggle(tag.id)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               formData.tags.includes(tag.id) 
-                ? "text-content-primary" 
+                ? "text-white" 
                 : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
             }`}
             style={{ backgroundColor: formData.tags.includes(tag.id) ? tag.color : undefined }}
@@ -293,7 +293,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1000]">
-      <div className="bg-surface-dark rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface-card rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
           <h2 className="text-content-primary text-lg font-semibold">Create New Post</h2>
@@ -320,7 +320,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                     <button
                       type="button"
                       onClick={handleReCrop}
-                      className="bg-surface-dark/60 hover:bg-surface-dark/90 text-white p-2 rounded-lg transition-colors"
+                      className="bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-colors"
                       title="Adjust crop"
                     >
                       <Crop size={16} />
@@ -328,7 +328,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="bg-surface-dark/60 hover:bg-surface-dark/90 text-white p-2 rounded-lg transition-colors"
+                      className="bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-colors"
                       title="Remove image"
                     >
                       <X size={16} />
@@ -383,11 +383,11 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                   <Tag size={14} className="text-content-muted" />
                   Tags
                 </label>
-                <button type="button" onClick={onOpenTagManager} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
+                <button type="button" onClick={onOpenTagManager} className="text-xs text-primary hover:text-primary-hover transition-colors">
                   Manage
                 </button>
               </div>
-              <div className="bg-surface-dark border border-border rounded-xl p-2.5">
+              <div className="border border-border rounded-xl p-2.5">
                 {tagsDisplay}
               </div>
             </div>
@@ -404,7 +404,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                 <button
                   type="button"
                   onClick={() => setShowScheduleModal(true)}
-                  className="flex-1 bg-surface-dark border border-border rounded-xl px-3 py-2.5 text-left hover:border-primary/50 transition-colors group"
+                  className="flex-1 border border-border rounded-xl px-3 py-2.5 text-left hover:border-primary/50 transition-colors group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -424,7 +424,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                         </p>
                       </div>
                     </div>
-                    <span className="text-content-faint group-hover:text-blue-400 transition-colors text-xs">
+                    <span className="text-content-faint group-hover:text-primary-hover transition-colors text-xs">
                       Edit
                     </span>
                   </div>
@@ -433,7 +433,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                   <button
                     type="button"
                     onClick={handleRemoveSchedule}
-                    className="bg-surface-dark border border-border rounded-xl px-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
+                    className="border border-border rounded-xl px-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
                     title="Remove Schedule"
                   >
                     <Trash2 size={16} className="text-content-faint group-hover:text-red-400 transition-colors" />
@@ -450,7 +450,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, status: prev.status === "Active" ? "Inactive" : "Active" }))}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-surface-button"}`}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-primary" : "bg-surface-button"}`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-7" : "translate-x-1"}`} />
                   </button>
@@ -465,7 +465,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
             <button
               type="submit"
               disabled={!formData.title.trim() || !stripHtmlTags(formData.content).trim() || (schedule.type === 'scheduled' && !schedule.startDate)}
-              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-surface-button disabled:cursor-not-allowed text-sm text-white rounded-xl transition-colors font-medium"
+              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-primary/50 disabled:text-white/50 disabled:cursor-not-allowed text-sm text-white rounded-xl transition-colors font-medium"
             >
               {schedule.type === 'immediate' ? 'Create Post' : 'Schedule Post'}
             </button>

@@ -128,20 +128,20 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
   if (!isOpen || !imageSrc) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[1003]">
-      <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1003]">
+      <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white">Adjust Image Crop</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-content-primary">Adjust Image Crop</h2>
           <button
             onClick={handleCancel}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="text-content-muted hover:text-content-primary transition-colors p-1"
           >
             <X size={24} />
           </button>
         </div>
 
-        {/* Crop Area */}
+        {/* Crop Area - stays black for image contrast */}
         <div className="relative h-[400px] bg-black">
           <Cropper
             image={imageSrc}
@@ -158,17 +158,17 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
                 background: '#000'
               },
               cropAreaStyle: {
-                border: '2px solid #2563eb'
+                border: '2px solid var(--color-primary)'
               }
             }}
           />
         </div>
 
         {/* Controls */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-border">
           {/* Zoom Control */}
           <div className="flex items-center gap-4 mb-4">
-            <ZoomOut size={18} className="text-gray-400" />
+            <ZoomOut size={18} className="text-content-muted" />
             <input
               type="range"
               min={1}
@@ -176,9 +176,9 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
               step={0.1}
               value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="flex-1 h-2 bg-surface-button rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <ZoomIn size={18} className="text-gray-400" />
+            <ZoomIn size={18} className="text-content-muted" />
           </div>
 
           {/* Action Buttons */}
@@ -186,14 +186,14 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
             <button
               onClick={handleCancel}
               disabled={isProcessing}
-              className="px-5 py-2.5 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+              className="px-5 py-2.5 bg-surface-button hover:bg-surface-button-hover disabled:opacity-50 text-content-primary rounded-xl text-sm font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
               disabled={isProcessing}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
             >
               <Check size={18} />
               {isProcessing ? 'Processing...' : 'Apply'}
