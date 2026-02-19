@@ -1,18 +1,22 @@
 /* eslint-disable react/prop-types */
 import { X, Plus } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
-const AddToPlanModal = ({ 
-  isOpen, 
-  onClose, 
-  videoToAdd, 
-  trainingPlans, 
-  onAddToExistingPlan, 
+const AddToPlanModal = ({
+  isOpen,
+  onClose,
+  videoToAdd,
+  trainingPlans,
+  onAddToExistingPlan,
   onCreateNewPlan,
-  getDifficultyColor 
+  getDifficultyColor
 }) => {
   if (!isOpen || !videoToAdd) return null;
+  const {user}= useSelector((state)=>state.auth)
+  const userPlans = trainingPlans.filter(
+    (plan) => plan.createdBy?._id === user._id
+  );
 
-  const userPlans = trainingPlans.filter((plan) => plan.createdBy === "Current User");
 
   const handleCreateNew = () => {
     onClose();
@@ -40,9 +44,9 @@ const AddToPlanModal = ({
             <div className="space-y-3 max-h-48 sm:max-h-60 overflow-y-auto">
               {userPlans.map((plan) => (
                 <div
-                  key={plan.id}
+                  key={plan._id}
                   className="bg-[#161616] rounded-xl p-3 sm:p-4 hover:bg-[#1F1F1F] transition-colors cursor-pointer"
-                  onClick={() => onAddToExistingPlan(plan.id)}
+                  onClick={() => onAddToExistingPlan(plan._id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">

@@ -242,24 +242,26 @@ export default function Training() {
   }
 
   const handleEditPlan = () => {
-    const updatedPlans = myPlans.map((plan) =>
-      plan._id === editingPlan.id
-        ? {
-          ...editingPlan, // Keep the original plan structure
-          ...planForm, // Override with form data
-          id: editingPlan._id, // Ensure ID is preserved
-          exercises: selectedExercises, // Use selectedExercises instead of planForm.exercises
-        }
-        : plan,
-    )
-    dispatch(updatePlan(updatedPlans));
-    setTimeout(() => {
-      toast.success("Training plan updated successfully!")
-      dispatch(myPlans());
-    }, 2000);
-    setIsEditPlanModalOpen(false)
-    setEditingPlan(null)
-    resetPlanForm()
+    if (!editingPlan) return;
+
+    const planData = {
+      ...planForm,
+      exercises: selectedExercises,
+    };
+
+    dispatch(updatePlan({ planId: editingPlan._id, planData }))
+      .unwrap()
+      .then(() => {
+        toast.success("Training plan updated successfully!");
+        dispatch(myPlans());
+      })
+      .catch(err => {
+        toast.error(err.message || "Failed to update plan");
+      });
+
+    setIsEditPlanModalOpen(false);
+    setEditingPlan(null);
+    resetPlanForm();
   }
 
   const resetPlanForm = () => {
@@ -648,7 +650,7 @@ export default function Training() {
         isOpen={isAddToPlanModalOpen}
         onClose={() => { setIsAddToPlanModalOpen(false); setVideoToAdd(null); }}
         videoToAdd={videoToAdd}
-        // trainingPlans={trainingPlans}
+        trainingPlans={myPlans}
         onAddToExistingPlan={handleAddToExistingPlan}
         onCreateNewPlan={createNewPlan}
         getDifficultyColor={getDifficultyColor}
