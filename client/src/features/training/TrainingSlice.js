@@ -53,7 +53,16 @@ export const createPlan = createAsyncThunk('training/createTrainingPlan', async 
     }
 });
 
-
+// *** Update Training Plan *** 
+export const updatePlan = createAsyncThunk('training/updateTrainingPlan', async ({ planId, planData }, { rejectWithValue }) => {
+    try {
+        const res = await trainingApi.updateTrainingPlan(planId, planData);
+        return res.data.plan;
+    }
+    catch (error) {
+        return rejectWithValue(Response.error?.data)
+    }
+})
 
 
 const trainingSlice = createSlice({
@@ -123,6 +132,20 @@ const trainingSlice = createSlice({
                 state.loading = false;
                 state.error = action.error?.message
             })
+            // update training plan
+            .addCase(updatePlan.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updatePlan.fulfilled, (state, action) => {
+                state.loading = false;
+                state.myPlans = action.payload;
+            })
+            .addCase(updatePlan.rejected, (state, action) => { 
+                state.loading=false;
+                state.error = action.payload?.message
+            })
+
     }
 })
 export default trainingSlice.reducer;

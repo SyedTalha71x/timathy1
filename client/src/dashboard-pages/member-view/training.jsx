@@ -30,7 +30,7 @@ import AddToPlanModal from "../../components/member-panel-components/training-co
 import CreatePlanModal from "../../components/member-panel-components/training-components/CreatePlanModal"
 import { EditPlanModal } from "../../components/member-panel-components/training-components/EditPlanModal"
 import { ViewPlanModal } from "../../components/member-panel-components/training-components/ViewPlanModal"
-import { createPlan, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+import { createPlan, fetchMyPlans, fetchTrainingVideos, updatePlan } from "../../features/training/TrainingSlice"
 
 
 export default function Training() {
@@ -252,11 +252,14 @@ export default function Training() {
         }
         : plan,
     )
-    // setTrainingPlans(updatedPlans)
+    dispatch(updatePlan(updatedPlans));
+    setTimeout(() => {
+      toast.success("Training plan updated successfully!")
+      dispatch(myPlans());
+    }, 2000);
     setIsEditPlanModalOpen(false)
     setEditingPlan(null)
     resetPlanForm()
-    toast.success("Training plan updated successfully!")
   }
 
   const resetPlanForm = () => {

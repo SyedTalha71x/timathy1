@@ -35,3 +35,10 @@ export const createTrainingPlan = async (planData) => {
     const res = await api.post('/plan/create', planData, { withCredentials: true })
     return res.data
 }
+
+// Update Plan
+
+export const updateTrainingPlan = async (planId, planData) => {
+    const res = await api.put(`/plan/${planId}`, planData, { withCredentials: true })
+    return res.data
+}
