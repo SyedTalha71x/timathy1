@@ -60,7 +60,7 @@ export const updatePlan = createAsyncThunk('training/updateTrainingPlan', async 
         return res.data.plan;
     }
     catch (error) {
-        return rejectWithValue(Response.error?.data)
+        return rejectWithValue(error?.message)
     }
 })
 
@@ -139,10 +139,13 @@ const trainingSlice = createSlice({
             })
             .addCase(updatePlan.fulfilled, (state, action) => {
                 state.loading = false;
-                state.myPlans = action.payload;
+                state.myPlans = state.myPlans.map(plan =>
+                    plan._id === action.payload._id ? action.payload : plan
+                );
             })
-            .addCase(updatePlan.rejected, (state, action) => { 
-                state.loading=false;
+
+            .addCase(updatePlan.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload?.message
             })
 

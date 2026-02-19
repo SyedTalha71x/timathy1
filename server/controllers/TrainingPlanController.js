@@ -81,31 +81,48 @@ const showMyPlan = async (req, res, next) => {
 
 const updateTrainingPlan = async (req, res, next) => {
     try {
-        const userId = req.user?._id;
-        const planId = req.params;
-
-        const existingPlan = await TrainingPlanModel.findById(planId);
+        const userId = req.user?._id
+        const { planId } = req.params
+        const existingPlan = await TrainingPlanModel.findById(planId)
         if (!existingPlan) {
-            throw new NotFoundError('Training plan not Found')
-        }
-        if (existingPlan.createdBy.toString() !== userId.toString() || existingPlan.member.toString() !== userId.toString()) {
-            throw new UnAuthorizedError("You cannot Update plan")
+            throw new NotFoundError("Training plan not found")
         }
 
-        const videoId = req.body.exercises.map(ex => ex.video);
-        const findVideo = await TrainingVideoModel.find({ _id: { $in: videoId } });
-        if (!findVideo || findVideo.length === 0) {
-            throw new NotFoundError('Training video not found');
+        const isCreator = existingPlan.createdBy?.toString() === userId.toString()
+        const isMember = existingPlan.member?.toString() === userId.toString()
+
+        if (!isCreator && !isMember) {
+            throw new UnAuthorizedError("You cannot update this plan")
         }
 
-        const updatedPlan = await TrainingPlanModel.findByIdAndUpdate(planId, req.body, { new: true });
-        res.status(200).json({ success: true, plan: updatedPlan });
+        if (!req.body.exercises || !req.body.exercises.length) {
+            throw new BadRequestError("Exercises are required")
+        }
 
-    }
-    catch (error) {
+        const videoIds = req.body.exercises.map(ex => ex.video)
+        const foundVideos = await TrainingVideoModel.find({
+            _id: { $in: videoIds }
+        })
+
+        if (foundVideos.length !== videoIds.length) {
+            throw new NotFoundError("One or more training videos not found")
+        }
+
+        const updatedPlan = await TrainingPlanModel.findByIdAndUpdate(
+            planId,
+            req.body,
+            { new: true }
+        )
+
+        res.status(200).json({
+            success: true,
+            plan: updatedPlan
+        })
+    } catch (error) {
         next(error)
     }
 }
+
 
 module.exports = {
     createPlan,
