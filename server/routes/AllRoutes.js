@@ -8,7 +8,7 @@ const TrainingVideoUploadRoutes = require('./TrainingVideoUploadRoutes');
 const TrainingPlanRoutes = require('./TrainingPlanRoutes');
 const StudioRoutes = require('./StudioRoutes');
 const ServiceRoutes = require('./ServiceRoutes');
-
+const DailyIntakeRoutes = require('./nutrition/DailyIntakeRoutes')
 const NotificationRoutes = require('./NotificationRoutes');
 const EmailRoutes = require('./EmailRoutes');
 const AuthRoutes = require('./AuthRoutes');
@@ -43,6 +43,7 @@ router.use('/auth', AuthRoutes)
 router.use('/staff', StaffRoutes)
 router.use('/member', MemberRoutes)
 router.use('/appointment', AppointmentRoutes)
+router.use('/daily', DailyIntakeRoutes)
 
 
 router.use('/studio', StudioRoutes)
