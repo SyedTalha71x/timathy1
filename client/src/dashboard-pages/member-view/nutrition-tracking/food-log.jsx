@@ -33,6 +33,7 @@ function FoodLog() {
     useEffect(()=>{
         dispatch(fetchFood());
     },[dispatch])
+    
     const handleAddFood = () => {
         console.log("Adding food:", { foodName, quantity, unit, notes, meal: selectedMeal })
         // Reset form

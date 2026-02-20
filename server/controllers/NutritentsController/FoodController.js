@@ -7,12 +7,7 @@ const createFood = async (req, res, next) => {
     try {
         const {
             name,
-            serving,
-            servingSize,
-            calories,
-            protein,
-            carbs,
-            fats
+            
         } = req.body
 
 

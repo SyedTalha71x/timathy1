@@ -13,7 +13,7 @@ const NotificationRoutes = require('./NotificationRoutes');
 const EmailRoutes = require('./EmailRoutes');
 const AuthRoutes = require('./AuthRoutes');
 const FoodRoutes = require('./nutrition/FoodRoutes')
-
+const UserGoalRoutes = require('./nutrition/UserGoalRoutes')
 const router = express.Router();
 
 const strictLimiter = rateLimit({
@@ -46,6 +46,7 @@ router.use('/appointment', AppointmentRoutes)
 // nurition all api
 router.use('/daily', DailyIntakeRoutes)
 router.use('/food', FoodRoutes)
+router.use('/goal', UserGoalRoutes)
 
 router.use('/studio', StudioRoutes)
 router.use('/service', ServiceRoutes)
