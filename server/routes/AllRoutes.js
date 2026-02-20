@@ -12,7 +12,7 @@ const DailyIntakeRoutes = require('./nutrition/DailyIntakeRoutes')
 const NotificationRoutes = require('./NotificationRoutes');
 const EmailRoutes = require('./EmailRoutes');
 const AuthRoutes = require('./AuthRoutes');
-
+const FoodRoutes = require('./nutrition/FoodRoutes')
 
 const router = express.Router();
 
@@ -43,8 +43,9 @@ router.use('/auth', AuthRoutes)
 router.use('/staff', StaffRoutes)
 router.use('/member', MemberRoutes)
 router.use('/appointment', AppointmentRoutes)
+// nurition all api
 router.use('/daily', DailyIntakeRoutes)
-
+router.use('/food', FoodRoutes)
 
 router.use('/studio', StudioRoutes)
 router.use('/service', ServiceRoutes)

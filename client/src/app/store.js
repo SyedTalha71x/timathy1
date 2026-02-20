@@ -4,7 +4,12 @@ import authReducer from '../features/auth/authSlice';
 import studioReducer from '../features/studio/studioSlice';
 import servicesReducers from '../features/services/servicesSlice';
 import appointmentReducers from '../features/appointments/AppointmentSlice'
-import trainingSlice from '../features/training/TrainingSlice';
+import trainingReducers from '../features/training/TrainingSlice';
+import barCodeReducers from '../features/barcodeScanner/barCodeSlice';
+import foodReducers from '../features/food/foodSlice'
+
+
+
 export const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -12,6 +17,8 @@ export const store = configureStore({
         studios: studioReducer,
         services: servicesReducers,
         appointments: appointmentReducers,
-        trainings: trainingSlice
+        trainings: trainingReducers,
+        barCode: barCodeReducers,
+        food: foodReducers
     }
 })

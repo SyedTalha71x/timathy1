@@ -1,9 +1,12 @@
 
 import { Plus } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-
+import { fetchFood } from '../../../features/food/foodSlice'
+import { useSelector, useDispatch } from 'react-redux'
 function FoodLog() {
+    const dispatch = useDispatch();
+    const { foodData, loading, error } = useSelector((state) => state.food)
     const navigate = useNavigate()
     const [selectedMeal, setSelectedMeal] = useState("Breakfast")
     const [foodName, setFoodName] = useState("")
@@ -27,7 +30,9 @@ function FoodLog() {
         { name: "Salmon Fillet (Baked)", calories: 200 },
         { name: "Spinach Salad with Vinaigrette", calories: 100 },
     ]
-
+    useEffect(()=>{
+        dispatch(fetchFood());
+    },[dispatch])
     const handleAddFood = () => {
         console.log("Adding food:", { foodName, quantity, unit, notes, meal: selectedMeal })
         // Reset form
@@ -97,13 +102,13 @@ function FoodLog() {
                     <div>
                         <h2 className="text-lg font-semibold mb-3">Recently Logged</h2>
                         <div className="space-y-2">
-                            {recentlyLogged.map((food, index) => (
+                            {foodData.slice(0,4).map((food, index) => (
                                 <div
                                     key={index}
                                     className="bg-[#1a1a1a] border border-[#5F5F5F] rounded-lg p-3 sm:p-4 flex justify-between items-center hover:bg-[#252525] transition-colors cursor-pointer"
                                 >
                                     <span className="text-sm  text-[#636AE8]">{food.name}</span>
-                                    <span className="text-sm text-white">{food.calories} kcal</span>
+                                    <span className="text-sm text-white">{Number(food.calories).toFixed(2)} kcal</span>
                                 </div>
                             ))}
                         </div>
@@ -177,7 +182,7 @@ function FoodLog() {
                             onClick={handleAddFood}
                             className="w-full bg-indigo-600 cursor-pointer text-sm hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
-                            <Plus size={16}/>
+                            <Plus size={16} />
                             Add Food to Meal
                         </button>
                     </div>
