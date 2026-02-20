@@ -539,6 +539,18 @@ export default function Communications() {
       };
       // Clear navigation state immediately to prevent issues
       navigate(location.pathname, { replace: true, state: {} });
+    } else if (location.state?.openChatType && !location.state?.openChatId) {
+      // Handle tab-only navigation (e.g. from sidebar notification section headers)
+      const targetType = location.state.openChatType;
+      if (chatType !== targetType) {
+        setChatType(targetType);
+      }
+      // Reset to chat list view
+      setActiveScreen("chat");
+      setSelectedChat(null);
+      setIsMessagesOpen(true);
+      // Clear navigation state immediately to prevent issues
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
 
@@ -2655,7 +2667,9 @@ export default function Communications() {
                 <User size={16} className="mr-2" />
                 Member
                 {getTotalUnreadCount("member") > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${
+                    chatType === "member" && activeScreen !== "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
+                  }`}>
                     {getTotalUnreadCount("member")}
                   </span>
                 )}
@@ -2674,7 +2688,9 @@ export default function Communications() {
                 <Building2 size={16} className="mr-2" />
                 Studio
                 {getTotalUnreadCount("company") > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${
+                    chatType === "company" && activeScreen !== "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
+                  }`}>
                     {getTotalUnreadCount("company")}
                   </span>
                 )}
@@ -2686,7 +2702,9 @@ export default function Communications() {
                 <Mail size={16} className="mr-2" />
                 Email
                 {getTotalUnreadEmails() > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${
+                    activeScreen === "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
+                  }`}>
                     {getTotalUnreadEmails()}
                   </span>
                 )}

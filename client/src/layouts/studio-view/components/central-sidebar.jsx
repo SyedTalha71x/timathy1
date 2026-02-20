@@ -5,7 +5,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import {
   X,
   ChevronDown,
@@ -46,7 +46,7 @@ const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", contex
   }
 
   // Staff uses blue, members use orange
-  const bgColor = context === "staff" ? "bg-blue-600" : "bg-orange-500"
+  const bgColor = context === "staff" ? "bg-secondary" : "bg-primary"
 
   return (
     <div
@@ -180,6 +180,15 @@ const Sidebar = ({
   onClose,
 }) => {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  // Close sidebar when navigating to pages with their own full layout
+  useEffect(() => {
+    const closePaths = ["/dashboard/leads", "/dashboard/selling", "/dashboard/my-area"]
+    if (isRightSidebarOpen && onClose && closePaths.some(p => pathname.startsWith(p))) {
+      onClose()
+    }
+  }, [pathname])
   
   // Local widgets state - initialized from localStorage or props
   const [localWidgets, setLocalWidgets] = useState(() => {
@@ -299,7 +308,7 @@ const Sidebar = ({
   }, []) // Only run on mount
   
   // Maximum visible items
-  const MAX_VISIBLE_ITEMS = 5
+  const MAX_VISIBLE_ITEMS = 10
   
   // Default visible items per widget type
   const getDefaultVisibleItems = (widgetType) => {
@@ -1031,7 +1040,7 @@ const Sidebar = ({
             getMemberById={getMemberById}
             showCollapseButton={false}
             useFixedHeight={false}
-            backgroundColor="bg-[#2F2F2F]"
+            backgroundColor="bg-surface-button"
             showDatePicker={true}
             initialDate={new Date()}
             {...commonProps}
@@ -1090,7 +1099,7 @@ const Sidebar = ({
       {/* Member Chat Section */}
       <NotificationSection
         title="Member Chat"
-        icon={<User size={16} className="inline mr-2" />}
+        icon={<User size={16} className="inline mr-2 text-primary" />}
         isCollapsed={collapsedSections.memberChat}
         onToggle={() => toggleNotificationSection("memberChat")}
         unreadCount={getUnreadCount("memberChat")}
@@ -1100,14 +1109,15 @@ const Sidebar = ({
           markMessageAsRead(msg.id, msg.type)
         }}
         emptyMessage="No member messages"
-        highlightClass="bg-blue-900/20"
+        highlightClass="bg-primary/20"
         context="member"
+        onNavigate={() => navigate("/dashboard/communication", { state: { openChatType: "member" } })}
       />
 
       {/* Studio Chat Section */}
       <NotificationSection
         title="Studio Chat"
-        icon={<Building2 size={16} className="inline mr-2" />}
+        icon={<Building2 size={16} className="inline mr-2 text-secondary" />}
         isCollapsed={collapsedSections.studioChat}
         onToggle={() => toggleNotificationSection("studioChat")}
         unreadCount={getUnreadCount("studioChat")}
@@ -1117,8 +1127,9 @@ const Sidebar = ({
           markMessageAsRead(msg.id, msg.type)
         }}
         emptyMessage="No studio messages"
-        highlightClass="bg-green-900/20"
+        highlightClass="bg-secondary/20"
         context="staff"
+        onNavigate={() => navigate("/dashboard/communication", { state: { openChatType: "company" } })}
       />
 
       {/* Activity Monitor Section */}
@@ -1334,12 +1345,13 @@ const Sidebar = ({
     <>
       <aside
         className={`
-          fixed top-0 right-0 h-full text-white w-full sm:w-[400px] lg:w-[400px] bg-[#181818] border-l border-gray-700 z-[50]
-          transform transition-transform duration-500 ease-in-out
+          fixed top-0 right-0 h-full w-full sm:w-[400px] lg:w-[400px] bg-surface-card border-l border-border z-[50]
+          transform transition-transform duration-500 ease-in-out flex flex-col
           ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
+        {/* Sticky Header + Tabs */}
+        <div className="flex-shrink-0 p-4 md:p-5 pb-0">
           {/* Header */}
           <SidebarHeader
             activeTab={activeTab}
@@ -1357,7 +1369,10 @@ const Sidebar = ({
             onTabChange={setActiveTab}
             unreadCount={getTotalUnreadCount()}
           />
+        </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-5 pb-4 md:pb-5">
           {/* Tab Content */}
           {activeTab === "notifications" && renderNotificationsTab()}
 
@@ -1379,10 +1394,10 @@ const Sidebar = ({
                       /* Collapsed State - nur Chevron + Titel */
                       <button
                         onClick={() => toggleWidgetCollapse(widget.id)}
-                        className="flex items-center gap-2 p-3 rounded-xl bg-[#2F2F2F] hover:bg-[#3A3A3A] transition-colors w-full text-left"
+                        className="flex items-center gap-2 p-3 rounded-xl bg-surface-button hover:bg-surface-button-hover transition-colors w-full text-left"
                       >
-                        <ChevronRight size={14} className="text-zinc-400 flex-shrink-0" />
-                        <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                        <ChevronRight size={14} className="text-content-muted flex-shrink-0" />
+                        <span className="font-semibold text-base text-content-primary">{getWidgetDisplayName(widget.type)}</span>
                       </button>
                     ) : (
                       /* Expanded State - Chevron-Header + Widget */
@@ -1392,14 +1407,14 @@ const Sidebar = ({
                           <button
                             onClick={() => !isSidebarEditing && toggleWidgetCollapse(widget.id)}
                             className={`flex items-center gap-2 py-1 rounded-lg transition-colors text-left ${
-                              isSidebarEditing ? 'cursor-default' : 'hover:bg-zinc-700/30 cursor-pointer'
+                              isSidebarEditing ? 'cursor-default' : 'hover:bg-surface-hover cursor-pointer'
                             }`}
                             disabled={isSidebarEditing}
                           >
                             {!isSidebarEditing && (
-                              <ChevronDown size={14} className="text-zinc-400 flex-shrink-0" />
+                              <ChevronDown size={14} className="text-content-muted flex-shrink-0" />
                             )}
-                            <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                            <span className="font-semibold text-base text-content-primary">{getWidgetDisplayName(widget.type)}</span>
                           </button>
                           
                           {/* Settings Icon - only for widgets that support maxItems, not during editing */}
@@ -1416,7 +1431,7 @@ const Sidebar = ({
                                     setTempInputValue(String(getWidgetVisibleItems(widget.id, widget.type)))
                                   }
                                 }}
-                                className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                                className="p-1.5 hover:bg-surface-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                                 title="Widget Settings"
                               >
                                 <SlidersHorizontal size={14} />
@@ -1432,44 +1447,42 @@ const Sidebar = ({
                                       setTempInputValue("")
                                     }}
                                   />
-                                  <div className="absolute right-0 top-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] p-3">
-                                    <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">
-                                      Visible items
+                                  <div className="absolute right-0 top-full mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[140px] p-3">
+                                    <div className="text-[10px] text-content-faint uppercase tracking-wide mb-2">
+                                      Visible items (1-{MAX_VISIBLE_ITEMS})
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <input
                                         type="text"
                                         inputMode="numeric"
-                                        pattern="[1-5]"
                                         value={tempInputValue}
                                         onChange={(e) => {
-                                          // Only allow digits 1-5
                                           const val = e.target.value
-                                          if (val === '' || /^[1-5]$/.test(val)) {
+                                          if (val === '' || (/^\d{1,2}$/.test(val) && parseInt(val) <= MAX_VISIBLE_ITEMS)) {
                                             setTempInputValue(val)
                                           }
                                         }}
                                         onKeyDown={(e) => {
                                           if (e.key === 'Enter') {
                                             const value = parseInt(tempInputValue)
-                                            if (!isNaN(value) && value >= 1 && value <= 5) {
+                                            if (!isNaN(value) && value >= 1 && value <= MAX_VISIBLE_ITEMS) {
                                               updateWidgetVisibleItems(widget.id, value)
                                             }
                                           }
                                         }}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="w-14 px-2 py-1.5 bg-black border border-gray-600 rounded-lg text-white text-sm text-center focus:border-orange-500 focus:outline-none"
+                                        className="w-14 px-2 py-1.5 bg-surface-dark border border-border rounded-lg text-content-primary text-sm text-center focus:border-primary focus:outline-none"
                                         placeholder={String(getWidgetVisibleItems(widget.id, widget.type))}
                                       />
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation()
                                           const value = parseInt(tempInputValue)
-                                          if (!isNaN(value) && value >= 1 && value <= 5) {
+                                          if (!isNaN(value) && value >= 1 && value <= MAX_VISIBLE_ITEMS) {
                                             updateWidgetVisibleItems(widget.id, value)
                                           }
                                         }}
-                                        className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors"
+                                        className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-sm rounded-lg transition-colors"
                                       >
                                         OK
                                       </button>
@@ -1511,12 +1524,12 @@ const SidebarHeader = ({
   onClose,
 }) => (
   <div className="flex items-center justify-between w-full mb-4">
-    <h2 className="text-base sm:text-lg font-semibold text-white">Sidebar</h2>
+    <h2 className="text-base sm:text-lg font-semibold text-content-primary">Sidebar</h2>
     <div className="flex items-center gap-1 sm:gap-2">
       {!isSidebarEditing && activeTab !== "notifications" && (
         <button
           onClick={onOpenViewModal}
-          className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+          className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-surface-button text-content-primary hover:bg-surface-hover rounded-lg cursor-pointer"
           title="Manage Sidebar Views"
         >
           <Eye size={16} />
@@ -1526,7 +1539,7 @@ const SidebarHeader = ({
       {activeTab === "widgets" && isSidebarEditing && (
         <button
           onClick={onAddWidget}
-          className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
+          className="p-1.5 sm:p-2 bg-surface-dark text-content-primary hover:bg-surface-hover rounded-lg cursor-pointer"
           title="Add Widget"
         >
           <Plus size={20} />
@@ -1536,7 +1549,7 @@ const SidebarHeader = ({
         <button
           onClick={onToggleEditing}
           className={`p-1.5 sm:p-2 ${
-            isSidebarEditing ? "bg-orange-500 text-white" : "text-zinc-400 hover:bg-zinc-800"
+            isSidebarEditing ? "bg-primary text-white" : "text-content-muted hover:bg-surface-hover"
           } rounded-lg flex items-center gap-1`}
           title="Toggle Edit Mode"
         >
@@ -1545,7 +1558,7 @@ const SidebarHeader = ({
       )}
       <button
         onClick={onClose}
-        className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl"
+        className="p-1.5 sm:p-2 text-content-muted hover:bg-surface-hover rounded-xl"
         aria-label="Close sidebar"
       >
         <X size={16} />
@@ -1554,33 +1567,41 @@ const SidebarHeader = ({
   </div>
 )
 
-const TabNavigation = ({ activeTab, onTabChange, unreadCount }) => (
-  <div className="flex mb-4 bg-black rounded-xl p-1">
-    <button
-      onClick={() => onTabChange("widgets")}
-      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-        activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-      }`}
-    >
-      <Settings size={14} className="inline mr-1 sm:mr-2" />
-      <span className="hidden sm:inline">Widgets</span>
-    </button>
-    <button
-      onClick={() => onTabChange("notifications")}
-      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
-        activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-      }`}
-    >
-      <Bell size={14} className="inline mr-1 sm:mr-2" />
-      <span className="hidden sm:inline">Notifications</span>
-      {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
-          {unreadCount}
-        </span>
-      )}
-    </button>
-  </div>
-)
+const TabNavigation = ({ activeTab, onTabChange, unreadCount }) => {
+  const isNotificationsActive = activeTab === "notifications"
+  
+  return (
+    <div className="flex mb-4 bg-surface-card rounded-xl border border-border p-1">
+      <button
+        onClick={() => onTabChange("widgets")}
+        className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+          activeTab === "widgets" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
+        }`}
+      >
+        <Settings size={14} className="inline mr-1 sm:mr-2" />
+        <span className="hidden sm:inline">Widgets</span>
+      </button>
+      <button
+        onClick={() => onTabChange("notifications")}
+        className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
+          isNotificationsActive ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
+        }`}
+      >
+        <Bell size={14} className="inline mr-1 sm:mr-2" />
+        <span className="hidden sm:inline">Notifications</span>
+        {unreadCount > 0 && (
+          <span className={`absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full ${
+            isNotificationsActive 
+              ? "bg-white text-primary" 
+              : "bg-primary text-white"
+          }`}>
+            {unreadCount}
+          </span>
+        )}
+      </button>
+    </div>
+  )
+}
 
 const NotificationSection = ({
   title,
@@ -1593,6 +1614,7 @@ const NotificationSection = ({
   emptyMessage,
   highlightClass,
   context = "member", // "member" or "staff"
+  onNavigate, // optional: navigate to full chat view
 }) => {
   // Helper to get first/last name from senderName
   const getNameParts = (senderName) => {
@@ -1604,23 +1626,40 @@ const NotificationSection = ({
   }
 
   return (
-    <div className="bg-black rounded-xl overflow-hidden">
+    <div className="bg-surface-card rounded-xl overflow-hidden border border-border">
       <button
         onClick={onToggle}
-        className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+        className="w-full p-3 flex items-center justify-between hover:bg-surface-hover transition-colors"
       >
         <div className="flex items-center gap-2">
           {icon}
-          <h3 className="text-white font-medium text-sm">{title}</h3>
+          <h3 className="text-content-primary font-medium text-sm">{title}</h3>
           {unreadCount > 0 && (
-            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">{unreadCount}</span>
+            <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">{unreadCount}</span>
           )}
         </div>
-        {isCollapsed ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
+        <div className="flex items-center gap-1.5">
+          {onNavigate && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation()
+                onNavigate()
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onNavigate() } }}
+              className="p-1 hover:bg-surface-button rounded-lg transition-colors text-content-faint hover:text-primary"
+              title={`Open ${title}`}
+            >
+              <ExternalLink size={14} />
+            </span>
+          )}
+          {isCollapsed ? <ChevronDown size={16} className="text-content-muted" /> : <ChevronUp size={16} className="text-content-muted" />}
+        </div>
       </button>
 
       {!isCollapsed && (
-        <div className="border-t border-gray-700">
+        <div className="border-t border-border">
           {messages.length > 0 ? (
             messages.map((message) => {
               const { firstName, lastName } = getNameParts(message.senderName)
@@ -1628,7 +1667,7 @@ const NotificationSection = ({
               return (
                 <div
                   key={message.id}
-                  className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                  className={`p-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-surface-hover transition-colors ${
                     !message.isRead ? highlightClass : ""
                   }`}
                   onClick={() => onMessageClick(message)}
@@ -1650,16 +1689,16 @@ const NotificationSection = ({
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
-                        {!message.isRead && <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />}
+                        <h4 className="text-content-primary font-medium text-sm truncate">{message.senderName}</h4>
+                        {!message.isRead && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />}
                       </div>
-                      <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                      <p className="text-content-secondary text-sm line-clamp-2 mb-1">{message.message}</p>
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-500 text-xs flex items-center gap-1">
+                        <p className="text-content-faint text-xs flex items-center gap-1">
                           <Clock size={12} />
                           {message.time}
                         </p>
-                        <Reply size={14} className="text-gray-400" />
+                        <Reply size={14} className="text-content-muted" />
                       </div>
                     </div>
                   </div>
@@ -1667,7 +1706,7 @@ const NotificationSection = ({
               )
             })
           ) : (
-            <div className="p-4 text-center text-gray-400">
+            <div className="p-4 text-center text-content-muted">
               <Reply size={24} className="mx-auto mb-2 opacity-50" />
               <p className="text-sm">{emptyMessage}</p>
             </div>
@@ -1691,28 +1730,34 @@ const ActivityMonitorSection = ({
     .filter(id => categories[id])
     .map(id => ({ id, ...categories[id] }))
 
+  // Override vacation color to use secondary (staff-related)
+  const getCategoryColor = (category) => {
+    if (category.id === "vacation") return "bg-secondary"
+    return category.color
+  }
+
   return (
-    <div className="bg-black rounded-xl overflow-hidden">
+    <div className="bg-surface-card rounded-xl overflow-hidden border border-border">
       <button
         onClick={onToggle}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-surface-hover transition-colors"
       >
         <div className="flex items-center gap-2">
-          <CiMonitor size={20} />
-          <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
+          <CiMonitor size={20} className="text-primary" />
+          <h3 className="text-content-primary font-medium text-sm">Activity Monitor</h3>
           {totalCount > 0 && (
-            <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
               {totalCount}
             </span>
           )}
         </div>
-        {isCollapsed ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronUp size={18} className="text-gray-400" />}
+        {isCollapsed ? <ChevronDown size={18} className="text-content-muted" /> : <ChevronUp size={18} className="text-content-muted" />}
       </button>
 
       {!isCollapsed && (
-        <div className="border-t border-gray-800 max-h-[500px] overflow-y-auto custom-scrollbar">
+        <div className="border-t border-border max-h-[500px] overflow-y-auto custom-scrollbar">
           {sortedCategories.length > 0 ? (
-            <div className="divide-y divide-gray-800">
+            <div className="divide-y divide-border">
               {sortedCategories.map((category) => {
                 const Icon = category.icon
                 
@@ -1724,15 +1769,15 @@ const ActivityMonitorSection = ({
                       onClick={() => onJumpTo(category.tabId)}
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`${category.color} p-1.5 rounded-lg`}>
+                        <div className={`${getCategoryColor(category)} p-1.5 rounded-lg`}>
                           <Icon size={14} className="text-white" />
                         </div>
-                        <span className="text-white text-sm font-medium">{category.label}</span>
-                        <span className={`${category.color} text-white text-xs px-1.5 py-0.5 rounded-full`}>
+                        <span className="text-content-primary text-sm font-medium">{category.label}</span>
+                        <span className="bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">
                           {category.count}
                         </span>
                       </div>
-                      <ExternalLink size={14} className="text-gray-500" />
+                      <ExternalLink size={14} className="text-content-faint" />
                     </div>
                     
                     {/* Category Items (show max 2) */}
@@ -1740,13 +1785,13 @@ const ActivityMonitorSection = ({
                       {category.items.slice(0, 2).map((item) => (
                         <div 
                           key={item.id}
-                          className="bg-gray-900/50 rounded-lg p-2 hover:bg-gray-900 transition-colors"
+                          className="bg-surface-dark rounded-lg p-2 hover:bg-surface-hover transition-colors"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="text-white text-xs font-medium truncate">{item.title}</p>
-                              <p className="text-gray-500 text-[10px] truncate">{item.subtitle}</p>
-                              <p className="text-gray-400 text-[10px] truncate">{item.description}</p>
+                              <p className="text-content-primary text-xs font-medium truncate">{item.title}</p>
+                              <p className="text-content-faint text-[10px] truncate">{item.subtitle}</p>
+                              <p className="text-content-muted text-[10px] truncate">{item.description}</p>
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {/* Action buttons based on category */}
@@ -1761,7 +1806,7 @@ const ActivityMonitorSection = ({
                                           e.stopPropagation()
                                           onAction(category.id, item.id, "approve")
                                         }}
-                                        className={`p-1 ${category.color} hover:opacity-80 rounded transition-colors`}
+                                        className="p-1 bg-primary hover:bg-primary-hover rounded transition-colors"
                                         title="Approve"
                                       >
                                         <Check size={10} className="text-white" />
@@ -1771,14 +1816,14 @@ const ActivityMonitorSection = ({
                                           e.stopPropagation()
                                           onAction(category.id, item.id, "reject")
                                         }}
-                                        className="p-1 bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                        className="p-1 bg-accent-red hover:bg-accent-red rounded transition-colors"
                                         title="Reject"
                                       >
                                         <X size={10} className="text-white" />
                                       </button>
                                     </>
                                   )}
-                                  {/* Vacation - Blue buttons */}
+                                  {/* Vacation */}
                                   {category.id === "vacation" && (
                                     <>
                                       <button
@@ -1786,7 +1831,7 @@ const ActivityMonitorSection = ({
                                           e.stopPropagation()
                                           onAction(category.id, item.id, "approve")
                                         }}
-                                        className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                                        className="p-1 bg-primary hover:bg-primary-hover rounded transition-colors"
                                         title="Approve"
                                       >
                                         <Check size={10} className="text-white" />
@@ -1796,7 +1841,7 @@ const ActivityMonitorSection = ({
                                           e.stopPropagation()
                                           onAction(category.id, item.id, "reject")
                                         }}
-                                        className="p-1 bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                        className="p-1 bg-accent-red hover:bg-accent-red rounded transition-colors"
                                         title="Reject"
                                       >
                                         <X size={10} className="text-white" />
@@ -1818,10 +1863,10 @@ const ActivityMonitorSection = ({
                                     e.stopPropagation()
                                     onAction(category.id, item.id, "retry")
                                   }}
-                                  className="p-1 bg-gray-600 hover:bg-gray-700 rounded transition-colors"
+                                  className="p-1 bg-surface-button hover:bg-surface-hover rounded transition-colors"
                                   title="Retry"
                                 >
-                                  <Reply size={10} className="text-white" />
+                                  <Reply size={10} className="text-content-primary" />
                                 </button>
                               )}
                             </div>
@@ -1843,7 +1888,7 @@ const ActivityMonitorSection = ({
               })}
             </div>
           ) : (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-content-faint">
               <CiMonitor size={24} className="mx-auto mb-2 opacity-50" />
               <p className="text-sm">No pending activities</p>
             </div>
@@ -1855,27 +1900,27 @@ const ActivityMonitorSection = ({
 }
 
 const ActionConfirmModal = ({ action, onCancel, onConfirm }) => (
-  <div className="bg-[#181818] rounded-xl w-full p-6">
+  <div className="bg-surface-card rounded-xl w-full p-6">
     <div className="flex justify-between items-center mb-4">
-      <h2 className="text-lg font-semibold text-white">Confirm Action</h2>
-      <button onClick={onCancel} className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400">
+      <h2 className="text-lg font-semibold text-content-primary">Confirm Action</h2>
+      <button onClick={onCancel} className="p-2 hover:bg-surface-hover rounded-lg text-content-muted">
         <X size={16} />
       </button>
     </div>
-    <p className="text-gray-300 mb-6">
-      Are you sure you want to <span className="font-semibold text-white">{action}</span> this activity?
+    <p className="text-content-secondary mb-6">
+      Are you sure you want to <span className="font-semibold text-content-primary">{action}</span> this activity?
     </p>
     <div className="flex gap-3 justify-end">
       <button
         onClick={onCancel}
-        className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium text-white"
+        className="px-4 py-2 bg-surface-button hover:bg-surface-button-hover rounded-lg font-medium text-content-primary"
       >
         Cancel
       </button>
       <button
         onClick={onConfirm}
         className={`px-4 py-2 ${
-          action === "reject" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+          action === "reject" ? "bg-accent-red hover:bg-accent-red" : "bg-primary hover:bg-primary-hover"
         } rounded-lg font-medium text-white`}
       >
         Confirm

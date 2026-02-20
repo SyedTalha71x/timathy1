@@ -14,6 +14,7 @@ import Login from './landing-page/login';
 import Dashboardlayout from "./layouts/studio-view/studio-view-layout";
 import MyArea from './dashboard-pages/studio-view/my-area'
 import Appointments from "./dashboard-pages/studio-view/appointments";
+import Classes from "./dashboard-pages/studio-view/classes";
 import ToDo from './dashboard-pages/studio-view/todo'
 import Members from './dashboard-pages/studio-view/members'
 import Staff from './dashboard-pages/studio-view/staff'
@@ -131,6 +132,7 @@ function App() {
         }>
           <Route path="my-area" element={<MyArea />} />
           <Route path="appointments" element={<Appointments />} />
+          <Route path="classes" element={<Classes />} />
           <Route path="to-do" element={<ToDo />} />
           <Route path="members" element={<Members />} />
           <Route path="staff" element={<Staff />} />

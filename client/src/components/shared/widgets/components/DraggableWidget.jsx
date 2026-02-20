@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { Minus } from "lucide-react"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 
 /**
  * DraggableWidget - Unified draggable widget wrapper
@@ -25,6 +25,8 @@ const DraggableWidget = ({
   variant = "dashboard" // "dashboard" or "sidebar"
 }) => {
   const ref = useRef(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dropPosition, setDropPosition] = useState(null) // "top" | "bottom" | null
 
   // Variant-specific classes
   const variantClasses = {
@@ -44,24 +46,41 @@ const DraggableWidget = ({
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData("widgetId", id)
-    e.dataTransfer.setData("widgetIndex", index)
-    e.currentTarget.classList.add("dragging")
+    e.dataTransfer.setData("widgetIndex", index.toString())
+    e.dataTransfer.effectAllowed = "move"
+    setIsDragging(true)
+
+    // Slight delay so the browser captures the element before we style it
+    requestAnimationFrame(() => {
+      if (ref.current) {
+        ref.current.style.opacity = "0.4"
+      }
+    })
   }
 
   const handleDragOver = (e) => {
     e.preventDefault()
-    if (e.currentTarget.dataset.widgetId !== id) {
-      e.currentTarget.classList.add("drag-over")
+    e.dataTransfer.dropEffect = "move"
+
+    // Determine if cursor is in top or bottom half → show drop indicator
+    const rect = ref.current?.getBoundingClientRect()
+    if (rect) {
+      const midpoint = rect.top + rect.height / 2
+      setDropPosition(e.clientY < midpoint ? "top" : "bottom")
     }
   }
 
   const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove("drag-over")
+    // Only clear if actually leaving this element (not entering a child)
+    if (ref.current && !ref.current.contains(e.relatedTarget)) {
+      setDropPosition(null)
+    }
   }
 
   const handleDrop = (e) => {
     e.preventDefault()
-    e.currentTarget.classList.remove("drag-over")
+    setDropPosition(null)
+
     const draggedWidgetId = e.dataTransfer.getData("widgetId")
     const draggedWidgetIndex = Number.parseInt(e.dataTransfer.getData("widgetIndex"), 10)
     const targetWidgetIndex = index
@@ -72,9 +91,18 @@ const DraggableWidget = ({
   }
 
   const handleDragEnd = (e) => {
-    e.currentTarget.classList.remove("dragging")
+    setIsDragging(false)
+    setDropPosition(null)
+
+    if (ref.current) {
+      ref.current.style.opacity = ""
+    }
+
+    // Clean up all elements
     const allWidgets = document.querySelectorAll(classes.selector)
-    allWidgets.forEach((widget) => widget.classList.remove("drag-over"))
+    allWidgets.forEach((widget) => {
+      widget.style.opacity = ""
+    })
   }
 
   return (
@@ -83,24 +111,56 @@ const DraggableWidget = ({
       className={`relative ${classes.container} ${isEditing ? "animate-wobble" : ""}`}
       draggable={isEditing}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      onDragLeave={handleDragLeave}
+      onDragOver={isEditing ? handleDragOver : undefined}
+      onDrop={isEditing ? handleDrop : undefined}
+      onDragLeave={isEditing ? handleDragLeave : undefined}
       onDragEnd={handleDragEnd}
       data-widget-id={id}
       data-widget-index={index}
+      style={{
+        cursor: isEditing ? "grab" : undefined,
+        transition: "opacity 0.2s ease, transform 0.2s ease",
+      }}
     >
+      {/* Drop indicator line — top */}
+      {isEditing && dropPosition === "top" && !isDragging && (
+        <div 
+          className="absolute -top-1.5 left-2 right-2 z-20 flex items-center gap-1"
+          style={{ pointerEvents: "none" }}
+        >
+          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+          <div className="flex-1 h-0.5 bg-primary rounded-full" />
+          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+        </div>
+      )}
+
+      {/* Drop indicator line — bottom */}
+      {isEditing && dropPosition === "bottom" && !isDragging && (
+        <div 
+          className="absolute -bottom-1.5 left-2 right-2 z-20 flex items-center gap-1"
+          style={{ pointerEvents: "none" }}
+        >
+          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+          <div className="flex-1 h-0.5 bg-primary rounded-full" />
+          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+        </div>
+      )}
+
       {isEditing && (
         <div className="absolute -top-2 -right-2 z-10 flex gap-2">
           <button
             onClick={() => removeWidget(id)}
-            className={`p-1 bg-gray-500 rounded-md cursor-pointer text-black flex items-center justify-center ${classes.button}`}
+            className={`p-1 bg-content-faint rounded-md cursor-pointer text-white flex items-center justify-center ${classes.button}`}
           >
             <Minus size={25} />
           </button>
         </div>
       )}
-      {children}
+
+      {/* Block all interaction inside widgets during edit mode */}
+      <div className={isEditing ? "pointer-events-none select-none" : ""}>
+        {children}
+      </div>
     </div>
   )
 }

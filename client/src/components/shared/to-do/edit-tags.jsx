@@ -42,7 +42,7 @@ const TagsModal = ({ task, configuredTags, onClose, onUpdate }) => {
                   }`}
                 >
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
-                  <span className="flex-1 text-left">{tag.name}</span>
+                  <span className="flex-1 text-left text-content-primary">{tag.name}</span>
                   {isSelected && <Check size={14} className="text-primary" />}
                 </button>
               )
@@ -53,7 +53,7 @@ const TagsModal = ({ task, configuredTags, onClose, onUpdate }) => {
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="bg-surface-button text-sm text-content-secondary px-4 py-2 rounded-xl hover:bg-surface-button"
+            className="bg-surface-button text-sm text-content-secondary px-4 py-2 rounded-xl hover:bg-surface-button-hover"
           >
             Cancel
           </button>

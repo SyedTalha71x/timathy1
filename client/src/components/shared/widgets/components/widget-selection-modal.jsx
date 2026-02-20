@@ -132,14 +132,14 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
   const widgetTypes = widgetArea === "dashboard" ? dashboardWidgets : sidebarWidgets
 
   return (
-    <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
-      <div className="bg-[#181818] rounded-xl custom-scrollbar w-full max-w-md mx-4 max-h-[70vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 text-content-primary flex items-center justify-center z-50">
+      <div className="bg-surface-card rounded-xl custom-scrollbar w-full max-w-md mx-4 max-h-[70vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">
               Add Widget to {widgetArea === "dashboard" ? "My Area" : "Sidebar"}
             </h2>
-            <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
+            <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg">
               <X size={16} />
             </button>
           </div>
@@ -163,16 +163,16 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
                   disabled={isAlreadyAdded}
                   className={`w-full p-3 rounded-xl text-left flex flex-col ${
                     isAlreadyAdded
-                      ? "bg-black/50 cursor-not-allowed opacity-60"
-                      : "bg-black hover:bg-zinc-900 cursor-pointer"
+                      ? "bg-surface-dark cursor-not-allowed opacity-60"
+                      : "bg-surface-base hover:bg-surface-hover cursor-pointer"
                   }`}
                 >
                   <div className="flex items-center gap-2 font-medium mb-1">
                     <widget.icon size={18} />
                     <span>{widget.name}</span>
                   </div>
-                  <span className="text-xs text-zinc-400">{widget.description}</span>
-                  {isAlreadyAdded && <span className="text-xs text-yellow-500 mt-1">{message}</span>}
+                  <span className="text-xs text-content-muted">{widget.description}</span>
+                  {isAlreadyAdded && <span className="text-xs text-primary mt-1">{message}</span>}
                 </button>
               )
             })}

@@ -575,7 +575,7 @@ export default function MyArea() {
                 {isEditing && (
                   <button
                     onClick={() => setIsWidgetModalOpen(true)}
-                    className="py-2 px-4 bg-black md:w-auto w-full justify-center text-white rounded-xl text-sm flex items-center gap-1"
+                    className="py-2 px-4 bg-surface-dark md:w-auto w-full justify-center text-content-primary rounded-xl text-sm flex items-center gap-1"
                   >
                     <Plus size={20} />
                     <span className="hidden sm:inline">Add Widget</span>
@@ -585,7 +585,7 @@ export default function MyArea() {
                 <button
                   onClick={toggleEditing}
                   className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
-                    isEditing ? "bg-orange-500 text-white" : "bg-zinc-700 text-zinc-200"
+                    isEditing ? "bg-primary hover:bg-primary-hover text-white" : "bg-primary hover:bg-primary-hover text-white"
                   }`}
                 >
                   {isEditing ? <Check size={18} /> : <Edit size={18} />}

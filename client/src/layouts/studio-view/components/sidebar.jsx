@@ -29,6 +29,7 @@ import {
   Bug,
   Star,
   CheckCircle,
+  Timer,
 } from "lucide-react"
 import { HiOutlineUsers } from "react-icons/hi2"
 import { IoFitnessOutline } from "react-icons/io5"
@@ -322,6 +323,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
   const menuItems = [
     { icon: Home, label: "My Area", to: "/dashboard/my-area" },
     { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
+    { icon: Timer, label: "Classes", to: "/dashboard/classes" },
     {
       icon: MessageCircle,
       label: "Communication",
