@@ -7,7 +7,7 @@ import appointmentReducers from '../features/appointments/AppointmentSlice'
 import trainingReducers from '../features/training/TrainingSlice';
 import barCodeReducers from '../features/barcodeScanner/barCodeSlice';
 import foodReducers from '../features/food/foodSlice'
-
+import userGoalReducers from '../features/userGoals/userGoalSlice'
 
 
 export const store = configureStore({
@@ -19,6 +19,7 @@ export const store = configureStore({
         appointments: appointmentReducers,
         trainings: trainingReducers,
         barCode: barCodeReducers,
-        food: foodReducers
+        food: foodReducers,
+        goal: userGoalReducers,
     }
 })

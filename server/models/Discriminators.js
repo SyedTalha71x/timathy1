@@ -62,6 +62,10 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TrainingPlan'
     }],
+    goals:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'UserGoals'
+    }]
 }))
 
 
