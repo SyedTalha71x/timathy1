@@ -143,9 +143,11 @@ export {
 // =============================================================================
 export {
   classTypesData,
+  classCategoriesData,
   roomsData,
   DEFAULT_MAX_PARTICIPANTS,
   DEFAULT_CLASS_DURATION,
+  DEFAULT_CLASS_CALENDAR_SETTINGS,
   classesData,
   fmtDate as fmtClassDate,
   markPastClasses,
@@ -262,6 +264,11 @@ export {
   DEFAULT_TRIAL_TRAINING,
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
+  
+  // Classes Config
+  DEFAULT_CLASS_CATEGORIES,
+  DEFAULT_CLASS_TYPES,
+  DEFAULT_CLASS_CALENDAR_SETTINGS as DEFAULT_CLASS_CALENDAR_SETTINGS_CONFIG,
   
   // Lead Config
   leadSourcesData,

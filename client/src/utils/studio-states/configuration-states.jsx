@@ -686,6 +686,29 @@ export const DEFAULT_CALENDAR_SETTINGS = {
 };
 
 // =============================================================================
+// SECTION 6C: CLASSES CONFIGURATION
+// =============================================================================
+export const DEFAULT_CLASS_CATEGORIES = [
+  "Mind & Body", "Cardio", "Strength", "Combat", "Dance",
+];
+
+export const DEFAULT_CLASS_TYPES = [
+  { id: 1, name: "Yoga",     description: "Mindful yoga session for flexibility and balance",    duration: 60, maxParticipants: 20, color: "#10b981", category: "Mind & Body", image: null },
+  { id: 2, name: "Spinning", description: "High-energy indoor cycling workout",                  duration: 45, maxParticipants: 15, color: "#f59e0b", category: "Cardio",      image: null },
+  { id: 3, name: "HIIT",     description: "High-intensity interval training for maximum results", duration: 30, maxParticipants: 12, color: "#ef4444", category: "Strength",    image: null },
+  { id: 4, name: "Pilates",  description: "Core-focused low-impact strength training",            duration: 50, maxParticipants: 18, color: "#8b5cf6", category: "Mind & Body", image: null },
+  { id: 5, name: "Boxing",   description: "Boxing fitness class combining cardio and technique",   duration: 60, maxParticipants: 10, color: "#f97316", category: "Combat",      image: null },
+  { id: 6, name: "Zumba",    description: "Dance-based fitness class with Latin rhythms",          duration: 45, maxParticipants: 25, color: "#ec4899", category: "Dance",       image: null },
+];
+
+export const DEFAULT_CLASS_CALENDAR_SETTINGS = {
+  hideClosedDays: true,
+  calendarStartTime: "06:00",
+  calendarEndTime: "22:00",
+  fadePastClasses: true,
+};
+
+// =============================================================================
 // SECTION 7: LEAD CONFIGURATION
 // =============================================================================
 export const leadSourcesData = [
@@ -4023,6 +4046,49 @@ export const DEFAULT_APPOINTMENT_NOTIFICATION_TYPES = {
   },
 };
 
+export const DEFAULT_CLASS_NOTIFICATION_TYPES = {
+  enrollment: {
+    enabled: true,
+    subject: "✅ Class Enrollment Confirmed - {Class_Name}",
+    template: "<p>Dear {Member_First_Name},</p><p>You have been enrolled in the following class:</p><p><strong>{Class_Name}</strong><br>📅 {Class_Date}<br>🕐 {Class_Time}<br>⏱ Duration: {Class_Duration} min<br>👤 Instructor: {Instructor_Name}</p><p>We look forward to seeing you!</p>",
+    sendApp: true,
+    sendEmail: true,
+    hoursBefore: 24
+  },
+  cancellation: {
+    enabled: true,
+    subject: "❌ Class Enrollment Cancelled - {Class_Name}",
+    template: "<p>Dear {Member_First_Name},</p><p>Your enrollment in the following class has been cancelled:</p><p><strong>{Class_Name}</strong><br>📅 {Class_Date}<br>🕐 {Class_Time}</p><p>Feel free to enroll in another class.</p>",
+    sendApp: true,
+    sendEmail: true,
+    hoursBefore: 24
+  },
+  rescheduled: {
+    enabled: true,
+    subject: "🔄 Class Rescheduled - {Class_Name}",
+    template: "<p>Dear {Member_First_Name},</p><p>The following class has been rescheduled:</p><p><strong>{Class_Name}</strong><br>📅 New date: {New_Class_Date}<br>🕐 New time: {New_Class_Time}<br>👤 Instructor: {Instructor_Name}</p><p>If the new time doesn't work for you, please cancel your enrollment.</p>",
+    sendApp: true,
+    sendEmail: true,
+    hoursBefore: 24
+  },
+  reminder: {
+    enabled: true,
+    subject: "⏰ Reminder: {Class_Name} tomorrow",
+    template: "<p>Dear {Member_First_Name},</p><p>This is a reminder for your upcoming class:</p><p><strong>{Class_Name}</strong><br>📅 {Class_Date}<br>🕐 {Class_Time}<br>⏱ Duration: {Class_Duration} min<br>👤 Instructor: {Instructor_Name}</p><p>See you there!</p>",
+    sendApp: true,
+    sendEmail: true,
+    hoursBefore: 24
+  },
+  waitlist: {
+    enabled: true,
+    subject: "🎉 Spot Available - {Class_Name}",
+    template: "<p>Dear {Member_First_Name},</p><p>Great news! A spot has opened up in the class you were waitlisted for:</p><p><strong>{Class_Name}</strong><br>📅 {Class_Date}<br>🕐 {Class_Time}<br>👤 Instructor: {Instructor_Name}</p><p>You have been automatically enrolled. If you can no longer attend, please cancel your enrollment.</p>",
+    sendApp: true,
+    sendEmail: true,
+    hoursBefore: 24
+  },
+};
+
 export const DEFAULT_APPEARANCE_SETTINGS = {
   theme: "dark",
   primaryColor: "#FF843E",
@@ -4585,6 +4651,12 @@ export default {
   DEFAULT_TRIAL_TRAINING,
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
+  
+  // Classes Config
+  DEFAULT_CLASS_CATEGORIES,
+  DEFAULT_CLASS_TYPES,
+  DEFAULT_CLASS_CALENDAR_SETTINGS,
+  DEFAULT_CLASS_NOTIFICATION_TYPES,
   
   // Lead Config
   leadSourcesData,

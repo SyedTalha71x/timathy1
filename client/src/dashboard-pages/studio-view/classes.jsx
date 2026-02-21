@@ -10,36 +10,20 @@ import ClassesCalendar from "../../components/studio-components/classes-componen
 import CreateClassModal from "../../components/studio-components/classes-components/CreateClassModal"
 import ClassDetailModal from "../../components/studio-components/classes-components/ClassDetailModal"
 import UpcomingClassesWidget from "../../components/studio-components/classes-components/UpcomingClassesWidget"
-import { membersData, DEFAULT_CALENDAR_SETTINGS, classTypesData, roomsData, classesData, markPastClasses } from "../../utils/studio-states"
-import { staffData, getTrainers } from "../../utils/studio-states/staff-states"
-
-// Role color mapping (matches staff menu RoleTag)
-const ROLE_COLORS = {
-  'Telephone operator': 'bg-purple-600',
-  'Software Engineer': 'bg-blue-600',
-  'System Engineer': 'bg-green-600',
-  'Manager': 'bg-red-600',
-  'Studio Manager': 'bg-red-600',
-  'Trainer': 'bg-indigo-600',
-  'Personal Trainer': 'bg-indigo-600',
-  'Fitness Coach': 'bg-indigo-600',
-  'Reception': 'bg-yellow-600',
-  'Receptionist': 'bg-yellow-600',
-  'Cleaner': 'bg-orange-600',
-  'Admin': 'bg-pink-600',
-  'Therapist': 'bg-teal-600',
-};
-const getRoleBg = (role) => ROLE_COLORS[role] || 'bg-content-faint';
+import { membersData, classTypesData, roomsData, classesData, markPastClasses, DEFAULT_CLASS_CALENDAR_SETTINGS } from "../../utils/studio-states"
+import { staffData, getActiveStaff, getRoleColorHex } from "../../utils/studio-states/staff-states"
 
 export default function Classes() {
   const calendarRef = useRef(null);
-  const trainersList = getTrainers();
+  const staffList = getActiveStaff();
 
-  // Get all staff who have classes assigned (trainers visible in the calendar)
-  const activeStaffInClasses = useMemo(() => {
-    const trainerIds = new Set(classesData.map(c => c.trainerId));
-    return staffData.filter(s => trainerIds.has(s.id) && s.isActive && !s.isArchived);
+  // All active staff for filters
+  const allActiveStaff = useMemo(() => {
+    return staffData.filter(s => s.isActive && !s.isArchived);
   }, []);
+
+  // Staff initials helper
+  const getStaffInitials = (s) => `${s.firstName?.charAt(0)||''}${s.lastName?.charAt(0)||''}`.toUpperCase() || '?';
 
   useEffect(()=>{window.scrollTo(0,0);const m=document.querySelector("main"),o=m?.style.overflow;if(m){m.scrollTop=0;m.style.overflow="hidden"}const dc=document.querySelector(".dashboard-content");if(dc)dc.scrollTop=0;document.body.scrollTop=0;document.documentElement.scrollTop=0;return()=>{if(m)m.style.overflow=o||""}},[]);
 
@@ -51,10 +35,12 @@ export default function Classes() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [calendarDateDisplay, setCalendarDateDisplay] = useState("");
   const [currentView, setCurrentView] = useState("timeGridWeek");
-  const [calendarSettings] = useState(DEFAULT_CALENDAR_SETTINGS);
+  const [calendarSettings] = useState(DEFAULT_CLASS_CALENDAR_SETTINGS);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(true);
-  const [isStaffFiltersCollapsed, setIsStaffFiltersCollapsed] = useState(true);
+  const [isCoursesInFiltersCollapsed, setIsCoursesInFiltersCollapsed] = useState(false);
+  const [isStaffInFiltersCollapsed, setIsStaffInFiltersCollapsed] = useState(false);
+  const [isUpcomingCollapsed, setIsUpcomingCollapsed] = useState(false);
   const [classFilters, setClassFilters] = useState({
     ...classTypesData.reduce((a,t)=>({...a,[t.id]:true}),{}),
     "Cancelled Classes": false,
@@ -156,8 +142,8 @@ export default function Classes() {
   };
   const handleStaffFilterChange = (staffId) => setStaffFilters(p => ({ ...p, [staffId]: !p[staffId] }));
   const toggleAllStaffFilters = () => {
-    const allOn = activeStaffInClasses.every(s => staffFilters[s.id]);
-    setStaffFilters(prev => ({ ...prev, ...activeStaffInClasses.reduce((a, s) => ({ ...a, [s.id]: !allOn }), {}) }));
+    const allOn = allActiveStaff.every(s => staffFilters[s.id]);
+    setStaffFilters(prev => ({ ...prev, ...allActiveStaff.reduce((a, s) => ({ ...a, [s.id]: !allOn }), {}) }));
   };
 
   const membersList = membersData||[];
@@ -207,36 +193,47 @@ export default function Classes() {
           </div>
           <div className={`lg:hidden overflow-hidden transition-all duration-200 pr-4 ${isMobileFiltersExpanded?'max-h-[500px] opacity-100 mb-3':'max-h-0 opacity-0'}`}>
             <div className="bg-surface-base rounded-xl p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-content-primary text-xs font-medium">Filter by type</span>
-                <button onClick={toggleAllFilters} className="text-[10px] text-primary hover:text-primary-hover">{classTypesData.every(t=>classFilters[t.id])?"Deselect All":"Select All"}</button>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {classTypesData.map(type=>(
-                  <label key={type.id} className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" checked={classFilters[type.id]} onChange={()=>handleFilterChange(type.id)} className="w-3 h-3 accent-primary"/>
-                    <div className="w-1.5 h-1.5 rounded-full" style={{background:type.colorHex}}/><span className="text-content-primary text-[11px] truncate">{type.name}</span>
-                  </label>
-                ))}
-                <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={classFilters["Cancelled Classes"]} onChange={()=>handleFilterChange("Cancelled Classes")} className="w-3 h-3 accent-primary"/><span className="text-content-primary text-[11px]">Cancelled</span></label>
-                <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={classFilters["Past Classes"]} onChange={()=>handleFilterChange("Past Classes")} className="w-3 h-3 accent-primary"/><span className="text-content-primary text-[11px]">Past</span></label>
-              </div>
-              {/* Staff filters (mobile) */}
-              <div className="border-t border-border mt-2 pt-2">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-content-primary text-xs font-medium">Filter by staff</span>
-                  <button onClick={toggleAllStaffFilters} className="text-[10px] text-primary hover:text-primary-hover">{activeStaffInClasses.every(s=>staffFilters[s.id])?"Deselect All":"Select All"}</button>
+              {/* Courses (mobile, collapsible) */}
+              <div className="flex items-center justify-between mb-1.5 cursor-pointer" onClick={()=>setIsCoursesInFiltersCollapsed(!isCoursesInFiltersCollapsed)}>
+                <span className="text-content-primary text-xs font-medium">Courses</span>
+                <div className="flex items-center gap-2">
+                  {!isCoursesInFiltersCollapsed&&<button onClick={e=>{e.stopPropagation();toggleAllFilters()}} className="text-[10px] text-primary hover:text-primary-hover">{classTypesData.every(t=>classFilters[t.id])?"Deselect All":"Select All"}</button>}
+                  <ChevronDown size={12} className={`text-content-muted transition-transform ${!isCoursesInFiltersCollapsed?'rotate-180':''}`}/>
                 </div>
-                <div className="space-y-1">
-                  {activeStaffInClasses.map(staff=>(
-                    <label key={staff.id} className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={staffFilters[staff.id]!==false} onChange={()=>handleStaffFilterChange(staff.id)} className="w-3 h-3 accent-primary"/>
-                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:staff.color||'#808080'}}/>
-                      <span className="text-content-primary text-[11px] truncate">{staff.firstName} {staff.lastName}</span>
-                      <span className={`ml-auto ${getRoleBg(staff.role)} text-white px-1 py-0.5 rounded text-[8px] font-medium`}>{staff.role}</span>
+              </div>
+              {!isCoursesInFiltersCollapsed&&(
+                <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  {classTypesData.map(type=>(
+                    <label key={type.id} className="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox" checked={classFilters[type.id]} onChange={()=>handleFilterChange(type.id)} className="w-3 h-3 accent-primary"/>
+                      <div className="w-1.5 h-1.5 rounded-full" style={{background:type.colorHex}}/><span className="text-content-primary text-[11px] truncate">{type.name}</span>
                     </label>
                   ))}
+                  <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={classFilters["Cancelled Classes"]} onChange={()=>handleFilterChange("Cancelled Classes")} className="w-3 h-3 accent-primary"/><span className="text-content-primary text-[11px]">Cancelled</span></label>
+                  <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={classFilters["Past Classes"]} onChange={()=>handleFilterChange("Past Classes")} className="w-3 h-3 accent-primary"/><span className="text-content-primary text-[11px]">Past</span></label>
                 </div>
+              )}
+              {/* Staff filters (mobile, collapsible) */}
+              <div className="border-t border-border pt-2">
+                <div className="flex items-center justify-between mb-1.5 cursor-pointer" onClick={()=>setIsStaffInFiltersCollapsed(!isStaffInFiltersCollapsed)}>
+                  <span className="text-content-primary text-xs font-medium">Staff</span>
+                  <div className="flex items-center gap-2">
+                    {!isStaffInFiltersCollapsed&&<button onClick={e=>{e.stopPropagation();toggleAllStaffFilters()}} className="text-[10px] text-primary hover:text-primary-hover">{allActiveStaff.every(s=>staffFilters[s.id])?"Deselect All":"Select All"}</button>}
+                    <ChevronDown size={12} className={`text-content-muted transition-transform ${!isStaffInFiltersCollapsed?'rotate-180':''}`}/>
+                  </div>
+                </div>
+                {!isStaffInFiltersCollapsed&&(
+                  <div className="space-y-1">
+                    {allActiveStaff.map(staff=>(
+                      <label key={staff.id} className="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" checked={staffFilters[staff.id]!==false} onChange={()=>handleStaffFilterChange(staff.id)} className="w-3 h-3 accent-primary"/>
+                        <div className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center text-white text-[7px] font-semibold" style={{backgroundColor:staff.color||'#808080'}}>{getStaffInitials(staff)}</div>
+                        <span className="text-content-primary text-[11px] truncate">{staff.firstName} {staff.lastName}</span>
+                        <span className="ml-auto inline-flex items-center gap-0.5 text-white px-1 py-0.5 rounded text-[8px] font-medium" style={{backgroundColor:getRoleColorHex(staff.role)}}><Briefcase size={8} className="flex-shrink-0"/>{staff.role}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -257,65 +254,72 @@ export default function Classes() {
                   <div className="bg-surface-base rounded-xl p-3 w-full">
                     <div className="flex items-center justify-between cursor-pointer" onClick={()=>setIsFiltersCollapsed(!isFiltersCollapsed)}>
                       <h3 className="text-content-primary font-semibold text-sm">Filter</h3>
-                      <div className="flex items-center gap-2">
-                        {!isFiltersCollapsed&&<button onClick={e=>{e.stopPropagation();toggleAllFilters()}} className="text-xs text-primary hover:text-primary-hover">{classTypesData.every(t=>classFilters[t.id])?"Deselect All":"Select All"}</button>}
-                        <button className="p-1 bg-surface-button rounded-lg text-content-primary">{isFiltersCollapsed?<ChevronDown size={14}/>:<ChevronUp size={14}/>}</button>
-                      </div>
+                      <button className="p-1 bg-surface-button rounded-lg text-content-primary">{isFiltersCollapsed?<ChevronDown size={14}/>:<ChevronUp size={14}/>}</button>
                     </div>
                     {!isFiltersCollapsed&&(
-                      <div className="space-y-1.5 mt-3 w-full">
-                        {classTypesData.map(type=>(
-                          <label key={type.id} className="flex items-center gap-2 cursor-pointer w-full py-0.5">
-                            <input type="checkbox" checked={classFilters[type.id]} onChange={()=>handleFilterChange(type.id)} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
-                            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:type.colorHex}}/>
-                            <span className="text-content-primary text-xs">{type.name}</span>
-                            <span className="text-content-faint text-xs ml-auto">{type.duration}m</span>
-                          </label>
-                        ))}
+                      <div className="mt-3 w-full space-y-1">
+
+                        {/* Courses sub-section (collapsible) */}
+                        <div className="flex items-center justify-between cursor-pointer py-0.5" onClick={()=>setIsCoursesInFiltersCollapsed(!isCoursesInFiltersCollapsed)}>
+                          <span className="text-content-primary text-xs font-semibold">Courses</span>
+                          <div className="flex items-center gap-2">
+                            {!isCoursesInFiltersCollapsed&&<button onClick={e=>{e.stopPropagation();toggleAllFilters()}} className="text-[10px] text-primary hover:text-primary-hover">{classTypesData.every(t=>classFilters[t.id])?"Deselect All":"Select All"}</button>}
+                            <button className="p-0.5 text-content-muted">{isCoursesInFiltersCollapsed?<ChevronDown size={12}/>:<ChevronUp size={12}/>}</button>
+                          </div>
+                        </div>
+                        {!isCoursesInFiltersCollapsed&&(
+                          <div className="space-y-1.5 mt-1">
+                            {classTypesData.map(type=>(
+                              <label key={type.id} className="flex items-center gap-2 cursor-pointer w-full py-0.5">
+                                <input type="checkbox" checked={classFilters[type.id]} onChange={()=>handleFilterChange(type.id)} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
+                                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:type.colorHex}}/>
+                                <span className="text-content-primary text-xs">{type.name}</span>
+                                <span className="text-content-faint text-xs ml-auto">{type.duration}m</span>
+                              </label>
+                            ))}
+                            <div className="border-t border-border my-1"/>
+                            <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
+                              <input type="checkbox" checked={classFilters["Cancelled Classes"]} onChange={()=>handleFilterChange("Cancelled Classes")} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
+                              <span className="text-content-primary text-xs">Cancelled</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
+                              <input type="checkbox" checked={classFilters["Past Classes"]} onChange={()=>handleFilterChange("Past Classes")} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
+                              <span className="text-content-primary text-xs">Past</span>
+                            </label>
+                          </div>
+                        )}
+
+                        {/* Staff sub-section (collapsible) */}
                         <div className="border-t border-border my-1.5"/>
-                        <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
-                          <input type="checkbox" checked={classFilters["Cancelled Classes"]} onChange={()=>handleFilterChange("Cancelled Classes")} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
-                          <span className="text-content-primary text-xs">Cancelled</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
-                          <input type="checkbox" checked={classFilters["Past Classes"]} onChange={()=>handleFilterChange("Past Classes")} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
-                          <span className="text-content-primary text-xs">Past</span>
-                        </label>
+                        <div className="flex items-center justify-between cursor-pointer py-0.5" onClick={()=>setIsStaffInFiltersCollapsed(!isStaffInFiltersCollapsed)}>
+                          <span className="text-content-primary text-xs font-semibold">Staff</span>
+                          <div className="flex items-center gap-2">
+                            {!isStaffInFiltersCollapsed&&<button onClick={e=>{e.stopPropagation();toggleAllStaffFilters()}} className="text-[10px] text-primary hover:text-primary-hover">{allActiveStaff.every(s=>staffFilters[s.id])?"Deselect All":"Select All"}</button>}
+                            <button className="p-0.5 text-content-muted">{isStaffInFiltersCollapsed?<ChevronDown size={12}/>:<ChevronUp size={12}/>}</button>
+                          </div>
+                        </div>
+                        {!isStaffInFiltersCollapsed&&(
+                          <div className="space-y-1.5 mt-1">
+                            {allActiveStaff.map(staff=>(
+                              <label key={staff.id} className="flex items-center gap-2 cursor-pointer w-full py-0.5">
+                                <input type="checkbox" checked={staffFilters[staff.id]!==false} onChange={()=>handleStaffFilterChange(staff.id)} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
+                                <div className="w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center text-white text-[8px] font-semibold" style={{backgroundColor:staff.color||'#808080'}}>{getStaffInitials(staff)}</div>
+                                <span className="text-content-primary text-xs truncate">{staff.firstName} {staff.lastName}</span>
+                                <span className="ml-auto inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[9px] font-medium flex-shrink-0" style={{backgroundColor:getRoleColorHex(staff.role)}}>
+                                  <Briefcase size={8} className="flex-shrink-0"/>
+                                  <span className="truncate max-w-[70px]">{staff.role}</span>
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Staff Filter Section */}
-                <div className="w-full lg:max-w-[300px] flex-shrink-0">
-                  <div className="bg-surface-base rounded-xl p-3 w-full">
-                    <div className="flex items-center justify-between cursor-pointer" onClick={()=>setIsStaffFiltersCollapsed(!isStaffFiltersCollapsed)}>
-                      <h3 className="text-content-primary font-semibold text-sm">Staff</h3>
-                      <div className="flex items-center gap-2">
-                        {!isStaffFiltersCollapsed&&<button onClick={e=>{e.stopPropagation();toggleAllStaffFilters()}} className="text-xs text-primary hover:text-primary-hover">{activeStaffInClasses.every(s=>staffFilters[s.id])?"Deselect All":"Select All"}</button>}
-                        <button className="p-1 bg-surface-button rounded-lg text-content-primary">{isStaffFiltersCollapsed?<ChevronDown size={14}/>:<ChevronUp size={14}/>}</button>
-                      </div>
-                    </div>
-                    {!isStaffFiltersCollapsed&&(
-                      <div className="space-y-1.5 mt-3 w-full">
-                        {activeStaffInClasses.map(staff=>(
-                          <label key={staff.id} className="flex items-center gap-2 cursor-pointer w-full py-0.5">
-                            <input type="checkbox" checked={staffFilters[staff.id]!==false} onChange={()=>handleStaffFilterChange(staff.id)} className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"/>
-                            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:staff.color||'#808080'}}/>
-                            <span className="text-content-primary text-xs truncate">{staff.firstName} {staff.lastName}</span>
-                            <span className={`ml-auto inline-flex items-center gap-1 ${getRoleBg(staff.role)} text-white px-1.5 py-0.5 rounded-md text-[9px] font-medium flex-shrink-0`}>
-                              <Briefcase size={8} className="flex-shrink-0"/>
-                              <span className="truncate max-w-[70px]">{staff.role}</span>
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="w-full lg:max-w-[300px] flex-1 flex flex-col min-h-0 overflow-hidden">
-                  <UpcomingClassesWidget classesData={filteredClasses} onClassClick={handleClassClick} filterDate={selectedDate}/>
+                <div className={`w-full lg:max-w-[300px] ${isUpcomingCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col min-h-0 overflow-hidden'}`}>
+                  <UpcomingClassesWidget classesData={filteredClasses} onClassClick={handleClassClick} filterDate={selectedDate} isCollapsed={isUpcomingCollapsed} onToggleCollapse={()=>setIsUpcomingCollapsed(!isUpcomingCollapsed)}/>
                 </div>
               </div>
             </div>
@@ -331,14 +335,14 @@ export default function Classes() {
         </main>
 
         <CreateClassModal isOpen={isCreateModalOpen} onClose={()=>{setIsCreateModalOpen(false);setPrefilledSlotTime(null)}}
-          onSubmit={handleCreateClass} classTypes={classTypesData} trainers={trainersList} rooms={roomsData}
+          onSubmit={handleCreateClass} classTypes={classTypesData} trainers={staffList} rooms={roomsData}
           selectedDate={selectedDate} selectedTime={prefilledSlotTime}/>
         <ClassDetailModal isOpen={isDetailModalOpen} onClose={()=>{setIsDetailModalOpen(false);setSelectedClass(null)}}
           classData={selectedClass} membersData={membersList} allClassesData={classesMain}
           onEnrollMember={handleEnrollMember} onRemoveMember={handleRemoveMember}
           onCancelClass={handleCancelClass} onCancelSeries={handleCancelSeries} onDeleteClass={handleDeleteClass}
           onEditClass={handleEditClass} rooms={roomsData}
-          trainers={trainersList} classTypes={classTypesData}/>
+          trainers={staffList} classTypes={classTypesData}/>
       </div>
 
       <div className="lg:hidden fixed bottom-4 right-4 z-40">

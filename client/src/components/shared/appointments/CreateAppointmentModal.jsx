@@ -272,7 +272,7 @@ const AddAppointmentModal = ({
   // Recurring options state
   const [recurringOptions, setRecurringOptions] = useState({
     frequency: "weekly",
-    dayOfWeek: "1",
+    dayOfWeek: initialDate ? String(new Date(initialDate).getDay()) : "1",
     startDate: initialDate,
     occurrences: 5,
   });
@@ -313,6 +313,7 @@ const AddAppointmentModal = ({
       setRecurringOptions(prev => ({
         ...prev,
         startDate: newDate,
+        dayOfWeek: String(new Date(newDate).getDay()),
       }));
     }
   }, [isOpen, selectedDate, selectedTime]);
@@ -323,7 +324,14 @@ const AddAppointmentModal = ({
   const updateAppointment = (field, value) => setAppointmentData({ ...appointmentData, [field]: value });
   
   const updateRecurringOptions = (field, value) => {
-    setRecurringOptions({ ...recurringOptions, [field]: value });
+    setRecurringOptions(prev => {
+      const next = { ...prev, [field]: value };
+      // Auto-sync dayOfWeek from startDate when switching to weekly
+      if (field === "frequency" && value === "weekly" && prev.startDate) {
+        next.dayOfWeek = String(new Date(prev.startDate).getDay());
+      }
+      return next;
+    });
   };
 
   const handleEditMemberNote = (member, tab) => {
@@ -339,6 +347,51 @@ const AddAppointmentModal = ({
   const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);
   const availableSlots = getAvailableSlots(appointmentData.date);
 
+  // Helper: generate all recurring dates based on frequency, startDate, and occurrences
+  const generateRecurringDates = (options) => {
+    const dates = [];
+    const { frequency, startDate, dayOfWeek, occurrences } = options;
+    if (!startDate || !occurrences) return [startDate];
+    
+    const start = new Date(startDate + "T12:00:00"); // noon to avoid timezone issues
+    
+    for (let i = 0; i < occurrences; i++) {
+      const current = new Date(start);
+      
+      if (frequency === "daily") {
+        current.setDate(start.getDate() + i);
+      } else if (frequency === "weekly") {
+        current.setDate(start.getDate() + (i * 7));
+        // Adjust to the correct day of week if needed
+        if (i === 0 && dayOfWeek !== undefined) {
+          const targetDay = parseInt(dayOfWeek);
+          const currentDay = current.getDay();
+          const diff = targetDay - currentDay;
+          if (diff !== 0) {
+            current.setDate(current.getDate() + diff);
+          }
+        } else if (i > 0 && dayOfWeek !== undefined) {
+          // For subsequent weeks, calculate from the first adjusted date
+          const targetDay = parseInt(dayOfWeek);
+          const firstDate = new Date(start);
+          const firstDayDiff = targetDay - firstDate.getDay();
+          firstDate.setDate(firstDate.getDate() + firstDayDiff);
+          current.setTime(firstDate.getTime());
+          current.setDate(firstDate.getDate() + (i * 7));
+        }
+      } else if (frequency === "monthly") {
+        current.setMonth(start.getMonth() + i);
+      }
+      
+      const year = current.getFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, '0');
+      const day = String(current.getDate()).padStart(2, '0');
+      dates.push(`${year}-${month}-${day}`);
+    }
+    
+    return dates;
+  };
+
   // Prepare appointment data but don't submit yet - show notify modal first
   const handleBook = () => {
     if (appointmentData.members.length === 0) { alert("Please add at least one member."); return; }
@@ -352,22 +405,34 @@ const AddAppointmentModal = ({
     const endDate = new Date(2000, 0, 1, hours, minutes + duration);
     const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
     
-    // Build appointment data for each member
-    const appointmentsToCreate = appointmentData.members.map((member) => ({
-      name: member.firstName || member.name?.split(" ")[0] || "",
-      lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
-      memberId: member.id,
-      type: appointmentData.type,
-      date: appointmentData.date,
-      startTime: appointmentData.timeSlot,
-      endTime: endTime,
-      time: `${appointmentData.timeSlot} - ${endTime}`,
-      color: selectedType?.color || "bg-[#808080]",
-      colorHex: getColorHex(selectedType),
-      specialNote: member.note ? { text: member.note, isImportant: member.noteImportance === "important" } : null,
-      // Include recurring data if applicable
-      recurring: showRecurringOptions ? recurringOptions : null,
-    }));
+    // Generate dates: single or recurring
+    const dates = showRecurringOptions
+      ? generateRecurringDates(recurringOptions)
+      : [appointmentData.date];
+    
+    // Build appointment data for each member AND each date
+    const appointmentsToCreate = [];
+    
+    dates.forEach((date) => {
+      appointmentData.members.forEach((member) => {
+        appointmentsToCreate.push({
+          name: member.firstName || member.name?.split(" ")[0] || "",
+          lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
+          memberId: member.id,
+          type: appointmentData.type,
+          date: date,
+          startTime: appointmentData.timeSlot,
+          endTime: endTime,
+          time: `${appointmentData.timeSlot} - ${endTime}`,
+          color: selectedType?.color || "bg-[#808080]",
+          colorHex: getColorHex(selectedType),
+          specialNote: member.note ? { text: member.note, isImportant: member.noteImportance === "important" } : null,
+          // Mark as part of a series for potential future use
+          isRecurring: showRecurringOptions,
+          recurringInfo: showRecurringOptions ? { frequency: recurringOptions.frequency, occurrences: recurringOptions.occurrences } : null,
+        });
+      });
+    });
     
     // Store pending data and show notify modal
     setPendingAppointmentData(appointmentsToCreate);
@@ -464,39 +529,57 @@ const AddAppointmentModal = ({
           {/* Recurring Options */}
           {showRecurringOptions && (
             <div className="space-y-4 bg-surface-dark rounded-xl p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-content-faint mb-2">Frequency</label>
-                  <select value={recurringOptions.frequency} onChange={(e) => updateRecurringOptions("frequency", e.target.value)}
-                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Bi-weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-content-faint mb-2">Day</label>
-                  <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
-                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
-                    <option value="1">Monday</option>
-                    <option value="2">Tuesday</option>
-                    <option value="3">Wednesday</option>
-                    <option value="4">Thursday</option>
-                    <option value="5">Friday</option>
-                    <option value="6">Saturday</option>
-                    <option value="0">Sunday</option>
-                  </select>
+              <div>
+                <label className="block text-xs text-content-faint mb-2">Frequency</label>
+                <div className="grid grid-cols-3 gap-1 bg-surface-card p-1 rounded-xl">
+                  {[{v:"daily",l:"Daily"},{v:"weekly",l:"Weekly"},{v:"monthly",l:"Monthly"}].map(f=>(
+                    <button key={f.v} type="button" onClick={()=>updateRecurringOptions("frequency",f.v)}
+                      className={`py-2 text-xs font-medium rounded-lg transition-colors ${recurringOptions.frequency===f.v?"bg-primary text-white":"text-content-muted hover:text-content-primary"}`}>{f.l}</button>
+                  ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className={`grid gap-4 ${recurringOptions.frequency==="weekly"?"grid-cols-2":"grid-cols-1"}`}>
                 <div>
                   <label className="block text-xs text-content-faint mb-2">Start Date</label>
                   <div className="w-full flex items-center justify-between bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5">
                     <span className={recurringOptions.startDate ? "text-content-primary" : "text-content-faint"}>{recurringOptions.startDate ? (() => { const [y,m,d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
-                    <DatePickerField value={recurringOptions.startDate} onChange={(val) => updateRecurringOptions("startDate", val)} />
+                    <DatePickerField value={recurringOptions.startDate} onChange={(val) => {
+                      setRecurringOptions(prev => {
+                        const next = { ...prev, startDate: val };
+                        if (val && prev.frequency === "weekly") {
+                          next.dayOfWeek = String(new Date(val).getDay());
+                        }
+                        return next;
+                      });
+                    }} />
                   </div>
+                </div>
+                {recurringOptions.frequency==="weekly" && (
+                  <div>
+                    <label className="block text-xs text-content-faint mb-2">Day of Week</label>
+                    <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
+                      className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
+                      <option value="1">Monday</option>
+                      <option value="2">Tuesday</option>
+                      <option value="3">Wednesday</option>
+                      <option value="4">Thursday</option>
+                      <option value="5">Friday</option>
+                      <option value="6">Saturday</option>
+                      <option value="0">Sunday</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-content-faint mb-2">Time Slot</label>
+                  <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
+                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
+                    <option value="">Select time...</option>
+                    {getAvailableSlots(recurringOptions.startDate).map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs text-content-faint mb-2">Occurrences</label>
@@ -505,15 +588,19 @@ const AddAppointmentModal = ({
                     className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary focus:outline-none focus:border-primary" />
                 </div>
               </div>
-              
-              {/* Time Slot for recurring */}
-              <div>
-                <label className="block text-xs text-content-faint mb-2">Time Slot</label>
-                <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
-                  className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
-                  <option value="">Select time...</option>
-                  {getAvailableSlots(recurringOptions.startDate).map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
-                </select>
+
+              {/* Frequency description */}
+              <div className="text-xs text-content-faint">
+                {recurringOptions.frequency==="daily"&&"Creates an appointment every day starting from the selected date."}
+                {recurringOptions.frequency==="weekly"&&"Creates an appointment every week on the selected day."}
+                {recurringOptions.frequency==="monthly"&&recurringOptions.startDate&&(()=>{
+                  const day=new Date(recurringOptions.startDate).getDate();
+                  const s=["th","st","nd","rd"];
+                  const v=day%100;
+                  const suffix=s[(v-20)%10]||s[v]||s[0];
+                  return`Creates an appointment on the ${day}${suffix} of each month.`;
+                })()}
+                {recurringOptions.frequency==="monthly"&&!recurringOptions.startDate&&"Creates an appointment on the same day each month. Select a start date."}
               </div>
             </div>
           )}

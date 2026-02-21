@@ -608,20 +608,35 @@ export default function Appointments() {
   };
 
   const handleAppointmentSubmit = (appointmentData) => {
-    const newAppointment = {
-      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...appointmentData, status: "pending", isTrial: false, isCancelled: false, isPast: false,
-      date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
-    }
-    setAppointmentsMain([...appointmentsMain, newAppointment])
+    setAppointmentsMain(prev => {
+      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
+      const newAppointment = {
+        id: newId,
+        ...appointmentData,
+        status: "pending",
+        isTrial: false,
+        isCancelled: false,
+        isPast: false,
+        date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
+      };
+      return [...prev, newAppointment];
+    });
   }
 
   const handleTrialSubmit = (trialData) => {
-    const newTrial = {
-      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...trialData, status: "pending", isTrial: true, isCancelled: false, isPast: false,
-      date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
-    }
-    setAppointmentsMain([...appointmentsMain, newTrial])
-    
+    setAppointmentsMain(prev => {
+      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
+      const newTrial = {
+        id: newId,
+        ...trialData,
+        status: "pending",
+        isTrial: true,
+        isCancelled: false,
+        isPast: false,
+        date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
+      };
+      return [...prev, newTrial];
+    });
   }
 
   const handleCheckInMain = (appointmentId) => {

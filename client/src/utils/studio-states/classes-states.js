@@ -5,7 +5,8 @@
 // Backend-Endpoint: GET /api/classes
 //
 // STRUKTUR:
-// - classTypesData        → Kurstypen (Yoga, Spinning, HIIT, etc.)
+// - classTypesData        → Kurstypen (derived from configuration-states)
+// - classCategoriesData   → Kategorien (derived from configuration-states)
 // - roomsData             → Verfügbare Räume
 // - classesData           → Dynamisch generierte Klassen (analog appointmentsData)
 // - markPastClasses       → Vergangene Klassen markieren
@@ -16,18 +17,36 @@
 
 import { membersData } from './members-states';
 import { getTrainers } from './staff-states';
+import {
+  DEFAULT_CLASS_TYPES,
+  DEFAULT_CLASS_CATEGORIES,
+  DEFAULT_CLASS_CALENDAR_SETTINGS,
+} from './configuration-states';
 
 // =============================================================================
-// CLASS TYPES
+// CLASS TYPES (derived from configuration-states — Single Source of Truth)
 // =============================================================================
-export const classTypesData = [
-  { id: 1, name: "Yoga",     description: "Mindful yoga session for flexibility and balance",     duration: 60, color: "bg-[#10b981]", colorHex: "#10b981", category: "Mind & Body",  image: null },
-  { id: 2, name: "Spinning", description: "High-energy indoor cycling workout",                   duration: 45, color: "bg-[#f59e0b]", colorHex: "#f59e0b", category: "Cardio",       image: null },
-  { id: 3, name: "HIIT",     description: "High-intensity interval training for maximum results",  duration: 30, color: "bg-[#ef4444]", colorHex: "#ef4444", category: "Strength",     image: null },
-  { id: 4, name: "Pilates",  description: "Core-focused low-impact strength training",             duration: 50, color: "bg-[#8b5cf6]", colorHex: "#8b5cf6", category: "Mind & Body",  image: null },
-  { id: 5, name: "Boxing",   description: "Boxing fitness class combining cardio and technique",    duration: 60, color: "bg-[#f97316]", colorHex: "#f97316", category: "Combat",       image: null },
-  { id: 6, name: "Zumba",    description: "Dance-based fitness class with Latin rhythms",           duration: 45, color: "bg-[#ec4899]", colorHex: "#ec4899", category: "Dance",        image: null },
-];
+// Configuration stores simplified format { color: "#hex" }.
+// Runtime modules need both Tailwind bg-class and raw hex for calendar rendering.
+export const classTypesData = DEFAULT_CLASS_TYPES.map(ct => ({
+  id:          ct.id,
+  name:        ct.name,
+  description: ct.description,
+  duration:    ct.duration,
+  color:       `bg-[${ct.color}]`,
+  colorHex:    ct.color,
+  category:    ct.category,
+  image:       ct.image,
+  maxParticipants: ct.maxParticipants,
+}));
+
+// =============================================================================
+// CLASS CATEGORIES (derived from configuration-states)
+// =============================================================================
+export const classCategoriesData = [...DEFAULT_CLASS_CATEGORIES];
+
+// Re-export calendar settings so classes.jsx can import from one place
+export { DEFAULT_CLASS_CALENDAR_SETTINGS };
 
 // =============================================================================
 // ROOMS
@@ -126,7 +145,7 @@ const generateClassesData = () => {
   const trainersList = getTrainers();
   const t = trainersList.length > 0
     ? trainersList
-    : [{ id: 0, firstName: 'Unknown', lastName: 'Trainer', color: '#808080' }];
+    : [{ id: 0, firstName: 'Unknown', lastName: 'Staff', color: '#808080' }];
 
   const members = membersData || [];
   let idCounter = 1;
@@ -134,14 +153,15 @@ const generateClassesData = () => {
   // Helper to build a single class entry
   const makeClass = (dateStr, {
     typeId, hour, min, trainerIdx, room,
-    maxParticipants = DEFAULT_MAX_PARTICIPANTS,
+    maxParticipants,
     isRecurring = false, seriesId = null, recurring = null,
     isCancelled = false,
   }) => {
     const type = classTypesData.find((x) => x.id === typeId);
+    const effectiveMax = maxParticipants ?? type?.maxParticipants ?? DEFAULT_MAX_PARTICIPANTS;
     const trainer = t[trainerIdx % t.length] || t[0];
     const enrolledCount = Math.floor(Math.random() * 8) + 2;
-    const enrolled = members.slice(0, Math.min(enrolledCount, maxParticipants)).map((m) => m.id);
+    const enrolled = members.slice(0, Math.min(enrolledCount, effectiveMax)).map((m) => m.id);
     const sH = String(hour).padStart(2, '0');
     const sM = String(min).padStart(2, '0');
     const endTime = calcEndTime(hour, min, type.duration);
@@ -160,7 +180,7 @@ const generateClassesData = () => {
       date: dateStr,
       startTime: `${sH}:${sM}`,
       endTime,
-      maxParticipants,
+      maxParticipants: effectiveMax,
       enrolledMembers: enrolled,
       isRecurring,
       seriesId,
@@ -456,8 +476,10 @@ export const classTypesApi = {
 // =============================================================================
 
 export default {
-  // Class Types
+  // Class Types & Categories (from configuration-states)
   classTypesData,
+  classCategoriesData,
+  DEFAULT_CLASS_CALENDAR_SETTINGS,
   roomsData,
   DEFAULT_MAX_PARTICIPANTS,
   DEFAULT_CLASS_DURATION,

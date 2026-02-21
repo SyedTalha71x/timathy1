@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
-import { X, Clock, Users, MapPin, Calendar, Repeat, Search, UserMinus, Trash2, Plus, AlertTriangle, Ban, ChevronDown, Check } from "lucide-react";
+import { X, Clock, Users, MapPin, Calendar, Repeat, Search, UserMinus, Trash2, Plus, AlertTriangle, Ban, ChevronDown, Check, Briefcase } from "lucide-react";
 import NotifyModalMain from '../../shared/NotifyModal';
 import DatePickerField from '../../shared/DatePickerField';
+import { getRoleColorHex } from '../../../utils/studio-states/staff-states';
 
 const fmtDate = (d) => { const dt=d instanceof Date?d:new Date(d); return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}` };
 const getColorHex = (t) => { if(!t)return"#808080";if(t.colorHex)return t.colorHex;if(t.color?.startsWith("#"))return t.color;return"#808080" };
@@ -473,13 +474,13 @@ const ClassDetailModal = ({
                 </div>
               )}
 
-              {/* Trainer */}
+              {/* Staff */}
               <div>
-                <label className="block text-sm font-medium text-content-secondary mb-2">Trainer</label>
+                <label className="block text-sm font-medium text-content-secondary mb-2">Staff</label>
                 {canEdit && trainers.length > 0 ? (
                   <CustomDropdown
                     value={editTrainerId}
-                    placeholder="Select trainer..."
+                    placeholder="Select staff..."
                     renderSelected={() => (
                       <div className="flex items-center gap-3">
                         {editTrainer?.img ? (
@@ -491,7 +492,7 @@ const ClassDetailModal = ({
                           </div>
                         )}
                         <span className="text-content-primary">{editTrainer?.firstName} {editTrainer?.lastName}</span>
-                        {editTrainer?.role && <span className="text-content-faint text-xs">{editTrainer.role}</span>}
+                        {editTrainer?.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{backgroundColor:getRoleColorHex(editTrainer.role)}}><Briefcase size={9} className="flex-shrink-0"/>{editTrainer.role}</span>}
                       </div>
                     )}>
                     {(close) => trainers.map(t => (
@@ -509,7 +510,7 @@ const ClassDetailModal = ({
                         )}
                         <div className="flex-1">
                           <div className="text-sm text-content-primary">{t.firstName} {t.lastName}</div>
-                          {t.role && <div className="text-xs text-content-faint">{t.role}</div>}
+                          {t.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium mt-0.5" style={{backgroundColor:getRoleColorHex(t.role)}}><Briefcase size={9} className="flex-shrink-0"/>{t.role}</span>}
                         </div>
                         {editTrainerId === t.id && <Check size={16} className="text-primary"/>}
                       </button>

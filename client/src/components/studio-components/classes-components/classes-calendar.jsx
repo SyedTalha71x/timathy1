@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import FullCalendar from "@fullcalendar/react"
-import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import { studioData, isStudioClosedOnDate } from "../../../utils/studio-states"
 
 const formatDateLocal = (date) => {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -21,13 +22,30 @@ const ParticipantsIcon = ({ size = 8 }) => (
 const ClassesCalendar = forwardRef(({
   classesData = [], classTypes = [], onDateSelect, selectedDate,
   classFilters = {}, onDateDisplayChange, onCurrentDateChange, onClassClick,
-  calendarSettings = { calendarStartTime: "06", calendarEndTime: "22" },
+  calendarSettings = { calendarStartTime: "06:00", calendarEndTime: "22:00", hideClosedDays: true, fadePastClasses: true },
 }, ref) => {
   const calendarRef = useRef(null);
   const [currentViewType, setCurrentViewType] = useState("timeGridWeek");
   const [currentDateDisplay, setCurrentDateDisplay] = useState("");
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, content: null });
   const hideRef = useRef(null), showRef = useRef(null);
+
+  // Compute hidden days from calendarSettings + opening hours (same logic as appointments calendar)
+  const hiddenDays = useMemo(() => {
+    if (currentViewType === "timeGridDay") return [];
+    if (!calendarSettings.hideClosedDays) return [];
+    const dayNameToIndex = { 'Sunday':0,'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6 };
+    const days = [];
+    if (studioData?.openingHours && Array.isArray(studioData.openingHours)) {
+      studioData.openingHours.forEach(dayConfig => {
+        if (dayConfig?.closed) {
+          const dayIndex = dayNameToIndex[dayConfig.day];
+          if (dayIndex !== undefined) days.push(dayIndex);
+        }
+      });
+    }
+    return days;
+  }, [calendarSettings.hideClosedDays, currentViewType]);
 
   const formatDateRange = useCallback(() => {
     const api = calendarRef.current?.getApi(); if (!api) return currentDateDisplay;
@@ -144,6 +162,16 @@ const ClassesCalendar = forwardRef(({
         .classes-cal .month-cls-tile{transition:transform .15s,box-shadow .15s!important;user-select:none!important}
         .classes-cal .month-cls-tile:hover{transform:scale(1.06)!important;box-shadow:0 4px 10px rgba(0,0,0,.35)!important;z-index:10!important;position:relative!important}
         .classes-cal .month-more-link{cursor:pointer!important}.classes-cal .month-more-link:hover{text-decoration:underline!important}
+        /* Closed days (weekends, holidays, custom closing days) */
+        .classes-cal .fc-day-closed{background:repeating-linear-gradient(-45deg,rgba(75,85,99,.35),rgba(75,85,99,.35) 5px,rgba(55,65,81,.2) 5px,rgba(55,65,81,.2) 10px)!important;cursor:not-allowed!important}
+        .classes-cal .fc-day-closed .fc-timegrid-col-frame{cursor:not-allowed!important;background:rgba(75,85,99,.15)!important}
+        .classes-cal .fc-day-closed .fc-timegrid-slot{cursor:not-allowed!important;background:rgba(75,85,99,.08)!important}
+        .classes-cal .fc th.fc-day-closed{background:rgba(75,85,99,.2)!important}
+        .classes-cal .fc th.fc-day-closed .fc-col-header-cell-cushion{color:var(--color-content-muted)!important}
+        .classes-cal .fc-col-header-cell .closed-label{display:block;font-size:9px!important;font-weight:500!important;color:var(--color-content-primary)!important;line-height:1.1!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;opacity:.7;user-select:none}
+        .classes-cal .fc-dayGridMonth-view .fc-day-closed{cursor:not-allowed!important;background:repeating-linear-gradient(-45deg,rgba(75,85,99,.4),rgba(75,85,99,.4) 5px,rgba(55,65,81,.25) 5px,rgba(55,65,81,.25) 10px)!important}
+        .classes-cal .fc-dayGridMonth-view .fc-day-closed .fc-daygrid-day-frame{background:rgba(75,85,99,.1)!important}
+        .classes-cal .fc-dayGridMonth-view .fc-day-closed .fc-daygrid-day-number{color:var(--color-content-faint)!important}
         @media(max-width:1023px){.classes-cal .fc .fc-toolbar{display:none!important}.classes-cal .fc .fc-timegrid-slot{height:2.5em!important}.classes-cal .fc .fc-event{font-size:10px!important;min-height:30px!important}.classes-cal .fc .fc-col-header-cell-cushion{padding:8px 4px!important}.classes-cal .fc .fc-timegrid-axis{width:40px!important}.classes-cal .fc .fc-timegrid-slot-label{font-size:10px!important}}
       `}</style>
 
@@ -179,10 +207,15 @@ const ClassesCalendar = forwardRef(({
               firstDay={1}
               slotMinTime={`${calendarSettings.calendarStartTime}:00`}
               slotMaxTime={`${calendarSettings.calendarEndTime}:00`}
+              hiddenDays={hiddenDays}
               eventClick={handleEventClick}
               select={handleDateSelect}
               selectAllow={(si) => {
-                // Block fully past slots (current 30-min slot is still allowed)
+                // Block closed days
+                const dateStr = formatDateLocal(si.start);
+                const closedInfo = isStudioClosedOnDate(dateStr);
+                if (closedInfo.closed) return false;
+                // Block fully past slots
                 if (si.end <= new Date()) return false;
                 const vt = calendarRef.current?.getApi()?.view?.type;
                 if (vt==="dayGridMonth") { const el=si.jsEvent?.target; if(el){if(el.classList?.contains('month-cls-tile')||el.closest('.month-cls-tile'))return false;if(el.classList?.contains('month-more-link')||el.closest('.month-more-link'))return false;} return true; }
@@ -215,37 +248,75 @@ const ClassesCalendar = forwardRef(({
                 const isCancelled = ei.event.extendedProps.isCancelled;
                 const isPast = ei.event.extendedProps.isPast || (isCancelled && ei.event.end && ei.event.end < new Date());
                 if (isCancelled) classes.push("cancelled-cls");
-                if (isPast) classes.push("past-cls");
+                if (isPast && calendarSettings.fadePastClasses) classes.push("past-cls");
                 if (ei.event.extendedProps.isFull && !isCancelled) classes.push("class-full");
                 return classes.join(" ");
               }}
               views={{
-                timeGridWeek:{dayHeaderContent:(a)=>{const d=new Date(a.date);return<div style={{textAlign:'center',lineHeight:'1.1',userSelect:'none'}}><div style={{fontSize:'11px'}}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]} {d.getDate()}</div></div>}},
-                timeGridDay:{dayHeaderContent:(a)=>{const d=new Date(a.date);return<div style={{textAlign:'center',lineHeight:'1.1',userSelect:'none'}}><div style={{fontSize:'11px'}}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]} {d.getDate()}</div></div>}},
+                timeGridWeek:{dayHeaderContent:(a)=>{
+                  const d=new Date(a.date);const dateStr=formatDateLocal(d);
+                  const closedInfo=isStudioClosedOnDate(dateStr);
+                  const isHoliday=closedInfo.closed&&!closedInfo.isWeekend;
+                  return(<div style={{textAlign:'center',lineHeight:'1.1',userSelect:'none'}}>
+                    <div style={{fontSize:'11px'}}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]} {d.getDate()}</div>
+                    {isHoliday&&<div className="closed-label">{closedInfo.reason}</div>}
+                  </div>);
+                }},
+                timeGridDay:{dayHeaderContent:(a)=>{
+                  const d=new Date(a.date);const dateStr=formatDateLocal(d);
+                  const closedInfo=isStudioClosedOnDate(dateStr);
+                  const isClosed=closedInfo.closed;
+                  const closedLabel=closedInfo.isWeekend?'Closed':closedInfo.reason;
+                  return(<div style={{textAlign:'center',lineHeight:'1.1',userSelect:'none'}}>
+                    <div style={{fontSize:'11px'}}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]} {d.getDate()}</div>
+                    {isClosed&&<div className="closed-label">{closedLabel}</div>}
+                  </div>);
+                }},
                 dayGridMonth:{dayHeaderContent:(a)=>{const d=new Date(a.date);const i=d.getDay();return<span style={{userSelect:'none'}}>{['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][i===0?6:i-1]}</span>}},
               }}
               datesSet={(info)=>{if(info.view.type!==currentViewType)setCurrentViewType(info.view.type);setTimeout(()=>{broadcast();hideTooltip(true)},100)}}
+              dayCellDidMount={(info) => {
+                const dateStr = formatDateLocal(info.date);
+                const closedInfo = isStudioClosedOnDate(dateStr);
+                if (closedInfo.closed) {
+                  info.el.classList.add('fc-day-closed');
+                  info.el.style.cursor = 'not-allowed';
+                } else if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") {
+                  info.el.style.cursor = 'pointer';
+                }
+              }}
               dayCellContent={(args)=>{
                 if(calendarRef.current?.getApi()?.view?.type!=="dayGridMonth")return null;
                 const date=new Date(args.date),dateString=formatDateLocal(date);
+                const closedInfo=isStudioClosedOnDate(dateString);
+                const isClosed=closedInfo.closed;
                 const api=calendarRef.current?.getApi(),curMonth=api?.view?.currentStart?new Date(api.view.currentStart).getMonth():new Date().getMonth();
                 const isCurMonth=date.getMonth()===curMonth;
                 const today=new Date(),isToday=date.getDate()===today.getDate()&&date.getMonth()===today.getMonth()&&date.getFullYear()===today.getFullYear();
-                const dayClasses=isCurMonth?filteredClasses.filter(c=>c.date===dateString):[];
+                const dayClasses=(isCurMonth&&!isClosed)?filteredClasses.filter(c=>c.date===dateString):[];
                 const show=dayClasses.slice(0,3),more=dayClasses.length-3;
                 const isPastDay = (() => { const end=new Date(date);end.setHours(23,59,59,999);return end<new Date() })();
+                const closedLabel=closedInfo.isWeekend?'Closed':closedInfo.reason;
                 return(
-                  <div style={{height:'100%',width:'100%',overflow:'hidden',cursor:isPastDay?'default':'pointer',userSelect:'none',opacity:isPastDay?0.5:1}}
-                    onClick={(e)=>{if(isPastDay)return;if(e.target.closest('.month-cls-tile')||e.target.closest('.month-more-link'))return;const s=new Date(date);s.setHours(9,0,0,0);onDateSelect?.({start:s,end:new Date(s.getTime()+3600000),formattedTime:"09:00"})}}>
-                    <div style={{padding:'2px 4px',display:'flex',justifyContent:'flex-end'}}>
-                      <span style={{color:isToday?'var(--color-content-primary)':(isCurMonth?'var(--color-content-primary)':'var(--color-content-faint)'),fontWeight:isToday?700:(isCurMonth?500:400),fontSize:'13px'}}>{args.dayNumberText}</span>
+                  <div style={{height:'100%',width:'100%',overflow:'hidden',cursor:isClosed?'not-allowed':(isPastDay?'default':'pointer'),userSelect:'none',opacity:(isPastDay && !isClosed && calendarSettings.fadePastClasses)?0.5:1}}
+                    onClick={(e)=>{
+                      if(isClosed)return;
+                      if(isPastDay)return;
+                      if(e.target.closest('.month-cls-tile')||e.target.closest('.month-more-link'))return;
+                      const s=new Date(date);s.setHours(9,0,0,0);onDateSelect?.({start:s,end:new Date(s.getTime()+3600000),formattedTime:"09:00"});
+                    }}>
+                    <div style={{padding:'2px 4px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                      {isClosed?(
+                        <span style={{fontSize:'8px',color:'var(--color-content-primary)',fontWeight:'500',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'60%',opacity:.7}}>{closedLabel}</span>
+                      ):<span></span>}
+                      <span style={{color:isClosed?'var(--color-content-faint)':(isToday?'var(--color-content-primary)':(isCurMonth?'var(--color-content-primary)':'var(--color-content-faint)')),fontWeight:isToday?700:(isCurMonth?500:400),fontSize:'13px'}}>{args.dayNumberText}</span>
                     </div>
                     <div style={{overflow:'hidden',padding:'0 4px',maxHeight:'82px'}}>
                       {show.map((cls)=>{
                         const en=cls.enrolledMembers?.length||0,cancelled=cls.isCancelled,past=cls.isPast;
                         const isPastDate = cancelled && new Date(`${cls.date}T${cls.endTime||'23:59'}`) < new Date();
                         const bg=cancelled?'#6B7280':(cls.color||'#6c5ce7');
-                        const opacity=(cancelled && isPastDate)?0.35:cancelled?0.6:(past?0.45:1);
+                        const opacity=(cancelled && isPastDate)?0.35:cancelled?0.6:((past && calendarSettings.fadePastClasses)?0.45:1);
                         return(
                           <div key={cls.id} className="month-cls-tile" style={{backgroundColor:bg,marginBottom:'1px',padding:'3px 6px',borderRadius:'3px',height:'20px',width:'100%',overflow:'hidden',color:'#fff',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',fontSize:'10px',opacity,position:'relative'}}
                             onClick={(e)=>{e.stopPropagation();onClassClick?.(cls)}}>

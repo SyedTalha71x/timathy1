@@ -22,30 +22,35 @@ export const StaffColorIndicator = ({ color, size = 12, className = "" }) => {
 };
 
 // =============================================================================
-// ROLE COLORS (shared across app)
+// ROLE COLORS (derived from configuration-states DEFAULT_STAFF_ROLES)
 // =============================================================================
-export const ROLE_COLORS = {
-  'Telephone operator': 'bg-purple-600',
-  'Software Engineer': 'bg-blue-600',
-  'System Engineer': 'bg-green-600',
-  'Manager': 'bg-red-600',
-  'Studio Manager': 'bg-red-600',
-  'Trainer': 'bg-indigo-600',
-  'Personal Trainer': 'bg-indigo-600',
-  'Fitness Coach': 'bg-indigo-600',
-  'Yoga Instructor': 'bg-emerald-600',
-  'Boxing Coach': 'bg-orange-600',
-  'Dance Instructor': 'bg-pink-600',
-  'Physiotherapist': 'bg-teal-600',
-  'Reception': 'bg-yellow-600',
-  'Receptionist': 'bg-yellow-600',
-  'Cleaner': 'bg-orange-600',
-  'Admin': 'bg-pink-600',
-  'Therapist': 'bg-teal-600',
-  'Nutritionist': 'bg-lime-600',
+// Maps each staffRolesData job-role → closest DEFAULT_STAFF_ROLES permission-role color
+import { staffRolesData, DEFAULT_STAFF_ROLES } from './configuration-states';
+
+// Build a lookup from permission-role name → hex color
+const _permRoleColorMap = DEFAULT_STAFF_ROLES.reduce((m, r) => { m[r.name] = r.color; return m; }, {});
+
+// Map each staffRolesData job-role to its permission-role color
+const STAFF_ROLE_TO_PERM = {
+  'Personal Trainer': 'Trainer',
+  'Fitness Coach':    'Trainer',
+  'Studio Manager':   'Studio Operator',
+  'Receptionist':     'Studio Operator',
+  'Telephone operator': 'Studio Operator',
+  'Admin':            'Admin',
 };
 
-export const getRoleColor = (role) => ROLE_COLORS[role] || 'bg-content-faint';
+export const ROLE_COLOR_HEX = {};
+staffRolesData.forEach(role => {
+  const permRole = STAFF_ROLE_TO_PERM[role] || 'Trainer';
+  ROLE_COLOR_HEX[role] = _permRoleColorMap[permRole] || '#808080';
+});
+
+export const getRoleColorHex = (role) => ROLE_COLOR_HEX[role] || '#808080';
+
+// Kept for backwards compat but now delegates to hex map
+export const ROLE_COLORS = ROLE_COLOR_HEX;
+export const getRoleColor = getRoleColorHex;
 
 // =============================================================================
 // STAFF DATA

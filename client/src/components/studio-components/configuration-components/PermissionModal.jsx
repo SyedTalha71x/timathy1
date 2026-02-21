@@ -11,6 +11,7 @@ import {
   Home,
   Image,
   ClipboardList,
+  Timer,
 } from "lucide-react"
 import { BsPersonWorkspace, BsFillClipboard2HeartFill } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
@@ -42,6 +43,17 @@ export const PERMISSION_GROUPS = [
       { key: "appointments.book", label: "Book Appointments", chip: "Book" },
       { key: "appointments.book_trial", label: "Book Trial Trainings", chip: "Trial Trainings" },
       { key: "appointments.block_slots", label: "Block Time Slots", chip: "Block Slots" },
+    ],
+  },
+  {
+    group: "Classes",
+    icon: Timer,
+    items: [
+      { key: "classes.view", label: "View Classes", isView: true },
+      { key: "classes.create", label: "Create Classes", chip: "Create" },
+      { key: "classes.edit", label: "Edit Classes", chip: "Edit" },
+      { key: "classes.cancel", label: "Cancel Classes", chip: "Cancel" },
+      { key: "classes.manage_participants", label: "Manage Participants", chip: "Participants" },
     ],
   },
   {

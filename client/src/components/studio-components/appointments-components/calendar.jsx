@@ -568,13 +568,18 @@ const Calendar = forwardRef(({
   }
 
   const handleAppointmentSubmit = (appointmentData) => {
-    const newAppointment = {
-      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...appointmentData,
-      status: "pending", isTrial: false, isCancelled: false, isPast: false,
-      date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
-    }
-    setAppointmentsMain([...appointmentsMain, newAppointment])
-    
+    const dateObj = new Date(appointmentData.date + "T12:00:00");
+    const formattedDate = `${dateObj.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(dateObj)}`;
+    setAppointmentsMain(prev => {
+      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
+      const newAppointment = {
+        id: newId, ...appointmentData,
+        date: formattedDate,
+        title: appointmentData.type,
+        status: "pending", isTrial: false, isCancelled: false, isPast: false,
+      };
+      return [...prev, newAppointment];
+    });
   }
 
   const handleTrialSubmit = (trialData) => {
@@ -852,10 +857,23 @@ const Calendar = forwardRef(({
   };
 
   const handleAddAppointmentSubmit = (data) => {
-    const newAppointment = { id: Math.max(0, ...memberAppointments.map((a) => a.id)) + 1, ...data, memberId: selectedMemberForAppointments?.id }
-    setMemberAppointments([...memberAppointments, newAppointment])
-    setShowCreateAppointmentModal(false)
-    
+    const dateObj = new Date(data.date + "T12:00:00");
+    const formattedDate = `${dateObj.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(dateObj)}`;
+    setAppointmentsMain(prev => {
+      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
+      return [...prev, {
+        id: newId,
+        ...data,
+        date: formattedDate,
+        title: data.type,
+        status: "pending",
+        isTrial: false,
+        isCancelled: false,
+        isPast: false,
+        isCheckedIn: false,
+        memberId: data.memberId || selectedMemberForAppointments?.id,
+      }];
+    });
   }
 
   const handleDeleteAppointment = (id) => {

@@ -16,8 +16,13 @@ const UpcomingClassesWidget = ({
   classesData = [],
   onClassClick,
   filterDate,
+  isCollapsed: externalCollapsed,
+  onToggleCollapse,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Use external state if provided, otherwise internal
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  const toggleCollapse = onToggleCollapse || (() => setInternalCollapsed(!internalCollapsed));
 
   // Only show upcoming (future, not cancelled) classes
   const now = new Date();
@@ -58,10 +63,10 @@ const UpcomingClassesWidget = ({
   };
 
   return (
-    <div className="bg-surface-base rounded-xl p-3 flex flex-col h-full min-h-0">
+    <div className={`bg-surface-base rounded-xl p-3 ${isCollapsed ? '' : 'flex flex-col h-full min-h-0'}`}>
       <div
-        className="flex items-center justify-between cursor-pointer mb-2"
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`flex items-center justify-between cursor-pointer ${isCollapsed ? '' : 'mb-2'}`}
+        onClick={toggleCollapse}
       >
         <h3 className="text-content-primary font-semibold text-sm">Upcoming Classes</h3>
         <button className="p-1 bg-surface-button hover:bg-surface-button rounded-lg cursor-pointer transition-colors text-content-primary">

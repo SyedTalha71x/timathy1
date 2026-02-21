@@ -211,6 +211,7 @@ export const CONFIGURATION_NAV_ITEMS = [
 export const DEMO_MENU_ITEMS = [
   { key: "my-area", label: "My Area" },
   { key: "appointments", label: "Appointments" },
+  { key: "classes", label: "Classes" },
   { key: "messenger", label: "Messenger" },
   { key: "bulletin-board", label: "Bulletin Board" },
   { key: "activity-monitor", label: "Activity Monitor" },

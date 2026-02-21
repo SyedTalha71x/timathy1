@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, Clock, Users, MapPin, ChevronDown, Check } from "lucide-react";
+import { X, Clock, Users, MapPin, ChevronDown, Check, Briefcase } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import DatePickerField from '../../shared/DatePickerField';
+import { getRoleColorHex } from '../../../utils/studio-states/staff-states';
 
 const getColorHex = (t) => { if(!t)return"#808080";if(t.colorHex)return t.colorHex;if(t.color?.startsWith("#"))return t.color;return"#808080" };
 const fmtDate = (d) => { const dt=d instanceof Date?d:new Date(d); return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}` };
@@ -50,13 +51,13 @@ const CreateClassModal = ({
 
   const [showRecurring, setShowRecurring] = useState(false);
   const [form, setForm] = useState({ typeId:"",trainerId:"",room:"",date:initDate,startHour:initTime?initTime.split(":")[0]:"",startMinute:initTime?initTime.split(":")[1]:"",maxParticipants:12 });
-  const [rec, setRec] = useState({ frequency:"weekly",dayOfWeek:"1",startDate:initDate,occurrences:8 });
+  const [rec, setRec] = useState({ frequency:"weekly",dayOfWeek:initDate?String(new Date(initDate).getDay()):"1",startDate:initDate,occurrences:8 });
 
   useEffect(()=>{
     if(!isOpen)return;
     const nd=getDate(selectedDate),nt=getTime(selectedTime);
     setForm(p=>({...p,typeId:"",trainerId:"",room:"",date:nd||p.date,startHour:nt?nt.split(":")[0]:"",startMinute:nt?nt.split(":")[1]:"",maxParticipants:12}));
-    setRec(p=>({...p,startDate:nd||p.startDate}));
+    setRec(p=>({...p,startDate:nd||p.startDate,dayOfWeek:nd?String(new Date(nd).getDay()):p.dayOfWeek}));
     setShowRecurring(false);
   },[isOpen,selectedDate,selectedTime]);
 
@@ -80,7 +81,16 @@ const CreateClassModal = ({
     }
     setForm(p=>({...p,[f]:v}));
   };
-  const upR=(f,v)=>setRec(p=>({...p,[f]:v}));
+  const upR=(f,v)=>{
+    setRec(p=>{
+      const next = {...p,[f]:v};
+      // Auto-sync dayOfWeek from startDate when switching to weekly
+      if(f==="frequency"&&(v==="weekly")&&p.startDate){
+        next.dayOfWeek = String(new Date(p.startDate).getDay());
+      }
+      return next;
+    });
+  };
   const selType=classTypes.find(t=>t.id===form.typeId);
   const selTrainer=trainers.find(t=>t.id===form.trainerId);
 
@@ -91,22 +101,40 @@ const CreateClassModal = ({
     const dates = [];
     if (!rec.startDate) return dates;
     const start = new Date(rec.startDate);
-    const dayOfWeek = parseInt(rec.dayOfWeek);
     const count = parseInt(rec.occurrences) || 1;
 
-    // Find the first occurrence on or after startDate with the correct dayOfWeek
-    let current = new Date(start);
-    const currentDay = current.getDay();
-    let diff = dayOfWeek - currentDay;
-    if (diff < 0) diff += 7;
-    if (diff > 0) current.setDate(current.getDate() + diff);
-
-    for (let i = 0; i < count; i++) {
-      dates.push(fmtDate(current));
-      if (rec.frequency === "daily") current.setDate(current.getDate() + 1);
-      else if (rec.frequency === "weekly") current.setDate(current.getDate() + 7);
-      else if (rec.frequency === "biweekly") current.setDate(current.getDate() + 14);
-      else if (rec.frequency === "monthly") current.setMonth(current.getMonth() + 1);
+    if (rec.frequency === "daily") {
+      // Daily: every day from start date
+      const current = new Date(start);
+      for (let i = 0; i < count; i++) {
+        dates.push(fmtDate(current));
+        current.setDate(current.getDate() + 1);
+      }
+    } else if (rec.frequency === "weekly") {
+      // Weekly: find first matching dayOfWeek on or after start, then skip 7
+      const dayOfWeek = parseInt(rec.dayOfWeek);
+      let current = new Date(start);
+      const currentDay = current.getDay();
+      let diff = dayOfWeek - currentDay;
+      if (diff < 0) diff += 7;
+      if (diff > 0) current.setDate(current.getDate() + diff);
+      for (let i = 0; i < count; i++) {
+        dates.push(fmtDate(current));
+        current.setDate(current.getDate() + 7);
+      }
+    } else if (rec.frequency === "monthly") {
+      // Monthly: same day-of-month each month (clamped to last day if needed)
+      const startMonth = start.getMonth();
+      const startYear = start.getFullYear();
+      const targetDay = start.getDate();
+      for (let i = 0; i < count; i++) {
+        const month = startMonth + i;
+        const year = startYear + Math.floor(month / 12);
+        const m = month % 12;
+        const lastDay = new Date(year, m + 1, 0).getDate();
+        const d = new Date(year, m, Math.min(targetDay, lastDay));
+        dates.push(fmtDate(d));
+      }
     }
     return dates;
   };
@@ -208,18 +236,18 @@ const CreateClassModal = ({
             </CustomDropdown>
           </div>
 
-          {/* Trainer */}
+          {/* Staff */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Trainer</label>
-            <CustomDropdown value={form.trainerId} placeholder="Select trainer..."
+            <label className="block text-sm font-medium text-content-secondary mb-2">Staff</label>
+            <CustomDropdown value={form.trainerId} placeholder="Select staff..."
               renderSelected={()=><div className="flex items-center gap-3">
                 {selTrainer?.img?<img src={selTrainer.img} alt="" className="w-6 h-6 rounded-lg object-cover"/>:<div className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-semibold" style={{backgroundColor:selTrainer?.color||'var(--color-primary)'}}>{getInitials(selTrainer)}</div>}
-                <span className="text-content-primary">{selTrainer?.firstName} {selTrainer?.lastName}</span><span className="text-content-faint text-xs">{selTrainer?.role}</span>
+                <span className="text-content-primary">{selTrainer?.firstName} {selTrainer?.lastName}</span>{selTrainer?.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{backgroundColor:getRoleColorHex(selTrainer.role)}}><Briefcase size={9} className="flex-shrink-0"/>{selTrainer.role}</span>}
               </div>}>
               {(close)=>trainers.map(t=>(
                 <button key={t.id} onClick={()=>{upd("trainerId",t.id);close()}} className={`w-full text-left p-3 flex items-center gap-3 ${form.trainerId===t.id?"bg-surface-hover":"hover:bg-surface-hover"}`}>
                   {t.img?<img src={t.img} alt="" className="w-8 h-8 rounded-lg object-cover"/>:<div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold" style={{backgroundColor:t.color||'var(--color-primary)'}}>{getInitials(t)}</div>}
-                  <div className="flex-1"><div className="text-sm text-content-primary">{t.firstName} {t.lastName}</div><div className="text-xs text-content-faint">{t.role}</div></div>
+                  <div className="flex-1"><div className="text-sm text-content-primary">{t.firstName} {t.lastName}</div>{t.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium mt-0.5" style={{backgroundColor:getRoleColorHex(t.role)}}><Briefcase size={9} className="flex-shrink-0"/>{t.role}</span>}</div>
                   {form.trainerId===t.id&&<Check size={16} className="text-primary"/>}
                 </button>
               ))}
@@ -259,26 +287,47 @@ const CreateClassModal = ({
           {/* Recurring */}
           {showRecurring && (
             <div className="space-y-4 bg-surface-dark rounded-xl p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-content-faint mb-2">Frequency</label>
-                  <select value={rec.frequency} onChange={e=>upR("frequency",e.target.value)} className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
-                    <option value="weekly">Weekly</option><option value="biweekly">Bi-weekly</option><option value="daily">Daily</option><option value="monthly">Monthly</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-content-faint mb-2">Day</label>
-                  <select value={rec.dayOfWeek} onChange={e=>upR("dayOfWeek",e.target.value)} className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
-                    <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
-                  </select>
+              <div>
+                <label className="block text-xs text-content-faint mb-2">Frequency</label>
+                <div className="grid grid-cols-3 gap-1 bg-surface-card p-1 rounded-xl">
+                  {[{v:"daily",l:"Daily"},{v:"weekly",l:"Weekly"},{v:"monthly",l:"Monthly"}].map(f=>(
+                    <button key={f.v} type="button" onClick={()=>upR("frequency",f.v)} className={`py-2 text-xs font-medium rounded-lg transition-colors ${rec.frequency===f.v?"bg-primary text-white":"text-content-muted hover:text-content-primary"}`}>{f.l}</button>
+                  ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className={`grid gap-4 ${rec.frequency==="weekly"?"grid-cols-2":"grid-cols-1"}`}>
                 <div>
                   <label className="block text-xs text-content-faint mb-2">Start Date</label>
                   <div className="w-full flex items-center justify-between bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5">
                     <span className={rec.startDate?"text-content-primary":"text-content-faint"}>{rec.startDate?(()=>{const[y,m,d]=rec.startDate.split("-");return`${d}.${m}.${y}`})():"Select date"}</span>
-                    <DatePickerField value={rec.startDate} onChange={v=>upR("startDate",v)} minDate={todayStr}/>
+                    <DatePickerField value={rec.startDate} onChange={v=>{
+                      upR("startDate",v);
+                      // Auto-sync dayOfWeek for weekly
+                      if(v&&(rec.frequency==="weekly")){
+                        const d=new Date(v);
+                        upR("dayOfWeek",String(d.getDay()));
+                      }
+                    }} minDate={todayStr}/>
+                  </div>
+                </div>
+                {(rec.frequency==="weekly")&&(
+                  <div>
+                    <label className="block text-xs text-content-faint mb-2">Day of Week</label>
+                    <select value={rec.dayOfWeek} onChange={e=>upR("dayOfWeek",e.target.value)} className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
+                      <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-content-faint mb-2">Start Time</label>
+                  <div className="flex gap-1.5 items-center">
+                    <select value={form.startHour} onChange={e=>upd("startHour",e.target.value)} className={`flex-1 bg-surface-card border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${form.startHour?"text-content-primary":"text-content-faint"}`}><option value="" disabled>HH</option>{recHours.map(h=>{const v=String(h).padStart(2,"0");return<option key={h} value={v}>{v}</option>})}</select>
+                    <span className="text-content-muted font-semibold">:</span>
+                    <select value={form.startMinute} onChange={e=>upd("startMinute",e.target.value)} className={`flex-1 bg-surface-card border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${form.startMinute?"text-content-primary":"text-content-faint"}`}><option value="" disabled>MM</option>{recMinutes.map(m=><option key={m} value={m}>{m}</option>)}</select>
                   </div>
                 </div>
                 <div>
@@ -286,14 +335,21 @@ const CreateClassModal = ({
                   <input type="number" min={1} max={52} value={rec.occurrences} onChange={e=>upR("occurrences",parseInt(e.target.value)||1)} className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary focus:outline-none focus:border-primary"/>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs text-content-faint mb-2">Start Time</label>
-                <div className="flex gap-1.5 items-center">
-                  <select value={form.startHour} onChange={e=>upd("startHour",e.target.value)} className={`flex-1 bg-surface-card border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${form.startHour?"text-content-primary":"text-content-faint"}`}><option value="" disabled>HH</option>{recHours.map(h=>{const v=String(h).padStart(2,"0");return<option key={h} value={v}>{v}</option>})}</select>
-                  <span className="text-content-muted font-semibold">:</span>
-                  <select value={form.startMinute} onChange={e=>upd("startMinute",e.target.value)} className={`flex-1 bg-surface-card border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${form.startMinute?"text-content-primary":"text-content-faint"}`}><option value="" disabled>MM</option>{recMinutes.map(m=><option key={m} value={m}>{m}</option>)}</select>
-                </div>
+
+              {/* Frequency description */}
+              <div className="text-xs text-content-faint">
+                {rec.frequency==="daily"&&"Creates a class every day starting from the selected date."}
+                {rec.frequency==="weekly"&&"Creates a class every week on the selected day."}
+                {rec.frequency==="monthly"&&rec.startDate&&(()=>{
+                  const day=new Date(rec.startDate).getDate();
+                  const s=["th","st","nd","rd"];
+                  const v=day%100;
+                  const suffix=s[(v-20)%10]||s[v]||s[0];
+                  return`Creates a class on the ${day}${suffix} of each month.`;
+                })()}
+                {rec.frequency==="monthly"&&!rec.startDate&&"Creates a class on the same day each month. Select a start date."}
               </div>
+
               {/* Preview */}
               {previewDates.length > 0 && (
                 <div className="text-xs text-content-muted bg-surface-card rounded-lg p-2.5 space-y-0.5">

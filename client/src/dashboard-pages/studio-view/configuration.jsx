@@ -43,6 +43,7 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  Timer,
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
@@ -53,12 +54,13 @@ import ContractBuilder from "../../components/studio-components/configuration-co
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import { PermissionModal } from "../../components/studio-components/configuration-components/PermissionModal"
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
-import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
-import ImageCropModal from "../../components/shared/image-handler/ImageCropModal"
 import DatePickerField from "../../components/shared/DatePickerField"
 import IntroMaterialEditorModal from "../../components/shared/IntroMaterialEditorModal"
-import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import ColorPickerModal from "../../components/shared/ColorPickerModal"
+import AppointmentTypeModal from "../../components/studio-components/configuration-components/AppointmentTypeModal"
+import ClassTypeModal from "../../components/studio-components/configuration-components/ClassTypeModal"
+import ContractTypeModal from "../../components/studio-components/configuration-components/ContractTypeModal"
+import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 // ============================================
@@ -85,6 +87,12 @@ import {
   DEFAULT_APPOINTMENT_TYPES,
   DEFAULT_TRIAL_TRAINING,
   DEFAULT_CALENDAR_SETTINGS,
+  
+  // Classes Config
+  DEFAULT_CLASS_CATEGORIES,
+  DEFAULT_CLASS_TYPES,
+  DEFAULT_CLASS_CALENDAR_SETTINGS,
+  DEFAULT_CLASS_NOTIFICATION_TYPES,
   
   // Lead Config
   DEFAULT_LEAD_SOURCES,
@@ -147,6 +155,17 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "appointment-types", label: "Appointment Types" },
       { id: "appointment-categories", label: "Categories" },
       { id: "trial-training", label: "Trial Training" },
+    ],
+  },
+  {
+    id: "classes",
+    label: "Classes",
+    icon: Timer,
+    adminVisible: true,
+    sections: [
+      { id: "classes-calendar-settings", label: "Calendar Settings" },
+      { id: "class-types", label: "Class Types" },
+      { id: "class-categories", label: "Categories" },
     ],
   },
   {
@@ -607,6 +626,18 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Calendar Settings
   const [calendarSettings, setCalendarSettings] = useState({})
   
+  // Classes
+  const [classTypes, setClassTypes] = useState([])
+  const [classCategories, setClassCategories] = useState([])
+  const [classCalendarSettings, setClassCalendarSettings] = useState({})
+  const [editingClassCategory, setEditingClassCategory] = useState({ index: null, value: "" })
+  const [showClassTypeModal, setShowClassTypeModal] = useState(false)
+  const [editingClassType, setEditingClassType] = useState(null)
+  const [classTypeForm, setClassTypeForm] = useState({
+    name: "", description: "", duration: 60, maxParticipants: 12, color: "#3B82F6", category: "", image: null,
+  })
+
+  
   // Appointment Type Modal States
   const [showAppointmentTypeModal, setShowAppointmentTypeModal] = useState(false)
   const [editingAppointmentType, setEditingAppointmentType] = useState(null)
@@ -622,12 +653,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     contingentUsage: 1,
   })
   
-  // Image Upload States for Appointment Types
-  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
-  const [showImageCropModal, setShowImageCropModal] = useState(false)
-  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
-  const [tempImage, setTempImage] = useState(null)
-  const appointmentImageInputRef = useRef(null)
+
 
   // Members
   const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(false)
@@ -668,6 +694,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Communication Settings
   const [settings, setSettings] = useState({})
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState([])
+  const [classNotificationTypes, setClassNotificationTypes] = useState([])
+
+  // Notification section collapse states
+  const [collapsedNotifSections, setCollapsedNotifSections] = useState({ emailAppointments: true, emailClasses: true, appAppointments: true, appClasses: true })
 
   // Finances
   const [vatRates, setVatRates] = useState([])
@@ -692,6 +722,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Refs for WysiwygEditors (for variable insertion via insertText)
   const birthdayEditorRef = useRef(null)
   const appointmentEditorRefs = useRef({})
+  const classEditorRefs = useRef({})
   const signatureEditorRef = useRef(null)
   const einvoiceEditorRef = useRef(null)
   const cancellationEditorRef = useRef(null)
@@ -737,6 +768,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setTrialTraining(config.appointments.trialTraining)
     setCalendarSettings(config.appointments.calendarSettings)
 
+    // Classes
+    setClassTypes(DEFAULT_CLASS_TYPES)
+    setClassCategories(DEFAULT_CLASS_CATEGORIES)
+    setClassCalendarSettings(DEFAULT_CLASS_CALENDAR_SETTINGS)
+
     // Members & Leads
     setAllowMemberQRCheckIn(config.members.allowMemberQRCheckIn)
     setMemberQRCodeUrl(config.members.memberQRCodeUrl)
@@ -759,6 +795,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     // Communication
     setSettings(config.communication.settings)
     setAppointmentNotificationTypes(config.communication.notificationTypes)
+    setClassNotificationTypes(config.communication.classNotificationTypes || DEFAULT_CLASS_NOTIFICATION_TYPES)
 
     // Finances
     setVatRates(config.finances.vatRates)
@@ -1189,36 +1226,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     })
   }
 
-  // Image upload handlers for appointment types
-  const handleAppointmentImageSelect = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setTempImage(event.target.result)
-        setShowImageCropModal(true)
-      }
-      reader.readAsDataURL(file)
-    }
-    // Reset input
-    if (appointmentImageInputRef.current) {
-      appointmentImageInputRef.current.value = ""
-    }
-  }
-
-  const handleCroppedImage = (croppedImage) => {
-    setAppointmentTypeForm({ ...appointmentTypeForm, image: croppedImage })
-    setShowImageCropModal(false)
-    setTempImage(null)
-  }
-
-  const handleMediaLibrarySelect = (imageUrl) => {
-    // Set the image from media library - it will go through crop modal
-    setTempImage(imageUrl)
-    setShowMediaLibraryModal(false)
-    setShowImageCropModal(true)
-  }
-
   const handleAddAppointmentType = () => {
     handleOpenAppointmentTypeModal(null)
   }
@@ -1252,6 +1259,78 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return
     }
     setAppointmentCategories(appointmentCategories.filter((_, i) => i !== index))
+  }
+
+  // ============================================
+  // Classes Handlers
+  // ============================================
+  const handleOpenClassTypeModal = (type = null) => {
+    if (type) {
+      setEditingClassType(type)
+      setClassTypeForm({
+        name: type.name || "", description: type.description || "",
+        duration: type.duration || 60, maxParticipants: type.maxParticipants || 12,
+        color: type.color || "#3B82F6", category: type.category || "",
+        image: type.image || null,
+      })
+    } else {
+      setEditingClassType(null)
+      setClassTypeForm({
+        name: "", description: "", duration: 60, maxParticipants: 12,
+        color: "#3B82F6", category: "", image: null,
+      })
+    }
+    setShowClassTypeModal(true)
+  }
+
+  const handleSaveClassType = () => {
+    if (!classTypeForm.name.trim()) {
+      notification.error({ message: "Please enter a name for the class type" })
+      return
+    }
+    if (!classTypeForm.duration || classTypeForm.duration < 5) {
+      notification.error({ message: "Please enter a valid duration (min. 5 minutes)" })
+      return
+    }
+    if (!classTypeForm.maxParticipants || classTypeForm.maxParticipants < 1) {
+      notification.error({ message: "Please enter max participants (min. 1)" })
+      return
+    }
+    if (editingClassType) {
+      setClassTypes(classTypes.map(t => t.id === editingClassType.id ? { ...t, ...classTypeForm } : t))
+      notification.success({ message: "Class type updated" })
+    } else {
+      setClassTypes([...classTypes, { id: Date.now(), ...classTypeForm }])
+      notification.success({ message: "Class type created" })
+    }
+    setShowClassTypeModal(false)
+    setEditingClassType(null)
+  }
+
+  const handleDeleteClassType = (id) => {
+    Modal.confirm({
+      title: "Delete Class Type",
+      content: "Are you sure you want to delete this class type? This cannot be undone.",
+      okText: "Delete", okType: "danger",
+      onOk: () => {
+        setClassTypes(classTypes.filter(t => t.id !== id))
+        notification.success({ message: "Class type deleted" })
+      },
+    })
+  }
+
+  const handleAddClassCategory = () => {
+    setClassCategories([...classCategories, "New Category"])
+    setEditingClassCategory({ index: classCategories.length, value: "New Category" })
+  }
+
+  const handleRemoveClassCategory = (index) => {
+    const category = classCategories[index]
+    if (classTypes.some(t => t.category === category)) {
+      notification.error({ message: "Cannot remove", description: "Category is in use by a class type" })
+      return
+    }
+    setClassCategories(classCategories.filter((_, i) => i !== index))
   }
 
   // Contract handlers
@@ -2523,6 +2602,314 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         )
 
       // ========================
+      // CLASSES SECTIONS
+      // ========================
+      case "classes-calendar-settings":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Calendar Settings" description="Configure how the calendar displays classes" />
+            
+            {/* Hide Closed Days */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-content-primary block">Hide Closed Days</label>
+                  <p className="text-xs text-content-faint mt-1">
+                    When enabled, days marked as closed will not appear as columns in the classes calendar
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={classCalendarSettings.hideClosedDays}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, hideClosedDays: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+              
+              <div className="mt-4 p-4 bg-surface-card rounded-xl overflow-x-auto">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
+                <div className="flex gap-1 min-w-[400px]">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                    const isWeekend = day === 'Sat' || day === 'Sun';
+                    if (classCalendarSettings.hideClosedDays && isWeekend) return null;
+                    return (
+                      <div key={day} className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${isWeekend ? 'bg-gray-700/30 text-content-faint' : 'bg-surface-hover text-content-primary'}`}>
+                        <span className="text-xs font-medium">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-content-faint mt-3 text-center">
+                  {classCalendarSettings.hideClosedDays ? 'Showing Monday - Friday (closed days hidden)' : 'Showing all days including weekends'}
+                </p>
+              </div>
+            </SettingsCard>
+
+            {/* Calendar Time Range */}
+            <SettingsCard>
+              <h4 className="text-content-primary font-medium mb-4">Calendar Time Range</h4>
+              <p className="text-xs text-content-faint mb-4">
+                Set the visible time range for the classes calendar. Times outside this range will not be displayed.
+              </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-content-muted w-16">Start</label>
+                  <input
+                    type="time"
+                    value={classCalendarSettings.calendarStartTime}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, calendarStartTime: e.target.value })}
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                <span className="text-content-faint hidden sm:block">—</span>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-content-muted w-16">End</label>
+                  <input
+                    type="time"
+                    value={classCalendarSettings.calendarEndTime}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, calendarEndTime: e.target.value })}
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+
+            {/* Fade Past Classes */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-content-primary block">Fade Past Classes</label>
+                  <p className="text-xs text-content-faint mt-1">
+                    When enabled, past classes will be displayed with reduced opacity to distinguish them from upcoming ones
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={classCalendarSettings.fadePastClasses}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, fadePastClasses: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+              
+              <div className="mt-4 p-4 bg-surface-card rounded-xl">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Past</p>
+                    <div className={`p-3 rounded-lg bg-emerald-600 ${classCalendarSettings.fadePastClasses ? 'opacity-45' : ''}`}>
+                      <span className="text-xs text-white font-medium">Yoga Class</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Upcoming</p>
+                    <div className="p-3 rounded-lg bg-emerald-600">
+                      <span className="text-xs text-white font-medium">Yoga Class</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "class-types":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Class Types"
+              description="Configure the types of classes available in your studio"
+              action={
+                <button
+                  onClick={() => handleOpenClassTypeModal(null)}
+                  className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Type
+                </button>
+              }
+            />
+
+            {classTypes.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-12 text-content-muted">
+                  <Timer className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No class types yet</h3>
+                  <p className="text-sm mb-6">Create your first class type</p>
+                  <button
+                    onClick={() => handleOpenClassTypeModal(null)}
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Class Type
+                  </button>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {classTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-video bg-surface-card">
+                      {type.image ? (
+                        <img src={type.image} alt={type.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Timer className="w-12 h-12 text-content-faint" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      
+                      {type.category && (
+                        <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                          {type.category}
+                        </div>
+                      )}
+                      
+                      {type.description && (
+                        <div className="absolute top-3 right-3 group/info">
+                          <button className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors">
+                            <Info className="w-4 h-4 text-white" />
+                          </button>
+                          <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-hover border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
+                            <p className="text-content-secondary text-sm">{type.description}</p>
+                            <div className="absolute -top-2 right-3 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }} title="Calendar color" />
+                        <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
+                      </div>
+                      
+                      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {type.duration} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5" />
+                          max. {type.maxParticipants} participants
+                        </span>
+                      </div>
+                    </div>
+                      
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
+                      <button
+                        onClick={() => handleOpenClassTypeModal(type)}
+                        className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClassType(type.id)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+
+      case "class-categories":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Class Categories"
+              description="Organize class types into categories"
+              action={
+                <button
+                  onClick={handleAddClassCategory}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Category
+                </button>
+              }
+            />
+            <SettingsCard>
+              <div className="flex flex-wrap gap-2">
+                {classCategories.map((category, index) => (
+                  <div key={index} className="group relative">
+                    {editingClassCategory.index === index ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={editingClassCategory.value}
+                          onChange={(e) => setEditingClassCategory({ ...editingClassCategory, value: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const updated = [...classCategories]
+                              updated[index] = editingClassCategory.value.trim() || category
+                              setClassCategories(updated)
+                              setEditingClassCategory({ index: null, value: "" })
+                            }
+                            if (e.key === 'Escape') setEditingClassCategory({ index: null, value: "" })
+                          }}
+                          autoFocus
+                          className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
+                        />
+                        <button
+                          onClick={() => {
+                            const updated = [...classCategories]
+                            updated[index] = editingClassCategory.value.trim() || category
+                            setClassCategories(updated)
+                            setEditingClassCategory({ index: null, value: "" })
+                          }}
+                          className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingClassCategory({ index: null, value: "" })}
+                          className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
+                        onClick={() => setEditingClassCategory({ index, value: category })}
+                      >
+                        {category}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemoveClassCategory(index) }}
+                          className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-content-faint mt-4">
+                Click a category to edit. Categories in use cannot be deleted.
+              </p>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
       // STAFF SECTIONS
       // ========================
       case "staff-defaults":
@@ -3359,273 +3746,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </div>
             )}
 
-            {/* Contract Type Edit Modal */}
-            {contractTypeModalVisible && editingContractType && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 overflow-hidden">
-                <div className="bg-surface-base rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border border-border flex flex-col">
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-                    <h3 className="text-lg font-semibold text-content-primary">
-                      {editingContractTypeIndex !== null ? 'Edit Contract Type' : 'New Contract Type'}
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setContractTypeModalVisible(false)
-                        setEditingContractType(null)
-                        setEditingContractTypeIndex(null)
-                      }}
-                      className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                  
-                  {/* Modal Content */}
-                  <div className="p-4 overflow-y-auto overflow-x-hidden flex-1 space-y-4">
-                    {/* Name */}
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                        Contract Name
-                        <span className="text-red-400">*</span>
-                        <Tooltip content="The name of this contract type that members will see when signing up">
-                          <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                        </Tooltip>
-                      </label>
-                      <input
-                        type="text"
-                        value={editingContractType.name}
-                        onChange={(e) => setEditingContractType({ ...editingContractType, name: e.target.value })}
-                        placeholder="e.g., Premium Membership"
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                      />
-                    </div>
-                    
-                    {/* Price & Duration */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                          Cost
-                          <span className="text-red-400">*</span>
-                          <Tooltip content="The price charged to the member per billing period (weekly, monthly, or annually)">
-                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                          </Tooltip>
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={editingContractType.cost}
-                            onChange={(e) => setEditingContractType({ ...editingContractType, cost: Number(e.target.value) })}
-                            min={0}
-                            className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                          />
-                          <span className="text-content-muted flex-shrink-0">{currency}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                          Minimum Duration
-                          <span className="text-red-400">*</span>
-                          <Tooltip content="The minimum commitment period. After this period, the contract can be renewed or terminated." position="right">
-                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                          </Tooltip>
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={editingContractType.duration}
-                            onChange={(e) => setEditingContractType({ ...editingContractType, duration: Number(e.target.value) })}
-                            min={1}
-                            max={60}
-                            className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                          />
-                          <span className="text-content-muted flex-shrink-0">months</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Billing & Contingent */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                          Billing Period
-                          <span className="text-red-400">*</span>
-                          <Tooltip content="How often the member is charged. The cost above is charged once per billing period.">
-                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                          </Tooltip>
-                        </label>
-                        <select
-                          value={editingContractType.billingPeriod}
-                          onChange={(e) => setEditingContractType({ ...editingContractType, billingPeriod: e.target.value })}
-                          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                        >
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                          <option value="annually">Annually</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                          Contingent
-                          <span className="text-red-400">*</span>
-                          <Tooltip content="The number of appointment credits members receive per billing period. Each appointment type deducts from this contingent based on its 'Contingent Usage' setting. Set to 0 for unlimited." position="right">
-                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                          </Tooltip>
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={editingContractType.userCapacity}
-                            onChange={(e) => setEditingContractType({ ...editingContractType, userCapacity: Number(e.target.value) })}
-                            min={0}
-                            placeholder="0 = Unlimited"
-                            className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                          />
-                          <span className="text-content-muted flex-shrink-0">credits</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Contract Form */}
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                        Contract Form
-                        <span className="text-red-400">*</span>
-                        <Tooltip content="The document template used when a member signs this contract. Create forms in the 'Contract Forms' section.">
-                          <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                        </Tooltip>
-                      </label>
-                      {contractForms.length === 0 ? (
-                        <div className="p-3 bg-surface-card rounded-xl border border-yellow-500/30">
-                          <p className="text-sm text-yellow-400">No contract forms available.</p>
-                          <p className="text-xs text-content-faint mt-1">Please create a contract form first in the "Contract Forms" section.</p>
-                        </div>
-                      ) : (
-                        <select
-                          value={editingContractType.contractFormId || ""}
-                          onChange={(e) => setEditingContractType({ ...editingContractType, contractFormId: e.target.value ? Number(e.target.value) : null })}
-                          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                        >
-                          <option value="">Select a form...</option>
-                          {contractForms.map(f => (
-                            <option key={f.id} value={f.id}>{f.name}</option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                    
-                    {/* Notice Period */}
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                        Notice Period
-                        <Tooltip content="How many days before the contract end date the member must cancel. After this deadline, the contract will auto-renew (if enabled).">
-                          <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                        </Tooltip>
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={editingContractType.cancellationPeriod}
-                          onChange={(e) => setEditingContractType({ ...editingContractType, cancellationPeriod: Number(e.target.value) })}
-                          min={0}
-                          className="w-20 sm:w-24 bg-surface-card text-content-primary rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                        />
-                        <span className="text-content-muted text-sm">days before end</span>
-                      </div>
-                    </div>
-                    
-                    {/* Auto Renewal Section */}
-                    <div className="p-4 bg-surface-card rounded-xl space-y-4">
-                      <Toggle
-                        label="Automatic Renewal"
-                        checked={editingContractType.autoRenewal}
-                        onChange={(v) => setEditingContractType({ ...editingContractType, autoRenewal: v })}
-                        helpText="Contract continues automatically after the minimum duration ends"
-                      />
-                      
-                      {editingContractType.autoRenewal && (
-                        <div className="space-y-4 pt-3 border-t border-border">
-                          {/* Renewal Duration */}
-                          <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                              Renewal Duration
-                              <Tooltip content="How long the contract continues after the minimum duration. Choose 'Indefinite' for an open-ended contract that runs until cancelled.">
-                                <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                              </Tooltip>
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <select
-                                value={editingContractType.renewalIndefinite ? "indefinite" : "fixed"}
-                                onChange={(e) => setEditingContractType({ 
-                                  ...editingContractType, 
-                                  renewalIndefinite: e.target.value === "indefinite"
-                                })}
-                                className={`${editingContractType.renewalIndefinite ? 'flex-1' : ''} bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue`}
-                              >
-                                <option value="fixed">Fixed period</option>
-                                <option value="indefinite">Indefinite</option>
-                              </select>
-                              {!editingContractType.renewalIndefinite && (
-                                <>
-                                  <input
-                                    type="number"
-                                    value={editingContractType.renewalPeriod}
-                                    onChange={(e) => setEditingContractType({ ...editingContractType, renewalPeriod: Number(e.target.value) })}
-                                    min={1}
-                                    className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                                  />
-                                  <span className="text-content-muted flex-shrink-0">months</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Price After Renewal */}
-                          <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                              Price After Renewal
-                              <Tooltip content="The new price per billing period after the contract renews.">
-                                <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                              </Tooltip>
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={editingContractType.renewalPrice}
-                                onChange={(e) => setEditingContractType({ ...editingContractType, renewalPrice: Number(e.target.value) })}
-                                min={0}
-                                className="w-32 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                              />
-                              <span className="text-content-muted flex-shrink-0">{currency}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Modal Footer */}
-                  <div className="flex gap-3 p-4 border-t border-border flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        setContractTypeModalVisible(false)
-                        setEditingContractType(null)
-                        setEditingContractTypeIndex(null)
-                      }}
-                      className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveContractType}
-                      className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Check className="w-4 h-4" />
-                      {editingContractTypeIndex !== null ? 'Save' : 'Create'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <ContractTypeModal
+              isOpen={contractTypeModalVisible}
+              onClose={() => {
+                setContractTypeModalVisible(false)
+                setEditingContractType(null)
+                setEditingContractTypeIndex(null)
+              }}
+              editingContractType={editingContractType}
+              setEditingContractType={setEditingContractType}
+              editingContractTypeIndex={editingContractTypeIndex}
+              contractForms={contractForms}
+              currency={currency}
+              onSave={handleSaveContractType}
+            />
           </div>
         )
 
@@ -3810,7 +3944,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             </SettingsCard>
 
             {/* Appointment Email Notifications */}
-            {["confirmation", "cancellation", "rescheduled", "reminder", "registration"].map(type => {
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, emailAppointments: !prev.emailAppointments }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Appointment Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.emailAppointments ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Automated emails for appointment bookings, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.emailAppointments && ["confirmation", "cancellation", "rescheduled", "reminder", "registration"].map(type => {
               const config = appointmentNotificationTypes[type] || {}
               const titles = {
                 confirmation: "Appointment Confirmation",
@@ -3951,6 +4097,157 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </SettingsCard>
               )
             })}
+
+            {/* Class Email Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, emailClasses: !prev.emailClasses }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Class Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.emailClasses ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Automated emails for class enrollments, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.emailClasses && ["enrollment", "cancellation", "rescheduled", "reminder", "waitlist"].map(type => {
+              const config = classNotificationTypes[type] || {}
+              const titles = {
+                enrollment: "Class Enrollment Confirmation",
+                cancellation: "Class Cancellation",
+                rescheduled: "Class Rescheduled",
+                reminder: "Class Reminder",
+                waitlist: "Waitlist Spot Available"
+              }
+              const descriptions = {
+                enrollment: "Email sent when a member enrolls in a class",
+                cancellation: "Email sent when a class enrollment is cancelled",
+                rescheduled: "Email sent when a class time or date is changed",
+                reminder: "Email sent before an upcoming class",
+                waitlist: "Email sent when a waitlisted spot opens up"
+              }
+              const subjectVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}"]
+              const messageVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+
+              return (
+                <SettingsCard key={`class-${type}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Email</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.emailEnabled || false}
+                        onChange={(v) => setClassNotificationTypes({
+                          ...classNotificationTypes,
+                          [type]: { ...config, emailEnabled: v }
+                        })}
+                      />
+                    </div>
+
+                    {config.emailEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-content-secondary">Send</span>
+                            <input
+                              type="number"
+                              value={config.hoursBefore || 24}
+                              onChange={(e) => setClassNotificationTypes({
+                                ...classNotificationTypes,
+                                [type]: { ...config, hoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            />
+                            <span className="text-sm text-content-secondary">hours before class</span>
+                          </div>
+                        )}
+
+                        {/* Subject */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Subject</label>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {subjectVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setClassNotificationTypes({
+                                  ...classNotificationTypes,
+                                  [type]: { ...config, emailSubject: (config.emailSubject || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            value={config.emailSubject || ""}
+                            onChange={(e) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, emailSubject: e.target.value }
+                            })}
+                            placeholder={`${titles[type]} - {Class_Name}`}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs text-content-faint mr-1">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => classEditorRefs.current[type]?.insertText(v)}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                            <span className="text-xs text-content-faint mx-2">|</span>
+                            <span className="text-xs text-content-faint mr-1">Insert:</span>
+                            <button
+                              onClick={() => {
+                                if (settings.emailSignature) {
+                                  classEditorRefs.current[type]?.insertHTML(settings.emailSignature)
+                                } else {
+                                  notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                                }
+                              }}
+                              className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Email Signature
+                            </button>
+                          </div>
+                          <WysiwygEditor
+                            ref={(el) => { classEditorRefs.current[type] = el }}
+                            value={config.emailTemplate || ""}
+                            onChange={(v) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, emailTemplate: v }
+                            })}
+                            placeholder={`Enter ${type} email message...`}
+                            minHeight={120}
+                            showImages={true}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
           </div>
         )
 
@@ -4038,8 +4335,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </div>
             </SettingsCard>
 
-            {/* Appointment App Notifications - No registration */}
-            {["confirmation", "cancellation", "rescheduled", "reminder"].map(type => {
+            {/* Appointment App Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, appAppointments: !prev.appAppointments }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Appointment Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.appAppointments ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Push notifications for appointment bookings, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.appAppointments && ["confirmation", "cancellation", "rescheduled", "reminder"].map(type => {
               const config = appointmentNotificationTypes[type] || {}
               const titles = {
                 confirmation: "Appointment Confirmation",
@@ -4148,6 +4457,144 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             value={config.appMessage || ""}
                             onChange={(e) => setAppointmentNotificationTypes({
                               ...appointmentNotificationTypes,
+                              [type]: { ...config, appMessage: e.target.value }
+                            })}
+                            placeholder={`Enter ${type} push notification message...`}
+                            rows={3}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
+
+            {/* Class App Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, appClasses: !prev.appClasses }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Class Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.appClasses ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Push notifications for class enrollments, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.appClasses && ["enrollment", "cancellation", "rescheduled", "reminder", "waitlist"].map(type => {
+              const config = classNotificationTypes[type] || {}
+              const titles = {
+                enrollment: "Class Enrollment Confirmation",
+                cancellation: "Class Cancellation",
+                rescheduled: "Class Rescheduled",
+                reminder: "Class Reminder",
+                waitlist: "Waitlist Spot Available"
+              }
+              const descriptions = {
+                enrollment: "Push notification when a member enrolls in a class",
+                cancellation: "Push notification when a class enrollment is cancelled",
+                rescheduled: "Push notification when a class time or date is changed",
+                reminder: "Push notification before an upcoming class",
+                waitlist: "Push notification when a waitlisted spot opens up"
+              }
+              const titleVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}", "{Instructor_Name}"]
+              const messageVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+
+              return (
+                <SettingsCard key={`class-app-${type}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Push</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.appEnabled || false}
+                        onChange={(v) => setClassNotificationTypes({
+                          ...classNotificationTypes,
+                          [type]: { ...config, appEnabled: v }
+                        })}
+                      />
+                    </div>
+
+                    {config.appEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-content-secondary">Send</span>
+                            <input
+                              type="number"
+                              value={config.appHoursBefore || 24}
+                              onChange={(e) => setClassNotificationTypes({
+                                ...classNotificationTypes,
+                                [type]: { ...config, appHoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            />
+                            <span className="text-sm text-content-secondary">hours before class</span>
+                          </div>
+                        )}
+
+                        {/* Title */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Title</label>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {titleVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setClassNotificationTypes({
+                                  ...classNotificationTypes,
+                                  [type]: { ...config, appTitle: (config.appTitle || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            value={config.appTitle || ""}
+                            onChange={(e) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, appTitle: e.target.value }
+                            })}
+                            placeholder={`${titles[type]}`}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setClassNotificationTypes({
+                                  ...classNotificationTypes,
+                                  [type]: { ...config, appMessage: (config.appMessage || "") + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </div>
+                          <textarea
+                            value={config.appMessage || ""}
+                            onChange={(e) => setClassNotificationTypes({
+                              ...classNotificationTypes,
                               [type]: { ...config, appMessage: e.target.value }
                             })}
                             placeholder={`Enter ${type} push notification message...`}
@@ -5238,37 +5685,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         onStaffAssignmentChange={handleStaffAssignmentChange}
       />
 
-      {/* Create Contract Form Modal */}
-      {showCreateFormModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-hover rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-content-primary mb-4">Create New Contract Form</h3>
-            <InputField
-              label="Contract Form Name"
-              value={newContractFormName}
-              onChange={setNewContractFormName}
-              placeholder="Enter contract form name"
-            />
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowCreateFormModal(false)
-                  setNewContractFormName("")
-                }}
-                className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateContractForm}
-                className="flex-1 px-4 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateContractFormModal
+        isOpen={showCreateFormModal}
+        onClose={() => {
+          setShowCreateFormModal(false)
+          setNewContractFormName("")
+        }}
+        value={newContractFormName}
+        onChange={setNewContractFormName}
+        onSubmit={handleCreateContractForm}
+      />
 
       {/* Contract Builder Fullscreen */}
       {contractBuilderModalVisible && selectedContractForm && (
@@ -5286,296 +5712,27 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         </div>
       )}
 
-      {/* Appointment Type Modal */}
-      {showAppointmentTypeModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-surface-base rounded-2xl w-full max-w-2xl my-8">
-            {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <h2 className="text-lg font-semibold text-content-primary">
-                {editingAppointmentType ? "Edit Appointment Type" : "Create Appointment Type"}
-              </h2>
-              <button
-                onClick={() => setShowAppointmentTypeModal(false)}
-                className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-5 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
-              {/* Image Upload */}
-              <div>
-                <label className="text-sm font-medium text-content-secondary mb-3 block">
-                  Appointment Image <span className="text-content-faint">(16:9, shown in member app)</span>
-                </label>
-                <div
-                  className="relative aspect-video bg-surface-card rounded-xl border-2 border-dashed border-border hover:border-border transition-colors cursor-pointer overflow-hidden group"
-                  onClick={() => setShowImageSourceModal(true)}
-                >
-                  {appointmentTypeForm.image ? (
-                    <>
-                      <img
-                        src={appointmentTypeForm.image}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">Change Image</span>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setAppointmentTypeForm({ ...appointmentTypeForm, image: null })
-                        }}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-content-faint">
-                      <Upload className="w-10 h-10 mb-2" />
-                      <span className="text-sm">Click to upload image</span>
-                      <span className="text-xs mt-1">Recommended: 1920x1080px</span>
-                    </div>
-                  )}
-                </div>
-                <input
-                  ref={appointmentImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAppointmentImageSelect}
-                  className="hidden"
-                />
-              </div>
-
-              {/* Name & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                    Name
-                    <span className="text-red-400">*</span>
-                    <Tooltip content="The name members will see when booking this appointment">
-                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                    </Tooltip>
-                  </label>
-                  <input
-                    type="text"
-                    value={appointmentTypeForm.name}
-                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, name: e.target.value })}
-                    placeholder="e.g., Personal Training"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                    Category
-                    <Tooltip content="Group similar appointments together for easier organization">
-                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                    </Tooltip>
-                  </label>
-                  <SelectField
-                    value={appointmentTypeForm.category}
-                    onChange={(v) => setAppointmentTypeForm({ ...appointmentTypeForm, category: v })}
-                    options={appointmentCategories.map(c => ({ value: c, label: c }))}
-                    placeholder="Select category"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                  Description
-                  <Tooltip content="Optional details about what this appointment includes. Shown to members.">
-                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                  </Tooltip>
-                </label>
-                <textarea
-                  value={appointmentTypeForm.description}
-                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, description: e.target.value })}
-                  placeholder="Describe what this appointment includes..."
-                  rows={3}
-                  className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
-                />
-              </div>
-
-              {/* Duration, Slots Required, Max Parallel, Interval */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-content-faint" />
-                    Duration
-                    <span className="text-red-400">*</span>
-                    <Tooltip content="How long the appointment lasts in minutes">
-                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                    </Tooltip>
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={appointmentTypeForm.duration}
-                      onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, duration: Math.floor(Number(e.target.value)) })}
-                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                      min={5}
-                      max={480}
-                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                    />
-                    <span className="text-sm text-content-muted">min</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-content-faint" />
-                    Interval
-                    <span className="text-red-400">*</span>
-                    <Tooltip content="Time between available booking slots (e.g., 30 = bookings at :00 and :30)">
-                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                    </Tooltip>
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={appointmentTypeForm.interval}
-                      onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, interval: Math.floor(Number(e.target.value)) })}
-                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                      min={5}
-                      max={120}
-                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                    />
-                    <span className="text-sm text-content-muted">min</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-content-faint" />
-                    Slots
-                    <span className="text-red-400">*</span>
-                    <Tooltip content="How many capacity slots this appointment uses. Set to 0 if it doesn't block any capacity.">
-                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                    </Tooltip>
-                  </label>
-                  <input
-                    type="number"
-                    value={appointmentTypeForm.slotsRequired}
-                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, slotsRequired: Math.floor(Number(e.target.value)) })}
-                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                    min={0}
-                    max={studioCapacity}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                    <Users className="w-4 h-4 text-content-faint" />
-                    Max Parallel
-                    <span className="text-red-400">*</span>
-                    <Tooltip content="Maximum number of this appointment type that can run at the same time" position="right">
-                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                    </Tooltip>
-                  </label>
-                  <input
-                    type="number"
-                    value={appointmentTypeForm.maxParallel}
-                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, maxParallel: Math.floor(Number(e.target.value)) })}
-                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                    min={1}
-                    max={studioCapacity}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                  />
-                </div>
-              </div>
-
-              {/* Contingent Usage */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                  <BadgeDollarSign className="w-4 h-4 text-content-faint" />
-                  Contingent Usage
-                  <span className="text-red-400">*</span>
-                  <Tooltip content="How many credits are deducted from the member's contract contingent when booking this appointment. For example, if set to 2, a member with 10 credits will have 8 left after booking.">
-                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                  </Tooltip>
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={appointmentTypeForm.contingentUsage}
-                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, contingentUsage: Math.floor(Number(e.target.value)) })}
-                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                    min={0}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                  />
-                  <span className="text-sm text-content-muted">per booking</span>
-                </div>
-                <p className="text-xs text-content-faint">0 = No deduction from member's contingent</p>
-              </div>
-
-              {/* Color */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-                  Calendar Color
-                  <Tooltip content="The color used to display this appointment type in the calendar">
-                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                  </Tooltip>
-                </label>
-                <button
-                  onClick={() => openColorPicker(appointmentTypeForm.color || '#3B82F6', 'Calendar Color', (color) => setAppointmentTypeForm({ ...appointmentTypeForm, color }))}
-                  className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
-                  style={{ backgroundColor: appointmentTypeForm.color }}
-                  title="Pick a color"
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex gap-3 p-5 border-t border-border">
-              <button
-                onClick={() => setShowAppointmentTypeModal(false)}
-                className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveAppointmentType}
-                className="flex-1 px-4 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
-              >
-                {editingAppointmentType ? "Save Changes" : "Create"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Image Source Modal */}
-      <ImageSourceModal
-        isOpen={showImageSourceModal}
-        onClose={() => setShowImageSourceModal(false)}
-        onSelectFile={() => appointmentImageInputRef.current?.click()}
-        onSelectMediaLibrary={() => setShowMediaLibraryModal(true)}
+      <AppointmentTypeModal
+        isOpen={showAppointmentTypeModal}
+        onClose={() => setShowAppointmentTypeModal(false)}
+        editingAppointmentType={editingAppointmentType}
+        appointmentTypeForm={appointmentTypeForm}
+        setAppointmentTypeForm={setAppointmentTypeForm}
+        appointmentCategories={appointmentCategories}
+        studioCapacity={studioCapacity}
+        onSave={handleSaveAppointmentType}
+        openColorPicker={openColorPicker}
       />
 
-      {/* Media Library Picker Modal */}
-      <MediaLibraryPickerModal
-        isOpen={showMediaLibraryModal}
-        onClose={() => setShowMediaLibraryModal(false)}
-        onSelectImage={handleMediaLibrarySelect}
-      />
-
-      {/* Image Crop Modal */}
-      <ImageCropModal
-        isOpen={showImageCropModal}
-        onClose={() => {
-          setShowImageCropModal(false)
-          setTempImage(null)
-        }}
-        imageSrc={tempImage}
-        onCropComplete={handleCroppedImage}
-        aspectRatio={16 / 9}
+      <ClassTypeModal
+        isOpen={showClassTypeModal}
+        onClose={() => setShowClassTypeModal(false)}
+        editingClassType={editingClassType}
+        classTypeForm={classTypeForm}
+        setClassTypeForm={setClassTypeForm}
+        classCategories={classCategories}
+        onSave={handleSaveClassType}
+        openColorPicker={openColorPicker}
       />
 
       {/* Introductory Material Editor Modal */}
