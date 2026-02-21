@@ -57,7 +57,30 @@ const studioSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-
+    registrationNumber: {
+      type: String,
+      required: true
+    },
+    texId: {
+      type: String,
+      required: true
+    },
+    password: {
+      type: String,
+      // required: true,
+      minlength: 8,
+      select: false,
+      validate: {
+        validator: function (v) {
+          return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@.-_$!%*?&])[A-Za-z\d@$!.-_%*?&]{8,}$/.test(v);
+        },
+        message: 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
+      }
+    },
+    court:{
+      type:String,
+      required:true
+    },
     // REPLACED structure (easier booking logic)
     openingHours: [openingHourSchema],
 

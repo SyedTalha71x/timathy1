@@ -15,7 +15,7 @@ export const fetchFood = createAsyncThunk('/fetch/food', async (_, { rejectWithV
 export const newFood = createAsyncThunk('/create/food', async (newFoodData, { rejectWithValue }) => {
     try {
         const res = await foodApi.createFood(newFoodData);
-        return res.food;
+        return res.dailyLog;
     }
     catch (error) {
         return rejectWithValue(error.response?.data);
@@ -29,6 +29,7 @@ const foodSlice = createSlice({
     name: 'food',
     initialState: {
         foodData: [],
+        dailyLogsData:[],
         loading: false,
         error: null,
     },
@@ -44,6 +45,18 @@ const foodSlice = createSlice({
                     state.foodData = action.payload;
             })
             .addCase(fetchFood.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            .addCase(newFood.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(newFood.fulfilled, (state, action) => {
+                state.loading = false;
+                state.dailyLogsData = action.payload
+            })
+            .addCase(newFood.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })

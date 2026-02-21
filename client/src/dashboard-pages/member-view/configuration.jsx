@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Input, Button, notification, Tabs, Collapse, InputNumber, Switch } from "antd"
 import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, ClockCircleOutlined } from "@ant-design/icons"
-
+import { useSelector } from "react-redux"
 const { TabPane } = Tabs
 const { TextArea } = Input
 const { Panel } = Collapse
@@ -41,6 +41,7 @@ const requestButtonStyle = {
 }
 
 const SettingsPage = () => {
+  const { studio, loading } = useSelector((state) => state.studios)
   const [accountSettings, setAccountSettings] = useState({
     newEmail: "",
     currentPassword: "",
@@ -79,16 +80,19 @@ const SettingsPage = () => {
   })
 
   const [generalSettings, setGeneralSettings] = useState({
-    imprint: `Company Name: My Studio
-Address: 123 Main Street, City, State 12345
-Phone: +1 (555) 123-4567
-Email: legal@mystudio.com
-Registration Number: 12345678
-Tax ID: TAX123456789
+    imprint: studio
+      ? `Company Name: ${studio.studioName || "N/A"}
+Address: ${studio.street || "N/A"}, ${studio.city || "N/A"}, ${studio.zipCode || "N/A"}, ${studio.country || "N/A"}
+Phone: ${studio.phone || "N/A"}
+Email: ${studio.email || "N/A"}
+Registration Number: ${studio.registrationNumber || "N/A"} 
+Tax ID: ${studio.texId || "N/A"}
 
-Managing Director: John Doe
-Court of Registration: Local District Court
-Registration Number: HRB 123456`,
+Managing Director: ${studio.studioOwner || "N/A"}
+Court of Registration: ${studio.court || "N/A"}
+Registration Number: ${studio.registrationNumber || "N/A"} 
+Last updated: ${studio.updatedAt ? new Date(studio.updatedAt).toDateString() : "N/A"}`
+      : "",
     privacyPolicy: `Privacy Policy
 
 1. Data Collection
@@ -109,7 +113,7 @@ You have the right to access, update, or delete your personal information.
 6. Contact Us
 If you have any questions about this privacy policy, please contact us at privacy@mystudio.com.
 
-Last updated: January 2025`,
+Last updated: ${new Date(studio.updatedAt).toDateString()}`,
   })
 
   const handleUpdateAccountLogin = (field, value) => {
