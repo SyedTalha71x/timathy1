@@ -9,9 +9,9 @@ const foodSchema = new mongoose.Schema({
         type: String, // e.g "100g","1 cup"
         required: true,
     },
-    servingSize:{
-        type:Number,
-        default:100
+    servingSize: {
+        type: Number,
+        default: 100
     },
     calories: {
         type: Number,
@@ -30,7 +30,9 @@ const foodSchema = new mongoose.Schema({
         required: true
     },
     barcode: {
-        type: String
+        type: String,
+        unique: true,
+        sparse: true
     }
 }, { timestamps: true });
 

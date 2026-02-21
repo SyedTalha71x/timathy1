@@ -1,10 +1,14 @@
 const mongoose = require('mongoose')
 
 const mealItemSchema = new mongoose.Schema({
-    food: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Food",
-        required:true
+    // food: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Food",
+    //     required:true
+    // },
+    name: {
+        type: String,
+        required: true
     },
     quantity: {
         type: Number, //e.g 2 bowls
@@ -41,8 +45,8 @@ const dailyLogSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 
-dailyLogSchema.index({user:1,date:1},{unique:true})
+dailyLogSchema.index({ user: 1, date: 1 }, { unique: true })
 
-const dailyLogModel = mongoose.model("DailyLog",dailyLogSchema)
+const dailyLogModel = mongoose.model("DailyLog", dailyLogSchema)
 
 module.exports = dailyLogModel
