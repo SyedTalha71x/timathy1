@@ -37,7 +37,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import HistoryModalMain from "../../components/studio-components/members-components/HistoryModal"
-import NotifyMemberModalMain from "../../components/shared/appointments/NotifyMemberModal"
+import NotifyModalMain from "../../components/shared/NotifyModal"
 import CreateTempMemberModal from "../../components/shared/members/CreateTempMemberModal"
 import useCountries from "../../hooks/useCountries"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
@@ -2824,7 +2824,7 @@ const AdminBanner = () => {
         setHistoryTabMain={setHistoryTabMain}
         onClose={() => setShowHistoryModalMain(false)}
       />
-      <NotifyMemberModalMain open={isNotifyMemberOpenMain} action={notifyActionMain} onClose={() => setIsNotifyMemberOpenMain(false)} />
+      <NotifyModalMain open={isNotifyMemberOpenMain} action={notifyActionMain} onClose={() => setIsNotifyMemberOpenMain(false)} />
 
       {/* Member Special Note Modal */}
       <MemberSpecialNoteModal

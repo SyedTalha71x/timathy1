@@ -8,12 +8,13 @@ import { useState, useEffect } from "react"
 // UNIFIED NOTIFY MEMBER/LEAD MODAL
 // =============================================================================
 // Used by: CreateAppointmentModal, EditAppointmentModal, CreateTrialTrainingModal,
-//          calendar.jsx (drag & drop)
+//          calendar.jsx (drag & drop), ClassDetailModal (enroll/remove/cancel)
 //
 // NEW INTERFACE (preferred):
 //   action:        "book" | "change" | "cancel"
 //   entityType:    "member" | "lead"
-//   entityName:    "Max Mustermann"
+//   entityName:    "Max Mustermann" or "Max Mustermann, Anna Schmidt" (comma-separated for multiple)
+//   memberCount:   number (optional, for plural — auto-detected from entityName if not set)
 //   appointmentType: "EMS Strength" (optional)
 //   date:          "Monday, January 27, 2025" (pre-formatted)
 //   time:          "09:00 - 10:00" (pre-formatted)
@@ -30,14 +31,15 @@ import { useState, useEffect } from "react"
 //   handleNotifyMember: (shouldNotify, { email, push }) => void
 // =============================================================================
 
-const NotifyMemberModalMain = ({
+const NotifyModalMain = ({
   isOpen,
   onClose,
 
   // --- New unified interface ---
   action,          // "book" | "change" | "cancel"
   entityType,      // "member" | "lead"
-  entityName,      // pre-formatted full name
+  entityName,      // pre-formatted full name(s)
+  memberCount,     // optional: number of members (for plural labels)
   appointmentType, // e.g. "EMS Strength" or "Trial Training - EMS Strength"
   date,            // pre-formatted date string
   time,            // pre-formatted time string
@@ -101,6 +103,7 @@ const NotifyMemberModalMain = ({
       date: dateStr,
       time: timeStr,
       isTrial: !!isLeadApt,
+      count: 1,
     }
   }
 
@@ -112,11 +115,20 @@ const NotifyMemberModalMain = ({
     date: date || "",
     time: time || "",
     isTrial: isTrial,
+    count: memberCount || (entityName ? entityName.split(",").length : 1),
   }
 
   const isLead = resolved.entityType === "lead"
-  const entityLabel = isLead ? "lead" : "member"
-  const EntityLabel = isLead ? "Lead" : "Member"
+  const isPlural = resolved.count > 1
+  
+  // Singular/Plural labels
+  const entityLabel = isLead 
+    ? (isPlural ? "leads" : "lead") 
+    : (isPlural ? "members" : "member")
+  const EntityLabel = isLead 
+    ? (isPlural ? "Leads" : "Lead") 
+    : (isPlural ? "Members" : "Member")
+  
   const hl = "font-semibold text-primary"
 
   // =============================================
@@ -136,17 +148,28 @@ const NotifyMemberModalMain = ({
   }
 
   // =============================================
+  // Format name display for multiple members
+  // =============================================
+  const formatNames = (nameStr) => {
+    if (!nameStr) return ""
+    const names = nameStr.split(",").map(n => n.trim()).filter(Boolean)
+    if (names.length <= 2) return names.join(" and ")
+    return `${names[0]}, ${names[1]} and ${names.length - 2} other${names.length - 2 > 1 ? "s" : ""}`
+  }
+
+  // =============================================
   // Message rendering
   // =============================================
   const renderMessage = () => {
     const { action: act, entityName: name, appointmentType: type, date: d, time: t } = resolved
+    const displayName = isPlural ? formatNames(name) : name
 
     if (act === "book") {
       if (isRecurring && recurringInfo) {
         return (
           <p className="text-content-primary text-sm">
             New <span className={hl}>recurring appointment</span> for{" "}
-            <span className={hl}>{name}</span> starting{" "}
+            <span className={hl}>{displayName}</span> starting{" "}
             <span className={hl}>{d}</span>{" "}
             ({recurringInfo.occurrences} occurrences, {recurringInfo.frequency}).
             <br /><br />
@@ -159,7 +182,7 @@ const NotifyMemberModalMain = ({
         return (
           <p className="text-content-primary text-sm">
             New <span className={hl}>Trial Training</span> for{" "}
-            <span className={hl}>{name}</span> on{" "}
+            <span className={hl}>{displayName}</span> on{" "}
             <span className={hl}>{d}</span> at{" "}
             <span className={hl}>{t}</span>.
             <br /><br />
@@ -170,9 +193,21 @@ const NotifyMemberModalMain = ({
 
       return (
         <p className="text-content-primary text-sm">
-          New appointment for <span className={hl}>{name}</span> on{" "}
-          <span className={hl}>{d}</span> at{" "}
-          <span className={hl}>{t}</span>.
+          {isPlural ? (
+            <>
+              <span className={hl}>{displayName}</span>{" "}
+              {type && <span className="text-content-muted">({type})</span>}{" "}
+              will be enrolled in the class on{" "}
+              <span className={hl}>{d}</span> at{" "}
+              <span className={hl}>{t}</span>.
+            </>
+          ) : (
+            <>
+              New appointment for <span className={hl}>{displayName}</span> on{" "}
+              <span className={hl}>{d}</span> at{" "}
+              <span className={hl}>{t}</span>.
+            </>
+          )}
           <br /><br />
           Do you want to notify the {entityLabel} about this booking?
         </p>
@@ -182,11 +217,25 @@ const NotifyMemberModalMain = ({
     if (act === "cancel") {
       return (
         <p className="text-content-primary text-sm">
-          <span className={hl}>{name}'s</span>
-          {type && <span className="text-content-muted"> ({type})</span>} appointment on{" "}
-          <span className={hl}>{d}</span> at{" "}
-          <span className={hl}>{t}</span>{" "}
-          will be <span className={hl}>cancelled</span>.
+          {isPlural ? (
+            <>
+              <span className={hl}>{resolved.count} {entityLabel}</span>
+              {type && <span className="text-content-muted"> ({type})</span>}{" "}
+              will be removed from the class on{" "}
+              <span className={hl}>{d}</span> at{" "}
+              <span className={hl}>{t}</span>.
+              <br /><br />
+              Affected {entityLabel}: <span className={hl}>{displayName}</span>.
+            </>
+          ) : (
+            <>
+              <span className={hl}>{displayName}'s</span>
+              {type && <span className="text-content-muted"> ({type})</span>} appointment on{" "}
+              <span className={hl}>{d}</span> at{" "}
+              <span className={hl}>{t}</span>{" "}
+              will be <span className={hl}>cancelled</span>.
+            </>
+          )}
           <br /><br />
           Do you want to notify the {entityLabel} about this cancellation?
         </p>
@@ -196,10 +245,22 @@ const NotifyMemberModalMain = ({
     // "change" (default)
     return (
       <p className="text-content-primary text-sm">
-        <span className={hl}>{name}'s</span>
-        {type && <span className="text-content-muted"> ({type})</span>} appointment will be moved to{" "}
-        <span className={hl}>{d}</span> at{" "}
-        <span className={hl}>{t}</span>.
+        {isPlural ? (
+          <>
+            <span className={hl}>{resolved.count} {entityLabel}</span>
+            {type && <span className="text-content-muted"> ({type})</span>}{" "}
+            will be moved to{" "}
+            <span className={hl}>{d}</span> at{" "}
+            <span className={hl}>{t}</span>.
+          </>
+        ) : (
+          <>
+            <span className={hl}>{displayName}'s</span>
+            {type && <span className="text-content-muted"> ({type})</span>} appointment will be moved to{" "}
+            <span className={hl}>{d}</span> at{" "}
+            <span className={hl}>{t}</span>.
+          </>
+        )}
         <br /><br />
         Do you want to notify the {entityLabel} about this change?
       </p>
@@ -210,7 +271,7 @@ const NotifyMemberModalMain = ({
   // Render
   // =============================================
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={handleClose}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1100] p-4" onClick={handleClose}>
       {/* Custom checkbox style — matches selling sidebar */}
       <style>{`
         .notify-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
@@ -291,4 +352,4 @@ const NotifyMemberModalMain = ({
   )
 }
 
-export default NotifyMemberModalMain
+export default NotifyModalMain

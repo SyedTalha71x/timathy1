@@ -5,7 +5,7 @@ import { Search, X, Plus, Users, Calendar, Clock, ChevronDown, AlertTriangle, Ch
 import { useState, useRef, useEffect } from "react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
-import NotifyMemberModalMain from './NotifyMemberModal';
+import NotifyModalMain from '../NotifyModal';
 
 const MAX_PARTICIPANTS = 5;
 
@@ -528,7 +528,7 @@ const AddAppointmentModal = ({
       </div>
 
       {/* Notify Member Modal (shared component) */}
-      <NotifyMemberModalMain
+      <NotifyModalMain
         isOpen={showNotifyModal}
         onClose={handleCancelNotify}
         onConfirm={handleConfirmBooking}

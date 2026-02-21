@@ -13,7 +13,7 @@ import TrialTrainingModal from "../../shared/appointments/CreateTrialTrainingMod
 import EditAppointmentModalMain from "../../shared/appointments/EditAppointmentModal"
 
 import AppointmentActionModal from "./AppointmentActionModal"
-import NotifyMemberModal from "../../shared/appointments/NotifyMemberModal"
+import NotifyModal from "../../shared/NotifyModal"
 import TypeSelectionModalMain from "./TypeSelectionModalMain"
 import EditBlockedSlotModalMain from "./EditBlockedSlotModalMain"
 import EditMemberModalMain from "../../studio-components/members-components/EditMemberModal"
@@ -1981,7 +1981,7 @@ const Calendar = forwardRef(({
         selectedTime={selectedSlotInfo?.formattedTime || null}
       />
       <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={localMemberRelations} leadRelations={leadRelationsMain} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
-      <NotifyMemberModal isOpen={isNotifyMemberOpen} onClose={() => { 
+      <NotifyModal isOpen={isNotifyMemberOpen} onClose={() => { 
         setIsNotifyMemberOpen(false); 
         if (pendingEventInfo && originalEventData && notifyAction === "change") { 
           // User cancelled - revert the state to original data

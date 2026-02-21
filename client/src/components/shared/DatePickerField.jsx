@@ -22,7 +22,7 @@ const DAY_HEADERS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
  * - iconSize     optional, default 16
  * - className    optional extra classes on the icon button
  */
-const DatePickerField = ({ value, onChange, iconSize = 16, className = "" }) => {
+const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDate = "" }) => {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState("days")
   const [viewDate, setViewDate] = useState(() => {
@@ -105,6 +105,15 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "" }) => 
   const todayYear = new Date().getFullYear()
   const todayMonth = new Date().getMonth()
 
+  // minDate support: parse "YYYY-MM-DD" into components
+  const minYear = minDate ? +minDate.split('-')[0] : null
+  const minMonth = minDate ? +minDate.split('-')[1] - 1 : null
+  const minDay = minDate ? +minDate.split('-')[2] : null
+  const isBeforeMin = (dateStr) => {
+    if (!minDate) return false
+    return dateStr < minDate
+  }
+
   const handleSelect = (day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     onChange(dateStr)
@@ -152,10 +161,12 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "" }) => 
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                 const isSelected = value === dateStr
                 const isToday = dateStr === todayStr
+                const isDisabled = isBeforeMin(dateStr)
                 return (
-                  <button key={day} type="button" onClick={() => handleSelect(day)}
+                  <button key={day} type="button" onClick={() => !isDisabled && handleSelect(day)} disabled={isDisabled}
                     className={`w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-all duration-200 ${
-                      isSelected ? "bg-primary text-white font-medium"
+                      isDisabled ? "text-content-faint/40 cursor-not-allowed"
+                        : isSelected ? "bg-primary text-white font-medium"
                         : isToday ? "bg-primary/20 text-primary font-medium"
                         : "text-content-secondary hover:bg-surface-button"
                     }`}>{day}</button>
@@ -177,10 +188,12 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "" }) => 
               {MONTH_SHORT.map((name, i) => {
                 const isCurrent = year === todayYear && i === todayMonth
                 const isSelected = year === selectedYear && i === selectedMonth
+                const isDisabled = minYear != null && (year < minYear || (year === minYear && i < minMonth))
                 return (
-                  <button key={name} type="button" onClick={() => handleMonthSelect(i)}
+                  <button key={name} type="button" onClick={() => !isDisabled && handleMonthSelect(i)} disabled={isDisabled}
                     className={`py-2.5 text-sm rounded-lg transition-all duration-200 ${
-                      isSelected ? "bg-primary text-white font-medium"
+                      isDisabled ? "text-content-faint/40 cursor-not-allowed"
+                        : isSelected ? "bg-primary text-white font-medium"
                         : isCurrent ? "bg-primary/20 text-primary font-medium"
                         : "text-content-secondary hover:bg-surface-button"
                     }`}>{name}</button>
@@ -203,10 +216,12 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "" }) => 
                 const y = yearRangeStart + i
                 const isCurrent = y === todayYear
                 const isSelected = y === selectedYear
+                const isDisabled = minYear != null && y < minYear
                 return (
-                  <button key={y} type="button" onClick={() => handleYearSelect(y)}
+                  <button key={y} type="button" onClick={() => !isDisabled && handleYearSelect(y)} disabled={isDisabled}
                     className={`py-2 text-sm rounded-lg transition-all duration-200 ${
-                      isSelected ? "bg-primary text-white font-medium"
+                      isDisabled ? "text-content-faint/40 cursor-not-allowed"
+                        : isSelected ? "bg-primary text-white font-medium"
                         : isCurrent ? "bg-primary/20 text-primary font-medium"
                         : "text-content-secondary hover:bg-surface-button"
                     }`}>{y}</button>

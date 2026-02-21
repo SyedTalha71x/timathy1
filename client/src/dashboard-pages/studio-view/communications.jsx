@@ -60,7 +60,7 @@ import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
 import ContingentModal from "../../components/shared/appointments/ShowContigentModal"
 import AddBillingPeriodModal from "../../components/shared/appointments/AddBillingPeriodModal"
-import NotifyMemberModal from "../../components/shared/appointments/NotifyMemberModal"
+import NotifyModal from "../../components/shared/NotifyModal"
 import ArchiveModal from "../../components/studio-components/communication-components/ArchiveModal"
 import DraftModal from "../../components/shared/communication/DraftModal"
 import SendEmailModal from "../../components/shared/communication/SendEmailModal"
@@ -4775,7 +4775,7 @@ export default function Communications() {
   onAdd={handleAddBillingPeriod}
 />
 
-      <NotifyMemberModal
+      <NotifyModal
         isOpen={isNotifyMemberOpen}
         onClose={() => setIsNotifyMemberOpen(false)}
         notifyAction={notifyAction}

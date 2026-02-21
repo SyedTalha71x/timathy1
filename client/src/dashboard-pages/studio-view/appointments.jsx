@@ -993,7 +993,7 @@ export default function Appointments() {
                   onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                 >
-                  <Plus size={14} />
+                  <Plus size={16} />
                   Book
                   <ChevronDown size={14} className={`transition-transform ${isBookDropdownOpen ? "rotate-180" : ""}`} />
                 </button>

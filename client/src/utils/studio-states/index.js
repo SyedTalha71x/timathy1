@@ -6,12 +6,14 @@
 // USAGE:
 // import { membersData, staffData, appointmentsMainData } from '../../utils/studio-states';
 // import { getMemberById, getStaffById } from '../../utils/studio-states';
+// import { classTypesData, classesData, roomsData } from '../../utils/studio-states';
 //
 // STRUKTUR:
 // - members-states.js         → Members, History, Relations, Contingent
 // - staff-states.js           → Staff/Employees
 // - leads-states.js           → Leads/Prospects
 // - appointments-states.js    → Appointments, Types, Free Slots
+// - classes-states.js         → Classes, Class Types, Rooms
 // - communication-states.js   → Chats, Emails, Templates
 // - configuration-states.jsx  → Studio, Config, Permissions, Defaults
 // - training-states.jsx       → Training Videos, Plans
@@ -135,6 +137,39 @@ export {
   freeAppointmentsData as freeAppointmentsMainData,
   appointmentsData as appointmentsNew,
 } from './appointments-states';
+
+// =============================================================================
+// CLASSES
+// =============================================================================
+export {
+  classTypesData,
+  roomsData,
+  DEFAULT_MAX_PARTICIPANTS,
+  DEFAULT_CLASS_DURATION,
+  classesData,
+  fmtDate as fmtClassDate,
+  markPastClasses,
+  getClassTypeById,
+  getClassTypeByName,
+  getClassTypeColor,
+  getClassTypeColorHex,
+  getClassesByDate,
+  getClassesByType,
+  getClassesByTrainer,
+  getClassesByRoom,
+  getUpcomingClasses,
+  getTodaysClasses,
+  getCancelledClasses,
+  getClassEnrolledCount,
+  isClassFull,
+  getClassSpotsLeft,
+  isMemberEnrolled,
+  getClassesByMember,
+  transformClassFromBackend,
+  transformClassToBackend,
+  classesApi,
+  classTypesApi,
+} from './classes-states';
 
 // =============================================================================
 // COMMUNICATION
@@ -301,6 +336,7 @@ import membersModule from './members-states';
 import staffModule from './staff-states';
 import leadsModule from './leads-states';
 import appointmentsModule from './appointments-states';
+import classesModule from './classes-states';
 import communicationModule from './communication-states';
 import configurationModule from './configuration-states';
 
@@ -309,6 +345,7 @@ export default {
   ...staffModule,
   ...leadsModule,
   ...appointmentsModule,
+  ...classesModule,
   ...communicationModule,
   ...configurationModule,
 };
