@@ -1,15 +1,12 @@
 const mongoose = require('mongoose')
 
 const mealItemSchema = new mongoose.Schema({
-    // food: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "Food",
-    //     required:true
-    // },
-    name: {
-        type: String,
+    food: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Food",
         required: true
     },
+
     quantity: {
         type: Number, //e.g 2 bowls
         default: 1

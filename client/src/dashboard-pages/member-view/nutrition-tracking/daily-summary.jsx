@@ -1,84 +1,16 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Calendar, Edit2, Plus, Trash2, X } from "lucide-react"
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchDailySummery } from "../../../features/dailysummery/dailySummerySlice"
 
 const DailySummary = () => {
-    const [meals, setMeals] = useState({
-        breakfast: [
-            {
-                id: 1,
-                name: "Oatmeal with Berries & Almonds",
-                serving: "1 bowl",
-                calories: 380,
-                protein: 12,
-                carbs: 55,
-                fats: 14,
-            },
-            {
-                id: 2,
-                name: "Scrambled Eggs (2) with Spinach",
-                serving: "1 serving",
-                calories: 220,
-                protein: 18,
-                carbs: 3,
-                fats: 16,
-            },
-        ],
-        lunch: [
-            {
-                id: 3,
-                name: "Grilled Chicken Salad",
-                serving: "1 large bowl",
-                calories: 450,
-                protein: 40,
-                carbs: 20,
-                fats: 25,
-            },
-            {
-                id: 4,
-                name: "Whole Wheat Bread",
-                serving: "2 slices",
-                calories: 160,
-                protein: 6,
-                carbs: 30,
-                fats: 2,
-            },
-        ],
-        dinner: [
-            {
-                id: 5,
-                name: "Baked Salmon with Roasted Vegetables",
-                serving: "1 fillet, 1 cup veggies",
-                calories: 580,
-                protein: 45,
-                carbs: 35,
-                fats: 30,
-            },
-        ],
-        snacks: [
-            {
-                id: 6,
-                name: "Greek Yogurt with Honey",
-                serving: "1 cup",
-                calories: 180,
-                protein: 15,
-                carbs: 25,
-                fats: 3,
-            },
-            {
-                id: 7,
-                name: "Mixed Nuts",
-                serving: "1 handful",
-                calories: 180,
-                protein: 7,
-                carbs: 12,
-                fats: 14,
-            },
-        ],
-    })
+    const [meals, setMeals] = useState({}) // initialize as object
 
+    const dispatch = useDispatch()
+    const { dailySummeryData } = useSelector((state) => state.dailySummery)
     const [editModal, setEditModal] = useState({ isOpen: false, meal: null, foodId: null })
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, meal: null, foodId: null })
     const [editForm, setEditForm] = useState({
@@ -90,20 +22,50 @@ const DailySummary = () => {
         fats: "",
     })
 
-    // Calculate totals
+    useEffect(() => {
+        dispatch(fetchDailySummery())
+    }, [dispatch])
+
+    // Normalize API data into meals state when fetched
+    useEffect(() => {
+        if (dailySummeryData?.meals) {
+            const normalizedMeals = {}
+            Object.entries(dailySummeryData.meals).forEach(([mealType, items]) => {
+                normalizedMeals[mealType] = items.map((item, idx) => ({
+                    id: idx + 1,
+                    name: item.food?.name || "Unknown",
+                    serving: item.unit || "1",
+                    calories: Number(item.food?.calories || 0),
+                    protein: Number(item.food?.protein || 0),
+                    carbs: Number(item.food?.carbs || 0),
+                    fats: Number(item.food?.fats || 0),
+                    quantity: item.quantity || 1
+                }))
+            })
+            setMeals(normalizedMeals)
+        }
+    }, [dailySummeryData])
+
+    // Calculate totals from meals state
     const calculateTotals = () => {
         const totals = { calories: 0, protein: 0, carbs: 0, fats: 0 }
 
         Object.values(meals).forEach((mealItems) => {
             mealItems.forEach((item) => {
-                totals.calories += item.calories
-                totals.protein += item.protein
-                totals.carbs += item.carbs
-                totals.fats += item.fats
+                totals.calories += item.calories * (item.quantity || 1)
+                totals.protein += item.protein * (item.quantity || 1)
+                totals.carbs += item.carbs * (item.quantity || 1)
+                totals.fats += item.fats * (item.quantity || 1)
             })
         })
 
-        return totals
+        // Format to 2 decimals
+        return {
+            calories: totals.calories.toFixed(2),
+            protein: totals.protein.toFixed(2),
+            carbs: totals.carbs.toFixed(2),
+            fats: totals.fats.toFixed(2),
+        }
     }
 
     const totals = calculateTotals()
@@ -112,10 +74,10 @@ const DailySummary = () => {
         setEditForm({
             name: food.name,
             serving: food.serving,
-            calories: food.calories.toString(),
-            protein: food.protein.toString(),
-            carbs: food.carbs.toString(),
-            fats: food.fats.toString(),
+            calories: food.calories.toFixed(2),
+            protein: food.protein.toFixed(2),
+            carbs: food.carbs.toFixed(2),
+            fats: food.fats.toFixed(2),
         })
         setEditModal({ isOpen: true, meal: mealType, foodId: food.id })
     }
@@ -136,12 +98,12 @@ const DailySummary = () => {
                         ...item,
                         name: editForm.name,
                         serving: editForm.serving,
-                        calories: Number.parseInt(editForm.calories),
-                        protein: Number.parseInt(editForm.protein),
-                        carbs: Number.parseInt(editForm.carbs),
-                        fats: Number.parseInt(editForm.fats),
+                        calories: parseFloat(editForm.calories),
+                        protein: parseFloat(editForm.protein),
+                        carbs: parseFloat(editForm.carbs),
+                        fats: parseFloat(editForm.fats),
                     }
-                    : item,
+                    : item
             ),
         }))
 
@@ -166,7 +128,7 @@ const DailySummary = () => {
     }
 
     const FoodCard = ({ food, mealType }) => (
-        <div className="bg-[#212121]  rounded-lg md:p-6 p-3 space-y-2">
+        <div className="bg-[#212121] rounded-lg md:p-6 p-3 space-y-2">
             <div className="flex justify-between items-start">
                 <div className="flex-1">
                     <h3 className="text-white font-medium text-base mb-1">{food.name}</h3>
@@ -175,19 +137,19 @@ const DailySummary = () => {
                     <div className="grid grid-cols-1 gap-x-8 gap-y-1 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-200">Calories:</span>
-                            <span className="text-white">{food.calories} kcal</span>
+                            <span className="text-white">{food.calories.toFixed(2)} kcal</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-200">Carbs:</span>
-                            <span className="text-white">{food.carbs}g</span>
+                            <span className="text-white">{food.carbs.toFixed(2)} g</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-200">Protein:</span>
-                            <span className="text-white">{food.protein}g</span>
+                            <span className="text-white">{food.protein.toFixed(2)} g</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-200">Fats:</span>
-                            <span className="text-white">{food.fats}g</span>
+                            <span className="text-white">{food.fats.toFixed(2)} g</span>
                         </div>
                     </div>
                 </div>
@@ -198,21 +160,19 @@ const DailySummary = () => {
                     onClick={() => openEditModal(mealType, food)}
                     className="flex items-center gap-1.5 px-3 py-1.5 cursor-pointer bg-[#2a2a2a] hover:bg-[#333333] text-white rounded text-sm transition-colors"
                 >
-                    <Edit2 size={14} />
-                    Edit
+                    <Edit2 size={14} /> Edit
                 </button>
                 <button
                     onClick={() => openDeleteModal(mealType, food.id)}
                     className="flex items-center gap-1.5 px-3 py-1.5 cursor-pointer bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
                 >
-                    <Trash2 size={14} />
-                    Delete
+                    <Trash2 size={14} /> Delete
                 </button>
             </div>
         </div>
     )
 
-    const MealSection = ({ title, mealType, foods }) => (
+    const MealSection = ({ title, mealType, foods = [] }) => (
         <div className="space-y-4 border-b border-[#38383880] pb-6">
             <h2 className="text-white text-xl font-semibold">{title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -231,7 +191,16 @@ const DailySummary = () => {
                         <Calendar className="text-indigo-400" size={24} />
                         <h1 className="md:text-2xl text-xl font-bold">Daily Summary</h1>
                     </div>
-                    <p className="text-gray-400 text-sm">Thursday, November 27, 2025</p>
+                    <p className="text-gray-400 text-sm">
+                        {dailySummeryData?.date
+                            ? new Date(dailySummeryData.date).toLocaleDateString("en-US", {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            })
+                            : "Loading..."}
+                    </p>
                 </div>
 
                 <div className="bg-[#212121] rounded-lg md:p-6 p-4">
@@ -262,16 +231,13 @@ const DailySummary = () => {
                 <MealSection title="Snacks" mealType="snacks" foods={meals.snacks} />
 
                 <div className="flex justify-end items-center">
-
-                    <button
-                        className="w-full md:w-auto   bg-indigo-600 cursor-pointer text-sm hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <Plus size={16} />
-                        Add More Food
+                    <button className="w-full md:w-auto bg-indigo-600 cursor-pointer text-sm hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <Plus size={16} /> Add More Food
                     </button>
                 </div>
             </div>
 
+            {/* Edit & Delete modals */}
             {/* Edit Modal */}
             {editModal.isOpen && (
                 <div className="fixed inset-0 bg-black/50 bg-opacity-75 flex items-center justify-center p-4 z-50">

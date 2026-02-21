@@ -2,7 +2,7 @@
 import { Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { fetchFood } from '../../../features/food/foodSlice'
+import { fetchFood, newFood } from '../../../features/food/foodSlice'
 import { useSelector, useDispatch } from 'react-redux'
 function FoodLog() {
     const dispatch = useDispatch();
@@ -14,7 +14,7 @@ function FoodLog() {
     const [unit, setUnit] = useState("")
     const [notes, setNotes] = useState("")
     const [searchQuery, setSearchQuery] = useState("")
-
+    const [selectedFood, setSelectedFood] = useState(null)
     const mealTypes = ["Breakfast", "Lunch", "Dinner", "Snacks"]
 
     const recentlyLogged = [
@@ -30,22 +30,48 @@ function FoodLog() {
         { name: "Salmon Fillet (Baked)", calories: 200 },
         { name: "Spinach Salad with Vinaigrette", calories: 100 },
     ]
-    useEffect(()=>{
+    useEffect(() => {
         dispatch(fetchFood());
-    },[dispatch])
-    
+    }, [dispatch])
+
     const handleAddFood = () => {
-        console.log("Adding food:", { foodName, quantity, unit, notes, meal: selectedMeal })
-        // Reset form
-        setFoodName("")
-        setQuantity("1")
-        setUnit("")
-        setNotes("")
-    }
+        if (!selectedFood) {
+            alert("Please select a food from search list");
+            return;
+        }
+
+        const today = new Date();
+
+        const payload = {
+            date: today,
+            mealType: selectedMeal.toLowerCase(),
+            foodId: selectedFood._id,
+            quantity: Number(quantity),
+            unit,
+            notes
+        };
+
+        dispatch(newFood(payload))
+            .unwrap()
+            .then(() => {
+                // reset form
+                setFoodName("");
+                setQuantity("1");
+                setUnit("");
+                setNotes("");
+                setSelectedFood(null);
+            })
+            .catch((err) => console.error(err));
+    };
 
     const handleScanBarcode = () => {
         navigate('/member-view/barcode-entry')
     }
+
+    // search query
+    const filterFood = foodData.filter((food) =>
+        food.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
     return (
         <div className="min-h-screen bg-[#1C1C1C] rounded-3xl text-white p-4 sm:p-6 lg:p-8">
@@ -86,6 +112,31 @@ function FoodLog() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-[#0f0f0f]  border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-3"
                     />
+                    {searchQuery && (
+                        <div className="bg-[#1A1A1A] border border-[#5F5F5F] rounded-lg mt-2 max-h-60 overflow-y-auto mb-2">
+                            {filterFood.length > 0 ? (
+                                filterFood.slice(0, 8).map((food) => (
+                                    <div
+                                        key={food._id}
+                                        onClick={() => {
+                                            setSelectedFood(food)
+                                            setFoodName(food.name)
+                                            setSearchQuery("")
+                                            setQuantity("1")
+                                            setUnit(food.unit || "")
+                                        }}
+                                        className="px-4 py-2 text-sm text-white hover:bg-[#252525] cursor-pointer"
+                                    >
+                                        {food.name}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="px-4 py-2 text-sm text-gray-400">
+                                    No food found
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <button onClick={handleScanBarcode} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
@@ -103,7 +154,7 @@ function FoodLog() {
                     <div>
                         <h2 className="text-lg font-semibold mb-3">Recently Logged</h2>
                         <div className="space-y-2">
-                            {foodData.slice(0,4).map((food, index) => (
+                            {filterFood.slice(0, 4).map((food, index) => (
                                 <div
                                     key={index}
                                     className="bg-[#1a1a1a] border border-[#5F5F5F] rounded-lg p-3 sm:p-4 flex justify-between items-center hover:bg-[#252525] transition-colors cursor-pointer"

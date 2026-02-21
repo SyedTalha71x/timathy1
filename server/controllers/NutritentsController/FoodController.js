@@ -1,35 +1,84 @@
 const foodModel = require('../../models/nutritionModels/Food');
 const { NotFoundError, BadRequestError } = require("../../middleware/error/httpErrors")
 const axios = require('axios')
+const dailyLogModel = require('../../models/nutritionModels/DailyLog');
+const { MemberModel } = require('../../models/Discriminators');
 
-// create Food by Studio
-const createFood = async (req, res, next) => {
+// to daliy log
+const addFoodById = async (req, res) => {
     try {
-        const {
-            name,
-            
-        } = req.body
+        const userId = req.user?._id;
+        const { date, mealType, foodId, quantity, unit, notes } = req.body;
 
+        if (!date || !mealType || !foodId) {
+            return res.status(400).json({
+                message: "Date, mealType and foodId are required",
+            });
+        }
 
-        const food = await foodModel.create({
-            name,
-            serving,
-            servingSize,
-            protein,
-            calories,
-            fats,
-            carbs
-        })
+        const logDate = new Date(date);
+        logDate.setHours(0, 0, 0, 0);
+
+        const food = await foodModel.findById(foodId);
+        if (!food) {
+            return res.status(404).json({ message: "Food not found" });
+        }
+
+        let dailyLog = await dailyLogModel.findOne({
+            user: userId,
+            date: logDate,
+        });
+
+        let isNewLog = false;
+
+        if (!dailyLog) {
+            dailyLog = await dailyLogModel.create({
+                user: userId,
+                date: logDate,
+                meals: {
+                    breakfast: [],
+                    lunch: [],
+                    dinner: [],
+                    snacks: [],
+                },
+            });
+
+            isNewLog = true;
+        }
+
+        const allowedMeals = ["breakfast", "lunch", "dinner", "snacks"];
+        if (!allowedMeals.includes(mealType)) {
+            return res.status(400).json({ message: "Invalid meal type" });
+        }
+
+        const mealItem = {
+            food: food._id,
+            quantity: quantity || 1,
+            unit: unit || "",
+            notes: notes || "",
+        };
+
+        // ✅ correct object
+        dailyLog.meals[mealType].push(mealItem);
+        await dailyLog.save();
+
+        // ✅ avoid duplicate dailyLog IDs
+        if (isNewLog) {
+            await MemberModel.findByIdAndUpdate(userId, {
+                $addToSet: { dailyLogs: dailyLog._id },
+            });
+        }
 
         return res.status(200).json({
-            success: true,
-            food: food
-        })
+            message: "Food added successfully",
+            dailyLog: dailyLog,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server error" });
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
 
 const getFoodByBarcode = async (req, res, next) => {
@@ -79,7 +128,7 @@ const getFood = async (req, res, next) => {
 
 
 module.exports = {
-    createFood,
+    addFoodById,
     getFood,
     getFoodByBarcode
 }
