@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Calendar, Clock, ChevronLeft, ChevronRight, X, Filter, Check, Info } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, X, Filter, Check, Info } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import BookingModal from "../../components/member-panel-components/appointments-components/BookingModal"
 import RequestModal from "../../components/member-panel-components/appointments-components/RequestModal"
@@ -44,10 +44,11 @@ const Appointments = () => {
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [availabilityFilter, setAvailabilityFilter] = useState("available")
   const [showRequestModal, setShowRequestModal] = useState(false)
+  const [showInfoModal, setShowInfoModal] = useState(false)
+  const [infoModalData, setInfoModalData] = useState(null)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const filterRef = useRef(null)
-  const daySliderRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -99,13 +100,6 @@ const Appointments = () => {
 
   const sliderDays = generateSliderDays()
 
-  const scrollSlider = (direction) => {
-    if (daySliderRef.current) {
-      const scrollAmount = direction === "left" ? -200 : 200
-      daySliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" })
-    }
-  }
-
   const groupedTimeSlots = timeSlots.reduce((acc, slot) => {
     if (!acc[slot.period]) acc[slot.period] = []
     acc[slot.period].push(slot)
@@ -121,9 +115,6 @@ const Appointments = () => {
     if (filtered.length > 0) acc[period] = filtered
     return acc
   }, {})
-
-  // Flat list of all filtered time slots (no grouping by period needed visually)
-  const allFilteredSlots = Object.values(filteredTimeSlots).flat()
 
   const filteredServices = selectedCategories.includes("All courses")
     ? services
@@ -205,6 +196,34 @@ const Appointments = () => {
   // ============================================
   return (
     <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+
+      {/* Info Modal */}
+      {showInfoModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-content-primary pr-4">{infoModalData?.name}</h3>
+              <button onClick={() => setShowInfoModal(false)} className="text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-content-secondary text-sm mb-4">{infoModalData?.description}</p>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
+                <span className="text-content-muted">Duration</span>
+                <span className="text-content-primary font-medium">{infoModalData?.duration}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
+                <span className="text-content-muted">Category</span>
+                <span className="text-content-primary font-medium">{infoModalData?.category}</span>
+              </div>
+            </div>
+            <button onClick={() => setShowInfoModal(false)} className="w-full mt-4 px-4 py-2.5 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
@@ -316,18 +335,15 @@ const Appointments = () => {
                         {service.category}
                       </div>
                     )}
-                    {/* Info button with hover tooltip — matches configuration */}
-                    {service.description && (
-                      <div className="absolute top-3 right-3 group/info">
-                        <button className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors">
-                          <Info className="w-4 h-4 text-white" />
-                        </button>
-                        <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-hover border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
-                          <p className="text-content-secondary text-sm">{service.description}</p>
-                          <div className="absolute -top-2 right-3 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45" />
-                        </div>
-                      </div>
-                    )}
+                    {/* Info button — opens modal on click, visually matches configuration */}
+                    <div className="absolute top-3 right-3">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setInfoModalData(service); setShowInfoModal(true) }}
+                        className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors"
+                      >
+                        <Info className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Content */}
@@ -461,9 +477,7 @@ const Appointments = () => {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-1.5 text-sm font-medium text-content-primary hover:bg-surface-button px-2 py-1 rounded-lg transition-colors">
-                    <span>{months[selectedMonth]} {selectedYear}</span>
-                  </button>
+                  <span className="text-sm font-medium text-content-primary">{months[selectedMonth]} {selectedYear}</span>
                   <DatePickerField
                     value={dateValue}
                     onChange={handleDateChange}
@@ -471,20 +485,11 @@ const Appointments = () => {
                     iconSize={16}
                   />
                 </div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => scrollSlider("left")} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary">
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => scrollSlider("right")} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
 
               <div
-                ref={daySliderRef}
-                className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                className="flex gap-2 overflow-x-auto pb-2"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
               >
                 {sliderDays.map((day) => {
                   const isSelected = day.date === selectedDate && day.month === selectedMonth && day.year === selectedYear
@@ -534,9 +539,9 @@ const Appointments = () => {
                 ))}
               </div>
 
-              {/* Time slots — flat list, no period colors */}
-              <div className="space-y-2">
-                {allFilteredSlots.length === 0 ? (
+              {/* Time slots — grouped by period, no color indicators */}
+              <div className="space-y-5">
+                {Object.keys(filteredTimeSlots).length === 0 ? (
                   <SettingsCard>
                     <div className="text-center py-8 text-content-muted">
                       <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -544,26 +549,33 @@ const Appointments = () => {
                     </div>
                   </SettingsCard>
                 ) : (
-                  allFilteredSlots.map((slot) => (
-                    <button
-                      key={slot.id}
-                      onClick={() => handleTimeSlotClick(slot.id)}
-                      className={`w-full p-3.5 rounded-xl text-left transition-colors flex justify-between items-center gap-2 ${
-                        !slot.available
-                          ? "bg-surface-hover text-content-muted border border-red-500/20 hover:bg-surface-button"
-                          : "bg-surface-hover text-content-primary border border-border hover:bg-surface-button"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Clock className="w-4 h-4 text-content-faint flex-shrink-0" />
-                        <span className="text-sm font-medium">{slot.start} - {slot.end}</span>
+                  Object.entries(filteredTimeSlots).map(([period, slots]) => (
+                    <div key={period}>
+                      <h3 className="text-xs font-semibold text-content-muted uppercase tracking-wider mb-2 px-1">{period}</h3>
+                      <div className="space-y-2">
+                        {slots.map((slot) => (
+                          <button
+                            key={slot.id}
+                            onClick={() => handleTimeSlotClick(slot.id)}
+                            className={`w-full p-3.5 rounded-xl text-left transition-colors flex justify-between items-center gap-2 ${
+                              !slot.available
+                                ? "bg-surface-hover text-content-muted border border-red-500/20 hover:bg-surface-button"
+                                : "bg-surface-hover text-content-primary border border-border hover:bg-surface-button"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Clock className="w-4 h-4 text-content-faint flex-shrink-0" />
+                              <span className="text-sm font-medium">{slot.start} - {slot.end}</span>
+                            </div>
+                            {!slot.available ? (
+                              <span className="text-[11px] bg-red-500/15 text-red-400 px-2.5 py-0.5 rounded-full font-medium">Request</span>
+                            ) : (
+                              <span className="text-[11px] bg-green-500/15 text-green-400 px-2.5 py-0.5 rounded-full font-medium">Available</span>
+                            )}
+                          </button>
+                        ))}
                       </div>
-                      {!slot.available ? (
-                        <span className="text-[11px] bg-red-500/15 text-red-400 px-2.5 py-0.5 rounded-full font-medium">Request</span>
-                      ) : (
-                        <span className="text-[11px] bg-green-500/15 text-green-400 px-2.5 py-0.5 rounded-full font-medium">Available</span>
-                      )}
-                    </button>
+                    </div>
                   ))
                 )}
               </div>
