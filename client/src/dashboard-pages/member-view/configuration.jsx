@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Input, Button, notification, Tabs, Collapse, InputNumber, Switch } from "antd"
 import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, ClockCircleOutlined } from "@ant-design/icons"
-import { useSelector } from "react-redux"
+import { useSelector,useDispatch } from "react-redux"
+import { updateUserData,updatedPassword } from "../../features/auth/authSlice"
 const { TabPane } = Tabs
 const { TextArea } = Input
 const { Panel } = Collapse
@@ -41,6 +42,7 @@ const requestButtonStyle = {
 }
 
 const SettingsPage = () => {
+  const dispatch = useDispatch();
   const { studio, loading } = useSelector((state) => state.studios)
   const [accountSettings, setAccountSettings] = useState({
     newEmail: "",
@@ -123,76 +125,96 @@ Last updated: ${new Date(studio.updatedAt).toDateString()}`,
     })
   }
 
-  const handleRequestEmailChange = () => {
-    if (!accountSettings.newEmail) {
-      notification.error({
-        message: "Missing Email",
-        description: "Please enter a new email address.",
-      })
-      return
-    }
+const handleRequestEmailChange = async () => {
+  const { newEmail, currentPassword } = accountSettings;
 
-    if (!accountSettings.currentPassword) {
-      notification.error({
-        message: "Password Required",
-        description: "Please enter your current password to confirm the change.",
-      })
-      return
-    }
+  if (!newEmail) {
+    return notification.error({
+      message: "Missing Email",
+      description: "Please enter a new email address.",
+    });
+  }
 
+  if (!currentPassword) {
+    return notification.error({
+      message: "Password Required",
+      description: "Please enter your current password to confirm the change.",
+    });
+  }
+
+  try {
+    // Dispatch updateUserData with newEmail and current password for validation
+    await dispatch(updateUserData({ email: accountSettings.newEmail, currentPassword })).unwrap();
     notification.success({
       message: "Email Change Requested",
       description:
-        "A confirmation email has been sent to your new email address. Please check your inbox and follow the instructions to complete the change.",
-    })
+        "A confirmation email has been sent to your new email address. Please check your inbox to complete the change.",
+    });
 
     setAccountSettings({
       ...accountSettings,
       newEmail: "",
       currentPassword: "",
-    })
+    });
+  } catch (err) {
+    notification.error({
+      message: "Email Change Failed",
+      description: err.message || "Something went wrong while changing your email.",
+    });
+  }
+};
+
+const handleRequestPasswordChange = async () => {
+  const { currentPassword, newPassword, confirmPassword } = accountSettings;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return notification.error({
+      message: "Missing Fields",
+      description: "Please fill in all password fields.",
+    });
   }
 
-  const handleRequestPasswordChange = () => {
-    const { currentPassword, newPassword, confirmPassword } = accountSettings
+  if (newPassword !== confirmPassword) {
+    return notification.error({
+      message: "Password Mismatch",
+      description: "New password and confirm password do not match.",
+    });
+    return;
+  }
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      notification.error({
-        message: "Missing Fields",
-        description: "Please fill in all password fields.",
-      })
-      return
-    }
+  if (newPassword.length < 8) {
+    return notification.error({
+      message: "Weak Password",
+      description: "Password must be at least 8 characters long.",
+    });
+    return;
+  }
 
-    if (newPassword !== confirmPassword) {
-      notification.error({
-        message: "Password Mismatch",
-        description: "New password and confirm password do not match.",
-      })
-      return
-    }
-
-    if (newPassword.length < 8) {
-      notification.error({
-        message: "Weak Password",
-        description: "Password must be at least 8 characters long.",
-      })
-      return
-    }
+  try {
+    // Dispatch updatedPassword thunk
+    const result = await dispatch(
+      updatedPassword({ oldPassword: currentPassword, newPassword })
+    ).unwrap();
 
     notification.success({
-      message: "Password Change Requested",
+      message: "Password Changed",
       description:
-        "A confirmation email has been sent to your email address. Please check your inbox and follow the instructions to complete the password change.",
-    })
+        "Your password has been updated successfully. A confirmation email has been sent to your email address.",
+    });
 
     setAccountSettings({
       ...accountSettings,
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
-    })
+    });
+  } catch (err) {
+    notification.error({
+      message: "Password Change Failed",
+      description: err.message || "Something went wrong while changing your password.",
+    });
   }
+};
 
   const handleSaveSettings = () => {
     notification.success({

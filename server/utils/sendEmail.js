@@ -1,6 +1,6 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 const EmailModel = require('../models/EmailModel');
-
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -9,31 +9,30 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS,
     }
 });
+
 /**
- * Sends an email using nodemailer.
+ * Sends an email and logs it in the database
  * @param {string} to - Recipient email address
  * @param {string} subject - Email subject
  * @param {string} text - Email body text
- * @param {string} html - Email body text
+ * @param {string} html - Optional HTML body
  */
 const sendEmail = async (to, subject, text, html = null) => {
     try {
-        await transporter.sendMail({
-            from: `"FitnessApp" <${process.env.EMAIL_USER}>`,
-            to,
-            subject,
-            text,
-            html: html || text,
+        const from = `"FitnessApp" <${process.env.EMAIL_USER}>`;
+        const body = html || text;
 
-        });
+        // Send email
+        await transporter.sendMail({ from, to, subject, text, html: body });
 
-        const email = new EmailModel({ from, to, subject, body });
+        // Save to database
+        const email = new EmailModel({ from, to, subject, body,status:"sent" });
         await email.save();
+
     } catch (error) {
-        console.log('❌ Email Error:', error.message)
-        throw new Error("Email Cloud not be sent")
+        console.log('❌ Email Error:', error.message);
+        throw new Error("Email could not be sent");
     }
 }
 
-
-module.exports = sendEmail
+module.exports = sendEmail;

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from './authApi';
 
+// member Login
 export const memberLogin = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
@@ -13,6 +14,7 @@ export const memberLogin = createAsyncThunk(
   }
 );
 
+// Logout
 export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -24,7 +26,7 @@ export const logout = createAsyncThunk(
     }
   }
 );
-
+// all data related to login member which easy to stay login after refresh
 export const me = createAsyncThunk(
   'auth/me',
   async (_, { rejectWithValue }) => {
@@ -37,7 +39,8 @@ export const me = createAsyncThunk(
   }
 );
 
-export const updateMemberData = createAsyncThunk(
+// member update data like email name phone number
+export const updateUserData = createAsyncThunk(
   'auth/update',
   async (updateData, { rejectWithValue }) => {
     try {
@@ -48,6 +51,19 @@ export const updateMemberData = createAsyncThunk(
     }
   }
 );
+
+
+//  changed password request
+
+export const updatedPassword = createAsyncThunk('/auth/change-password', async (updatePassword, { rejectWithValue }) => {
+  try {
+    const res = await authApi.changedPassword(updatePassword)
+    return res
+  }
+  catch (error) {
+    return rejectWithValue(error.response?.data)
+  }
+})
 
 const authSlice = createSlice({
   name: 'auth',
@@ -114,11 +130,11 @@ const authSlice = createSlice({
       })
 
       // UPDATE MEMBER DATA
-      .addCase(updateMemberData.pending, (state) => {
+      .addCase(updateUserData.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateMemberData.fulfilled, (state, action) => {
+      .addCase(updateUserData.fulfilled, (state, action) => {
         state.loading = false;
 
         // Merge safely into existing user object
@@ -130,10 +146,24 @@ const authSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(updateMemberData.rejected, (state, action) => {
+      .addCase(updateUserData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || 'Update failed';
-      });
+      })
+
+      // update password
+      .addCase(updatedPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatedPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(updatedPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message
+      })
   },
 });
 

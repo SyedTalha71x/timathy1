@@ -2,7 +2,7 @@ const express = require('express');
 const {
     createMember,
     loginMember,
-    updateMemberById,
+    updateUserById,
     deleteMemberById,
     getMemberById,
     getMembers,
@@ -16,7 +16,7 @@ router.get('/members', verifyAccessToken, isAdmin, getMembers)
 router.get('/:id', verifyAccessToken, getMemberById)
 router.post('/create', createMember)
 router.post('/login', loginMember)
-router.put('/update', verifyAccessToken, updateMemberById)
+router.put('/update', verifyAccessToken, updateUserById)
 router.delete('/:id', verifyAccessToken, isAdmin, deleteMemberById)
 
 module.exports = router

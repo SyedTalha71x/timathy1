@@ -14,6 +14,8 @@ const EmailRoutes = require('./EmailRoutes');
 const AuthRoutes = require('./AuthRoutes');
 const FoodRoutes = require('./nutrition/FoodRoutes')
 const UserGoalRoutes = require('./nutrition/UserGoalRoutes')
+const ReminderRoutes = require('./ReminderRoutes')
+
 const router = express.Router();
 
 const strictLimiter = rateLimit({
@@ -55,7 +57,7 @@ router.use('/plan', TrainingPlanRoutes)
 
 
 
-
+router.use('/reminder', ReminderRoutes)
 router.use('/notification', NotificationRoutes)
 router.use('/email', EmailRoutes)
 

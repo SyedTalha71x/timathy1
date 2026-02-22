@@ -67,3 +67,9 @@ export const loginMember = async (credentials) => {
     return res.data;
 }
 
+
+// changed Password
+export const changedPassword = async (updatePassword) => {
+    const res = await api.put('/auth/change-password', updatePassword, { withCredentials: true })
+    return res.data;
+}
