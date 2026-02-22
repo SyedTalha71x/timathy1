@@ -7,7 +7,7 @@ import PaymentMethodPopup from "../../components/member-panel-components/studio-
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
-import { updateMemberData } from "../../features/auth/authSlice"
+import { updateUserData } from "../../features/auth/authSlice"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -291,52 +291,52 @@ const StudioMenu = () => {
   };
 
 
-const handlePersonalDataSubmit = () => {
-  dispatch(updateMemberData(personalData))
-    .unwrap()
-    .unwrap()
-    .then(() => {
-      alert("Personal data updated successfully!");
-      setIsEditingContact(false);
-    })
-    .catch((err) => {
-      console.error("Update error:", err);
-      alert("Failed to update personal data: " + (err?.message || JSON.stringify(err)));
-    });
-};
+  const handlePersonalDataSubmit = () => {
+    dispatch(updateUserData(personalData))
+      .unwrap()
+      .unwrap()
+      .then(() => {
+        alert("Personal data updated successfully!");
+        setIsEditingContact(false);
+      })
+      .catch((err) => {
+        console.error("Update error:", err);
+        alert("Failed to update personal data: " + (err?.message || JSON.stringify(err)));
+      });
+  };
 
 
 
   const handleAddressDataSubmit = () => {
-    dispatch(updateMemberData(addressData))
+    dispatch(updateUserData(addressData))
       .unwrap()
-     .unwrap()
-    .then(() => {
-      alert("Address data updated successfully!");
-      setIsEditingContact(false);
-    })
-    .catch((err) => {
-      alert("Failed to update address data: " + (err?.message || JSON.stringify(err)));
-    });
+      .unwrap()
+      .then(() => {
+        alert("Address data updated successfully!");
+        setIsEditingContact(false);
+      })
+      .catch((err) => {
+        alert("Failed to update address data: " + (err?.message || JSON.stringify(err)));
+      });
   };
 
 
-const handleContactDataSubmit = () => {
-  dispatch(updateMemberData(contactData))
-    .unwrap()
-    .then(() => {
-      alert("Contact data updated successfully!");
-      setIsEditingContact(false);
-    })
-    .catch((err) => {
-      alert("Failed to update contact data: " + (err?.message || JSON.stringify(err)));
-    });
-};
+  const handleContactDataSubmit = () => {
+    dispatch(updateUserData(contactData))
+      .unwrap()
+      .then(() => {
+        alert("Contact data updated successfully!");
+        setIsEditingContact(false);
+      })
+      .catch((err) => {
+        alert("Failed to update contact data: " + (err?.message || JSON.stringify(err)));
+      });
+  };
 
 
 
 
-  
+
 
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
@@ -937,7 +937,11 @@ const handleContactDataSubmit = () => {
                             <label className="block text-gray-400 text-xs sm:text-sm mb-1">Date of Birth</label>
                             <input
                               type="text"
-                              value={personalData.dateOfBirth}
+                              value={new Date(personalData?.dateOfBirth).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "numeric",
+                                day: "numeric",
+                              })}
                               onChange={(e) => handlePersonalDataChange("dateOfBirth", e.target.value)}
                               className="w-full bg-gray-600 text-white rounded-lg p-2 text-sm sm:text-base"
                             />

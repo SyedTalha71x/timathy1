@@ -6,6 +6,7 @@ const sendEmail = require('../utils/sendEmail');
 const hashedPassword = require('../utils/HashedPassword')
 const { userModel } = require('../models/Discriminators')
 const GenerateToken = require('../utils/GenerateToken');
+
 const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -52,7 +53,7 @@ const resetPassword = async (req, res, next) => {
 
 const requestEmailChange = async (req, res, next) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     const { newEmail } = req.body;
 
     if (!newEmail) throw new BadRequestError('New email is required');
@@ -61,10 +62,11 @@ const requestEmailChange = async (req, res, next) => {
     if (!user) throw new NotFoundError('user not found');
 
     // Save as pending email until verified
-    user.pendingEmail = newEmail;
+    user.email = newEmail;
     await user.save();
 
-    res.status(200).json({ message: 'Email change requested. Please verify to complete.' });
+
+    res.status(200).json({ status: true, message: 'Email changed Successfully' });
   } catch (err) {
     next(err);
   }
@@ -72,14 +74,14 @@ const requestEmailChange = async (req, res, next) => {
 
 const changePassword = async (req, res, next) => {
   try {
-    const userId = req.user?.id;   // from token
+    const userId = req.user?._id;   // from token
     const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
       throw new BadRequestError('Old and new passwords are required');
     }
 
-    const user = await UserModel.findById(userId);
+    const user = await UserModel.findById(userId).select("+password");
     if (!user) throw new NotFoundError('User not found');
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -88,6 +90,19 @@ const changePassword = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     await user.save();
+
+    // sending email notification about password Changed Successfully
+    try {
+      await sendEmail(
+        user.email,
+        "Password Changed Successfully",
+        `Hello ${user.firstName} ${user.lastName},\n\nYour password has been changed successfully.\nIf you did not make this change, please contact support immediately.`
+      );
+    } catch (emailError) {
+      console.log("❌ Failed to send password change email:", emailError.message);
+      // Optional: do not fail the request just because email failed
+    }
+
 
     res.status(200).json({ message: 'Password changed successfully' });
   } catch (error) {
@@ -98,7 +113,7 @@ const changePassword = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const userId = req.user?.id; // assuming auth middleware adds user
+    const userId = req.user?._id; // assuming auth middleware adds user
     if (userId) {
       await UserModel.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
     }

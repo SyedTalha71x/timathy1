@@ -4,7 +4,7 @@ const GenerateToken = require('../utils/GenerateToken');
 const hashedPassword = require('../utils/HashedPassword');
 const {
     BadRequestError,
-    UnauthorizedError,
+    UnAuthorizedError,
     NotFoundError,
     ConflictError
 } = require('../middleware/error/httpErrors');
@@ -30,7 +30,7 @@ const createAdmin = async (req, res, next) => {
             authCode } = req.body;
 
         if (authCode !== process.env.AUTH_CODE)
-            throw new UnauthorizedError("Auth Code Invalid");
+            throw new UnAuthorizedError("Auth Code Invalid");
 
         const checkEmail = await AdminModel.findOne({ email });
         if (checkEmail) throw new ConflictError("Email Conflict");
@@ -110,7 +110,7 @@ const loginAdmin = async (req, res, next) => {
         if (!admin) throw new NotFoundError("Invalid Email");
 
         const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) throw new UnauthorizedError("Invalid Password");
+        if (!isMatch) throw new UnAuthorizedError("Invalid Password");
 
         const { AccessToken, RefreshToken } = GenerateToken({
             firstName: admin.firstName,
@@ -158,39 +158,39 @@ const loginAdmin = async (req, res, next) => {
 
 // update Admin Details
 
-const updateAdminById = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        let updateAdmin = { ...req.body };
+// const updateAdminById = async (req, res, next) => {
+//     try {
+//         const { id } = req.params;
+//         let updateAdmin = { ...req.body };
 
-        if (!req.file) throw new NotFoundError("Image Not Uploaded");
-        // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
-        // ✅ Save new image URL + public__id into update object
-        // updateAdmin.img = {
-        //     url: cloudinaryResult.secure_url,
-        //     public__id: cloudinaryResult.public__id,
-        // };
+//         // if (!req.file) throw new NotFoundError("Image Not Uploaded");
+//         // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+//         // ✅ Save new image URL + public__id into update object
+//         // updateAdmin.img = {
+//         //     url: cloudinaryResult.secure_url,
+//         //     public__id: cloudinaryResult.public__id,
+//         // };
 
-        // Update admin in MongoDB
-        const admin = await AdminModel.findByIdAndUpdate(id, updateAdmin, { new: true });
-        if (!admin) throw new NotFoundError("admin not found");
+//         // Update admin in MongoDB
+//         const admin = await AdminModel.findByIdAndUpdate(id, updateAdmin, { new: true });
+//         if (!admin) throw new NotFoundError("admin not found");
 
-        res.status(200).json({
-            message: "Successfully Updated",
-            admin: {
-                _id: admin._id,
-                firstName: admin.firstName,
-                lastName: admin.lastName,
-                email: admin.email,
-                studioName: admin.studioName,
-                role: admin.role,
-                // img: admin.img?.url, // ✅ now points to Cloudinary URL
-            },
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+//         res.status(200).json({
+//             message: "Successfully Updated",
+//             admin: {
+//                 _id: admin._id,
+//                 firstName: admin.firstName,
+//                 lastName: admin.lastName,
+//                 email: admin.email,
+//                 studioName: admin.studioName,
+//                 role: admin.role,
+//                 // img: admin.img?.url, // ✅ now points to Cloudinary URL
+//             },
+//         });
+//     } catch (err) {
+//         next(err);
+//     }
+// };
 
 const getUsers = async (req, res, next) => {
     try {
@@ -238,5 +238,5 @@ module.exports = {
     loginAdmin,
     getUsers,
     deleteUser,
-    updateAdminById
+    // updateAdminById
 };

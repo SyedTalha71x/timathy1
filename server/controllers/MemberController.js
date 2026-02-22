@@ -179,9 +179,9 @@ const loginMember = async (req, res, next) => {
 /**
  * Update member
  */
-const updateMemberById = async (req, res, next) => {
+const updateUserById = async (req, res, next) => {
   try {
-    const memberId = req.user?._id;
+    const userId = req.user?._id;
     let { firstName,
       lastName,
       username,
@@ -208,10 +208,10 @@ const updateMemberById = async (req, res, next) => {
     // };
 
     // Update member in MongoDB
-    const member = await MemberModel.findByIdAndUpdate(memberId, {
+    const user = await UserModel.findByIdAndUpdate(userId, {
       firstName,
       lastName,
-      username,
+      // username,
       gender,
       phone,
       city,
@@ -223,11 +223,11 @@ const updateMemberById = async (req, res, next) => {
       about,
       email,
     }, { new: true });
-    if (!member) throw new NotFoundError("member not found");
+    if (!user) throw new NotFoundError("member not found");
 
     res.status(200).json({
       message: "Successfully Updated",
-      user:member,
+      user:user,
     });
   } catch (err) {
     next(err);
@@ -299,7 +299,7 @@ const getMembers = async (req, res, next) => {
 module.exports = {
   createMember,
   loginMember,
-  updateMemberById,
+  updateUserById,
   deleteMemberById,
   getMemberById,
   getMembers,
