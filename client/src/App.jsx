@@ -59,7 +59,7 @@ import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-page
 
 
 // Member Dashboard  
-import MemberDashboardLayout from "./layouts/member-view-layout";
+import MemberDashboardLayout from "./layouts/member-view/member-view-layout";
 import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
