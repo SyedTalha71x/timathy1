@@ -7,7 +7,7 @@ import PaymentMethodPopup from "../../components/member-panel-components/studio-
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
-import { updateMemberData } from "../../features/auth/authSlice"
+import { updateUserData } from "../../features/auth/authSlice"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -280,12 +280,11 @@ const StudioMenu = () => {
   };
 
   const handlePersonalDataSubmit = () => {
-    dispatch(updateMemberData(personalData))
-      .unwrap()
+    dispatch(updateUserData(personalData))
       .unwrap()
       .then(() => {
         alert("Personal data updated successfully!");
-        setIsEditingContact(false);
+        setIsEditingPersonal(false);
       })
       .catch((err) => {
         console.error("Update error:", err);
@@ -294,12 +293,11 @@ const StudioMenu = () => {
   };
 
   const handleAddressDataSubmit = () => {
-    dispatch(updateMemberData(addressData))
-      .unwrap()
+    dispatch(updateUserData(addressData))
       .unwrap()
       .then(() => {
         alert("Address data updated successfully!");
-        setIsEditingContact(false);
+        setIsEditingAddress(false);
       })
       .catch((err) => {
         alert("Failed to update address data: " + (err?.message || JSON.stringify(err)));
@@ -307,7 +305,7 @@ const StudioMenu = () => {
   };
 
   const handleContactDataSubmit = () => {
-    dispatch(updateMemberData(contactData))
+    dispatch(updateUserData(contactData))
       .unwrap()
       .then(() => {
         alert("Contact data updated successfully!");
