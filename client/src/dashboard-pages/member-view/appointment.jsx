@@ -225,27 +225,24 @@ const Appointments = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
-        {(showBooking || showMyAppointments) ? (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => { setShowBooking(false); setShowMyAppointments(false) }}
-              className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-lg sm:text-2xl font-bold">
-                {showMyAppointments ? "My Appointments" : "Book Appointment"}
-              </h1>
-              {showBooking && <p className="text-xs text-content-muted">Select date and time</p>}
+      {/* Header — hidden during booking to save space */}
+      {!showBooking && (
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
+          {showMyAppointments ? (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowMyAppointments(false)}
+                className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-lg sm:text-2xl font-bold">My Appointments</h1>
             </div>
-          </div>
-        ) : (
-          <h1 className="text-lg sm:text-2xl font-bold">Appointments</h1>
-        )}
-      </div>
+          ) : (
+            <h1 className="text-lg sm:text-2xl font-bold">Appointments</h1>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -443,7 +440,16 @@ const Appointments = () => {
         {/* BOOKING VIEW                                */}
         {/* ============================================ */}
         {showBooking && (
-          <div className="space-y-6 max-w-3xl">
+          <div className="space-y-4 max-w-3xl">
+            {/* Back */}
+            <button
+              onClick={() => setShowBooking(false)}
+              className="flex items-center gap-1.5 text-sm text-content-muted hover:text-content-primary transition-colors -ml-1"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+
             {/* Service Info — compact inline */}
             <SettingsCard className="!p-4">
               <div className="flex items-center gap-4">
