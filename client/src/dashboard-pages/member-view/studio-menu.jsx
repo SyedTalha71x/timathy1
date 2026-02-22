@@ -8,6 +8,9 @@ import CancelMembershipPopup from "../../components/member-panel-components/stud
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
 import { updateUserData } from "../../features/auth/authSlice"
+import DatePickerField from "../../components/shared/DatePickerField"
+import CustomSelect from "../../components/shared/CustomSelect"
+import useCountries from "../../hooks/useCountries"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -15,6 +18,7 @@ const StudioMenu = () => {
   const { studio } = useSelector((state) => state.studios);
 
   const dispatch = useDispatch();
+  const { countries, loading: countriesLoading } = useCountries();
   const [activeSection, setActiveSection] = useState("info")
   const [showImprintPopup, setShowImprintPopup] = useState(false)
   const [showTermsPopup, setShowTermsPopup] = useState(false)
@@ -22,7 +26,6 @@ const StudioMenu = () => {
   const [showPaymentMethodPopup, setShowPaymentMethodPopup] = useState(false)
   const [showCancelMembershipPopup, setShowCancelMembershipPopup] = useState(false)
   const [showIdlePeriodForm, setShowIdlePeriodForm] = useState(false)
-  const [expandedMemberSection, setExpandedMemberSection] = useState("")
 
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState(null)
@@ -40,6 +43,9 @@ const StudioMenu = () => {
   const [isEditingPersonal, setIsEditingPersonal] = useState(false)
   const [isEditingAddress, setIsEditingAddress] = useState(false)
   const [isEditingContact, setIsEditingContact] = useState(false)
+  const [copiedPhone, setCopiedPhone] = useState(false)
+  const [copiedEmail, setCopiedEmail] = useState(false)
+  const [expandedSection, setExpandedSection] = useState(null)
 
   const [personalData, setPersonalData] = useState({
     firstName: "",
@@ -59,6 +65,7 @@ const StudioMenu = () => {
   const [contactData, setContactData] = useState({
     email: "",
     phone: "",
+    telephoneNumber: "",
   })
   useEffect(() => {
     if (user) {
@@ -83,6 +90,7 @@ const StudioMenu = () => {
       setContactData({
         email: user.email || "",
         phone: user.phone || "",
+        telephoneNumber: user.telephoneNumber || "",
       });
     }
   }, [user]);
@@ -136,50 +144,80 @@ const StudioMenu = () => {
   // }, [dispatch]);
 
 
-  // Function to get tag color based on message type
-  const getTagColor = (type) => {
+  // Map message type to solid tag color (matches studio bulletin tag style)
+  const getTypeColor = (type) => {
     switch (type) {
-      case 'info': return 'bg-primary/20 text-primary'
-      case 'update': return 'bg-green-500/20 text-green-400'
-      case 'maintenance': return 'bg-yellow-500/20 text-yellow-400'
-      case 'class': return 'bg-purple-500/20 text-purple-400'
-      default: return 'bg-orange-500/20 text-orange-400'
+      case 'info': return '#3b82f6'
+      case 'update': return '#22c55e'
+      case 'maintenance': return '#eab308'
+      case 'class': return '#a855f7'
+      default: return '#f97316'
     }
   }
 
-  // Full screen image viewer component
-  const ImageViewer = () => {
+  // Preview modal — matches ViewBulletinBoard.jsx layout
+  const PostPreviewModal = () => {
     if (!viewingPost) return null
 
     return (
-      <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-        <div className="relative max-w-4xl max-h-[90vh] w-full">
-          <button
-            onClick={() => setViewingPost(null)}
-            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
-            title="Close"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Header — close button */}
+          <div className="flex items-center justify-end p-4 border-b border-border">
+            <button
+              onClick={() => setViewingPost(null)}
+              className="text-content-muted hover:text-content-primary transition-colors p-1 flex-shrink-0"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-          <div className="bg-surface-card rounded-lg overflow-hidden">
-            <img
-              src={viewingPost.image}
-              alt="Full size"
-              className="w-full h-auto max-h-[70vh] object-contain"
-            />
-            <div className="p-4 bg-surface-dark">
-              <h3 className="text-content-primary font-bold text-lg mb-2">{viewingPost.title}</h3>
-              <p className="text-content-secondary text-sm">{viewingPost.content}</p>
-              <div className="mt-3 flex items-center justify-between">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTagColor(viewingPost.type)}`}>
-                  {viewingPost.type}
-                </span>
-                <span className="text-content-muted text-xs">{viewingPost.date}</span>
+          {/* Content */}
+          <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+            {/* Cover Image */}
+            {viewingPost.image && (
+              <div className="relative rounded-xl overflow-hidden border border-border mb-4 bg-surface-dark aspect-video">
+                <img
+                  src={viewingPost.image}
+                  alt="Post cover"
+                  className="w-full h-full object-contain pointer-events-none"
+                  draggable="false"
+                />
               </div>
+            )}
+
+            {/* Title */}
+            <h2 className="text-xl font-semibold text-content-primary mb-3">{viewingPost.title}</h2>
+
+            {/* Tag */}
+            <div className="flex gap-1 flex-wrap mb-4">
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                style={{ backgroundColor: getTypeColor(viewingPost.type) }}
+              >
+                {viewingPost.type}
+              </span>
             </div>
+
+            {/* Content */}
+            <div className="border border-border rounded-xl p-4">
+              <p className="text-content-secondary text-sm leading-normal">{viewingPost.content}</p>
+            </div>
+
+            {/* Date */}
+            <p className="text-xs text-content-faint mt-3">{viewingPost.date}</p>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end p-4 border-t border-border">
+            <button
+              onClick={() => setViewingPost(null)}
+              className="px-5 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
@@ -318,57 +356,48 @@ const StudioMenu = () => {
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
 
+  const handleCopyPhone = async () => {
+    try {
+      await navigator.clipboard.writeText(studio?.phone || "")
+      setCopiedPhone(true)
+      setTimeout(() => setCopiedPhone(false), 2000)
+    } catch (err) { console.error('Copy failed:', err) }
+  }
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(studio?.email || "")
+      setCopiedEmail(true)
+      setTimeout(() => setCopiedEmail(false), 2000)
+    } catch (err) { console.error('Copy failed:', err) }
+  }
+
   // ============================================
   // Reusable sub-components
   // ============================================
 
-  /** Accordion row for member data sections */
-  const AccordionButton = ({ label, sectionKey }) => (
-    <button
-      onClick={() => setExpandedMemberSection(expandedMemberSection === sectionKey ? "" : sectionKey)}
-      className="flex justify-between items-center w-full py-2.5 sm:py-3 px-3 sm:px-4 bg-surface-hover rounded-lg hover:bg-surface-button-hover transition-colors group"
-    >
-      <span className="text-content-secondary group-hover:text-content-primary text-sm sm:text-base">{label}</span>
-      <svg
-        className={`w-4 h-4 text-content-muted group-hover:text-primary transition-all flex-shrink-0 ${expandedMemberSection === sectionKey ? "rotate-90" : ""}`}
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
-  )
-
-  /** Data row: label + value */
-  const DataRow = ({ label, value, className = "" }) => (
-    <div className={`flex flex-col sm:flex-row justify-between gap-1 ${className}`}>
-      <span className="text-content-muted text-xs sm:text-sm">{label}</span>
-      <span className="text-content-primary text-sm sm:text-base">{value}</span>
-    </div>
-  )
-
-  /** Form field */
-  const FormField = ({ label, type = "text", value, onChange }) => (
+  /** Form field — matches EditMemberModal input style */
+  const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
     <div>
-      <label className="block text-content-muted text-xs sm:text-sm mb-1">{label}</label>
+      <label className="text-sm text-content-secondary block mb-2">{label}{required && <span className="text-accent-red ml-1">*</span>}</label>
       <input
         type={type}
         value={value}
         onChange={onChange}
-        className="w-full bg-surface-button text-content-primary rounded-lg p-2 text-sm sm:text-base"
+        placeholder={placeholder}
+        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
       />
     </div>
   )
 
-  /** Form action buttons */
+  /** Form action buttons — matches EditMemberModal footer */
   const FormActions = ({ onSave, onCancel }) => (
-    <div className="flex flex-col sm:flex-row gap-2">
-      <button onClick={onSave} className="flex-1 bg-primary hover:bg-primary-hover cursor-pointer text-white py-2 px-4 rounded-lg transition-colors text-sm sm:text-base">
-        Request Change
-      </button>
-      <button onClick={onCancel} className="flex-1 bg-surface-button hover:bg-surface-button-hover text-content-primary py-2 px-4 rounded-lg transition-colors text-sm sm:text-base">
+    <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
+      <button type="button" onClick={onCancel} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
         Cancel
+      </button>
+      <button type="button" onClick={onSave} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
+        Request Change
       </button>
     </div>
   )
@@ -395,12 +424,12 @@ const StudioMenu = () => {
     { key: "info", label: "Studio Info" },
     { key: "checkin", label: "Check-in" },
     { key: "bulletin", label: "Bulletin Board" },
-    { key: "data", label: "My Account" },
+    { key: "data", label: "Self-Service" },
   ]
 
   return (
-    <div className="min-h-screen rounded-3xl bg-surface-base p-2 md:p-6">
-      <ImageViewer />
+    <div className="min-h-screen rounded-3xl bg-surface-base p-2 md:p-6 select-none">
+      <PostPreviewModal />
 
       {/* ===== TAB NAVIGATION ===== */}
       <div className="flex border-b border-border overflow-x-auto">
@@ -511,17 +540,53 @@ const StudioMenu = () => {
                 </SectionHeading>
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 bg-surface-hover rounded-lg p-3">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                    </svg>
-                    <span className="text-content-primary text-sm break-all">{studio?.phone || "+49 30 1234 5678"}</span>
+                  <div className="flex items-center justify-between bg-surface-hover rounded-lg p-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                      </svg>
+                      <span className="text-content-primary text-sm break-all">{studio?.phone || "+49 30 1234 5678"}</span>
+                    </div>
+                    <button
+                      onClick={handleCopyPhone}
+                      className="p-1.5 hover:bg-surface-button rounded transition-colors flex-shrink-0 ml-2"
+                      title="Copy phone"
+                    >
+                      {copiedPhone ? (
+                        <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5 text-content-muted hover:text-content-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                  <div className="flex items-center gap-3 bg-surface-hover rounded-lg p-3">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                    </svg>
-                    <span className="text-content-primary text-sm break-all">{studio?.email || "info@fitzonestudio.de"}</span>
+                  <div className="flex items-center justify-between bg-surface-hover rounded-lg p-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                      </svg>
+                      <span className="text-content-primary text-sm break-all">{studio?.email || "info@fitzonestudio.de"}</span>
+                    </div>
+                    <button
+                      onClick={handleCopyEmail}
+                      className="p-1.5 hover:bg-surface-button rounded transition-colors flex-shrink-0 ml-2"
+                      title="Copy email"
+                    >
+                      {copiedEmail ? (
+                        <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5 text-content-muted hover:text-content-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                   <div className="flex items-center gap-3 bg-surface-hover rounded-lg p-3">
                     <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
@@ -645,8 +710,8 @@ const StudioMenu = () => {
                   {checkInHistory.map((entry, index) => (
                     <div key={index} className="flex items-center justify-between bg-surface-hover rounded-lg p-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
@@ -655,7 +720,7 @@ const StudioMenu = () => {
                           <p className="text-content-muted text-xs">{entry.time}</p>
                         </div>
                       </div>
-                      <span className="text-green-400 text-xs bg-green-500/10 px-2 py-1 rounded">Success</span>
+                      <span className="text-white text-xs bg-primary px-2 py-1 rounded">Success</span>
                     </div>
                   ))}
                 </div>
@@ -677,7 +742,7 @@ const StudioMenu = () => {
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className="bg-surface-hover rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border p-4 md:p-6 relative flex flex-col h-full"
+                    className="bg-surface-hover rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border p-4 md:p-6 relative flex flex-col h-full select-none"
                   >
                     {/* Cover Image — full bleed, matches studio card */}
                     {message.image && (
@@ -688,26 +753,20 @@ const StudioMenu = () => {
                           className="w-full h-full object-contain pointer-events-none"
                           draggable="false"
                         />
-                        <button
-                          onClick={() => setViewingPost(message)}
-                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded transition-colors"
-                          title="View full size"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5h-4m4 0v-4m0 4l-5-5" />
-                          </svg>
-                        </button>
                       </div>
                     )}
 
                     {/* Title */}
-                    <div className="flex justify-between items-start mb-2 gap-2">
+                    <div className="flex justify-between items-start mb-2">
                       <h3 className="text-base md:text-lg font-semibold text-content-primary line-clamp-2 leading-snug break-words">{message.title}</h3>
                     </div>
 
-                    {/* Tag */}
+                    {/* Tag — solid color + white text, like studio */}
                     <div className="flex gap-1 flex-wrap mb-2">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getTagColor(message.type)}`}>
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                        style={{ backgroundColor: getTypeColor(message.type) }}
+                      >
                         {message.type}
                       </span>
                     </div>
@@ -717,10 +776,22 @@ const StudioMenu = () => {
                       {message.content}
                     </p>
 
-                    {/* Date — pushed to bottom */}
-                    <p className="text-[11px] text-content-faint mt-auto pt-3">
-                      {message.date}
-                    </p>
+                    {/* Date + Eye icon — same line */}
+                    <div className="flex items-center justify-between mt-auto pt-3">
+                      <p className="text-[11px] text-content-faint">
+                        {message.date}
+                      </p>
+                      <button
+                        onClick={() => setViewingPost(message)}
+                        className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
+                        title="Preview Post"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -739,7 +810,7 @@ const StudioMenu = () => {
         )}
 
         {/* ============================================================
-            TAB: MY ACCOUNT
+            TAB: Self-Service
             Summary → 2-col (Contract | Membership) → Personal Data
         ============================================================ */}
         {activeSection === "data" && (
@@ -747,30 +818,17 @@ const StudioMenu = () => {
 
             {/* Member summary strip */}
             <Card className="!py-3 !px-4 sm:!px-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="text-content-muted text-xs">Member Number</p>
-                    <p className="text-content-primary font-mono text-sm font-medium">{user?.memberNumber}</p>
-                  </div>
-                  <div className="w-px h-8 bg-border hidden sm:block" />
-                  <div className="hidden sm:block">
-                    <p className="text-content-muted text-xs">Member Since</p>
-                    <p className="text-content-primary text-sm font-medium">
-                      {new Date(user?.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                    </p>
-                  </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div>
+                  <p className="text-content-muted text-xs">Member Number</p>
+                  <p className="text-content-primary font-mono text-sm font-medium">{user?.memberNumber}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowPaymentMethodPopup(true)}
-                    className="text-sm text-primary hover:text-primary-hover transition-colors flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
-                    </svg>
-                    Payment
-                  </button>
+                <div className="w-px h-8 bg-border" />
+                <div>
+                  <p className="text-content-muted text-xs">Member Since</p>
+                  <p className="text-content-primary text-sm font-medium">
+                    {new Date(user?.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -825,17 +883,31 @@ const StudioMenu = () => {
                   </div>
                 </div>
 
-                <button className="flex items-center text-primary hover:text-primary-hover transition-colors text-xs mt-3">
-                  <svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                  </svg>
-                  View Contract Document
-                </button>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                  <button className="flex items-center text-primary hover:text-primary-hover transition-colors text-xs">
+                    <svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                    </svg>
+                    View Contract
+                  </button>
+                  <button
+                    onClick={() => setShowPaymentMethodPopup(true)}
+                    className="flex items-center text-primary hover:text-primary-hover transition-colors text-xs"
+                  >
+                    <svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
+                    </svg>
+                    Payment Method
+                  </button>
+                </div>
 
                 <button
                   onClick={() => setShowCancelMembershipPopup(true)}
-                  className="w-full mt-4 bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 px-4 rounded-lg transition-colors border border-red-800/30 text-sm"
+                  className="text-content-faint hover:text-red-400 text-xs transition-colors mt-3 flex items-center gap-1"
                 >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
                   Cancel Membership
                 </button>
               </Card>
@@ -884,7 +956,7 @@ const StudioMenu = () => {
               </Card>
             </div>
 
-            {/* Personal Data */}
+            {/* Personal Information */}
             <Card>
               <SectionHeading
                 className="mb-4"
@@ -897,100 +969,133 @@ const StudioMenu = () => {
                 Personal Information
               </SectionHeading>
 
-              <div className="space-y-2">
-                {/* Personal Data accordion */}
-                <AccordionButton label="Personal Data" sectionKey="personal" />
-                {expandedMemberSection === "personal" && (
-                  <div className="bg-surface-hover/60 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
-                    {!isEditingPersonal ? (
-                      <>
-                        <DataRow label="First Name" value={user?.firstName} />
-                        <DataRow label="Last Name" value={user?.lastName} />
-                        <DataRow label="Date of Birth" value={new Date(user?.dateOfBirth).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} />
-                        <DataRow label="Gender" value={user?.gender} />
-                        <button
-                          onClick={() => setIsEditingPersonal(true)}
-                          className="w-full mt-2 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg transition-colors text-sm"
-                        >
-                          Edit Personal Data
-                        </button>
-                      </>
-                    ) : (
-                      <div className="space-y-2 sm:space-y-3">
-                        <FormField label="First Name" value={personalData.firstName} onChange={(e) => handlePersonalDataChange("firstName", e.target.value)} />
-                        <FormField label="Last Name" value={personalData.lastName} onChange={(e) => handlePersonalDataChange("lastName", e.target.value)} />
-                        <FormField label="Date of Birth" type="date" value={personalData.dateOfBirth} onChange={(e) => handlePersonalDataChange("dateOfBirth", e.target.value)} />
-                        <div>
-                          <label className="block text-content-muted text-xs sm:text-sm mb-1">Gender</label>
-                          <select
-                            value={personalData.gender}
-                            onChange={(e) => handlePersonalDataChange("gender", e.target.value)}
-                            className="w-full bg-surface-button text-content-primary rounded-lg p-2 text-sm sm:text-base"
-                          >
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <FormActions onSave={handlePersonalDataSubmit} onCancel={() => setIsEditingPersonal(false)} />
+              <div className="space-y-1">
+                {/* Personal Data — collapsible */}
+                <button
+                  onClick={() => setExpandedSection(expandedSection === "personal" ? null : "personal")}
+                  className="flex justify-between items-center w-full py-3 px-4 bg-surface-hover rounded-xl hover:bg-surface-button-hover transition-colors group"
+                >
+                  <div className="flex items-center">
+                    <span className="text-content-primary text-sm font-medium">Personal Data</span>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-content-muted transition-transform ${expandedSection === "personal" ? "rotate-90" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                {expandedSection === "personal" && (
+                  <div className="px-4 pb-3 pt-2 space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">First Name</p>
+                        <p className="text-content-primary text-sm">{user?.firstName || "—"}</p>
                       </div>
-                    )}
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">Last Name</p>
+                        <p className="text-content-primary text-sm">{user?.lastName || "—"}</p>
+                      </div>
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">Date of Birth</p>
+                        <p className="text-content-primary text-sm">
+                          {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}
+                        </p>
+                      </div>
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">Gender</p>
+                        <p className="text-content-primary text-sm">{user?.gender || "—"}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsEditingPersonal(true)}
+                      className="text-xs text-primary hover:text-primary-hover transition-colors flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Edit Personal Data
+                    </button>
                   </div>
                 )}
 
-                {/* Address accordion */}
-                <AccordionButton label="Address" sectionKey="address" />
-                {expandedMemberSection === "address" && (
-                  <div className="bg-surface-hover/60 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
-                    {!isEditingAddress ? (
-                      <>
-                        <DataRow label="Street" value={user?.street} />
-                        <DataRow label="House Number" value={user?.houseNumber} />
-                        <DataRow label="Zip Code" value={user?.zipCode} />
-                        <DataRow label="City" value={user?.city} />
-                        <DataRow label="Country" value={user?.country} />
-                        <button
-                          onClick={() => setIsEditingAddress(true)}
-                          className="w-full mt-2 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg transition-colors text-sm"
-                        >
-                          Edit Address
-                        </button>
-                      </>
-                    ) : (
-                      <div className="space-y-2 sm:space-y-3">
-                        <FormField label="Street" value={addressData.street} onChange={(e) => handleAddressDataChange("street", e.target.value)} />
-                        <FormField label="House Number" value={addressData.houseNumber} onChange={(e) => handleAddressDataChange("houseNumber", e.target.value)} />
-                        <FormField label="Zip Code" value={addressData.zipCode} onChange={(e) => handleAddressDataChange("zipCode", e.target.value)} />
-                        <FormField label="City" value={addressData.city} onChange={(e) => handleAddressDataChange("city", e.target.value)} />
-                        <FormField label="Country" value={addressData.country} onChange={(e) => handleAddressDataChange("country", e.target.value)} />
-                        <FormActions onSave={handleAddressDataSubmit} onCancel={() => setIsEditingAddress(false)} />
-                      </div>
-                    )}
+                {/* Address — collapsible */}
+                <button
+                  onClick={() => setExpandedSection(expandedSection === "address" ? null : "address")}
+                  className="flex justify-between items-center w-full py-3 px-4 bg-surface-hover rounded-xl hover:bg-surface-button-hover transition-colors group"
+                >
+                  <div className="flex items-center">
+                    <span className="text-content-primary text-sm font-medium">Address</span>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-content-muted transition-transform ${expandedSection === "address" ? "rotate-90" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                {expandedSection === "address" && (
+                  <div className="px-4 pb-3 pt-2 space-y-3">
+                    <div className="bg-surface-hover rounded-lg p-2.5">
+                      <p className="text-content-primary text-sm">
+                        {user?.street && user?.houseNumber ? `${user.street} ${user.houseNumber}` : user?.street || "—"}
+                      </p>
+                      <p className="text-content-muted text-xs mt-0.5">
+                        {user?.zipCode || ""} {user?.city || ""}{user?.country ? `, ${user.country}` : ""}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setIsEditingAddress(true)}
+                      className="text-xs text-primary hover:text-primary-hover transition-colors flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Edit Address
+                    </button>
                   </div>
                 )}
 
-                {/* Contact accordion */}
-                <AccordionButton label="Contact Details" sectionKey="contact" />
-                {expandedMemberSection === "contact" && (
-                  <div className="bg-surface-hover/60 rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
-                    {!isEditingContact ? (
-                      <>
-                        <DataRow label="Email" value={user?.email} className="break-all" />
-                        <DataRow label="Phone" value={user?.phone} />
-                        <button
-                          onClick={() => setIsEditingContact(true)}
-                          className="w-full mt-2 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg transition-colors text-sm"
-                        >
-                          Edit Contact Details
-                        </button>
-                      </>
-                    ) : (
-                      <div className="space-y-2 sm:space-y-3">
-                        <FormField label="Email" type="email" value={contactData.email} onChange={(e) => handleContactDataChange("email", e.target.value)} />
-                        <FormField label="Phone" type="tel" value={contactData.phone} onChange={(e) => handleContactDataChange("phone", e.target.value)} />
-                        <FormActions onSave={handleContactDataSubmit} onCancel={() => setIsEditingContact(false)} />
+                {/* Contact — collapsible */}
+                <button
+                  onClick={() => setExpandedSection(expandedSection === "contact" ? null : "contact")}
+                  className="flex justify-between items-center w-full py-3 px-4 bg-surface-hover rounded-xl hover:bg-surface-button-hover transition-colors group"
+                >
+                  <div className="flex items-center">
+                    <span className="text-content-primary text-sm font-medium">Contact Details</span>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-content-muted transition-transform ${expandedSection === "contact" ? "rotate-90" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                {expandedSection === "contact" && (
+                  <div className="px-4 pb-3 pt-2 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">Email</p>
+                        <p className="text-content-primary text-sm break-all">{user?.email || "—"}</p>
                       </div>
-                    )}
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">Mobile Number</p>
+                        <p className="text-content-primary text-sm">{user?.phone || "—"}</p>
+                      </div>
+                      <div className="bg-surface-hover rounded-lg p-2.5">
+                        <p className="text-content-muted text-[11px]">Telephone Number</p>
+                        <p className="text-content-primary text-sm">{user?.telephoneNumber || "—"}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsEditingContact(true)}
+                      className="text-xs text-primary hover:text-primary-hover transition-colors flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Edit Contact Details
+                    </button>
                   </div>
                 )}
               </div>
@@ -999,7 +1104,7 @@ const StudioMenu = () => {
         )}
       </div>
 
-      {/* ===== POPUPS (unchanged) ===== */}
+      {/* ===== POPUPS ===== */}
       {showImprintPopup && <ImprintPopup onClose={() => setShowImprintPopup(false)} studio={studio} />}
       {showTermsPopup && <TermsPopup onClose={() => setShowTermsPopup(false)} studio={studio} />}
       {showPrivacyPopup && <PrivacyPopup onClose={() => setShowPrivacyPopup(false)} studio={studio} />}
@@ -1007,6 +1112,141 @@ const StudioMenu = () => {
       <PaymentMethodPopup show={showPaymentMethodPopup} onClose={() => setShowPaymentMethodPopup(false)} />
       <CancelMembershipPopup show={showCancelMembershipPopup} onClose={() => setShowCancelMembershipPopup(false)} />
       <IdlePeriodFormPopup show={showIdlePeriodForm} onClose={() => setShowIdlePeriodForm(false)} />
+
+      {/* Edit Personal Data Popup — matches EditMemberModal */}
+      {isEditingPersonal && (
+        <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl text-content-primary font-bold">Edit Personal Data</h2>
+              <button onClick={() => setIsEditingPersonal(false)} className="text-content-muted hover:text-content-primary transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="First Name" value={personalData.firstName} onChange={(e) => handlePersonalDataChange("firstName", e.target.value)} required />
+                <FormField label="Last Name" value={personalData.lastName} onChange={(e) => handlePersonalDataChange("lastName", e.target.value)} required />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">Gender</label>
+                  <CustomSelect
+                    name="gender"
+                    value={personalData.gender || ""}
+                    onChange={(e) => handlePersonalDataChange("gender", e.target.value)}
+                    placeholder="Select gender"
+                    options={[
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                      { value: "Other", label: "Other" },
+                    ]}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-content-secondary block mb-2">Birthday</label>
+                  <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                    <span className={personalData.dateOfBirth ? "text-content-primary" : "text-content-faint"}>
+                      {personalData.dateOfBirth
+                        ? (() => { const [y,m,d] = (personalData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })()
+                        : "Select date"}
+                    </span>
+                    <DatePickerField
+                      value={personalData.dateOfBirth || ""}
+                      onChange={(val) => handlePersonalDataChange("dateOfBirth", val)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <FormActions onSave={handlePersonalDataSubmit} onCancel={() => setIsEditingPersonal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Address Popup — matches EditMemberModal */}
+      {isEditingAddress && (
+        <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl text-content-primary font-bold">Edit Address</h2>
+              <button onClick={() => setIsEditingAddress(false)} className="text-content-muted hover:text-content-primary transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Street" value={addressData.street} onChange={(e) => handleAddressDataChange("street", e.target.value)} placeholder="Main Street" />
+                <FormField label="House Number" value={addressData.houseNumber} onChange={(e) => handleAddressDataChange("houseNumber", e.target.value)} placeholder="123" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="ZIP Code" value={addressData.zipCode} onChange={(e) => handleAddressDataChange("zipCode", e.target.value)} placeholder="12345" />
+                <FormField label="City" value={addressData.city} onChange={(e) => handleAddressDataChange("city", e.target.value)} placeholder="Berlin" />
+              </div>
+
+              <div>
+                <label className="text-sm text-content-secondary block mb-2">Country</label>
+                <CustomSelect
+                  name="country"
+                  value={addressData.country}
+                  onChange={(e) => handleAddressDataChange("country", e.target.value)}
+                  placeholder={countriesLoading ? "Loading countries..." : "Select a country"}
+                  searchable
+                  options={countries.map((country) => ({
+                    value: country.name,
+                    label: country.name,
+                  }))}
+                  disabled={countriesLoading}
+                />
+              </div>
+            </div>
+
+            <FormActions onSave={handleAddressDataSubmit} onCancel={() => setIsEditingAddress(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Contact Popup — matches EditMemberModal */}
+      {isEditingContact && (
+        <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl text-content-primary font-bold">Edit Contact Details</h2>
+              <button onClick={() => setIsEditingContact(false)} className="text-content-muted hover:text-content-primary transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
+
+              <FormField label="Email" type="email" value={contactData.email} onChange={(e) => handleContactDataChange("email", e.target.value)} required />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Mobile Number" type="tel" value={contactData.phone} onChange={(e) => handleContactDataChange("phone", e.target.value)} placeholder="+49 123 456789" />
+                <FormField label="Telephone Number" type="tel" value={contactData.telephoneNumber} onChange={(e) => handleContactDataChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
+              </div>
+            </div>
+
+            <FormActions onSave={handleContactDataSubmit} onCancel={() => setIsEditingContact(false)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

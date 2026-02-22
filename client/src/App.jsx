@@ -63,7 +63,7 @@ import MemberDashboardLayout from "./layouts/member-view/member-view-layout";
 import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
-import MemberSettings from './dashboard-pages/member-view/configuration'
+import MemberSettings from './dashboard-pages/member-view/settings'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
 import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
