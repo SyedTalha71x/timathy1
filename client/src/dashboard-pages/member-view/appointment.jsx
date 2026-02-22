@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Calendar, Clock, ChevronLeft, X, Filter, Check } from "lucide-react"
-import { IoIosInformation } from "react-icons/io"
+import { Calendar, Clock, ChevronLeft, ChevronRight, X, Filter, Check, Info } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import BookingModal from "../../components/member-panel-components/appointments-components/BookingModal"
 import RequestModal from "../../components/member-panel-components/appointments-components/RequestModal"
@@ -42,14 +41,13 @@ const Appointments = () => {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [appointmentToCancel, setAppointmentToCancel] = useState(null)
   const [appointmentView, setAppointmentView] = useState("upcoming")
-  const [showInfoModal, setShowInfoModal] = useState(false)
-  const [infoModalData, setInfoModalData] = useState(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [availabilityFilter, setAvailabilityFilter] = useState("available")
   const [showRequestModal, setShowRequestModal] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const filterRef = useRef(null)
+  const daySliderRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -62,6 +60,8 @@ const Appointments = () => {
   useEffect(() => { dispatch(fetchMyAppointments()) }, [dispatch])
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   const categories = ["All courses", "Health Check", "Personal Training", "Wellness", "Recovery", "Mindfulness", "Group Class"]
 
   // Date value for DatePickerField (YYYY-MM-DD)
@@ -74,6 +74,36 @@ const Appointments = () => {
     setSelectedYear(y)
     setSelectedMonth(m - 1)
     setSelectedDate(d)
+  }
+
+  // Generate 30 days starting from today for the day slider
+  const generateSliderDays = () => {
+    const days = []
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today)
+      d.setDate(today.getDate() + i)
+      days.push({
+        date: d.getDate(),
+        month: d.getMonth(),
+        year: d.getFullYear(),
+        dayName: dayNames[d.getDay()],
+        monthShort: monthsShort[d.getMonth()],
+        isToday: i === 0,
+        dateStr: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      })
+    }
+    return days
+  }
+
+  const sliderDays = generateSliderDays()
+
+  const scrollSlider = (direction) => {
+    if (daySliderRef.current) {
+      const scrollAmount = direction === "left" ? -200 : 200
+      daySliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" })
+    }
   }
 
   const groupedTimeSlots = timeSlots.reduce((acc, slot) => {
@@ -91,6 +121,9 @@ const Appointments = () => {
     if (filtered.length > 0) acc[period] = filtered
     return acc
   }, {})
+
+  // Flat list of all filtered time slots (no grouping by period needed visually)
+  const allFilteredSlots = Object.values(filteredTimeSlots).flat()
 
   const filteredServices = selectedCategories.includes("All courses")
     ? services
@@ -123,7 +156,6 @@ const Appointments = () => {
   }
 
   const handleCancelRequest = (appointment) => { setAppointmentToCancel(appointment); setShowCancelModal(true) }
-  const handleInfoClick = (service, event) => { event.stopPropagation(); setInfoModalData(service); setShowInfoModal(true) }
 
   const handleTimeSlotClick = (slotId) => {
     const slot = timeSlots.find((s) => s.id === slotId)
@@ -173,34 +205,6 @@ const Appointments = () => {
   // ============================================
   return (
     <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
-
-      {/* Info Modal */}
-      {showInfoModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-content-primary pr-4">{infoModalData?.name}</h3>
-              <button onClick={() => setShowInfoModal(false)} className="text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-content-secondary text-sm mb-4">{infoModalData?.description}</p>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Duration</span>
-                <span className="text-content-primary font-medium">{infoModalData?.duration}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Category</span>
-                <span className="text-content-primary font-medium">{infoModalData?.category}</span>
-              </div>
-            </div>
-            <button onClick={() => setShowInfoModal(false)} className="w-full mt-4 px-4 py-2.5 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Header */}
       <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
@@ -312,14 +316,18 @@ const Appointments = () => {
                         {service.category}
                       </div>
                     )}
-                    <div className="absolute top-3 right-3">
-                      <button
-                        onClick={(e) => handleInfoClick(service, e)}
-                        className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors"
-                      >
-                        <IoIosInformation size={20} className="text-white" />
-                      </button>
-                    </div>
+                    {/* Info button with hover tooltip — matches configuration */}
+                    {service.description && (
+                      <div className="absolute top-3 right-3 group/info">
+                        <button className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors">
+                          <Info className="w-4 h-4 text-white" />
+                        </button>
+                        <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-hover border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
+                          <p className="text-content-secondary text-sm">{service.description}</p>
+                          <div className="absolute -top-2 right-3 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45" />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -343,7 +351,6 @@ const Appointments = () => {
         {/* ============================================ */}
         {showMyAppointments && (
           <div className="space-y-6">
-            {/* Tabs */}
             <div className="flex gap-2 overflow-x-auto">
               {[
                 { key: "upcoming", label: "Upcoming" },
@@ -364,7 +371,6 @@ const Appointments = () => {
               ))}
             </div>
 
-            {/* Appointment List */}
             {filteredAppointments.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
@@ -418,125 +424,148 @@ const Appointments = () => {
         )}
 
         {/* ============================================ */}
-        {/* BOOKING VIEW — 2-col desktop                */}
+        {/* BOOKING VIEW                                */}
         {/* ============================================ */}
         {showBooking && (
-          <div className="space-y-6">
-            {/* Service Info */}
-            <SettingsCard className="!p-0 overflow-hidden">
-              <div className="relative">
-                <img
-                  src={selectedService?.image?.url || "/placeholder.svg"}
-                  alt={selectedService?.name}
-                  className="w-full h-32 sm:h-40 lg:h-48 object-cover"
-                  draggable="false"
-                  onError={(e) => { e.target.src = `https://via.placeholder.com/400x200/4f46e5/ffffff?text=${encodeURIComponent(selectedService?.name || "Service")}` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                {selectedService?.category && (
-                  <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                    {selectedService.category}
-                  </div>
-                )}
-                <div className="absolute top-3 right-3">
-                  <button onClick={(e) => handleInfoClick(selectedService, e)} className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors">
-                    <IoIosInformation size={20} className="text-white" />
-                  </button>
+          <div className="space-y-6 max-w-3xl">
+            {/* Service Info — compact inline */}
+            <SettingsCard className="!p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden flex-shrink-0 bg-surface-card">
+                  <img
+                    src={selectedService?.image?.url || "/placeholder.svg"}
+                    alt={selectedService?.name}
+                    className="w-full h-full object-cover"
+                    draggable="false"
+                    onError={(e) => { e.target.src = `https://via.placeholder.com/80x80/4f46e5/ffffff?text=${encodeURIComponent(selectedService?.name?.[0] || "S")}` }}
+                  />
                 </div>
-              </div>
-              <div className="p-4">
-                <h2 className="text-content-primary font-medium mb-1">{selectedService?.name}</h2>
-                <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {selectedService?.duration}
-                  </span>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-content-primary font-medium text-sm sm:text-base truncate">{selectedService?.name}</h2>
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint mt-1">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {selectedService?.duration}
+                    </span>
+                    {selectedService?.category && (
+                      <span className="flex items-center gap-1">
+                        {selectedService.category}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </SettingsCard>
 
-            {/* Calendar + Time Slots — 2-col on desktop */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Date Picker — uses shared DatePickerField */}
-              <SettingsCard>
-                <h3 className="text-sm font-medium text-content-secondary mb-3">Select Date</h3>
-                <div className="flex items-center gap-3 bg-surface-card rounded-xl px-4 py-3 border border-border">
-                  <Calendar className="w-5 h-5 text-content-muted flex-shrink-0" />
-                  <span className={`flex-1 text-sm ${dateValue ? "text-content-primary font-medium" : "text-content-faint"}`}>
-                    {dateValue
-                      ? `${months[selectedMonth]} ${selectedDate}, ${selectedYear}`
-                      : "Select a date"}
-                  </span>
+            {/* Day Slider — horizontal scrollable days + month/calendar picker */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-1.5 text-sm font-medium text-content-primary hover:bg-surface-button px-2 py-1 rounded-lg transition-colors">
+                    <span>{months[selectedMonth]} {selectedYear}</span>
+                  </button>
                   <DatePickerField
                     value={dateValue}
                     onChange={handleDateChange}
                     minDate={todayStr}
-                    iconSize={18}
+                    iconSize={16}
                   />
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-xs text-content-faint">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Select a date, then choose a time slot</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => scrollSlider("left")} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => scrollSlider("right")} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
-              </SettingsCard>
+              </div>
 
-              {/* Time Slots */}
-              <div className="space-y-4">
-                {/* Filter */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-content-secondary">Filter</span>
-                  <div className="flex gap-2 overflow-x-auto">
-                    {[
-                      { key: "all", label: "All" },
-                      { key: "available", label: "Available" },
-                      { key: "not-available", label: "Not Available" },
-                    ].map((f) => (
-                      <button
-                        key={f.key}
-                        onClick={() => setAvailabilityFilter(f.key)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors whitespace-nowrap ${
-                          availabilityFilter === f.key
-                            ? "bg-primary text-white"
-                            : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <div
+                ref={daySliderRef}
+                className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {sliderDays.map((day) => {
+                  const isSelected = day.date === selectedDate && day.month === selectedMonth && day.year === selectedYear
+                  return (
+                    <button
+                      key={day.dateStr}
+                      onClick={() => { setSelectedDate(day.date); setSelectedMonth(day.month); setSelectedYear(day.year) }}
+                      className={`flex flex-col items-center min-w-[3.5rem] px-3 py-2.5 rounded-xl transition-colors flex-shrink-0 ${
+                        isSelected
+                          ? "bg-primary text-white"
+                          : "bg-surface-hover text-content-primary hover:bg-surface-button border border-border"
+                      }`}
+                    >
+                      <span className={`text-[10px] uppercase font-medium ${isSelected ? "text-white/70" : "text-content-faint"}`}>
+                        {day.dayName}
+                      </span>
+                      <span className="text-lg font-semibold leading-tight">{day.date}</span>
+                      <span className={`text-[10px] ${isSelected ? "text-white/70" : "text-content-faint"}`}>
+                        {day.monthShort}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
-                {/* Slots grouped by period */}
-                {Object.entries(filteredTimeSlots).map(([period, slots]) => (
-                  <SettingsCard key={period}>
-                    <h3 className="text-sm font-medium text-content-primary mb-3 capitalize flex items-center gap-2">
-                      <div className={`w-2.5 h-2.5 rounded-full ${
-                        period === "morning" ? "bg-yellow-400" : period === "afternoon" ? "bg-orange-400" : "bg-purple-400"
-                      }`} />
-                      {period}
-                    </h3>
-                    <div className="space-y-2">
-                      {slots.map((slot) => (
-                        <button
-                          key={slot.id}
-                          onClick={() => handleTimeSlotClick(slot.id)}
-                          className={`w-full p-3 rounded-xl text-left transition-colors flex justify-between items-center gap-2 ${
-                            !slot.available
-                              ? "bg-surface-card text-content-muted border border-red-500/20 hover:bg-surface-button"
-                              : "bg-surface-card text-content-primary border border-border hover:bg-surface-button"
-                          }`}
-                        >
-                          <span className="text-sm">{slot.start} - {slot.end}</span>
-                          {!slot.available ? (
-                            <span className="text-[11px] bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full font-medium">Request</span>
-                          ) : (
-                            <span className="text-[11px] bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full font-medium">Available</span>
-                          )}
-                        </button>
-                      ))}
+            {/* Filter + Time Slots */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-sm font-medium text-content-secondary whitespace-nowrap">Filter</span>
+                {[
+                  { key: "all", label: "All" },
+                  { key: "available", label: "Available" },
+                  { key: "not-available", label: "Not Available" },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setAvailabilityFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors whitespace-nowrap ${
+                      availabilityFilter === f.key
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Time slots — flat list, no period colors */}
+              <div className="space-y-2">
+                {allFilteredSlots.length === 0 ? (
+                  <SettingsCard>
+                    <div className="text-center py-8 text-content-muted">
+                      <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">No time slots match your filter</p>
                     </div>
                   </SettingsCard>
-                ))}
+                ) : (
+                  allFilteredSlots.map((slot) => (
+                    <button
+                      key={slot.id}
+                      onClick={() => handleTimeSlotClick(slot.id)}
+                      className={`w-full p-3.5 rounded-xl text-left transition-colors flex justify-between items-center gap-2 ${
+                        !slot.available
+                          ? "bg-surface-hover text-content-muted border border-red-500/20 hover:bg-surface-button"
+                          : "bg-surface-hover text-content-primary border border-border hover:bg-surface-button"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-4 h-4 text-content-faint flex-shrink-0" />
+                        <span className="text-sm font-medium">{slot.start} - {slot.end}</span>
+                      </div>
+                      {!slot.available ? (
+                        <span className="text-[11px] bg-red-500/15 text-red-400 px-2.5 py-0.5 rounded-full font-medium">Request</span>
+                      ) : (
+                        <span className="text-[11px] bg-green-500/15 text-green-400 px-2.5 py-0.5 rounded-full font-medium">Available</span>
+                      )}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </div>
