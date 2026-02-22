@@ -49,6 +49,7 @@ const Appointments = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const filterRef = useRef(null)
+  const daySliderRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -59,6 +60,20 @@ const Appointments = () => {
   }, [])
 
   useEffect(() => { dispatch(fetchMyAppointments()) }, [dispatch])
+
+  // Desktop: convert vertical scroll to horizontal on the day slider
+  useEffect(() => {
+    const el = daySliderRef.current
+    if (!el) return
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault()
+        el.scrollLeft += e.deltaY
+      }
+    }
+    el.addEventListener("wheel", onWheel, { passive: false })
+    return () => el.removeEventListener("wheel", onWheel)
+  })
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -75,6 +90,13 @@ const Appointments = () => {
     setSelectedYear(y)
     setSelectedMonth(m - 1)
     setSelectedDate(d)
+    // Scroll slider to the selected day
+    requestAnimationFrame(() => {
+      const el = daySliderRef.current
+      if (!el) return
+      const btn = el.querySelector(`[data-date="${dateStr}"]`)
+      if (btn) btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
+    })
   }
 
   // Generate 30 days starting from today for the day slider
@@ -165,7 +187,6 @@ const Appointments = () => {
       .unwrap()
       .then(() => {
         setShowBooking(false); setShowBookingModal(false); setSelectedTimeSlot(null)
-        alert("Appointment Booked Successfully")
         dispatch(fetchMyAppointments()); navigate("/member-view/studio-menu")
       })
       .catch((err) => alert(err))
@@ -494,6 +515,7 @@ const Appointments = () => {
               </div>
 
               <div
+                ref={daySliderRef}
                 className="flex gap-2 overflow-x-auto pb-2"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
               >
@@ -502,6 +524,7 @@ const Appointments = () => {
                   return (
                     <button
                       key={day.dateStr}
+                      data-date={day.dateStr}
                       onClick={() => { setSelectedDate(day.date); setSelectedMonth(day.month); setSelectedYear(day.year) }}
                       className={`flex flex-col items-center min-w-[3.5rem] px-3 py-2.5 rounded-xl transition-colors flex-shrink-0 ${
                         isSelected

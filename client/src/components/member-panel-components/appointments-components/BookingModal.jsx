@@ -29,16 +29,16 @@ const BookingModal = ({
             </p>
           </div>
 
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-            <h4 className="text-blue-400 font-medium mb-2 text-sm">Contingent Information</h4>
+          <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
+            <h4 className="text-primary font-medium mb-2 text-sm">Contingent Information</h4>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-content-muted">Current Contingent:</span>
-                <span className="text-content-primary">{selectedService?.contingentUsage} sessions</span>
+                <span className="text-content-primary">{selectedService?.contingentUsage}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-content-muted">After Booking:</span>
-                <span className="text-content-primary">{selectedService?.contingentUsage - 1} sessions</span>
+                <span className="text-content-primary">{selectedService?.contingentUsage - 1}</span>
               </div>
             </div>
           </div>
