@@ -64,7 +64,6 @@ import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/settings'
-import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
 import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
 import MemberNutritionTracker from './dashboard-pages/member-view/nutrition-tracker'
@@ -188,7 +187,6 @@ function App() {
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />
           <Route path="settings" element={<MemberSettings />} />
-          <Route path="edit-profile" element={<MemberViewProfile />} />
           <Route path="training" element={<MemberTraining />} />
           <Route path="nutrition" element={<MemberNutritionTracker />} />
 
