@@ -15,6 +15,8 @@ const AuthRoutes = require('./AuthRoutes');
 const FoodRoutes = require('./nutrition/FoodRoutes')
 const UserGoalRoutes = require('./nutrition/UserGoalRoutes')
 const ReminderRoutes = require('./ReminderRoutes')
+const NutritionNotificationRoutes = require('./nutrition/NutritionNotificationRoutes')
+
 
 const router = express.Router();
 
@@ -54,7 +56,7 @@ router.use('/studio', StudioRoutes)
 router.use('/service', ServiceRoutes)
 router.use('/training', TrainingVideoUploadRoutes)
 router.use('/plan', TrainingPlanRoutes)
-
+router.use('/nutrition/remider', NutritionNotificationRoutes)
 
 
 router.use('/reminder', ReminderRoutes)
