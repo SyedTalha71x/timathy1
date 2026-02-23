@@ -6,6 +6,6 @@ const { verifyAccessToken } = require("../middleware/verifyToken"); // JWT middl
 // ensures req.user is set
 
 router.get("/myReminder", verifyAccessToken, getMemberReminders);
-router.put("/myReminder/:appointmentId", verifyAccessToken, updateMemberReminder);
+router.put("/:appointmentId", verifyAccessToken, updateMemberReminder);
 
 module.exports = router;
