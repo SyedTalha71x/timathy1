@@ -126,7 +126,7 @@ const loginMember = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const member = await MemberModel.findOne({ email }).select('+password')
+    const member = await UserModel.findOne({ email }).select('+password')
     if (!member) throw new NotFoundError('Invalid email');
 
 
@@ -145,15 +145,29 @@ const loginMember = async (req, res, next) => {
     });
 
     member.refreshToken = RefreshToken;
+    // to save last login
+    member.loginHistory.push({
+      date: new Date(),
+      ip: req.ip,
+      device: req.headers["user-agent"]
+    });
+
+    // Optional: keep only last 5 or 10 logins
+    if (member.loginHistory.length > 10) {
+      member.loginHistory.shift();
+    }
+
     await member.save();
     const memberData = member.toObject();
     delete memberData.password;
     delete memberData.refreshToken;
 
+
+
     res.cookie("token", AccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // true if on https
-      //sameSite: "lax", 
+      //sameSite: "lax",
       sameSite: "None",
       maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
@@ -227,7 +241,7 @@ const updateUserById = async (req, res, next) => {
 
     res.status(200).json({
       message: "Successfully Updated",
-      user:user,
+      user: user,
     });
   } catch (err) {
     next(err);
