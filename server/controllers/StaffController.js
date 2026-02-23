@@ -11,7 +11,7 @@ const {
 } = require('../middleware/error/httpErrors');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload')
 
-const { Readable } = require('stream');
+// const { Readable } = require('stream');
 const StudioModel = require('../models/StudioModel');
 
 
@@ -93,7 +93,7 @@ const createStaff = async (req, res, next) => {
     res.cookie("token", AccessToken, { httpOnly: true, sameSite: "strict", secure: true });
     res.cookie("refreshToken", RefreshToken, { httpOnly: true, sameSite: "strict", secure: true });
 
-  
+
 
     res.status(200).json({
       message: "Successfully Created",
@@ -143,10 +143,22 @@ const loginStaff = async (req, res, next) => {
 
     staff.refreshToken = RefreshToken;
     await staff.save();
+    res.cookie("token", AccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax", 
+      sameSite: "None",
 
-    res.cookie("token", AccessToken, { httpOnly: true, sameSite: "strict", secure: true });
-    res.cookie("refreshToken", RefreshToken, { httpOnly: true, sameSite: "strict", secure: true });
+      maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
+    });
 
+    res.cookie("refreshToken", RefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
     res.status(200).json({
       message: "Successfully Logged In",
       token: AccessToken,
