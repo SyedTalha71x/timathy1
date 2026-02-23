@@ -24,9 +24,14 @@ io.on("connection", (socket) => {
     });
 
     socket.on("sendMessage", (messageData) => {
-        const { chatId, message } = messageData;
+        const { chatId, content } = messageData;
 
-        io.to(chatId).emit('received message', message)
+        io.to(chatId).emit('received message', {
+            chatId,
+            content,
+            senderId: messageData.senderId  // optional, if frontend sends it
+        });
+
     });
     socket.on("disconnect", () => {
         console.log("User Disconnected", socket.id)
