@@ -16,7 +16,7 @@ const FoodRoutes = require('./nutrition/FoodRoutes')
 const UserGoalRoutes = require('./nutrition/UserGoalRoutes')
 const ReminderRoutes = require('./ReminderRoutes')
 const NutritionNotificationRoutes = require('./nutrition/NutritionNotificationRoutes')
-
+const ChatRoutes = require('./ChatRoutes');
 
 const router = express.Router();
 
@@ -47,6 +47,10 @@ router.use('/auth', AuthRoutes)
 router.use('/staff', StaffRoutes)
 router.use('/member', MemberRoutes)
 router.use('/appointment', AppointmentRoutes)
+
+router.use('/chat', ChatRoutes)
+
+
 // nurition all api
 router.use('/daily', DailyIntakeRoutes)
 router.use('/food', FoodRoutes)

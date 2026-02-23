@@ -107,6 +107,10 @@ const UserSchema = new mongoose.Schema({
             device: String
         }
     ],
+    chats: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'chats'
+    }]
     // about: {
     //     type: String,
     //     // required: true,
