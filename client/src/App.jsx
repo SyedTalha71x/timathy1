@@ -67,14 +67,7 @@ import MemberSettings from './dashboard-pages/member-view/settings'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
 import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
-import MemberFoodLogs from './dashboard-pages/member-view/nutrition-tracking/food-log'
-import MemberNutritionBreakDown from './dashboard-pages/member-view/nutrition-tracking/nutrition-breakdown'
-import MemberDailySummary from './dashboard-pages/member-view/nutrition-tracking/daily-summary'
-import MemberGoalSettings from './dashboard-pages/member-view/nutrition-tracking/goal-setting'
-import MemberNotificationsRemainders from './dashboard-pages/member-view/nutrition-tracking/notifications'
-import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
-import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
-import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-analysis'
+import MemberNutritionTracker from './dashboard-pages/member-view/nutrition-tracker'
 // import { useEffect } from "react";
 // import { fetchMyStudio } from "./features/studio/studioSlice";
 // import { fetchMyServices } from "./features/services/servicesSlice";
@@ -197,14 +190,7 @@ function App() {
           <Route path="settings" element={<MemberSettings />} />
           <Route path="edit-profile" element={<MemberViewProfile />} />
           <Route path="training" element={<MemberTraining />} />
-          <Route path="food-log" element={<MemberFoodLogs />} />
-          <Route path="nutrition-breakdown" element={<MemberNutritionBreakDown />} />
-          <Route path="daily-summary" element={<MemberDailySummary />} />
-          <Route path="goal-settings" element={<MemberGoalSettings />} />
-          <Route path="notifications-remainders" element={<MemberNotificationsRemainders />} />
-          <Route path="offline-mode" element={<MemberOfflineMode />} />
-          <Route path="barcode-entry" element={<MemberBarcodeEntry />} />
-          <Route path="nutrition-analysis" element={<MemberNutritionAnalysis />} />
+          <Route path="nutrition" element={<MemberNutritionTracker />} />
 
         </Route>
       </Routes>
