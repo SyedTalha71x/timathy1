@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
         minlength: 2,
         maxlength: 20
     },
-    
+
     email: {
         type: String,
         // required: true,
@@ -97,6 +97,16 @@ const UserSchema = new mongoose.Schema({
         },
         // required: true,
     },
+    loginHistory: [
+        {
+            date: {
+                type: Date,
+                default: Date.now
+            },
+            ip: String,
+            device: String
+        }
+    ],
     // about: {
     //     type: String,
     //     // required: true,
