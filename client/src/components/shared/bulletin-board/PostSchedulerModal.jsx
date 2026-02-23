@@ -82,18 +82,18 @@ const PostSchedulerModal = ({
     let className = "w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-all duration-200 "
 
     if (isPastForEnd || isBeforeStart) {
-      className += "text-gray-600 cursor-not-allowed"
+      className += "text-content-faint cursor-not-allowed"
     } else if (isStartSelected || isEndSelected) {
-      className += "bg-orange-500 text-white font-medium"
+      className += "bg-primary text-white font-medium"
     } else if (isInRange) {
-      className += "bg-orange-500/20 text-orange-300"
+      className += "bg-primary/20 text-primary-hover"
     } else if (isToday) {
-      className += "bg-blue-500/30 text-blue-400 font-medium hover:bg-blue-500/40"
+      className += "bg-primary/20 text-primary font-medium hover:bg-primary/30"
     } else if (!isForEndDate && endDate === dateStr) {
       // Show end date marker in start calendar
-      className += "bg-gray-500/30 text-gray-400 font-medium"
+      className += "bg-surface-button/30 text-content-muted font-medium"
     } else {
-      className += "text-gray-300 hover:bg-[#2F2F2F]"
+      className += "text-content-secondary hover:bg-surface-button"
     }
 
     return className
@@ -163,20 +163,20 @@ const PostSchedulerModal = ({
 
   // Render calendar component
   const renderCalendar = (isForEndDate = false) => (
-    <div className="bg-[#101010] rounded-xl p-4">
+    <div className="border border-border rounded-xl p-4">
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-          className="text-gray-400 hover:text-white p-1.5 hover:bg-[#2F2F2F] rounded-lg transition-colors"
+          className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-button rounded-lg transition-colors"
         >
           <ChevronLeft size={18} />
         </button>
-        <span className="text-white font-medium text-sm">
+        <span className="text-content-primary font-medium text-sm">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </span>
         <button
           onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-          className="text-gray-400 hover:text-white p-1.5 hover:bg-[#2F2F2F] rounded-lg transition-colors"
+          className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-button rounded-lg transition-colors"
         >
           <ChevronRight size={18} />
         </button>
@@ -184,7 +184,7 @@ const PostSchedulerModal = ({
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, idx) => (
-          <div key={idx} className="text-center text-gray-500 text-xs font-medium py-1">
+          <div key={idx} className="text-center text-content-faint text-xs font-medium py-1">
             {day}
           </div>
         ))}
@@ -220,13 +220,13 @@ const PostSchedulerModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-[60] p-2 md:p-4 pt-8 md:pt-4">
-      <div className="bg-[#181818] rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
+      <div className="bg-surface-card rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 md:p-6 pb-4 md:pb-5 flex-shrink-0 border-b border-gray-700">
-          <h2 className="text-white text-lg font-semibold">Schedule Post</h2>
+        <div className="flex justify-between items-center p-4 md:p-6 pb-4 md:pb-5 flex-shrink-0 border-b border-border">
+          <h2 className="text-content-primary text-lg font-semibold">Schedule Post</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-content-muted hover:text-content-primary transition-colors"
           >
             <X size={20} />
           </button>
@@ -236,14 +236,14 @@ const PostSchedulerModal = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pt-4">
           {/* Schedule Type Selection */}
           <div className="mb-5">
-            <label className="text-sm text-gray-200 mb-3 block">Publish</label>
+            <label className="text-sm text-content-primary mb-3 block">Publish</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setScheduleType('immediate')}
                 className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   scheduleType === 'immediate'
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-[#101010] text-gray-300 hover:bg-[#1a1a1a]'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-button text-content-secondary hover:bg-surface-button-hover'
                 }`}
               >
                 Immediately
@@ -252,8 +252,8 @@ const PostSchedulerModal = ({
                 onClick={() => setScheduleType('scheduled')}
                 className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   scheduleType === 'scheduled'
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-[#101010] text-gray-300 hover:bg-[#1a1a1a]'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-button text-content-secondary hover:bg-surface-button-hover'
                 }`}
               >
                 Schedule
@@ -266,11 +266,11 @@ const PostSchedulerModal = ({
             <>
               {/* Start Date Section */}
               <div className="mb-5">
-                <label className="text-sm text-gray-200 flex items-center gap-2 mb-3">
-                  <CalendarCheck size={16} className="text-orange-400" />
+                <label className="text-sm text-content-secondary flex items-center gap-2 mb-3">
+                  <CalendarCheck size={16} className="text-primary" />
                   Start Date
                   {startDate && (
-                    <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full ml-auto">
+                    <span className="text-xs text-primary bg-primary/20 px-2 py-0.5 rounded-full ml-auto">
                       {formatDisplayDate(startDate)}
                     </span>
                   )}
@@ -279,14 +279,14 @@ const PostSchedulerModal = ({
                 
                 {/* Start Time */}
                 <div className="mt-3">
-                  <label className="text-sm text-gray-200 flex items-center gap-2 mb-2">
-                    <Clock size={16} className="text-gray-400" />
+                  <label className="text-sm text-content-secondary flex items-center gap-2 mb-2">
+                    <Clock size={16} className="text-content-muted" />
                     Start Time
                   </label>
                   <select
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
+                    className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                   >
                     <option value="">Select time</option>
                     {generateTimeOptions().map((time) => (
@@ -299,10 +299,10 @@ const PostSchedulerModal = ({
               </div>
 
               {/* End Date Toggle */}
-              <div className="border-t border-gray-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <label className="flex items-center justify-between cursor-pointer mb-3">
-                  <span className="text-sm text-gray-200 flex items-center gap-2">
-                    <CalendarOff size={16} className="text-gray-400" />
+                  <span className="text-sm text-content-secondary flex items-center gap-2">
+                    <CalendarOff size={16} className="text-content-muted" />
                     Set End Date (Auto-deactivate)
                   </span>
                   <button
@@ -314,7 +314,7 @@ const PostSchedulerModal = ({
                       }
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      hasEndDate ? 'bg-orange-500' : 'bg-gray-600'
+                      hasEndDate ? 'bg-primary' : 'bg-surface-button'
                     }`}
                   >
                     <span
@@ -324,18 +324,18 @@ const PostSchedulerModal = ({
                     />
                   </button>
                 </label>
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="text-xs text-content-faint mb-3">
                   Post will automatically become inactive after this date
                 </p>
 
                 {/* End Date Calendar */}
                 {hasEndDate && (
                   <div className="space-y-3">
-                    <label className="text-sm text-gray-200 flex items-center gap-2">
-                      <CalendarOff size={16} className="text-gray-400" />
+                    <label className="text-sm text-content-secondary flex items-center gap-2">
+                      <CalendarOff size={16} className="text-content-muted" />
                       End Date
                       {endDate && (
-                        <span className="text-xs text-gray-400 bg-gray-500/20 px-2 py-0.5 rounded-full ml-auto">
+                        <span className="text-xs text-content-muted bg-surface-button/20 px-2 py-0.5 rounded-full ml-auto">
                           {formatDisplayDate(endDate)}
                         </span>
                       )}
@@ -344,14 +344,14 @@ const PostSchedulerModal = ({
                     
                     {/* End Time */}
                     <div>
-                      <label className="text-sm text-gray-200 flex items-center gap-2 mb-2">
-                        <Clock size={16} className="text-gray-400" />
+                      <label className="text-sm text-content-secondary flex items-center gap-2 mb-2">
+                        <Clock size={16} className="text-content-muted" />
                         End Time
                       </label>
                       <select
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
+                        className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                       >
                         <option value="">Select time</option>
                         {generateTimeOptions().map((time) => (
@@ -369,14 +369,14 @@ const PostSchedulerModal = ({
 
           {/* Immediate posting info */}
           {scheduleType === 'immediate' && (
-            <div className="bg-[#101010] rounded-xl p-4">
+            <div className="border border-border rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                  <Calendar size={20} className="text-orange-400" />
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Calendar size={20} className="text-primary" />
                 </div>
                 <div>
-                  <p className="text-white font-medium text-sm">Post Immediately</p>
-                  <p className="text-gray-400 text-xs mt-1">
+                  <p className="text-content-primary font-medium text-sm">Post Immediately</p>
+                  <p className="text-content-muted text-xs mt-1">
                     Your post will be published as soon as you save it.
                   </p>
                 </div>
@@ -386,16 +386,16 @@ const PostSchedulerModal = ({
 
           {/* Schedule Summary - nur für scheduled posts */}
           {scheduleType === 'scheduled' && startDate && (
-            <div className="mt-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-              <p className="text-orange-400 text-xs font-medium mb-2">Schedule Summary</p>
-              <div className="text-sm text-gray-300 space-y-1">
+            <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+              <p className="text-primary text-xs font-medium mb-2">Schedule Summary</p>
+              <div className="text-sm text-content-secondary space-y-1">
                 <div className="flex items-center gap-2">
-                  <CalendarCheck size={14} className="text-orange-400" />
+                  <CalendarCheck size={14} className="text-primary" />
                   <span>Starts: {formatDisplayDate(startDate)} {startTime && `at ${formatTime(startTime)}`}</span>
                 </div>
                 {hasEndDate && endDate && (
                   <div className="flex items-center gap-2">
-                    <CalendarOff size={14} className="text-gray-400" />
+                    <CalendarOff size={14} className="text-content-muted" />
                     <span>Ends: {formatDisplayDate(endDate)} {endTime && `at ${formatTime(endTime)}`}</span>
                   </div>
                 )}
@@ -405,18 +405,18 @@ const PostSchedulerModal = ({
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-gray-700 bg-[#181818] rounded-b-xl">
+        <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-border bg-surface-dark rounded-b-xl">
           <div className="flex gap-2 md:gap-3 justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 bg-surface-button text-sm text-content-secondary rounded-xl hover:bg-surface-hover transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={scheduleType === 'scheduled' && !startDate}
-              className="px-4 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors disabled:bg-primary/50 disabled:text-white/50 disabled:cursor-not-allowed"
             >
               Apply Schedule
             </button>
@@ -429,15 +429,15 @@ const PostSchedulerModal = ({
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2F2F2F;
+          background: var(--color-surface-button);
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #555;
+          background: var(--color-content-faint);
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777;
+          background: var(--color-content-muted);
         }
       `}</style>
     </div>

@@ -196,9 +196,9 @@ const TaskModal = ({
               {/* Status Badge (only in edit mode) */}
               {isEditMode && task?.status && (
                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                  isCompleted ? "bg-green-500/20 text-green-400" :
-                  isCanceled ? "bg-red-500/20 text-red-400" :
-                  "bg-amber-500/20 text-amber-400"
+                  isCompleted ? "bg-accent-green/20 text-accent-green" :
+                  isCanceled ? "bg-accent-red/20 text-accent-red" :
+                  "bg-primary/20 text-primary"
                 }`}>
                   {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                 </span>
@@ -344,7 +344,7 @@ const TaskModal = ({
                                 onDelete(task.id)
                                 setShowMobileActionsMenu(false)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-accent-red"
                             >
                               <Trash2 size={16} />
                               <span>Delete</span>
@@ -378,7 +378,7 @@ const TaskModal = ({
                 className={`w-full bg-transparent text-lg font-medium outline-none resize-none min-h-[60px] ${
                   isCompleted ? "text-content-faint" :
                   isCanceled ? "text-content-faint line-through italic" :
-                  "text-white placeholder-content-faint"
+                  "text-content-primary placeholder-content-faint"
                 }`}
                 rows={isEditMode ? 1 : 2}
                 style={isEditMode ? { height: "auto", overflow: "hidden" } : {}}
@@ -415,7 +415,7 @@ const TaskModal = ({
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-content-secondary">Due Date & Time</p>
-                  <p className={`text-sm ${taskData.dueDate ? "text-white" : "text-content-faint"}`}>
+                  <p className={`text-sm ${taskData.dueDate ? "text-content-primary" : "text-content-faint"}`}>
                     {formatDateTime()}
                   </p>
                 </div>
@@ -490,8 +490,8 @@ const TaskModal = ({
                       {taskData.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-2.5 py-1 rounded-lg text-xs text-white"
-                          style={{ backgroundColor: getTagColor(tag) }}
+                          className="px-2.5 py-1 rounded-lg text-xs"
+                          style={{ backgroundColor: getTagColor(tag), color: "#ffffff" }}
                         >
                           {tag}
                         </span>
@@ -521,7 +521,7 @@ const TaskModal = ({
               disabled={!taskTitle.trim()}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 taskTitle.trim()
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
+                  ? "bg-primary text-white hover:bg-primary-hover"
                   : "bg-surface-button text-content-faint cursor-not-allowed"
               }`}
             >

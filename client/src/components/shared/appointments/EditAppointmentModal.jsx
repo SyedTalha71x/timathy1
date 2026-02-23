@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Clock, User, ChevronDown, AlertTriangle, Check, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
-import NotifyMemberModalMain from './NotifyMemberModal';
+import NotifyModalMain from '../NotifyModal';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -535,7 +535,7 @@ const EditAppointmentModalMain = ({
         </div>
 
         {/* Notify Member/Lead Modal (shared component) */}
-        <NotifyMemberModalMain
+        <NotifyModalMain
           isOpen={showNotifyModal && (notifyAction === "cancel" || !!pendingChanges)}
           onClose={handleCancelNotify}
           onConfirm={handleConfirmChanges}

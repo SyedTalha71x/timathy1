@@ -402,57 +402,57 @@ const tabs = [
     id: "appointments", 
     label: "Appointment Requests", 
     icon: CalendarCheck,
-    color: "bg-orange-500",
-    lightColor: "bg-orange-500/10",
-    textColor: "text-orange-400"
-  },
-  { 
-    id: "contracts", 
-    label: "Expiring Contracts", 
-    icon: FileText,
-    color: "bg-orange-500",
-    lightColor: "bg-orange-500/10",
-    textColor: "text-orange-400"
-  },
-  { 
-    id: "contractPause", 
-    label: "Contract Pauses", 
-    icon: PauseCircle,
-    color: "bg-orange-500",
-    lightColor: "bg-orange-500/10",
-    textColor: "text-orange-400"
-  },
-  { 
-    id: "memberData", 
-    label: "Member Data Changes", 
-    icon: UserCog,
-    color: "bg-orange-500",
-    lightColor: "bg-orange-500/10",
-    textColor: "text-orange-400"
-  },
-  { 
-    id: "bankData", 
-    label: "Bank Data Changes", 
-    icon: CreditCard,
-    color: "bg-orange-500",
-    lightColor: "bg-orange-500/10",
-    textColor: "text-orange-400"
-  },
-  { 
-    id: "vacation", 
-    label: "Vacation Requests", 
-    icon: Calendar,
     color: "bg-primary",
     lightColor: "bg-primary/10",
     textColor: "text-primary"
   },
   { 
+    id: "contracts", 
+    label: "Expiring Contracts", 
+    icon: FileText,
+    color: "bg-primary",
+    lightColor: "bg-primary/10",
+    textColor: "text-primary"
+  },
+  { 
+    id: "contractPause", 
+    label: "Contract Pauses", 
+    icon: PauseCircle,
+    color: "bg-primary",
+    lightColor: "bg-primary/10",
+    textColor: "text-primary"
+  },
+  { 
+    id: "memberData", 
+    label: "Member Data Changes", 
+    icon: UserCog,
+    color: "bg-primary",
+    lightColor: "bg-primary/10",
+    textColor: "text-primary"
+  },
+  { 
+    id: "bankData", 
+    label: "Bank Data Changes", 
+    icon: CreditCard,
+    color: "bg-primary",
+    lightColor: "bg-primary/10",
+    textColor: "text-primary"
+  },
+  { 
+    id: "vacation", 
+    label: "Vacation Requests", 
+    icon: Calendar,
+    color: "bg-secondary",
+    lightColor: "bg-secondary/10",
+    textColor: "text-secondary"
+  },
+  { 
     id: "emails", 
     label: "Email Errors", 
     icon: MailWarning,
-    color: "bg-content-faint",
-    lightColor: "bg-content-faint/10",
-    textColor: "text-content-muted"
+    color: "bg-secondary",
+    lightColor: "bg-secondary/10",
+    textColor: "text-secondary"
   },
 ]
 
@@ -962,7 +962,7 @@ export default function ActivityMonitor() {
       pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
       approved: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
       rejected: "bg-red-500/20 text-red-400 border-red-500/30",
-      bounced: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+      bounced: "bg-primary/20 text-primary border-primary/30",
     }
     const labels = {
       pending: "Pending",
@@ -982,7 +982,7 @@ export default function ActivityMonitor() {
       return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">Critical</span>
     }
     if (days <= 14) {
-      return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">Urgent</span>
+      return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/20 text-primary border border-primary/30">Urgent</span>
     }
     if (days <= 30) {
       return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Soon</span>
@@ -1064,14 +1064,14 @@ export default function ActivityMonitor() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1 min-h-[68px]">
-                    <p className={`text-xs ${isActive ? 'text-content-secondary' : 'text-content-muted'} truncate`}>
+                    <p className={`text-xs ${isActive ? 'text-white/70' : 'text-content-muted'} truncate`}>
                       {tab.label}
                     </p>
-                    <p className={`text-2xl font-bold mt-1 ${isActive ? 'text-content-primary' : 'text-content-primary'}`}>
+                    <p className={`text-2xl font-bold mt-1 ${isActive ? 'text-white' : 'text-content-primary'}`}>
                       {count.total}
                     </p>
                     {pendingCount > 0 && (
-                      <p className={`text-xs mt-1 ${isActive ? 'text-content-muted' : tab.textColor}`}>
+                      <p className={`text-xs mt-1 ${isActive ? 'text-white/60' : tab.textColor}`}>
                         {pendingCount} {tab.id === "contracts" ? "critical" : "pending"}
                       </p>
                     )}
@@ -1080,7 +1080,7 @@ export default function ActivityMonitor() {
                     p-2 rounded-xl flex-shrink-0
                     ${isActive ? 'bg-white/20' : tab.lightColor}
                   `}>
-                    <tab.icon size={18} className={isActive ? 'text-content-primary' : tab.textColor} />
+                    <tab.icon size={18} className={isActive ? 'text-white' : tab.textColor} />
                   </div>
                 </div>
                 
@@ -1106,7 +1106,7 @@ export default function ActivityMonitor() {
               placeholder={`Search ${tabs.find(t => t.id === activeTab)?.label || ''}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-card pl-10 pr-4 py-3 text-sm rounded-xl text-content-primary placeholder-content-faint border border-border outline-none focus:border-orange-500/50 transition-colors"
+              className="w-full bg-surface-card pl-10 pr-4 py-3 text-sm rounded-xl text-content-primary placeholder-content-faint border border-border outline-none focus:border-primary transition-colors"
             />
           </div>
           
@@ -1229,7 +1229,7 @@ export default function ActivityMonitor() {
                   <div className="hidden md:grid md:grid-cols-[280px_240px_100px_1fr] gap-4 items-center">
                     {/* Col 1: Employee Info */}
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                         {getInitials(request.employeeFirstName, request.employeeLastName)}
                       </div>
                       <div className="min-w-0">
@@ -1251,8 +1251,8 @@ export default function ActivityMonitor() {
                     
                     {/* Col 3: Days */}
                     <div className="flex items-center justify-center">
-                      <div className="px-3 py-1.5 bg-primary/10 rounded-lg">
-                        <span className="text-primary font-medium text-sm">{request.days} days</span>
+                      <div className="px-3 py-1.5 bg-secondary/10 rounded-lg">
+                        <span className="text-secondary font-medium text-sm">{request.days} days</span>
                       </div>
                     </div>
                     
@@ -1286,7 +1286,7 @@ export default function ActivityMonitor() {
                   {/* Mobile Layout */}
                   <div className="md:hidden flex flex-col gap-3">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                         {getInitials(request.employeeFirstName, request.employeeLastName)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -1302,8 +1302,8 @@ export default function ActivityMonitor() {
                         <Calendar size={16} className="text-content-faint" />
                         <span className="text-content-secondary">{formatDate(request.startDate)} - {formatDate(request.endDate)}</span>
                       </div>
-                      <div className="px-3 py-1.5 bg-primary/10 rounded-lg">
-                        <span className="text-primary font-medium">{request.days} days</span>
+                      <div className="px-3 py-1.5 bg-secondary/10 rounded-lg">
+                        <span className="text-secondary font-medium">{request.days} days</span>
                       </div>
                     </div>
                     {request.status === "pending" && (
@@ -1349,7 +1349,7 @@ export default function ActivityMonitor() {
                   <div className="hidden md:grid md:grid-cols-[280px_130px_150px_160px_1fr] gap-4 items-center">
                     {/* Col 1: Member Info */}
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                         {getInitials(request.memberFirstName, request.memberLastName)}
                       </div>
                       <div className="min-w-0">
@@ -1387,7 +1387,7 @@ export default function ActivityMonitor() {
                         <>
                           <button
                             onClick={() => handleApprove(request.id, "appointment")}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                           >
                             <Check size={16} />
                             <span>Confirm</span>
@@ -1411,7 +1411,7 @@ export default function ActivityMonitor() {
                   {/* Mobile Layout */}
                   <div className="md:hidden flex flex-col gap-3">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                         {getInitials(request.memberFirstName, request.memberLastName)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -1440,7 +1440,7 @@ export default function ActivityMonitor() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleApprove(request.id, "appointment")}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                         >
                           <Check size={16} />
                           <span>Confirm</span>
@@ -1470,7 +1470,7 @@ export default function ActivityMonitor() {
                   <div className="hidden md:grid md:grid-cols-[280px_200px_120px_1fr] gap-4 items-center">
                     {/* Col 1: Member Info */}
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
                         <PauseCircle size={22} />
                       </div>
                       <div className="min-w-0">
@@ -1492,8 +1492,8 @@ export default function ActivityMonitor() {
                     
                     {/* Col 3: Duration */}
                     <div className="flex items-center justify-center">
-                      <div className="px-3 py-1.5 bg-orange-500/10 rounded-lg">
-                        <span className="text-orange-400 font-medium text-sm">{request.pauseDuration} weeks</span>
+                      <div className="px-3 py-1.5 bg-primary/10 rounded-lg">
+                        <span className="text-primary font-medium text-sm">{request.pauseDuration} weeks</span>
                       </div>
                     </div>
                     
@@ -1503,7 +1503,7 @@ export default function ActivityMonitor() {
                         <>
                           <button
                             onClick={() => handleApprove(request.id, "contractPause")}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                           >
                             <Check size={16} />
                             <span>Approve</span>
@@ -1527,7 +1527,7 @@ export default function ActivityMonitor() {
                   {/* Mobile Layout */}
                   <div className="md:hidden flex flex-col gap-3">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
                         <PauseCircle size={22} />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -1543,15 +1543,15 @@ export default function ActivityMonitor() {
                         <Calendar size={16} className="text-content-faint" />
                         <span className="text-content-secondary">{formatDate(request.pauseStart)} - {formatDate(request.pauseEnd)}</span>
                       </div>
-                      <div className="px-3 py-1.5 bg-orange-500/10 rounded-lg">
-                        <span className="text-orange-400 font-medium">{request.pauseDuration} weeks</span>
+                      <div className="px-3 py-1.5 bg-primary/10 rounded-lg">
+                        <span className="text-primary font-medium">{request.pauseDuration} weeks</span>
                       </div>
                     </div>
                     {request.status === "pending" && (
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleApprove(request.id, "contractPause")}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                         >
                           <Check size={16} />
                           <span>Approve</span>
@@ -1594,7 +1594,7 @@ export default function ActivityMonitor() {
                   <div className="hidden md:grid md:grid-cols-[260px_1fr_1fr] gap-4 items-start">
                     {/* Col 1: Member Info */}
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
                         <CreditCard size={22} />
                       </div>
                       <div className="min-w-0">
@@ -1621,7 +1621,7 @@ export default function ActivityMonitor() {
                             <ArrowRight size={16} className="text-content-faint" />
                             <div>
                               <p className="text-content-faint text-xs mb-1">Bank</p>
-                              <p className="text-white text-sm">{request.newBankName}</p>
+                              <p className="text-content-primary font-medium text-sm">{request.newBankName}</p>
                             </div>
                           </div>
                           {/* IBAN */}
@@ -1633,7 +1633,7 @@ export default function ActivityMonitor() {
                             <ArrowRight size={16} className="text-content-faint" />
                             <div>
                               <p className="text-content-faint text-xs mb-1">IBAN</p>
-                              <p className="text-white text-xs font-mono">{maskIban(request.newIban)}</p>
+                              <p className="text-content-primary font-medium text-xs font-mono">{maskIban(request.newIban)}</p>
                             </div>
                           </div>
                           {/* BIC */}
@@ -1645,7 +1645,7 @@ export default function ActivityMonitor() {
                             <ArrowRight size={16} className="text-content-faint" />
                             <div>
                               <p className="text-content-faint text-xs mb-1">BIC</p>
-                              <p className="text-white text-xs font-mono">{request.newBic}</p>
+                              <p className="text-content-primary font-medium text-xs font-mono">{request.newBic}</p>
                             </div>
                           </div>
                         </div>
@@ -1658,7 +1658,7 @@ export default function ActivityMonitor() {
                           <ArrowRight size={16} className="text-content-faint" />
                           <div>
                             <p className="text-content-faint text-xs mb-1">New</p>
-                            <p className="text-white text-sm">{request.newValue}</p>
+                            <p className="text-content-primary font-medium text-sm">{request.newValue}</p>
                           </div>
                         </div>
                       )}
@@ -1670,7 +1670,7 @@ export default function ActivityMonitor() {
                         <>
                           <button
                             onClick={() => handleApprove(request.id, "bankData")}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                           >
                             <Check size={16} />
                             <span>Approve</span>
@@ -1694,7 +1694,7 @@ export default function ActivityMonitor() {
                   {/* Mobile Layout */}
                   <div className="md:hidden flex flex-col gap-3">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
                         <CreditCard size={22} />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -1714,16 +1714,16 @@ export default function ActivityMonitor() {
                         <div className="space-y-3">
                           <div>
                             <p className="text-content-faint text-xs mb-1">Bank</p>
-                            <p className="text-content-muted text-sm">{request.oldBankName} <ArrowRight size={12} className="inline text-content-faint mx-1" /> <span className="text-white">{request.newBankName}</span></p>
+                            <p className="text-content-muted text-sm">{request.oldBankName} <ArrowRight size={12} className="inline text-content-faint mx-1" /> <span className="text-content-primary font-medium">{request.newBankName}</span></p>
                           </div>
                           <div className="pt-2 border-t border-border">
                             <p className="text-content-faint text-xs mb-1">IBAN</p>
                             <p className="text-content-muted text-xs font-mono">{maskIban(request.oldIban)}</p>
-                            <p className="text-white text-xs font-mono mt-1">{maskIban(request.newIban)}</p>
+                            <p className="text-content-primary font-medium text-xs font-mono mt-1">{maskIban(request.newIban)}</p>
                           </div>
                           <div className="pt-2 border-t border-border">
                             <p className="text-content-faint text-xs mb-1">BIC</p>
-                            <p className="text-content-muted text-xs font-mono">{request.oldBic} <ArrowRight size={12} className="inline text-content-faint mx-1" /> <span className="text-white">{request.newBic}</span></p>
+                            <p className="text-content-muted text-xs font-mono">{request.oldBic} <ArrowRight size={12} className="inline text-content-faint mx-1" /> <span className="text-content-primary font-medium">{request.newBic}</span></p>
                           </div>
                         </div>
                       ) : (
@@ -1737,7 +1737,7 @@ export default function ActivityMonitor() {
                           </div>
                           <div>
                             <p className="text-content-faint text-xs mb-1">New</p>
-                            <p className="text-white text-sm">{request.newValue}</p>
+                            <p className="text-content-primary font-medium text-sm">{request.newValue}</p>
                           </div>
                         </div>
                       )}
@@ -1747,7 +1747,7 @@ export default function ActivityMonitor() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleApprove(request.id, "bankData")}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                         >
                           <Check size={16} />
                           <span>Approve</span>
@@ -1779,7 +1779,7 @@ export default function ActivityMonitor() {
                     <div className="hidden md:grid md:grid-cols-[260px_1fr_1fr] gap-4 items-start">
                       {/* Col 1: Member Info */}
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
                           <ChangeIcon size={22} />
                         </div>
                         <div className="min-w-0">
@@ -1807,7 +1807,7 @@ export default function ActivityMonitor() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-content-faint text-xs mb-1">New</p>
-                            <p className="text-white text-sm truncate" title={request.newValue}>
+                            <p className="text-content-primary font-medium text-sm truncate" title={request.newValue}>
                               {request.newValue}
                             </p>
                           </div>
@@ -1820,7 +1820,7 @@ export default function ActivityMonitor() {
                           <>
                             <button
                               onClick={() => handleApprove(request.id, "memberData")}
-                              className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                              className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                             >
                               <Check size={16} />
                               <span>Approve</span>
@@ -1844,7 +1844,7 @@ export default function ActivityMonitor() {
                     {/* Mobile Layout */}
                     <div className="md:hidden flex flex-col gap-3">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
                           <ChangeIcon size={22} />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -1868,7 +1868,7 @@ export default function ActivityMonitor() {
                           </div>
                           <div>
                             <p className="text-content-faint text-xs mb-1">New</p>
-                            <p className="text-white text-sm">{request.newValue}</p>
+                            <p className="text-content-primary font-medium text-sm">{request.newValue}</p>
                           </div>
                         </div>
                       </div>
@@ -1877,7 +1877,7 @@ export default function ActivityMonitor() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleApprove(request.id, "memberData")}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                           >
                             <Check size={16} />
                             <span>Approve</span>
@@ -1908,7 +1908,7 @@ export default function ActivityMonitor() {
                   <div className="hidden md:grid md:grid-cols-[280px_120px_100px_90px_140px_1fr] gap-4 items-center">
                     {/* Col 1: Member Info */}
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                         {getInitials(contract.memberFirstName, contract.memberLastName)}
                       </div>
                       <div className="min-w-0">
@@ -1931,8 +1931,8 @@ export default function ActivityMonitor() {
                       <p className="text-content-faint text-xs">Remaining</p>
                       <p className={`font-medium ${
                         contract.daysRemaining <= 7 ? 'text-red-400' :
-                        contract.daysRemaining <= 14 ? 'text-orange-400' :
-                        'text-white'
+                        contract.daysRemaining <= 14 ? 'text-primary' :
+                        'text-content-primary'
                       }`}>
                         {contract.daysRemaining} days
                       </p>
@@ -1941,7 +1941,7 @@ export default function ActivityMonitor() {
                     {/* Col 4: Monthly */}
                     <div className="text-sm">
                       <p className="text-content-faint text-xs">Monthly</p>
-                      <p className="text-white font-medium">€{contract.monthlyFee.toFixed(2)}</p>
+                      <p className="text-content-primary font-medium">€{contract.monthlyFee.toFixed(2)}</p>
                     </div>
                     
                     {/* Col 5: Auto-Renewal */}
@@ -1963,7 +1963,7 @@ export default function ActivityMonitor() {
                     <div className="flex items-center gap-2 justify-end">
                       <button
                         onClick={() => handleContactMember(contract)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                       >
                         <Mail size={16} />
                         <span>Contact</span>
@@ -1983,7 +1983,7 @@ export default function ActivityMonitor() {
                   {/* Mobile Layout */}
                   <div className="md:hidden flex flex-col gap-3">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                         {getInitials(contract.memberFirstName, contract.memberLastName)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -2001,19 +2001,19 @@ export default function ActivityMonitor() {
                       </div>
                       <div>
                         <p className="text-content-faint text-xs">Remaining</p>
-                        <p className={`font-medium ${contract.daysRemaining <= 14 ? 'text-orange-400' : 'text-white'}`}>
+                        <p className={`font-medium ${contract.daysRemaining <= 14 ? 'text-primary' : 'text-content-primary'}`}>
                           {contract.daysRemaining} days
                         </p>
                       </div>
                       <div>
                         <p className="text-content-faint text-xs">Monthly</p>
-                        <p className="text-white font-medium">€{contract.monthlyFee.toFixed(2)}</p>
+                        <p className="text-content-primary font-medium">€{contract.monthlyFee.toFixed(2)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleContactMember(contract)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                       >
                         <Mail size={16} />
                         <span>Contact</span>
@@ -2048,8 +2048,8 @@ export default function ActivityMonitor() {
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${
                           isStaff 
-                            ? 'bg-gradient-to-br from-primary to-primary-hover' 
-                            : 'bg-gradient-to-br from-orange-500 to-orange-600'
+                            ? 'bg-gradient-to-br from-secondary to-secondary-hover' 
+                            : 'bg-gradient-to-br from-primary to-primary-hover'
                         }`}>
                           <MailWarning size={22} />
                         </div>
@@ -2077,11 +2077,7 @@ export default function ActivityMonitor() {
                       <div className="flex items-center justify-end">
                         <button
                           onClick={() => handleRetryEmail(email.id)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${
-                            isStaff 
-                              ? 'bg-primary hover:bg-primary-hover' 
-                              : 'bg-orange-500 hover:bg-orange-600'
-                          }`}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors bg-primary hover:bg-primary-hover"
                         >
                           <RefreshCw size={16} />
                           <span>Resend</span>
@@ -2094,8 +2090,8 @@ export default function ActivityMonitor() {
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${
                           isStaff 
-                            ? 'bg-gradient-to-br from-primary to-primary-hover' 
-                            : 'bg-gradient-to-br from-orange-500 to-orange-600'
+                            ? 'bg-gradient-to-br from-secondary to-secondary-hover' 
+                            : 'bg-gradient-to-br from-primary to-primary-hover'
                         }`}>
                           <MailWarning size={22} />
                         </div>
@@ -2115,11 +2111,7 @@ export default function ActivityMonitor() {
                         <span className="text-xs text-content-faint">{email.retryCount}x tried</span>
                         <button
                           onClick={() => handleRetryEmail(email.id)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${
-                            isStaff 
-                              ? 'bg-primary hover:bg-primary-hover' 
-                              : 'bg-orange-500 hover:bg-orange-600'
-                          }`}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors bg-primary hover:bg-primary-hover"
                         >
                           <RefreshCw size={16} />
                           <span>Resend</span>

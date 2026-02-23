@@ -26,7 +26,7 @@ const InitialsAvatar = ({ firstName, lastName, size = 48, className = "" }) => {
 
   return (
     <div
-      className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold ${className}`}
+      className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}
@@ -186,14 +186,14 @@ export default function AppointmentActionModal({
       onClick={onClose}
     >
       <div
-        className="bg-[#181818] w-[90%] sm:w-[500px] rounded-xl overflow-hidden"
+        className="bg-surface-card w-[90%] sm:w-[500px] rounded-xl overflow-hidden border border-border shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white">Appointment Options</h2>
+        <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-content-primary">Appointment Options</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"
+            className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-button rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -236,12 +236,12 @@ export default function AppointmentActionModal({
             {/* Name and Details */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="text-white font-medium truncate">{fullName}</h3>
+                <h3 className="text-content-primary font-medium truncate">{fullName}</h3>
                 {/* Relations Button - for both members and leads */}
                 {!isBlocked && (
                   <button 
                     onClick={handleRelationsClick}
-                    className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-1.5 py-0.5 rounded transition-colors"
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
                     title="View Relations"
                   >
                     <Users size={12} />
@@ -249,12 +249,12 @@ export default function AppointmentActionModal({
                   </button>
                 )}
               </div>
-              <p className="text-gray-400 text-sm">
+              <p className="text-content-muted text-sm">
                 {appointmentData.isTrial && appointmentData.trialType 
                   ? `Trial Training • ${appointmentData.trialType}` 
                   : appointmentData.type}
               </p>
-              <p className="text-gray-400 text-sm">
+              <p className="text-content-muted text-sm">
                 {appointmentData.date && appointmentData.date.split("|")[1]?.trim()} • {appointmentData.startTime} - {appointmentData.endTime}
               </p>
             </div>
@@ -262,15 +262,15 @@ export default function AppointmentActionModal({
 
           {/* Status Messages */}
           {isCancelled && (
-            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
-              <Ban size={16} className="text-red-400" />
-              <p className="text-red-400 text-sm font-medium">This appointment has been cancelled</p>
+            <div className="flex items-center gap-2 bg-accent-red/10 border border-accent-red/30 rounded-xl px-4 py-3">
+              <Ban size={16} className="text-accent-red" />
+              <p className="text-accent-red text-sm font-medium">This appointment has been cancelled</p>
             </div>
           )}
           
           {appointmentData.isPast && !isCancelled && (
-            <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3">
-              <p className="text-yellow-400 text-sm">This is a past appointment</p>
+            <div className="flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-xl px-4 py-3">
+              <p className="text-accent-yellow text-sm">This is a past appointment</p>
             </div>
           )}
 
@@ -280,7 +280,7 @@ export default function AppointmentActionModal({
             {!isCancelled && (
               <button
                 onClick={onEdit}
-                className="w-full px-5 py-3 text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center bg-orange-500 hover:bg-orange-600 cursor-pointer"
+                className="w-full px-5 py-3 text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center bg-primary hover:bg-primary-hover cursor-pointer"
               >
                 <Edit className="mr-2" size={16} /> Edit Appointment
               </button>
@@ -290,7 +290,7 @@ export default function AppointmentActionModal({
             {!isCancelled && (
               <button
                 onClick={handleCancelClick}
-                className="w-full px-5 py-3 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white cursor-pointer"
+                className="w-full px-5 py-3 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-surface-button hover:bg-surface-hover text-content-secondary cursor-pointer"
               >
                 <X className="mr-2" size={16} /> Cancel Appointment
               </button>
@@ -300,17 +300,17 @@ export default function AppointmentActionModal({
             {isCancelled && (
               <button
                 onClick={handleDeleteClick}
-                className="w-full px-5 py-3 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white cursor-pointer"
+                className="w-full px-5 py-3 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-surface-button hover:bg-surface-hover text-content-secondary cursor-pointer"
               >
                 <Trash2 className="mr-2" size={16} /> Delete Appointment
               </button>
             )}
 
-            {/* View Full Profile - Blue (only show if not blocked) */}
+            {/* View Full Profile - Secondary color (only show if not blocked) */}
             {!isBlocked && (
               <button
                 onClick={handleViewProfile}
-                className="w-full px-5 py-3 bg-blue-600 hover:bg-blue-700 text-sm font-medium text-white rounded-xl cursor-pointer transition-colors flex items-center justify-center"
+                className="w-full px-5 py-3 bg-secondary hover:brightness-110 text-sm font-medium text-white rounded-xl cursor-pointer transition-all flex items-center justify-center"
               >
                 <User className="mr-2" size={16} /> View Full Profile
               </button>
@@ -326,31 +326,31 @@ export default function AppointmentActionModal({
           onClick={handleCancelDelete}
         >
           <div 
-            className="bg-[#181818] w-full max-w-sm rounded-xl overflow-hidden"
+            className="bg-surface-card w-full max-w-sm rounded-xl overflow-hidden border border-border shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
-              <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle size={24} className="text-red-400" />
+              <div className="w-12 h-12 rounded-xl bg-accent-red/10 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={24} className="text-accent-red" />
               </div>
-              <h3 className="text-lg font-semibold text-white text-center mb-2">
+              <h3 className="text-lg font-semibold text-content-primary text-center mb-2">
                 Delete Appointment?
               </h3>
-              <p className="text-sm text-gray-400 text-center mb-6">
+              <p className="text-sm text-content-muted text-center mb-6">
                 This will permanently delete the cancelled appointment with{" "}
-                <span className="text-white">{fullName}</span>. This action cannot be undone.
+                <span className="text-content-primary">{fullName}</span>. This action cannot be undone.
               </p>
 
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelDelete}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+                  className="flex-1 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-hover rounded-xl transition-colors"
                 >
                   Go Back
                 </button>
                 <button
                   onClick={handleConfirmDelete}
-                  className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors"
+                  className="flex-1 py-2.5 text-sm font-medium text-white bg-accent-red hover:bg-accent-red/90 rounded-xl transition-colors"
                 >
                   Delete
                 </button>
@@ -367,29 +367,29 @@ export default function AppointmentActionModal({
           onClick={handleCancelNotify}
         >
           <div 
-            className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" 
+            className="bg-surface-card w-[90%] sm:w-[480px] rounded-xl overflow-hidden border border-border shadow-2xl" 
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify {isLead ? "Lead" : "Member"}</h2>
-              <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
+            <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-content-primary">Notify {isLead ? "Lead" : "Member"}</h2>
+              <button onClick={handleCancelNotify} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-button rounded-lg transition-colors">
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6">
-              <p className="text-white text-sm">
-                <span className="font-semibold text-orange-400">{fullName}'s</span>{" "}
-                <span className="text-gray-400">
+              <p className="text-content-primary text-sm">
+                <span className="font-semibold text-primary">{fullName}'s</span>{" "}
+                <span className="text-content-muted">
                   ({appointmentData.isTrial && appointmentData.trialType 
                     ? `Trial Training • ${appointmentData.trialType}` 
                     : appointmentData.type})
                 </span> appointment on{" "}
-                <span className="font-semibold text-orange-400">
+                <span className="font-semibold text-primary">
                   {appointmentData.date && parseDateFromAppointment(appointmentData.date)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </span> at{" "}
-                <span className="font-semibold text-orange-400">{appointmentData.time || `${appointmentData.startTime} - ${appointmentData.endTime}`}</span>{" "}
-                will be <span className="font-semibold text-red-400">cancelled</span>.
+                <span className="font-semibold text-primary">{appointmentData.time || `${appointmentData.startTime} - ${appointmentData.endTime}`}</span>{" "}
+                will be <span className="font-semibold text-accent-red">cancelled</span>.
                 <br /><br />
                 Do you want to notify the {isLead ? "lead" : "member"} about this cancellation?
               </p>
@@ -401,9 +401,9 @@ export default function AppointmentActionModal({
                     type="checkbox"
                     checked={emailNotification}
                     onChange={(e) => setEmailNotification(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                    className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary focus:ring-2"
                   />
-                  <span className="text-white text-sm">Email Notification</span>
+                  <span className="text-content-primary text-sm">Email Notification</span>
                 </label>
                 
                 {/* App Push Notification - only for members, not leads */}
@@ -413,18 +413,18 @@ export default function AppointmentActionModal({
                       type="checkbox"
                       checked={pushNotification}
                       onChange={(e) => setPushNotification(e.target.checked)}
-                      className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                      className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary focus:ring-2"
                     />
-                    <span className="text-white text-sm">App Push Notification</span>
+                    <span className="text-content-primary text-sm">App Push Notification</span>
                   </label>
                 )}
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
+            <div className="px-6 py-4 border-t border-border flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
               <button
                 onClick={handleCancelNotify}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 bg-surface-button text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Back
               </button>
@@ -432,14 +432,14 @@ export default function AppointmentActionModal({
               <div className="flex flex-col-reverse sm:flex-row gap-2">
                 <button
                   onClick={() => handleConfirmCancel(false)}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors border border-gray-600"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-surface-dark text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button transition-colors border border-border"
                 >
                   No, Don't Notify
                 </button>
 
                 <button
                   onClick={() => handleConfirmCancel(true)}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary-hover transition-colors"
                 >
                   Yes, Notify {isLead ? "Lead" : "Member"}
                 </button>

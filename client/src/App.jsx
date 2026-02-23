@@ -14,6 +14,7 @@ import Login from './landing-page/login';
 import Dashboardlayout from "./layouts/studio-view/studio-view-layout";
 import MyArea from './dashboard-pages/studio-view/my-area'
 import Appointments from "./dashboard-pages/studio-view/appointments";
+import Classes from "./dashboard-pages/studio-view/classes";
 import ToDo from './dashboard-pages/studio-view/todo'
 import Members from './dashboard-pages/studio-view/members'
 import Staff from './dashboard-pages/studio-view/staff'
@@ -58,11 +59,11 @@ import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-page
 
 
 // Member Dashboard  
-import MemberDashboardLayout from "./layouts/member-view-layout";
+import MemberDashboardLayout from "./layouts/member-view/member-view-layout";
 import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
-import MemberSettings from './dashboard-pages/member-view/configuration'
+import MemberSettings from './dashboard-pages/member-view/settings'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
 import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
@@ -131,6 +132,7 @@ function App() {
         }>
           <Route path="my-area" element={<MyArea />} />
           <Route path="appointments" element={<Appointments />} />
+          <Route path="classes" element={<Classes />} />
           <Route path="to-do" element={<ToDo />} />
           <Route path="members" element={<Members />} />
           <Route path="staff" element={<Staff />} />

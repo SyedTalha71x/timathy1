@@ -22,7 +22,7 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
       }
       .view-rich-content strong {
         font-weight: 600;
-        color: #fff;
+        color: var(--color-content-primary);
       }
       .view-rich-content em {
         font-style: italic;
@@ -31,26 +31,26 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
         font-size: 1.5em;
         font-weight: 600;
         margin: 0.3em 0;
-        color: #fff;
+        color: var(--color-content-primary);
       }
       .view-rich-content h2 {
         font-size: 1.25em;
         font-weight: 600;
         margin: 0.3em 0;
-        color: #fff;
+        color: var(--color-content-primary);
       }
       .view-rich-content h3 {
         font-size: 1.1em;
         font-weight: 600;
         margin: 0.3em 0;
-        color: #fff;
+        color: var(--color-content-primary);
       }
       .view-rich-content a {
-        color: #f97316;
+        color: var(--color-primary);
         text-decoration: underline;
       }
       .view-rich-content a:hover {
-        color: #fb923c;
+        color: var(--color-primary-hover);
       }
     `
     document.head.appendChild(style)
@@ -64,13 +64,13 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header - just close button */}
-        <div className="flex items-center justify-end p-4 border-b border-gray-700">
+        <div className="flex items-center justify-end p-4 border-b border-border">
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-1 flex-shrink-0"
+            className="text-content-muted hover:text-content-primary transition-colors p-1 flex-shrink-0"
           >
             <X size={24} />
           </button>
@@ -80,7 +80,7 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
         <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
           {/* Cover Image */}
           {post?.image && (
-            <div className="relative rounded-xl overflow-hidden border border-gray-700 mb-4 bg-black aspect-video">
+            <div className="relative rounded-xl overflow-hidden border border-border mb-4 bg-surface-dark aspect-video">
               <img 
                 src={post.image} 
                 alt="Post cover" 
@@ -91,7 +91,7 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
           )}
 
           {/* Title - below image */}
-          <h2 className="text-xl font-semibold text-white mb-3">{post?.title || "Post"}</h2>
+          <h2 className="text-xl font-semibold text-content-primary mb-3">{post?.title || "Post"}</h2>
 
           {/* Custom Tags */}
           {post?.tags && post.tags.length > 0 && (
@@ -112,19 +112,19 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
           )}
 
           {/* Content - Rich Text */}
-          <div className="bg-[#181818] rounded-xl p-4">
+          <div className="border border-border rounded-xl p-4">
             <div 
-              className="text-gray-300 text-sm leading-normal view-rich-content"
+              className="text-content-secondary text-sm leading-normal view-rich-content"
               dangerouslySetInnerHTML={{ __html: post?.content }}
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end p-4 border-t border-gray-700">
+        <div className="flex justify-end p-4 border-t border-border">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-xl text-sm font-medium transition-colors"
+            className="px-5 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
           >
             Close
           </button>

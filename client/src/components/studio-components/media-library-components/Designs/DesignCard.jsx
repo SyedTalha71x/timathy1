@@ -83,8 +83,8 @@ const DesignCard = ({
       ref={setNodeRef}
       style={style}
       className={`
-        group relative bg-[#1a1a1a] rounded-xl overflow-hidden transition-all duration-200 border border-[#333333]
-        hover:border-[#444444] hover:shadow-lg select-none
+        group relative bg-surface-hover rounded-xl overflow-hidden transition-all duration-200 border border-border
+        hover:border-border hover:shadow-lg select-none
       `}
     >
       {/* Drag Handle - Top Left - Desktop only */}
@@ -125,16 +125,16 @@ const DesignCard = ({
 
         {/* Mobile Dropdown Menu */}
         {showMobileMenu && (
-          <div className="absolute top-full right-0 mt-1 w-40 bg-[#2a2a2a] border border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+          <div className="absolute top-full right-0 mt-1 w-40 bg-surface-button border border-border rounded-xl shadow-xl overflow-hidden z-50">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview?.(design);
                 setShowMobileMenu(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-[#3a3a3a] transition-colors text-sm"
+              className="w-full flex items-center gap-3 px-4 py-3 text-content-primary hover:bg-surface-button-hover transition-colors text-sm"
             >
-              <Eye size={16} className="text-gray-400" />
+              <Eye size={16} className="text-content-muted" />
               Preview
             </button>
             <button
@@ -143,9 +143,9 @@ const DesignCard = ({
                 onDownload?.(design);
                 setShowMobileMenu(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-[#3a3a3a] transition-colors text-sm"
+              className="w-full flex items-center gap-3 px-4 py-3 text-content-primary hover:bg-surface-button-hover transition-colors text-sm"
             >
-              <Download size={16} className="text-gray-400" />
+              <Download size={16} className="text-content-muted" />
               Download
             </button>
             <button
@@ -154,9 +154,9 @@ const DesignCard = ({
                 onDuplicate?.(design);
                 setShowMobileMenu(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-[#3a3a3a] transition-colors text-sm"
+              className="w-full flex items-center gap-3 px-4 py-3 text-content-primary hover:bg-surface-button-hover transition-colors text-sm"
             >
-              <Copy size={16} className="text-gray-400" />
+              <Copy size={16} className="text-content-muted" />
               Duplicate
             </button>
             <button
@@ -175,7 +175,7 @@ const DesignCard = ({
       </div>
 
       {/* Fixed-size Preview Container */}
-      <div className="relative w-full h-[180px] bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-[180px] bg-surface-button flex items-center justify-center overflow-hidden">
         {design.thumbnail && design.thumbnail !== 'data:,' ? (
           <img 
             src={design.thumbnail}
@@ -184,7 +184,7 @@ const DesignCard = ({
             draggable="false"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-gray-500 pointer-events-none">
+          <div className="flex flex-col items-center justify-center text-content-faint pointer-events-none">
             <Layers size={32} className="mb-2 opacity-50" />
             <span className="text-xs">No preview</span>
           </div>
@@ -197,7 +197,7 @@ const DesignCard = ({
               e.stopPropagation();
               onEdit(design);
             }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-all hover:scale-105"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-all hover:scale-105"
           >
             <Edit2 size={14} />
             Edit
@@ -239,15 +239,15 @@ const DesignCard = ({
       </div>
 
       {/* Info */}
-      <div className="p-3 bg-[#1a1a1a]">
-        <h4 className="text-white font-medium text-sm truncate group-hover:text-orange-400 transition-colors pointer-events-none">
+      <div className="p-3 bg-surface-hover">
+        <h4 className="text-content-primary font-medium text-sm truncate group-hover:text-primary transition-colors pointer-events-none">
           {design.name}
         </h4>
         <div className="flex items-center justify-between mt-1.5 pointer-events-none">
-          <span className="text-gray-500 text-xs">{formatDate(design.createdAt)}</span>
-          <span className="text-gray-500 text-xs">{design.size}</span>
+          <span className="text-content-faint text-xs">{formatDate(design.createdAt)}</span>
+          <span className="text-content-faint text-xs">{design.size}</span>
         </div>
-        <div className="flex items-center gap-1 text-gray-500 text-xs mt-1 pointer-events-none">
+        <div className="flex items-center gap-1 text-content-faint text-xs mt-1 pointer-events-none">
           <Layers size={10} />
           <span>{design.elements?.length || 0} layers</span>
         </div>

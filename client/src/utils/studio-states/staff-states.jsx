@@ -10,7 +10,6 @@ import { createElement } from 'react';
 // =============================================================================
 // STAFF COLOR INDICATOR COMPONENT
 // =============================================================================
-// Einfache Komponente für farbige Staff-Markierungen (ohne JSX für .js Datei)
 export const StaffColorIndicator = ({ color, size = 12, className = "" }) => {
   return createElement('span', {
     className: `inline-block rounded-full ${className}`,
@@ -21,6 +20,37 @@ export const StaffColorIndicator = ({ color, size = 12, className = "" }) => {
     }
   });
 };
+
+// =============================================================================
+// ROLE COLORS (derived from configuration-states DEFAULT_STAFF_ROLES)
+// =============================================================================
+// Maps each staffRolesData job-role → closest DEFAULT_STAFF_ROLES permission-role color
+import { staffRolesData, DEFAULT_STAFF_ROLES } from './configuration-states';
+
+// Build a lookup from permission-role name → hex color
+const _permRoleColorMap = DEFAULT_STAFF_ROLES.reduce((m, r) => { m[r.name] = r.color; return m; }, {});
+
+// Map each staffRolesData job-role to its permission-role color
+const STAFF_ROLE_TO_PERM = {
+  'Personal Trainer': 'Trainer',
+  'Fitness Coach':    'Trainer',
+  'Studio Manager':   'Studio Operator',
+  'Receptionist':     'Studio Operator',
+  'Telephone operator': 'Studio Operator',
+  'Admin':            'Admin',
+};
+
+export const ROLE_COLOR_HEX = {};
+staffRolesData.forEach(role => {
+  const permRole = STAFF_ROLE_TO_PERM[role] || 'Trainer';
+  ROLE_COLOR_HEX[role] = _permRoleColorMap[permRole] || '#808080';
+});
+
+export const getRoleColorHex = (role) => ROLE_COLOR_HEX[role] || '#808080';
+
+// Kept for backwards compat but now delegates to hex map
+export const ROLE_COLORS = ROLE_COLOR_HEX;
+export const getRoleColor = getRoleColorHex;
 
 // =============================================================================
 // STAFF DATA
@@ -40,7 +70,7 @@ export const staffData = [
   {
     id: 2, firstName: "John", lastName: "Trainer", role: "Personal Trainer",
     email: "john.trainer@example.com", phone: "+9876543210",
-    description: "Certified personal trainer.", img: null,
+    description: "Certified personal trainer specializing in strength and conditioning.", img: null,
     userId: "john.trainer", username: "john.trainer",
     street: "456 Oak Ave", zipCode: "67890", city: "Fittown", country: "USA",
     vacationEntitlement: 25, vacationDays: 25, vacationUsed: 10, vacationNotes: "",
@@ -51,7 +81,7 @@ export const staffData = [
   {
     id: 3, firstName: "Sarah", lastName: "Coach", role: "Fitness Coach",
     email: "sarah.coach@example.com", phone: "+92131232323",
-    description: "Group fitness instructor.", img: null,
+    description: "Group fitness instructor with expertise in HIIT and cardio.", img: null,
     userId: "sarah.coach", username: "sarah.coach",
     street: "789 Pine Rd", zipCode: "62390", city: "Gymville", country: "USA",
     vacationEntitlement: 20, vacationDays: 20, vacationUsed: 3, vacationNotes: "",
@@ -81,6 +111,61 @@ export const staffData = [
     employmentStart: "2023-02-15", employmentEnd: null, contractType: "part-time", department: "Reception",
     isActive: true, isArchived: false, documents: [],
   },
+  {
+    id: 6, firstName: "Alex", lastName: "Power", role: "Personal Trainer",
+    email: "alex.power@example.com", phone: "+4455667788",
+    description: "Specialist in functional training and rehabilitation.", img: null,
+    userId: "alex.power", username: "alex.power",
+    street: "88 Fitness Blvd", zipCode: "33445", city: "Fittown", country: "USA",
+    vacationEntitlement: 25, vacationDays: 25, vacationUsed: 4, vacationNotes: "",
+    dateOfBirth: "1991-02-14", gender: "male", color: "#FF9800",
+    employmentStart: "2022-04-01", employmentEnd: null, contractType: "full-time", department: "Training",
+    isActive: true, isArchived: false, documents: [],
+  },
+  {
+    id: 7, firstName: "Maria", lastName: "Flex", role: "Yoga Instructor",
+    email: "maria.flex@example.com", phone: "+6677889900",
+    description: "Certified yoga and Pilates instructor with 8 years experience.", img: null,
+    userId: "maria.flex", username: "maria.flex",
+    street: "12 Zen Way", zipCode: "55667", city: "Peaceville", country: "USA",
+    vacationEntitlement: 22, vacationDays: 22, vacationUsed: 6, vacationNotes: "",
+    dateOfBirth: "1989-09-03", gender: "female", color: "#66BB6A",
+    employmentStart: "2021-09-15", employmentEnd: null, contractType: "full-time", department: "Training",
+    isActive: true, isArchived: false, documents: [],
+  },
+  {
+    id: 8, firstName: "Tom", lastName: "Strong", role: "Boxing Coach",
+    email: "tom.strong@example.com", phone: "+7788990011",
+    description: "Former semi-professional boxer turned fitness coach.", img: null,
+    userId: "tom.strong", username: "tom.strong",
+    street: "99 Ring Rd", zipCode: "77889", city: "Fittown", country: "USA",
+    vacationEntitlement: 24, vacationDays: 24, vacationUsed: 7, vacationNotes: "",
+    dateOfBirth: "1987-06-28", gender: "male", color: "#E65100",
+    employmentStart: "2020-11-01", employmentEnd: null, contractType: "full-time", department: "Training",
+    isActive: true, isArchived: false, documents: [],
+  },
+  {
+    id: 9, firstName: "Emma", lastName: "Dance", role: "Dance Instructor",
+    email: "emma.dance@example.com", phone: "+8899001122",
+    description: "Zumba and dance fitness specialist.", img: null,
+    userId: "emma.dance", username: "emma.dance",
+    street: "45 Rhythm Ave", zipCode: "88990", city: "Danceburgh", country: "USA",
+    vacationEntitlement: 20, vacationDays: 20, vacationUsed: 3, vacationNotes: "",
+    dateOfBirth: "1993-12-05", gender: "female", color: "#E91E63",
+    employmentStart: "2023-03-01", employmentEnd: null, contractType: "part-time", department: "Training",
+    isActive: true, isArchived: false, documents: [],
+  },
+  {
+    id: 10, firstName: "David", lastName: "Health", role: "Physiotherapist",
+    email: "david.health@example.com", phone: "+9900112233",
+    description: "Sports physiotherapist with clinical background.", img: null,
+    userId: "david.health", username: "david.health",
+    street: "67 Wellness Dr", zipCode: "99001", city: "Healtown", country: "USA",
+    vacationEntitlement: 28, vacationDays: 28, vacationUsed: 10, vacationNotes: "",
+    dateOfBirth: "1986-04-18", gender: "male", color: "#00897B",
+    employmentStart: "2019-07-01", employmentEnd: null, contractType: "full-time", department: "Health",
+    isActive: true, isArchived: false, documents: [],
+  },
 ];
 
 // =============================================================================
@@ -100,8 +185,9 @@ export const getArchivedStaff = () => staffData.filter(s => s.isArchived);
 export const getStaffByRole = (role) => staffData.filter(s => s.role === role);
 export const getStaffByDepartment = (department) => staffData.filter(s => s.department === department);
 
-export const getTrainers = () => staffData.filter(s => 
-  s.role === "Personal Trainer" || s.role === "Fitness Coach"
+// Trainers = anyone in the Training department (Personal Trainer, Fitness Coach, Yoga Instructor, Boxing Coach, Dance Instructor)
+export const getTrainers = () => staffData.filter(s =>
+  s.department === "Training" && s.isActive && !s.isArchived
 );
 
 // =============================================================================
@@ -194,6 +280,8 @@ export default {
   getStaffByRole,
   getStaffByDepartment,
   getTrainers,
+  ROLE_COLORS,
+  getRoleColor,
   transformStaffFromBackend,
   transformStaffToBackend,
   staffApi,

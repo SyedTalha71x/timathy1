@@ -17,7 +17,7 @@ import {
   TrendingUp
 } from "lucide-react"
 
-// âœ… Import shared data from analytics-states
+// ✅ Import shared data from analytics-states
 import {
   tabs,
   appointmentsData,
@@ -34,7 +34,7 @@ import {
   getMostFrequentlySoldChartConfig,
 } from "../../../utils/studio-states/analytics-states"
 
-// âœ… Extended dropdown options - Full scope like Analytics menu
+// ✅ Extended dropdown options - Full scope like Analytics menu
 const dropdownOptions = {
   Appointments: [
     { value: "overview", label: "Overview", type: "stats" },
@@ -58,53 +58,55 @@ const dropdownOptions = {
   ],
 }
 
-// âœ… Mini Stat Card Component for Overview
+// ✅ Mini Stat Card Component for Overview
 const MiniStatCard = ({ title, value, icon: Icon, iconBg, iconColor, change, isMobile }) => {
   const isPositive = change > 0
   const isNeutral = change === 0 || change === undefined
 
   return (
-    <div className="bg-black rounded-lg p-2 sm:p-3">
+    <div className="bg-surface-card rounded-xl p-2 sm:p-3">
       <div className="flex items-center gap-2">
         <div className={`p-1.5 sm:p-2 ${iconBg} rounded-lg flex-shrink-0`}>
           <Icon size={isMobile ? 14 : 16} className={iconColor} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            <span className="text-sm sm:text-base font-bold text-white truncate">
+            <span className="text-sm sm:text-base font-bold text-content-primary truncate">
               {value}
             </span>
             {!isNeutral && (
-              <span className={`text-[10px] ${isPositive ? "text-green-400" : "text-red-400"}`}>
-                {isPositive ? "â†‘" : "â†“"}{Math.abs(change)}%
+              <span className={`flex items-center text-[10px] px-1 py-0.5 rounded ${
+                isPositive ? "text-accent-green bg-accent-green/20" : "text-accent-red bg-accent-red/20"
+              }`}>
+                {isPositive ? "↑" : "↓"}{Math.abs(change)}%
               </span>
             )}
           </div>
-          <p className="text-[10px] sm:text-xs text-gray-400 truncate">{title}</p>
+          <p className="text-[10px] sm:text-xs text-content-muted truncate">{title}</p>
         </div>
       </div>
     </div>
   )
 }
 
-// âœ… Hero Stat Card for Members/Leads Overview
+// ✅ Hero Stat Card for Members/Leads Overview
 const HeroStatCard = ({ title, value, icon: Icon, change, isMobile }) => {
   return (
-    <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-xl p-3 sm:p-4">
+    <div className="bg-gradient-to-br from-primary/20 to-primary/30 border border-primary/30 rounded-xl p-3 sm:p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 sm:p-3 bg-blue-500/20 rounded-xl">
-            <Icon size={isMobile ? 20 : 24} className="text-blue-400" />
+          <div className="p-2 sm:p-3 bg-primary/20 rounded-xl">
+            <Icon size={isMobile ? 20 : 24} className="text-primary" />
           </div>
           <div>
-            <p className="text-blue-300 text-[10px] sm:text-xs">{title}</p>
-            <div className="text-2xl sm:text-3xl font-bold text-white">{value}</div>
+            <p className="text-primary text-[10px] sm:text-xs">{title}</p>
+            <div className="text-2xl sm:text-3xl font-bold text-content-primary">{value}</div>
           </div>
         </div>
         {change && (
-          <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-lg">
-            <TrendingUp className="text-green-400" size={14} />
-            <span className="text-green-400 text-xs font-semibold">+{change}%</span>
+          <div className="flex items-center gap-1 bg-accent-green/20 px-2 py-1 rounded-lg">
+            <TrendingUp className="text-accent-green" size={14} />
+            <span className="text-accent-green text-xs font-semibold">+{change}%</span>
           </div>
         )}
       </div>
@@ -140,7 +142,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // âœ… Navigate to previous/next option
+  // ✅ Navigate to previous/next option
   const navigateOption = (direction) => {
     const options = dropdownOptions[activeTab]
     const currentIndex = options.findIndex(opt => opt.value === selectedOption)
@@ -152,7 +154,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     setSelectedOption(options[newIndex].value)
   }
 
-  // âœ… Get chart configuration
+  // ✅ Get chart configuration
   const getChartConfig = () => {
     const widgetHeight = isMobile ? 200 : 260
 
@@ -239,7 +241,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
                         total: {
                           show: true,
                           label: "Total",
-                          color: "#9CA3AF",
+                          color: getComputedStyle(document.documentElement).getPropertyValue('--color-content-muted').trim() || "#9CA3AF",
                           fontSize: isMobile ? "11px" : "12px",
                           formatter: () => membersData.totalMembers.toString(),
                         },
@@ -248,6 +250,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
                   },
                 },
                 dataLabels: { enabled: false },
+                stroke: { show: false, width: 0 },
               },
               series: config.series,
               type: "donut",
@@ -324,18 +327,18 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     return null
   }
 
-  // âœ… Render Overview Stats based on active tab
+  // ✅ Render Overview Stats based on active tab
   const renderOverviewStats = () => {
     switch (activeTab) {
       case "Appointments":
         return (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <MiniStatCard
               title="Bookings"
               value={appointmentsData.totals.bookings}
               icon={CalendarDays}
-              iconBg="bg-blue-500/20"
-              iconColor="text-blue-400"
+              iconBg="bg-primary/20"
+              iconColor="text-primary"
               change={12}
               isMobile={isMobile}
             />
@@ -343,8 +346,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               title="Check-ins"
               value={appointmentsData.totals.checkIns}
               icon={UserCheck}
-              iconBg="bg-green-500/20"
-              iconColor="text-green-400"
+              iconBg="bg-accent-green/20"
+              iconColor="text-accent-green"
               change={8}
               isMobile={isMobile}
             />
@@ -352,8 +355,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               title="Cancellations"
               value={appointmentsData.totals.cancellations}
               icon={UserX}
-              iconBg="bg-red-500/20"
-              iconColor="text-red-400"
+              iconBg="bg-accent-red/20"
+              iconColor="text-accent-red"
               change={-15}
               isMobile={isMobile}
             />
@@ -361,16 +364,16 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               title="Late Cancels"
               value={appointmentsData.totals.lateCancellations}
               icon={Clock}
-              iconBg="bg-yellow-500/20"
-              iconColor="text-yellow-400"
+              iconBg="bg-accent-yellow/20"
+              iconColor="text-accent-yellow"
               isMobile={isMobile}
             />
             <MiniStatCard
               title="No Shows"
               value={appointmentsData.totals.noShows}
               icon={AlertCircle}
-              iconBg="bg-orange-500/20"
-              iconColor="text-orange-400"
+              iconBg="bg-primary/20"
+              iconColor="text-primary"
               isMobile={isMobile}
             />
           </div>
@@ -379,18 +382,20 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
       case "Members":
         return (
           <div className="space-y-3">
-            <HeroStatCard
+            <MiniStatCard
               title="Total Members"
               value={membersData.totalMembers}
               icon={Users}
+              iconBg="bg-primary/20"
+              iconColor="text-primary"
               change={18}
               isMobile={isMobile}
             />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {membersData.membersByType.map((type, index) => (
-                <div key={type.type} className="bg-black rounded-lg p-2 text-center">
-                  <div className="text-sm sm:text-base font-bold text-white">{type.count}</div>
-                  <div className="text-[10px] sm:text-xs text-gray-400">{type.type}</div>
+                <div key={type.type} className="bg-surface-card rounded-xl p-2 text-center">
+                  <div className="text-sm sm:text-base font-bold text-content-primary">{type.count}</div>
+                  <div className="text-[10px] sm:text-xs text-content-muted">{type.type}</div>
                 </div>
               ))}
             </div>
@@ -407,25 +412,27 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
 
         return (
           <div className="space-y-3">
-            <HeroStatCard
+            <MiniStatCard
               title="Total Leads"
               value={leadsData.totalLeads}
               icon={UserPlus}
+              iconBg="bg-primary/20"
+              iconColor="text-primary"
               change={24}
               isMobile={isMobile}
             />
-            <div className="grid grid-cols-3 gap-2">
-              <div className="bg-black rounded-lg p-2 text-center">
-                <div className="text-sm sm:text-base font-bold text-green-400">{totalConverted}</div>
-                <div className="text-[10px] sm:text-xs text-gray-400">Converted</div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-surface-card rounded-xl p-2 text-center">
+                <div className="text-sm sm:text-base font-bold text-accent-green">{totalConverted}</div>
+                <div className="text-[10px] sm:text-xs text-content-muted">Converted</div>
               </div>
-              <div className="bg-black rounded-lg p-2 text-center">
-                <div className="text-sm sm:text-base font-bold text-blue-400">{avgConversion}%</div>
-                <div className="text-[10px] sm:text-xs text-gray-400">Avg Rate</div>
+              <div className="bg-surface-card rounded-xl p-2 text-center">
+                <div className="text-sm sm:text-base font-bold text-primary">{avgConversion}%</div>
+                <div className="text-[10px] sm:text-xs text-content-muted">Avg Rate</div>
               </div>
-              <div className="bg-black rounded-lg p-2 text-center">
-                <div className="text-sm sm:text-base font-bold text-white">{lastMonth.newLeads}</div>
-                <div className="text-[10px] sm:text-xs text-gray-400">This Month</div>
+              <div className="bg-surface-card rounded-xl p-2 text-center">
+                <div className="text-sm sm:text-base font-bold text-content-primary">{lastMonth.newLeads}</div>
+                <div className="text-[10px] sm:text-xs text-content-muted">This Month</div>
               </div>
             </div>
           </div>
@@ -433,13 +440,13 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
 
       case "Finances":
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <MiniStatCard
               title="Total Revenue"
               value={`$${financesData.totalRevenue.toLocaleString()}`}
               icon={DollarSign}
-              iconBg="bg-green-500/20"
-              iconColor="text-green-400"
+              iconBg="bg-accent-green/20"
+              iconColor="text-accent-green"
               change={22}
               isMobile={isMobile}
             />
@@ -447,8 +454,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               title="Avg/Member"
               value={`$${financesData.averageRevenuePerMember.toFixed(0)}`}
               icon={CreditCard}
-              iconBg="bg-blue-500/20"
-              iconColor="text-blue-400"
+              iconBg="bg-primary/20"
+              iconColor="text-primary"
               change={5}
               isMobile={isMobile}
             />
@@ -456,8 +463,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               title="Outstanding"
               value={`$${financesData.outstandingPayments.toLocaleString()}`}
               icon={AlertCircle}
-              iconBg="bg-red-500/20"
-              iconColor="text-red-400"
+              iconBg="bg-accent-red/20"
+              iconColor="text-accent-red"
               change={-8}
               isMobile={isMobile}
             />
@@ -474,10 +481,10 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
   const currentOption = dropdownOptions[activeTab][currentOptionIndex]
 
   return (
-    <div className="p-3 sm:p-4 bg-[#2F2F2F] rounded-xl">
+    <div className="p-3 sm:p-4 bg-surface-button rounded-xl">
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-base sm:text-lg font-semibold">Analytics</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-content-primary">Analytics</h2>
       </div>
 
       {/* Tabs */}
@@ -491,8 +498,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             }}
             className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === tab.name
-                ? "bg-blue-600 text-white"
-                : "bg-[#3f3e3e] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
+                : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
             }`}
           >
             <tab.icon className="text-xs sm:text-sm" />
@@ -508,21 +515,21 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
       <div className="flex items-center gap-2 mb-3">
         <button
           onClick={() => navigateOption(-1)}
-          className="p-1.5 bg-black hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-1.5 bg-surface-card hover:bg-surface-hover rounded-lg transition-colors"
         >
-          <ChevronLeft size={16} className="text-gray-400" />
+          <ChevronLeft size={16} className="text-content-muted" />
         </button>
         
         <div className="relative flex-1" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center justify-between w-full px-3 py-2 bg-black rounded-lg text-white text-xs sm:text-sm"
+            className="flex items-center justify-between w-full px-3 py-2 bg-surface-card hover:bg-surface-hover rounded-xl text-content-primary text-xs sm:text-sm transition-colors border border-border-subtle"
           >
             <span className="truncate">
               {currentOption?.label}
             </span>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-[10px] text-gray-500">
+              <span className="text-[10px] text-content-faint">
                 {currentOptionIndex + 1}/{dropdownOptions[activeTab].length}
               </span>
               <svg
@@ -537,7 +544,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
           </button>
           
           {isDropdownOpen && (
-            <div className="absolute z-10 mt-1 w-full bg-[#2F2F2F] rounded-lg shadow-lg border border-gray-700">
+            <div className="absolute z-50 mt-1 w-full bg-surface-card rounded-xl shadow-lg border border-border-subtle overflow-hidden">
               {dropdownOptions[activeTab].map((option, index) => (
                 <button
                   key={option.value}
@@ -545,12 +552,12 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
                     setSelectedOption(option.value)
                     setIsDropdownOpen(false)
                   }}
-                  className={`flex items-center justify-between w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-black first:rounded-t-lg last:rounded-b-lg ${
-                    selectedOption === option.value ? "text-blue-400 bg-black/50" : "text-white"
+                  className={`flex items-center justify-between w-full text-left px-3 py-2.5 text-xs sm:text-sm hover:bg-surface-hover transition-colors ${
+                    selectedOption === option.value ? "text-primary bg-primary/20" : "text-content-primary"
                   }`}
                 >
                   <span>{option.label}</span>
-                  <span className="text-[10px] text-gray-500 capitalize">{option.type}</span>
+                  <span className="text-[10px] text-content-faint capitalize">{option.type}</span>
                 </button>
               ))}
             </div>
@@ -559,9 +566,9 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         
         <button
           onClick={() => navigateOption(1)}
-          className="p-1.5 bg-black hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-1.5 bg-surface-card hover:bg-surface-hover rounded-lg transition-colors"
         >
-          <ChevronRight size={16} className="text-gray-400" />
+          <ChevronRight size={16} className="text-content-muted" />
         </button>
       </div>
 
@@ -570,16 +577,21 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         {selectedOption === "overview" ? (
           renderOverviewStats()
         ) : (
-          <div className="overflow-x-auto">
-            <div className="min-w-[280px]">
-              {chartConfig && chartConfig.options && chartConfig.series && (
-                <Chart
-                  options={chartConfig.options}
-                  series={chartConfig.series}
-                  type={chartConfig.type}
-                  height={chartConfig.options?.chart?.height || (isMobile ? 200 : 260)}
-                />
-              )}
+          <div className="bg-surface-card rounded-xl p-3 sm:p-4">
+            <h3 className="text-sm sm:text-base font-semibold text-content-primary mb-3">
+              {currentOption?.label}
+            </h3>
+            <div className="overflow-x-auto">
+              <div className="min-w-[280px]">
+                {chartConfig && chartConfig.options && chartConfig.series && (
+                  <Chart
+                    options={chartConfig.options}
+                    series={chartConfig.series}
+                    type={chartConfig.type}
+                    height={chartConfig.options?.chart?.height || (isMobile ? 200 : 260)}
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}

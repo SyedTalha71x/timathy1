@@ -90,12 +90,12 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-orange-500/30' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-primary/30' : ''}`}>
       {!isDragDisabled && (
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-content-primary active:text-orange-400 p-1 rounded active:bg-orange-500/30 z-20 touch-none bg-black/40 shadow"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-content-primary active:text-primary p-1 rounded active:bg-primary/30 z-20 touch-none bg-surface-dark/60 shadow"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-4 h-4" />
@@ -431,7 +431,7 @@ const BulletinBoard = () => {
           .post-inactive:hover { opacity: 0.55; }
           .post-scheduled { opacity: 0.85; }
           .post-scheduled:hover { opacity: 1; }
-          .post-scheduled > div { border-color: #f97316 !important; }
+          .post-scheduled > div { border-color: var(--color-primary) !important; }
           .rich-text-content p { margin: 0; }
           .rich-text-content ul, .rich-text-content ol { margin: 0; padding-left: 1.5em; }
           .rich-text-content li { margin: 0; }
@@ -461,7 +461,7 @@ const BulletinBoard = () => {
                 <div className="absolute left-0 top-full mt-2 w-64 bg-surface-hover border border-border rounded-lg shadow-xl p-4 z-50">
                   <div className="text-sm space-y-3">
                     <div>
-                      <p className="text-orange-400 font-medium mb-1">Member Posts</p>
+                      <p className="text-primary font-medium mb-1">Member Posts</p>
                       <p className="text-content-secondary text-xs leading-relaxed">Visible to all members.</p>
                     </div>
                     <div className="border-t border-border pt-3">
@@ -515,20 +515,20 @@ const BulletinBoard = () => {
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Manage Tags</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">T</span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-transparent" />
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
               </div>
             </div>
 
             {/* Create Post Button - Desktop */}
             <div className="hidden md:block relative group">
-              <button onClick={() => setShowCreateModal(true)} className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors">
+              <button onClick={() => setShowCreateModal(true)} className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors">
                 <Plus size={14} className="sm:w-4 sm:h-4" />
                 <span className='hidden sm:inline'>Create Post</span>
               </button>
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Create Post</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-transparent" />
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
               </div>
             </div>
           </div>
@@ -580,8 +580,8 @@ const BulletinBoard = () => {
 
         {/* Tabs */}
         <div className="flex border-b border-border mb-6">
-          <button onClick={() => setActiveTab("member")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "member" ? "text-content-primary border-b-2 border-orange-400" : "text-content-muted hover:text-content-primary"}`}>Member</button>
-          <button onClick={() => setActiveTab("staff")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "staff" ? "text-content-primary border-b-2 border-orange-400" : "text-content-muted hover:text-content-primary"}`}>Staff</button>
+          <button onClick={() => setActiveTab("member")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "member" ? "text-content-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"}`}>Member</button>
+          <button onClick={() => setActiveTab("staff")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "staff" ? "text-content-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"}`}>Staff</button>
         </div>
 
         {/* Posts Grid with Drag and Drop */}
@@ -601,7 +601,7 @@ const BulletinBoard = () => {
 
                         {/* Cover Image */}
                         {post.image && (
-                          <div className="relative mb-4 rounded-lg overflow-hidden border border-border -mx-4 -mt-4 md:-mx-6 md:-mt-6 rounded-t-xl rounded-b-none aspect-video bg-black">
+                          <div className="relative mb-4 rounded-lg overflow-hidden border border-border -mx-4 -mt-4 md:-mx-6 md:-mt-6 rounded-t-xl rounded-b-none aspect-video bg-surface-dark">
                             <img src={post.image} alt="Post cover" className="w-full h-full object-contain pointer-events-none" draggable="false" />
                           </div>
                         )}
@@ -652,13 +652,13 @@ const BulletinBoard = () => {
                                 onMouseEnter={() => setSchedulePopupPostId(post.id)}
                                 onMouseLeave={() => setSchedulePopupPostId(null)}
                               >
-                                <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     setSchedulePopupPostId(schedulePopupPostId === post.id ? null : post.id)
                                   }}
-                                  className="text-xs font-medium text-orange-400 cursor-pointer hover:text-orange-300 transition-colors"
+                                  className="text-xs font-medium text-primary cursor-pointer hover:text-primary-hover transition-colors"
                                 >
                                   Scheduled
                                 </button>
@@ -667,7 +667,7 @@ const BulletinBoard = () => {
                                   <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-surface-hover border border-border rounded-lg shadow-xl z-50 whitespace-nowrap">
                                     <div className="text-xs space-y-1">
                                       {post.schedule.startDate && (
-                                        <div className="flex items-center gap-2 text-orange-400">
+                                        <div className="flex items-center gap-2 text-primary">
                                           <Calendar size={10} />
                                           <span>Starts: {formatScheduleDate(post.schedule.startDate)}{post.schedule.startTime && ` at ${formatScheduleTime(post.schedule.startTime)}`}</span>
                                         </div>
@@ -696,7 +696,7 @@ const BulletinBoard = () => {
                           {/* Right: Eye and 3-dot menu */}
                           <div className="flex items-center gap-1">
                             {/* Eye icon for preview */}
-                            <button onClick={() => setViewingPost(post)} className="text-content-muted hover:text-orange-400 p-1.5 rounded-lg hover:bg-surface-hover transition-colors" title="Preview Post">
+                            <button onClick={() => setViewingPost(post)} className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-hover transition-colors" title="Preview Post">
                               <Eye size={16} />
                             </button>
 
@@ -707,7 +707,7 @@ const BulletinBoard = () => {
                                   e.stopPropagation()
                                   toggleDropdown(post.id, e)
                                 }} 
-                                className="text-content-muted hover:text-orange-400 p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
+                                className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                               >
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -778,7 +778,7 @@ const BulletinBoard = () => {
             </div>
             <h3 className="text-xl font-medium text-content-secondary mb-3">No posts found</h3>
             <p className="text-content-faint mb-6">{searchQuery ? "Try adjusting your search or filters" : "Create a new post to get started"}</p>
-            <button onClick={() => setShowCreateModal(true)} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
+            <button onClick={() => setShowCreateModal(true)} className="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
               <Plus size={18} />Create Post
             </button>
           </div>
@@ -793,7 +793,7 @@ const BulletinBoard = () => {
       </div>
 
       {/* Floating Action Button - Mobile */}
-      <button onClick={() => setShowCreateModal(true)} className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Post">
+      <button onClick={() => setShowCreateModal(true)} className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Post">
         <Plus size={22} />
       </button>
     </>

@@ -16,14 +16,14 @@ export default function ImageSourceModal({ isOpen, onClose, onSelectFile, onSele
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[1001]">
-      <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1001]">
+      <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white">Choose Image Source</h2>
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <h2 className="text-lg font-semibold text-content-primary">Choose Image Source</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="text-content-muted hover:text-content-primary transition-colors p-1"
           >
             <X size={22} />
           </button>
@@ -37,14 +37,14 @@ export default function ImageSourceModal({ isOpen, onClose, onSelectFile, onSele
               onSelectFile()
               onClose()
             }}
-            className="w-full flex items-center gap-4 p-4 bg-[#141414] border border-gray-700 rounded-xl hover:border-orange-500/50 hover:bg-[#1a1a1a] transition-all group"
+            className="w-full flex items-center gap-4 p-4 border border-border rounded-xl hover:border-primary/50 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-              <Upload size={24} className="text-blue-400" />
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+              <Upload size={24} className="text-primary" />
             </div>
             <div className="text-left">
-              <p className="text-white font-medium">Upload from Device</p>
-              <p className="text-gray-500 text-sm mt-0.5">Choose an image from your files</p>
+              <p className="text-content-primary font-medium">Upload from Device</p>
+              <p className="text-content-faint text-sm mt-0.5">Choose an image from your files</p>
             </div>
           </button>
 
@@ -54,14 +54,14 @@ export default function ImageSourceModal({ isOpen, onClose, onSelectFile, onSele
               onSelectMediaLibrary()
               onClose()
             }}
-            className="w-full flex items-center gap-4 p-4 bg-[#141414] border border-gray-700 rounded-xl hover:border-orange-500/50 hover:bg-[#1a1a1a] transition-all group"
+            className="w-full flex items-center gap-4 p-4 border border-border rounded-xl hover:border-primary/50 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-              <ImageIcon size={24} className="text-orange-400" />
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+              <ImageIcon size={24} className="text-primary" />
             </div>
             <div className="text-left">
-              <p className="text-white font-medium">Media Library</p>
-              <p className="text-gray-500 text-sm mt-0.5">Select from your saved designs</p>
+              <p className="text-content-primary font-medium">Media Library</p>
+              <p className="text-content-faint text-sm mt-0.5">Select from your saved designs</p>
             </div>
           </button>
         </div>
@@ -70,7 +70,7 @@ export default function ImageSourceModal({ isOpen, onClose, onSelectFile, onSele
         <div className="px-5 pb-5">
           <button
             onClick={onClose}
-            className="w-full py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm font-medium transition-colors"
+            className="w-full py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
           >
             Cancel
           </button>

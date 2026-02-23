@@ -99,6 +99,28 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
   
   const dropdownRef = useRef(null)
   const sortDropdownRef = useRef(null)
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, notes, activeTab])
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -318,7 +340,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
   const currentNotes = getCurrentNotes()
 
   return (
-    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+    <div className={`p-4 rounded-xl bg-surface-button flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -329,7 +351,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Sort notes"
@@ -342,9 +364,9 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               </button>
 
               {isSortDropdownOpen && (
-                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Sort by</p>
                   </div>
                   {[
                     { value: "custom", label: "Custom" },
@@ -355,7 +377,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                     <div
                       key={option.value}
                       className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <button
@@ -373,9 +395,9 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                           className="ml-2"
                         >
                           {sortOrder === "asc" ? (
-                            <ArrowUp size={12} className="text-gray-400" />
+                            <ArrowUp size={12} className="text-content-muted" />
                           ) : (
-                            <ArrowDown size={12} className="text-gray-400" />
+                            <ArrowDown size={12} className="text-content-muted" />
                           )}
                         </button>
                       )}
@@ -388,7 +410,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
             {!isSidebarEditing && (
               <button
                 onClick={handleCreateClick}
-                className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg cursor-pointer transition-colors"
+                className="p-2 bg-primary hover:bg-primary-hover rounded-lg cursor-pointer transition-colors text-white"
                 title="Add New Note"
               >
                 <Plus size={18} />
@@ -402,21 +424,21 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
       {!showHeader && (
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Compact Tabs */}
-          <div className="flex gap-0.5 p-0.5 bg-black rounded-lg flex-1 min-w-0">
+          <div className="flex gap-0.5 p-0.5 bg-surface-base rounded-lg flex-1 min-w-0">
             {Object.entries(TAB_CONFIG).map(([tab, config]) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all ${
                   activeTab === tab
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-400 hover:text-gray-200"
+                    ? "bg-surface-dark text-content-primary"
+                    : "text-content-muted hover:text-content-primary"
                 }`}
               >
                 <span>{config.label}</span>
                 <span
                   className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
-                    activeTab === tab ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                    activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
                   }`}
                 >
                   {tabCounts[tab]}
@@ -432,7 +454,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-black rounded-md text-gray-400 hover:text-white transition-colors ${
+                className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Sort notes"
@@ -445,9 +467,9 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               </button>
 
               {isSortDropdownOpen && (
-                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Sort by</p>
                   </div>
                   {[
                     { value: "custom", label: "Custom" },
@@ -458,7 +480,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                     <div
                       key={option.value}
                       className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <button
@@ -476,9 +498,9 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                           className="ml-2"
                         >
                           {sortOrder === "asc" ? (
-                            <ArrowUp size={12} className="text-gray-400" />
+                            <ArrowUp size={12} className="text-content-muted" />
                           ) : (
-                            <ArrowDown size={12} className="text-gray-400" />
+                            <ArrowDown size={12} className="text-content-muted" />
                           )}
                         </button>
                       )}
@@ -491,7 +513,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
             {!isSidebarEditing && (
               <button
                 onClick={handleCreateClick}
-                className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md cursor-pointer transition-colors"
+                className="p-1.5 bg-primary hover:bg-primary-hover rounded-md cursor-pointer transition-colors text-white"
                 title="Add New Note"
               >
                 <Plus size={14} />
@@ -503,21 +525,21 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
 
       {/* Tabs - Only shown when showHeader is true (My Area) */}
       {showHeader && (
-        <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+        <div className="flex gap-1 p-1 bg-surface-base rounded-xl flex-shrink-0">
           {Object.entries(TAB_CONFIG).map(([tab, config]) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 activeTab === tab
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "bg-surface-dark text-content-primary"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               <span>{config.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                  activeTab === tab ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                  activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
                 }`}
               >
                 {tabCounts[tab]}
@@ -528,21 +550,25 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
       )}
 
       {/* Notes List */}
-      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
-        {(maxItems ? currentNotes.slice(0, maxItems) : currentNotes).map((note) => (
+      <div
+        ref={listRef}
+        className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}
+        style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+      >
+        {currentNotes.map((note) => (
           <div
             key={note.id}
-            className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"
+            className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-all"
           >
             <div className="flex items-start gap-3">
               {/* Note Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-white truncate flex-1">
+                  <h3 className="text-sm font-semibold text-content-primary truncate flex-1">
                     {note.title || "Untitled"}
                   </h3>
                   {note.isPinned && (
-                    <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0" />
+                    <Pin size={12} className="text-primary fill-primary flex-shrink-0" />
                   )}
                 </div>
                 
@@ -562,20 +588,20 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                       ) : null
                     })}
                     {note.tags.length > 2 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-600 text-gray-300">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-button text-content-secondary">
                         +{note.tags.length - 2}
                       </span>
                     )}
                   </div>
                 )}
 
-                <p className="text-xs text-gray-400 line-clamp-2">
+                <p className="text-xs text-content-muted line-clamp-2">
                   {truncateText(note.content)}
                 </p>
 
                 {/* Date and Time */}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] text-gray-500">
+                  <span className="text-[10px] text-content-faint">
                     {new Date(note.updatedAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -595,27 +621,27 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                     e.stopPropagation()
                     handleDropdownToggle(note.id, e)
                   }}
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary transition-colors"
                 >
                   <MoreVertical size={14} />
                 </button>
 
                 {openDropdownId === note.id && (
                   <div 
-                    className={`absolute right-0 bg-[#2F2F2F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
+                    className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
                       dropdownPosition[note.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
                     }`}
                   >
                     <button
                       onClick={() => handleEditClick(note)}
-                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white transition-colors"
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary transition-colors"
                     >
                       <Edit size={12} />
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeleteClick(note)}
-                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 text-red-400 flex items-center gap-2 transition-colors"
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2 transition-colors"
                     >
                       <Trash2 size={12} />
                       Delete
@@ -629,9 +655,9 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
 
         {/* Empty State */}
         {currentNotes.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-              <Edit size={20} className="text-gray-600" />
+          <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+            <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+              <Edit size={20} className="text-content-faint" />
             </div>
             <p className="text-sm">No {activeTab} notes</p>
             <p className="text-xs mt-1">Click + to create a note</p>
@@ -640,8 +666,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
       </div>
 
       {/* Footer Link */}
-      <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0">
-        <Link to="/dashboard/notes" className="text-xs text-gray-400 hover:text-white transition-colors">
+      <div className="flex justify-center pt-2 border-t border-border flex-shrink-0">
+        <Link to="/dashboard/notes" className="text-xs text-content-muted hover:text-content-primary transition-colors">
           View all notes →
         </Link>
       </div>

@@ -39,15 +39,15 @@ const STATUS_CONFIG = {
     label: "Completed",
     color: "#10b981",
     bgColor: "rgba(16, 185, 129, 0.15)",
-    textColor: "text-green-400",
-    dotColor: "bg-green-500",
+    textColor: "text-accent-green",
+    dotColor: "bg-accent-green",
   },
   canceled: {
     label: "Canceled",
     color: "#ef4444",
     bgColor: "rgba(239, 68, 68, 0.15)",
-    textColor: "text-red-400",
-    dotColor: "bg-red-500",
+    textColor: "text-accent-red",
+    dotColor: "bg-accent-red",
   },
 }
 
@@ -106,10 +106,10 @@ const TaskCard = ({
     <div
       className={`p-3 rounded-xl transition-all select-none ${
         isCompleted
-          ? "bg-gray-800/50"
+          ? "bg-surface-dark/50"
           : isCanceled
-          ? "bg-gray-800/30"
-          : "bg-[#1a1a1a] hover:bg-gray-800"
+          ? "bg-surface-dark/30"
+          : "bg-surface-card hover:bg-surface-hover"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -117,18 +117,18 @@ const TaskCard = ({
         {isCanceled ? (
           <button
             onClick={() => onStatusChange(task.id, "ongoing")}
-            className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-600 border border-gray-500"
+            className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-surface-button border border-border"
             title="Canceled - Click to restore"
           >
-            <X size={12} className="text-gray-400" />
+            <X size={12} className="text-content-muted" />
           </button>
         ) : (
           <button
             onClick={() => onStatusChange(task.id, isCompleted ? "ongoing" : "completed")}
             className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
               isCompleted
-                ? "bg-gray-500 border-gray-500"
-                : "border-gray-500 hover:border-blue-400"
+                ? "bg-content-faint border-border"
+                : "border-border hover:border-secondary"
             }`}
           >
             {isCompleted && <Check size={12} className="text-white" />}
@@ -143,17 +143,17 @@ const TaskCard = ({
               <p
                 className={`text-sm font-medium select-none flex-1 ${
                   isCompleted
-                    ? "text-gray-500"
+                    ? "text-content-faint"
                     : isCanceled
-                    ? "text-gray-600 line-through italic"
-                    : "text-white"
+                    ? "text-content-faint line-through italic"
+                    : "text-content-primary"
                 }`}
                 style={{ wordBreak: 'break-word' }}
               >
                 {task.title}
               </p>
               {task.isPinned && (
-                <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-0.5" />
+                <Pin size={12} className="text-primary fill-primary flex-shrink-0 mt-0.5" />
               )}
             </div>
 
@@ -164,19 +164,19 @@ const TaskCard = ({
                   e.stopPropagation()
                   setOpenDropdownId(openDropdownId === task.id ? null : task.id)
                 }}
-                className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
               >
                 <MoreVertical size={14} />
               </button>
 
               {openDropdownId === task.id && (
-                <div className="absolute right-0 top-6 bg-[#2F2F2F] rounded-lg shadow-lg z-50 min-w-[120px] py-1 border border-gray-700">
+                <div className="absolute right-0 top-6 bg-surface-button rounded-lg shadow-lg z-50 min-w-[120px] py-1 border border-border">
                   <button
                     onClick={() => {
                       onEdit(task)
                       setOpenDropdownId(null)
                     }}
-                    className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2"
                   >
                     <Edit size={12} />
                     Edit
@@ -187,7 +187,7 @@ const TaskCard = ({
                         onStatusChange(task.id, "canceled")
                         setOpenDropdownId(null)
                       }}
-                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2"
                     >
                       <X size={12} />
                       Cancel
@@ -198,7 +198,7 @@ const TaskCard = ({
                       onDelete(task.id)
                       setOpenDropdownId(null)
                     }}
-                    className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 text-red-400 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2"
                   >
                     <Trash2 size={12} />
                     Delete
@@ -215,8 +215,8 @@ const TaskCard = ({
               <span
                 className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
                   isCompleted || isCanceled
-                    ? "bg-gray-800 text-gray-500"
-                    : "bg-blue-900/30 text-blue-300"
+                    ? "bg-surface-dark text-content-faint"
+                    : "bg-secondary/20 text-secondary"
                 }`}
               >
                 <Calendar size={10} />
@@ -229,8 +229,8 @@ const TaskCard = ({
               <span
                 className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
                   isCompleted || isCanceled
-                    ? "bg-gray-800 text-gray-500"
-                    : "bg-gray-700 text-gray-300"
+                    ? "bg-surface-dark text-content-faint"
+                    : "bg-surface-button text-content-secondary"
                 }`}
               >
                 <Users size={10} />
@@ -244,7 +244,7 @@ const TaskCard = ({
                 <span
                   key={idx}
                   className={`text-xs px-2 py-0.5 rounded-md ${
-                    isCompleted || isCanceled ? "bg-gray-800 text-gray-500" : "text-white"
+                    isCompleted || isCanceled ? "bg-surface-dark text-content-faint" : "text-white"
                   }`}
                   style={{
                     backgroundColor:
@@ -255,7 +255,7 @@ const TaskCard = ({
                 </span>
               ))}
             {task.tags && task.tags.length > 2 && (
-              <span className="text-xs text-gray-500">+{task.tags.length - 2}</span>
+              <span className="text-xs text-content-faint">+{task.tags.length - 2}</span>
             )}
           </div>
         </div>
@@ -291,6 +291,28 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
   // Refs
   const filterDropdownRef = useRef(null)
   const sortDropdownRef = useRef(null)
+
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, todos.length, activeTab])
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -491,7 +513,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
   const currentTasks = getFilteredTasks(activeTab)
 
   return (
-    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+    <div className={`p-4 rounded-xl bg-surface-button flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -504,8 +526,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                 disabled={isSidebarEditing}
                 className={`p-1.5 rounded-lg transition-colors ${
                   selectedStaffFilter.length > 0
-                    ? "bg-blue-600 text-white"
-                    : "bg-black text-gray-400 hover:text-white"
+                    ? "bg-secondary text-white"
+                    : "bg-surface-base text-content-muted hover:text-content-primary"
                 } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
                 title="Filter by staff"
               >
@@ -513,16 +535,16 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               </button>
 
               {isFilterDropdownOpen && (
-                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[180px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Filter by Staff</p>
+                <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[180px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Filter by Staff</p>
                   </div>
                   <button
                     onClick={() => setSelectedStaffFilter([])}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       selectedStaffFilter.length === 0
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     All Tasks
@@ -533,8 +555,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                       onClick={() => toggleStaffFilter(staff.id)}
                       className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
                         selectedStaffFilter.includes(staff.id)
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-gray-800"
+                          ? "bg-secondary text-white"
+                          : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <UserCheck size={12} />
@@ -550,7 +572,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Sort tasks"
@@ -559,9 +581,9 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               </button>
 
               {isSortDropdownOpen && (
-                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Sort by</p>
                   </div>
                   {[
                     { value: "custom", label: "Custom" },
@@ -572,7 +594,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                     <div
                       key={option.value}
                       className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <button
@@ -587,7 +609,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                       {sortBy === option.value && option.value !== "custom" && (
                         <button
                           onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
-                          className="p-1 hover:bg-gray-700 rounded"
+                          className="p-1 hover:bg-surface-button rounded"
                         >
                           {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                         </button>
@@ -606,7 +628,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                   setEditingTask(null)
                   setIsTaskModalOpen(true)
                 }}
-                className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+                className="p-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors text-white"
                 title="Add task"
               >
                 <Plus size={18} />
@@ -620,15 +642,15 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       {!showHeader && (
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Compact Tabs */}
-          <div className="flex gap-0.5 p-0.5 bg-black rounded-lg flex-1 min-w-0">
+          <div className="flex gap-0.5 p-0.5 bg-surface-base rounded-lg flex-1 min-w-0">
             {Object.entries(STATUS_CONFIG).map(([status, config]) => (
               <button
                 key={status}
                 onClick={() => setActiveTab(status)}
                 className={`flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all flex-1 ${
                   activeTab === status
-                    ? "text-white"
-                    : "text-gray-400 hover:text-gray-200"
+                    ? "text-content-primary"
+                    : "text-content-muted hover:text-content-primary"
                 }`}
                 style={{
                   backgroundColor: activeTab === status ? config.bgColor : "transparent",
@@ -637,7 +659,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                 <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`}></div>
                 <span
                   className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
-                    activeTab === status ? "bg-white/20 text-white" : "bg-gray-800 text-gray-400"
+                    activeTab === status ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted"
                   }`}
                 >
                   {taskCounts[status]}
@@ -655,8 +677,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                 disabled={isSidebarEditing}
                 className={`p-1.5 rounded-md transition-colors ${
                   selectedStaffFilter.length > 0
-                    ? "bg-blue-600 text-white"
-                    : "bg-black text-gray-400 hover:text-white"
+                    ? "bg-secondary text-white"
+                    : "bg-surface-base text-content-muted hover:text-content-primary"
                 } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
                 title="Filter by staff"
               >
@@ -664,16 +686,16 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               </button>
 
               {isFilterDropdownOpen && (
-                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[180px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Filter by Staff</p>
+                <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[180px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Filter by Staff</p>
                   </div>
                   <button
                     onClick={() => setSelectedStaffFilter([])}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       selectedStaffFilter.length === 0
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     All Tasks
@@ -684,8 +706,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                       onClick={() => toggleStaffFilter(staff.id)}
                       className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
                         selectedStaffFilter.includes(staff.id)
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-gray-800"
+                          ? "bg-secondary text-white"
+                          : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <UserCheck size={12} />
@@ -701,7 +723,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-black rounded-md text-gray-400 hover:text-white transition-colors ${
+                className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Sort tasks"
@@ -710,9 +732,9 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               </button>
 
               {isSortDropdownOpen && (
-                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Sort by</p>
                   </div>
                   {[
                     { value: "custom", label: "Custom" },
@@ -723,7 +745,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                     <div
                       key={option.value}
                       className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <button
@@ -738,7 +760,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                       {sortBy === option.value && option.value !== "custom" && (
                         <button
                           onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
-                          className="p-1 hover:bg-gray-700 rounded"
+                          className="p-1 hover:bg-surface-button rounded"
                         >
                           {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                         </button>
@@ -757,7 +779,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                   setEditingTask(null)
                   setIsTaskModalOpen(true)
                 }}
-                className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md transition-colors"
+                className="p-1.5 bg-primary hover:bg-primary-hover rounded-md transition-colors text-white"
                 title="Add task"
               >
                 <Plus size={14} />
@@ -769,15 +791,15 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
 
       {/* Status Tabs - Only shown when showHeader is true (My Area) */}
       {showHeader && (
-        <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+        <div className="flex gap-1 p-1 bg-surface-base rounded-xl flex-shrink-0">
           {Object.entries(STATUS_CONFIG).map(([status, config]) => (
             <button
               key={status}
               onClick={() => setActiveTab(status)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 activeTab === status
-                  ? "text-white"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "text-content-primary"
+                  : "text-content-muted hover:text-content-primary"
               }`}
               style={{
                 backgroundColor: activeTab === status ? config.bgColor : "transparent",
@@ -787,7 +809,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               <span className={compactMode ? "hidden" : "hidden sm:inline"}>{config.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                  activeTab === status ? "bg-white/20 text-white" : "bg-gray-800 text-gray-400"
+                  activeTab === status ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted"
                 }`}
               >
                 {taskCounts[status]}
@@ -799,7 +821,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
 
       {/* Active Staff Filter Indicator */}
       {selectedStaffFilter.length > 0 && (
-        <div className="flex items-center gap-2 text-xs text-blue-400 flex-shrink-0">
+        <div className="flex items-center gap-2 text-xs text-secondary flex-shrink-0">
           <UserCheck size={12} />
           <span>
             Filtered by {selectedStaffFilter.length} staff member
@@ -807,7 +829,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
           </span>
           <button
             onClick={() => setSelectedStaffFilter([])}
-            className="ml-auto text-gray-400 hover:text-white"
+            className="ml-auto text-content-muted hover:text-content-primary"
           >
             <X size={12} />
           </button>
@@ -815,8 +837,12 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       )}
 
       {/* Task List */}
-      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
-        {(maxItems ? currentTasks.slice(0, maxItems) : currentTasks).map((task) => (
+      <div
+        ref={listRef}
+        className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}
+        style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+      >
+        {currentTasks.map((task) => (
           <TaskCard
             key={task.id}
             task={task}
@@ -831,9 +857,9 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
 
         {/* Empty State */}
         {currentTasks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-              <Check size={20} className="text-gray-600" />
+          <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+            <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+              <Check size={20} className="text-content-faint" />
             </div>
             <p className="text-sm">No {activeTab} tasks</p>
             {selectedStaffFilter.length > 0 && (
@@ -844,8 +870,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       </div>
 
       {/* Footer Link */}
-      <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0">
-        <Link to="/dashboard/to-do" className="text-xs text-gray-400 hover:text-white transition-colors">
+      <div className="flex justify-center pt-2 border-t border-border flex-shrink-0">
+        <Link to="/dashboard/to-do" className="text-xs text-content-muted hover:text-content-primary transition-colors">
           View all tasks →
         </Link>
       </div>
@@ -853,21 +879,21 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       {/* Delete Confirmation Modal - rendered via portal */}
       {taskToDelete && createPortal(
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999]">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 text-white">Delete Task</h3>
-            <p className="text-gray-300 mb-6">
+          <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4 text-content-primary">Delete Task</h3>
+            <p className="text-content-secondary mb-6">
               Are you sure you want to delete this task? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setTaskToDelete(null)}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F]"
+                className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDeleteTask(taskToDelete)}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                className="px-4 py-2 bg-accent-red text-white rounded-xl hover:bg-accent-red/90"
               >
                 Delete
               </button>

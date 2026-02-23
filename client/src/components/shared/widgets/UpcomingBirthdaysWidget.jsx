@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Cake, MessageCircle, Calendar } from "lucide-react"
 import { membersData } from "../../../utils/studio-states/members-states"
@@ -32,7 +32,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-orange-500 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-primary rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
     >
       {getInitials()}
     </div>
@@ -121,6 +121,28 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
   }
 
   const upcomingBirthdays = getUpcomingBirthdays()
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, upcomingBirthdays.length])
+
 
   // Contact Handlers
   const handleContactClick = (member, e) => {
@@ -198,26 +220,30 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
 
   return (
     <>
-      <div className={`p-3 rounded-xl bg-[#2F2F2F] flex flex-col ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+      <div className={`p-3 rounded-xl bg-surface-button flex flex-col ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
         {/* Header */}
         {showHeader && (
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
-            <h2 className="text-base font-semibold text-white">Upcoming Birthdays</h2>
+            <h2 className="text-base font-semibold text-content-primary">Upcoming Birthdays</h2>
           </div>
         )}
 
         {/* Birthdays List - scrollable */}
-        <div className={`overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}>
+        <div
+          ref={listRef}
+          className={`overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}
+          style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+        >
           {upcomingBirthdays.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {(maxItems ? upcomingBirthdays.slice(0, maxItems) : upcomingBirthdays).map((member) => {
+              {upcomingBirthdays.map((member) => {
                 const isToday = isBirthdayToday(member.dateOfBirth)
                 const daysUntil = getDaysUntilBirthday(member.dateOfBirth)
                 
                 return (
                   <div
                     key={member.id}
-                    className="p-3 bg-black rounded-xl hover:bg-zinc-900 transition-colors"
+                    className="p-3 bg-surface-card rounded-xl hover:bg-surface-hover transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       {/* Avatar with Birthday Badge */}
@@ -248,22 +274,22 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
                       
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-white truncate flex items-center gap-1">
+                        <h3 className="text-sm font-medium text-content-primary truncate flex items-center gap-1">
                           {member.firstName} {member.lastName}
                           {member.dateOfBirth && (
-                            <span className="text-gray-400 font-normal">
+                            <span className="text-content-muted font-normal">
                               ({calculateAge(member.dateOfBirth)})
                             </span>
                           )}
                         </h3>
                         
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <Calendar size={10} className="text-gray-400" />
-                          <span className="text-xs text-gray-400">
+                          <Calendar size={10} className="text-content-muted" />
+                          <span className="text-xs text-content-muted">
                             {formatBirthdayDate(member.dateOfBirth)}
                           </span>
                           {!isToday && daysUntil > 0 && (
-                            <span className="text-[10px] text-gray-500">
+                            <span className="text-[10px] text-content-faint">
                               • in {daysUntil} days
                             </span>
                           )}
@@ -272,7 +298,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
 
                       {/* Today Badge - Only show if birthday is today */}
                       {isToday && (
-                        <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-orange-500/20 text-orange-400 flex-shrink-0">
+                        <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-primary/20 text-primary flex-shrink-0">
                           Today
                         </span>
                       )}
@@ -281,7 +307,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
                       {showContactButton && (
                         <button
                           onClick={(e) => handleContactClick(member, e)}
-                          className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-lg text-white transition-colors flex-shrink-0"
+                          className="p-1.5 bg-primary hover:bg-primary-hover rounded-lg text-white transition-colors flex-shrink-0"
                           title="Send Birthday Message"
                         >
                           <MessageCircle size={14} />
@@ -293,9 +319,9 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-              <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-                <Cake size={20} className="text-gray-600" />
+            <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+              <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+                <Cake size={20} className="text-content-faint" />
               </div>
               <p className="text-sm">No upcoming birthdays</p>
             </div>
@@ -303,8 +329,8 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
         </div>
 
         {/* Footer Link */}
-        <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0 mt-2">
-          <Link to="/dashboard/members" className="text-xs text-gray-400 hover:text-white transition-colors">
+        <div className="flex justify-center pt-2 border-t border-border flex-shrink-0 mt-2">
+          <Link to="/dashboard/members" className="text-xs text-content-muted hover:text-content-primary transition-colors">
             View all members →
           </Link>
         </div>

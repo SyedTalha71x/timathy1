@@ -6,12 +6,14 @@
 // USAGE:
 // import { membersData, staffData, appointmentsMainData } from '../../utils/studio-states';
 // import { getMemberById, getStaffById } from '../../utils/studio-states';
+// import { classTypesData, classesData, roomsData } from '../../utils/studio-states';
 //
 // STRUKTUR:
 // - members-states.js         → Members, History, Relations, Contingent
 // - staff-states.js           → Staff/Employees
 // - leads-states.js           → Leads/Prospects
 // - appointments-states.js    → Appointments, Types, Free Slots
+// - classes-states.js         → Classes, Class Types, Rooms
 // - communication-states.js   → Chats, Emails, Templates
 // - configuration-states.jsx  → Studio, Config, Permissions, Defaults
 // - training-states.jsx       → Training Videos, Plans
@@ -137,6 +139,41 @@ export {
 } from './appointments-states';
 
 // =============================================================================
+// CLASSES
+// =============================================================================
+export {
+  classTypesData,
+  classCategoriesData,
+  roomsData,
+  DEFAULT_MAX_PARTICIPANTS,
+  DEFAULT_CLASS_DURATION,
+  DEFAULT_CLASS_CALENDAR_SETTINGS,
+  classesData,
+  fmtDate as fmtClassDate,
+  markPastClasses,
+  getClassTypeById,
+  getClassTypeByName,
+  getClassTypeColor,
+  getClassTypeColorHex,
+  getClassesByDate,
+  getClassesByType,
+  getClassesByTrainer,
+  getClassesByRoom,
+  getUpcomingClasses,
+  getTodaysClasses,
+  getCancelledClasses,
+  getClassEnrolledCount,
+  isClassFull,
+  getClassSpotsLeft,
+  isMemberEnrolled,
+  getClassesByMember,
+  transformClassFromBackend,
+  transformClassToBackend,
+  classesApi,
+  classTypesApi,
+} from './classes-states';
+
+// =============================================================================
 // COMMUNICATION
 // =============================================================================
 export {
@@ -228,6 +265,11 @@ export {
   DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
   
+  // Classes Config
+  DEFAULT_CLASS_CATEGORIES,
+  DEFAULT_CLASS_TYPES,
+  DEFAULT_CLASS_CALENDAR_SETTINGS as DEFAULT_CLASS_CALENDAR_SETTINGS_CONFIG,
+  
   // Lead Config
   leadSourcesData,
   leadStatusData,
@@ -301,6 +343,7 @@ import membersModule from './members-states';
 import staffModule from './staff-states';
 import leadsModule from './leads-states';
 import appointmentsModule from './appointments-states';
+import classesModule from './classes-states';
 import communicationModule from './communication-states';
 import configurationModule from './configuration-states';
 
@@ -309,6 +352,7 @@ export default {
   ...staffModule,
   ...leadsModule,
   ...appointmentsModule,
+  ...classesModule,
   ...communicationModule,
   ...configurationModule,
 };

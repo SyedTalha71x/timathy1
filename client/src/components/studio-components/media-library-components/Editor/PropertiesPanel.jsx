@@ -39,7 +39,7 @@ const PropertiesPanel = ({
       case 'line': return <Minus size={14} className="text-cyan-400" />;
       case 'gradient': return <Droplet size={14} className="text-pink-400" />;
       case 'divider': return <Minus size={14} className="text-yellow-400" />;
-      default: return <Maximize2 size={14} className="text-gray-400" />;
+      default: return <Maximize2 size={14} className="text-content-muted" />;
     }
   };
 
@@ -72,38 +72,38 @@ const PropertiesPanel = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#141414] overflow-hidden">
+    <div className="h-full flex flex-col bg-surface-dark overflow-hidden">
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {!element ? (
           <div className="h-full flex flex-col items-center justify-center p-4 text-center">
-            <div className="w-12 h-12 bg-[#0a0a0a] rounded-xl flex items-center justify-center mb-3">
-              <Maximize2 size={20} className="text-gray-600" />
+            <div className="w-12 h-12 bg-surface-dark rounded-xl flex items-center justify-center mb-3">
+              <Maximize2 size={20} className="text-content-faint" />
             </div>
-            <p className="text-gray-400 text-sm font-medium">No element selected</p>
-            <p className="text-gray-600 text-xs mt-1">Click on any element</p>
+            <p className="text-content-muted text-sm font-medium">No element selected</p>
+            <p className="text-content-faint text-xs mt-1">Click on any element</p>
           </div>
         ) : (
           <>
             {/* Element Header */}
-            <div className="p-3 border-b border-[#333]">
+            <div className="p-3 border-b border-border">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getActiveElementColor()}`}>
                     {getActiveElementIcon()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white font-medium text-sm capitalize truncate">
+                    <p className="text-content-primary font-medium text-sm capitalize truncate">
                       {element.isBackground ? 'Background' : element.type}
                     </p>
                     {element.shape && !element.isBackground && (
-                      <p className="text-gray-500 text-[10px] capitalize truncate">{element.shape}</p>
+                      <p className="text-content-faint text-[10px] capitalize truncate">{element.shape}</p>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={onToggleLock}
                   className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
-                    isLocked ? 'bg-orange-500/10 text-[#FF843E]' : 'text-gray-400 hover:bg-[#2F2F2F]'
+                    isLocked ? 'bg-primary/10 text-primary' : 'text-content-muted hover:bg-surface-button'
                   }`}
                 >
                   {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
@@ -119,7 +119,7 @@ const PropertiesPanel = ({
                     value={element.content || ''}
                     onChange={(e) => onUpdate({ content: e.target.value })}
                     disabled={isLocked}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg py-2 px-2 text-white text-sm resize-none focus:outline-none focus:border-orange-500 disabled:opacity-50"
+                    className="w-full bg-surface-dark border border-border rounded-lg py-2 px-2 text-content-primary text-sm resize-none focus:outline-none focus:border-primary disabled:opacity-50"
                     rows={3}
                   />
                 </CollapsibleSection>
@@ -129,7 +129,7 @@ const PropertiesPanel = ({
                     <FormatButton icon={Bold} isActive={element.bold} onClick={() => onUpdate({ bold: !element.bold })} disabled={isLocked} />
                     <FormatButton icon={Italic} isActive={element.italic} onClick={() => onUpdate({ italic: !element.italic })} disabled={isLocked} />
                     <FormatButton icon={Underline} isActive={element.underline} onClick={() => onUpdate({ underline: !element.underline })} disabled={isLocked} />
-                    <div className="w-px h-6 bg-[#333] mx-0.5" />
+                    <div className="w-px h-6 bg-border mx-0.5" />
                     <FormatButton icon={AlignLeft} isActive={element.align === 'left'} onClick={() => onUpdate({ align: 'left' })} disabled={isLocked} />
                     <FormatButton icon={AlignCenter} isActive={element.align === 'center'} onClick={() => onUpdate({ align: 'center' })} disabled={isLocked} />
                     <FormatButton icon={AlignRight} isActive={element.align === 'right'} onClick={() => onUpdate({ align: 'right' })} disabled={isLocked} />
@@ -142,7 +142,7 @@ const PropertiesPanel = ({
                       value={element.font || 'Inter, sans-serif'}
                       onChange={(e) => onUpdate({ font: e.target.value })}
                       disabled={isLocked}
-                      className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg py-1.5 px-2 text-white text-sm focus:outline-none focus:border-orange-500"
+                      className="w-full bg-surface-dark border border-border rounded-lg py-1.5 px-2 text-content-primary text-sm focus:outline-none focus:border-primary"
                     >
                       {(fontFamilies || []).map(font => (
                         <option key={font.id} value={font.family}>{font.name}</option>
@@ -153,9 +153,9 @@ const PropertiesPanel = ({
                         type="range" min="8" max="200" value={element.size || 24}
                         onChange={(e) => onUpdate({ size: parseInt(e.target.value) })}
                         disabled={isLocked}
-                        className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                       />
-                      <span className="text-white text-xs w-12 text-right flex-shrink-0">{element.size || 24}px</span>
+                      <span className="text-content-primary text-xs w-12 text-right flex-shrink-0">{element.size || 24}px</span>
                     </div>
                   </div>
                 </CollapsibleSection>
@@ -167,34 +167,34 @@ const PropertiesPanel = ({
               <CollapsibleSection title="Line" icon={Minus} isExpanded={expandedSections.line} onToggle={() => toggleSection('line')}>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1.5 block uppercase">Style</label>
+                    <label className="text-[10px] text-content-faint mb-1.5 block uppercase">Style</label>
                     <div className="grid grid-cols-3 gap-1">
                       {['solid', 'dashed', 'dotted'].map(style => (
                         <button key={style} onClick={() => onUpdate({ lineStyle: style })} disabled={isLocked}
-                          className={`p-1.5 rounded text-[10px] capitalize ${element.lineStyle === style ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400 hover:bg-[#1a1a1a]'}`}
+                          className={`p-1.5 rounded text-[10px] capitalize ${element.lineStyle === style ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-dark text-content-muted hover:bg-surface-hover'}`}
                         >{style}</button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Thickness</label>
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Thickness</label>
                     <div className="flex items-center gap-2">
                       <input type="range" min="1" max="20" value={element.strokeWidth || 2}
                         onChange={(e) => onUpdate({ strokeWidth: parseInt(e.target.value) })}
                         disabled={isLocked}
-                        className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                       />
-                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
+                      <span className="text-content-primary text-xs w-10 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1.5 block uppercase">Arrows</label>
+                    <label className="text-[10px] text-content-faint mb-1.5 block uppercase">Arrows</label>
                     <div className="flex gap-2">
                       <button onClick={() => onUpdate({ arrowStart: !element.arrowStart })} disabled={isLocked}
-                        className={`flex-1 p-1.5 rounded text-[10px] ${element.arrowStart ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400'}`}
+                        className={`flex-1 p-1.5 rounded text-[10px] ${element.arrowStart ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-dark text-content-muted'}`}
                       >&lt;- Start</button>
                       <button onClick={() => onUpdate({ arrowEnd: !element.arrowEnd })} disabled={isLocked}
-                        className={`flex-1 p-1.5 rounded text-[10px] ${element.arrowEnd ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400'}`}
+                        className={`flex-1 p-1.5 rounded text-[10px] ${element.arrowEnd ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-dark text-content-muted'}`}
                       >End -&gt;</button>
                     </div>
                   </div>
@@ -208,8 +208,8 @@ const PropertiesPanel = ({
                 <div className="space-y-3">
                   {/* Start Color */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Start Color</label>
-                    <div className="flex items-center gap-2 bg-[#0a0a0a] rounded-lg p-1.5">
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Start Color</label>
+                    <div className="flex items-center gap-2 bg-surface-dark rounded-lg p-1.5">
                       <input
                         type="color"
                         value={element.gradientColors?.[0] || '#FF6B6B'}
@@ -222,7 +222,7 @@ const PropertiesPanel = ({
                         value={element.gradientColors?.[0] || '#FF6B6B'}
                         onChange={(e) => onUpdate({ gradientColors: [e.target.value, element.gradientColors?.[1] || '#FFA500'] })}
                         disabled={isLocked}
-                        className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
+                        className="flex-1 min-w-0 bg-transparent text-content-primary text-xs font-mono uppercase focus:outline-none"
                         maxLength={7}
                       />
                     </div>
@@ -230,8 +230,8 @@ const PropertiesPanel = ({
                   
                   {/* End Color */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">End Color</label>
-                    <div className="flex items-center gap-2 bg-[#0a0a0a] rounded-lg p-1.5">
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">End Color</label>
+                    <div className="flex items-center gap-2 bg-surface-dark rounded-lg p-1.5">
                       <input
                         type="color"
                         value={element.gradientColors?.[1] || '#FFA500'}
@@ -244,7 +244,7 @@ const PropertiesPanel = ({
                         value={element.gradientColors?.[1] || '#FFA500'}
                         onChange={(e) => onUpdate({ gradientColors: [element.gradientColors?.[0] || '#FF6B6B', e.target.value] })}
                         disabled={isLocked}
-                        className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
+                        className="flex-1 min-w-0 bg-transparent text-content-primary text-xs font-mono uppercase focus:outline-none"
                         maxLength={7}
                       />
                     </div>
@@ -252,21 +252,21 @@ const PropertiesPanel = ({
                   
                   {/* Angle */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Angle</label>
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Angle</label>
                     <div className="flex items-center gap-2">
                       <input type="range" min="0" max="360" value={element.gradientAngle || 135}
                         onChange={(e) => onUpdate({ gradientAngle: parseInt(e.target.value) })}
                         disabled={isLocked}
-                        className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                       />
-                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.gradientAngle || 135}°</span>
+                      <span className="text-content-primary text-xs w-10 text-right flex-shrink-0">{element.gradientAngle || 135}°</span>
                     </div>
                   </div>
                   
                   {/* Preview */}
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Preview</label>
-                    <div className="h-6 rounded-lg border border-[#333]"
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Preview</label>
+                    <div className="h-6 rounded-lg border border-border"
                       style={{ background: `linear-gradient(${element.gradientAngle || 135}deg, ${element.gradientColors?.[0] || '#FF6B6B'}, ${element.gradientColors?.[1] || '#FFA500'})` }}
                     />
                   </div>
@@ -279,24 +279,24 @@ const PropertiesPanel = ({
               <CollapsibleSection title="Divider" icon={Minus} isExpanded={expandedSections.line} onToggle={() => toggleSection('line')}>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1.5 block uppercase">Style</label>
+                    <label className="text-[10px] text-content-faint mb-1.5 block uppercase">Style</label>
                     <div className="grid grid-cols-2 gap-1">
                       {['solid', 'dashed', 'dotted', 'double'].map(style => (
                         <button key={style} onClick={() => onUpdate({ dividerStyle: style })} disabled={isLocked}
-                          className={`p-1.5 rounded text-[10px] capitalize ${element.dividerStyle === style ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400 hover:bg-[#1a1a1a]'}`}
+                          className={`p-1.5 rounded text-[10px] capitalize ${element.dividerStyle === style ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-dark text-content-muted hover:bg-surface-hover'}`}
                         >{style}</button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Thickness</label>
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Thickness</label>
                     <div className="flex items-center gap-2">
                       <input type="range" min="1" max="10" value={element.strokeWidth || 2}
                         onChange={(e) => onUpdate({ strokeWidth: parseInt(e.target.value) })}
                         disabled={isLocked}
-                        className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                       />
-                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
+                      <span className="text-content-primary text-xs w-10 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
                     </div>
                   </div>
                 </div>
@@ -307,7 +307,7 @@ const PropertiesPanel = ({
             {(element.type === 'text' || element.type === 'shape' || element.type === 'line' || element.type === 'divider') && (
               <CollapsibleSection title="Color" icon={Palette} isExpanded={expandedSections.color} onToggle={() => toggleSection('color')}>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 bg-[#0a0a0a] rounded-lg p-1.5">
+                  <div className="flex items-center gap-2 bg-surface-dark rounded-lg p-1.5">
                     <input
                       type="color" value={element.color || '#ffffff'}
                       onChange={(e) => onUpdate({ color: e.target.value })}
@@ -318,16 +318,16 @@ const PropertiesPanel = ({
                       type="text" value={element.color || '#ffffff'}
                       onChange={(e) => onUpdate({ color: e.target.value })}
                       disabled={isLocked}
-                      className="flex-1 min-w-0 bg-transparent text-white text-xs uppercase font-mono focus:outline-none"
+                      className="flex-1 min-w-0 bg-transparent text-content-primary text-xs uppercase font-mono focus:outline-none"
                       maxLength={7}
                     />
                   </div>
                   <div>
-                    <p className="text-gray-500 text-[10px] uppercase mb-1">Quick Colors</p>
+                    <p className="text-content-faint text-[10px] uppercase mb-1">Quick Colors</p>
                     <div className="flex flex-wrap gap-1">
                       {['#FFFFFF', '#000000', '#F97316', '#2563EB', '#10B981', '#EF4444', '#8B5CF6', '#F59E0B'].map(color => (
                         <button key={color} onClick={() => onUpdate({ color })} disabled={isLocked}
-                          className="w-5 h-5 rounded border border-[#333] hover:scale-110 transition-transform disabled:opacity-50"
+                          className="w-5 h-5 rounded border border-border hover:scale-110 transition-transform disabled:opacity-50"
                           style={{ backgroundColor: color }}
                         />
                       ))}
@@ -345,12 +345,12 @@ const PropertiesPanel = ({
                   {onStartCrop && (
                     <div className="space-y-2">
                       {isCropping ? (
-                        <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-center">
-                          <p className="text-orange-400 text-xs font-medium flex items-center justify-center gap-2">
+                        <div className="p-2 bg-primary/10 border border-primary/30 rounded-lg text-center">
+                          <p className="text-primary text-xs font-medium flex items-center justify-center gap-2">
                             <Crop size={14} />
                             Cropping active
                           </p>
-                          <p className="text-orange-400/70 text-[10px] mt-1">
+                          <p className="text-primary/70 text-[10px] mt-1">
                             Drag handles on canvas to adjust
                           </p>
                         </div>
@@ -358,7 +358,7 @@ const PropertiesPanel = ({
                         <button 
                           onClick={() => onStartCrop(element.id)} 
                           disabled={isLocked}
-                          className="w-full flex items-center justify-center gap-2 py-2 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white text-sm rounded-lg border border-[#333] disabled:opacity-50 transition-colors"
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-surface-dark hover:bg-surface-hover text-content-primary text-sm rounded-lg border border-border disabled:opacity-50 transition-colors"
                         >
                           <Crop size={14} /> 
                           Crop Image
@@ -370,7 +370,7 @@ const PropertiesPanel = ({
                         <button 
                           onClick={handleResetCrop} 
                           disabled={isLocked}
-                          className="w-full flex items-center justify-center gap-2 py-2 bg-[#0a0a0a] hover:bg-red-500/10 text-gray-400 hover:text-red-400 text-sm rounded-lg border border-[#333] hover:border-red-500/30 disabled:opacity-50 transition-colors"
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-surface-dark hover:bg-red-500/10 text-content-muted hover:text-red-400 text-sm rounded-lg border border-border hover:border-red-500/30 disabled:opacity-50 transition-colors"
                         >
                           <RotateCcw size={14} /> 
                           Reset Crop
@@ -379,33 +379,33 @@ const PropertiesPanel = ({
                       
                       {/* Crop Info */}
                       {hasCrop && !isCropping && (
-                        <div className="text-[10px] text-gray-500 bg-[#0a0a0a] rounded p-2">
-                          <span className="text-gray-400">Cropped region:</span> {Math.round(element.cropWidth)}x{Math.round(element.cropHeight)}px
+                        <div className="text-[10px] text-content-faint bg-surface-dark rounded p-2">
+                          <span className="text-content-muted">Cropped region:</span> {Math.round(element.cropWidth)}x{Math.round(element.cropHeight)}px
                         </div>
                       )}
                     </div>
                   )}
                   
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Blur</label>
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Blur</label>
                     <div className="flex items-center gap-2">
                       <input type="range" min="0" max="20" value={element.blur || 0}
                         onChange={(e) => onUpdate({ blur: parseInt(e.target.value) })}
                         disabled={isLocked}
-                        className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                       />
-                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.blur || 0}px</span>
+                      <span className="text-content-primary text-xs w-10 text-right flex-shrink-0">{element.blur || 0}px</span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-500 mb-1 block uppercase">Brightness</label>
+                    <label className="text-[10px] text-content-faint mb-1 block uppercase">Brightness</label>
                     <div className="flex items-center gap-2">
                       <input type="range" min="50" max="150" value={element.brightness || 100}
                         onChange={(e) => onUpdate({ brightness: parseInt(e.target.value) })}
                         disabled={isLocked}
-                        className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                       />
-                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.brightness || 100}%</span>
+                      <span className="text-content-primary text-xs w-10 text-right flex-shrink-0">{element.brightness || 100}%</span>
                     </div>
                   </div>
                 </div>
@@ -416,52 +416,52 @@ const PropertiesPanel = ({
             <CollapsibleSection title="Effects" icon={Sun} isExpanded={expandedSections.effects} onToggle={() => toggleSection('effects')}>
               <div className="space-y-3">
                 <div>
-                  <label className="text-[10px] text-gray-500 mb-1 block uppercase">Opacity</label>
+                  <label className="text-[10px] text-content-faint mb-1 block uppercase">Opacity</label>
                   <div className="flex items-center gap-2">
                     <input type="range" min="0" max="100" value={(element.opacity ?? 1) * 100}
                       onChange={(e) => onUpdate({ opacity: parseInt(e.target.value) / 100 })}
                       disabled={isLocked}
-                      className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
+                      className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer accent-primary"
                     />
-                    <span className="text-white text-xs w-10 text-right flex-shrink-0">{Math.round((element.opacity ?? 1) * 100)}%</span>
+                    <span className="text-content-primary text-xs w-10 text-right flex-shrink-0">{Math.round((element.opacity ?? 1) * 100)}%</span>
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 mb-1 block uppercase">Shadow</label>
+                  <label className="text-[10px] text-content-faint mb-1 block uppercase">Shadow</label>
                   <div className="space-y-2">
                     <div className="grid grid-cols-3 gap-1.5">
                       <div>
-                        <label className="text-[9px] text-gray-600 block mb-0.5">X</label>
+                        <label className="text-[9px] text-content-faint block mb-0.5">X</label>
                         <input type="number" value={element.shadowX || 0}
                           onChange={(e) => onUpdate({ shadowX: parseInt(e.target.value) || 0 })}
                           disabled={isLocked}
-                          className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                          className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] text-gray-600 block mb-0.5">Y</label>
+                        <label className="text-[9px] text-content-faint block mb-0.5">Y</label>
                         <input type="number" value={element.shadowY || 0}
                           onChange={(e) => onUpdate({ shadowY: parseInt(e.target.value) || 0 })}
                           disabled={isLocked}
-                          className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                          className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] text-gray-600 block mb-0.5">Blur</label>
+                        <label className="text-[9px] text-content-faint block mb-0.5">Blur</label>
                         <input type="number" min="0" value={element.shadowBlur || 0}
                           onChange={(e) => onUpdate({ shadowBlur: parseInt(e.target.value) || 0 })}
                           disabled={isLocked}
-                          className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                          className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 bg-[#0a0a0a] rounded p-1.5">
+                    <div className="flex items-center gap-2 bg-surface-dark rounded p-1.5">
                       <input type="color" value={element.shadowColor || '#000000'}
                         onChange={(e) => onUpdate({ shadowColor: e.target.value })}
                         disabled={isLocked}
                         className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
                       />
-                      <span className="text-gray-400 text-[10px]">Shadow Color</span>
+                      <span className="text-content-muted text-[10px]">Shadow Color</span>
                     </div>
                   </div>
                 </div>
@@ -472,35 +472,35 @@ const PropertiesPanel = ({
             <CollapsibleSection title="Position & Size" icon={Move} isExpanded={expandedSections.position} onToggle={() => toggleSection('position')}>
               <div className="grid grid-cols-2 gap-1.5">
                 <div>
-                  <label className="text-[9px] text-gray-500 block mb-0.5">X</label>
+                  <label className="text-[9px] text-content-faint block mb-0.5">X</label>
                   <input type="number" value={Math.round(element.x || 0)}
                     onChange={(e) => onUpdate({ x: parseFloat(e.target.value) })}
                     disabled={isLocked}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="text-[9px] text-gray-500 block mb-0.5">Y</label>
+                  <label className="text-[9px] text-content-faint block mb-0.5">Y</label>
                   <input type="number" value={Math.round(element.y || 0)}
                     onChange={(e) => onUpdate({ y: parseFloat(e.target.value) })}
                     disabled={isLocked}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="text-[9px] text-gray-500 block mb-0.5">Width</label>
+                  <label className="text-[9px] text-content-faint block mb-0.5">Width</label>
                   <input type="number" value={Math.round(element.width || 0)}
                     onChange={(e) => onUpdate({ width: parseFloat(e.target.value) })}
                     disabled={isLocked}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="text-[9px] text-gray-500 block mb-0.5">Height</label>
+                  <label className="text-[9px] text-content-faint block mb-0.5">Height</label>
                   <input type="number" value={Math.round(element.height || 0)}
                     onChange={(e) => onUpdate({ height: parseFloat(e.target.value) })}
                     disabled={isLocked}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1 px-1.5 text-white text-xs focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-dark border border-border rounded py-1 px-1.5 text-content-primary text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -513,11 +513,11 @@ const PropertiesPanel = ({
 };
 
 const CollapsibleSection = ({ title, icon: Icon, isExpanded, onToggle, children }) => (
-  <div className="border-b border-[#333]">
-    <button onClick={onToggle} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#1a1a1a] transition-colors">
-      {isExpanded ? <ChevronDown size={12} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />}
-      <Icon size={12} className="text-gray-400 flex-shrink-0" />
-      <span className="text-gray-300 text-xs font-medium uppercase tracking-wider flex-1 text-left truncate">{title}</span>
+  <div className="border-b border-border">
+    <button onClick={onToggle} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface-hover transition-colors">
+      {isExpanded ? <ChevronDown size={12} className="text-content-muted flex-shrink-0" /> : <ChevronRight size={12} className="text-content-muted flex-shrink-0" />}
+      <Icon size={12} className="text-content-muted flex-shrink-0" />
+      <span className="text-content-secondary text-xs font-medium uppercase tracking-wider flex-1 text-left truncate">{title}</span>
     </button>
     {isExpanded && <div className="px-3 pb-3">{children}</div>}
   </div>
@@ -525,7 +525,7 @@ const CollapsibleSection = ({ title, icon: Icon, isExpanded, onToggle, children 
 
 const FormatButton = ({ icon: Icon, isActive, onClick, disabled }) => (
   <button onClick={onClick} disabled={disabled}
-    className={`p-1.5 rounded transition-colors ${isActive ? 'bg-orange-500/10 text-[#FF843E]' : 'text-gray-400 hover:bg-[#2F2F2F]'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    className={`p-1.5 rounded transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-content-muted hover:bg-surface-button'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
   >
     <Icon size={14} />
   </button>

@@ -197,7 +197,7 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
   const hueColor = hsvToHex(hsv.h, 1, 1)
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1002] p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001] p-4">
       <div className="bg-surface-card p-6 rounded-xl w-full max-w-sm">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">

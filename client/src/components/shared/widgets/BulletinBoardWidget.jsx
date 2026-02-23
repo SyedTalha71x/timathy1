@@ -83,6 +83,28 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
   const dropdownRef = useRef(null)
   const statusFilterRef = useRef(null)
   const sortDropdownRef = useRef(null)
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, bulletinPosts, activeTab, statusFilter])
+
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -303,7 +325,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
   const filteredPosts = getFilteredPosts()
 
   return (
-    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+    <div className={`p-4 rounded-xl bg-surface-button flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -316,8 +338,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                 disabled={isSidebarEditing}
                 className={`p-1.5 rounded-lg transition-colors ${
                   statusFilter !== "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-black text-gray-400 hover:text-white"
+                    ? "bg-secondary text-white"
+                    : "bg-surface-base text-content-muted hover:text-content-primary"
                 } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
                 title="Filter by status"
               >
@@ -325,9 +347,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               </button>
 
               {isStatusFilterOpen && (
-                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
+                <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[140px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Filter by Status</p>
                   </div>
                   <button
                     onClick={() => {
@@ -336,8 +358,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "all"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     All Posts
@@ -349,8 +371,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "active"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     Active
@@ -362,8 +384,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "scheduled"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     Scheduled
@@ -375,8 +397,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "inactive"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     Inactive
@@ -390,7 +412,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Sort posts"
@@ -403,9 +425,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               </button>
 
               {isSortDropdownOpen && (
-                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Sort by</p>
                   </div>
                   {[
                     { value: "custom", label: "Custom" },
@@ -416,7 +438,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     <div
                       key={option.value}
                       className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <button
@@ -434,9 +456,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                           className="ml-2"
                         >
                           {sortOrder === "asc" ? (
-                            <ArrowUp size={12} className="text-gray-400" />
+                            <ArrowUp size={12} className="text-content-muted" />
                           ) : (
-                            <ArrowDown size={12} className="text-gray-400" />
+                            <ArrowDown size={12} className="text-content-muted" />
                           )}
                         </button>
                       )}
@@ -449,7 +471,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
             {!isSidebarEditing && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg cursor-pointer transition-colors"
+                className="p-2 bg-primary hover:bg-primary-hover rounded-lg cursor-pointer transition-colors text-white"
                 title="Add New Post"
               >
                 <Plus size={18} />
@@ -463,21 +485,21 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
       {!showHeader && (
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Compact Tabs */}
-          <div className="flex gap-0.5 p-0.5 bg-black rounded-lg flex-1 min-w-0">
+          <div className="flex gap-0.5 p-0.5 bg-surface-base rounded-lg flex-1 min-w-0">
             {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
               <button
                 key={visibility}
                 onClick={() => setActiveTab(visibility)}
                 className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all ${
                   activeTab === visibility
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-400 hover:text-gray-200"
+                    ? "bg-surface-dark text-content-primary"
+                    : "text-content-muted hover:text-content-primary"
                 }`}
               >
                 <span>{config.label}</span>
                 <span
                   className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
-                    activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                    activeTab === visibility ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
                   }`}
                 >
                   {tabCounts[visibility]}
@@ -495,8 +517,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                 disabled={isSidebarEditing}
                 className={`p-1.5 rounded-md transition-colors ${
                   statusFilter !== "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-black text-gray-400 hover:text-white"
+                    ? "bg-secondary text-white"
+                    : "bg-surface-base text-content-muted hover:text-content-primary"
                 } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
                 title="Filter by status"
               >
@@ -504,9 +526,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               </button>
 
               {isStatusFilterOpen && (
-                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
+                <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[140px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Filter by Status</p>
                   </div>
                   <button
                     onClick={() => {
@@ -515,8 +537,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "all"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     All Posts
@@ -528,8 +550,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "active"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     Active
@@ -541,8 +563,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "scheduled"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     Scheduled
@@ -554,8 +576,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       statusFilter === "inactive"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                        ? "bg-secondary text-white"
+                        : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
                     Inactive
@@ -569,7 +591,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-black rounded-md text-gray-400 hover:text-white transition-colors ${
+                className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 title="Sort posts"
@@ -582,9 +604,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               </button>
 
               {isSortDropdownOpen && (
-                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-border">
+                    <p className="text-xs text-content-faint font-medium">Sort by</p>
                   </div>
                   {[
                     { value: "custom", label: "Custom" },
@@ -595,7 +617,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     <div
                       key={option.value}
                       className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
                       }`}
                     >
                       <button
@@ -613,9 +635,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                           className="ml-2"
                         >
                           {sortOrder === "asc" ? (
-                            <ArrowUp size={12} className="text-gray-400" />
+                            <ArrowUp size={12} className="text-content-muted" />
                           ) : (
-                            <ArrowDown size={12} className="text-gray-400" />
+                            <ArrowDown size={12} className="text-content-muted" />
                           )}
                         </button>
                       )}
@@ -628,7 +650,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
             {!isSidebarEditing && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md cursor-pointer transition-colors"
+                className="p-1.5 bg-primary hover:bg-primary-hover rounded-md cursor-pointer transition-colors text-white"
                 title="Add New Post"
               >
                 <Plus size={14} />
@@ -640,21 +662,21 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
 
       {/* Visibility Tabs - Only shown when showHeader is true (My Area) */}
       {showHeader && (
-        <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+        <div className="flex gap-1 p-1 bg-surface-base rounded-xl flex-shrink-0">
           {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
             <button
               key={visibility}
               onClick={() => setActiveTab(visibility)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                 activeTab === visibility
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "bg-surface-dark text-content-primary"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               <span>{config.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                  activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                  activeTab === visibility ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
                 }`}
               >
                 {tabCounts[visibility]}
@@ -666,12 +688,12 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
 
       {/* Active Status Filter Indicator */}
       {statusFilter !== "all" && (
-        <div className="flex items-center gap-2 text-xs text-blue-400 flex-shrink-0">
+        <div className="flex items-center gap-2 text-xs text-secondary flex-shrink-0">
           <Filter size={12} />
           <span>Showing {statusFilter} posts</span>
           <button
             onClick={() => setStatusFilter("all")}
-            className="ml-auto text-gray-400 hover:text-white"
+            className="ml-auto text-content-muted hover:text-content-primary"
           >
             <X size={12} />
           </button>
@@ -679,16 +701,20 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
       )}
 
       {/* Posts List */}
-      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
-        {(maxItems ? filteredPosts.slice(0, maxItems) : filteredPosts).map((post) => (
+      <div
+        ref={listRef}
+        className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}
+        style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+      >
+        {filteredPosts.map((post) => (
           <div
             key={post.id}
-            className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"
+            className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-all"
           >
             <div className="flex items-start gap-3">
               {/* Post Image Thumbnail */}
               {post.image && (
-                <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-700 flex-shrink-0">
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-border flex-shrink-0">
                   <img 
                     src={post.image} 
                     alt="Post" 
@@ -699,7 +725,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
 
               {/* Post Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-white truncate mb-1">
+                <h3 className="text-sm font-semibold text-content-primary truncate mb-1">
                   {post.title}
                 </h3>
                 
@@ -719,14 +745,14 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                       ) : null
                     })}
                     {post.tags.length > 2 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-600 text-gray-300">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-button text-content-secondary">
                         +{post.tags.length - 2}
                       </span>
                     )}
                   </div>
                 )}
 
-                <p className="text-xs text-gray-400 line-clamp-2">
+                <p className="text-xs text-content-muted line-clamp-2">
                   {truncateText(post.content)}
                 </p>
 
@@ -739,30 +765,30 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                       onMouseEnter={() => setSchedulePopupPostId(post.id)}
                       onMouseLeave={() => setSchedulePopupPostId(null)}
                     >
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                      <span className="text-[10px] text-orange-400 font-medium">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                      <span className="text-[10px] text-primary font-medium">
                         Scheduled
                       </span>
                       
                       {/* Schedule Popup */}
                       {post.schedule && schedulePopupPostId === post.id && (
-                        <div className="absolute bottom-full left-0 mb-2 px-2 py-1.5 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50 whitespace-nowrap">
+                        <div className="absolute bottom-full left-0 mb-2 px-2 py-1.5 bg-surface-dark border border-border rounded-lg shadow-xl z-50 whitespace-nowrap">
                           <div className="text-[10px] space-y-0.5">
                             {post.schedule.startDate && (
-                              <div className="flex items-center gap-1.5 text-orange-400">
+                              <div className="flex items-center gap-1.5 text-primary">
                                 <Calendar size={8} />
                                 <span>{formatScheduleDate(post.schedule.startDate)}</span>
                               </div>
                             )}
                           </div>
-                          <div className="absolute -bottom-1 left-3 w-1.5 h-1.5 bg-[#1a1a1a] border-r border-b border-gray-700 transform rotate-45" />
+                          <div className="absolute -bottom-1 left-3 w-1.5 h-1.5 bg-surface-dark border-r border-b border-border transform rotate-45" />
                         </div>
                       )}
                     </div>
                   ) : (
                     <>
-                      <div className={`w-1.5 h-1.5 rounded-full ${post.status === "Active" ? "bg-green-500" : "bg-gray-500"}`} />
-                      <span className="text-[10px] text-gray-400 capitalize">
+                      <div className={`w-1.5 h-1.5 rounded-full ${post.status === "Active" ? "bg-accent-green" : "bg-content-faint"}`} />
+                      <span className="text-[10px] text-content-muted capitalize">
                         {post.status}
                       </span>
                     </>
@@ -777,20 +803,20 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     e.stopPropagation()
                     handleDropdownToggle(post.id, e)
                   }}
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary transition-colors"
                 >
                   <MoreVertical size={14} />
                 </button>
 
                 {openDropdownId === post.id && (
                   <div 
-                    className={`absolute right-0 bg-[#2F2F2F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
+                    className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
                       dropdownPosition[post.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
                     }`}
                   >
                     <button
                       onClick={() => handleViewClick(post)}
-                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white transition-colors"
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary transition-colors"
                     >
                       <Eye size={12} />
                       View
@@ -799,14 +825,14 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                       <>
                         <button
                           onClick={() => handleEditClick(post)}
-                          className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white transition-colors"
+                          className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary transition-colors"
                         >
                           <Edit size={12} />
                           Edit
                         </button>
                         <button
                           onClick={() => handleDeleteClick(post)}
-                          className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 text-red-400 flex items-center gap-2 transition-colors"
+                          className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2 transition-colors"
                         >
                           <Trash2 size={12} />
                           Delete
@@ -822,9 +848,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
 
         {/* Empty State */}
         {filteredPosts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-              <Calendar size={20} className="text-gray-600" />
+          <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+            <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+              <Calendar size={20} className="text-content-faint" />
             </div>
             <p className="text-sm">No {activeTab} posts</p>
             {statusFilter !== "all" && (
@@ -835,8 +861,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
       </div>
 
       {/* Footer Link */}
-      <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0">
-        <Link to="/dashboard/bulletin-board" className="text-xs text-gray-400 hover:text-white transition-colors">
+      <div className="flex justify-center pt-2 border-t border-border flex-shrink-0">
+        <Link to="/dashboard/bulletin-board" className="text-xs text-content-muted hover:text-content-primary transition-colors">
           View all posts →
         </Link>
       </div>

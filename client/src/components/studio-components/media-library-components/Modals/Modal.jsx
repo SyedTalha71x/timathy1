@@ -60,23 +60,23 @@ const Modal = ({
       
       {/* Modal Content */}
       <div 
-        className={`relative w-full ${sizeClasses[size]} bg-[#1C1C1C] rounded-xl shadow-xl border border-[#333333] animate-modal-enter ${className}`}
+        className={`relative w-full ${sizeClasses[size]} bg-surface-card rounded-xl shadow-xl border border-border animate-modal-enter ${className}`}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between p-5 border-b border-[#333333]">
+          <div className="flex items-start justify-between p-5 border-b border-border">
             <div>
               {title && (
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
+                <h2 className="text-lg font-semibold text-content-primary">{title}</h2>
               )}
               {subtitle && (
-                <p className="text-gray-400 text-sm mt-0.5">{subtitle}</p>
+                <p className="text-content-muted text-sm mt-0.5">{subtitle}</p>
               )}
             </div>
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-xl transition-colors -mr-1 -mt-1"
+                className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl transition-colors -mr-1 -mt-1"
               >
                 <X size={18} />
               </button>

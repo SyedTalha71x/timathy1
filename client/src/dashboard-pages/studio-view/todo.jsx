@@ -134,7 +134,7 @@ const MobileCreateTaskModal = ({
           disabled={!taskTitle.trim()}
           className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
             taskTitle.trim()
-              ? "bg-orange-500 text-white active:scale-95"
+              ? "bg-primary text-white active:scale-95"
               : "bg-surface-button text-content-faint"
           }`}
         >
@@ -358,7 +358,7 @@ const MobileTaskDetail = ({
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
             isCompleted ? 'bg-green-500/20 text-green-400' :
             isCanceled ? 'bg-red-500/20 text-red-400' :
-            'bg-amber-500/20 text-amber-400'
+            'bg-primary/20 text-primary'
           }`}>
             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
           </span>
@@ -978,31 +978,31 @@ export default function TodoApp() {
   // Close mobile menus on outside click or scroll
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest(".mobile-sort-dropdown")) {
+      if (!event.target?.closest?.(".mobile-sort-dropdown")) {
         setMobileSortMenuOpen(null)
       }
       if (mobileFilterRef.current && !mobileFilterRef.current.contains(event.target)) {
         setShowMobileFilterMenu(false)
       }
-      if (!event.target.closest(".calendar-dropdown")) {
+      if (!event.target?.closest?.(".calendar-dropdown")) {
         setIsCalendarOpen(false)
       }
       // Only close assign dropdown if click is truly outside
-      if (!event.target.closest(".assign-dropdown")) {
+      if (!event.target?.closest?.(".assign-dropdown")) {
         setIsAssignDropdownOpen(false)
       }
-      if (!event.target.closest(".tag-dropdown")) {
+      if (!event.target?.closest?.(".tag-dropdown")) {
         setIsTagDropdownOpen(false)
       }
     }
     
     const handleScroll = (event) => {
       // Don't close dropdowns if scrolling inside them
-      if (event.target.closest(".assign-dropdown") || 
-          event.target.closest(".tag-dropdown") ||
-          event.target.closest(".calendar-dropdown") ||
-          event.target.closest(".mobile-sort-dropdown") ||
-          event.target.closest(".mobile-filter-dropdown")) {
+      if (event.target?.closest?.(".assign-dropdown") || 
+          event.target?.closest?.(".tag-dropdown") ||
+          event.target?.closest?.(".calendar-dropdown") ||
+          event.target?.closest?.(".mobile-sort-dropdown") ||
+          event.target?.closest?.(".mobile-filter-dropdown")) {
         return
       }
       setMobileSortMenuOpen(null)
@@ -1764,8 +1764,8 @@ export default function TodoApp() {
 
             {/* Desktop: Task Input Area */}
             <div className="hidden md:flex flex-col md:flex-row gap-4 items-stretch mb-4">
-              <div className="relative flex items-start flex-grow bg-surface-dark rounded-xl px-4 py-2.5 text-content-primary placeholder-content-faint outline-none min-h-[44px]">
-                <Plus size={18} className="text-content-muted mr-2 mt-1 flex-shrink-0" />
+              <div className="relative flex items-center flex-grow bg-surface-card rounded-xl px-3 py-2 min-h-[42px] border border-border focus-within:border-primary transition-colors">
+                <Plus size={18} className="text-content-muted mr-2 flex-shrink-0" />
                 <OptimizedTextarea
                   value={newTaskInput}
                   onChange={handleTextareaChange}
@@ -1775,7 +1775,7 @@ export default function TodoApp() {
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
                 
                 {/* Calendar icon */}
-                <div className="relative calendar-dropdown">
+                <div className="relative calendar-dropdown group">
                   <button
                     type="button"
                     onClick={() => {
@@ -1790,22 +1790,34 @@ export default function TodoApp() {
                       })
                     }}
                     className="text-content-muted hover:text-content-primary p-1"
-                    title="Set due date"
                   >
                     <Calendar size={18} />
                   </button>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                    <span className="font-medium">Set due date</span>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
+                  </div>
                 </div>
 
                 {/* Assignment dropdown */}
-                <div className="relative assign-dropdown">
+                <div className="relative assign-dropdown group">
                   <button
                     type="button"
                     onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
                     className="text-content-muted hover:text-content-primary ml-2 p-1"
-                    title="Assign task"
                   >
                     <ChevronDown size={18} />
                   </button>
+                  
+                  {/* Tooltip - hidden when dropdown is open */}
+                  {!isAssignDropdownOpen && (
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                      <span className="font-medium">Assign task</span>
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
+                    </div>
+                  )}
                   {isAssignDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3 w-72 max-h-[450px] overflow-y-auto assign-dropdown-content">
                       <div className="space-y-4">
@@ -2012,7 +2024,7 @@ export default function TodoApp() {
                       size={14} 
                       className={`text-content-muted transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
                     />
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
                     <span className="font-medium text-content-primary text-xs">Ongoing</span>
                     <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.ongoing.length}
@@ -2100,9 +2112,9 @@ export default function TodoApp() {
                           {pinnedOngoing.length > 0 && (
                             <>
                               <div className="flex items-center gap-2 px-2 py-1">
-                                <Pin size={12} className="text-amber-500 fill-amber-500" />
-                                <span className="text-xs text-amber-500 font-medium">Pinned</span>
-                                <div className="flex-1 h-px bg-amber-500/30"></div>
+                                <Pin size={12} className="text-primary fill-primary" />
+                                <span className="text-xs text-primary font-medium">Pinned</span>
+                                <div className="flex-1 h-px bg-primary/30"></div>
                               </div>
                               {pinnedOngoing.map((task) => (
                                 <MobileTaskCard
@@ -2416,7 +2428,7 @@ export default function TodoApp() {
         {/* ============================================ */}
         <button
           onClick={() => setShowMobileCreateModal(true)}
-          className="md:hidden fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-2xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed bottom-6 right-6 bg-primary hover:bg-primary-hover text-white p-4 rounded-2xl shadow-lg transition-all active:scale-95 z-30"
           aria-label="Add Task"
         >
           <Plus size={24} />

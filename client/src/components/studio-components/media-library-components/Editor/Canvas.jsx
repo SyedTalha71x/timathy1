@@ -674,7 +674,7 @@ const Canvas = ({
   return (
     <div 
       ref={canvasWrapperRef}
-      className="flex-1 bg-[#0a0a0a] overflow-auto"
+      className="flex-1 bg-surface-dark overflow-auto"
     >
       <div 
         className="canvas-scroll-area w-full h-full"
@@ -857,7 +857,7 @@ const Canvas = ({
                         {['nw', 'ne', 'sw', 'se'].map(corner => (
                           <div
                             key={corner}
-                            className="absolute w-3 h-3 bg-white border-2 border-[#FF843E] rounded-sm"
+                            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm"
                             style={{
                               left: corner.includes('w') ? '-6px' : undefined,
                               right: corner.includes('e') ? '-6px' : undefined,
@@ -892,7 +892,7 @@ const Canvas = ({
                       
                       {/* Crop controls */}
                       <div 
-                        className="absolute flex items-center gap-2 bg-[#1C1C1C] rounded-lg shadow-xl border border-[#333] p-1"
+                        className="absolute flex items-center gap-2 bg-surface-card rounded-lg shadow-xl border border-border p-1"
                         style={{
                           left: '50%',
                           bottom: '-50px',
@@ -901,15 +901,15 @@ const Canvas = ({
                       >
                         <button
                           onClick={handleCancelCrop}
-                          className="flex items-center gap-1 px-3 py-1.5 text-gray-300 hover:text-white hover:bg-[#2F2F2F] rounded transition-colors text-xs"
+                          className="flex items-center gap-1 px-3 py-1.5 text-content-secondary hover:text-content-primary hover:bg-surface-button rounded transition-colors text-xs"
                         >
                           <X size={14} />
                           Cancel
                         </button>
-                        <div className="w-px h-5 bg-[#333]" />
+                        <div className="w-px h-5 bg-border" />
                         <button
                           onClick={handleApplyCrop}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-[#FF843E] hover:bg-[#e6762e] text-white rounded transition-colors text-xs"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white rounded transition-colors text-xs"
                         >
                           <Check size={14} />
                           Apply
@@ -945,7 +945,7 @@ const Canvas = ({
                   {!isLocked && !isEditing && (
                     <div
                       onMouseDown={handleResizeMouseDown}
-                      className="pointer-events-auto absolute w-2 h-2 bg-[#FF843E] border border-white rounded-sm cursor-se-resize shadow-sm"
+                      className="pointer-events-auto absolute w-2 h-2 bg-primary border border-white rounded-sm cursor-se-resize shadow-sm"
                       style={{
                         left: `${(element.x + element.width) * displayScale - 4}px`,
                         top: `${(element.y + element.height) * displayScale - 4}px`,
@@ -959,7 +959,7 @@ const Canvas = ({
                   {!isLocked && !isEditing && ['tl', 'tr', 'bl'].map(corner => (
                     <div 
                       key={corner}
-                      className="pointer-events-auto absolute bg-white border border-[#FF843E] rounded-sm"
+                      className="pointer-events-auto absolute bg-white border border-primary rounded-sm"
                       style={{
                         width: '5px',
                         height: '5px',
@@ -978,7 +978,7 @@ const Canvas = ({
                   {/* Action Buttons */}
                   {!isLocked && !isEditing && (
                     <div 
-                      className="pointer-events-auto absolute flex items-center gap-px bg-[#1C1C1C]/90 border border-[#333333] rounded-sm shadow-lg"
+                      className="pointer-events-auto absolute flex items-center gap-px bg-surface-card/90 border border-border rounded-sm shadow-lg"
                       style={{
                         left: `${(element.x + element.width / 2) * displayScale}px`,
                         top: `${element.y * displayScale - 20}px`,
@@ -992,18 +992,18 @@ const Canvas = ({
                           e.stopPropagation();
                           onDuplicateElement?.(activeElementId);
                         }}
-                        className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-sm transition-colors"
+                        className="p-0.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-sm transition-colors"
                         title="Duplicate"
                       >
                         <Copy size={9} />
                       </button>
-                      <div className="w-px h-2 bg-[#444]" />
+                      <div className="w-px h-2 bg-border" />
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteElement?.(activeElementId);
                         }}
-                        className="p-0.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
+                        className="p-0.5 text-content-muted hover:text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
                         title="Delete"
                       >
                         <Trash2 size={9} />
@@ -1014,7 +1014,7 @@ const Canvas = ({
                   {/* Lock Indicator */}
                   {isLocked && (
                     <div 
-                      className="pointer-events-auto absolute bg-[#FF843E] text-white text-[10px] px-2 py-0.5 rounded font-medium"
+                      className="pointer-events-auto absolute bg-primary text-white text-[10px] px-2 py-0.5 rounded font-medium"
                       style={{
                         left: `${(element.x + element.width / 2) * displayScale}px`,
                         top: `${element.y * displayScale - 24}px`,

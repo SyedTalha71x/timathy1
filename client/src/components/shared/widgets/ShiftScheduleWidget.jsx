@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Clock, Users, ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { staffData } from '../../../utils/studio-states/staff-states';
@@ -135,7 +135,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 
   return (
     <div 
-      className={`rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 bg-blue-600 ${sizeClasses[size]}`}
+      className={`rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 bg-secondary ${sizeClasses[size]}`}
     >
       {getInitials()}
     </div>
@@ -147,7 +147,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 // ============================================
 const ShiftCard = ({ shift }) => {
   return (
-    <div className="p-3 rounded-xl bg-black/50 hover:bg-black/70 transition-colors">
+    <div className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-colors">
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <InitialsAvatar
@@ -161,18 +161,18 @@ const ShiftCard = ({ shift }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="font-semibold text-sm text-white truncate">
+              <h3 className="font-semibold text-sm text-content-primary truncate">
                 {shift.staffName}
               </h3>
-              <p className="text-xs text-gray-500">{shift.position}</p>
+              <p className="text-xs text-content-faint">{shift.position}</p>
             </div>
           </div>
 
           {/* Time */}
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-content-muted">
             <Clock size={11} />
             <span>{shift.startTime} - {shift.endTime}</span>
-            <span className="text-gray-600">({shift.duration})</span>
+            <span className="text-content-faint">({shift.duration})</span>
           </div>
         </div>
       </div>
@@ -196,6 +196,28 @@ const ShiftScheduleWidget = ({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStaff, setSelectedStaff] = useState("all");
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false);
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, selectedDate, selectedStaff])
+
 
   // Get active staff members
   const activeStaff = useMemo(() => 
@@ -230,27 +252,27 @@ const ShiftScheduleWidget = ({
   };
 
   return (
-    <div className={`flex flex-col p-4 rounded-xl bg-[#2F2F2F] ${className} ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+    <div className={`flex flex-col p-4 rounded-xl bg-surface-button ${className} ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {showHeader && (
         <div className="flex justify-between items-center mb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-white">Staff Shifts</h2>
+            <h2 className="text-base font-semibold text-content-primary">Staff Shifts</h2>
           </div>
 
           {/* Staff Filter Dropdown */}
           <div className="relative">
             <button
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-black rounded-lg text-xs hover:bg-zinc-800 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-base rounded-lg text-xs hover:bg-surface-hover transition-colors"
               onClick={() => setIsStaffDropdownOpen(!isStaffDropdownOpen)}
             >
-              <Users size={12} className="text-gray-400" />
-              <span className="text-gray-300">
+              <Users size={12} className="text-content-muted" />
+              <span className="text-content-secondary">
                 {selectedStaff === "all" 
                   ? `All (${activeStaff.length})` 
                   : activeStaff.find(s => s.id === parseInt(selectedStaff))?.firstName || "Staff"
                 }
               </span>
-              <ChevronDown size={12} className={`text-gray-500 transition-transform ${isStaffDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={12} className={`text-content-faint transition-transform ${isStaffDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isStaffDropdownOpen && (
@@ -259,10 +281,10 @@ const ShiftScheduleWidget = ({
                   className="fixed inset-0 z-10" 
                   onClick={() => setIsStaffDropdownOpen(false)}
                 />
-                <div className="absolute top-full right-0 mt-1 w-44 bg-[#1a1a1a] rounded-xl shadow-lg border border-gray-700 z-20 py-1 max-h-[200px] overflow-y-auto custom-scrollbar">
+                <div className="absolute top-full right-0 mt-1 w-44 bg-surface-dark rounded-xl shadow-lg border border-border z-20 py-1 max-h-[200px] overflow-y-auto custom-scrollbar">
                   <button
-                    className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-800 transition-colors flex items-center gap-2 ${
-                      selectedStaff === "all" ? 'bg-blue-500/20 text-blue-400' : 'text-gray-300'
+                    className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-dark transition-colors flex items-center gap-2 ${
+                      selectedStaff === "all" ? 'bg-secondary/20 text-secondary' : 'text-content-secondary'
                     }`}
                     onClick={() => {
                       setSelectedStaff("all");
@@ -272,12 +294,12 @@ const ShiftScheduleWidget = ({
                     <Users size={12} />
                     All Staff ({activeStaff.length})
                   </button>
-                  <div className="border-t border-gray-700 my-1" />
+                  <div className="border-t border-border my-1" />
                   {activeStaff.map((staff) => (
                     <button
                       key={staff.id}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-800 transition-colors flex items-center gap-2 ${
-                        selectedStaff === String(staff.id) ? 'bg-blue-500/20 text-blue-400' : 'text-gray-300'
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-dark transition-colors flex items-center gap-2 ${
+                        selectedStaff === String(staff.id) ? 'bg-secondary/20 text-secondary' : 'text-content-secondary'
                       }`}
                       onClick={() => {
                         setSelectedStaff(String(staff.id));
@@ -295,25 +317,25 @@ const ShiftScheduleWidget = ({
       )}
 
       {/* Date Navigation */}
-      <div className="flex items-center justify-between bg-black rounded-xl p-2.5 mb-3 flex-shrink-0">
+      <div className="flex items-center justify-between bg-surface-base rounded-xl p-2.5 mb-3 flex-shrink-0">
         <button
-          className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-gray-400 hover:text-white"
+          className="p-1.5 hover:bg-surface-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
           onClick={goToPreviousDay}
         >
           <ChevronLeft size={16} />
         </button>
 
         <div className="text-center">
-          <div className="font-medium text-sm text-white">
+          <div className="font-medium text-sm text-content-primary">
             {formatDisplayDate(selectedDate)}
           </div>
-          <div className="text-[10px] text-gray-500">
+          <div className="text-[10px] text-content-faint">
             {currentShifts.length} staff scheduled
           </div>
         </div>
 
         <button
-          className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-gray-400 hover:text-white"
+          className="p-1.5 hover:bg-surface-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
           onClick={goToNextDay}
         >
           <ChevronRight size={16} />
@@ -321,18 +343,22 @@ const ShiftScheduleWidget = ({
       </div>
 
       {/* Shifts List */}
-      <div className={`space-y-2 overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}>
+      <div
+        ref={listRef}
+        className={`space-y-2 overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}
+        style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+      >
         {currentShifts.length > 0 ? (
-          (maxItems ? currentShifts.slice(0, maxItems) : currentShifts).map((shift) => (
+          currentShifts.map((shift) => (
             <ShiftCard key={shift.id} shift={shift} />
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-              <Calendar size={20} className="text-gray-600" />
+          <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+            <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+              <Calendar size={20} className="text-content-faint" />
             </div>
             <p className="text-sm">No shifts scheduled</p>
-            <p className="text-xs mt-1 text-gray-600">
+            <p className="text-xs mt-1 text-content-faint">
               {isWeekend(selectedDate) ? "Weekend" : "Check another date"}
             </p>
           </div>
@@ -340,7 +366,7 @@ const ShiftScheduleWidget = ({
       </div>
 
       {/* Footer Link */}
-      <div className="flex justify-center pt-3 border-t border-gray-700 mt-3 flex-shrink-0">
+      <div className="flex justify-center pt-3 border-t border-border mt-3 flex-shrink-0">
         <button 
           onClick={() => navigate('/dashboard/staff', { 
             state: { 
@@ -348,7 +374,7 @@ const ShiftScheduleWidget = ({
               initialTab: 'shifts'
             } 
           })}
-          className="text-xs text-gray-400 hover:text-white transition-colors"
+          className="text-xs text-content-muted hover:text-content-primary transition-colors"
         >
           View full schedule →
         </button>

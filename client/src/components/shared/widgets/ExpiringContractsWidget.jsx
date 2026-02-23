@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
 import { FileText, MessageCircle, Calendar } from "lucide-react"
@@ -29,7 +29,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-orange-500 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-primary rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
     >
       {getInitials()}
     </div>
@@ -87,6 +87,28 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
   }
 
   const expiringMembers = getExpiringMembers()
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, expiringMembers.length])
+
 
   // Contact Handlers
   const handleContactClick = (member, e) => {
@@ -149,24 +171,28 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
 
   return (
     <>
-      <div className={`p-3 rounded-xl bg-[#2F2F2F] flex flex-col ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+      <div className={`p-3 rounded-xl bg-surface-button flex flex-col ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
         {/* Header */}
         {showHeader && (
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
-            <h2 className="text-base font-semibold text-white">Expiring Contracts</h2>
+            <h2 className="text-base font-semibold text-content-primary">Expiring Contracts</h2>
           </div>
         )}
 
         {/* Members List - scrollable */}
-        <div className={`overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}>
+        <div
+          ref={listRef}
+          className={`overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}
+          style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+        >
           {expiringMembers.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {(maxItems ? expiringMembers.slice(0, maxItems) : expiringMembers).map((member) => {
+              {expiringMembers.map((member) => {
                 const daysRemaining = calculateDaysRemaining(member.contractEnd)
                 
                 return (
                   <Link to="/dashboard/contract" key={member.id} state={{ filterMemberId: member.id, filterMemberName: `${member.firstName} ${member.lastName}` }} className="block">
-                    <div className="p-3 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+                    <div className="p-3 bg-surface-card rounded-xl hover:bg-surface-hover transition-colors">
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
                         <InitialsAvatar 
@@ -177,38 +203,38 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-white truncate">
+                          <h3 className="text-sm font-medium text-content-primary truncate">
                             {member.firstName} {member.lastName}
                           </h3>
                           
                           <div className="flex items-center gap-1.5 mt-1">
-                            <Calendar size={10} className="text-gray-400" />
-                            <span className="text-xs text-gray-400">
+                            <Calendar size={10} className="text-content-muted" />
+                            <span className="text-xs text-content-muted">
                               {formatDate(member.contractEnd)}
                             </span>
                           </div>
 
-                          <p className="text-[10px] text-orange-400 mt-0.5">
+                          <p className="text-[10px] text-primary mt-0.5">
                             {daysRemaining} days left
                           </p>
 
                           {/* Member Type */}
                           {member.memberType && (
-                            <p className="text-[10px] text-gray-500 mt-0.5 capitalize">
+                            <p className="text-[10px] text-content-faint mt-0.5 capitalize">
                               {member.memberType} Member
                             </p>
                           )}
                         </div>
 
                         {/* Status Badge - Centered */}
-                        <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-orange-500/20 text-orange-400 flex-shrink-0">
+                        <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-primary/20 text-primary flex-shrink-0">
                           Expiring Soon
                         </span>
 
                         {/* Contact Button - Orange */}
                         <button
                           onClick={(e) => handleContactClick(member, e)}
-                          className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-lg text-white transition-colors flex-shrink-0"
+                          className="p-1.5 bg-primary hover:bg-primary-hover rounded-lg text-white transition-colors flex-shrink-0"
                           title="Contact Member"
                         >
                           <MessageCircle size={14} />
@@ -220,9 +246,9 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-              <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-                <FileText size={20} className="text-gray-600" />
+            <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+              <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+                <FileText size={20} className="text-content-faint" />
               </div>
               <p className="text-sm">No expiring contracts</p>
             </div>
@@ -230,9 +256,9 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
         </div>
 
         {/* Footer Link */}
-        <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0 mt-2">
-          <Link to="/dashboard/contract" className="text-xs text-gray-400 hover:text-white transition-colors">
-            View all contracts â†’
+        <div className="flex justify-center pt-2 border-t border-border flex-shrink-0 mt-2">
+          <Link to="/dashboard/contract" className="text-xs text-content-muted hover:text-content-primary transition-colors">
+            View all contracts →
           </Link>
         </div>
       </div>

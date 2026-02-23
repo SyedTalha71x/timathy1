@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
-import { X, Check } from "lucide-react"
+import { X, Check, AlertTriangle } from "lucide-react"
 import { appointmentTypesData } from "../../../utils/studio-states"
+import DatePickerField from '../../shared/DatePickerField'
 
 const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, selectedTime = null }) => {
   // Format date to YYYY-MM-DD string using local timezone (not UTC)
@@ -39,13 +40,20 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
     return { start: startTime, end: endTime };
   };
 
+  // Format date for display (YYYY-MM-DD → DD.MM.YYYY)
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-");
+    return `${d}.${m}.${y}`;
+  };
+
   const formattedSelectedDate = getFormattedDate(selectedDate);
   const initialTimes = parseSelectedTime(selectedTime);
 
   // Get all appointment types (regular + trial training)
   const allAppointmentTypes = [
     ...appointmentTypesData.filter(t => !t.isTrialType),
-    { id: 'trial', name: 'Trial Training', color: 'bg-[#3B82F6]', colorHex: '#3B82F6' }
+    { id: 'trial', name: 'Trial Training', color: 'bg-trial', colorHex: '#3B82F6' }
   ];
 
   const [blockData, setBlockData] = useState({
@@ -168,100 +176,99 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
         <div
-          className="bg-[#181818] w-[90%] sm:w-[520px] rounded-xl overflow-hidden"
+          className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-white">Block Time Slot</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
-              <X size={20} />
-            </button>
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-content-primary">Block Time Slot</h2>
+              <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg transition-colors">
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmitClick} className="p-6 space-y-6 custom-scrollbar overflow-y-auto max-h-[70vh]">
-            <div className="space-y-4">
+          {/* Content */}
+          <form onSubmit={handleSubmitClick} className="flex flex-col">
+            <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-5">
               {/* Start & End Date */}
-              <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Start Date</label>
-                  <input
-                    type="date"
-                    name="startDate"
-                    value={blockData.startDate}
-                    onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-content-secondary mb-2">Start Date</label>
+                  <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
+                    <span className={blockData.startDate ? "text-content-primary" : "text-content-faint"}>
+                      {blockData.startDate ? formatDateDisplay(blockData.startDate) : "Select date"}
+                    </span>
+                    <DatePickerField value={blockData.startDate} onChange={(val) => setBlockData({ ...blockData, startDate: val })} />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">End Date</label>
-                  <input
-                    type="date"
-                    name="endDate"
-                    value={blockData.endDate}
-                    onChange={handleChange}
-                    min={blockData.startDate}
-                    className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-content-secondary mb-2">End Date</label>
+                  <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
+                    <span className={blockData.endDate ? "text-content-primary" : "text-content-faint"}>
+                      {blockData.endDate ? formatDateDisplay(blockData.endDate) : "Select date"}
+                    </span>
+                    <DatePickerField value={blockData.endDate} onChange={(val) => setBlockData({ ...blockData, endDate: val })} />
+                  </div>
                 </div>
               </div>
               {!isDateValid() && (
-                <p className="text-red-400 text-xs">Start date cannot be after end date</p>
+                <p className="text-accent-red text-xs">Start date cannot be after end date</p>
               )}
 
               {/* Start & End Time */}
-              <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Start Time</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">Start Time</label>
                   <input
                     type="time"
                     name="startTime"
                     value={blockData.startTime}
                     onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full bg-surface-dark border border-border text-content-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary transition-colors"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">End Time</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">End Time</label>
                   <input
                     type="time"
                     name="endTime"
                     value={blockData.endTime}
                     onChange={handleChange}
-                    className="w-full bg-[#0D0D0D] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full bg-surface-dark border border-border text-content-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary transition-colors"
                     required
                   />
                 </div>
               </div>
               {!isTimeValid() && (
-                <p className="text-red-400 text-xs">Start time must be before end time on the same day</p>
+                <p className="text-accent-red text-xs">Start time must be before end time on the same day</p>
               )}
 
               {/* Appointment Types to Block */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="block text-sm font-medium text-white">Block Appointment Types</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-content-secondary">Block Appointment Types</label>
                   <button
                     type="button"
                     onClick={handleSelectAll}
-                    className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                    className="text-xs text-primary hover:text-primary-hover transition-colors"
                   >
                     {areAllSelected ? "Deselect All" : "Select All"}
                   </button>
                 </div>
-                <div className="bg-[#0D0D0D] rounded-xl p-3 space-y-2">
+                <div className="bg-surface-dark border border-border rounded-xl p-3 space-y-1">
                   {allAppointmentTypes.map((type) => (
                     <label 
                       key={type.id} 
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800/50 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-hover cursor-pointer transition-colors"
                     >
                       <div 
                         className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
                           blockedTypes[type.id] 
-                            ? 'border-orange-500 bg-orange-500' 
-                            : 'border-gray-600 bg-transparent'
+                            ? 'border-primary bg-primary' 
+                            : 'border-border bg-transparent'
                         }`}
                         onClick={(e) => {
                           e.preventDefault();
@@ -274,44 +281,45 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
                         className="w-3 h-3 rounded-full flex-shrink-0" 
                         style={{ backgroundColor: getColorHex(type) }}
                       />
-                      <span className="text-white text-sm">{type.name}</span>
+                      <span className="text-content-primary text-sm">{type.name}</span>
                     </label>
                   ))}
                 </div>
                 {!hasSelectedTypes && (
-                  <p className="text-red-400 text-xs mt-2">Please select at least one appointment type</p>
+                  <p className="text-accent-red text-xs mt-2">Please select at least one appointment type</p>
                 )}
               </div>
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Note (Optional)</label>
+                <label className="block text-sm font-medium text-content-secondary mb-2">Note (Optional)</label>
                 <textarea
                   name="note"
                   value={blockData.note}
                   onChange={handleChange}
                   placeholder="Add a note about why this time is blocked"
-                  className="w-full bg-[#0D0D0D] text-white resize-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[80px]"
+                  className="w-full bg-surface-dark border border-border text-content-primary resize-none rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors min-h-[80px]"
                 />
               </div>
             </div>
 
-            {/* Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t border-gray-800">
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-border flex gap-3">
+              <div className="flex-1" />
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!isFormValid}
-                className={`w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white rounded-xl transition-colors ${
+                className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
                   isFormValid 
-                    ? "bg-orange-500 hover:bg-orange-600 cursor-pointer" 
-                    : "bg-orange-500/50 cursor-not-allowed opacity-60"
+                    ? "text-white bg-primary hover:bg-primary-hover" 
+                    : "text-content-faint bg-surface-button cursor-not-allowed"
                 }`}
               >
                 Block Time Slot
@@ -323,29 +331,33 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
 
       {/* Confirmation Dialog */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1001] p-4" onClick={() => setShowConfirm(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4" onClick={() => setShowConfirm(false)}>
           <div 
-            className="bg-[#181818] w-[90%] sm:w-[420px] rounded-xl overflow-hidden"
+            className="bg-surface-card w-full max-w-sm rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">Block this time slot?</h3>
-              <p className="text-gray-400 text-sm">
-                Are you sure you want to block this time slot? The selected appointment types cannot be booked during this period.
+              <div className="w-12 h-12 rounded-xl bg-accent-yellow/10 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={24} className="text-accent-yellow" />
+              </div>
+              <h3 className="text-lg font-semibold text-content-primary text-center mb-2">Block this time slot?</h3>
+              <p className="text-content-muted text-sm text-center mb-4">
+                The selected appointment types cannot be booked during this period.
               </p>
-              <div className="mt-4 p-3 bg-[#0D0D0D] rounded-xl text-sm space-y-2">
-                <p className="text-gray-300">
-                  <span className="text-gray-500">Date:</span> {blockData.startDate === blockData.endDate 
-                    ? blockData.startDate 
-                    : `${blockData.startDate} - ${blockData.endDate}`}
+              <div className="p-3 bg-surface-dark border border-border rounded-xl text-sm space-y-2">
+                <p className="text-content-secondary">
+                  <span className="text-content-faint">Date:</span>{' '}
+                  {blockData.startDate === blockData.endDate 
+                    ? formatDateDisplay(blockData.startDate) 
+                    : `${formatDateDisplay(blockData.startDate)} – ${formatDateDisplay(blockData.endDate)}`}
                 </p>
-                <p className="text-gray-300">
-                  <span className="text-gray-500">Time:</span> {blockData.startTime} - {blockData.endTime}
+                <p className="text-content-secondary">
+                  <span className="text-content-faint">Time:</span> {blockData.startTime} – {blockData.endTime}
                 </p>
-                <div className="text-gray-300">
-                  <span className="text-gray-500">Blocked Types:</span>{' '}
+                <div className="text-content-secondary">
+                  <span className="text-content-faint">Blocked Types:</span>{' '}
                   {areAllSelected ? (
-                    <span className="text-orange-400">All Types</span>
+                    <span className="text-primary">All Types</span>
                   ) : (
                     <span>
                       {allAppointmentTypes
@@ -356,22 +368,22 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
                   )}
                 </div>
                 {blockData.note && (
-                  <p className="text-gray-300">
-                    <span className="text-gray-500">Note:</span> {blockData.note}
+                  <p className="text-content-secondary">
+                    <span className="text-content-faint">Note:</span> {blockData.note}
                   </p>
                 )}
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-800 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmBlock}
-                className="px-4 py-2 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-xl transition-colors"
               >
                 Block Time
               </button>

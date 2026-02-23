@@ -3,12 +3,14 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X } from "lucide-react"
+import CustomSelect from "../../shared/CustomSelect"
+import DatePickerField from "../../shared/DatePickerField"
 
 
 const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
   const [frequency, setFrequency] = useState("daily")
   const [repeatDays, setRepeatDays] = useState([])
-  const [endType, setEndType] = useState("never") // Add explicit end type state
+  const [endType, setEndType] = useState("never")
   const [endDate, setEndDate] = useState("")
   const [occurrences, setOccurrences] = useState("")
 
@@ -20,6 +22,12 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
     { name: "Thu", value: 4 },
     { name: "Fri", value: 5 },
     { name: "Sat", value: 6 },
+  ]
+
+  const frequencyOptions = [
+    { value: "daily", label: "Daily" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
   ]
 
   const handleDayToggle = (dayValue) => {
@@ -71,18 +79,19 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
             onSubmit={handleSubmit}
             className="space-y-4 custom-scrollbar max-h-[calc(100vh-180px)] overflow-y-auto"
           >
+            {/* Frequency */}
             <div>
-              <label className="text-sm text-content-secondary">Repeat Frequency</label>
-              <select
+              <label className="text-sm text-content-secondary mb-1 block">Repeat Frequency</label>
+              <CustomSelect
+                name="frequency"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
-                className="w-full bg-surface-dark mt-1 text-sm rounded-xl px-4 py-2.5 text-content-primary outline-none"
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
+                options={frequencyOptions}
+                placeholder="Select frequency"
+              />
             </div>
+
+            {/* Weekly day picker */}
             {frequency === "weekly" && (
               <div>
                 <label className="text-sm text-content-secondary">Repeat on days</label>
@@ -102,75 +111,111 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                 </div>
               </div>
             )}
+
+            {/* Ends */}
             <div>
               <label className="text-sm text-content-secondary block mb-2">Ends</label>
-              <div className="space-y-3">
-                {/* Never option */}
-                <label className="flex items-center gap-3 text-sm text-content-secondary cursor-pointer">
+              <div className="space-y-1">
+                {/* Never */}
+                <label 
+                  className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${
+                    endType === "never" ? "bg-surface-dark" : "hover:bg-surface-dark/50"
+                  }`}
+                  onClick={() => handleEndTypeChange("never")}
+                >
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="never"
                     checked={endType === "never"}
                     onChange={() => handleEndTypeChange("never")}
-                    className="w-4 h-4 text-primary bg-surface-dark border-border focus:ring-primary focus:ring-2"
+                    className="primary-radio"
                   />
-                  <span>Never</span>
+                  <span className="text-sm text-content-secondary">Never</span>
                 </label>
                 
-                {/* On date option */}
-                <label className="flex items-center gap-3 text-sm text-content-secondary cursor-pointer">
-                  <input
-                    type="radio"
-                    name="repeatEnd"
-                    value="onDate"
-                    checked={endType === "onDate"}
-                    onChange={() => handleEndTypeChange("onDate")}
-                    className="w-4 h-4 text-primary bg-surface-dark border-border focus:ring-primary focus:ring-2"
-                  />
-                  <span>On date:</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => {
-                      setEndDate(e.target.value)
-                      setEndType("onDate")
-                    }}
-                    onClick={() => setEndType("onDate")}
-                    className="bg-surface-dark text-sm rounded-xl px-3 py-1.5 text-content-primary outline-none border border-border focus:border-primary"
-                  />
-                </label>
+                {/* On date */}
+                <div 
+                  className={`rounded-xl transition-colors ${
+                    endType === "onDate" ? "bg-surface-dark" : "hover:bg-surface-dark/50"
+                  }`}
+                >
+                  <label 
+                    className="flex items-center gap-3 p-2.5 cursor-pointer"
+                    onClick={() => handleEndTypeChange("onDate")}
+                  >
+                    <input
+                      type="radio"
+                      name="repeatEnd"
+                      value="onDate"
+                      checked={endType === "onDate"}
+                      onChange={() => handleEndTypeChange("onDate")}
+                      className="primary-radio"
+                    />
+                    <span className="text-sm text-content-secondary">On date</span>
+                  </label>
+                  {endType === "onDate" && (
+                    <div className="flex items-center gap-2 px-2.5 pb-2.5 ml-7">
+                      <div className="flex items-center gap-2 bg-surface-button rounded-xl px-3 py-2 border border-border flex-1">
+                        <span className={`text-sm flex-1 ${endDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                          {endDate || "Pick a date"}
+                        </span>
+                        <DatePickerField
+                          value={endDate}
+                          onChange={(val) => {
+                            setEndDate(val)
+                            setEndType("onDate")
+                          }}
+                          iconSize={14}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
-                {/* After occurrences option */}
-                <label className="flex items-center gap-3 text-sm text-content-secondary cursor-pointer">
-                  <input
-                    type="radio"
-                    name="repeatEnd"
-                    value="afterOccurrences"
-                    checked={endType === "afterOccurrences"}
-                    onChange={() => handleEndTypeChange("afterOccurrences")}
-                    className="w-4 h-4 text-primary bg-surface-dark border-border focus:ring-primary focus:ring-2"
-                  />
-                  <span>After</span>
-                  <input
-  type="number"
-  value={occurrences}
-  onChange={(e) => {
-    const value = e.target.value;
-    if (value === "" || (Number.parseInt(value, 10) > 0)) {
-      setOccurrences(value);
-      setEndType("afterOccurrences");
-    }
-  }}
-  onClick={() => setEndType("afterOccurrences")}
-  min="1"
-  placeholder="4"
-  className="w-20 bg-surface-dark text-sm rounded-xl px-3 py-1.5 text-content-primary outline-none border border-border focus:border-primary"
-/>
-                  <span>occurrences</span>
-                </label>
+                {/* After occurrences */}
+                <div 
+                  className={`rounded-xl transition-colors ${
+                    endType === "afterOccurrences" ? "bg-surface-dark" : "hover:bg-surface-dark/50"
+                  }`}
+                >
+                  <label 
+                    className="flex items-center gap-3 p-2.5 cursor-pointer"
+                    onClick={() => handleEndTypeChange("afterOccurrences")}
+                  >
+                    <input
+                      type="radio"
+                      name="repeatEnd"
+                      value="afterOccurrences"
+                      checked={endType === "afterOccurrences"}
+                      onChange={() => handleEndTypeChange("afterOccurrences")}
+                      className="primary-radio"
+                    />
+                    <span className="text-sm text-content-secondary">After occurrences</span>
+                  </label>
+                  {endType === "afterOccurrences" && (
+                    <div className="flex items-center gap-2 px-2.5 pb-2.5 ml-7">
+                      <input
+                        type="number"
+                        value={occurrences}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || (Number.parseInt(value, 10) > 0)) {
+                            setOccurrences(value);
+                          }
+                        }}
+                        min="1"
+                        placeholder="4"
+                        className="w-20 bg-surface-button text-sm rounded-xl px-3 py-2 text-content-primary outline-none border border-border focus:border-primary"
+                      />
+                      <span className="text-sm text-content-muted">times</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Actions */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 type="button"
@@ -181,7 +226,7 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors"
+                className="px-6 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors"
               >
                 Save Changes
               </button>
@@ -189,6 +234,42 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
           </form>
         </div>
       </div>
+
+      <style jsx>{`
+        .primary-radio {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          width: 1.125rem;
+          height: 1.125rem;
+          border-radius: 50%;
+          border: 2px solid var(--color-border, #444);
+          background: var(--color-surface-card, #1a1a1a);
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.15s ease;
+          position: relative;
+        }
+        .primary-radio:checked {
+          border-color: var(--color-primary, #f97316);
+          background: var(--color-primary, #f97316);
+        }
+        .primary-radio:checked::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 0.375rem;
+          height: 0.375rem;
+          border-radius: 50%;
+          background: white;
+        }
+        .primary-radio:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #f97316) 40%, transparent);
+        }
+      `}</style>
     </>
   )
 }

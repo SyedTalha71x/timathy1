@@ -43,15 +43,15 @@ const WebsiteLinkModal = ({
   }
 
   return (
-    <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+    <div className="bg-surface-card rounded-xl w-full max-w-md mx-4">
       <div className="p-6 space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-content-primary">
             {link ? "Edit Website Link" : "Add Website Link"}
           </h2>
           <button 
             onClick={onClose} 
-            className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+            className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
           >
             <X size={16} />
           </button>
@@ -59,22 +59,22 @@ const WebsiteLinkModal = ({
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Title</label>
+            <label className="block text-sm text-content-muted mb-2">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white placeholder-gray-500"
+              className="w-full p-3 bg-surface-base rounded-xl text-sm outline-none text-content-primary placeholder-content-faint"
               placeholder="Enter title"
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-2">URL</label>
+            <label className="block text-sm text-content-muted mb-2">URL</label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white placeholder-gray-500"
+              className="w-full p-3 bg-surface-base rounded-xl text-sm outline-none text-content-primary placeholder-content-faint"
               placeholder="https://example.com"
             />
           </div>
@@ -83,7 +83,7 @@ const WebsiteLinkModal = ({
         <div className="flex gap-3 justify-end mt-6">
           <button 
             onClick={onClose} 
-            className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] text-sm"
+            className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover text-sm"
           >
             Cancel
           </button>
@@ -92,8 +92,8 @@ const WebsiteLinkModal = ({
             disabled={!title.trim() || !url.trim()}
             className={`px-4 py-2 text-sm rounded-xl ${
               !title.trim() || !url.trim() 
-                ? "bg-orange-600/50 cursor-not-allowed text-gray-400" 
-                : "bg-orange-500 hover:bg-orange-600 text-white"
+                ? "bg-primary/50 cursor-not-allowed text-content-muted" 
+                : "bg-primary hover:bg-primary-hover text-white"
             }`}
           >
             Save
@@ -124,6 +124,28 @@ const WebsiteLinksWidget = ({
   const [linkToDelete, setLinkToDelete] = useState(null)
   const dropdownRef = useRef(null)
   const dropdownButtonRefs = useRef({})
+  // Measure actual item heights for maxItems constraint
+  const listRef = useRef(null)
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  useEffect(() => {
+    if (!maxItems || !listRef.current) {
+      setComputedMaxHeight(null)
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const el = listRef.current
+      if (!el) return
+      const children = el.children
+      if (children.length === 0) { setComputedMaxHeight(null); return }
+      const count = Math.min(maxItems, children.length)
+      const firstRect = children[0].getBoundingClientRect()
+      const lastRect = children[count - 1].getBoundingClientRect()
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [maxItems, customLinks.length])
+
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -199,7 +221,7 @@ const WebsiteLinksWidget = ({
   }
 
   return (
-    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+    <div className={`p-4 rounded-xl bg-surface-button flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -207,7 +229,7 @@ const WebsiteLinksWidget = ({
           <div className="flex items-center gap-2">
             <button
               onClick={handleAddClick}
-              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+              className="p-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors text-white"
               title="Add link"
             >
               <Plus size={18} />
@@ -219,7 +241,7 @@ const WebsiteLinksWidget = ({
         <div className="flex justify-end flex-shrink-0">
           <button
             onClick={handleAddClick}
-            className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+            className="p-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors text-white"
             title="Add link"
           >
             <Plus size={18} />
@@ -228,25 +250,29 @@ const WebsiteLinksWidget = ({
       )}
 
       {/* Links List */}
-      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
-        {(maxItems ? customLinks.slice(0, maxItems) : customLinks).map((link) => (
+      <div
+        ref={listRef}
+        className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}
+        style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
+      >
+        {customLinks.map((link) => (
           <div
             key={link.id}
-            className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"
+            className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-all"
           >
             <div className="flex items-start gap-3">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-white truncate" style={{ wordBreak: 'break-word' }}>
+                <h3 className="text-sm font-medium text-content-primary truncate" style={{ wordBreak: 'break-word' }}>
                   {link.title}
                 </h3>
-                <p className="text-xs mt-1 text-gray-400 truncate">
+                <p className="text-xs mt-1 text-content-muted truncate">
                   {truncateUrl(link.url)}
                 </p>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   onClick={() => window.open(link.url, "_blank")}
-                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                  className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
                   title="Open link"
                 >
                   <ExternalLink size={14} />
@@ -257,26 +283,26 @@ const WebsiteLinksWidget = ({
                       e.stopPropagation()
                       handleDropdownToggle(link.id, e)
                     }}
-                    className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+                    className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
                   >
                     <MoreVertical size={14} />
                   </button>
                   {openDropdownId === link.id && (
                     <div 
-                      className={`absolute right-0 bg-[#2F2F2F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
+                      className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
                         dropdownPosition[link.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
                       }`}
                     >
                       <button
                         onClick={() => handleEditClick(link)}
-                        className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white"
+                        className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary"
                       >
                         <Edit size={12} />
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteClick(link.id)}
-                        className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 text-red-400 flex items-center gap-2"
+                        className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2"
                       >
                         <Trash2 size={12} />
                         Delete
@@ -291,9 +317,9 @@ const WebsiteLinksWidget = ({
 
         {/* Empty State */}
         {customLinks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
-              <ExternalLink size={20} className="text-gray-600" />
+          <div className="flex flex-col items-center justify-center py-8 text-content-faint">
+            <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
+              <ExternalLink size={20} className="text-content-faint" />
             </div>
             <p className="text-sm">No links yet</p>
             <p className="text-xs mt-1">Click + to add a link</p>
@@ -319,21 +345,21 @@ const WebsiteLinksWidget = ({
       {/* Delete Confirmation Modal - rendered via portal */}
       {linkToDelete && createPortal(
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999]">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 text-white">Delete Link</h3>
-            <p className="text-gray-300 mb-6">
+          <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4 text-content-primary">Delete Link</h3>
+            <p className="text-content-secondary mb-6">
               Are you sure you want to delete this link? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setLinkToDelete(null)}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F]"
+                className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                className="px-4 py-2 bg-accent-red text-white rounded-xl hover:bg-accent-red/90"
               >
                 Delete
               </button>

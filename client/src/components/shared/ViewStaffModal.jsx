@@ -19,7 +19,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "lg" }) => {
 
   return (
     <div
-      className={`bg-blue-600 rounded-2xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]}`}
+      className={`bg-secondary rounded-2xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]}`}
     >
       {getInitials()}
     </div>
@@ -122,15 +122,15 @@ const ViewStaffModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[10000]">
-      <div className="bg-[#0E0E0E] rounded-2xl w-full max-w-md mx-4 border border-gray-800/50 shadow-2xl overflow-hidden">
+      <div className="bg-surface-card rounded-2xl w-full max-w-md mx-4 border border-border shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-content-primary">{title}</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-xl transition-colors"
+            className="p-2 hover:bg-surface-button rounded-xl transition-colors"
           >
-            <X className="w-5 h-5 text-gray-400" />
+            <X className="w-5 h-5 text-content-muted" />
           </button>
         </div>
 
@@ -155,7 +155,7 @@ const ViewStaffModal = ({
             
             {/* Name and Role */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-white truncate">{fullName}</h3>
+              <h3 className="text-lg font-semibold text-content-primary truncate">{fullName}</h3>
               
               {staff.role && (
                 <div className="mt-1.5">
@@ -169,23 +169,23 @@ const ViewStaffModal = ({
           <div className="space-y-3">
             {/* Email */}
             {staff.email && (
-              <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl p-3">
-                <div className="w-9 h-9 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500">Email</p>
-                  <p className="text-sm text-white truncate">{staff.email}</p>
+                  <p className="text-xs text-content-faint">Email</p>
+                  <p className="text-sm text-content-primary truncate">{staff.email}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(staff.email, setCopiedEmail)}
-                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded transition-colors"
                   title="Copy email"
                 >
                   {copiedEmail ? (
-                    <Check size={14} className="text-orange-500" />
+                    <Check size={14} className="text-primary" />
                   ) : (
-                    <Copy size={14} className="text-gray-400 hover:text-white" />
+                    <Copy size={14} className="text-content-muted hover:text-content-primary" />
                   )}
                 </button>
               </div>
@@ -193,23 +193,23 @@ const ViewStaffModal = ({
 
             {/* Mobile Number */}
             {mobileNumber && (
-              <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl p-3">
-                <div className="w-9 h-9 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                  <Smartphone className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Smartphone className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500">Mobile Number</p>
-                  <p className="text-sm text-white truncate">{mobileNumber}</p>
+                  <p className="text-xs text-content-faint">Mobile Number</p>
+                  <p className="text-sm text-content-primary truncate">{mobileNumber}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(mobileNumber, setCopiedMobile)}
-                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded transition-colors"
                   title="Copy mobile number"
                 >
                   {copiedMobile ? (
-                    <Check size={14} className="text-orange-500" />
+                    <Check size={14} className="text-primary" />
                   ) : (
-                    <Copy size={14} className="text-gray-400 hover:text-white" />
+                    <Copy size={14} className="text-content-muted hover:text-content-primary" />
                   )}
                 </button>
               </div>
@@ -217,23 +217,23 @@ const ViewStaffModal = ({
 
             {/* Telephone Number */}
             {telephoneNumber && (
-              <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl p-3">
-                <div className="w-9 h-9 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500">Telephone Number</p>
-                  <p className="text-sm text-white truncate">{telephoneNumber}</p>
+                  <p className="text-xs text-content-faint">Telephone Number</p>
+                  <p className="text-sm text-content-primary truncate">{telephoneNumber}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(telephoneNumber, setCopiedTelephone)}
-                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded transition-colors"
                   title="Copy telephone number"
                 >
                   {copiedTelephone ? (
-                    <Check size={14} className="text-orange-500" />
+                    <Check size={14} className="text-primary" />
                   ) : (
-                    <Copy size={14} className="text-gray-400 hover:text-white" />
+                    <Copy size={14} className="text-content-muted hover:text-content-primary" />
                   )}
                 </button>
               </div>
@@ -241,23 +241,23 @@ const ViewStaffModal = ({
 
             {/* Date of Birth with Age */}
             {staff.dateOfBirth && (
-              <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl p-3">
-                <div className="w-9 h-9 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500">Date of Birth</p>
-                  <p className="text-sm text-white">{formatBirthdayWithAge(staff.dateOfBirth)}</p>
+                  <p className="text-xs text-content-faint">Date of Birth</p>
+                  <p className="text-sm text-content-primary">{formatBirthdayWithAge(staff.dateOfBirth)}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(staff.dateOfBirth, setCopiedBirthday)}
-                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded transition-colors"
                   title="Copy date of birth"
                 >
                   {copiedBirthday ? (
-                    <Check size={14} className="text-orange-500" />
+                    <Check size={14} className="text-primary" />
                   ) : (
-                    <Copy size={14} className="text-gray-400 hover:text-white" />
+                    <Copy size={14} className="text-content-muted hover:text-content-primary" />
                   )}
                 </button>
               </div>
@@ -265,23 +265,23 @@ const ViewStaffModal = ({
 
             {/* Address */}
             {staff.address && (
-              <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl p-3">
-                <div className="w-9 h-9 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+              <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500">Address</p>
-                  <p className="text-sm text-white truncate">{staff.address}</p>
+                  <p className="text-xs text-content-faint">Address</p>
+                  <p className="text-sm text-content-primary truncate">{staff.address}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(staff.address, setCopiedAddress)}
-                  className="p-1 hover:bg-gray-700 rounded transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded transition-colors"
                   title="Copy address"
                 >
                   {copiedAddress ? (
-                    <Check size={14} className="text-orange-500" />
+                    <Check size={14} className="text-primary" />
                   ) : (
-                    <Copy size={14} className="text-gray-400 hover:text-white" />
+                    <Copy size={14} className="text-content-muted hover:text-content-primary" />
                   )}
                 </button>
               </div>
@@ -290,18 +290,18 @@ const ViewStaffModal = ({
             {/* No details fallback */}
             {!hasAnyDetails && (
               <div className="text-center py-6">
-                <User className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">No additional details available</p>
+                <User className="w-8 h-8 text-content-faint mx-auto mb-2" />
+                <p className="text-sm text-content-faint">No additional details available</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-800/50 bg-[#0a0a0a]">
+        <div className="flex items-center justify-end gap-3 p-4 border-t border-border bg-surface-dark">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] text-white text-sm font-medium rounded-xl transition-colors"
+            className="px-5 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm font-medium rounded-xl transition-colors"
           >
             Close
           </button>
@@ -311,7 +311,7 @@ const ViewStaffModal = ({
                 onConfirm(staff)
                 onClose()
               }}
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-xl transition-all"
+              className="px-5 py-2.5 bg-secondary hover:brightness-110 text-white text-sm font-medium rounded-xl transition-all"
             >
               View Full Profile
             </button>

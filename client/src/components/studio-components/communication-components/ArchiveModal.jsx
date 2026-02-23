@@ -17,7 +17,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false }) =
     lg: "w-12 h-12 text-base",
   };
 
-  const bgColor = isStaff ? "bg-blue-600" : "bg-orange-500";
+  const bgColor = "bg-primary";
 
   return (
     <div
@@ -61,23 +61,23 @@ const ArchiveModal = ({
       onClick={() => setShowArchive(false)}
     >
       <div 
-        className="bg-[#141414] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden border border-[#2a2a2a] shadow-2xl select-none"
+        className="bg-surface-card rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden border border-border shadow-2xl select-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a] bg-gradient-to-r from-[#1a1a1a] to-[#141414]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-dark">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center">
-              <Archive className="text-white" size={20} />
+            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+              <Archive className="text-primary" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Archived Chats</h2>
-              <p className="text-gray-500 text-xs">{archivedChats.length} conversation{archivedChats.length !== 1 ? 's' : ''}</p>
+              <h2 className="text-lg font-semibold text-content-primary">Archived Chats</h2>
+              <p className="text-content-faint text-xs">{archivedChats.length} conversation{archivedChats.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
           <button
             onClick={() => setShowArchive(false)}
-            className="p-2 hover:bg-[#2a2a2a] text-gray-400 hover:text-white rounded-xl transition-all"
+            className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-xl transition-all"
           >
             <X size={20} />
           </button>
@@ -87,11 +87,11 @@ const ArchiveModal = ({
         <div className="p-4 overflow-y-auto max-h-[60vh] custom-scrollbar">
           {archivedChats.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-2xl bg-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
-                <Archive className="w-8 h-8 text-gray-600" />
+              <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Archive className="w-8 h-8 text-primary/40" />
               </div>
-              <p className="text-gray-400 font-medium">No archived chats</p>
-              <p className="text-gray-600 text-sm mt-1">Archived conversations will appear here</p>
+              <p className="text-content-muted font-medium">No archived chats</p>
+              <p className="text-content-faint text-sm mt-1">Archived conversations will appear here</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -103,7 +103,7 @@ const ArchiveModal = ({
                 return (
                   <div
                     key={chat.id}
-                    className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-xl hover:bg-[#222222] transition-all group border border-transparent hover:border-[#333333]"
+                    className="flex items-center gap-3 p-3 bg-surface-base rounded-xl hover:bg-surface-hover transition-all group border border-border"
                   >
                     {/* Avatar */}
                     {showImage ? (
@@ -123,14 +123,14 @@ const ArchiveModal = ({
                     
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-white text-sm truncate">{chat.name}</p>
-                      <p className="text-xs text-gray-500 truncate mt-0.5 flex items-center gap-1">
+                      <p className="font-medium text-content-primary text-sm truncate">{chat.name}</p>
+                      <p className="text-xs text-content-faint truncate mt-0.5 flex items-center gap-1">
                         <MessageCircle size={10} />
                         {chat.message?.length > 40
                           ? chat.message.substring(0, 40) + "..."
                           : chat.message || "No messages"}
                       </p>
-                      <p className="text-[10px] text-gray-600 mt-1 flex items-center gap-1">
+                      <p className="text-[10px] text-content-faint mt-1 flex items-center gap-1">
                         <Clock size={9} />
                         {chat.time}
                       </p>
@@ -142,7 +142,7 @@ const ArchiveModal = ({
                         e.stopPropagation();
                         handleRestoreChat(chat.id);
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors opacity-80 group-hover:opacity-100"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-medium transition-colors opacity-80 group-hover:opacity-100"
                     >
                       <RotateCcw size={12} />
                       Restore
@@ -156,8 +156,8 @@ const ArchiveModal = ({
 
         {/* Footer */}
         {archivedChats.length > 0 && (
-          <div className="px-5 py-3 border-t border-[#2a2a2a] bg-[#1a1a1a]">
-            <p className="text-xs text-gray-500 text-center">
+          <div className="px-5 py-3 border-t border-border bg-surface-dark">
+            <p className="text-xs text-content-faint text-center">
               Click "Restore" to move a chat back to your inbox
             </p>
           </div>

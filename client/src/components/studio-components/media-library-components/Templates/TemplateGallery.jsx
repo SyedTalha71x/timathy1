@@ -131,40 +131,40 @@ const TemplateGallery = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0a0a0a] z-50 flex overflow-hidden">
+    <div className="fixed inset-0 bg-surface-dark z-50 flex overflow-hidden">
       {/* Sidebar */}
-      <div className="w-64 bg-[#141414] border-r border-[#333333] flex flex-col">
+      <div className="w-64 bg-surface-dark border-r border-border flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b border-[#333333]">
+        <div className="p-5 border-b border-border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className="text-orange-500" size={20} />
+            <h2 className="text-lg font-bold text-content-primary flex items-center gap-2">
+              <Sparkles className="text-primary" size={20} />
               Templates
             </h2>
             <button 
               onClick={onClose}
-              className="p-2 hover:bg-[#2F2F2F] rounded-xl transition-colors"
+              className="p-2 hover:bg-surface-button rounded-xl transition-colors"
             >
-              <X size={18} className="text-gray-400" />
+              <X size={18} className="text-content-muted" />
             </button>
           </div>
           
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-faint" size={16} />
             <input
               type="text"
               placeholder="Search templates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 pl-9 pr-4 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full bg-surface-dark border border-border rounded-xl py-2.5 pl-9 pr-4 text-content-primary text-sm placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
         
         {/* Categories */}
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 px-2">Categories</p>
+          <p className="text-[10px] text-content-faint uppercase tracking-wider mb-2 px-2">Categories</p>
           <div className="space-y-1">
             {templateCategories.map(category => {
               const Icon = iconMap[category.icon] || Grid3X3;
@@ -184,14 +184,14 @@ const TemplateGallery = ({
                   onClick={() => setSelectedCategory(category.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
                     isSelected 
-                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' 
-                      : 'text-gray-400 hover:bg-[#2F2F2F] hover:text-white border border-transparent'
+                      ? 'bg-primary/10 text-primary border border-primary/30' 
+                      : 'text-content-muted hover:bg-surface-button hover:text-content-primary border border-transparent'
                   }`}
                 >
                   <Icon size={16} />
                   <span className="flex-1 text-left text-sm">{category.name}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    isSelected ? 'bg-orange-500/20 text-orange-500' : 'bg-[#0a0a0a] text-gray-500'
+                    isSelected ? 'bg-primary/20 text-primary' : 'bg-surface-dark text-content-faint'
                   }`}>
                     {count}
                   </span>
@@ -205,20 +205,20 @@ const TemplateGallery = ({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="p-5 border-b border-[#333333] bg-[#141414]">
+        <div className="p-5 border-b border-border bg-surface-dark">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base text-white font-medium">
+              <h3 className="text-base text-content-primary font-medium">
                 {selectedCategory === 'all' ? 'All Templates' : templateCategories.find(c => c.id === selectedCategory)?.name}
               </h3>
-              <p className="text-gray-500 text-sm">{filteredTemplates.length} templates available</p>
+              <p className="text-content-faint text-sm">{filteredTemplates.length} templates available</p>
             </div>
             
             {/* Color Preview - Show selected colors */}
             {personalization && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0a0a] rounded-lg border border-[#333]">
-                <span className="text-xs text-gray-500">Your colors:</span>
-                <div className="flex h-5 w-12 rounded overflow-hidden border border-[#444]">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-dark rounded-lg border border-border">
+                <span className="text-xs text-content-faint">Your colors:</span>
+                <div className="flex h-5 w-12 rounded overflow-hidden border border-border">
                   <div className="flex-1" style={{ backgroundColor: personalization.primaryColor }} />
                   <div className="flex-1" style={{ backgroundColor: personalization.secondaryColor }} />
                 </div>
@@ -231,28 +231,28 @@ const TemplateGallery = ({
         <div className="flex-1 overflow-y-auto p-5">
           {/* Blank Templates Section */}
           <div className="mb-8">
-            <h4 className="text-white text-base font-medium mb-4 flex items-center gap-2">
+            <h4 className="text-content-primary text-base font-medium mb-4 flex items-center gap-2">
               <ImageIcon size={18} />
               Start from Scratch
             </h4>
             
             {/* Custom Size Card - Always first */}
             <div className="mb-5">
-              <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Custom</p>
+              <p className="text-content-muted text-xs font-medium uppercase tracking-wider mb-3">Custom</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 <button
                   onClick={() => setShowCustomSize(true)}
-                  className="group relative bg-[#141414] border-2 border-dashed border-orange-500/30 hover:border-orange-500 rounded-xl overflow-hidden transition-all hover:bg-[#1a1a1a]"
+                  className="group relative bg-surface-dark border-2 border-dashed border-primary/30 hover:border-primary rounded-xl overflow-hidden transition-all hover:bg-surface-hover"
                 >
                   {/* Fixed height preview area */}
-                  <div className="w-full h-[120px] bg-orange-500/5 flex flex-col items-center justify-center group-hover:bg-orange-500/10 transition-colors">
-                    <Settings size={24} className="text-orange-500 mb-2" />
-                    <span className="text-orange-500 text-xs font-medium">Custom Size</span>
+                  <div className="w-full h-[120px] bg-primary/5 flex flex-col items-center justify-center group-hover:bg-primary/10 transition-colors">
+                    <Settings size={24} className="text-primary mb-2" />
+                    <span className="text-primary text-xs font-medium">Custom Size</span>
                   </div>
                   {/* Fixed info area */}
-                  <div className="p-2.5 bg-[#141414]">
-                    <p className="text-white text-sm font-medium truncate">Custom Dimensions</p>
-                    <p className="text-orange-500 text-xs mt-0.5">Enter your own size</p>
+                  <div className="p-2.5 bg-surface-dark">
+                    <p className="text-content-primary text-sm font-medium truncate">Custom Dimensions</p>
+                    <p className="text-primary text-xs mt-0.5">Enter your own size</p>
                   </div>
                 </button>
               </div>
@@ -266,15 +266,15 @@ const TemplateGallery = ({
                 <div key={category} className="mb-5">
                   <button
                     onClick={() => toggleSection(category)}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-3 group"
+                    className="flex items-center gap-2 text-content-muted hover:text-content-primary transition-colors mb-3 group"
                   >
                     {isCollapsed ? (
-                      <ChevronRight size={16} className="text-gray-500 group-hover:text-orange-500 transition-colors" />
+                      <ChevronRight size={16} className="text-content-faint group-hover:text-primary transition-colors" />
                     ) : (
-                      <ChevronDown size={16} className="text-gray-500 group-hover:text-orange-500 transition-colors" />
+                      <ChevronDown size={16} className="text-content-faint group-hover:text-primary transition-colors" />
                     )}
                     <span className="text-xs font-medium uppercase tracking-wider">{category}</span>
-                    <span className="text-xs text-gray-600">({categoryTemplates.length})</span>
+                    <span className="text-xs text-content-faint">({categoryTemplates.length})</span>
                   </button>
                   
                   {!isCollapsed && (
@@ -283,18 +283,18 @@ const TemplateGallery = ({
                         <button
                           key={blank.id}
                           onClick={() => onSelectBlank(blank.size)}
-                          className="group relative bg-[#141414] border-2 border-dashed border-[#333333] hover:border-orange-500/50 rounded-xl overflow-hidden transition-all hover:bg-[#1a1a1a]"
+                          className="group relative bg-surface-dark border-2 border-dashed border-border hover:border-primary/50 rounded-xl overflow-hidden transition-all hover:bg-surface-hover"
                         >
                           {/* Fixed height preview area */}
                           <div className="w-full h-[120px] bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                            <Plus size={24} className="text-gray-600 group-hover:text-orange-500 transition-colors" />
+                            <Plus size={24} className="text-content-faint group-hover:text-primary transition-colors" />
                           </div>
                           {/* Fixed info area */}
-                          <div className="p-2.5 bg-[#141414]">
-                            <p className="text-gray-300 text-sm font-medium truncate group-hover:text-white transition-colors">
+                          <div className="p-2.5 bg-surface-dark">
+                            <p className="text-content-secondary text-sm font-medium truncate group-hover:text-content-primary transition-colors">
                               {blank.name}
                             </p>
-                            <p className="text-gray-600 text-xs mt-0.5">{blank.size}</p>
+                            <p className="text-content-faint text-xs mt-0.5">{blank.size}</p>
                           </div>
                         </button>
                       ))}
@@ -306,12 +306,12 @@ const TemplateGallery = ({
           </div>
           
           {/* Divider */}
-          <div className="border-t border-[#333333] my-6" />
+          <div className="border-t border-border my-6" />
           
           {/* Pre-designed Templates Section */}
           {filteredTemplates.length > 0 ? (
             <div>
-              <h4 className="text-white text-base font-medium mb-4 flex items-center gap-2">
+              <h4 className="text-content-primary text-base font-medium mb-4 flex items-center gap-2">
                 <Sparkles size={18} />
                 Pre-designed Templates
               </h4>
@@ -325,26 +325,26 @@ const TemplateGallery = ({
                       onClick={() => onSelectTemplate(template)}
                       onMouseEnter={() => setHoveredTemplate(template.id)}
                       onMouseLeave={() => setHoveredTemplate(null)}
-                      className="group relative rounded-xl overflow-hidden transition-all hover:ring-2 hover:ring-orange-500/50 hover:shadow-lg border border-[#333333] bg-[#141414]"
+                      className="group relative rounded-xl overflow-hidden transition-all hover:ring-2 hover:ring-primary/50 hover:shadow-lg border border-border bg-surface-dark"
                     >
                       {/* Preview area with correct aspect ratio */}
-                      <div className="w-full h-[160px] bg-[#0a0a0a] flex items-center justify-center p-3">
+                      <div className="w-full h-[160px] bg-surface-dark flex items-center justify-center p-3">
                         <TemplatePreview template={template} personalization={personalization} />
                       </div>
                       
                       {/* Hover Overlay */}
                       <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-3 transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                        <span className="px-3 py-1.5 bg-orange-500 text-white text-xs font-medium rounded-lg">
+                        <span className="px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg">
                           Use Template
                         </span>
                       </div>
                       
                       {/* Fixed info area - consistent layout */}
-                      <div className="p-2.5 bg-[#141414]">
-                        <p className="text-white text-sm font-medium truncate">{template.name}</p>
+                      <div className="p-2.5 bg-surface-dark">
+                        <p className="text-content-primary text-sm font-medium truncate">{template.name}</p>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-gray-500 text-xs">{template.size}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 bg-[#0a0a0a] text-gray-400 rounded capitalize">
+                          <span className="text-content-faint text-xs">{template.size}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-surface-dark text-content-muted rounded capitalize">
                             {template.category}
                           </span>
                         </div>
@@ -356,11 +356,11 @@ const TemplateGallery = ({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="w-16 h-16 bg-[#141414] rounded-xl flex items-center justify-center mb-3">
-                <Search size={28} className="text-gray-600" />
+              <div className="w-16 h-16 bg-surface-dark rounded-xl flex items-center justify-center mb-3">
+                <Search size={28} className="text-content-faint" />
               </div>
-              <p className="text-gray-400 text-base">No templates found</p>
-              <p className="text-gray-600 text-sm mt-1">Try adjusting your search or category</p>
+              <p className="text-content-muted text-base">No templates found</p>
+              <p className="text-content-faint text-sm mt-1">Try adjusting your search or category</p>
             </div>
           )}
         </div>
@@ -369,35 +369,35 @@ const TemplateGallery = ({
       {/* Custom Size Modal */}
       {showCustomSize && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-sm border border-[#333333]">
-            <h3 className="text-white font-medium text-lg mb-4 flex items-center gap-2">
-              <Settings size={20} className="text-orange-500" />
+          <div className="bg-surface-card rounded-xl p-6 w-full max-w-sm border border-border">
+            <h3 className="text-content-primary font-medium text-lg mb-4 flex items-center gap-2">
+              <Settings size={20} className="text-primary" />
               Custom Size
             </h3>
             <div className="space-y-4">
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-gray-400 text-xs mb-1.5 block">Width (px)</label>
+                  <label className="text-content-muted text-xs mb-1.5 block">Width (px)</label>
                   <input
                     type="number"
                     value={customWidth}
                     onChange={(e) => setCustomWidth(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-surface-dark border border-border rounded-xl py-2.5 px-3 text-content-primary focus:outline-none focus:border-primary transition-colors"
                     min="100"
                     max="5000"
                     placeholder="1080"
                   />
                 </div>
-                <div className="flex items-end pb-2.5 text-gray-500">
+                <div className="flex items-end pb-2.5 text-content-faint">
                   <X size={16} />
                 </div>
                 <div className="flex-1">
-                  <label className="text-gray-400 text-xs mb-1.5 block">Height (px)</label>
+                  <label className="text-content-muted text-xs mb-1.5 block">Height (px)</label>
                   <input
                     type="number"
                     value={customHeight}
                     onChange={(e) => setCustomHeight(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-surface-dark border border-border rounded-xl py-2.5 px-3 text-content-primary focus:outline-none focus:border-primary transition-colors"
                     min="100"
                     max="5000"
                     placeholder="1080"
@@ -407,7 +407,7 @@ const TemplateGallery = ({
               
               {/* Quick presets */}
               <div>
-                <p className="text-gray-500 text-xs mb-2">Quick Presets</p>
+                <p className="text-content-faint text-xs mb-2">Quick Presets</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { label: "Square", w: "1080", h: "1080" },
@@ -421,7 +421,7 @@ const TemplateGallery = ({
                         setCustomWidth(preset.w);
                         setCustomHeight(preset.h);
                       }}
-                      className="px-3 py-1.5 bg-[#0a0a0a] hover:bg-[#2F2F2F] text-gray-400 hover:text-white text-xs rounded-lg transition-colors"
+                      className="px-3 py-1.5 bg-surface-dark hover:bg-surface-button text-content-muted hover:text-content-primary text-xs rounded-lg transition-colors"
                     >
                       {preset.label}
                     </button>
@@ -432,13 +432,13 @@ const TemplateGallery = ({
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setShowCustomSize(false)}
-                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+                  className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCustomSizeSubmit}
-                  className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition-colors"
+                  className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors"
                 >
                   Create
                 </button>

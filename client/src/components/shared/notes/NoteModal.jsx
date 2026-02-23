@@ -1,33 +1,10 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import { X, Tag, Paperclip, ChevronDown, Pin, PinOff, Copy, ArrowRightLeft, Trash2 } from "lucide-react"
-import ReactQuill from "react-quill"
-import "react-quill/dist/quill.snow.css"
+import { WysiwygEditor } from "../WysiwygEditor"
 import TagManagerModal from "../TagManagerModal"
 import ImageSourceModal from "../image-handler/ImageSourceModal"
 import MediaLibraryPickerModal from "../image-handler/MediaLibraryPickerModal"
-
-// Quill editor configuration
-const QUILL_MODULES = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    [{ 'align': [] }],
-    ['link'],
-    ['clean']
-  ],
-}
-
-const QUILL_FORMATS = [
-  'header',
-  'bold', 'italic', 'underline', 'strike',
-  'color', 'background',
-  'list', 'bullet',
-  'align',
-  'link'
-]
 
 // ============================================
 // Unified Note Modal - Handles both Add & Edit
@@ -61,6 +38,7 @@ const NoteModal = ({
   const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
   
   const titleInputRef = useRef(null)
+  const editorRef = useRef(null)
   const fileInputRef = useRef(null)
   const mobileActionsMenuRef = useRef(null)
 
@@ -91,55 +69,6 @@ const NoteModal = ({
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  // Editor styles
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
-      .note-modal-editor {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #404040;
-      }
-      .note-modal-editor:focus-within {
-        border-color: #3b82f6;
-      }
-      .note-modal-editor .ql-toolbar.ql-snow {
-        border: none !important;
-        border-bottom: 1px solid #404040 !important;
-        background-color: #1F1F1F !important;
-        padding: 8px !important;
-      }
-      .note-modal-editor .ql-container.ql-snow {
-        border: none !important;
-      }
-      .note-modal-editor .ql-editor {
-        color: #e5e7eb !important;
-        background-color: #181818 !important;
-        min-height: 200px;
-        max-height: 300px;
-        font-size: 14px;
-        line-height: 1.6;
-        overflow-y: auto;
-      }
-      .note-modal-editor .ql-editor.ql-blank::before {
-        color: #6b7280 !important;
-        font-style: normal !important;
-      }
-      .note-modal-editor .ql-snow .ql-stroke { stroke: #9ca3af !important; }
-      .note-modal-editor .ql-snow .ql-fill { fill: #9ca3af !important; }
-      .note-modal-editor .ql-snow .ql-picker-label { color: #9ca3af !important; }
-      .note-modal-editor .ql-snow .ql-picker-options { background-color: #1f1f1f !important; border-color: #404040 !important; }
-      .note-modal-editor .ql-snow .ql-picker-item { color: #e5e7eb !important; }
-      .note-modal-editor .ql-snow .ql-picker-item:hover { color: #3b82f6 !important; }
-      .note-modal-editor .ql-snow button:hover .ql-stroke { stroke: #3b82f6 !important; }
-      .note-modal-editor .ql-snow button:hover .ql-fill { fill: #3b82f6 !important; }
-      .note-modal-editor .ql-snow button.ql-active .ql-stroke { stroke: #3b82f6 !important; }
-      .note-modal-editor .ql-snow button.ql-active .ql-fill { fill: #3b82f6 !important; }
-    `
-    document.head.appendChild(style)
-    return () => document.head.removeChild(style)
   }, [])
 
   const handleSave = () => {
@@ -177,7 +106,7 @@ const NoteModal = ({
 
   const getTagColor = (tagId) => {
     const tag = availableTags.find((t) => t.id === tagId)
-    return tag ? tag.color : "#3b82f6"
+    return tag ? tag.color : "var(--color-primary)"
   }
 
   const getTagName = (tagId) => {
@@ -235,10 +164,10 @@ const NoteModal = ({
     <>
       {/* Main Modal */}
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-white">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+            <h2 className="text-lg font-semibold text-content-primary">
               {isEditMode ? "Edit Note" : "New Note"}
             </h2>
             <div className="flex items-center gap-2">
@@ -250,7 +179,7 @@ const NoteModal = ({
                       e.stopPropagation()
                       setShowMobileActionsMenu(!showMobileActionsMenu)
                     }}
-                    className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                    className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
                     aria-label="More actions"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -266,7 +195,7 @@ const NoteModal = ({
                         onClick={() => setShowMobileActionsMenu(false)}
                       />
                       <div 
-                        className="fixed bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-xl min-w-[180px] z-[9999]"
+                        className="fixed bg-surface-card border border-border rounded-xl shadow-xl min-w-[180px] z-[9999]"
                         style={{
                           top: mobileActionsMenuRef.current?.getBoundingClientRect().bottom + 8 + 'px',
                           right: (window.innerWidth - mobileActionsMenuRef.current?.getBoundingClientRect().right) + 'px'
@@ -280,7 +209,7 @@ const NoteModal = ({
                                 setIsPinned(!isPinned)
                                 setShowMobileActionsMenu(false)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                             >
                               {isPinned ? (
                                 <>
@@ -304,7 +233,7 @@ const NoteModal = ({
                                 setShowMobileActionsMenu(false)
                                 onClose()
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                             >
                               <Copy size={16} />
                               <span>Duplicate</span>
@@ -319,14 +248,14 @@ const NoteModal = ({
                                 setShowMobileActionsMenu(false)
                                 onClose()
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                             >
                               <ArrowRightLeft size={16} />
                               <span>Move to {category === 'personal' ? 'Studio' : 'Personal'}</span>
                             </button>
                           )}
                           
-                          <div className="border-t border-gray-700 my-1"></div>
+                          <div className="border-t border-border my-1"></div>
                           
                           {/* Delete */}
                           {onDelete && (
@@ -335,7 +264,7 @@ const NoteModal = ({
                                 onDelete(note.id)
                                 setShowMobileActionsMenu(false)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-accent-red"
                             >
                               <Trash2 size={16} />
                               <span>Delete</span>
@@ -350,7 +279,7 @@ const NoteModal = ({
               
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-content-muted hover:text-content-primary transition-colors"
               >
                 <X size={20} />
               </button>
@@ -360,17 +289,17 @@ const NoteModal = ({
           {/* Content - Scrollable */}
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {/* Note Title */}
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-border">
               <input
                 ref={titleInputRef}
                 type="text"
                 value={noteTitle}
                 onChange={(e) => setNoteTitle(e.target.value)}
                 placeholder="Note title..."
-                className="w-full bg-transparent text-xl font-bold text-white outline-none placeholder-gray-500"
+                className="w-full bg-transparent text-xl font-bold text-content-primary outline-none placeholder-content-faint"
               />
               {isEditMode && note?.createdAt && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-content-faint mt-2">
                   Created: {formatDateTime(note.createdAt)}
                   {note.updatedAt !== note.createdAt && (
                     <span className="ml-3">Updated: {formatDateTime(note.updatedAt)}</span>
@@ -380,17 +309,17 @@ const NoteModal = ({
             </div>
 
             {/* Tags Section */}
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-xl bg-[#2F2F2F]">
-                  <Tag size={18} className="text-gray-400" />
+                <div className="p-2 rounded-xl bg-surface-button">
+                  <Tag size={18} className="text-content-muted" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-300">Tags</p>
+                  <p className="text-sm font-medium text-content-secondary">Tags</p>
                 </div>
                 <button 
                   onClick={() => setShowTagsModal(true)} 
-                  className="text-xs text-blue-500 hover:text-blue-400 transition-colors"
+                  className="text-xs text-primary hover:text-primary-hover transition-colors"
                 >
                   Manage Tags
                 </button>
@@ -403,7 +332,7 @@ const NoteModal = ({
                       key={tag.id}
                       onClick={() => toggleTag(tag.id)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                        selectedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                        selectedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                       style={{ backgroundColor: selectedTags.includes(tag.id) ? tag.color : undefined }}
                     >
@@ -413,23 +342,23 @@ const NoteModal = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No tags available. Create tags in Tag Manager.</p>
+                <p className="text-sm text-content-faint">No tags available. Create tags in Tag Manager.</p>
               )}
             </div>
 
             {/* Note Content - WYSIWYG Editor */}
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-border">
               <div className="mb-2">
-                <p className="text-sm font-medium text-gray-300">Content</p>
+                <p className="text-sm font-medium text-content-secondary">Content</p>
               </div>
-              <div className="note-modal-editor">
-                <ReactQuill
+              <div className="bg-surface-dark rounded-xl overflow-hidden">
+                <WysiwygEditor
+                  ref={editorRef}
                   value={noteContent}
                   onChange={setNoteContent}
-                  modules={QUILL_MODULES}
-                  formats={QUILL_FORMATS}
                   placeholder="Start writing..."
-                  theme="snow"
+                  minHeight={200}
+                  maxHeight={300}
                 />
               </div>
             </div>
@@ -437,17 +366,17 @@ const NoteModal = ({
             {/* Attachments Section */}
             <div className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-xl bg-[#2F2F2F]">
-                  <Paperclip size={18} className="text-gray-400" />
+                <div className="p-2 rounded-xl bg-surface-button">
+                  <Paperclip size={18} className="text-content-muted" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-300">
+                  <p className="text-sm font-medium text-content-secondary">
                     Attachments {attachments.length > 0 && `(${attachments.length})`}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowImageSourceModal(true)}
-                  className="text-xs text-blue-500 hover:text-blue-400 transition-colors"
+                  className="text-xs text-primary hover:text-primary-hover transition-colors"
                 >
                   Add Images
                 </button>
@@ -460,11 +389,11 @@ const NoteModal = ({
                       <img
                         src={attachment.url}
                         alt={attachment.name}
-                        className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                        className="w-full h-20 object-cover rounded-lg border border-border"
                       />
                       <button
                         onClick={() => removeAttachment(index)}
-                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 bg-accent-red hover:bg-accent-red text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={12} />
                       </button>
@@ -476,10 +405,10 @@ const NoteModal = ({
           </div>
 
           {/* Footer */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-700 flex justify-end gap-3">
+          <div className="flex-shrink-0 p-4 border-t border-border flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 bg-surface-button text-sm text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors"
             >
               Cancel
             </button>
@@ -488,8 +417,8 @@ const NoteModal = ({
               disabled={!noteTitle.trim() && !noteContent.trim()}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 noteTitle.trim() || noteContent.trim()
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
-                  : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  ? "bg-primary text-white hover:bg-primary-hover"
+                  : "bg-surface-dark text-content-faint cursor-not-allowed"
               }`}
             >
               {isEditMode ? "Save Changes" : "Create Note"}
@@ -532,22 +461,6 @@ const NoteModal = ({
         onSelectImage={handleMediaLibrarySelect}
       />
 
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2F2F2F;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #555;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777;
-        }
-      `}</style>
     </>
   )
 }

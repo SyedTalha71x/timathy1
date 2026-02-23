@@ -437,14 +437,14 @@ const EditorModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-surface-dark flex flex-col">
       {/* Header */}
-      <div className="h-12 bg-[#141414] border-b border-[#333333] flex items-center justify-between px-3 flex-shrink-0">
+      <div className="h-12 bg-surface-dark border-b border-border flex items-center justify-between px-3 flex-shrink-0">
         {/* Left */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <button
             onClick={handleClose}
-            className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors flex-shrink-0"
+            className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
           >
             <X size={18} />
           </button>
@@ -453,7 +453,7 @@ const EditorModal = ({
             type="text"
             value={designName}
             onChange={(e) => setDesignName(e.target.value)}
-            className="bg-transparent text-white font-medium text-sm border-b border-transparent hover:border-[#333333] focus:border-orange-500 outline-none px-1 min-w-0 max-w-[200px] transition-colors"
+            className="bg-transparent text-content-primary font-medium text-sm border-b border-transparent hover:border-border focus:border-primary outline-none px-1 min-w-0 max-w-[200px] transition-colors"
           />
         </div>
 
@@ -463,7 +463,7 @@ const EditorModal = ({
           <div className="relative">
             <button
               onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white text-sm rounded-lg transition-colors border border-[#333333]"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-dark hover:bg-surface-hover text-content-primary text-sm rounded-lg transition-colors border border-border"
             >
               <span className="text-xs">{imageSize}</span>
               <ChevronDown size={14} className={`transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} />
@@ -472,23 +472,23 @@ const EditorModal = ({
             {showSizeDropdown && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowSizeDropdown(false)} />
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-[#1C1C1C] border border-[#333333] rounded-lg shadow-xl overflow-hidden z-50 min-w-[180px] max-h-[300px] overflow-y-auto">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-surface-card border border-border rounded-lg shadow-xl overflow-hidden z-50 min-w-[180px] max-h-[300px] overflow-y-auto">
                   {availableSizes.map((size) => (
                     <button
                       key={size.id}
                       onClick={() => handleSizeChange(size.size)}
-                      className={`w-full flex items-center justify-between px-3 py-2 hover:bg-[#2F2F2F] transition-colors text-left ${
-                        imageSize === size.size ? 'bg-orange-500/10 text-orange-500' : 'text-white'
+                      className={`w-full flex items-center justify-between px-3 py-2 hover:bg-surface-button transition-colors text-left ${
+                        imageSize === size.size ? 'bg-primary/10 text-primary' : 'text-content-primary'
                       }`}
                     >
                       <span className="text-xs">{size.name}</span>
-                      <span className="text-[10px] text-gray-500">{size.size}</span>
+                      <span className="text-[10px] text-content-faint">{size.size}</span>
                     </button>
                   ))}
-                  <div className="border-t border-[#333333]">
+                  <div className="border-t border-border">
                     <button
                       onClick={() => { setShowSizeDropdown(false); setShowCustomSize(true); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-content-muted hover:text-content-primary hover:bg-surface-button transition-colors"
                     >
                       <Settings size={12} />
                       <span className="text-xs">Custom Size</span>
@@ -499,20 +499,20 @@ const EditorModal = ({
             )}
           </div>
 
-          <div className="w-px h-5 bg-[#333333]" />
+          <div className="w-px h-5 bg-border" />
 
           {/* Zoom */}
-          <div className="flex items-center gap-0.5 bg-[#0a0a0a] rounded-lg px-1.5 py-1 border border-[#333333]">
+          <div className="flex items-center gap-0.5 bg-surface-dark rounded-lg px-1.5 py-1 border border-border">
             <button
               onClick={() => setZoom(Math.max(0.25, zoom - 0.1))}
-              className="p-1 text-gray-400 hover:text-white transition-colors"
+              className="p-1 text-content-muted hover:text-content-primary transition-colors"
             >
               <ZoomOut size={14} />
             </button>
-            <span className="text-[10px] text-gray-400 font-medium w-9 text-center">{Math.round(zoom * 100)}%</span>
+            <span className="text-[10px] text-content-muted font-medium w-9 text-center">{Math.round(zoom * 100)}%</span>
             <button
               onClick={() => setZoom(Math.min(3, zoom + 0.1))}
-              className="p-1 text-gray-400 hover:text-white transition-colors"
+              className="p-1 text-content-muted hover:text-content-primary transition-colors"
             >
               <ZoomIn size={14} />
             </button>
@@ -525,25 +525,25 @@ const EditorModal = ({
             <button
               onClick={undo}
               disabled={!canUndo}
-              className={`p-1.5 rounded-lg transition-colors ${canUndo ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' : 'text-gray-700'}`}
+              className={`p-1.5 rounded-lg transition-colors ${canUndo ? 'text-content-muted hover:text-content-primary hover:bg-surface-button' : 'text-content-faint'}`}
             >
               <Undo2 size={16} />
             </button>
             <button
               onClick={redo}
               disabled={!canRedo}
-              className={`p-1.5 rounded-lg transition-colors ${canRedo ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' : 'text-gray-700'}`}
+              className={`p-1.5 rounded-lg transition-colors ${canRedo ? 'text-content-muted hover:text-content-primary hover:bg-surface-button' : 'text-content-faint'}`}
             >
               <Redo2 size={16} />
             </button>
           </div>
 
-          <div className="w-px h-5 bg-[#333333]" />
+          <div className="w-px h-5 bg-border" />
 
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-all disabled:opacity-50"
           >
             <Save size={14} />
             <span>{isSaving ? 'Saving...' : 'Save'}</span>
@@ -594,7 +594,7 @@ const EditorModal = ({
         </div>
 
         {/* Right Panel */}
-        <div className="w-[320px] min-w-[320px] border-l border-[#333333] bg-[#141414]">
+        <div className="w-[320px] min-w-[320px] border-l border-border bg-surface-dark">
           <PropertiesPanel
             element={activeElement}
             onUpdate={(updates) => updateElementWithHistory(activeElementId, updates)}
@@ -609,34 +609,34 @@ const EditorModal = ({
       {/* Custom Size Modal */}
       {showCustomSize && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center" style={{ zIndex: 99999 }}>
-          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333] relative">
+          <div className="bg-surface-card rounded-xl p-5 w-full max-w-xs border border-border relative">
             <button
               onClick={() => setShowCustomSize(false)}
-              className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              className="absolute top-3 right-3 p-1 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
             >
               <X size={16} />
             </button>
-            <h3 className="text-white font-medium text-base mb-4">Custom Size</h3>
+            <h3 className="text-content-primary font-medium text-base mb-4">Custom Size</h3>
             <div className="space-y-3">
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-gray-400 text-xs mb-1 block">Width</label>
+                  <label className="text-content-muted text-xs mb-1 block">Width</label>
                   <input
                     type="number"
                     value={customSize.width}
                     onChange={(e) => setCustomSize(prev => ({ ...prev, width: e.target.value }))}
-                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-lg py-2 px-2 text-white text-sm focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-dark border border-border rounded-lg py-2 px-2 text-content-primary text-sm focus:outline-none focus:border-primary"
                     min="100"
                     max="5000"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-gray-400 text-xs mb-1 block">Height</label>
+                  <label className="text-content-muted text-xs mb-1 block">Height</label>
                   <input
                     type="number"
                     value={customSize.height}
                     onChange={(e) => setCustomSize(prev => ({ ...prev, height: e.target.value }))}
-                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-lg py-2 px-2 text-white text-sm focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-dark border border-border rounded-lg py-2 px-2 text-content-primary text-sm focus:outline-none focus:border-primary"
                     min="100"
                     max="5000"
                   />
@@ -645,13 +645,13 @@ const EditorModal = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowCustomSize(false)}
-                  className="flex-1 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white text-sm rounded-lg transition-colors"
+                  className="flex-1 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={applyCustomSize}
-                  className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex-1 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Apply
                 </button>
@@ -664,25 +664,25 @@ const EditorModal = ({
       {/* Close Confirm Modal */}
       {showCloseConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center" style={{ zIndex: 99999 }}>
-          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333] relative">
+          <div className="bg-surface-card rounded-xl p-5 w-full max-w-xs border border-border relative">
             <button
               onClick={() => setShowCloseConfirm(false)}
-              className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              className="absolute top-3 right-3 p-1 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
             >
               <X size={16} />
             </button>
-            <h3 className="text-white font-medium text-base mb-2">Save as Draft?</h3>
-            <p className="text-gray-400 text-sm mb-4">You have unsaved changes.</p>
+            <h3 className="text-content-primary font-medium text-base mb-2">Save as Draft?</h3>
+            <p className="text-content-muted text-sm mb-4">You have unsaved changes.</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleSaveAsDraft}
-                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
+                className="w-full py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors"
               >
                 Save as Draft
               </button>
               <button
                 onClick={() => { setShowCloseConfirm(false); onClose(); }}
-                className="w-full py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white text-sm rounded-lg transition-colors"
+                className="w-full py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm rounded-lg transition-colors"
               >
                 Discard
               </button>

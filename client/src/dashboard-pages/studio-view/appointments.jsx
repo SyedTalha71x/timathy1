@@ -608,20 +608,35 @@ export default function Appointments() {
   };
 
   const handleAppointmentSubmit = (appointmentData) => {
-    const newAppointment = {
-      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...appointmentData, status: "pending", isTrial: false, isCancelled: false, isPast: false,
-      date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
-    }
-    setAppointmentsMain([...appointmentsMain, newAppointment])
+    setAppointmentsMain(prev => {
+      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
+      const newAppointment = {
+        id: newId,
+        ...appointmentData,
+        status: "pending",
+        isTrial: false,
+        isCancelled: false,
+        isPast: false,
+        date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
+      };
+      return [...prev, newAppointment];
+    });
   }
 
   const handleTrialSubmit = (trialData) => {
-    const newTrial = {
-      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...trialData, status: "pending", isTrial: true, isCancelled: false, isPast: false,
-      date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
-    }
-    setAppointmentsMain([...appointmentsMain, newTrial])
-    
+    setAppointmentsMain(prev => {
+      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
+      const newTrial = {
+        id: newId,
+        ...trialData,
+        status: "pending",
+        isTrial: true,
+        isCancelled: false,
+        isPast: false,
+        date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
+      };
+      return [...prev, newTrial];
+    });
   }
 
   const handleCheckInMain = (appointmentId) => {
@@ -726,14 +741,14 @@ export default function Appointments() {
     return (
       <div className="relative inline-block">
         <button onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
-          className={`p-1 rounded transition-colors ${specialNote.isImportant ? "text-orange-500 hover:text-orange-400" : "text-gray-400 hover:text-gray-300"} ${isActive ? "ring-1 ring-orange-500" : ""}`}>
+          className={`p-1 rounded transition-colors ${specialNote.isImportant ? "text-primary hover:text-primary" : "text-content-muted hover:text-content-secondary"} ${isActive ? "ring-1 ring-primary" : ""}`}>
           {specialNote.isImportant ? <AlertTriangle size={14} /> : <Info size={14} />}
         </button>
         {(isActive || isHovered) && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#1a1a1a] rounded-lg shadow-lg border border-gray-700 z-50 p-2">
-            <p className={`text-xs ${specialNote.isImportant ? "text-orange-400" : "text-gray-300"}`}>{specialNote.text}</p>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-surface-dark rounded-lg shadow-lg border border-border z-50 p-2">
+            <p className={`text-xs ${specialNote.isImportant ? "text-primary" : "text-content-secondary"}`}>{specialNote.text}</p>
             {specialNote.startDate && specialNote.endDate && (
-              <p className="text-[10px] text-gray-500 mt-1">{specialNote.startDate} - {specialNote.endDate}</p>
+              <p className="text-[10px] text-content-faint mt-1">{specialNote.startDate} - {specialNote.endDate}</p>
             )}
           </div>
         )}
@@ -770,38 +785,38 @@ export default function Appointments() {
 
     return createPortal(
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
-        <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-          <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-white">Edit Special Note</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"><X size={20} /></button>
+        <div className="bg-surface-dark w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-content-primary">Edit Special Note</h2>
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg"><X size={20} /></button>
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Note</label>
+              <label className="text-sm text-content-muted mb-1 block">Note</label>
               <textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={4}
-                className="w-full bg-[#141414] text-white text-sm rounded-xl px-4 py-3 border border-gray-700 focus:border-[#3F74FF] focus:outline-none resize-none" placeholder="Enter special note..." />
+                className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none resize-none" placeholder="Enter special note..." />
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={isImportant} onChange={(e) => setIsImportant(e.target.checked)}
-                className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500" />
-              <span className="text-sm text-white">Mark as important</span>
+                className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary" />
+              <span className="text-sm text-content-primary">Mark as important</span>
             </label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">Start Date</label>
+                <label className="text-sm text-content-muted mb-1 block">Start Date</label>
                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-[#141414] text-white text-sm rounded-xl px-4 py-3 border border-gray-700 focus:border-[#3F74FF] focus:outline-none" />
+                  className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none" />
               </div>
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">End Date</label>
+                <label className="text-sm text-content-muted mb-1 block">End Date</label>
                 <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-[#141414] text-white text-sm rounded-xl px-4 py-3 border border-gray-700 focus:border-[#3F74FF] focus:outline-none" />
+                  className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none" />
               </div>
             </div>
           </div>
-          <div className="px-6 py-4 border-t border-gray-800 flex gap-2">
-            <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors">Save Note</button>
-            <button onClick={onClose} className="px-4 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors">Cancel</button>
+          <div className="px-6 py-4 border-t border-border flex gap-2">
+            <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary/90 transition-colors">Save Note</button>
+            <button onClick={onClose} className="px-4 py-2.5 bg-surface-dark text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button transition-colors">Cancel</button>
           </div>
         </div>
       </div>,
@@ -932,53 +947,53 @@ export default function Appointments() {
       `}</style>
       <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
 
-      <div className="relative h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-[#1C1C1C] transition-all duration-500 ease-in-out overflow-hidden">
+      <div className="relative h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-surface-card transition-all duration-500 ease-in-out overflow-hidden">
         <main className="flex-1 min-w-0 flex flex-col min-h-0 pt-4 pb-4 pl-4 pr-0">
           {/* Header with navigation controls */}
           <div className="flex items-center justify-between mb-4 flex-shrink-0 relative pr-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-white">Appointments</h1>
+              <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-content-primary">Appointments</h1>
             </div>
 
             {/* Calendar Navigation - Centered over calendar days (offset for sidebar + time column) - Desktop */}
             <div className={`hidden lg:flex items-center gap-3 absolute top-1/2 -translate-y-1/2 ${isSidebarCollapsed ? 'left-[calc(50%+18px)] -translate-x-1/2' : 'left-[calc(50%+168px)] -translate-x-1/2'}`}>
               {/* Free Slots Toggle */}
               <button onClick={() => calendarRef.current?.toggleFreeSlots()}
-                className={`text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors font-medium whitespace-nowrap ${calendarViewMode === "free" ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300"}`}>
+                className={`text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors font-medium whitespace-nowrap ${calendarViewMode === "free" ? "bg-primary hover:bg-primary-hover text-white" : "bg-surface-button hover:bg-surface-hover text-content-secondary"}`}>
                 <CalendarCheck size={16} />
                 {calendarViewMode === "all" ? "Free Slots" : "All Slots"}
               </button>
 
               {/* Navigation Arrows */}
-              <button onClick={() => calendarRef.current?.prev()} className="p-2 bg-black rounded-lg text-gray-400 hover:text-white hover:bg-[#1a1a1a] transition-colors">
+              <button onClick={() => calendarRef.current?.prev()} className="p-2 bg-surface-base rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-dark transition-colors">
                 <GoArrowLeft className="w-4 h-4" />
               </button>
 
               {/* Date Display */}
-              <span className="text-white text-sm font-medium min-w-[140px] text-center select-none">{calendarDateDisplay}</span>
+              <span className="text-content-primary text-sm font-medium min-w-[140px] text-center select-none">{calendarDateDisplay}</span>
 
               {/* Next Arrow */}
-              <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-gray-400 hover:text-white hover:bg-[#1a1a1a] transition-colors">
+              <button onClick={() => calendarRef.current?.next()} className="p-2 bg-surface-base rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-dark transition-colors">
                 <GoArrowRight className="w-4 h-4" />
               </button>
 
               {/* View Toggle */}
-              <div className="flex items-center bg-black rounded-xl p-1">
+              <div className="flex items-center bg-surface-base rounded-xl p-1">
                 <button 
                   onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay"); }}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
                 >
                   Day
                 </button>
                 <button 
                   onClick={() => { calendarRef.current?.changeView("timeGridWeek"); setCurrentView("timeGridWeek"); }}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridWeek" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridWeek" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
                 >
                   Week
                 </button>
                 <button 
                   onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth"); }}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
                 >
                   Month
                 </button>
@@ -991,34 +1006,34 @@ export default function Appointments() {
               <div className="hidden lg:block relative" onClick={(e) => e.stopPropagation()}>
                 <button 
                   onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
+                  className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                 >
-                  <Plus size={14} />
+                  <Plus size={16} />
                   Book
                   <ChevronDown size={14} className={`transition-transform ${isBookDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
                 {isBookDropdownOpen && (
-                  <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] rounded-xl shadow-lg border border-gray-700 overflow-hidden z-50 min-w-[180px]">
+                  <div className="absolute top-full right-0 mt-1 bg-surface-card rounded-xl shadow-lg border border-border overflow-hidden z-50 min-w-[180px]">
                     <button 
                       onClick={() => { setIsModalOpen(true); setIsBookDropdownOpen(false); }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       Book Appointment
                     </button>
                     <button 
                       onClick={() => { setIsTrialModalOpen(true); setIsBookDropdownOpen(false); }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
-                      <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
+                      <div className="w-2 h-2 rounded-full bg-trial"></div>
                       Book Trial Training
                     </button>
-                    <div className="border-t border-gray-700"></div>
+                    <div className="border-t border-border"></div>
                     <button 
                       onClick={() => { setIsBlockModalOpen(true); setIsBookDropdownOpen(false); }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
-                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-content-faint"></div>
                       Block Time Slot
                     </button>
                   </div>
@@ -1033,21 +1048,21 @@ export default function Appointments() {
           <div className="lg:hidden flex items-center justify-between mb-3 pr-4">
             <button 
               onClick={() => navigateMobileDay(-1)} 
-              className="p-2 text-gray-400 active:text-white transition-colors"
+              className="p-2 text-content-muted active:text-content-primary transition-colors"
             >
               <GoArrowLeft className="w-5 h-5" />
             </button>
             
             <div className="flex flex-col items-center">
-              <span className="text-white text-sm font-medium">{formatMobileDateDisplay(selectedDate)}</span>
+              <span className="text-content-primary text-sm font-medium">{formatMobileDateDisplay(selectedDate)}</span>
               {isClosedDay(selectedDate) && (
-                <span className="text-orange-400 text-[10px] font-medium">{getClosedDayLabel(selectedDate)}</span>
+                <span className="text-primary text-[10px] font-medium">{getClosedDayLabel(selectedDate)}</span>
               )}
             </div>
             
             <button 
               onClick={() => navigateMobileDay(1)} 
-              className="p-2 text-gray-400 active:text-white transition-colors"
+              className="p-2 text-content-muted active:text-content-primary transition-colors"
             >
               <GoArrowRight className="w-5 h-5" />
             </button>
@@ -1057,7 +1072,7 @@ export default function Appointments() {
           <div className="lg:hidden flex items-center gap-2 mb-3 pr-4">
             <button 
               onClick={() => calendarRef.current?.toggleFreeSlots()} 
-              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 whitespace-nowrap ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-400"}`}
+              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 whitespace-nowrap ${calendarViewMode === "free" ? "bg-primary text-white" : "bg-surface-button text-content-muted"}`}
             >
               <CalendarCheck size={12} />
               {calendarViewMode === "all" ? "Free" : "All"}
@@ -1066,7 +1081,7 @@ export default function Appointments() {
             {/* Mobile Filters Toggle */}
             <button 
               onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
-              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${isMobileFiltersExpanded ? "bg-[#3F3F3F] text-white" : "bg-[#2F2F2F] text-gray-400"}`}
+              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${isMobileFiltersExpanded ? "bg-surface-hover text-content-primary" : "bg-surface-button text-content-muted"}`}
             >
               <ChevronDown size={12} className={`transition-transform ${isMobileFiltersExpanded ? 'rotate-180' : ''}`} />
               Filters
@@ -1075,12 +1090,12 @@ export default function Appointments() {
           
           {/* Mobile Filters Dropdown */}
           <div className={`lg:hidden overflow-hidden transition-all duration-200 pr-4 ${isMobileFiltersExpanded ? 'max-h-[300px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
-            <div className="bg-black rounded-xl p-3">
+            <div className="bg-surface-base rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-white text-xs font-medium">Filter by type</span>
+                <span className="text-content-primary text-xs font-medium">Filter by type</span>
                 <button 
                   onClick={toggleAllFilters} 
-                  className="text-[10px] text-orange-400 hover:text-orange-300 transition-colors"
+                  className="text-[10px] text-primary hover:text-primary-hover transition-colors"
                 >
                   {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
                 </button>
@@ -1089,31 +1104,31 @@ export default function Appointments() {
                 {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
                   <label key={type.name} className="flex items-center gap-1.5 cursor-pointer">
                     <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
-                      className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
+                      className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
                     <div className={`w-1.5 h-1.5 rounded-full ${type.color}`}></div>
-                    <span className="text-white text-[11px] truncate">{type.name}</span>
+                    <span className="text-content-primary text-[11px] truncate">{type.name}</span>
                   </label>
                 ))}
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
-                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3F74FF]"></div>
-                  <span className="text-white text-[11px]">Trial</span>
+                    className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-trial"></div>
+                  <span className="text-content-primary text-[11px]">Trial</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
-                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                  <span className="text-white text-[11px]">Blocked</span>
+                    className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                  <span className="text-content-primary text-[11px]">Blocked</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
-                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                  <span className="text-white text-[11px]">Cancelled</span>
+                    className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                  <span className="text-content-primary text-[11px]">Cancelled</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
-                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                  <span className="text-white text-[11px]">Past</span>
+                    className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                  <span className="text-content-primary text-[11px]">Past</span>
                 </label>
               </div>
             </div>
@@ -1124,7 +1139,7 @@ export default function Appointments() {
             {/* Sidebar Toggle Button - Overlay */}
             <button 
               onClick={toggleSidebar} 
-              className={`hidden lg:flex absolute z-20 bg-orange-500 text-white p-1.5 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-500 items-center justify-center ${isSidebarCollapsed ? 'left-0' : 'left-[296px]'}`}
+              className={`hidden lg:flex absolute z-20 bg-primary text-white p-1.5 rounded-full shadow-lg hover:bg-primary-hover transition-all duration-500 items-center justify-center ${isSidebarCollapsed ? 'left-0' : 'left-[296px]'}`}
               style={{ top: '8px' }}
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
               {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -1144,38 +1159,38 @@ export default function Appointments() {
                   <div className="flex items-center gap-2 w-full">
                     <div className="relative w-full" ref={searchDropdownRef}>
                       <div 
-                        className="bg-[#000000] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-transparent focus-within:border-[#3F74FF] transition-colors cursor-text"
+                        className="bg-surface-base rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-transparent focus-within:border-primary transition-colors cursor-text"
                         onClick={() => searchInputRef.current?.focus()}
                       >
-                        <Search className="text-gray-400 flex-shrink-0" size={16} />
+                        <Search className="text-content-muted flex-shrink-0" size={16} />
                         
                         {/* Filter Chips */}
                         {memberFilters.map((filter) => (
                           <div 
                             key={filter.memberId}
-                            className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-orange-500/20 border border-orange-500/40'}`}
+                            className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-primary/20 border border-primary/40' : 'bg-primary/20 border border-primary/40'}`}
                           >
                             {/* Members: Show initials avatar */}
                             {filter.type !== 'lead' && (
-                              <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                              <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
                                 {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
                               </div>
                             )}
                             {/* Leads: Show "Lead" tag instead of avatar */}
                             {filter.type === 'lead' && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300 font-medium flex-shrink-0">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/30 text-primary-hover font-medium flex-shrink-0">
                                 Lead
                               </span>
                             )}
-                            <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                            <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleRemoveFilter(filter.memberId);
                               }}
-                              className={`p-0.5 rounded transition-colors ${filter.type === 'lead' ? 'hover:bg-blue-500/30' : 'hover:bg-orange-500/30'}`}
+                              className={`p-0.5 rounded transition-colors ${filter.type === 'lead' ? 'hover:bg-primary/30' : 'hover:bg-primary/30'}`}
                             >
-                              <X size={12} className="text-gray-400 hover:text-white" />
+                              <X size={12} className="text-content-muted hover:text-content-primary" />
                             </button>
                           </div>
                         ))}
@@ -1192,7 +1207,7 @@ export default function Appointments() {
                           }}
                           onFocus={() => searchQuery && setShowSearchDropdown(true)}
                           onKeyDown={handleSearchKeyDown}
-                          className="flex-1 min-w-[80px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                          className="flex-1 min-w-[80px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
                         />
                         
                         {/* Clear All Button */}
@@ -1202,22 +1217,22 @@ export default function Appointments() {
                               e.stopPropagation();
                               setMemberFilters([]);
                             }}
-                            className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                            className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
                             title="Clear all filters"
                           >
-                            <X size={14} className="text-gray-400 hover:text-white" />
+                            <X size={14} className="text-content-muted hover:text-content-primary" />
                           </button>
                         )}
                       </div>
                       
                       {/* Autocomplete Dropdown */}
                       {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                           {getSearchSuggestions().map((person) => (
                             <button
                               key={person.id}
                               onClick={() => handleSelectMember(person)}
-                              className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                              className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button-hover transition-colors text-left"
                             >
                               {/* Members: Show profile image or initials avatar */}
                               {person.type === 'member' && (
@@ -1228,25 +1243,25 @@ export default function Appointments() {
                                     className="w-8 h-8 rounded-lg object-cover"
                                   />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold bg-orange-500">
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold bg-primary">
                                     {person.firstName?.charAt(0)}{person.lastName?.charAt(0)}
                                   </div>
                                 )
                               )}
                               {/* Leads: Show "Lead" badge */}
                               {person.type === 'lead' && (
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/20 border border-blue-500/40">
-                                  <span className="text-[9px] text-blue-300 font-bold">LEAD</span>
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/20 border border-primary/40">
+                                  <span className="text-[9px] text-primary-hover font-bold">LEAD</span>
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <p className="text-sm text-white truncate">{person.firstName} {person.lastName}</p>
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${person.type === 'lead' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
+                                  <p className="text-sm text-content-primary truncate">{person.firstName} {person.lastName}</p>
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${person.type === 'lead' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-primary/20 text-primary border border-primary/30'}`}>
                                     {person.type === 'lead' ? 'Lead' : 'Member'}
                                   </span>
                                 </div>
-                                {person.type === 'member' && person.email && <p className="text-xs text-gray-500 truncate">{person.email}</p>}
+                                {person.type === 'member' && person.email && <p className="text-xs text-content-faint truncate">{person.email}</p>}
                               </div>
                             </button>
                           ))}
@@ -1255,8 +1270,8 @@ export default function Appointments() {
                       
                       {/* No results message */}
                       {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                          <p className="text-sm text-gray-500 text-center">No members or leads found</p>
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 p-3">
+                          <p className="text-sm text-content-faint text-center">No members or leads found</p>
                         </div>
                       )}
                     </div>
@@ -1265,12 +1280,12 @@ export default function Appointments() {
 
                 {/* Filters - Desktop */}
                 <div className="w-full lg:max-w-[300px] flex-shrink-0">
-                  <div className="bg-[#000000] rounded-xl p-3 w-full">
+                  <div className="bg-surface-base rounded-xl p-3 w-full">
                     <div 
                       className="flex items-center justify-between cursor-pointer"
                       onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
                     >
-                      <h3 className="text-white font-semibold text-sm">Filters</h3>
+                      <h3 className="text-content-primary font-semibold text-sm">Filters</h3>
                       <div className="flex items-center gap-2">
                         {!isFiltersCollapsed && (
                           <button 
@@ -1278,12 +1293,12 @@ export default function Appointments() {
                               e.stopPropagation()
                               toggleAllFilters()
                             }} 
-                            className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                            className="text-xs text-primary hover:text-primary-hover transition-colors"
                           >
                             {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
                           </button>
                         )}
-                        <button className="p-1 bg-[#2F2F2F] hover:bg-gray-700 rounded-lg cursor-pointer transition-colors text-white">
+                        <button className="p-1 bg-surface-button hover:bg-surface-button rounded-lg cursor-pointer transition-colors text-content-primary">
                           {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </button>
                       </div>
@@ -1294,32 +1309,32 @@ export default function Appointments() {
                         {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
                           <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                             <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
-                              className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
+                              className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
                             <div className={`w-2 h-2 rounded-full ${type.color}`}></div>
-                            <span className="text-white text-xs">{type.name}</span>
+                            <span className="text-content-primary text-xs">{type.name}</span>
                           </label>
                         ))}
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
-                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                          <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
-                          <span className="text-white text-xs">Trial Training</span>
+                            className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                          <div className="w-2 h-2 rounded-full bg-trial"></div>
+                          <span className="text-content-primary text-xs">Trial Training</span>
                         </label>
-                        <div className="border-t border-gray-700 my-2"></div>
+                        <div className="border-t border-border my-2"></div>
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
-                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                          <span className="text-white text-xs">Blocked</span>
+                            className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                          <span className="text-content-primary text-xs">Blocked</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
-                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                          <span className="text-white text-xs">Cancelled</span>
+                            className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                          <span className="text-content-primary text-xs">Cancelled</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
-                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
-                          <span className="text-white text-xs">Past</span>
+                            className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
+                          <span className="text-content-primary text-xs">Past</span>
                         </label>
                       </div>
                     )}
@@ -1344,7 +1359,7 @@ export default function Appointments() {
             </div>
 
             {/* Calendar Container - Full width on mobile */}
-            <div className={`flex-1 bg-[#000000] lg:rounded-l-xl rounded-xl lg:rounded-none overflow-hidden transition-all duration-500 lg:h-full min-h-[500px] lg:min-h-0 ${isSidebarCollapsed ? "lg:w-full" : ""}`}>
+            <div className={`flex-1 bg-surface-base lg:rounded-l-xl rounded-xl lg:rounded-none overflow-hidden transition-all duration-500 lg:h-full min-h-[500px] lg:min-h-0 ${isSidebarCollapsed ? "lg:w-full" : ""}`}>
               <Calendar
                 ref={calendarRef}
                 appointmentsMain={appointmentsMain}
@@ -1387,15 +1402,15 @@ export default function Appointments() {
         )}
         {isNotifyMemberOpenMain && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={() => setIsNotifyMemberOpenMain(false)}>
-            <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">Notify Member</h2>
-                <button onClick={() => setIsNotifyMemberOpenMain(false)} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"><X size={20} /></button>
+            <div className="bg-surface-dark w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-content-primary">Notify Member</h2>
+                <button onClick={() => setIsNotifyMemberOpenMain(false)} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg"><X size={20} /></button>
               </div>
-              <div className="p-6"><p className="text-white text-sm">Do you want to notify the member about this {notifyActionMain === "change" ? "change" : notifyActionMain === "cancel" ? "cancellation" : notifyActionMain === "delete" ? "deletion" : "booking"}?</p></div>
-              <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
-                <button onClick={() => handleNotifyMemberMain(true)} className="w-full sm:w-auto px-5 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors">Yes, Notify Member</button>
-                <button onClick={() => handleNotifyMemberMain(false)} className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors">No, Don't Notify</button>
+              <div className="p-6"><p className="text-content-primary text-sm">Do you want to notify the member about this {notifyActionMain === "change" ? "change" : notifyActionMain === "cancel" ? "cancellation" : notifyActionMain === "delete" ? "deletion" : "booking"}?</p></div>
+              <div className="px-6 py-4 border-t border-border flex flex-col-reverse sm:flex-row gap-2">
+                <button onClick={() => handleNotifyMemberMain(true)} className="w-full sm:w-auto px-5 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary/90 transition-colors">Yes, Notify Member</button>
+                <button onClick={() => handleNotifyMemberMain(false)} className="w-full sm:w-auto px-5 py-2.5 bg-surface-dark text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button transition-colors">No, Don't Notify</button>
               </div>
             </div>
           </div>
@@ -1408,7 +1423,7 @@ export default function Appointments() {
             name: "BLOCKED", 
             time: `${blockData.startTime} - ${blockData.endTime}`,
             date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,
-            color: "bg-[#dc2626]", 
+            color: "bg-red-600", 
             startTime: blockData.startTime, 
             endTime: blockData.endTime, 
             type: "Blocked Time",
@@ -1529,9 +1544,9 @@ export default function Appointments() {
               setIsBlockModalOpen(true)
               setIsMobileFabOpen(false)
             }}
-            className="flex items-center gap-2 bg-[#1C1C1C] text-white pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+            className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
           >
-            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+            <div className="w-2 h-2 rounded-full bg-content-faint"></div>
             <span className="text-sm">Block Time</span>
           </button>
           <button
@@ -1540,9 +1555,9 @@ export default function Appointments() {
               setIsTrialModalOpen(true)
               setIsMobileFabOpen(false)
             }}
-            className="flex items-center gap-2 bg-[#1C1C1C] text-white pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+            className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
           >
-            <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
+            <div className="w-2 h-2 rounded-full bg-trial"></div>
             <span className="text-sm">Trial Training</span>
           </button>
           <button
@@ -1551,9 +1566,9 @@ export default function Appointments() {
               setIsModalOpen(true)
               setIsMobileFabOpen(false)
             }}
-            className="flex items-center gap-2 bg-[#1C1C1C] text-white pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+            className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
           >
-            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <div className="w-2 h-2 rounded-full bg-primary"></div>
             <span className="text-sm">Appointment</span>
           </button>
         </div>
@@ -1564,7 +1579,7 @@ export default function Appointments() {
             e.stopPropagation()
             setIsMobileFabOpen(!isMobileFabOpen)
           }}
-          className={`bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 ${isMobileFabOpen ? 'rotate-45' : ''}`}
+          className={`bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 ${isMobileFabOpen ? 'rotate-45' : ''}`}
           aria-label="Book appointment"
         >
           <Plus size={22} />

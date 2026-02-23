@@ -99,7 +99,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         isSelected 
           ? 'bg-surface-hover/80' 
           : 'hover:bg-surface-hover/50 active:bg-surface-hover/70'
-      } ${isDragging ? 'rounded-xl border border-orange-500/50 bg-surface-hover/90' : ''}`}
+      } ${isDragging ? 'rounded-xl border border-primary/50 bg-surface-hover/90' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
@@ -107,7 +107,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-orange-500/30"
+          className="cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-primary mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-primary/30"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
@@ -120,7 +120,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
               {note.title || 'Untitled'}
             </h4>
             {note.isPinned && (
-              <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-0.5" />
+              <Pin size={12} className="text-primary fill-primary flex-shrink-0 mt-0.5" />
             )}
           </div>
           
@@ -193,7 +193,7 @@ export default function NotesApp() {
   const sortDropdownRef = useRef(null)
   const desktopSortDropdownRef = useRef(null)
   const fileInputRef = useRef(null)
-  const autoSaveTimeoutRef = useRef(null)
+  const pendingSaveRef = useRef(null)
   const mobileActionsMenuRef = useRef(null)
 
   // Sidebar tooltip ref (combined info tooltip uses studioTooltipRef)
@@ -243,21 +243,26 @@ export default function NotesApp() {
   // Track the currently loaded note ID to prevent unnecessary resets
   const loadedNoteIdRef = useRef(null)
 
-  // Load selected note data into editing state - only when selecting a DIFFERENT note
+  // Helper: select a note and set editing state synchronously in one batch
+  // This prevents the race condition where the editor remounts (via key change)
+  // before useEffect has loaded the new content
+  const selectNote = (note) => {
+    if (note && (!selectedNote || selectedNote.id !== note.id)) {
+      setEditedTitle(note.title || '')
+      setEditedContent(note.content || '')
+      setEditedTags(note.tags || [])
+      setEditedAttachments(note.attachments || [])
+      setHasUnsavedChanges(false)
+      setShowAllAttachments(false)
+      setShowAllTags(false)
+      loadedNoteIdRef.current = note.id
+    }
+    setSelectedNote(note)
+  }
+
+  // Cleanup editing state when note is closed
   useEffect(() => {
-    if (selectedNote) {
-      // Only reset content if we're loading a different note
-      if (loadedNoteIdRef.current !== selectedNote.id) {
-        setEditedTitle(selectedNote.title || '')
-        setEditedContent(selectedNote.content || '')
-        setEditedTags(selectedNote.tags || [])
-        setEditedAttachments(selectedNote.attachments || [])
-        setHasUnsavedChanges(false)
-        setShowAllAttachments(false) // Reset attachments view
-        setShowAllTags(false) // Reset tags view
-        loadedNoteIdRef.current = selectedNote.id
-      }
-    } else {
+    if (!selectedNote) {
       setEditedTitle('')
       setEditedContent('')
       setEditedTags([])
@@ -269,13 +274,55 @@ export default function NotesApp() {
     }
   }, [selectedNote])
 
-  // Auto-save functionality - Instant updates for responsive sidebar
+  // Auto-save functionality - instant updates for responsive sidebar
   useEffect(() => {
     if (!selectedNote || !hasUnsavedChanges) return
 
-    // Save immediately for instant sidebar updates
-    saveCurrentNote()
+    // Track pending save data in ref for flush-on-close (with updatedAt)
+    pendingSaveRef.current = {
+      noteId: selectedNote.id,
+      tabKey: activeTab,
+      title: editedTitle,
+      content: editedContent,
+      tags: editedTags,
+      attachments: editedAttachments,
+    }
+
+    // Save immediately for instant sidebar updates - but WITHOUT updating updatedAt
+    // (updatedAt is only set on close to prevent notes from jumping around in sort order)
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].map(note =>
+        note.id === selectedNote.id
+          ? { ...note, title: editedTitle, content: editedContent, tags: editedTags, attachments: editedAttachments }
+          : note
+      ),
+    }))
+    setHasUnsavedChanges(false)
   }, [editedTitle, editedContent, editedTags, editedAttachments, hasUnsavedChanges])
+
+  // Set updatedAt and release focus when note editor is closed
+  useEffect(() => {
+    if (!selectedNote) {
+      // Stamp updatedAt on the note now that editing is done
+      if (pendingSaveRef.current) {
+        const { noteId, tabKey } = pendingSaveRef.current
+        setNotes(prev => ({
+          ...prev,
+          [tabKey]: prev[tabKey].map(note =>
+            note.id === noteId
+              ? { ...note, updatedAt: new Date().toISOString() }
+              : note
+          ),
+        }))
+        pendingSaveRef.current = null
+      }
+      setHasUnsavedChanges(false)
+      if (document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur()
+      }
+    }
+  }, [selectedNote])
 
   // Keyboard shortcuts - only active when NOT in any editable area
   useEffect(() => {
@@ -285,44 +332,24 @@ export default function NotesApp() {
         return
       }
       
-      // Use both event.target AND document.activeElement for reliable detection
+      // Check if user is typing in an input/textarea (e.g. search bar, tag input)
       const target = e.target
-      const activeEl = document.activeElement
-      
-      // Check if user is typing in ANY editable area
-      // Check both target and activeElement to catch all cases
-      const isTargetEditable = 
+      if (
         target.tagName === 'INPUT' || 
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable === true ||
-        target.closest?.('[contenteditable="true"]') ||
-        target.closest?.('.ql-editor') ||
-        target.closest?.('.ql-container') ||
-        target.closest?.('[class*="wysiwyg-editor"]')
-      
-      const isActiveElementEditable =
-        activeEl?.tagName === 'INPUT' ||
-        activeEl?.tagName === 'TEXTAREA' ||
-        activeEl?.isContentEditable === true ||
-        activeEl?.closest?.('[contenteditable="true"]') ||
-        activeEl?.closest?.('.ql-editor') ||
-        activeEl?.closest?.('.ql-container') ||
-        activeEl?.closest?.('[class*="wysiwyg-editor"]')
-      
-      const isInEditableArea = isTargetEditable || isActiveElementEditable
-      
-      // If in editable area, only handle Escape, let everything else through
-      if (isInEditableArea) {
+        target.closest?.('[contenteditable="true"]')
+      ) {
+        // Only handle Escape to blur
         if (e.key === 'Escape') {
-          // Blur the editor on Escape
-          activeEl?.blur?.()
+          target.blur?.()
         }
-        // Don't handle any other keys
         return
       }
 
-      // From here on, we're NOT in an editable area
-      
+      // Don't handle if modifier keys are pressed
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+
       // Handle Escape for modals
       if (e.key === 'Escape') {
         if (showImageSourceModal) setShowImageSourceModal(false)
@@ -332,31 +359,23 @@ export default function NotesApp() {
         else if (selectedNote) setSelectedNote(null)
         return
       }
-      
-      // Don't handle if modifier keys are pressed
-      if (e.ctrlKey || e.metaKey || e.altKey) return
 
       // Check if ANY modal is open - if so, don't trigger other hotkeys
       const anyModalOpen = 
         deleteConfirm ||
         showTagsModal ||
         showImageSourceModal ||
-        showMediaLibraryModal ||
-        selectedNote // Note being edited counts as "modal open"
+        showMediaLibraryModal
       
-      // Also check if any modal overlay is visible in the DOM
-      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
-      
-      if (anyModalOpen || hasVisibleModal) return
+      if (anyModalOpen) return
 
-      // C - Create new note (only when not typing and no modal open)
+      // C - Create new note
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault()
         handleCreateNote()
       }
 
-      // T - Manage tags (only when not typing and no modal open)
+      // T - Manage tags
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setShowTagsModal(true)
@@ -366,31 +385,6 @@ export default function NotesApp() {
     document.addEventListener('keydown', handleKeyPress)
     return () => document.removeEventListener('keydown', handleKeyPress)
   }, [deleteConfirm, selectedNote, showTagsModal, showImageSourceModal, showMediaLibraryModal])
-
-  // Save current note (silently in background)
-  const saveCurrentNote = () => {
-    if (!selectedNote) return
-
-    const updatedNote = {
-      ...selectedNote,
-      title: editedTitle,
-      content: editedContent,
-      tags: editedTags,
-      attachments: editedAttachments,
-      updatedAt: new Date().toISOString(),
-    }
-
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map(note =>
-        note.id === selectedNote.id ? updatedNote : note
-      ),
-    }))
-
-    setSelectedNote(updatedNote)
-    setHasUnsavedChanges(false)
-    // No toast notification - silent auto-save
-  }
 
   // Get current sort label
   const sortOptions = [
@@ -530,7 +524,11 @@ export default function NotesApp() {
 
     // On mobile: go back to list; on desktop: select the duplicate
     const isMobile = window.innerWidth < 768
-    setSelectedNote(isMobile ? null : duplicated)
+    if (isMobile) {
+      setSelectedNote(null)
+    } else {
+      selectNote(duplicated)
+    }
   }
 
   // Toggle pin
@@ -714,13 +712,13 @@ export default function NotesApp() {
                 <div className="absolute left-0 top-full mt-2 w-64 bg-surface-button border border-border rounded-lg shadow-xl p-4 z-50">
                   <div className="text-sm space-y-3">
                     <div>
-                      <p className="text-orange-400 font-medium mb-1">Studio Notes</p>
+                      <p className="text-primary font-medium mb-1">Studio Notes</p>
                       <p className="text-content-secondary text-xs leading-relaxed">
                         Shared with everyone. All team members can see and edit these notes.
                       </p>
                     </div>
                     <div className="border-t border-border pt-3">
-                      <p className="text-blue-400 font-medium mb-1">Personal Notes</p>
+                      <p className="text-primary font-medium mb-1">Personal Notes</p>
                       <p className="text-content-secondary text-xs leading-relaxed">
                         Private to you. Only you can see and edit these notes.
                       </p>
@@ -902,7 +900,7 @@ export default function NotesApp() {
                 }}
                 className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${
                   activeTab === "studio"
-                    ? "text-content-primary border-b-2 border-orange-400"
+                    ? "text-content-primary border-b-2 border-primary"
                     : "text-content-muted hover:text-content-primary"
                 }`}
               >
@@ -917,7 +915,7 @@ export default function NotesApp() {
                 }}
                 className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${
                   activeTab === "personal"
-                    ? "text-content-primary border-b-2 border-orange-400"
+                    ? "text-content-primary border-b-2 border-primary"
                     : "text-content-muted hover:text-content-primary"
                 }`}
               >
@@ -944,7 +942,7 @@ export default function NotesApp() {
                         key={note.id}
                         note={note}
                         isSelected={selectedNote?.id === note.id}
-                        onClick={() => setSelectedNote(note)}
+                        onClick={() => selectNote(note)}
                         availableTags={availableTags}
                         onPin={togglePin}
                       />
@@ -986,7 +984,7 @@ export default function NotesApp() {
                       <button
                         onClick={() => togglePin(selectedNote.id)}
                         className={`p-2 rounded-lg hover:bg-surface-hover transition-colors ${
-                          selectedNote.isPinned ? 'text-orange-400' : 'text-content-muted hover:text-content-primary'
+                          selectedNote.isPinned ? 'text-primary' : 'text-content-muted hover:text-content-primary'
                         }`}
                         title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
                       >
@@ -1036,7 +1034,7 @@ export default function NotesApp() {
                     {availableTags.length > 6 && (
                       <button
                         onClick={() => setShowAllTags(!showAllTags)}
-                        className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                        className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                       >
                         {showAllTags 
                           ? 'Show less' 
@@ -1118,7 +1116,7 @@ export default function NotesApp() {
                       {editedAttachments.length > 5 && (
                         <button
                           onClick={() => setShowAllAttachments(!showAllAttachments)}
-                          className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                          className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                         >
                           {showAllAttachments 
                             ? 'Show less' 
@@ -1247,10 +1245,10 @@ export default function NotesApp() {
               {selectedNote.isPinned && (
                 <button
                   onClick={() => togglePin(selectedNote.id)}
-                  className="text-orange-400 p-1 hover:bg-surface-hover rounded-lg transition-colors"
+                  className="text-primary p-1 hover:bg-surface-hover rounded-lg transition-colors"
                   aria-label="Unpin note"
                 >
-                  <Pin size={20} className="fill-orange-400" />
+                  <Pin size={20} className="fill-primary" />
                 </button>
               )}
               
@@ -1383,7 +1381,7 @@ export default function NotesApp() {
               {availableTags.length > 4 && (
                 <button
                   onClick={() => setShowAllTags(!showAllTags)}
-                  className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                  className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                 >
                   {showAllTags 
                     ? 'Show less' 
@@ -1445,7 +1443,7 @@ export default function NotesApp() {
                 {editedAttachments.length > 3 && (
                   <button
                     onClick={() => setShowAllAttachments(!showAllAttachments)}
-                    className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                    className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                   >
                     {showAllAttachments 
                       ? 'Show less' 

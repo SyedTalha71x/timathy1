@@ -399,47 +399,49 @@ export default function Training() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 sm:p-4 md:p-6">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary p-4 sm:p-4 md:p-6">
         <div className="w-full mx-auto">
           <div className="flex  sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
 
           </div>
 
-          <div className="w-full sm:max-w-sm mb-6">
-            <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
-              <button
-                onClick={() => setActiveTab("videos")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "videos" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                  }`}
-              >
-                <Play size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Videos ({trainings.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("plans")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "plans" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
-                  }`}
-              >
-                <Target size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Plans ({myPlans.length})
-              </button>
-            </div>
+          <div className="flex border-b border-border-subtle mb-6">
+            <button
+              onClick={() => setActiveTab("videos")}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
+                  ? "text-content-primary border-b-2 border-primary"
+                  : "text-content-muted hover:text-content-primary"
+                }`}
+            >
+              <Play size={16} className="inline mr-1 sm:mr-2" />
+              Training Videos ({trainings.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("plans")}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "plans"
+                  ? "text-content-primary border-b-2 border-primary"
+                  : "text-content-muted hover:text-content-primary"
+                }`}
+            >
+              <Target size={16} className="inline mr-1 sm:mr-2" />
+              Training Plans ({myPlans.length})
+            </button>
           </div>
 
           {activeTab === "videos" && (
             <div>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={18} />
                   <input
                     type="text"
                     placeholder="Search training videos"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
+                    className="w-full bg-surface-card pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-content-primary border border-border outline-none focus:border-accent-blue transition-colors"
                   />
                 </div>
 
@@ -449,8 +451,8 @@ export default function Training() {
                 <button
                   onClick={() => setSelectedCategories(["all"])}
                   className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes("all")
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    ? "bg-primary text-white"
+                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                 >
                   All
@@ -474,8 +476,8 @@ export default function Training() {
                       })
                     }}
                     className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes(category.id)
-                      ? `bg-blue-600 text-white`
-                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      ? `bg-primary text-white`
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                   >
                     {category.name}
@@ -487,7 +489,7 @@ export default function Training() {
                 {filteredVideos.map((video) => (
                   <div
                     key={video._id}
-                    className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors cursor-pointer group"
+                    className="bg-surface-card rounded-xl overflow-hidden hover:bg-surface-hover transition-colors cursor-pointer group"
                     onClick={() => handleVideoClick(video)}
                   >
                     <div className="relative">
@@ -497,7 +499,7 @@ export default function Training() {
                         className="w-full h-36 sm:h-48 object-cover"
                       />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="bg-blue-600 rounded-full p-2 sm:p-3">
+                        <div className="bg-primary rounded-full p-2 sm:p-3">
                           <Play className="text-white" size={20} />
                         </div>
                       </div>
@@ -513,16 +515,16 @@ export default function Training() {
                       </div>
                     </div>
                     <div className="p-3 sm:p-4">
-                      <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
-                      <p className="text-gray-400 text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
+                      <h3 className="font-semibold text-content-primary mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
+                      <p className="text-content-muted text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
                       <div className="flex flex-wrap gap-1 mt-2">
                         {video.targetMuscles.slice(0, 2).map((muscle, index) => (
-                          <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
+                          <span key={index} className="bg-surface-button text-content-secondary px-2 py-1 rounded text-xs">
                             {muscle}
                           </span>
                         ))}
                         {video.targetMuscles.length > 2 && (
-                          <span className="text-gray-500 text-xs">+{video.targetMuscles.length - 2}</span>
+                          <span className="text-content-faint text-xs">+{video.targetMuscles.length - 2}</span>
                         )}
                       </div>
                     </div>
@@ -532,7 +534,7 @@ export default function Training() {
 
               {filteredVideos.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-content-muted mb-4">
                     <Search size={48} className="mx-auto mb-4" />
                     <p>No videos found matching your criteria</p>
                   </div>
@@ -546,11 +548,11 @@ export default function Training() {
               {/* Plans Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                  <h2 className="text-xl sm:text-2xl font-bold text-white">Training Plans</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-content-primary">Training Plans</h2>
                 </div>
                 <button
                   onClick={() => setIsCreatePlanModalOpen(true)}
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                 >
                   <Plus size={18} />
                   Create Plan
@@ -562,12 +564,12 @@ export default function Training() {
                 {filteredPlans.map((plan) => (
                   <div
                     key={plan?._id}
-                    className="bg-[#161616] rounded-xl p-4 sm:p-6 hover:bg-[#1F1F1F] transition-colors"
+                    className="bg-surface-card rounded-xl p-4 sm:p-6 hover:bg-surface-hover transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white mb-2 truncate">{plan?.name}</h3>
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{plan?.description}</p>
+                        <h3 className="font-semibold text-content-primary mb-2 truncate">{plan?.name}</h3>
+                        <p className="text-content-muted text-sm mb-3 line-clamp-2">{plan?.description}</p>
                       </div>
                       <div
                         className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan?.difficulty)}`}
@@ -577,18 +579,18 @@ export default function Training() {
                     </div>
                     <div className="space-y-2 mb-4">
                       {plan.duration && (
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <div className="flex items-center gap-2 text-sm text-content-muted">
                           <Clock size={14} />
                           <span>{plan?.duration}</span>
                         </div>
                       )}
                       {plan.workoutsPerWeek && (
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <div className="flex items-center gap-2 text-sm text-content-muted">
                           <Calendar size={14} />
                           <span>{plan?.workoutsPerWeek}x per week</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <div className="flex items-center gap-2 text-sm text-content-muted">
                         <User size={14} />
                         <span className="truncate">
                           by {plan.createdBy?.firstName} {plan.createdBy?.lastName}
@@ -609,16 +611,16 @@ export default function Training() {
                           setSelectedPlan(plan)
                           setIsViewPlanModalOpen(true)
                         }}
-                        className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                        className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                       >
-                        <Eye size={16} className="text-gray-400" />
+                        <Eye size={16} className="text-content-muted" />
                       </button>
                       {canEditPlan(plan) && (
                         <button
                           onClick={() => openEditPlan(plan)}
-                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                          className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                         >
-                          <Edit size={16} className="text-gray-400" />
+                          <Edit size={16} className="text-content-muted" />
                         </button>
                       )}
                     </div>
@@ -628,7 +630,7 @@ export default function Training() {
 
               {filteredPlans.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-content-muted mb-4">
                     <Target size={48} className="mx-auto mb-4" />
                     <p>No training plans found</p>
                   </div>
