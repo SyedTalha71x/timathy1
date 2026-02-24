@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 import { FileText, X } from "lucide-react"
-import { BarChart3, Calendar, Users, Link, CheckSquare, Gift, Clipboard } from "lucide-react"
+import { BarChart3, Calendar, Users, Link, CheckSquare, Gift, Clipboard, Timer } from "lucide-react"
 import { RiContractLine } from "react-icons/ri";
-import { MdOutlineSchedule } from "react-icons/md";
+import { IoIosCheckmarkCircleOutline } from "react-icons/io";
+import { BsPersonWorkspace } from "react-icons/bs";
 
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
@@ -27,10 +28,16 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       icon: Calendar,
     },
     {
+      id: "upcomingClasses",
+      name: "Upcoming Classes",
+      description: "View upcoming scheduled classes",
+      icon: Timer,
+    },
+    {
       id: "staffCheckIn",
       name: "Staff Check-In",
       description: "Staff check-in/out functionality",
-      icon: Users,
+      icon: IoIosCheckmarkCircleOutline,
     },
     {
       id: "websiteLink",
@@ -66,7 +73,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       id: "shiftSchedule",
       name: "Shift Schedule",
       description: "View and manage staff shift schedules",
-      icon: MdOutlineSchedule,
+      icon: BsPersonWorkspace,
     }
   ]
 
@@ -103,10 +110,16 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       icon: Calendar,
     },
     {
+      id: "upcomingClasses",
+      name: "Upcoming Classes",
+      description: "View upcoming scheduled classes",
+      icon: Timer,
+    },
+    {
       id: "staffCheckIn",
       name: "Staff Check-In",
       description: "Staff check-in/out functionality",
-      icon: Users,
+      icon: IoIosCheckmarkCircleOutline,
     },
     {
       id: "bulletinBoard",
@@ -124,7 +137,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       id: "shiftSchedule",
       name: "Shift Schedule",
       description: "View and manage staff shift schedules",
-      icon: MdOutlineSchedule,
+      icon: BsPersonWorkspace,
     }
   ]
 

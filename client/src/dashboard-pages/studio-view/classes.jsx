@@ -9,7 +9,7 @@ import MiniCalendar from "../../components/studio-components/appointments-compon
 import ClassesCalendar from "../../components/studio-components/classes-components/classes-calendar"
 import CreateClassModal from "../../components/studio-components/classes-components/CreateClassModal"
 import ClassDetailModal from "../../components/studio-components/classes-components/ClassDetailModal"
-import UpcomingClassesWidget from "../../components/studio-components/classes-components/UpcomingClassesWidget"
+import UpcomingClassesWidget from "../../components/shared/widgets/UpcomingClassesWidget"
 import { membersData, classTypesData, roomsData, classesData, markPastClasses, DEFAULT_CLASS_CALENDAR_SETTINGS } from "../../utils/studio-states"
 import { staffData, getActiveStaff, getRoleColorHex } from "../../utils/studio-states/staff-states"
 
