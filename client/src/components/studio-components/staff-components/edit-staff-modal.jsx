@@ -255,7 +255,7 @@ function EditStaffModal({
   ]
 
   return (
-    <div className="fixed open_sans_font inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto overflow-x-hidden overscroll-contain">
+    <div className="fixed open_sans_font inset-0 bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
       <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] max-h-[85vh] md:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
