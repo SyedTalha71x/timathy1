@@ -88,19 +88,26 @@ const getFoodByBarcode = async (req, res, next) => {
         if (food) {
             return res.status(200).json({ success: true, food });
         }
-        const response = await axios.get(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+        const response = await axios.get(`https://world.openfoodfacts.org/api/v2/product/${code}.json`, {
+            headers: {
+                'User-Agent': 'NutritionTracker/1.0 (contact@yourapp.com)'
+            },
+            timeout: 8000
+        });
 
-        if (!response.data || response.data.status === 0) throw new NotFoundError("Product not found")
+        if (!response.data || response.data.status === 0) throw new NotFoundError("Product not found in Open Food Facts database")
         const product = response.data.product;
 
+        if (!product?.product_name) throw new NotFoundError("Product found but has no name — incomplete entry")
+
         const newFood = new foodModel({
-            name: product.product_name || "Unknown Product",
-            calories: product.nutriments?.["energy-kcal_100g"] || 0,
-            protein: product.nutriments?.protein_100g || 0,
-            carbs: product.nutriments?.carbohydrates_100g || 0,
-            fats: product.nutriments?.fat_100g || 0,
-            servingSize: "100",
-            serving: "100g",
+            name: product.product_name,
+            calories: Math.round(product.nutriments?.["energy-kcal_100g"] || product.nutriments?.["energy-kcal"] || 0),
+            protein: Math.round(product.nutriments?.proteins_100g || 0),
+            carbs: Math.round(product.nutriments?.carbohydrates_100g || 0),
+            fats: Math.round(product.nutriments?.fat_100g || 0),
+            servingSize: product.serving_size || "100g",
+            serving: product.serving_size || "100g",
             barcode: code
         })
         await newFood.save();
