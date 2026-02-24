@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { X, ScanBarcode, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
 import BarcodeScannerComponent from "react-qr-barcode-scanner"
-import { SettingsCard, mealIcons } from "./nutritionConstants"
+import { SettingsCard, mealIcons, mealLabels } from "./nutritionConstants"
 
 // ── Animated scan line ──────────────────────────────────────
 const ScanLine = ({ paused }) => (
@@ -114,6 +114,15 @@ const ScannerStyles = () => (
     .animate-fade-in-up {
       animation: fade-in-up 0.3s ease-out;
     }
+    .scanner-video-wrapper {
+      position: absolute;
+      inset: 0;
+    }
+    .scanner-video-wrapper video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
   `}</style>
 )
 
@@ -122,9 +131,19 @@ const BarcodeScannerModal = ({
   show, onClose, barcodeActive, setBarcodeActive,
   barcodeLoading, barcodeFood, barcodeError,
   lastScanned, dispatch, barcodeScanAction,
-  onAddFood,
+  preselectedMeal, onAddFood,
 }) => {
   const [scanStatus, setScanStatus] = useState("idle") // idle | scanning | found | error
+  const [selectedMeal, setSelectedMeal] = useState(preselectedMeal || "breakfast")
+  const [showMealPicker, setShowMealPicker] = useState(false)
+
+  // Sync preselectedMeal when modal opens
+  useEffect(() => {
+    if (show && preselectedMeal) {
+      setSelectedMeal(preselectedMeal)
+      setShowMealPicker(false)
+    }
+  }, [show, preselectedMeal])
 
   // Derive status from props
   useEffect(() => {
@@ -180,19 +199,31 @@ const BarcodeScannerModal = ({
 
             {/* Camera feed */}
             {barcodeActive ? (
-              <BarcodeScannerComponent
-                width="100%"
-                height="100%"
-                onUpdate={(err, result) => {
-                  if (result?.text) {
-                    const code = result.text.trim()
-                    if (code !== lastScanned.current) {
-                      lastScanned.current = code
-                      dispatch(barcodeScanAction(code))
+              <div className="absolute inset-0 scanner-video-wrapper">
+                <BarcodeScannerComponent
+                  width="100%"
+                  height="100%"
+                  delay={200}
+                  facingMode="environment"
+                  constraints={{
+                    video: {
+                      facingMode: "environment",
+                      width: { ideal: 1280 },
+                      height: { ideal: 720 },
+                      focusMode: "continuous",
                     }
-                  }
-                }}
-              />
+                  }}
+                  onUpdate={(err, result) => {
+                    if (result?.text) {
+                      const code = result.text.trim()
+                      if (code !== lastScanned.current) {
+                        lastScanned.current = code
+                        dispatch(barcodeScanAction(code))
+                      }
+                    }
+                  }}
+                />
+              </div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dark z-20">
                 <ScanBarcode className="w-10 h-10 text-content-faint/30 mb-3" />
@@ -208,7 +239,7 @@ const BarcodeScannerModal = ({
           {/* ── Status indicator ── */}
           <StatusPill status={scanStatus} code={lastScanned?.current} loading={barcodeLoading} />
 
-          {/* ── Found product card ── */}
+          {/* ── Found product card with confirmation ── */}
           {barcodeFood && (
             <div className="animate-fade-in-up">
               <SettingsCard className="!p-4">
@@ -240,20 +271,41 @@ const BarcodeScannerModal = ({
                   ))}
                 </div>
 
-                {/* Add to meal buttons */}
-                <p className="text-[10px] text-content-faint uppercase tracking-wider mb-2">Add to meal</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {["breakfast", "lunch", "dinner", "snacks"].map((m) => {
-                    const MealIcon = mealIcons[m]
-                    return (
-                      <button key={m} onClick={() => onAddFood(m, barcodeFood)}
-                        className="flex flex-col items-center gap-1.5 py-2.5 bg-surface-button hover:bg-primary hover:text-white rounded-xl text-xs text-content-primary transition-all duration-200 active:scale-95">
-                        <MealIcon className="w-4 h-4" />
-                        <span className="capitalize text-[10px] font-medium">{m}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+                {/* Confirm add — shows preselected meal with option to change */}
+                {!showMealPicker ? (
+                  <div className="space-y-2">
+                    <button onClick={() => onAddFood(selectedMeal, barcodeFood)}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.98]">
+                      {(() => { const MIcon = mealIcons[selectedMeal]; return <MIcon className="w-4 h-4" /> })()}
+                      Add to {mealLabels[selectedMeal]}
+                    </button>
+                    <button onClick={() => setShowMealPicker(true)}
+                      className="w-full py-2 text-xs text-content-faint hover:text-content-secondary transition-colors">
+                      Change meal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-content-faint uppercase tracking-wider mb-1">Choose meal</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {["breakfast", "lunch", "dinner", "snacks"].map((m) => {
+                        const MealIcon = mealIcons[m]
+                        const isActive = m === selectedMeal
+                        return (
+                          <button key={m} onClick={() => { setSelectedMeal(m); setShowMealPicker(false) }}
+                            className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl text-xs transition-all duration-200 active:scale-95 ${
+                              isActive
+                                ? "bg-primary text-white"
+                                : "bg-surface-button text-content-primary hover:bg-surface-button-hover"
+                            }`}>
+                            <MealIcon className="w-4 h-4" />
+                            <span className="capitalize text-[10px] font-medium">{m}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </SettingsCard>
             </div>
           )}

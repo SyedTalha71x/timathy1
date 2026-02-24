@@ -612,6 +612,7 @@ const NutritionTracker = () => {
         barcodeActive={barcodeActive} setBarcodeActive={setBarcodeActive}
         barcodeLoading={barcodeLoading} barcodeFood={barcodeFood} barcodeError={barcodeError}
         lastScanned={lastScanned} dispatch={dispatch} barcodeScanAction={barcodeScanner}
+        preselectedMeal={addFoodMeal}
         onAddFood={(mealType, food) => {
           setMeals((prev) => ({
             ...prev,
