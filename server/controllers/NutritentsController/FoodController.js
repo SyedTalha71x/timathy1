@@ -86,7 +86,7 @@ const getFoodByBarcode = async (req, res, next) => {
         const { code } = req.params;
         let food = await foodModel.findOne({ barcode: code })
         if (food) {
-            return res.status(200).json(food);
+            return res.status(200).json({ success: true, food });
         }
         const response = await axios.get(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
 
