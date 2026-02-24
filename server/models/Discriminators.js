@@ -78,13 +78,17 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
     },
+    username: {
+        type: String,
+        required: true
+    },
     input: {
         type: String,
     },
     staffRole: {
         type: String,
         enum: ['manager', 'employee'],
-        required: true,
+        // required: true,
     },
 
     vacationEntitlement: {
@@ -131,7 +135,11 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     video: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TrainingVideo'
-    }]
+    }],
+    img: {
+        url: String,
+        public_id: String
+    }
 }))
 
 module.exports = { AdminModel, MemberModel, StaffModel }

@@ -1,4 +1,5 @@
 const { StaffModel } = require('../models/Discriminators');
+const UserModel= require('../models/UserModel')
 const GenerateToken = require('../utils/GenerateToken');
 const hashedPassword = require('../utils/HashedPassword');
 const bcrypt = require('bcryptjs');
@@ -25,22 +26,22 @@ const createStaff = async (req, res, next) => {
       lastName,
       email,
       password,
-      staffRole,
+      studioId,
       phone,
       username,
-      vacationEntitlement,
-      input,
       city,
       street,
       zipCode,
       dateOfBirth,
-      about
+
     } = req.body;
 
+
     // Check email conflict
-    const checkEmail = await StaffModel.findOne({ email });
+    const checkEmail = await UserModel.findOne({ email });
     if (checkEmail) throw new ConflictError("❗️ Email Conflict");
 
+    const studio = await StudioModel.findById(studioId)
     // // Image required
     // if (!req.file) throw new NotFoundError("Image Not Uploaded");
 
@@ -57,43 +58,48 @@ const createStaff = async (req, res, next) => {
     const staff = await StaffModel.create({
       firstName,
       lastName,
-      staffRole,
       phone,
-      // img: {
-      //   url: cloudinaryResult.secure_url,
-      //   public_id: cloudinaryResult.public_id,
-      // },
       username,
-      vacationEntitlement,
-      input,
       city,
       street,
       zipCode,
       dateOfBirth,
-      about,
       email,
+      studio: studioId,
       password: securePassword,
     });
 
     // Tokens
     const { AccessToken, RefreshToken } = GenerateToken({
-      id: staff._id,
+      _id: staff._id,
       firstName: staff.firstName,
       lastName: staff.lastName,
       username: staff.username,
       email: staff.email,
       role: staff.role,
+      studioId:staff.studio
       // img: staff.img,
-      staffRole: staff.staffRole,
+      // staffRole: staff.staffRole,
     });
 
     staff.refreshToken = RefreshToken;
     await staff.save();
+    res.cookie("token", AccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax",
+      sameSite: "None",
 
-    res.cookie("token", AccessToken, { httpOnly: true, sameSite: "strict", secure: true });
-    res.cookie("refreshToken", RefreshToken, { httpOnly: true, sameSite: "strict", secure: true });
+      maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
+    });
 
-
+    res.cookie("refreshToken", RefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(200).json({
       message: "Successfully Created",
@@ -129,16 +135,16 @@ const loginStaff = async (req, res, next) => {
     if (!isMatch) throw new UnAuthorizedError("Invalid Password");
 
     const { AccessToken, RefreshToken } = GenerateToken({
-      id: staff._id,
+      _id: staff._id,
       firstName: staff.firstName,
       lastName: staff.lastName,
       username: staff.username,
       email: staff.email,
-      studioName: studio.studioName,
-      studioId: studio._id,
+      studioName: staff.studio.studioName,
+      studioId: staff.studio,
       role: staff.role,
       // img: staff.img, // full object
-      staffRole: staff.staffRole,
+      // staffRole: staff.staffRole,
     });
 
     staff.refreshToken = RefreshToken;
