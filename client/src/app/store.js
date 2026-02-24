@@ -10,7 +10,7 @@ import foodReducers from '../features/food/foodSlice'
 import userGoalReducers from '../features/userGoals/userGoalSlice'
 import dailySummeryReducers from '../features/dailysummery/dailySummerySlice';
 import reminderReducers from '../features/notification/notificationSlice'
-
+import chatReducers from '../features/communication/chatSlice';
 
 export const store = configureStore({
     reducer: {
@@ -24,6 +24,7 @@ export const store = configureStore({
         food: foodReducers,
         goal: userGoalReducers,
         dailySummery: dailySummeryReducers,
-        reminder: reminderReducers
+        reminder: reminderReducers,
+        chats: chatReducers
     }
 })

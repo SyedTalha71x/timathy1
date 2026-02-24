@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useSelector, useDispatch } from 'react-redux'
+import { accessChatThunk, fetchMessagesThunk, sendMessageThunk, createGroupThunk, receiveSocketMessage, setActiveChat, clearMessages } from '../../features/communication/chatSlice'
+import { socket } from '../../services/socket'
 import {
   Send,
   Smile,
@@ -18,7 +21,7 @@ import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 // ==========================================
 const HighlightedText = ({ text, isUserMessage }) => {
   if (!text) return null;
-  
+
   const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|übermorgen|today|tomorrow|yesterday))/gi;
 
   const parts = text.split(dateTimeRegex);
@@ -33,10 +36,10 @@ const HighlightedText = ({ text, isUserMessage }) => {
   parts.forEach((part, index) => {
     if (part) {
       const isMatch = matches.some(match => match.toLowerCase() === part.toLowerCase());
-      
+
       if (isMatch) {
         result.push(
-          <span 
+          <span
             key={`match-${index}`}
             className={`border-b ${isUserMessage ? 'border-white/60' : 'border-border'}`}
             style={{ borderBottomStyle: 'dotted', paddingBottom: '1px', whiteSpace: 'pre-wrap' }}
@@ -66,7 +69,7 @@ const studioInfo = {
   status: "online",
   lastSeen: "Active now",
   description: "Your Personal Fitness Hub"
-} 
+}
 
 const initialMessages = [
   { id: 1, text: "Welcome to FitZone Studio! 🎉", sender: "other", timestamp: "9:00 AM", isDeleted: false },
@@ -81,7 +84,10 @@ const initialMessages = [
 ]
 
 export default function StudioChat() {
-  const [messages, setMessages] = useState(initialMessages)
+  const dispatch = useDispatch();
+  const { studio, loading } = useSelector((state) => state.studios)
+  const { messages, activeChat } = useSelector((state) => state.chats)
+  // const [messages, setMessages] = useState(initialMessages)
   const [messageText, setMessageText] = useState("")
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
@@ -135,55 +141,37 @@ export default function StudioChat() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+
+  // ==========================================
+  // WHEN CHAT CHNAGES 
+  //===========================================
+  useEffect(() => {
+    if (activeChat?._id) {
+      dispatch(fetchMessagesThunk(activeChat._id))
+      socket.emit("join chat", activeChat._id)
+    }
+  }, [activeChat, dispatch])
+
+
   // ==========================================
   // SEND MESSAGE (with reply support)
   // ==========================================
+  // Handle sending a message
   const handleSendMessage = () => {
-    if (!messageText.trim()) return
+    if (!messageText.trim() || !activeChat?._id) return
 
-    const now = new Date()
-    const newMessage = {
-      id: Date.now(),
-      text: messageText,
-      sender: "me",
-      timestamp: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      status: "sent",
-      isDeleted: false,
-      replyTo: replyingTo ? {
-        id: replyingTo.id,
-        text: replyingTo.text,
-        sender: replyingTo.sender
-      } : null
+    const messageData = {
+      chatId: activeChat._id,
+      content: messageText,
+      replyTo: replyingTo?.id || null
     }
 
-    setMessages((prev) => [...prev, newMessage])
+    dispatch(sendMessageThunk(messageData))
+    socket.emit("new message", messageData)
+
     setMessageText("")
-    setShowEmojiPicker(false)
     setReplyingTo(null)
-
-    // Scroll to bottom immediately after sending
-    setTimeout(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
-      if (mobileMessagesContainerRef.current) {
-        mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
-      }
-    }, 50)
-
-    // Simulate delivery after a short delay
-    setTimeout(() => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg
-      ))
-    }, 1000)
-
-    // Simulate read after a longer delay
-    setTimeout(() => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id ? { ...msg, status: "read" } : msg
-      ))
-    }, 3000)
+    setShowEmojiPicker(false)
   }
 
   const handleKeyPress = (e) => {
@@ -236,8 +224,8 @@ export default function StudioChat() {
   // DELETE MESSAGE
   // ==========================================
   const handleDeleteMessage = (messageId) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId 
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId
         ? { ...msg, isDeleted: true, text: "" }
         : msg
     ));
@@ -299,17 +287,17 @@ export default function StudioChat() {
     }
 
     const rect = buttonElement.getBoundingClientRect();
-    
+
     // Position menu: for own messages open to the left, for received open to the right
     const pos = {
       top: rect.top,
-      ...(isOwn 
+      ...(isOwn
         ? { right: window.innerWidth - rect.left + 4 }
         : { left: rect.right + 4 }
       ),
       isOwn
     };
-    
+
     setMenuPosition(pos);
     setActiveMessageMenu(messageId);
   }, [activeMessageMenu]);
@@ -346,16 +334,18 @@ export default function StudioChat() {
           DESKTOP VIEW - Hidden on mobile
           ========================================== */}
       <div className="hidden md:flex flex-col flex-1 min-h-0">
-        {/* Desktop Messages Area - no header, more space for chat */}
+        {/* Messages Area */}
         <div
           ref={messagesContainerRef}
           className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
           style={{ minHeight: 0 }}
         >
           {messages.map((message) => (
-            <div key={message.id} className={`flex items-start gap-2 ${message.sender === "me" ? "justify-end" : ""} group`}>
-              
-              {/* Menu button - LEFT side for own messages */}
+            <div
+              key={message.id}
+              className={`flex items-start gap-2 ${message.sender === "me" ? "justify-end" : ""} group`}
+            >
+              {/* Left menu for own messages */}
               {message.sender === "me" && !message.isDeleted && (
                 <div className="relative flex-shrink-0">
                   <button
@@ -367,85 +357,52 @@ export default function StudioChat() {
                 </div>
               )}
 
+              {/* Message bubble */}
               <div className={`flex flex-col gap-1 ${message.sender === "me" ? "items-end" : ""} max-w-lg`}>
-                {/* Message Bubble */}
-                <div
-                  className={`rounded-xl p-3 ${
-                    message.isDeleted
-                      ? "bg-surface-hover text-content-faint italic"
-                      : message.sender === "me"
-                        ? "bg-primary"
-                        : "bg-surface-dark"
-                  }`}
-                >
-                  {/* Reply/Quote Preview */}
-                  {message.replyTo && !message.isDeleted && (
-                    <div
-                      className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${
-                        message.sender === 'me'
-                          ? "bg-primary/50 border-l-white"
-                          : "bg-surface-button border-l-primary"
+                {message.replyTo && !message.isDeleted && (
+                  <div
+                    className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${message.sender === "me" ? "bg-primary/50 border-l-white" : "bg-surface-button border-l-primary"
                       }`}
-                    >
-                      <p className={`font-semibold mb-0.5 text-xs ${message.sender === 'me' ? 'text-white' : 'text-content-primary'}`}>
-                        {message.replyTo.sender === 'me' ? 'You' : studioInfo.name}
-                      </p>
-                      <p className={`${message.sender === 'me' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
-                        {truncateText(message.replyTo.text, 50)}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Message Content */}
-                  <p 
-                    className={`text-sm ${message.isDeleted ? "" : message.sender === "me" ? "text-white" : "text-content-primary"}`}
-                    style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                   >
-                    {message.isDeleted ? (
-                      <span className="flex items-center gap-1.5">
-                        <Trash2 size={14} />
-                        The message was deleted.
-                      </span>
-                    ) : (
-                      <HighlightedText text={message.text} isUserMessage={message.sender === 'me'} />
-                    )}
-                  </p>
-
-                  {/* Time and status */}
-                  <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${
-                    message.sender === "me" ? "text-white/70 justify-end" : "text-content-faint"
-                  }`}>
-                    <span>{formatTimestamp(message.timestamp)}</span>
-                    {message.sender === "me" && !message.isDeleted && (
-                      <span className="ml-1">
-                        {message.status === "read" ? (
-                          <CheckCheck className="w-3.5 h-3.5 text-white" />
-                        ) : message.status === "delivered" ? (
-                          <CheckCheck className="w-3.5 h-3.5" />
-                        ) : (
-                          <Check className="w-3.5 h-3.5" />
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Reaction Display */}
-                {messageReactions[message.id] && !message.isDeleted && (
-                  <div className={`flex gap-1 ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                    <button
-                      onClick={(e) => removeReaction(message.id, e)}
-                      className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors group/reaction"
-                      title="Click to remove"
-                    >
-                      <span>{messageReactions[message.id]}</span>
-                      <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-content-muted">✕</span>
-                    </button>
+                    <p className={`font-semibold mb-0.5 text-xs ${message.sender === "me" ? 'text-white' : 'text-content-primary'}`}>
+                      {message.replyTo.sender === 'me' ? 'You' : studio.name}
+                    </p>
+                    <p className={`${message.sender === 'me' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
+                      {truncateText(message.replyTo.text, 50)}
+                    </p>
                   </div>
                 )}
+
+                <p
+                  className={`text-sm ${message.isDeleted ? "" : message.sender === "me" ? "text-white" : "text-content-primary"
+                    }`}
+                  style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                >
+                  {message.isDeleted ? (
+                    <span className="flex items-center gap-1.5">
+                      <Trash2 size={14} />
+                      The message was deleted.
+                    </span>
+                  ) : (
+                    <HighlightedText text={message.text} isUserMessage={message.sender === 'me'} />
+                  )}
+                </p>
+
+                {/* Time and status */}
+                <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${message.sender === "me" ? "text-white/70 justify-end" : "text-content-faint"
+                  }`}>
+                  <span>{formatTimestamp(message.timestamp)}</span>
+                  {message.sender === "me" && !message.isDeleted && (
+                    <span className="ml-1">
+                      {message.status === "read" ? <CheckCheck className="w-3.5 h-3.5 text-white" /> :
+                        message.status === "delivered" ? <CheckCheck className="w-3.5 h-3.5" /> :
+                          <Check className="w-3.5 h-3.5" />}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Menu button - RIGHT side for received messages */}
+              {/* Right menu for received messages */}
               {message.sender !== "me" && !message.isDeleted && (
                 <div className="relative flex-shrink-0">
                   <button
@@ -461,7 +418,7 @@ export default function StudioChat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Desktop Reply Preview Bar */}
+        {/* Reply Preview */}
         {replyingTo && (
           <div className="px-4 py-3 bg-surface-hover border-t border-border flex-shrink-0">
             <div className="flex items-center gap-3 bg-surface-button rounded-xl p-3">
@@ -482,12 +439,11 @@ export default function StudioChat() {
           </div>
         )}
 
-        {/* Desktop Input Area */}
+        {/* Input Area */}
         <div className="px-4 pt-4 pb-6 border-t border-border flex-shrink-0 bg-surface-base relative">
-          {/* Emoji Picker - Shared Component */}
           <EmojiPicker
             isOpen={showEmojiPicker}
-            onEmojiSelect={handleEmojiSelect}
+            onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji.native)}
             onClose={() => setShowEmojiPicker(false)}
             className="absolute bottom-full mb-2 left-4 z-[1020]"
             pickerRef={emojiPickerRef}
@@ -496,39 +452,31 @@ export default function StudioChat() {
 
           <div className="flex items-end gap-2 bg-surface-dark rounded-xl p-2">
             <button
-              onClick={toggleEmojiPicker}
+              onClick={() => setShowEmojiPicker(prev => !prev)}
               aria-label="emoji-picker-toggle"
               className="p-2 hover:bg-surface-button rounded-full flex items-center justify-center flex-shrink-0"
-              type="button"
             >
               <Smile className="w-6 h-6 text-content-secondary" />
             </button>
-            
+
             <textarea
               ref={textareaRef}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyPress}
-              onInput={(e) => {
-                e.target.style.height = "32px"
-                e.target.style.height = Math.min(e.target.scrollHeight, 150) + "px"
-              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage() } }}
               placeholder="Type your message here..."
               className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-content-secondary placeholder-content-faint max-h-[150px]"
-              rows={1}
               style={{ height: '32px' }}
             />
-            
+
             <button
               onClick={handleSendMessage}
               disabled={!messageText.trim()}
-              className={`p-2 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${
-                messageText.trim() 
-                  ? 'bg-primary hover:bg-primary-hover text-white' 
-                  : 'text-content-faint cursor-not-allowed'
-              }`}
+              className={`p-2 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${messageText.trim()
+                ? 'bg-primary hover:bg-primary-hover text-white'
+                : 'text-content-faint cursor-not-allowed'
+                }`}
               aria-label="Send message"
-              type="button"
             >
               <Send className="w-6 h-6" />
             </button>
@@ -556,13 +504,12 @@ export default function StudioChat() {
                 <div className={`flex flex-col ${message.sender === "me" ? "items-end" : "items-start"} max-w-[80%] min-w-0`}>
                   {/* Message bubble with Long Press */}
                   <div
-                    className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${
-                      message.isDeleted
-                        ? "bg-surface-hover"
-                        : message.sender === "me"
-                          ? "bg-primary"
-                          : "bg-surface-button"
-                    }`}
+                    className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${message.isDeleted
+                      ? "bg-surface-hover"
+                      : message.sender === "me"
+                        ? "bg-primary"
+                        : "bg-surface-button"
+                      }`}
                     style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }}
                     onTouchStart={(e) => handleTouchStart(message, e)}
                     onTouchEnd={handleTouchEnd}
@@ -576,12 +523,11 @@ export default function StudioChat() {
                   >
                     {/* Reply preview */}
                     {message.replyTo && !message.isDeleted && (
-                      <div 
-                        className={`mb-2 pl-2 border-l-2 ${
-                          message.sender === "me" 
-                            ? "border-white/40" 
-                            : "border-border"
-                        }`}
+                      <div
+                        className={`mb-2 pl-2 border-l-2 ${message.sender === "me"
+                          ? "border-white/40"
+                          : "border-border"
+                          }`}
                       >
                         <p className={`text-xs font-medium ${message.sender === "me" ? "text-white/80" : "text-content-muted"}`}>
                           {message.replyTo.sender === 'me' ? 'You' : studioInfo.name}
@@ -591,26 +537,24 @@ export default function StudioChat() {
                         </p>
                       </div>
                     )}
-                    
+
                     {/* Message content */}
-                    <p 
-                      className={`text-sm ${
-                        message.isDeleted 
-                          ? "text-content-faint italic" 
-                          : message.sender === "me" ? "text-white" : "text-content-primary"
-                      }`}
+                    <p
+                      className={`text-sm ${message.isDeleted
+                        ? "text-content-faint italic"
+                        : message.sender === "me" ? "text-white" : "text-content-primary"
+                        }`}
                       style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                     >
-                      {message.isDeleted 
-                        ? "This message was deleted" 
+                      {message.isDeleted
+                        ? "This message was deleted"
                         : (message.text || "")
                       }
                     </p>
-                    
+
                     {/* Time and status */}
-                    <div className={`text-[11px] mt-1 flex items-center gap-1 ${
-                      message.sender === "me" ? "text-white/70 justify-end" : "text-content-faint"
-                    }`}>
+                    <div className={`text-[11px] mt-1 flex items-center gap-1 ${message.sender === "me" ? "text-white/70 justify-end" : "text-content-faint"
+                      }`}>
                       <span>{formatTimestamp(message.timestamp)}</span>
                       {message.sender === "me" && !message.isDeleted && (
                         <span className="ml-1">
@@ -625,7 +569,7 @@ export default function StudioChat() {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Reaction Display */}
                   {messageReactions[message.id] && !message.isDeleted && (
                     <div className={`flex gap-1 mt-1 ${message.sender === "me" ? "justify-end" : ""}`}>
@@ -697,11 +641,10 @@ export default function StudioChat() {
               style={{ height: '32px' }}
             />
             <button
-              className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
-                messageText.trim() 
-                  ? 'bg-primary hover:bg-primary-hover text-white' 
-                  : 'text-content-faint cursor-not-allowed'
-              }`}
+              className={`p-2 rounded-lg flex-shrink-0 transition-colors ${messageText.trim()
+                ? 'bg-primary hover:bg-primary-hover text-white'
+                : 'text-content-faint cursor-not-allowed'
+                }`}
               aria-label="Send message"
               onClick={handleSendMessage}
               disabled={!messageText.trim()}
@@ -718,7 +661,7 @@ export default function StudioChat() {
           ========================================== */}
       {activeMessageMenu && menuPosition && (
         <>
-          <div 
+          <div
             className="fixed inset-0 z-[1099]"
             onClick={() => {
               setActiveMessageMenu(null);
@@ -730,7 +673,7 @@ export default function StudioChat() {
             className="fixed z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
             style={{
               top: `${menuPosition.top}px`,
-              ...(menuPosition.isOwn 
+              ...(menuPosition.isOwn
                 ? { right: `${menuPosition.right}px` }
                 : { left: `${menuPosition.left}px` }
               )
@@ -791,18 +734,18 @@ export default function StudioChat() {
           Mobile Context Menu (Bottom Sheet) - matching studio
           ========================================== */}
       {mobileContextMenu && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center"
           onClick={() => setMobileContextMenu(null)}
         >
           <div className="absolute inset-0 bg-black/50" />
-          <div 
+          <div
             className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-8"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Handle bar */}
             <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-4" />
-            
+
             <div className="space-y-1">
               <button
                 onClick={() => {

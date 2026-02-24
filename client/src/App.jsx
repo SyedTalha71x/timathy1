@@ -4,7 +4,7 @@ import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
 // Temporary Off
-// import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 // protected Routes
 // import ProtectedRoutes from "./ProtectedRoutes";
 
@@ -83,13 +83,22 @@ import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-ana
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
+// chat setup
+import { connectSocket, disconnectSocket } from "./services/socket";
+import { useEffect } from "react";
+
+
+
 function App() {
   const location = useLocation();
-  // const { user, loading } = useSelector((state) => state.auth)
+  const { user, loading } = useSelector((state) => state.auth)
   // const dispatch = useDispatch();
   // const navigate = useNavigate();
 
   const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+
+
+
 
 
   // useEffect(() => {
@@ -110,6 +119,20 @@ function App() {
   //   }
   // }, [user, loading, navigate, location.pathname])
 
+
+  // chat connection through socket after login
+  useEffect(() => {
+    if (user?._id) {
+      connectSocket(user._id)
+    }
+    return () => {
+      disconnectSocket();
+    }
+  }, [user])
+
+
+
+
   // 
   // if (loading) return <div>Loading...</div>
   // useEffect(() => {
@@ -122,12 +145,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
-    
+
 
 
         <Route path="/dashboard" element={
           // <ProtectedRoutes allowedRoles={['staff']}>
-            <Dashboardlayout />
+          <Dashboardlayout />
           // </ProtectedRoutes>
         }>
           <Route path="my-area" element={<MyArea />} />
@@ -159,7 +182,7 @@ function App() {
 
         <Route path="/admin-dashboard" element={
           // <ProtectedRoutes allowedRoles={["admin"]}>
-            <AdminDashboardLayout />
+          <AdminDashboardLayout />
           // </ProtectedRoutes>
         }>
           {/* <Route path="my-area" element={<AdminMyArea />} /> */}
@@ -178,9 +201,9 @@ function App() {
           <Route path="demo-access" element={<AdminDemoAccess />} />
           <Route path="feedback" element={<AdminFeedback />} />
 
-         <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
-<Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
-<Route path="studio-staff/:studioId" element={<EditStudioStaffPage />} />
+          <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
+          <Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
+          <Route path="studio-staff/:studioId" element={<EditStudioStaffPage />} />
 
 
 
@@ -188,7 +211,7 @@ function App() {
 
         <Route path="/member-view" element={
           // <ProtectedRoutes allowedRoles={['member']}>
-            <MemberDashboardLayout />
+          <MemberDashboardLayout />
           // </ProtectedRoutes>
         }>
           <Route path="appointment" element={<MemberAppointments />} />
