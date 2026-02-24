@@ -134,8 +134,19 @@ const cancelAppointment = async (req, res, next) => {
     }
 };
 
+const allAppointments = async (req, res, next) => {
+    try {
+        const appointment = await AppointmentModel.find();
+        return res.status(200).json({
+            success: true,
+            appointments: appointment
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
 
 
 
-
-module.exports = { createAppointment, getMyAppointment, cancelAppointment }
+module.exports = { createAppointment, getMyAppointment, cancelAppointment,allAppointments }

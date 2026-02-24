@@ -14,6 +14,7 @@ const {
   ConflictError,
 } = require('../middleware/error/httpErrors');
 const UserModel = require('../models/UserModel');
+const StudioModel = require('../models/StudioModel');
 
 /**
  * Create new member
@@ -32,11 +33,13 @@ const createMember = async (req, res, next) => {
       country,
       zipCode,
       dateOfBirth,
-      houseNumber
+      houseNumber,
+      studioId
     } = req.body;
 
+    const studio = await StudioModel.findById(studioId);
     // check for duplicate email
-    const checkEmail = await MemberModel.findOne({ email });
+    const checkEmail = await UserModel.findOne({ email });
     if (checkEmail) throw new ConflictError('Email already exists');
 
     // if (!req.file) throw new NotFoundError('Profile image not uploaded');
@@ -54,7 +57,7 @@ const createMember = async (req, res, next) => {
     // generate Random MemberNo
     const memberNumber = await generateMemberNo()
 
-    const member = await MemberModel.create({
+    const user = await MemberModel.create({
       firstName,
       lastName,
       gender,
@@ -68,6 +71,7 @@ const createMember = async (req, res, next) => {
       email,
       memberNumber,
       password: securePassword,
+      studio: studioId
       // img: {
       //   url: cloudinaryResult.secure_url,
       //   public_id: cloudinaryResult.public_id,
@@ -75,21 +79,21 @@ const createMember = async (req, res, next) => {
     });
 
     const { AccessToken, RefreshToken } = GenerateToken({
-      _id: member._id,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      email: member.email,
-      role: member.role,
-      gender: member.gender,
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      gender: user.gender,
     });
 
-    member.refreshToken = RefreshToken;
-    await member.save();
+    user.refreshToken = RefreshToken;
+    await user.save();
 
     res.cookie("token", AccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // true if on https
-      //sameSite: "lax", 
+      //sameSite: "lax",
       sameSite: "None",
 
       maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
@@ -103,16 +107,14 @@ const createMember = async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+    await StudioModel.findByIdAndUpdate(
+      studioId,
+      { $addToSet: { users: user._id } }
+    );
+
     res.status(201).json({
       message: 'Member created successfully',
-      member: {
-        id: member._id,
-        firstName: member.firstName,
-        lastName: member.lastName,
-        // email: member.email,
-        role: member.role,
-        // gender: member.gender,
-      },
+      user: user
     });
   } catch (err) {
     next(err);
@@ -166,17 +168,17 @@ const loginMember = async (req, res, next) => {
 
     res.cookie("token", AccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true if on https
-      //sameSite: "lax",
-      sameSite: "None",
+      //secure: process.env.NODE_ENV === "production", // true if on https
+      sameSite: "lax",
+      //sameSite: "None",
       maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
 
     res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      //sameSite: "lax",
-      sameSite: "None",
+      //secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      //sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Globe, X, Building2, History, Menu, ShoppingCart, Sun, Moon } from "lucide-react"
 import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
-
+import { useSelector } from 'react-redux';
 /**
  * DashboardHeader Component
  * 
@@ -23,24 +23,26 @@ import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text
  * - showShoppingCartToggle: Boolean to show shopping cart icon instead of sidebar icon
  * - cartItemCount: Number of items in cart (for badge display)
  */
-const DashboardHeader = ({ 
-  onToggleSidebar, 
-  isSidebarOpen, 
-  isRightSidebarOpen, 
-  toggleRightSidebar, 
-  isLeftSidebarCollapsed, 
-  toggleLeftSidebarCollapse, 
+const DashboardHeader = ({
+  onToggleSidebar,
+  isSidebarOpen,
+  isRightSidebarOpen,
+  toggleRightSidebar,
+  isLeftSidebarCollapsed,
+  toggleLeftSidebarCollapse,
   hideRightSidebarToggle = false,
   showShoppingCartToggle = false,
   cartItemCount = 0
 }) => {
   const navigate = useNavigate()
-  
+  const { user, loading } = useSelector((state) => state.auth)
+
+
   // Dropdown states
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("English")
-  
+
   // Theme state - defaults to dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme')
@@ -49,22 +51,22 @@ const DashboardHeader = ({
     if (!dark) document.documentElement.classList.add('light')
     return dark
   })
-  
+
   // Modal states
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false)
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
-  
+
   // Refs for dropdowns
   const languageDropdownRef = useRef(null)
   const profileDropdownRef = useRef(null)
-  
+
   // User data (spÃ¤ter aus Context/API)
-  const studioName = "Studio One"
-  const fullName = "Samantha Jerry"
+  const studioName = user?.studio?.studioName || "";
+  const fullName = `${user?.firstName || ""} ${user?.lastName || ""} `;
   const role = "Trainer"
-  
+
   // Languages configuration
   const languages = [
     { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Flag_of_the_United_States.png/1024px-Flag_of_the_United_States.png" },
@@ -73,7 +75,7 @@ const DashboardHeader = ({
     { code: "es", name: "Spanish", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
     { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
   ]
-  
+
   // Activity log data (spÃ¤ter aus API)
   const activityLogs = [
     { id: 1, action: "Appointment Created", description: "Created new appointment for John Doe - Personal Training", timestamp: "2024-12-15 14:30", type: "appointment" },
@@ -91,7 +93,7 @@ const DashboardHeader = ({
   // ============================================
   useEffect(() => {
     const root = document.documentElement
-    
+
     if (isDarkMode) {
       root.classList.remove('light')
       localStorage.setItem('theme', 'dark')
@@ -100,7 +102,7 @@ const DashboardHeader = ({
       localStorage.setItem('theme', 'light')
     }
   }, [isDarkMode])
-  
+
   // Close dropdowns on scroll (mobile)
   useEffect(() => {
     const handleScroll = () => {
@@ -112,7 +114,7 @@ const DashboardHeader = ({
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-  
+
   // ============================================
   // Toggle Handlers
   // ============================================
@@ -122,7 +124,7 @@ const DashboardHeader = ({
       setIsDropdownOpen(false)
     }
   }
-  
+
   const toggleProfileDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen)
     if (!isDropdownOpen && isLanguageDropdownOpen) {
@@ -133,7 +135,7 @@ const DashboardHeader = ({
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode)
   }
-  
+
   // ============================================
   // Action Handlers
   // ============================================
@@ -142,36 +144,36 @@ const DashboardHeader = ({
     setIsLanguageDropdownOpen(false)
     console.log("Language selected:", language)
   }
-  
+
   const handleActivityLogClick = () => {
     setIsActivityLogModalOpen(true)
   }
-  
+
   const handleEditProfile = () => {
     setIsDropdownOpen(false)
     navigate("/dashboard/configuration?section=profile-details")
   }
-  
+
   const handlePrivacyPolicy = () => {
     setIsDropdownOpen(false)
     setIsPrivacyModalOpen(true)
   }
-  
+
   const handleTermsOfUse = () => {
     setIsDropdownOpen(false)
     setIsTermsModalOpen(true)
   }
-  
+
   const handleChangelog = () => {
     setIsDropdownOpen(false)
     setIsChangelogModalOpen(true)
   }
-  
+
   const handleLogout = () => {
     setIsDropdownOpen(false)
     window.location.href = "/login"
   }
-  
+
   // ============================================
   // Modal Component
   // ============================================
@@ -198,9 +200,8 @@ const DashboardHeader = ({
   const ThemeToggle = ({ isMobile = false }) => (
     <button
       onClick={toggleTheme}
-      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
-        isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
-      }`}
+      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
+        }`}
       aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
@@ -211,7 +212,7 @@ const DashboardHeader = ({
       )}
     </button>
   )
-  
+
   // ============================================
   // Dropdown Components
   // ============================================
@@ -219,9 +220,8 @@ const DashboardHeader = ({
     <div className="relative" ref={languageDropdownRef}>
       <button
         onClick={toggleLanguageDropdown}
-        className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
-          isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
-        }`}
+        className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
+          }`}
         aria-label="Language Selection"
       >
         <Globe size={isMobile ? 18 : 18} />
@@ -229,16 +229,15 @@ const DashboardHeader = ({
       {isLanguageDropdownOpen && (
         <>
           {/* Invisible overlay to catch outside clicks */}
-          <div 
-            className="fixed inset-0 z-[99]" 
+          <div
+            className="fixed inset-0 z-[99]"
             onClick={() => setIsLanguageDropdownOpen(false)}
           />
-          <div 
-            className={`absolute ${
-              isMobile 
-                ? "right-0 top-11 w-36" 
-                : "right-0 top-10 w-40"
-            } bg-surface-hover/95 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
+          <div
+            className={`absolute ${isMobile
+              ? "right-0 top-11 w-36"
+              : "right-0 top-10 w-40"
+              } bg-surface-hover/95 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
           >
             <div className="py-2" role="menu">
               {languages.map((language) => (
@@ -247,10 +246,10 @@ const DashboardHeader = ({
                   onClick={() => handleLanguageSelect(language)}
                   className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-content-primary hover:bg-surface-button text-left flex items-center gap-2`}
                 >
-                  <img 
+                  <img
                     draggable="false"
-                    src={language.flag} 
-                    alt={`${language.name} flag`} 
+                    src={language.flag}
+                    alt={`${language.name} flag`}
                     className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`}
                   />
                   <span className={isMobile ? "text-xs" : "text-sm"}>{language.name}</span>
@@ -262,27 +261,26 @@ const DashboardHeader = ({
       )}
     </div>
   )
-  
+
   const ProfileDropdown = ({ isMobile = false }) => (
     <div className="relative" ref={profileDropdownRef}>
-      <div 
-        onClick={toggleProfileDropdown} 
-        className={`flex items-center cursor-pointer ${
-          isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"
-        }`}
+      <div
+        onClick={toggleProfileDropdown}
+        className={`flex items-center cursor-pointer ${isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"
+          }`}
       >
         <img draggable="false" src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
         {!isMobile && <h2 className="font-semibold text-content-primary text-sm leading-tight">{fullName}</h2>}
       </div>
-      
+
       {isDropdownOpen && (
         <>
           {/* Invisible overlay to catch outside clicks */}
-          <div 
-            className="fixed inset-0 z-[99]" 
+          <div
+            className="fixed inset-0 z-[99]"
             onClick={() => setIsDropdownOpen(false)}
           />
-          <div 
+          <div
             className={`absolute right-0 ${isMobile ? "top-11 w-40" : "top-10 w-48"} bg-surface-hover/50 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
           >
             {/* Mobile shows user info in dropdown */}
@@ -297,7 +295,7 @@ const DashboardHeader = ({
                 </div>
               </div>
             )}
-            
+
             <div className={isMobile ? "py-1" : "py-2"} role="menu">
               <button
                 onClick={handleEditProfile}
@@ -342,8 +340,8 @@ const DashboardHeader = ({
   // Right Sidebar Toggle Button Component
   // ============================================
   const SidebarToggleButton = ({ isMobile = false }) => (
-    <div 
-      onClick={toggleRightSidebar} 
+    <div
+      onClick={toggleRightSidebar}
       className={`cursor-pointer relative ${isMobile ? "p-2 px-3 rounded-xl bg-surface-card" : "p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"}`}
     >
       {showShoppingCartToggle ? (
@@ -366,7 +364,7 @@ const DashboardHeader = ({
       )}
     </div>
   )
-  
+
   // ============================================
   // Render
   // ============================================
@@ -374,12 +372,12 @@ const DashboardHeader = ({
     <>
       {/* ===== MOBILE OVERLAY - MUST be outside header for proper z-index stacking ===== */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={onToggleSidebar} 
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onToggleSidebar}
         />
       )}
-      
+
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
       <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
         <div className="flex items-center gap-2">
@@ -398,11 +396,11 @@ const DashboardHeader = ({
             )}
           </button>
         </div>
-        
+
         <div className="flex gap-1 items-center relative">
           {/* Theme Toggle */}
           <ThemeToggle isMobile={true} />
-          
+
           {/* Activity Log */}
           <button
             onClick={handleActivityLogClick}
@@ -411,12 +409,12 @@ const DashboardHeader = ({
           >
             <History size={18} />
           </button>
-          
+
           {/* Language Dropdown */}
           <div className="mr-1">
             <LanguageDropdown isMobile={true} />
           </div>
-          
+
           {/* Profile Dropdown */}
           <ProfileDropdown isMobile={true} />
 
@@ -424,7 +422,7 @@ const DashboardHeader = ({
           <SidebarToggleButton isMobile={true} />
         </div>
       </div>
-      
+
       {/* ===== DESKTOP HEADER (hidden lg:flex) ===== */}
       <div className="lg:flex hidden rounded-md justify-between bg-surface-hover z-20 py-1 px-2 mb-2 items-center gap-2 select-none sticky top-0">
         {/* Left - Menu Toggle */}
@@ -451,10 +449,10 @@ const DashboardHeader = ({
               <Building2 size={14} className="text-content-primary" />
               <p className="text-sm font-bold text-content-primary">{studioName}</p>
             </div>
-            
+
             {/* Theme Toggle */}
             <ThemeToggle isMobile={false} />
-            
+
             {/* Activity Log */}
             <button
               onClick={handleActivityLogClick}
@@ -464,12 +462,12 @@ const DashboardHeader = ({
               <History size={18} />
             </button>
           </div>
-          
+
           {/* Language Dropdown */}
           <div className="mr-2">
             <LanguageDropdown isMobile={false} />
           </div>
-          
+
           {/* Profile Dropdown */}
           <ProfileDropdown isMobile={false} />
 
@@ -477,9 +475,9 @@ const DashboardHeader = ({
           {(!hideRightSidebarToggle || showShoppingCartToggle) && <SidebarToggleButton isMobile={false} />}
         </div>
       </div>
-      
+
       {/* ===== MODALS ===== */}
-      
+
       {/* Activity Log Modal */}
       <Modal isOpen={isActivityLogModalOpen} onClose={() => setIsActivityLogModalOpen(false)} title="Activity Log">
         <div className="text-content-secondary">
@@ -505,7 +503,7 @@ const DashboardHeader = ({
           </div>
         </div>
       </Modal>
-      
+
       {/* Terms & Conditions Modal */}
       <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Terms & Conditions">
         <div className="text-content-secondary space-y-6">
@@ -627,7 +625,7 @@ const DashboardHeader = ({
           </div>
         </div>
       </Modal>
-      
+
       {/* Changelog Modal */}
       <Modal isOpen={isChangelogModalOpen} onClose={() => setIsChangelogModalOpen(false)} title="Changelog">
         <div className="text-content-secondary space-y-8">
