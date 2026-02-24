@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import {
   Plus, Minus, X, ChevronLeft, ChevronRight, Settings,
   Droplets, TrendingUp, AlertCircle, CheckCircle, Star, Copy,
-  Zap, Pencil, Flame, BookOpen, ScanBarcode
+  Zap, Pencil, Flame, BookOpen, ScanBarcode, Loader2
 } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import {
@@ -12,6 +12,10 @@ import {
 import { useDispatch, useSelector } from "react-redux"
 import { fetchFood, newFood } from "../../features/food/foodSlice"
 import { fetchDailySummery } from "../../features/dailysummery/dailySummerySlice"
+// TODO [Backend]: Create fetchWeeklySummary action in a new slice or extend dailySummerySlice
+// Expected API: GET /api/weekly-summary?date=YYYY-MM-DD
+// Response: { days: [{ date, calories, protein, carbs, fats, water }], streak: number }
+// import { fetchWeeklySummary } from "../../features/dailysummery/dailySummerySlice"
 import { createGoals } from "../../features/userGoals/userGoalSlice"
 import { barcodeScanner } from "../../features/barcodeScanner/barCodeSlice"
 
@@ -94,7 +98,7 @@ const ChartTooltip = ({ active, payload, label }) => {
 const NutritionTracker = () => {
   const dispatch = useDispatch()
   const { foodData } = useSelector((state) => state.food)
-  const { dailySummeryData } = useSelector((state) => state.dailySummery)
+  const { dailySummeryData, loading: diaryLoading } = useSelector((state) => state.dailySummery)
   const { scanning: barcodeLoading, foodData: barcodeFood, error: barcodeError } = useSelector((state) => state.barCode || {})
 
   const [activeView, setActiveView] = useState("diary")
@@ -170,12 +174,17 @@ const NutritionTracker = () => {
     try { return JSON.parse(localStorage.getItem("nutrition_custom_foods") || "[]") } catch { return [] }
   })
 
-  const [waterDrank, setWaterDrank] = useState(0) // in ml
+  const [waterDrank, setWaterDrank] = useState(0) // in ml — populated from API per day
   const waterGoalMl = Number(goals.waterMl) || 2500
   const waterMl = waterGoalMl
   const [nutrientFilter, setNutrientFilter] = useState("all")
-  const [streak] = useState(7)
+  const [streak] = useState(7) // always current streak, independent of selected date
   const [showStreak, setShowStreak] = useState(false)
+
+  // Weekly data for insights (from API or demo fallback)
+  // TODO [Backend]: Populate from fetchWeeklySummary response
+  const [weeklyData, setWeeklyData] = useState(null)
+  const [weeklyLoading, setWeeklyLoading] = useState(false)
 
   const searchRef = useRef(null)
   const mealRefs = { breakfast: useRef(null), lunch: useRef(null), dinner: useRef(null), snacks: useRef(null) }
@@ -188,7 +197,42 @@ const NutritionTracker = () => {
     }, 100)
   }
 
-  useEffect(() => { dispatch(fetchFood()); dispatch(fetchDailySummery()) }, [dispatch])
+  // Fetch food database once
+  useEffect(() => { dispatch(fetchFood()) }, [dispatch])
+
+  // Fetch daily summary whenever selected date changes
+  // TODO [Backend]: fetchDailySummery must accept a date string parameter
+  // Expected API: GET /api/daily-summary?date=YYYY-MM-DD
+  // Response: { meals: {...}, waterMl: number }
+  useEffect(() => {
+    setMeals({})
+    setWaterDrank(0)
+    dispatch(fetchDailySummery(dateStr))
+  }, [dateStr, dispatch])
+
+  // Fetch yesterday's meals for "copy from yesterday" feature
+  useEffect(() => {
+    const yesterday = new Date(selectedDate)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`
+    // TODO [Backend]: Need a lightweight endpoint or reuse fetchDailySummery for yesterday
+    // For now, yesterdayMeals is populated from the previous dailySummeryData response
+    // Once the API supports date params, fetch yesterday separately:
+    // dispatch(fetchDailySummery(yesterdayStr)).then(res => setYesterdayMeals(normalize(res)))
+  }, [dateStr])
+
+  // Fetch weekly data when insights tab is active
+  // TODO [Backend]: Implement fetchWeeklySummary endpoint
+  // Once available, uncomment:
+  // useEffect(() => {
+  //   if (activeView === "insights") {
+  //     setWeeklyLoading(true)
+  //     dispatch(fetchWeeklySummary(dateStr))
+  //       .unwrap()
+  //       .then((data) => { setWeeklyData(data); setWeeklyLoading(false) })
+  //       .catch(() => { setWeeklyData(null); setWeeklyLoading(false) })
+  //   }
+  // }, [activeView, dateStr, dispatch])
 
   // Persist
   useEffect(() => { try { localStorage.setItem("nutrition_favorites", JSON.stringify(favorites)) } catch {} }, [favorites])
@@ -204,20 +248,27 @@ const NutritionTracker = () => {
     return () => document.removeEventListener("click", close)
   }, [isFabOpen])
 
-  // Normalize API data
+  // Normalize API data for selected date
   useEffect(() => {
     if (dailySummeryData?.meals) {
       const normalized = {}
       Object.entries(dailySummeryData.meals).forEach(([type, items]) => {
         normalized[type] = items.map((item, idx) => ({
-          id: idx + 1, name: item.food?.name || "Unknown",
+          id: item._id || idx + 1, name: item.food?.name || "Unknown",
           calories: Number(item.food?.calories || 0), protein: Number(item.food?.protein || 0),
           carbs: Number(item.food?.carbs || 0), fats: Number(item.food?.fats || 0),
           quantity: item.quantity || 1, unit: item.unit || "",
         }))
       })
       setMeals(normalized)
+      // TODO [Backend]: Once yesterday is fetched separately, don't overwrite yesterdayMeals here
       setYesterdayMeals(normalized)
+
+      // Hydrate water from API response
+      // TODO [Backend]: Include waterMl in daily summary response
+      if (dailySummeryData.waterMl !== undefined) {
+        setWaterDrank(Number(dailySummeryData.waterMl) || 0)
+      }
     }
   }, [dailySummeryData])
 
@@ -231,9 +282,23 @@ const NutritionTracker = () => {
     }), { calories: 0, protein: 0, carbs: 0, fats: 0 }
   )
 
-  // Date nav
-  const shiftDate = (days) => { const d = new Date(selectedDate); d.setDate(d.getDate() + days); setSelectedDate(d) }
-  const handleDatePick = (str) => { if (!str) return; const [y, m, d] = str.split("-").map(Number); setSelectedDate(new Date(y, m - 1, d)) }
+  // Date nav — block future dates
+  const shiftDate = (days) => {
+    const d = new Date(selectedDate)
+    d.setDate(d.getDate() + days)
+    // Prevent navigating into the future
+    const today = new Date()
+    today.setHours(23, 59, 59, 999)
+    if (d > today) return
+    setSelectedDate(d)
+  }
+  const handleDatePick = (str) => {
+    if (!str) return
+    // Prevent selecting future dates
+    if (str > todayStr) return
+    const [y, m, d] = str.split("-").map(Number)
+    setSelectedDate(new Date(y, m - 1, d))
+  }
   const formatDate = (d) => {
     if (isToday) return "Today"
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
@@ -364,6 +429,14 @@ const NutritionTracker = () => {
 
   const mealCalories = (type) => (meals[type] || []).reduce((sum, f) => sum + f.calories * (f.quantity || 1), 0)
 
+  // Water update helper — syncs with API
+  // TODO [Backend]: Create endpoint PUT /api/daily-summary/water { date, waterMl }
+  const updateWater = (newAmount) => {
+    const clamped = Math.max(0, newAmount)
+    setWaterDrank(clamped)
+    // dispatch(updateDailyWater({ date: dateStr, waterMl: clamped }))
+  }
+
   // Settings: calculate from profile
   const calculateFromProfile = () => {
     const bmr = calcBMR(profileForm.weight, profileForm.height, profileForm.age, profileForm.gender)
@@ -385,7 +458,7 @@ const NutritionTracker = () => {
   // INSIGHTS DATA — performance vs goals
   // ============================================
 
-  // Today's performance scores (0-100%)
+  // Selected day's performance scores (0-100%)
   const calScore = Math.min(Math.round((totals.calories / Math.max(Number(goals.calories), 1)) * 100), 150)
   const proteinScore = Math.min(Math.round((totals.protein / Math.max(Number(goals.protein), 1)) * 100), 150)
   const carbsScore = Math.min(Math.round((totals.carbs / Math.max(Number(goals.carbs), 1)) * 100), 150)
@@ -400,23 +473,59 @@ const NutritionTracker = () => {
   const getScoreLabel = (s) => s >= 90 ? "Excellent" : s >= 70 ? "Good" : s >= 50 ? "Fair" : "Needs work"
   const getScoreColor = (s) => s >= 90 ? "text-green-400" : s >= 70 ? "text-blue-400" : s >= 50 ? "text-yellow-400" : "text-red-400"
 
-  // Weekly data — today is dynamic, rest is demo (would come from API)
+  // Performance label based on selected date
+  const performanceLabel = isToday ? "Today's Performance" : `${formatDate(selectedDate)} Performance`
+
+  // ---- Weekly data ----
+  // Helpers: get the Mon–Sun week containing the selected date
+  const getWeekDates = (date) => {
+    const d = new Date(date)
+    const dayOfWeek = d.getDay() // 0=Sun
+    const monday = new Date(d)
+    monday.setDate(d.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = new Date(monday)
+      day.setDate(monday.getDate() + i)
+      return day
+    })
+  }
+  const weekDates = getWeekDates(selectedDate)
+  const selectedDayLabel = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+    selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1
+  ]
+
   const g = Number(goals.calories)
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const todayDayIndex = new Date().getDay() // 0=Sun
-  const todayLabel = dayNames[todayDayIndex === 0 ? 6 : todayDayIndex - 1]
+
+  // Demo data as fallback until backend provides real weekly data
+  // TODO [Backend]: Replace with weeklyData from fetchWeeklySummary
   const demoWeekCalories = { Mon: 1850, Tue: 2200, Wed: 1950, Thu: 2400, Fri: 1780, Sat: 2100, Sun: 2050 }
-  const weeklyCalorieData = dayNames.map((day) => ({
-    day,
-    Calories: day === todayLabel ? Math.round(totals.calories) : demoWeekCalories[day],
-    Goal: g,
-  }))
+  const demoWeekMacros = {
+    Mon: { p: 110, c: 180, f: 55 }, Tue: { p: 125, c: 210, f: 62 }, Wed: { p: 115, c: 195, f: 58 },
+    Thu: { p: 130, c: 220, f: 65 }, Fri: { p: 120, c: 200, f: 60 }, Sat: { p: 135, c: 230, f: 70 }, Sun: { p: 125, c: 215, f: 63 },
+  }
+
+  // Build weekly chart data — selected day uses real totals, rest from API or demo
+  const weeklyCalorieData = dayNames.map((day, idx) => {
+    // If weeklyData from API is available, use it
+    if (weeklyData?.days?.[idx]) {
+      const apiDay = weeklyData.days[idx]
+      return { day, Calories: Math.round(apiDay.calories || 0), Goal: g }
+    }
+    // Fallback: selected day = real data, rest = demo
+    return {
+      day,
+      Calories: day === selectedDayLabel ? Math.round(totals.calories) : demoWeekCalories[day],
+      Goal: g,
+    }
+  })
   const weeklyAvg = Math.round(weeklyCalorieData.reduce((s, d) => s + d.Calories, 0) / 7)
   const weeklyDeficit = (g * 7) - weeklyCalorieData.reduce((s, d) => s + d.Calories, 0)
 
   // Days on target (within ±10% of goal)
   const daysOnTarget = weeklyCalorieData.filter((d) => Math.abs(d.Calories - g) <= g * 0.1).length
 
+  // Calorie trend (last 4 weeks) — always current, independent of date selection
   const trendData = [
     { date: "Week 1", Actual: Math.round(g * 0.92), Target: g },
     { date: "Week 2", Actual: Math.round(g * 1.03), Target: g },
@@ -431,16 +540,26 @@ const NutritionTracker = () => {
   ]
   const macroTotal = macroPieData.reduce((s, d) => s + d.value, 0)
 
-  const demoWeekMacros = {
-    Mon: { p: 110, c: 180, f: 55 }, Tue: { p: 125, c: 210, f: 62 }, Wed: { p: 115, c: 195, f: 58 },
-    Thu: { p: 130, c: 220, f: 65 }, Fri: { p: 120, c: 200, f: 60 }, Sat: { p: 135, c: 230, f: 70 }, Sun: { p: 125, c: 215, f: 63 },
-  }
-  const weeklyMacroData = dayNames.map((day) => ({
-    day,
-    Protein: day === todayLabel ? Math.round(totals.protein) : demoWeekMacros[day].p,
-    Carbs: day === todayLabel ? Math.round(totals.carbs) : demoWeekMacros[day].c,
-    Fat: day === todayLabel ? Math.round(totals.fats) : demoWeekMacros[day].f,
-  }))
+  const weeklyMacroData = dayNames.map((day, idx) => {
+    if (weeklyData?.days?.[idx]) {
+      const apiDay = weeklyData.days[idx]
+      return { day, Protein: Math.round(apiDay.protein || 0), Carbs: Math.round(apiDay.carbs || 0), Fat: Math.round(apiDay.fats || 0) }
+    }
+    return {
+      day,
+      Protein: day === selectedDayLabel ? Math.round(totals.protein) : demoWeekMacros[day].p,
+      Carbs: day === selectedDayLabel ? Math.round(totals.carbs) : demoWeekMacros[day].c,
+      Fat: day === selectedDayLabel ? Math.round(totals.fats) : demoWeekMacros[day].f,
+    }
+  })
+
+  // Week label for insights header
+  const weekLabel = useMemo(() => {
+    const start = weekDates[0]
+    const end = weekDates[6]
+    const fmt = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    return `${fmt(start)} – ${fmt(end)}`
+  }, [weekDates])
 
   const filteredNutrients = useMemo(() => {
     if (nutrientFilter === "vitamins") return micronutrientData.filter((n) => n.type === "vitamin")
@@ -530,7 +649,7 @@ const NutritionTracker = () => {
             </button>
             <div className="flex items-center gap-2">
               <h1 className="text-base sm:text-lg font-semibold">{formatDate(selectedDate)}</h1>
-              <DatePickerField value={dateStr} onChange={handleDatePick} iconSize={16} />
+              <DatePickerField value={dateStr} onChange={handleDatePick} iconSize={16} maxDate={todayStr} />
             </div>
             <button onClick={() => shiftDate(1)} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary" disabled={isToday}>
               <ChevronRight className={`w-5 h-5 ${isToday ? "opacity-30" : ""}`} />
@@ -571,6 +690,14 @@ const NutritionTracker = () => {
         {/* ===== DIARY ===== */}
         {activeView === "diary" && (
           <div className="max-w-3xl mx-auto space-y-6">
+            {/* Loading overlay for date changes */}
+            {diaryLoading && (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                <span className="ml-2 text-sm text-content-muted">Loading {formatDate(selectedDate)}...</span>
+              </div>
+            )}
+            {!diaryLoading && (<>
             <SettingsCard className="!p-5">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <CalorieRing consumed={Math.round(totals.calories)} goal={Number(goals.calories)} />
@@ -674,11 +801,11 @@ const NutritionTracker = () => {
               </div>
               {/* Quick-add buttons */}
               <div className="flex items-center gap-2">
-                <button onClick={() => setWaterDrank(Math.max(0, waterDrank - 250))}
+                <button onClick={() => updateWater(waterDrank - 250)}
                   className="w-9 h-9 rounded-lg bg-surface-card flex items-center justify-center hover:bg-surface-button transition-colors text-content-muted"><Minus className="w-4 h-4" /></button>
                 <div className="flex-1 flex gap-2">
                   {[150, 250, 330, 500].map((ml) => (
-                    <button key={ml} onClick={() => setWaterDrank(waterDrank + ml)}
+                    <button key={ml} onClick={() => updateWater(waterDrank + ml)}
                       className="flex-1 py-2 bg-surface-card hover:bg-surface-button rounded-lg text-xs font-medium text-content-primary transition-colors">
                       +{ml}ml
                     </button>
@@ -693,6 +820,7 @@ const NutritionTracker = () => {
                   : `${(waterDrank / 1000).toFixed(1)}L · ${waterGoalMl - waterDrank} ml to go`}
               </p>
             </SettingsCard>
+          </>)}
           </div>
         )}
 
@@ -700,10 +828,10 @@ const NutritionTracker = () => {
         {activeView === "insights" && (
           <div className="max-w-3xl mx-auto space-y-6">
 
-            {/* Today's Score */}
+            {/* Daily Score */}
             <SettingsCard className="!p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-content-primary">Today's Performance</h3>
+                <h3 className="text-sm font-medium text-content-primary">{performanceLabel}</h3>
                 <div className={`text-sm font-bold ${getScoreColor(dailyScore)}`}>{dailyScore}/100 — {getScoreLabel(dailyScore)}</div>
               </div>
               <div className="grid grid-cols-5 gap-3">
@@ -756,7 +884,7 @@ const NutritionTracker = () => {
             </div>
 
             <SettingsCard>
-              <h3 className="text-sm font-medium text-content-primary mb-4">Weekly Calorie Intake</h3>
+              <h3 className="text-sm font-medium text-content-primary mb-4">Weekly Calorie Intake <span className="text-xs text-content-faint font-normal ml-1">({weekLabel})</span></h3>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyCalorieData} barSize={28}>
@@ -811,7 +939,7 @@ const NutritionTracker = () => {
             </div>
 
             <SettingsCard>
-              <h3 className="text-sm font-medium text-content-primary mb-4">Weekly Macros</h3>
+              <h3 className="text-sm font-medium text-content-primary mb-4">Weekly Macros <span className="text-xs text-content-faint font-normal ml-1">({weekLabel})</span></h3>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyMacroData} barSize={24}>
