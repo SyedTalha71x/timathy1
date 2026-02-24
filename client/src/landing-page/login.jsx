@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
-import { memberLogin } from '../features/auth/authSlice'
+import { memberLogin, staffLoginThunk } from '../features/auth/authSlice'
 // Import logo
 import OrgaGymLogo from "../../public/Orgagym white without text.svg"
 import { useSelector, useDispatch } from "react-redux"
@@ -163,6 +163,21 @@ export default function SignInPage() {
     const currentFormData = formData[activeLoginType]
 
     // MEMBER LOGIN (REAL AUTH)
+    if (activeLoginType === "studio") {
+      try {
+        const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
+
+        dispatch(fetchMyAppointments())
+        dispatch(fetchMyServices())
+        dispatch(fetchMyStudio())
+        // success → redirect
+        navigate(config.redirectPath)
+      } catch (err) {
+        console.error(err)
+        alert(err?.message || "Invalid email or password")
+      }
+      return
+    }
     if (activeLoginType === "member") {
       try {
         const res = await dispatch(memberLogin(currentFormData)).unwrap()

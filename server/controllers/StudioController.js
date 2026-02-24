@@ -1,5 +1,5 @@
 const StudioModel = require('../models/StudioModel');
-const { MemberModel, AdminModel } = require('../models/Discriminators');
+const { MemberModel, AdminModel, StaffModel } = require('../models/Discriminators');
 const { NotFoundError, UnAuthorizedError, ConflictError } = require('../middleware/error/httpErrors')
 const cloudinary = require('../utils/Cloudinary')
 const { Readable } = require('stream')
@@ -94,8 +94,8 @@ const getStudioByMemberId = async (req, res, next) => {
     const userId = req.user?._id;
 
     const studio = await StudioModel
-      .findOne({ members: userId })
-      .populate("members", "firstName lastName email phone role");
+      .findOne({ users: userId })
+      .populate("users", "firstName lastName email phone role");
 
     if (!studio) throw new NotFoundError("Studio not found");
 
@@ -112,9 +112,8 @@ const getStudioByMemberId = async (req, res, next) => {
 
 const createStudio = async (req, res, next) => {
   try {
-    const role = req.user?.role;
-    if (role !== "admin") {
-      throw new UnAuthorizedError("You are not authorized to create a studio");
+    if (req.user.role !== "admin") {
+      throw new UnAuthorizedError("Not authorized");
     }
 
     const {
@@ -127,21 +126,19 @@ const createStudio = async (req, res, next) => {
       city,
       country,
       website,
-      openingHours,   // array
-      closingDays,    // array of { date, reason }
+      openingHours,
+      closingDays,
       overallCapacity,
-      memberId
-    } = req.body;
+      court,
+      registrationNumber,
+      texId
 
-    const userId = req.user?._id;
+    } = req.body;
 
     const existingStudio = await StudioModel.findOne({ studioName });
     if (existingStudio) {
-      throw new ConflictError("Studio with this name already exists");
+      throw new ConflictError("Studio already exists");
     }
-
-    const member = await MemberModel.findById(memberId);
-    if (!member) throw new NotFoundError("Member not found");
 
     const studio = await StudioModel.create({
       studioName,
@@ -156,23 +153,21 @@ const createStudio = async (req, res, next) => {
       openingHours,
       closingDays,
       overallCapacity,
-      createdBy: userId,
-      members: [memberId]
+      court,
+      registrationNumber,
+      texId,
+      createdBy: req.user._id,
+      users: []
     });
 
+    // Add studio to admin's studios array
     await AdminModel.findByIdAndUpdate(
-      userId,
-      { $addToSet: { studio: studio._id } },
+      req.user._id,
+      { $addToSet: { studios: studio._id } },
       { new: true }
     );
 
-    await MemberModel.findByIdAndUpdate(
-      memberId,
-      { $set: { studio: studio._id } },
-      { new: true }
-    );
-
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Studio created successfully",
       studio
@@ -185,7 +180,7 @@ const createStudio = async (req, res, next) => {
 
 
 module.exports = {
-    updateStudio,
-    getStudioByMemberId,
-    createStudio
+  updateStudio,
+  getStudioByMemberId,
+  createStudio
 }

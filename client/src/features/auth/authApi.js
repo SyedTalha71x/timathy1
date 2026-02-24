@@ -57,6 +57,9 @@ export const refreshAccessToken = async () => {
 };
 
 
+// ==============================================
+// Member Apis                                 ||
+// ==============================================
 export const updateMember = async (updateData) => {
     const res = await api.put('/member/update', updateData, { withCredentials: true })
     return res.data;
@@ -72,4 +75,14 @@ export const loginMember = async (credentials) => {
 export const changedPassword = async (updatePassword) => {
     const res = await api.put('/auth/change-password', updatePassword, { withCredentials: true })
     return res.data;
+}
+
+
+// ==============================================
+// Staff Apis                                 ||
+// ==============================================
+
+export const StaffLogin = async (credentials) => {
+    const res = await api.post('/staff/login', credentials, { withCredentials: true })
+    return res.data
 }

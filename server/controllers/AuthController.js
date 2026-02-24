@@ -7,6 +7,8 @@ const hashedPassword = require('../utils/HashedPassword')
 const { userModel } = require('../models/Discriminators')
 const GenerateToken = require('../utils/GenerateToken');
 
+
+
 const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -58,7 +60,7 @@ const requestEmailChange = async (req, res, next) => {
 
     if (!newEmail) throw new BadRequestError('New email is required');
 
-    const user = await userModel.findById(userId);
+    const user = await UserModel.findById(userId);
     if (!user) throw new NotFoundError('user not found');
 
     // Save as pending email until verified
@@ -142,7 +144,7 @@ const getMe = async (req, res, next) => {
   try {
     const userId = req.user?._id;
 
-    const user = await UserModel.findById(req.user._id)
+    const user = await UserModel.findById(userId)
       .select('-password -refreshToken')
       .populate('studio', 'studioName city country email phone openingHours') // studio details
       .populate({
