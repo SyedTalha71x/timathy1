@@ -198,6 +198,32 @@ body.modal-open {
   height: 100%;
 }
 
+/* ============================================
+   GLOBAL MODAL FIX (mobile viewport issues)
+   Targets all fixed fullscreen overlays.
+   Prevents: horizontal swipe, content outside viewport,
+   header/footer being cut off.
+   ============================================ */
+@media (max-width: 768px) {
+  /* Any fixed fullscreen overlay = modal backdrop */
+  .fixed.inset-0 {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Modal content boxes inside backdrop:
+     Use max-height based on dvh (dynamic viewport height)
+     which accounts for mobile browser chrome + keyboard */
+  .fixed.inset-0 > div {
+    max-height: 85dvh !important;
+    max-height: 85vh !important; /* fallback for older browsers */
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
 
 /* ============================================
    NATIVE DATE & TIME INPUTS
