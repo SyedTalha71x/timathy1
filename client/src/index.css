@@ -110,6 +110,14 @@ button {
   font-family: inherit;
 }
 
+/* Prevent iOS auto-zoom: inputs must be >= 16px.
+   On desktop this has no effect since 16px is standard. */
+input,
+textarea,
+select {
+  font-size: max(16px, 1em);
+}
+
 /* Global text selection — uses primary color across the entire platform */
 ::selection {
   background: var(--color-primary) !important;
@@ -123,6 +131,8 @@ button {
 /* Browser date/time/color inputs – adapt picker chrome to theme */
 html {
   color-scheme: dark;
+  /* Prevent pull-to-refresh and overscroll bounce */
+  overscroll-behavior: none;
 }
 
 /* Ensure date/time input text inherits theme color */

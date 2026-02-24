@@ -93,11 +93,21 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  /* Remove tap highlight on all elements */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
 body {
   scroll-behavior: smooth;
+}
+
+html {
+  /* Prevent overscroll bounce (pull-to-refresh) — app-like feel */
+  overscroll-behavior: none;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -106,6 +116,86 @@ body {
   overflow-x: hidden;
   background-color: var(--theme-surface-base, #1c1c1c);
   color: var(--theme-text, #ffffff);
+  /* Prevent overscroll bounce on body */
+  overscroll-behavior-y: none;
+}
+
+/* ============================================
+   MOBILE APP-LIKE BEHAVIOR
+   ============================================ */
+
+/* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    font-size: 16px !important;
+  }
+}
+
+/* Prevent callout (long-press menu) on links/images in app context */
+.dashboard-root,
+.admin-root,
+.member-root {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* But allow text selection in content areas */
+.dashboard-root input,
+.dashboard-root textarea,
+.dashboard-root [contenteditable],
+.dashboard-root .selectable,
+.admin-root input,
+.admin-root textarea,
+.admin-root [contenteditable],
+.admin-root .selectable,
+.member-root input,
+.member-root textarea,
+.member-root [contenteditable],
+.member-root .selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Smooth momentum scrolling for all scrollable containers */
+.custom-scrollbar,
+[class*="overflow-y-auto"],
+[class*="overflow-x-auto"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent double-tap zoom on interactive elements */
+button,
+a,
+[role="button"],
+label,
+summary {
+  touch-action: manipulation;
+}
+
+/* Fixed elements should respect safe area */
+.fixed-bottom-bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Modal overlays – prevent background scroll on mobile */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
 
