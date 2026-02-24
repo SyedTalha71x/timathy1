@@ -3,7 +3,7 @@ const { BadRequestError } = require('../middleware/error/httpErrors');
 const chatModel = require('../models/communicationModel/chatModel')
 const messageModel = require('../models/communicationModel/messageModel');
 const UserModel = require('../models/UserModel');
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
 
 
 // --------------------------------------------------------------
