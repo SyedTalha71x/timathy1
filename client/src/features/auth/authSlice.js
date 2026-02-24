@@ -1,7 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from './authApi';
 
-// member Login
+// ==============================================
+// Member Apis  Thunks                         ||
+// ==============================================
 export const memberLogin = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
@@ -14,6 +16,21 @@ export const memberLogin = createAsyncThunk(
   }
 );
 
+export const updateUserData = createAsyncThunk(
+  'auth/update',
+  async (updateData, { rejectWithValue }) => {
+    try {
+      const res = await authApi.updateMember(updateData);
+      return res.user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Update failed' });
+    }
+  }
+);
+
+// ==============================================
+// Other Auth Apis  Thunks                         ||
+// ==============================================
 // Logout
 export const logout = createAsyncThunk(
   'auth/logout',
@@ -39,20 +56,6 @@ export const me = createAsyncThunk(
   }
 );
 
-// member update data like email name phone number
-export const updateUserData = createAsyncThunk(
-  'auth/update',
-  async (updateData, { rejectWithValue }) => {
-    try {
-      const res = await authApi.updateMember(updateData);
-      return res.user;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: 'Update failed' });
-    }
-  }
-);
-
-
 //  changed password request
 
 export const updatedPassword = createAsyncThunk('/auth/change-password', async (updatePassword, { rejectWithValue }) => {
@@ -64,6 +67,23 @@ export const updatedPassword = createAsyncThunk('/auth/change-password', async (
     return rejectWithValue(error.response?.data)
   }
 })
+
+
+// ==============================================
+// Staff Apis  Thunks                         ||
+// ==============================================
+
+export const staffLoginThunk = createAsyncThunk('/auth/staff/login', async (credentials, { rejectWithValue }) => {
+  try {
+    const res = await authApi.StaffLogin(credentials);
+    return res.user
+  } catch (error) {
+    return rejectWithValue(error.response?.data)
+  }
+})
+
+
+
 
 const authSlice = createSlice({
   name: 'auth',
@@ -161,6 +181,26 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(updatedPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message
+      })
+
+
+      // ==============================================
+      // Staff Thunk Slices                         ||
+      // ==============================================
+      .addCase(staffLoginThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(staffLoginThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload || null;
+        state.token = action.payload.token || null;
+        state.isAuthenticated = !!action.payload;
+        state.error = null;
+      })
+      .addCase(staffLoginThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message
       })

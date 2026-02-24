@@ -3,8 +3,8 @@ import * as StudioApi from "./studioApi";
 
 export const fetchMyStudio = createAsyncThunk('studio/myStudio', async (_, { rejectWithValue }) => {
     try {
-        const res = await StudioApi.myStudio();
-        return res.studio;
+         await StudioApi.myStudio();
+        
     }
     catch (error) {
         return rejectWithValue(error.response?.data)

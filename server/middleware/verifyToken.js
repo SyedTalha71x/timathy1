@@ -15,7 +15,7 @@ const verifyAccessToken = (req, res, next) => {
             role: decoded.role,
             username: decoded.username,
             img: decoded.img,
-            staffRole: decoded.staffRole,
+            // staffRole: decoded.staffRole,
         }
         next();
     }
