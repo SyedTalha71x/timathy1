@@ -438,11 +438,10 @@ const StudioMenu = () => {
             <button
               key={tab.key}
               onClick={() => setActiveSection(tab.key)}
-              className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${
-                activeSection === tab.key
+              className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === tab.key
                   ? "text-content-primary border-b-2 border-primary"
                   : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -505,9 +504,8 @@ const StudioMenu = () => {
                     return (
                       <div
                         key={index}
-                        className={`flex justify-between items-center py-2 px-3 rounded-lg text-sm ${
-                          isToday ? "bg-orange-500/20 border border-orange-500/30" : "bg-surface-hover"
-                        }`}
+                        className={`flex justify-between items-center py-2 px-3 rounded-lg text-sm ${isToday ? "bg-orange-500/20 border border-orange-500/30" : "bg-surface-hover"
+                          }`}
                       >
                         <span className={`font-medium ${isToday ? "text-orange-400" : "text-content-secondary"}`}>
                           {dayObj.day}
@@ -517,8 +515,11 @@ const StudioMenu = () => {
                             </span>
                           )}
                         </span>
-                        <span className={isToday ? "text-orange-300" : "text-content-muted"}>
+                        {/* <span className={isToday ? "text-orange-300" : "text-content-muted"}>
                           {dayObj.open} - {dayObj.close}
+                        </span> */}
+                        <span className={isToday ? "text-orange-300" : "text-content-muted"}>
+                          {dayObj.isClosed ? <span className="text-xs text-red-400">Closed</span> : `${dayObj.open} - ${dayObj.close}`}
                         </span>
                       </div>
                     );
@@ -1154,7 +1155,7 @@ const StudioMenu = () => {
                   <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
                     <span className={personalData.dateOfBirth ? "text-content-primary" : "text-content-faint"}>
                       {personalData.dateOfBirth
-                        ? (() => { const [y,m,d] = (personalData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })()
+                        ? (() => { const [y, m, d] = (personalData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })()
                         : "Select date"}
                     </span>
                     <DatePickerField
@@ -1236,7 +1237,7 @@ const StudioMenu = () => {
               <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
 
               <FormField label="Email" type="email" value={contactData.email} onChange={(e) => handleContactDataChange("email", e.target.value)} required />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="Mobile Number" type="tel" value={contactData.phone} onChange={(e) => handleContactDataChange("phone", e.target.value)} placeholder="+49 123 456789" />
                 <FormField label="Telephone Number" type="tel" value={contactData.telephoneNumber} onChange={(e) => handleContactDataChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
