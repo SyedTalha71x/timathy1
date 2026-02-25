@@ -258,6 +258,7 @@ const deleteMemberById = async (req, res, next) => {
     const memberId = req.user?._id;
 
     const member = await MemberModel.findByIdAndDelete(memberId);
+
     if (!member) throw new NotFoundError('Member not found');
 
     res.status(200).json({ message: 'Member deleted successfully' });
