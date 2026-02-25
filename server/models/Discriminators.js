@@ -19,7 +19,7 @@ const AdminModel = UserModel.discriminator('admin', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Lead'
     }],
-    studio: [{
+    studios: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
     }],
@@ -74,6 +74,9 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
 
 
 const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
+    permission: [{
+        type: String,
+    }],
     studio: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'

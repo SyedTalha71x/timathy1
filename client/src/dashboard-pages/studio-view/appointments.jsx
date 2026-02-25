@@ -21,7 +21,7 @@ import {
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
-
+import { useSelector, useDispatch } from 'react-redux'
 import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData, studioData, isStudioClosedOnDate } from "../../utils/studio-states"
 
 import TrialTrainingModal from "../../components/shared/appointments/CreateTrialTrainingModal"
@@ -40,8 +40,11 @@ import EditMemberModalMain from "../../components/studio-components/members-comp
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
 import EditBlockedSlotModalMain from "../../components/studio-components/appointments-components/EditBlockedSlotModalMain"
+import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
 
 export default function Appointments() {
+  const dispatch = useDispatch();
+  const { appointments } = useSelector((state) => state.appointments)
   const navigate = useNavigate();
   const calendarRef = useRef(null);
 
@@ -50,33 +53,36 @@ export default function Appointments() {
     if (!memberId) return null;
     return membersData.find(m => m.id === memberId) || null;
   };
+  useEffect(() => {
+    dispatch(fetchAllAppointments());
+  },[dispatch])
 
   // Disable main container scrolling on mount
   useEffect(() => {
     // Reset scroll position to top immediately
     window.scrollTo(0, 0);
-    
+
     // Find the main container element
     const mainContainer = document.querySelector('main');
     const originalOverflow = mainContainer?.style.overflow;
-    
+
     if (mainContainer) {
       // Reset scroll position of main container
       mainContainer.scrollTop = 0;
       // Disable scrolling
       mainContainer.style.overflow = 'hidden';
     }
-    
+
     // Also reset any parent scrollable containers
     const dashboardContent = document.querySelector('.dashboard-content');
     if (dashboardContent) {
       dashboardContent.scrollTop = 0;
     }
-    
+
     // Reset body scroll as well
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
-    
+
     // Cleanup: restore overflow when component unmounts
     return () => {
       if (mainContainer) {
@@ -97,17 +103,17 @@ export default function Appointments() {
   const [calendarViewMode, setCalendarViewMode] = useState("all")
   const [currentView, setCurrentView] = useState("timeGridWeek")
   const [miniCalendarDate, setMiniCalendarDate] = useState(new Date())
-  
+
   // Calendar settings (from configuration)
   const [calendarSettings, setCalendarSettings] = useState(DEFAULT_CALENDAR_SETTINGS)
 
   // Mobile-specific states
   const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false) // Collapsed by default on mobile
   const [isMobileFabOpen, setIsMobileFabOpen] = useState(false) // FAB menu state
-  
+
   // Check if we're on mobile (for initial calendar view)
   const [isMobile, setIsMobile] = useState(false)
-  
+
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024
@@ -118,7 +124,7 @@ export default function Appointments() {
         setCurrentView("timeGridDay")
       }
     }
-    
+
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
@@ -131,7 +137,7 @@ export default function Appointments() {
         setIsMobileFabOpen(false)
       }
     }
-    
+
     if (isMobileFabOpen) {
       document.addEventListener("click", handleClickOutside)
       return () => document.removeEventListener("click", handleClickOutside)
@@ -154,13 +160,13 @@ export default function Appointments() {
   const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedMemberMain, setSelectedMemberMain] = useState(null)
-  
+
   // Member filter states (like members.jsx)
   const [memberFilters, setMemberFilters] = useState([])
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
-  
+
   const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
   const [notifyActionMain, setNotifyActionMain] = useState("")
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
@@ -259,7 +265,7 @@ export default function Appointments() {
   const filteredAppointments = appointmentsMain.filter((appointment) => {
     // First check appointment type filters
     let passesTypeFilter = false;
-    
+
     if (appointment.isBlocked || appointment.type === "Blocked Time") {
       passesTypeFilter = appointmentFilters["Blocked Time Slots"];
     } else if (appointment.isCancelled) {
@@ -272,19 +278,19 @@ export default function Appointments() {
       // For regular appointments, check against the appointment type name
       passesTypeFilter = appointmentFilters[appointment.type] !== false;
     }
-    
+
     // If no member filters, just return the type filter result
     if (memberFilters.length === 0) {
       return passesTypeFilter;
     }
-    
+
     // Check if appointment matches any of the member/lead filters
     const appointmentName = `${appointment.name || ""} ${appointment.lastName || ""}`.trim().toLowerCase();
     const passesMemberFilter = memberFilters.some(filter => {
       const filterName = filter.memberName.toLowerCase();
       return appointmentName.includes(filterName) || filterName.includes(appointmentName);
     });
-    
+
     return passesTypeFilter && passesMemberFilter;
   });
 
@@ -343,7 +349,7 @@ export default function Appointments() {
         setShowSearchDropdown(false);
       }
     };
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -355,7 +361,7 @@ export default function Appointments() {
     const handleClickOutside = () => {
       setIsBookDropdownOpen(false);
     };
-    
+
     if (isBookDropdownOpen) {
       document.addEventListener("click", handleClickOutside);
       return () => {
@@ -367,14 +373,14 @@ export default function Appointments() {
   // Get search suggestions from members and leads
   const getSearchSuggestions = () => {
     if (!searchQuery.trim()) return [];
-    
+
     const query = searchQuery.toLowerCase();
-    
+
     // Get members
     const memberSuggestions = membersData
       .filter(member => {
         const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
-        const alreadyFiltered = memberFilters.some(f => 
+        const alreadyFiltered = memberFilters.some(f =>
           f.memberName.toLowerCase() === fullName
         );
         return !alreadyFiltered && (
@@ -392,7 +398,7 @@ export default function Appointments() {
     const leadSuggestions = leadsData
       .filter(lead => {
         const fullName = `${lead.firstName} ${lead.lastName}`.toLowerCase();
-        const alreadyFiltered = memberFilters.some(f => 
+        const alreadyFiltered = memberFilters.some(f =>
           f.memberName.toLowerCase() === fullName
         );
         return !alreadyFiltered && (
@@ -459,13 +465,13 @@ export default function Appointments() {
     setIsAppointmentActionModalOpen(false);
     setshowAppointmentOptionsModalMain(false);
     if (!selectedAppointmentMain) return;
-    
+
     // Get member info from appointment
     const memberId = selectedAppointmentMain.memberId;
-    const memberName = selectedAppointmentMain.lastName 
+    const memberName = selectedAppointmentMain.lastName
       ? `${selectedAppointmentMain.name} ${selectedAppointmentMain.lastName}`
       : selectedAppointmentMain.name;
-    
+
     if (memberId) {
       // Navigate to Members page with filter state (like communications.jsx)
       navigate('/dashboard/members', {
@@ -485,7 +491,7 @@ export default function Appointments() {
       console.warn("Lead not found:", leadId);
       return;
     }
-    
+
     // Set the selected lead and active tab
     setSelectedLeadForEdit(lead);
     setEditLeadActiveTab(tab);
@@ -506,7 +512,7 @@ export default function Appointments() {
     // Set the selected member and initialize the form
     setSelectedMemberForEdit(member);
     setEditMemberActiveTab(tab);
-    
+
     // Initialize the edit form with member data
     setEditFormMain({
       firstName: member.firstName || member.name?.split(" ")[0] || "",
@@ -524,7 +530,7 @@ export default function Appointments() {
       noteImportance: member.noteImportance || "unimportant",
       notes: member.notes || [],
     });
-    
+
     setIsEditMemberModalOpen(true);
   };
 
@@ -540,7 +546,7 @@ export default function Appointments() {
   // Handler to save changes from EditMemberModal
   const handleEditSubmitMain = (e, localRelations = null, localNotes = null) => {
     e?.preventDefault();
-    
+
     // Update relations if provided
     if (localRelations && selectedMemberForEdit?.id) {
       setMemberRelationsMain((prev) => ({
@@ -548,7 +554,7 @@ export default function Appointments() {
         [selectedMemberForEdit.id]: localRelations,
       }));
     }
-    
+
     setIsEditMemberModalOpen(false);
     setSelectedMemberForEdit(null);
     toast.success("Member details have been updated successfully");
@@ -557,10 +563,10 @@ export default function Appointments() {
   // Handler to add a new relation
   const handleAddRelationMain = () => {
     if (!selectedMemberForEdit || !newRelationMain.name || !newRelationMain.relation) return;
-    
+
     const memberId = selectedMemberForEdit.id;
     const category = newRelationMain.category;
-    
+
     const newRelation = {
       id: Date.now(),
       name: newRelationMain.name,
@@ -568,7 +574,7 @@ export default function Appointments() {
       type: newRelationMain.type,
       memberId: newRelationMain.selectedMemberId,
     };
-    
+
     setMemberRelationsMain((prev) => ({
       ...prev,
       [memberId]: {
@@ -576,7 +582,7 @@ export default function Appointments() {
         [category]: [...(prev[memberId]?.[category] || []), newRelation],
       },
     }));
-    
+
     // Reset new relation form
     setNewRelationMain({
       name: "",
@@ -643,13 +649,13 @@ export default function Appointments() {
     // Don't allow check-in changes for past appointments
     const appointment = appointmentsMain.find(app => app.id === appointmentId);
     if (appointment?.isPast) return;
-    
+
     setAppointmentsMain((prevAppointments) =>
       prevAppointments.map((appointment) =>
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment
       )
     )
-    
+
   }
 
   const handleNotifyMemberMain = (shouldNotify) => {
@@ -717,7 +723,7 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, specialNote: updatedNote } : appointment
       )
     )
-    
+
     setShowEditNoteModalMain(false)
     setSelectedAppointmentForNoteMain(null)
   }
@@ -842,7 +848,7 @@ export default function Appointments() {
     const options = { weekday: 'short', day: 'numeric', month: 'short' }
     return date.toLocaleDateString('de-DE', options)
   }
-  
+
   // Check if current selected date is a closed day
   const isClosedDay = (date) => {
     const year = date.getFullYear()
@@ -852,7 +858,7 @@ export default function Appointments() {
     const closedInfo = isStudioClosedOnDate(dateStr)
     return closedInfo.closed
   }
-  
+
   // Get closed day label
   const getClosedDayLabel = (date) => {
     const year = date.getFullYear()
@@ -979,19 +985,19 @@ export default function Appointments() {
 
               {/* View Toggle */}
               <div className="flex items-center bg-surface-base rounded-xl p-1">
-                <button 
+                <button
                   onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay"); }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
                 >
                   Day
                 </button>
-                <button 
+                <button
                   onClick={() => { calendarRef.current?.changeView("timeGridWeek"); setCurrentView("timeGridWeek"); }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridWeek" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
                 >
                   Week
                 </button>
-                <button 
+                <button
                   onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth"); }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
                 >
@@ -1004,7 +1010,7 @@ export default function Appointments() {
             <div className="flex items-center gap-2">
               {/* Book Dropdown - Desktop */}
               <div className="hidden lg:block relative" onClick={(e) => e.stopPropagation()}>
-                <button 
+                <button
                   onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                 >
@@ -1014,14 +1020,14 @@ export default function Appointments() {
                 </button>
                 {isBookDropdownOpen && (
                   <div className="absolute top-full right-0 mt-1 bg-surface-card rounded-xl shadow-lg border border-border overflow-hidden z-50 min-w-[180px]">
-                    <button 
+                    <button
                       onClick={() => { setIsModalOpen(true); setIsBookDropdownOpen(false); }}
                       className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
                       <div className="w-2 h-2 rounded-full bg-primary"></div>
                       Book Appointment
                     </button>
-                    <button 
+                    <button
                       onClick={() => { setIsTrialModalOpen(true); setIsBookDropdownOpen(false); }}
                       className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
@@ -1029,7 +1035,7 @@ export default function Appointments() {
                       Book Trial Training
                     </button>
                     <div className="border-t border-border"></div>
-                    <button 
+                    <button
                       onClick={() => { setIsBlockModalOpen(true); setIsBookDropdownOpen(false); }}
                       className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
@@ -1046,22 +1052,22 @@ export default function Appointments() {
 
           {/* Mobile Day Navigation - Dezent */}
           <div className="lg:hidden flex items-center justify-between mb-3 pr-4">
-            <button 
-              onClick={() => navigateMobileDay(-1)} 
+            <button
+              onClick={() => navigateMobileDay(-1)}
               className="p-2 text-content-muted active:text-content-primary transition-colors"
             >
               <GoArrowLeft className="w-5 h-5" />
             </button>
-            
+
             <div className="flex flex-col items-center">
               <span className="text-content-primary text-sm font-medium">{formatMobileDateDisplay(selectedDate)}</span>
               {isClosedDay(selectedDate) && (
                 <span className="text-primary text-[10px] font-medium">{getClosedDayLabel(selectedDate)}</span>
               )}
             </div>
-            
-            <button 
-              onClick={() => navigateMobileDay(1)} 
+
+            <button
+              onClick={() => navigateMobileDay(1)}
               className="p-2 text-content-muted active:text-content-primary transition-colors"
             >
               <GoArrowRight className="w-5 h-5" />
@@ -1070,16 +1076,16 @@ export default function Appointments() {
 
           {/* Mobile Free Slots Toggle - Compact */}
           <div className="lg:hidden flex items-center gap-2 mb-3 pr-4">
-            <button 
-              onClick={() => calendarRef.current?.toggleFreeSlots()} 
+            <button
+              onClick={() => calendarRef.current?.toggleFreeSlots()}
               className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 whitespace-nowrap ${calendarViewMode === "free" ? "bg-primary text-white" : "bg-surface-button text-content-muted"}`}
             >
               <CalendarCheck size={12} />
               {calendarViewMode === "all" ? "Free" : "All"}
             </button>
-            
+
             {/* Mobile Filters Toggle */}
-            <button 
+            <button
               onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
               className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${isMobileFiltersExpanded ? "bg-surface-hover text-content-primary" : "bg-surface-button text-content-muted"}`}
             >
@@ -1087,14 +1093,14 @@ export default function Appointments() {
               Filters
             </button>
           </div>
-          
+
           {/* Mobile Filters Dropdown */}
           <div className={`lg:hidden overflow-hidden transition-all duration-200 pr-4 ${isMobileFiltersExpanded ? 'max-h-[300px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
             <div className="bg-surface-base rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-content-primary text-xs font-medium">Filter by type</span>
-                <button 
-                  onClick={toggleAllFilters} 
+                <button
+                  onClick={toggleAllFilters}
                   className="text-[10px] text-primary hover:text-primary-hover transition-colors"
                 >
                   {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
@@ -1137,8 +1143,8 @@ export default function Appointments() {
           {/* Main Content */}
           <div className="flex lg:flex-row flex-col gap-4 flex-1 min-h-0 pr-4 lg:pr-0 relative overflow-y-auto lg:overflow-hidden">
             {/* Sidebar Toggle Button - Overlay */}
-            <button 
-              onClick={toggleSidebar} 
+            <button
+              onClick={toggleSidebar}
               className={`hidden lg:flex absolute z-20 bg-primary text-white p-1.5 rounded-full shadow-lg hover:bg-primary-hover transition-all duration-500 items-center justify-center ${isSidebarCollapsed ? 'left-0' : 'left-[296px]'}`}
               style={{ top: '8px' }}
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
@@ -1148,7 +1154,7 @@ export default function Appointments() {
             {/* Left Sidebar - Desktop only */}
             <div className={`hidden lg:block transition-all duration-500 ease-in-out ${isSidebarCollapsed ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0" : "lg:w-[300px] lg:min-w-[300px] lg:opacity-100"} flex-shrink-0 lg:h-full lg:overflow-hidden`}>
               <div className="flex flex-col gap-3 lg:pb-2 h-full">
-                
+
                 {/* Mini Calendar - Desktop only */}
                 <div className="w-full lg:max-w-[300px] flex-shrink-0">
                   <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} externalDate={miniCalendarDate} />
@@ -1158,15 +1164,15 @@ export default function Appointments() {
                 <div className="w-full lg:max-w-[300px] flex flex-col gap-2 flex-shrink-0">
                   <div className="flex items-center gap-2 w-full">
                     <div className="relative w-full" ref={searchDropdownRef}>
-                      <div 
+                      <div
                         className="bg-surface-base rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-transparent focus-within:border-primary transition-colors cursor-text"
                         onClick={() => searchInputRef.current?.focus()}
                       >
                         <Search className="text-content-muted flex-shrink-0" size={16} />
-                        
+
                         {/* Filter Chips */}
                         {memberFilters.map((filter) => (
-                          <div 
+                          <div
                             key={filter.memberId}
                             className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-primary/20 border border-primary/40' : 'bg-primary/20 border border-primary/40'}`}
                           >
@@ -1194,7 +1200,7 @@ export default function Appointments() {
                             </button>
                           </div>
                         ))}
-                        
+
                         {/* Search Input */}
                         <input
                           ref={searchInputRef}
@@ -1209,7 +1215,7 @@ export default function Appointments() {
                           onKeyDown={handleSearchKeyDown}
                           className="flex-1 min-w-[80px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
                         />
-                        
+
                         {/* Clear All Button */}
                         {memberFilters.length > 0 && (
                           <button
@@ -1224,7 +1230,7 @@ export default function Appointments() {
                           </button>
                         )}
                       </div>
-                      
+
                       {/* Autocomplete Dropdown */}
                       {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 overflow-hidden">
@@ -1237,9 +1243,9 @@ export default function Appointments() {
                               {/* Members: Show profile image or initials avatar */}
                               {person.type === 'member' && (
                                 person.image ? (
-                                  <img 
-                                    src={person.image} 
-                                    alt={`${person.firstName} ${person.lastName}`} 
+                                  <img
+                                    src={person.image}
+                                    alt={`${person.firstName} ${person.lastName}`}
                                     className="w-8 h-8 rounded-lg object-cover"
                                   />
                                 ) : (
@@ -1267,7 +1273,7 @@ export default function Appointments() {
                           ))}
                         </div>
                       )}
-                      
+
                       {/* No results message */}
                       {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 p-3">
@@ -1281,18 +1287,18 @@ export default function Appointments() {
                 {/* Filters - Desktop */}
                 <div className="w-full lg:max-w-[300px] flex-shrink-0">
                   <div className="bg-surface-base rounded-xl p-3 w-full">
-                    <div 
+                    <div
                       className="flex items-center justify-between cursor-pointer"
                       onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
                     >
                       <h3 className="text-content-primary font-semibold text-sm">Filters</h3>
                       <div className="flex items-center gap-2">
                         {!isFiltersCollapsed && (
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation()
                               toggleAllFilters()
-                            }} 
+                            }}
                             className="text-xs text-primary hover:text-primary-hover transition-colors"
                           >
                             {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
@@ -1303,7 +1309,7 @@ export default function Appointments() {
                         </button>
                       </div>
                     </div>
-                    
+
                     {!isFiltersCollapsed && (
                       <div className="space-y-1.5 mt-3 w-full">
                         {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
@@ -1383,9 +1389,9 @@ export default function Appointments() {
 
         {/* Modals */}
         <CreateAppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} freeAppointmentsMain={freeAppointmentsMain} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />
-        <TrialTrainingModal 
-          isOpen={isTrialModalOpen} 
-          onClose={() => setIsTrialModalOpen(false)} 
+        <TrialTrainingModal
+          isOpen={isTrialModalOpen}
+          onClose={() => setIsTrialModalOpen(false)}
           appointmentTypesMain={appointmentTypesMain}
           freeAppointmentsMain={freeAppointmentsMain}
           leadsData={leadsData}
@@ -1418,35 +1424,35 @@ export default function Appointments() {
         <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => setIsBlockModalOpen(false)} selectedDate={selectedDate || new Date()} onSubmit={(blockData) => {
           // Use formatDate (with dashes) instead of formatDateForDisplay (with slashes)
           // Calendar expects format: "Wed | 29-01-2025"
-          const newBlock = { 
-            id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, 
-            name: "BLOCKED", 
+          const newBlock = {
+            id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1,
+            name: "BLOCKED",
             time: `${blockData.startTime} - ${blockData.endTime}`,
             date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,
-            color: "bg-red-600", 
-            startTime: blockData.startTime, 
-            endTime: blockData.endTime, 
+            color: "bg-red-600",
+            startTime: blockData.startTime,
+            endTime: blockData.endTime,
             type: "Blocked Time",
-            specialNote: { 
-              text: blockData.note || "", 
-              startDate: blockData.startDate, 
-              endDate: blockData.endDate, 
-              isImportant: true 
+            specialNote: {
+              text: blockData.note || "",
+              startDate: blockData.startDate,
+              endDate: blockData.endDate,
+              isImportant: true
             },
-            status: "blocked", 
-            isBlocked: true, 
-            isCancelled: false, 
-            isPast: false 
+            status: "blocked",
+            isBlocked: true,
+            isCancelled: false,
+            isPast: false
           }
-          setAppointmentsMain([...appointmentsMain, newBlock]); 
+          setAppointmentsMain([...appointmentsMain, newBlock]);
           setIsBlockModalOpen(false)
         }} />
         {/* EditBlockedSlotModal for editing blocked time slots */}
         {isEditBlockedModalOpen && blockedEditData && (
-          <EditBlockedSlotModalMain 
-            isOpen={isEditBlockedModalOpen} 
-            onClose={() => { setIsEditBlockedModalOpen(false); setBlockedEditData(null); }} 
-            initialBlock={blockedEditData} 
+          <EditBlockedSlotModalMain
+            isOpen={isEditBlockedModalOpen}
+            onClose={() => { setIsEditBlockedModalOpen(false); setBlockedEditData(null); }}
+            initialBlock={blockedEditData}
             onDelete={(id) => {
               setAppointmentsMain(appointmentsMain.filter((apt) => apt.id !== id));
               setIsEditBlockedModalOpen(false);
@@ -1463,26 +1469,26 @@ export default function Appointments() {
                 return `${day}-${month}-${year}`;
               };
               const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDateLocal(new Date(blockData.startDate))}`;
-              setAppointmentsMain(appointmentsMain.map((apt) => 
-                apt.id === blockedEditData.id 
-                  ? { 
-                      ...apt, 
-                      startTime: blockData.startTime, 
-                      endTime: blockData.endTime, 
-                      date: newDateString, 
-                      time: `${blockData.startTime} - ${blockData.endTime}`,
-                      specialNote: { 
-                        ...(apt.specialNote || {}), 
-                        text: blockData.note || apt.specialNote?.text || "", 
-                        isImportant: apt.specialNote?.isImportant ?? true 
-                      },
-                    } 
+              setAppointmentsMain(appointmentsMain.map((apt) =>
+                apt.id === blockedEditData.id
+                  ? {
+                    ...apt,
+                    startTime: blockData.startTime,
+                    endTime: blockData.endTime,
+                    date: newDateString,
+                    time: `${blockData.startTime} - ${blockData.endTime}`,
+                    specialNote: {
+                      ...(apt.specialNote || {}),
+                      text: blockData.note || apt.specialNote?.text || "",
+                      isImportant: apt.specialNote?.isImportant ?? true
+                    },
+                  }
                   : apt
               ));
-              setIsEditBlockedModalOpen(false); 
+              setIsEditBlockedModalOpen(false);
               setBlockedEditData(null);
               toast.success("Blocked time slot updated");
-            }} 
+            }}
           />
         )}
         <TrainingPlansModalMain isOpen={isTrainingPlanModalOpenMain} onClose={() => { setIsTrainingPlanModalOpenMain(false); setSelectedUserForTrainingPlanMain(null) }} selectedMember={selectedUserForTrainingPlanMain} memberTrainingPlans={memberTrainingPlansMain[selectedUserForTrainingPlanMain?.id] || []} availableTrainingPlans={availableTrainingPlansMain} onAssignPlan={handleAssignTrainingPlanMain} onRemovePlan={handleRemoveTrainingPlanMain} />
@@ -1493,8 +1499,8 @@ export default function Appointments() {
         {isEditMemberModalOpen && selectedMemberForEdit && (
           <EditMemberModalMain
             isOpen={isEditMemberModalOpen}
-            onClose={() => { 
-              setIsEditMemberModalOpen(false); 
+            onClose={() => {
+              setIsEditMemberModalOpen(false);
               setSelectedMemberForEdit(null);
               setEditingRelationsMain(false);
             }}
@@ -1519,8 +1525,8 @@ export default function Appointments() {
         {isEditLeadModalOpen && selectedLeadForEdit && (
           <EditLeadModal
             isVisible={isEditLeadModalOpen}
-            onClose={() => { 
-              setIsEditLeadModalOpen(false); 
+            onClose={() => {
+              setIsEditLeadModalOpen(false);
               setSelectedLeadForEdit(null);
             }}
             onSave={handleEditLeadSubmit}
@@ -1533,7 +1539,7 @@ export default function Appointments() {
           />
         )}
       </div>
-      
+
       {/* Floating Action Button - Mobile Only */}
       <div className="lg:hidden fixed bottom-4 right-4 z-40">
         {/* FAB Menu Items - Appear when FAB is open */}
@@ -1572,7 +1578,7 @@ export default function Appointments() {
             <span className="text-sm">Appointment</span>
           </button>
         </div>
-        
+
         {/* Main FAB Button */}
         <button
           onClick={(e) => {

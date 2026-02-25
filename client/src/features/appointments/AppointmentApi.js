@@ -17,3 +17,11 @@ export const canceledAppointment = async (appointmentId) => {
     const res = await api.patch(`/appointment/${appointmentId}/cancel`, {}, { withCredentials: true })
     return res.data;
 }
+
+
+// All Appointments show on staff 
+
+export const allAppointments = async () => {
+    const res = await api.get('/appointment/all-appointments', { withCredentials: true })
+    return res.data;
+}

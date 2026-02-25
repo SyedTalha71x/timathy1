@@ -3,9 +3,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as ServiceApi from './servicesApi'
 
 
-export const fetchMyServices = createAsyncThunk('studio/myServices', async (_, { rejectWithValue }) => {
+export const fetchstudioServices = createAsyncThunk('studio/studioServices', async (_, { rejectWithValue }) => {
     try {
-        const res = await ServiceApi.myServices()
+        const res = await ServiceApi.studioServices()
         return res.services
     }
     catch (error) {
@@ -24,15 +24,15 @@ const serviceSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchMyServices.pending, (state) => {
+            .addCase(fetchstudioServices.pending, (state) => {
                 state.loading = true,
                     state.error = null
             })
-            .addCase(fetchMyServices.fulfilled, (state, action) => {
+            .addCase(fetchstudioServices.fulfilled, (state, action) => {
                 state.loading = false,
                     state.services = action.payload;
             })
-            .addCase(fetchMyServices.rejected, (state, action) => {
+            .addCase(fetchstudioServices.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload?.error
             })
