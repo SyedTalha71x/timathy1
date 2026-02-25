@@ -5,8 +5,7 @@ import DashboardHeader from "./components/DashboardHeader"
 import CentralSidebar from "./components/central-sidebar"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 
-// Sidebar Modals
-import { WidgetSelectionModal } from "../../components/shared/widgets/components/widget-selection-modal"
+// Sidebar Modals (WidgetSelectionModal is now handled internally by CentralSidebar)
 
 
 /**
@@ -228,14 +227,7 @@ const Dashboardlayout = () => {
               setTodos={setTodos} 
             />
 
-          {/* Widget Selection Modal */}
-          <WidgetSelectionModal 
-            isOpen={isRightWidgetModalOpen} 
-            onClose={() => setIsRightWidgetModalOpen(false)} 
-            onSelectWidget={handleAddRightSidebarWidget} 
-            getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")} 
-            widgetArea="sidebar" 
-          />
+          {/* Widget Selection Modal is now handled internally by CentralSidebar */}
           
           {/* Mobile overlay for right sidebar */}
           {isRightSidebarOpen && (

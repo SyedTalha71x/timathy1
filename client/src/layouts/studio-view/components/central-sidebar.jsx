@@ -70,12 +70,14 @@ import UpcomingBirthdaysWidget from "../../../components/shared/widgets/Upcoming
 import BulletinBoardWidget from "../../../components/shared/widgets/BulletinBoardWidget"
 import NotesWidget from "../../../components/shared/widgets/NotesWidget"
 import ShiftScheduleWidget from "../../../components/shared/widgets/ShiftScheduleWidget"
+import UpcomingClassesWidget from "../../../components/shared/widgets/UpcomingClassesWidget"
 
 // ============================================
 // Sidebar Component Imports
 // ============================================
 import DraggableWidget from "../../../components/shared/widgets/components/DraggableWidget"
 import ViewManagementModal from "../../../components/shared/widgets/components/ViewManagementModal"
+import { WidgetSelectionModal } from "../../../components/shared/widgets/components/widget-selection-modal"
 import ChatPopup from "../../../components/shared/communication/ChatPopup"
 
 // ============================================
@@ -127,6 +129,7 @@ const WIDGET_DISPLAY_NAMES = {
   notes: "Notes",
   staffCheckIn: "Staff Check-In",
   shiftSchedule: "Shift Schedule",
+  upcomingClasses: "Upcoming Classes",
 }
 
 const RELATION_OPTIONS = {
@@ -251,14 +254,59 @@ const Sidebar = ({
   // ============================================
   const [activeTab, setActiveTab] = useState("widgets")
   const [collapsedWidgets, setCollapsedWidgets] = useState({})
+  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
 
+  // ============================================
+  // Widget Add Logic (local to sidebar)
+  // ============================================
+  const getWidgetStatusForSidebar = (widgetType) => {
+    const existsInSidebar = rightSidebarWidgets.some((widget) => widget.type === widgetType)
+    if (existsInSidebar) {
+      return { canAdd: false, location: "sidebar" }
+    }
+    return { canAdd: true, location: null }
+  }
+
+  const handleAddSidebarWidget = (widgetType) => {
+    const { canAdd } = getWidgetStatusForSidebar(widgetType)
+    if (!canAdd) {
+      toast.error("This widget is already added to your sidebar.")
+      return
+    }
+    const newWidget = {
+      id: `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: widgetType,
+      position: rightSidebarWidgets.length,
+    }
+    setRightSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
+    setIsWidgetModalOpen(false)
+    toast.success(`Widget has been added successfully`)
+  }
   // ============================================
   // View Management State
   // ============================================
+  // Default view that cannot be deleted
+  const DEFAULT_SIDEBAR_VIEW = {
+    id: "default_sidebar_view",
+    name: "Default",
+    widgets: propWidgets || [],
+    widgetSettings: {},
+    isStandard: true,
+    isDefault: true,
+    createdBy: { id: "system", name: "System" },
+    createdAt: new Date().toISOString(),
+  }
+
   const [savedViews, setSavedViews] = useState(() => {
-    // Load saved views from localStorage
     const saved = localStorage.getItem("sidebarViews")
-    return saved ? JSON.parse(saved) : []
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      // Ensure default view always exists
+      const hasDefault = parsed.some((v) => v.isDefault)
+      if (!hasDefault) return [DEFAULT_SIDEBAR_VIEW, ...parsed]
+      return parsed
+    }
+    return [DEFAULT_SIDEBAR_VIEW]
   })
   const [currentView, setCurrentView] = useState(() => {
     // Load current view from localStorage
@@ -321,6 +369,7 @@ const Sidebar = ({
       websiteLinks: 3,
       birthday: 3,
       shiftSchedule: 3,
+      upcomingClasses: 5,
     }
     return defaults[widgetType] || 3
   }
@@ -344,7 +393,7 @@ const Sidebar = ({
   // Widgets that support visibleItems setting (exclude staffCheckIn and chart)
   const WIDGETS_WITH_SETTINGS = [
     "appointments", "expiringContracts", "todo", "birthday", 
-    "websiteLinks", "bulletinBoard", "notes", "shiftSchedule"
+    "websiteLinks", "bulletinBoard", "notes", "shiftSchedule", "upcomingClasses"
   ]
 
   // ============================================
@@ -1084,6 +1133,9 @@ const Sidebar = ({
           />
         )
 
+      case "upcomingClasses":
+        return <UpcomingClassesWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
+
       default:
         return null
     }
@@ -1099,7 +1151,7 @@ const Sidebar = ({
       {/* Member Chat Section */}
       <NotificationSection
         title="Member Chat"
-        icon={<User size={16} className="inline mr-2 text-primary" />}
+        icon={<User size={16} className="inline mr-2 text-content-primary" />}
         isCollapsed={collapsedSections.memberChat}
         onToggle={() => toggleNotificationSection("memberChat")}
         unreadCount={getUnreadCount("memberChat")}
@@ -1358,7 +1410,7 @@ const Sidebar = ({
             isSidebarEditing={isSidebarEditing}
             currentView={currentView}
             onOpenViewModal={() => setIsViewModalOpen(true)}
-            onAddWidget={() => setIsRightWidgetModalOpen(true)}
+            onAddWidget={() => setIsWidgetModalOpen(true)}
             onToggleEditing={toggleSidebarEditing}
             onClose={onClose}
           />
@@ -1506,6 +1558,15 @@ const Sidebar = ({
 
       {/* Render all modals via portal */}
       {renderModals()}
+
+      {/* Widget Selection Modal for Sidebar */}
+      <WidgetSelectionModal
+        isOpen={isWidgetModalOpen}
+        onClose={() => setIsWidgetModalOpen(false)}
+        onSelectWidget={handleAddSidebarWidget}
+        getWidgetStatus={getWidgetStatusForSidebar}
+        widgetArea="sidebar"
+      />
     </>
   )
 }
@@ -1743,7 +1804,7 @@ const ActivityMonitorSection = ({
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-surface-hover transition-colors"
       >
         <div className="flex items-center gap-2">
-          <CiMonitor size={20} className="text-primary" />
+          <CiMonitor size={20} className="text-content-primary" />
           <h3 className="text-content-primary font-medium text-sm">Activity Monitor</h3>
           {totalCount > 0 && (
             <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">

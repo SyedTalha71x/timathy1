@@ -25,7 +25,7 @@ const MemberDashboardLayout = () => {
   const isCommunicationPage = location.pathname.includes("/communication");
 
   return (
-    <div className="bg-surface-dark min-h-screen">
+    <div className="member-root bg-surface-dark min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
         {/* Sidebar */}
         <Sidebar

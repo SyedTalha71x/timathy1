@@ -26,6 +26,7 @@ import BulletinBoardWidget from "../../components/shared/widgets/BulletinBoardWi
 import NotesWidget from "../../components/shared/widgets/NotesWidget"
 import ShiftScheduleWidget from "../../components/shared/widgets/ShiftScheduleWidget"
 import ExpiringContractsWidget from "../../components/shared/widgets/ExpiringContractsWidget"
+import UpcomingClassesWidget from "../../components/shared/widgets/UpcomingClassesWidget"
 
 // Modal Imports
 import AppointmentActionModal from "../../components/studio-components/appointments-components/AppointmentActionModal"
@@ -118,7 +119,19 @@ export default function MyArea() {
   // ============================================
   // View Management State
   // ============================================
-  const [savedViews, setSavedViews] = useState([])
+  // Default view that cannot be deleted
+  const DEFAULT_DASHBOARD_VIEW = {
+    id: "default_dashboard_view",
+    name: "Default",
+    widgets: [...DEFAULT_WIDGETS],
+    widgetSettings: {},
+    isStandard: true,
+    isDefault: true,
+    createdBy: { id: "system", name: "System" },
+    createdAt: new Date().toISOString(),
+  }
+
+  const [savedViews, setSavedViews] = useState([DEFAULT_DASHBOARD_VIEW])
   const [currentView, setCurrentView] = useState(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
@@ -189,9 +202,12 @@ export default function MyArea() {
     const savedViewsData = localStorage.getItem("dashboardViews")
     if (savedViewsData) {
       const views = JSON.parse(savedViewsData)
-      setSavedViews(views)
+      // Ensure default view always exists
+      const hasDefault = views.some((v) => v.isDefault)
+      const finalViews = hasDefault ? views : [DEFAULT_DASHBOARD_VIEW, ...views]
+      setSavedViews(finalViews)
 
-      const standardView = views.find((view) => view.isStandard)
+      const standardView = finalViews.find((view) => view.isStandard)
       if (standardView) {
         setWidgets([...standardView.widgets])
         setCurrentView(standardView)
@@ -690,6 +706,10 @@ export default function MyArea() {
                           isEditing={isEditing}
                           onRemove={() => removeWidget(widget.id)}
                         />
+                      )}
+
+                      {widget.type === "upcomingClasses" && (
+                        <UpcomingClassesWidget isSidebarEditing={isEditing} />
                       )}
                     </DraggableWidget>
                   ))}

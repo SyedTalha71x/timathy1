@@ -303,8 +303,8 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   ]
 
   return (
-    <div className="fixed inset-0 open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-2 md:p-4">
-      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 open_sans_font bg-black/50 flex items-center justify-center z-[1000] p-2 md:p-4 overflow-y-auto">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] max-h-[85vh] md:max-h-[90vh] flex flex-col">
         {/* Header - No + icon */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-content-primary font-bold">Create Staff</h2>

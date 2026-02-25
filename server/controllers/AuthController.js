@@ -173,7 +173,7 @@ const getMe = async (req, res, next) => {
 
 const newAccessToken = async (req, res, next) => {
   try {
-    const { userId } = req.user?._id;
+    const userId = req.user?._id;
 
     if (!userId) throw new NotFoundError("Invalid user")
 
