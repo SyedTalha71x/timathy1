@@ -44,6 +44,7 @@ import { contractHistory, initialContracts, sampleLeads } from "../../utils/stud
 import { DEFAULT_CONTRACT_TYPES } from "../../utils/studio-states/configuration-states"
 import { leadsData } from "../../utils/studio-states/leads-states"
 import { membersData } from "../../utils/studio-states"
+import { useStudioContracts } from "../../hooks/useStudioContracts"
 
 // Status Tag Component - matches members.jsx
 const StatusTag = ({ 
@@ -214,9 +215,18 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 };
 
-export default function ContractList() {
+export default function ContractList({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const isAdminMode = mode === "admin" && studioIdProp !== null
+
+  // ============================================
+  // Load contract data via shared hook
+  // ============================================
+  const { data: contractsHookData, isLoading: contractsLoading, error: contractsError } = useStudioContracts({
+    studioId: studioIdProp,
+    mode,
+  })
 
   // View and display states
   const [viewMode, setViewMode] = useState("list")
@@ -304,6 +314,15 @@ export default function ContractList() {
   // Leads and Members data for conversion
   const [leads, setLeads] = useState(leadsData)
   const [members, setMembers] = useState(membersData)
+
+  // Admin mode: Load data from hook
+  useEffect(() => {
+    if (isAdminMode && contractsHookData) {
+      setContracts(contractsHookData.contracts)
+      setLeads(contractsHookData.leads)
+      setMembers(contractsHookData.members)
+    }
+  }, [isAdminMode, contractsHookData])
   
   // Search states - matches members.jsx
   const [searchQuery, setSearchQuery] = useState("")
@@ -1244,6 +1263,36 @@ export default function ContractList() {
         }}
       />
 
+      {/* Admin Mode Banner */}
+      {isAdminMode && (
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+          <div className="bg-blue-500/20 p-2 rounded-lg">
+            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+            <p className="text-xs text-content-muted">Viewing contracts for this studio. Changes are saved per-studio.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isAdminMode && contractsLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {isAdminMode && contractsError && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
+          <p className="text-red-400 text-sm">Failed to load contracts: {contractsError}</p>
+        </div>
+      )}
+
+      {(!isAdminMode || (!contractsLoading && !contractsError)) && (
       <div className="flex flex-col lg:flex-row rounded-3xl bg-surface-base transition-all duration-500 text-content-primary relative select-none">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           {/* Header - matches members.jsx */}
@@ -2295,6 +2344,7 @@ export default function ContractList() {
         )}
         </div>
       </div>
+      )}
     </>
   )
 }

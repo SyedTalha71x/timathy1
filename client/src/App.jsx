@@ -56,6 +56,9 @@ import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 import AdminFeedback from './dashboard-pages/admin-view/feedback'
 import EditStudioMembersPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-members-page'
 import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-staff-page'
+import EditStudioLeadsPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-leads-page'
+import EditStudioContractsPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-contracts-page'
+import EditStudioFinancesPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-finances-page'
 
 
 // ─── Standalone Public Pages (outside all dashboard layouts) ─────────────────
@@ -209,6 +212,9 @@ function App() {
           <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
           <Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
           <Route path="studio-staff/:studioId" element={<EditStudioStaffPage />} />
+          <Route path="studio-leads/:studioId" element={<EditStudioLeadsPage />} />
+          <Route path="studio-contracts/:studioId" element={<EditStudioContractsPage />} />
+          <Route path="studio-finances/:studioId" element={<EditStudioFinancesPage />} />
 
 
 

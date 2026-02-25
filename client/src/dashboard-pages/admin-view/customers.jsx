@@ -311,7 +311,7 @@
     const handleMobileSortOptionClick = (newSortBy) => { handleSortOptionClick(newSortBy); setShowMobileSortDropdown(false) }
 
     // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ All handlers (preserved from original) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-    const handleOpenLeadsModal = (studio) => { setSelectedStudioForModal(studio); setIsLeadsModalOpen(true) }
+    const handleOpenLeadsModal = (studio) => { navigate(`/admin-dashboard/studio-leads/${studio.id}`) }
     const getFilteredLeads = () => { if (!selectedStudioForModal || !studioLeads[selectedStudioForModal.id]) return []; return studioLeads[selectedStudioForModal.id].filter((lead) => `${lead.firstName} ${lead.surname}`.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.email.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.phoneNumber.includes(leadSearchQuery) || lead.about?.toLowerCase().includes(leadSearchQuery.toLowerCase())) }
     const handleViewLead = (lead) => { setSelectedLead(lead); setIsViewLeadModalOpen(true) }
     const handleEditLead = (lead) => { setSelectedLead(lead); setIsEditLeadModalOpen(true) }
@@ -465,7 +465,7 @@
     const handleOpenStudioManagement = (franchise) => { setSelectedFranchiseForManagement(franchise); setIsStudioManagementModalOpen(true) }
     const handleOpenMembersModal = (studio) => { navigate(`/admin-dashboard/studio-members/${studio.id}`) }
     const handleOpenStaffsModal = (studio) => { navigate(`/admin-dashboard/studio-staff/${studio.id}`) }
-    const handleOpenContractsModal = (studio) => { setSelectedStudioForModal(studio); setIsContractsModalOpen(true) }
+    const handleOpenContractsModal = (studio) => { navigate(`/admin-dashboard/studio-contracts/${studio.id}`) }
 
     const handleDownloadFile = (fileName) => { toast.success(`Downloading ${fileName}`) }
     const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); toast.success(`${newFiles.length} file(s) uploaded successfully`) } }
@@ -748,7 +748,7 @@
                               <div className="w-px h-4 bg-gray-700/50" />
                               <button onClick={() => handleOpenLeadsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><FaPersonRays size={14} />{studioLeads[studio.id]?.length || 0}</button>
                               <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => { setSelectedStudioForModal(studio); setisFinancesModalOpen(true) }} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BadgeDollarSign size={14} /></button>
+                              <button onClick={() => { navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BadgeDollarSign size={14} /></button>
                             </div>
                             <div className="col-span-2 flex items-center justify-end gap-0.5">
                               <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Documents"><FileText size={18} /></button>
@@ -793,7 +793,7 @@
                                     <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{studioLeads[studio.id]?.length || 0} Leads</span></button>
                                   </div>
                                   <div className="grid grid-cols-5 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setisFinancesModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">Finances</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">Finances</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">Docs</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">History</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleViewDetails(studio) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">Details</span></button>
