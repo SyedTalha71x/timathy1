@@ -106,7 +106,7 @@ const getServiceById = async (req, res, next) => {
   }
 };
 
-// const myServices = async (req, res, next) => {
+// const studioServices = async (req, res, next) => {
 //   try {
 //     const userId = req.user?._id;
 //     const services = await ServiceModel.find({ : userId }).sort({ createdAt: -1 });
@@ -126,5 +126,5 @@ module.exports = {
   deleteService,
   getAllServices,
   getServiceById,
-  //   myServices
+  //   studioServices
 };

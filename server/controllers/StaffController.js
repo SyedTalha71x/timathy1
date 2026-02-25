@@ -87,18 +87,18 @@ const createStaff = async (req, res, next) => {
     await staff.save();
     res.cookie("token", AccessToken, {
       httpOnly: true,
-      //secure: process.env.NODE_ENV === "production", // true if on https
-      sameSite: "lax",
-      //sameSite: "None",
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax",
+      sameSite: "None",
 
       maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
 
     res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      //secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      //sameSite: "None",
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -130,7 +130,11 @@ const loginStaff = async (req, res, next) => {
   try {
     const { email, password, studioName } = req.body;
 
-    const studio = await StudioModel.findOne({ studioName });
+    const studio = await StudioModel.findOne({
+      studioName: { $regex: `^${studioName}$`, $options: "i" },
+    });
+    if (!studio) throw new BadRequestError("Invalid Studio Name");
+
     const staff = await UserModel.findOne({ email, studio: studio._id })
       .select("+password")
       .populate("studio", "studioName");

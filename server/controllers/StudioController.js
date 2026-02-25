@@ -156,13 +156,13 @@ const createStudio = async (req, res, next) => {
       court,
       registrationNumber,
       texId,
-      createdBy: req.user._id,
+      createdBy: req.user?._id,
       users: []
     });
 
     // Add studio to admin's studios array
     await AdminModel.findByIdAndUpdate(
-      req.user._id,
+      req.user?._id,
       { $addToSet: { studios: studio._id } },
       { new: true }
     );

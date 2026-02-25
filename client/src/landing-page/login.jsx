@@ -9,7 +9,7 @@ import { memberLogin, staffLoginThunk } from '../features/auth/authSlice'
 import OrgaGymLogo from "../../public/Orgagym white without text.svg"
 import { useSelector, useDispatch } from "react-redux"
 import { fetchMyAppointments } from "../features/appointments/AppointmentSlice"
-import { fetchMyServices } from "../features/services/servicesSlice"
+import { fetchstudioServices } from "../features/services/servicesSlice"
 import { fetchMyStudio } from "../features/studio/studioSlice"
 
 // ============================================================================
@@ -168,7 +168,7 @@ export default function SignInPage() {
         const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
 
         dispatch(fetchMyAppointments())
-        dispatch(fetchMyServices())
+        dispatch(fetchstudioServices())
         dispatch(fetchMyStudio())
         // success → redirect
         navigate(config.redirectPath)
@@ -183,7 +183,7 @@ export default function SignInPage() {
         const res = await dispatch(memberLogin(currentFormData)).unwrap()
 
         dispatch(fetchMyAppointments())
-        dispatch(fetchMyServices())
+        dispatch(fetchstudioServices())
         dispatch(fetchMyStudio())
         // success → redirect
         navigate(config.redirectPath)

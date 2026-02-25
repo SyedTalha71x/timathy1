@@ -5,7 +5,7 @@ const {
   deleteService,
   getServiceById,
   getAllServices,
-  //   myServices 
+  //   studioServices 
 } = require('../controllers/ServiceController');
 const { verifyAccessToken } = require('../middleware/verifyToken');
 const { isAdmin } = require('../middleware/RoleCheck');
@@ -16,10 +16,10 @@ const router = express.Router();
 router.post('/create', verifyAccessToken, isAdmin, upload.single('image'), createService);
 
 // Get all services for a studio (optional: studioId param)
-router.get('/myServices', verifyAccessToken, getAllServices);
+router.get('/studio-services', verifyAccessToken, getAllServices);
 
 // Get my services
-// router.get('/myServices', verifyAccessToken, myServices);
+// router.get('/studioServices', verifyAccessToken, studioServices);
 
 // Get service by ID
 router.get('/:id', verifyAccessToken, getServiceById);

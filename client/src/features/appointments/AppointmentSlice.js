@@ -34,6 +34,19 @@ export const cancelAppointment = createAsyncThunk('appointment/cancel', async (a
 })
 
 
+// fetch all appointments
+
+export const fetchAllAppointments = createAsyncThunk('appointments/all', async (_, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.allAppointments();
+        return res.appointments
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data);
+    }
+})
+
+
 const appointmentSlice = createSlice({
     name: 'appointment',
     initialState: {
@@ -88,6 +101,21 @@ const appointmentSlice = createSlice({
             .addCase(cancelAppointment.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload
+            })
+
+
+            // all apointments
+            .addCase(fetchAllAppointments.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAllAppointments.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointments = action.payload
+            })
+            .addCase(fetchAllAppointments.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
             })
     }
 })
