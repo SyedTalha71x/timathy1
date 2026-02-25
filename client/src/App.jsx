@@ -58,6 +58,9 @@ import EditStudioMembersPage from './dashboard-pages/admin-view/customers-sub-pa
 import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-staff-page'
 
 
+// ─── Standalone Public Pages (outside all dashboard layouts) ─────────────────
+import TrialTraining from './dashboard-pages/studio-view/subpage/trial-training'
+
 // Member Dashboard  
 import MemberDashboardLayout from "./layouts/member-view/member-view-layout";
 import MemberAppointments from './dashboard-pages/member-view/appointment'
@@ -87,7 +90,7 @@ function App() {
   // const dispatch = useDispatch();
   // const navigate = useNavigate();
 
-  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training");
 
 
 
@@ -137,6 +140,16 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            STANDALONE PUBLIC PAGE — Trial Training Booking
+            ─────────────────────────────────────────────────────────────────
+            This route is intentionally OUTSIDE all dashboard layouts.
+            It is a self-contained page for potential customers to book
+            a trial training session — no auth, no sidebar, no nav.
+            File: dashboard-pages/studio-view/subpage/trial-training.jsx
+        ═══════════════════════════════════════════════════════════════════ */}
+        <Route path="/trial-training" element={<TrialTraining />} />
 
 
 

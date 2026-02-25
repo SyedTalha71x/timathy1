@@ -14,6 +14,16 @@ const NOTE_STATUSES = [
   { id: "general", label: "General" },
 ]
 
+// Training Goal Options
+const TRAINING_GOALS = [
+  { id: "strength", label: "Muscle Building" },
+  { id: "cardio", label: "Endurance" },
+  { id: "weight_loss", label: "Weight Loss" },
+  { id: "back_pain", label: "Back & Posture" },
+  { id: "fitness", label: "General Fitness" },
+  { id: "energy", label: "More Energy" },
+]
+
 const ViewLeadDetailsModal = ({
   isVisible,
   onClose,
@@ -567,6 +577,11 @@ const ViewLeadDetailsModal = ({
                       )
                     })()}
                   </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-content-muted">Training Goal</p>
+                  <p>{TRAINING_GOALS.find(g => g.id === leadData.trainingGoal)?.label || "-"}</p>
                 </div>
               </div>
               
