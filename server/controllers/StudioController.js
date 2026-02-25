@@ -2,7 +2,8 @@ const StudioModel = require('../models/StudioModel');
 const { MemberModel, AdminModel, StaffModel } = require('../models/Discriminators');
 const { NotFoundError, UnAuthorizedError, ConflictError } = require('../middleware/error/httpErrors')
 const cloudinary = require('../utils/Cloudinary')
-const { Readable } = require('stream')
+const { Readable } = require('stream');
+const UserModel = require('../models/UserModel');
 
 
 
@@ -32,7 +33,7 @@ const updateStudio = async (req, res, next) => {
       openingHours,
       closingDays,
       overallCapacity,
-      memberId
+      userIdz
     } = req.body;
 
     const updateData = {
@@ -56,14 +57,14 @@ const updateStudio = async (req, res, next) => {
 
     const updateObj = { $set: updateData };
 
-    if (memberId) {
-      const member = await MemberModel.findById(memberId);
+    if (userIdz) {
+      const member = await UserModel.findById(userIdz);
       if (!member) throw new NotFoundError("Member not found");
 
-      updateObj.$addToSet = { members: member._id };
+      updateObj.$addToSet = { users: member._id };
 
       await MemberModel.findByIdAndUpdate(
-        memberId,
+        userIdz,
         { $set: { studio: findStudio._id } },
         { new: true }
       );
@@ -179,8 +180,31 @@ const createStudio = async (req, res, next) => {
 };
 
 
+const deleteStudioById = async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+
+    const { studioId } = req.params;
+
+    const studio = await StudioModel.findById(studioId);
+
+    if (studio.createdBy?.toString() !== userId.toString()) throw new UnAuthorizedError("You Cannot delete studio");
+
+    await StudioModel.findByIdAndDelete(studioId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Deleted Successfully"
+    })
+  }
+  catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   updateStudio,
   getStudioByMemberId,
-  createStudio
+  createStudio,
+  deleteStudioById
 }
