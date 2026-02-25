@@ -5,10 +5,14 @@ import * as barCodeApi from './barCodeApi'
 export const barcodeScanner = createAsyncThunk('/food/barcode', async (code, { rejectWithValue }) => {
     try {
         const res = await barCodeApi.foodByBarcode(code)
-        return res.food
+        const food = res.food || res
+        if (!food || !food.name) {
+            return rejectWithValue({ message: "Product not recognized as a food item." })
+        }
+        return food
     }
     catch (error) {
-        return rejectWithValue(error.response?.data)
+        return rejectWithValue(error.response?.data || { message: "Failed to look up barcode. Please try again." })
     }
 })
 
@@ -47,7 +51,7 @@ const barcodeSlice = createSlice({
             .addCase(barcodeScanner.rejected, (state, action) => {
                 state.scanning = false;
                 state.foodData = null;
-                state.error = action.payload?.message
+                state.error = action.payload?.message || "Product not found. Try scanning again or search manually."
             });
     },
 });

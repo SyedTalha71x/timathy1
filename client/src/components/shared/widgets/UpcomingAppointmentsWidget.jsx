@@ -310,7 +310,7 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                     <p className="text-[11px] mt-1 opacity-70">
                       {appointment.isTrial 
                         ? (appointment.trialType 
-                            ? `Trial Training â€¢ ${appointment.trialType}` 
+                            ? `Trial Training • ${appointment.trialType}` 
                             : "Trial Training") 
                         : appointment.isCancelled 
                           ? <span className="text-red-400">Cancelled</span> 

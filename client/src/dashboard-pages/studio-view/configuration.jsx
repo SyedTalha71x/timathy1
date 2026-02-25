@@ -236,15 +236,6 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "theme", label: "Theme Settings" },
     ],
   },
-  {
-    id: "import",
-    label: "Data Import",
-    icon: Download,
-    adminVisible: true,
-    sections: [
-      { id: "import-data", label: "Import Data" },
-    ],
-  },
 ]
 
 // ============================================
@@ -253,8 +244,8 @@ const ALL_NAVIGATION_ITEMS = [
 
 // Section Header Component
 const SectionHeader = ({ title, description, action }) => (
-  <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-    <div>
+  <div className={`flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 ${action ? 'flex' : 'hidden md:flex'}`}>
+    <div className="hidden md:block">
       <h2 className="text-lg sm:text-xl font-semibold text-content-primary">{title}</h2>
       {description && <p className="text-xs sm:text-sm text-content-muted mt-1">{description}</p>}
     </div>
@@ -268,6 +259,26 @@ const SettingsCard = ({ children, className = "" }) => (
     {children}
   </div>
 )
+
+// Collapsible Variables Row — collapsed on mobile, always visible on desktop
+const VariablesRow = ({ children }) => {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-2">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="md:hidden flex items-center gap-1.5 text-xs text-content-faint mb-1.5 hover:text-content-muted transition-colors"
+      >
+        <ChevronRight className={`w-3 h-3 transition-transform ${open ? "rotate-90" : ""}`} />
+        Variables
+      </button>
+      <div className={`flex-wrap items-center gap-2 ${open ? "flex" : "hidden"} md:flex`}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 // Input Component
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength, required, error, helpText, icon: Icon }) => (
@@ -3470,6 +3481,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       case "contract-forms":
         return (
           <div className="space-y-6">
+            {/* Mobile: show notice that contract forms require desktop */}
+            <div className="lg:hidden">
+              <SettingsCard>
+                <div className="text-center py-12 text-content-muted">
+                  <Smartphone className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-content-primary mb-2">Desktop Required</h3>
+                  <p className="text-sm">Contract forms can only be created and edited on a desktop device.</p>
+                </div>
+              </SettingsCard>
+            </div>
+
+            {/* Desktop: full contract form management */}
+            <div className="hidden lg:block space-y-6">
             <SectionHeader
               title="Contract Forms"
               description="Create and manage contract form templates"
@@ -3638,6 +3662,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               </div>
             )}
+            </div>
           </div>
         )
 
@@ -3878,7 +3903,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     {/* Subject */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Subject</label>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <VariablesRow>
                         <span className="text-xs text-content-faint mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
@@ -3889,7 +3914,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
                         ))}
-                      </div>
+                      </VariablesRow>
                       <input
                         type="text"
                         value={settings.birthdayEmailSubject || ""}
@@ -3902,7 +3927,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     {/* Message */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Message</label>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <VariablesRow>
                         <span className="text-xs text-content-faint mr-1">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
@@ -3928,7 +3953,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           <FileText className="w-3 h-3" />
                           Email Signature
                         </button>
-                      </div>
+                      </VariablesRow>
                       <WysiwygEditor
                         ref={birthdayEditorRef}
                         value={settings.birthdayEmailTemplate || ""}
@@ -4022,7 +4047,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Subject */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Subject</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {subjectVariables.map(v => (
                               <button
@@ -4036,7 +4061,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                          </div>
+                          </VariablesRow>
                           <input
                             type="text"
                             value={config.emailSubject || ""}
@@ -4052,7 +4077,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Message</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-1">Variables:</span>
                             {messageVariables.map(v => (
                               <button
@@ -4078,7 +4103,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               <FileText className="w-3 h-3" />
                               Email Signature
                             </button>
-                          </div>
+                          </VariablesRow>
                           <WysiwygEditor
                             ref={(el) => { appointmentEditorRefs.current[type] = el }}
                             value={config.emailTemplate || ""}
@@ -4173,7 +4198,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Subject */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Subject</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {subjectVariables.map(v => (
                               <button
@@ -4187,7 +4212,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                          </div>
+                          </VariablesRow>
                           <input
                             type="text"
                             value={config.emailSubject || ""}
@@ -4203,7 +4228,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Message</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-1">Variables:</span>
                             {messageVariables.map(v => (
                               <button
@@ -4229,7 +4254,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               <FileText className="w-3 h-3" />
                               Email Signature
                             </button>
-                          </div>
+                          </VariablesRow>
                           <WysiwygEditor
                             ref={(el) => { classEditorRefs.current[type] = el }}
                             value={config.emailTemplate || ""}
@@ -4286,7 +4311,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     {/* Title */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Title</label>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <VariablesRow>
                         <span className="text-xs text-content-faint mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
@@ -4297,7 +4322,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
                         ))}
-                      </div>
+                      </VariablesRow>
                       <input
                         type="text"
                         value={settings.birthdayAppTitle || ""}
@@ -4310,7 +4335,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     {/* Message */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Message</label>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <VariablesRow>
                         <span className="text-xs text-content-faint mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
@@ -4321,7 +4346,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
                         ))}
-                      </div>
+                      </VariablesRow>
                       <textarea
                         value={settings.birthdayAppMessage || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayAppMessage: e.target.value })}
@@ -4408,7 +4433,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Title */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Title</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {titleVariables.map(v => (
                               <button
@@ -4422,7 +4447,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                          </div>
+                          </VariablesRow>
                           <input
                             type="text"
                             value={config.appTitle || ""}
@@ -4438,7 +4463,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Message</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {messageVariables.map(v => (
                               <button
@@ -4452,7 +4477,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                          </div>
+                          </VariablesRow>
                           <textarea
                             value={config.appMessage || ""}
                             onChange={(e) => setAppointmentNotificationTypes({
@@ -4546,7 +4571,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Title */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Title</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {titleVariables.map(v => (
                               <button
@@ -4560,7 +4585,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                          </div>
+                          </VariablesRow>
                           <input
                             type="text"
                             value={config.appTitle || ""}
@@ -4576,7 +4601,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Message</label>
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <VariablesRow>
                             <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {messageVariables.map(v => (
                               <button
@@ -4590,7 +4615,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                          </div>
+                          </VariablesRow>
                           <textarea
                             value={config.appMessage || ""}
                             onChange={(e) => setClassNotificationTypes({
@@ -4732,7 +4757,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 <p className="text-sm text-content-muted">
                   This signature can be inserted into your email notification templates using the orange "Email Signature" button.
                 </p>
-                <div className="flex flex-wrap items-center gap-2">
+                <VariablesRow>
                   <span className="text-xs text-content-faint mr-1">Variables:</span>
                   {["{Studio_Name}", "{Studio_Operator}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
                     <button
@@ -4743,7 +4768,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       {v.replace(/{|}/g, "").replace(/_/g, " ")}
                     </button>
                   ))}
-                </div>
+                </VariablesRow>
                 <WysiwygEditor
                   ref={signatureEditorRef}
                   value={settings.emailSignature || ""}
@@ -4765,7 +4790,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-content-faint mr-2">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
                       <button
@@ -4776,7 +4801,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
-                  </div>
+                  </VariablesRow>
                   <input
                     type="text"
                     value={settings.einvoiceSubject || ""}
@@ -4788,7 +4813,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-content-faint mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
                       <button
@@ -4814,7 +4839,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
-                  </div>
+                  </VariablesRow>
                   <WysiwygEditor
                     ref={einvoiceEditorRef}
                     value={settings.einvoiceTemplate || ""}
@@ -4837,7 +4862,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-content-faint mr-2">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
                       <button
@@ -4848,7 +4873,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
-                  </div>
+                  </VariablesRow>
                   <input
                     type="text"
                     value={settings.contractCancellationSubject || ""}
@@ -4860,7 +4885,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-content-faint mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
                       <button
@@ -4886,7 +4911,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
-                  </div>
+                  </VariablesRow>
                   <WysiwygEditor
                     ref={cancellationEditorRef}
                     value={settings.contractCancellationTemplate || ""}
@@ -4909,7 +4934,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-content-faint mr-2">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
                       <button
@@ -4920,7 +4945,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
-                  </div>
+                  </VariablesRow>
                   <input
                     type="text"
                     value={settings.contractConclusionSubject || ""}
@@ -4932,7 +4957,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-content-faint mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
                       <button
@@ -4958,7 +4983,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
-                  </div>
+                  </VariablesRow>
                   <WysiwygEditor
                     ref={conclusionEditorRef}
                     value={settings.contractConclusionTemplate || ""}
@@ -5194,17 +5219,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   )}
                 </div>
 
-                <Toggle
-                  label="Allow Staff to Toggle Theme"
-                  checked={appearance.allowStaffThemeToggle}
-                  onChange={(v) => setAppearance({ ...appearance, allowStaffThemeToggle: v })}
-                />
-                <Toggle
-                  label="Allow Members to Toggle Theme"
-                  checked={appearance.allowMemberThemeToggle}
-                  onChange={(v) => setAppearance({ ...appearance, allowMemberThemeToggle: v })}
-                />
-
                 <div className="pt-4 border-t border-border">
                   <div className="grid grid-cols-1 gap-4">
                     {/* Color Scheme */}
@@ -5325,70 +5339,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       // ========================
       // IMPORT SECTION
       // ========================
-      case "import-data":
-        return (
-          <div className="space-y-6">
-            <SectionHeader title="Data Import" description="Import data from other platforms" />
-            
-            <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
-              <p className="text-primary text-sm flex items-start gap-2">
-                <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                You can import your existing data from other fitness studio platforms. Supported formats: CSV, Excel, PDF, Word
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { icon: Users, title: "Member Data", desc: "Import member profiles and contact information" },
-                { icon: FileText, title: "Contracts", desc: "Import contract templates and existing contracts" },
-                { icon: UserPlus, title: "Leads", desc: "Import lead information and contact details" },
-                { icon: Download, title: "Additional Files", desc: "Import other documents and studio data" },
-              ].map((item, index) => (
-                <SettingsCard key={index}>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-surface-button rounded-lg">
-                        <item.icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <h3 className="text-content-primary font-medium text-sm sm:text-base">{item.title}</h3>
-                    </div>
-                    <p className="text-xs sm:text-sm text-content-muted">{item.desc}</p>
-                    <label className="block">
-                      <span className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover cursor-pointer transition-colors inline-flex items-center gap-2">
-                        <Upload className="w-4 h-4" />
-                        Upload File
-                      </span>
-                      <input type="file" className="hidden" accept=".csv,.xlsx,.xls,.pdf,.doc,.docx" />
-                    </label>
-                  </div>
-                </SettingsCard>
-              ))}
-            </div>
-
-            <SettingsCard>
-              <h3 className="text-content-primary font-medium mb-3">Import Instructions</h3>
-              <ul className="text-sm text-content-muted space-y-2">
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Ensure your files are in supported formats (CSV, Excel, PDF, Word)
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Backup your current data before importing
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Large imports may take several minutes to process
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Review imported data for accuracy after completion
-                </li>
-              </ul>
-            </SettingsCard>
-          </div>
-        )
-
       default:
         return (
           <div className="text-center py-12 text-content-muted">

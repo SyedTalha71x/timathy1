@@ -22,7 +22,7 @@ const DAY_HEADERS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
  * - iconSize     optional, default 16
  * - className    optional extra classes on the icon button
  */
-const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDate = "" }) => {
+const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDate = "", maxDate = "" }) => {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState("days")
   const [viewDate, setViewDate] = useState(() => {
@@ -114,6 +114,15 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
     return dateStr < minDate
   }
 
+  // maxDate support: parse "YYYY-MM-DD" into components
+  const maxYear = maxDate ? +maxDate.split('-')[0] : null
+  const maxMonth = maxDate ? +maxDate.split('-')[1] - 1 : null
+  const maxDay = maxDate ? +maxDate.split('-')[2] : null
+  const isAfterMax = (dateStr) => {
+    if (!maxDate) return false
+    return dateStr > maxDate
+  }
+
   const handleSelect = (day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     onChange(dateStr)
@@ -149,7 +158,12 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
             <div className="flex justify-between items-center mb-3">
               <button type="button" onClick={prevMonth} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronLeft className="w-4 h-4" /></button>
               <button type="button" onClick={() => setView("months")} className="text-content-primary font-medium text-sm hover:bg-surface-button px-2 py-1 rounded-lg transition-colors">{MONTH_NAMES[month]} {year}</button>
-              <button type="button" onClick={nextMonth} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              <button type="button" onClick={nextMonth}
+                disabled={maxYear != null && (year > maxYear || (year === maxYear && month >= maxMonth))}
+                className={`p-1.5 hover:bg-surface-button rounded-lg transition-colors ${
+                  maxYear != null && (year > maxYear || (year === maxYear && month >= maxMonth))
+                    ? "text-content-faint/40 cursor-not-allowed" : "text-content-muted hover:text-content-primary"
+                }`}><ChevronRight className="w-4 h-4" /></button>
             </div>
             <div className="grid grid-cols-7 gap-1 mb-1">
               {DAY_HEADERS.map(d => (<div key={d} className="text-center text-content-faint text-xs font-medium py-1">{d}</div>))}
@@ -161,7 +175,7 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                 const isSelected = value === dateStr
                 const isToday = dateStr === todayStr
-                const isDisabled = isBeforeMin(dateStr)
+                const isDisabled = isBeforeMin(dateStr) || isAfterMax(dateStr)
                 return (
                   <button key={day} type="button" onClick={() => !isDisabled && handleSelect(day)} disabled={isDisabled}
                     className={`w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-all duration-200 ${
@@ -182,13 +196,19 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
             <div className="flex justify-between items-center mb-4">
               <button type="button" onClick={() => setViewDate(new Date(year - 1, month, 1))} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronLeft className="w-4 h-4" /></button>
               <button type="button" onClick={() => { setYearRangeStart(year - (year % 20)); setView("years") }} className="text-content-primary font-medium text-sm hover:bg-surface-button px-2 py-1 rounded-lg transition-colors">{year}</button>
-              <button type="button" onClick={() => setViewDate(new Date(year + 1, month, 1))} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setViewDate(new Date(year + 1, month, 1))}
+                disabled={maxYear != null && year >= maxYear}
+                className={`p-1.5 hover:bg-surface-button rounded-lg transition-colors ${
+                  maxYear != null && year >= maxYear ? "text-content-faint/40 cursor-not-allowed" : "text-content-muted hover:text-content-primary"
+                }`}><ChevronRight className="w-4 h-4" /></button>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {MONTH_SHORT.map((name, i) => {
                 const isCurrent = year === todayYear && i === todayMonth
                 const isSelected = year === selectedYear && i === selectedMonth
-                const isDisabled = minYear != null && (year < minYear || (year === minYear && i < minMonth))
+                const isDisabledMin = minYear != null && (year < minYear || (year === minYear && i < minMonth))
+                const isDisabledMax = maxYear != null && (year > maxYear || (year === maxYear && i > maxMonth))
+                const isDisabled = isDisabledMin || isDisabledMax
                 return (
                   <button key={name} type="button" onClick={() => !isDisabled && handleMonthSelect(i)} disabled={isDisabled}
                     className={`py-2.5 text-sm rounded-lg transition-all duration-200 ${
@@ -209,14 +229,20 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
             <div className="flex justify-between items-center mb-4">
               <button type="button" onClick={() => setYearRangeStart(yearRangeStart - 20)} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronLeft className="w-4 h-4" /></button>
               <span className="text-content-primary font-medium text-sm">{yearRangeStart} – {yearRangeStart + 19}</span>
-              <button type="button" onClick={() => setYearRangeStart(yearRangeStart + 20)} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setYearRangeStart(yearRangeStart + 20)}
+                disabled={maxYear != null && yearRangeStart + 20 > maxYear}
+                className={`p-1.5 hover:bg-surface-button rounded-lg transition-colors ${
+                  maxYear != null && yearRangeStart + 20 > maxYear ? "text-content-faint/40 cursor-not-allowed" : "text-content-muted hover:text-content-primary"
+                }`}><ChevronRight className="w-4 h-4" /></button>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {Array.from({ length: 20 }).map((_, i) => {
                 const y = yearRangeStart + i
                 const isCurrent = y === todayYear
                 const isSelected = y === selectedYear
-                const isDisabled = minYear != null && y < minYear
+                const isDisabledMin = minYear != null && y < minYear
+                const isDisabledMax = maxYear != null && y > maxYear
+                const isDisabled = isDisabledMin || isDisabledMax
                 return (
                   <button key={y} type="button" onClick={() => !isDisabled && handleYearSelect(y)} disabled={isDisabled}
                     className={`py-2 text-sm rounded-lg transition-all duration-200 ${

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { Edit, Eye, Globe, Lock, Pin, PinOff, Save, Trash2, User, X } from "lucide-react"
+import { Edit, Eye, Pin, PinOff, Save, Trash2, User, X } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
 
@@ -37,7 +37,6 @@ const ViewManagementModal = ({
   variant = "dashboard" // "dashboard" or "sidebar"
 }) => {
   const [viewName, setViewName] = useState("")
-  const [isGlobalVisible, setIsGlobalVisible] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [editingView, setEditingView] = useState(null)
 
@@ -71,16 +70,15 @@ const ViewManagementModal = ({
       id: `view_${Date.now()}`,
       name: viewName.trim(),
       widgets: [...currentWidgets],
-      widgetSettings: { ...widgetSettings }, // Save widget settings (visible items per widget)
+      widgetSettings: { ...widgetSettings },
       isStandard: false,
-      isGlobal: isGlobalVisible,
+      isDefault: false,
       createdBy: currentUser,
       createdAt: new Date().toISOString(),
     }
 
     setSavedViews((prev) => [...prev, newView])
     setViewName("")
-    setIsGlobalVisible(false)
     setIsCreating(false)
     toast.success(`View "${newView.name}" saved successfully`)
   }
@@ -108,6 +106,11 @@ const ViewManagementModal = ({
   }
 
   const handleDeleteView = (viewId) => {
+    const view = savedViews.find((v) => v.id === viewId)
+    if (view?.isDefault) {
+      toast.error("The default view cannot be deleted")
+      return
+    }
     setSavedViews((prev) => prev.filter((view) => view.id !== viewId))
     toast.success("View deleted")
   }
@@ -115,7 +118,6 @@ const ViewManagementModal = ({
   const handleEditView = (view) => {
     setEditingView(view)
     setViewName(view.name)
-    setIsGlobalVisible(view.isGlobal || false)
   }
 
   const handleUpdateView = () => {
@@ -130,9 +132,8 @@ const ViewManagementModal = ({
           ? { 
               ...view, 
               name: viewName.trim(), 
-              isGlobal: isGlobalVisible,
-              widgets: [...currentWidgets], // Update widgets
-              widgetSettings: { ...widgetSettings } // Update widget settings
+              widgets: [...currentWidgets],
+              widgetSettings: { ...widgetSettings }
             } 
           : view,
       ),
@@ -140,25 +141,18 @@ const ViewManagementModal = ({
 
     setEditingView(null)
     setViewName("")
-    setIsGlobalVisible(false)
     toast.success("View updated successfully")
   }
 
   const cancelEdit = () => {
     setEditingView(null)
     setViewName("")
-    setIsGlobalVisible(false)
     setIsCreating(false)
   }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
       <div className="bg-surface-card rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <style>{`
-          .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
-          .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
-          .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
-        `}</style>
         <div className="p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4 sm:mb-6">
             <h3 className="text-lg sm:text-xl font-semibold text-content-primary">{title}</h3>
@@ -190,19 +184,6 @@ const ViewManagementModal = ({
                   className="w-full p-2 sm:p-3 bg-surface-dark rounded-lg text-content-primary text-sm outline-none"
                   autoFocus
                 />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="globalVisible"
-                    checked={isGlobalVisible}
-                    onChange={(e) => setIsGlobalVisible(e.target.checked)}
-                    className="primary-check"
-                  />
-                  <label htmlFor="globalVisible" className="text-sm text-content-primary flex items-center gap-1">
-                    <Globe size={14} />
-                    Make globally visible to all users
-                  </label>
-                </div>
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={editingView ? handleUpdateView : handleSaveCurrentView}
@@ -251,14 +232,11 @@ const ViewManagementModal = ({
                               Pinned
                             </span>
                           )}
-                          <span
-                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs whitespace-nowrap ${
-                              view.isGlobal ? "bg-surface-button text-content-muted" : "bg-surface-button text-content-muted"
-                            }`}
-                          >
-                            {view.isGlobal ? <Globe size={12} /> : <Lock size={12} />}
-                            {view.isGlobal ? "Global" : "Private"}
-                          </span>
+                          {view.isDefault && (
+                            <span className="px-2 py-1 bg-surface-button text-content-muted rounded text-xs whitespace-nowrap">
+                              Default
+                            </span>
+                          )}
                           {currentView?.id === view.id && (
                             <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs whitespace-nowrap">
                               Active
@@ -282,13 +260,15 @@ const ViewManagementModal = ({
                         >
                           Load
                         </button>
-                        <button
-                          onClick={() => handleEditView(view)}
-                          className="p-1.5 sm:p-2 hover:bg-surface-hover rounded text-primary"
-                          title="Edit view"
-                        >
-                          <Edit size={14} />
-                        </button>
+                        {!view.isDefault && (
+                          <button
+                            onClick={() => handleEditView(view)}
+                            className="p-1.5 sm:p-2 hover:bg-surface-hover rounded text-primary"
+                            title="Edit view"
+                          >
+                            <Edit size={14} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleTogglePin(view.id)}
                           className={`p-1.5 sm:p-2 hover:bg-surface-hover rounded ${
@@ -298,13 +278,15 @@ const ViewManagementModal = ({
                         >
                           {view.isStandard ? <Pin size={14} /> : <PinOff size={14} />}
                         </button>
-                        <button
-                          onClick={() => handleDeleteView(view.id)}
-                          className="p-1.5 sm:p-2 hover:bg-surface-hover rounded text-accent-red"
-                          title="Delete view"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {!view.isDefault && (
+                          <button
+                            onClick={() => handleDeleteView(view.id)}
+                            className="p-1.5 sm:p-2 hover:bg-surface-hover rounded text-accent-red"
+                            title="Delete view"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -14,7 +14,7 @@ import {
   ShoppingCart,
   Bell,
   ChevronRight,
-  Utensils,
+  Apple,
   ClipboardList,
   BarChart3,
   Target,
@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { SiYoutubestudio } from "react-icons/si";
 import { CgGym } from "react-icons/cg";
-import { IoMdNutrition } from "react-icons/io";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../../features/auth/authSlice";
 
@@ -32,8 +31,6 @@ const MemberViewSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCol
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
   const isCollapsed = externalIsCollapsed !== undefined ? externalIsCollapsed : internalIsCollapsed;
   const toggleCollapse = onToggleCollapse || (() => setInternalIsCollapsed(!internalIsCollapsed));
-
-  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
 
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(3);
 
@@ -94,23 +91,9 @@ const MemberViewSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCol
       to: "/member-view/training",
     },
     {
-      icon: Utensils,
-      label: "Nutrition Tracking",
-      to: "#",
-      hasSubmenu: true,
-      submenu: [
-        { label: "Food Log", to: "/member-view/food-log", icon: BookOpen },
-        { label: "Nutrition Breakdown", to: "/member-view/nutrition-breakdown", icon: BarChart3 },
-        { label: "Daily Summary", to: "/member-view/daily-summary", icon: ClipboardList },
-        { label: "Goal Settings", to: "/member-view/goal-settings", icon: Target },
-        { label: "Notifications & Reminders", to: "/member-view/notifications-remainders", icon: Bell },
-        { label: "Offline Mode", to: "/member-view/offline-mode", icon: CloudOff },
-      ],
-    },
-    {
-      icon: IoMdNutrition,
-      label: "Nutrition Analysis",
-      to: "/member-view/nutrition-analysis",
+      icon: Apple,
+      label: "Nutrition",
+      to: "/member-view/nutrition",
     },
     {
       icon: Settings,
@@ -124,17 +107,9 @@ const MemberViewSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCol
     return submenu?.some((subItem) => location.pathname === subItem.to);
   };
 
-  // Toggle submenu
-  const toggleSubmenu = (label) => {
-    if (label === "Nutrition Tracking") {
-      setIsNutritionOpen(!isNutritionOpen);
-    }
-  };
-
-  const isSubmenuOpenFn = (label) => {
-    if (label === "Nutrition Tracking") return isNutritionOpen;
-    return false;
-  };
+  // Toggle submenu (currently no submenus)
+  const toggleSubmenu = () => {}
+  const isSubmenuOpenFn = () => false
 
   return (
     <>

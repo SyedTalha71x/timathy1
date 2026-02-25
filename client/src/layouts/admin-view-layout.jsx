@@ -176,7 +176,7 @@ const AdminDashboardLayout = () => {
   }
 
   return (
-    <div className="bg-[#111111] min-h-screen">
+    <div className="admin-root bg-[#111111] min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
 
         {/* ========== MOBILE HEADER (lg:hidden) ========== */}
