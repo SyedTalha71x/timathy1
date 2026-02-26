@@ -73,6 +73,7 @@ import MemberSettings from './dashboard-pages/member-view/settings'
 import MemberTraining from './dashboard-pages/member-view/training'
 import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
 import MemberNutritionTracker from './dashboard-pages/member-view/nutrition-tracker'
+import MemberClasses from './dashboard-pages/member-view/classes'
 // import { useEffect } from "react";
 // import { fetchMyStudio } from "./features/studio/studioSlice";
 // import { fetchstudioServices } from "./features/services/servicesSlice";
@@ -226,6 +227,7 @@ function App() {
           // </ProtectedRoutes>
         }>
           <Route path="appointment" element={<MemberAppointments />} />
+          <Route path="classes" element={<MemberClasses />} />
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />
           <Route path="settings" element={<MemberSettings />} />
