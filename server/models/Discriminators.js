@@ -34,6 +34,10 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
     memberNumber: {
         type: String,
     },
+    checkIn:{
+        type:Boolean,
+        default:false,
+    },
     appointments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Appointment'

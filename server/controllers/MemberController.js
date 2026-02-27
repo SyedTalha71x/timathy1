@@ -92,18 +92,18 @@ const createMember = async (req, res, next) => {
 
     res.cookie("token", AccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true if on https
-      //sameSite: "lax",
-      sameSite: "None",
+      //secure: process.env.NODE_ENV === "production", // true if on https
+      sameSite: "lax",
+      //sameSite: "None",
 
       maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
 
     res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      //sameSite: "lax",
-      sameSite: "None",
+      //secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      //sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -310,6 +310,23 @@ const getMembers = async (req, res, next) => {
 }
 
 
+// update member checkIn by id
+
+const updateMemberCheckIn = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const member = await MemberModel.findByIdAndUpdate(id, { checkIn: true }, { new: true });
+    if (!member) throw new NotFoundError('Member not found');
+    return res.status(200).json({
+      status: true,
+      member
+    })
+  }
+  catch (error) {
+    next(error)
+  }
+}
+
 // get me
 
 
@@ -320,4 +337,5 @@ module.exports = {
   deleteMemberById,
   getMemberById,
   getMembers,
+  updateMemberCheckIn
 };
