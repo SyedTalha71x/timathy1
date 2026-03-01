@@ -38,6 +38,11 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         type:Boolean,
         default:false,
     },
+    status:{
+        type:String,
+        enum:['active','paused','canceled'],
+        default:'active',
+    },
     appointments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Appointment'

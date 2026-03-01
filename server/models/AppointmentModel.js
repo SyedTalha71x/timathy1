@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const AppointmentSchema = new mongoose.Schema({
     member: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Member',
+        ref: 'member',
         required: true
     },
     studio: {
@@ -43,7 +43,7 @@ const AppointmentSchema = new mongoose.Schema({
     },
     contingentUsed: {
         type: Number,
-        default: 1
+        default: 5
     },
 
 }, { timestamps: true });

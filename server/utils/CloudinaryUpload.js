@@ -93,18 +93,19 @@ const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
 // --- Video Thumbnails ---
 const uploadThumbnail = (filePath, folder = "Timathy/trainingVideo/thumbnail") => {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(filePath, { folder, resource_type: "image" }, (err, result) => {
-      if (err) return reject(err);
-
-      // Optionally delete local file
-      try {
-        fs.unlinkSync(filePath);
-      } catch (e) {
-        console.warn("Failed to delete file:", e.message);
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
       }
+    );
 
-      resolve(result);
-    });
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
+    bufferStream.pipe(stream);
   });
 };
 

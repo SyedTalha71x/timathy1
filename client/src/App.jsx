@@ -69,7 +69,7 @@ import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edi
 import MemberNutritionTracker from './dashboard-pages/member-view/nutrition-tracker'
 // import { useEffect } from "react";
 // import { fetchMyStudio } from "./features/studio/studioSlice";
-// import { fetchstudioServices } from "./features/services/servicesSlice";
+// import { fetchStudioServices } from "./features/services/servicesSlice";
 // import { fetchMyAppointments } from "./features/appointments/AppointmentSlice";
 
 // import { useEffect } from "react";
@@ -95,7 +95,7 @@ function App() {
 
   // useEffect(() => {
   //   dispatch(me());
-  //   dispatch(fetchstudioServices())
+  //   dispatch(fetchStudioServices())
   //   dispatch(fetchMyAppointments())
   //   dispatch(fetchMyStudio())
   // }, [dispatch]);

@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 
 // upload video
-const { upload } = require('../config/upload')
+const { uploadImage,uploadVideo } = require('../config/upload')
 
 // controller
 
@@ -10,7 +10,7 @@ const { createTrainingVideoUpload, getAllTrainingVideos, deleteTrainingVideoById
 const { verifyAccessToken } = require('../middleware/verifyToken')
 const { isStaff, isAdmin } = require('../middleware/RoleCheck')
 
-router.post('/upload/video', verifyAccessToken, isAdmin, upload.fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'videoUrl', maxCount: 1 }]), createTrainingVideoUpload)
+router.post('/upload/video', verifyAccessToken, isAdmin, uploadImage.single('thumbnail'), uploadVideo.single('videoUrl'), createTrainingVideoUpload)
 router.get('/training-videos', verifyAccessToken, getAllTrainingVideos)
 router.delete('/:videoId', verifyAccessToken, deleteTrainingVideoById)
 

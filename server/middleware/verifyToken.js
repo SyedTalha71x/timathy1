@@ -1,31 +1,32 @@
-const jwt = require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
+const UserModel = require("../models/UserModel");
 
-const verifyAccessToken = (req, res, next) => {
+const verifyAccessToken = async (req, res, next) => {
     try {
-        const token = req.cookies?.token
-        if (!token) {
-            return res.status(401).json({ error: "Invalid Access Token " })
-        }
-        const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN)
+        const token = req.cookies?.token;
 
-        req.user = {
-            _id: decoded._id,
-            email: decoded.email,
-            studioId: decoded.studioId,
-            role: decoded.role,
-            username: decoded.username,
-            img: decoded.img,
-            // staffRole: decoded.staffRole,
+        if (!token) {
+            return res.status(401).json({ error: "Invalid Access Token" });
         }
+
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN);
+
+        // 🔥 Fetch full user from DB
+        const user = await UserModel.findById(decoded._id);
+
+        if (!user) {
+            return res.status(401).json({ error: "User not found" });
+        }
+
+        req.user = user; // now contains studios, permissions, everything
         next();
-    }
-    catch (error) {
+    } catch (error) {
         if (error.name === "TokenExpiredError") {
             return res.status(401).json({ error: "Access Token Expired" });
         }
         return res.status(401).json({ error: "Invalid Token" });
     }
-}
+};
 
 
 // refresh access Token
@@ -41,7 +42,7 @@ const verifyRefreshToken = (req, res, next) => {
             _id: decoded._id,
             email: decoded.email,
             role: decoded.role,
-            
+
         }
         next();
     }

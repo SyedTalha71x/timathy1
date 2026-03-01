@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as ServiceApi from './servicesApi'
 
 
-export const fetchstudioServices = createAsyncThunk('studio/studioServices', async (_, { rejectWithValue }) => {
+export const fetchStudioServices = createAsyncThunk('studio/studioServices', async (_, { rejectWithValue }) => {
     try {
         const res = await ServiceApi.studioServices()
         return res.services
@@ -24,15 +24,15 @@ const serviceSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchstudioServices.pending, (state) => {
+            .addCase(fetchStudioServices.pending, (state) => {
                 state.loading = true,
                     state.error = null
             })
-            .addCase(fetchstudioServices.fulfilled, (state, action) => {
+            .addCase(fetchStudioServices.fulfilled, (state, action) => {
                 state.loading = false,
                     state.services = action.payload;
             })
-            .addCase(fetchstudioServices.rejected, (state, action) => {
+            .addCase(fetchStudioServices.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload?.error
             })

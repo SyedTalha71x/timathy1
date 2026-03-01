@@ -92,18 +92,18 @@ const createMember = async (req, res, next) => {
 
     res.cookie("token", AccessToken, {
       httpOnly: true,
-      //secure: process.env.NODE_ENV === "production", // true if on https
-      sameSite: "lax",
-      //sameSite: "None",
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax",
+      sameSite: "None",
 
       maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
 
     res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      //secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      //sameSite: "None",
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -297,11 +297,12 @@ const getMemberById = async (req, res, next) => {
 
 const getMembers = async (req, res, next) => {
   try {
+    const userId = req.user?._id;
     const member = await MemberModel.find();
     if (!member) throw new NotFoundError('no member Available');
     return res.status(200).json({
       status: true,
-      member
+      member:member
     })
   }
   catch (error) {

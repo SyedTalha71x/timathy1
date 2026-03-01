@@ -8,18 +8,25 @@ const UserModel = require('../models/UserModel');
 const createService = async (req, res, next) => {
   try {
     const userId = req.user?._id;
-    const { name, description, duration, contingentUsage, maxSimultaneous, studioId, category, price } = req.body;
+    console.log("REQ.USER:", req.user);
+    console.log("REQ.USER.STUDIOS:", req.user?.studios);
+    const { name, description, duration, contingentUsage, maxSimultaneous, category, price } = req.body;
 
     // if (!trainerId) throw new NotFoundError("Invalid Trainer Id")
 
     // const trainer = await UserModel.findById(trainerId)
     // if (!trainer) throw new NotFoundError("Invalid Trainer")
-    if (!studioId) throw new UnAuthorizedError("You are not assigned to any studio");
-    const studio = await StudioModel.findOne({ _id: studioId, createdBy: userId })
 
-    if (!studio) {
-      throw new UnAuthorizedError("You are not allowed to add services to this studio");
+    const studioId = req.user?.studios?.[0];
+
+    if (!studioId) {
+      throw new UnAuthorizedError("You are not assigned to any studio");
     }
+
+    const studio = await StudioModel.findOne({
+      _id: studioId,
+      createdBy: userId,
+    });
 
     if (!req.file) throw new BadRequestError('Image not uploaded');
 
@@ -41,6 +48,11 @@ const createService = async (req, res, next) => {
       },
       createdBy: userId
     });
+
+    console.log("USer", userId)
+    console.log("body", req.body)
+
+    await StudioModel.findByIdAndUpdate(studioId, { $push: { services: service._id } }, { new: true });
 
 
     return res.status(201).json({
@@ -78,7 +90,7 @@ const deleteService = async (req, res, next) => {
 
 const getAllServices = async (req, res, next) => {
   try {
-    const studioId = req.user?.studioId;
+    const studioId = req.user?.studio;
     const services = await ServiceModel.find({ studio: studioId }).sort({ createdAt: -1 });
     if (!services.length) throw new NotFoundError('No services available');
 

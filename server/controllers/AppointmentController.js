@@ -72,6 +72,46 @@ const createAppointment = async (req, res, next) => {
     }
 }
 
+// create Appointment for member by staff
+const createAppointmentByStaff = async (req, res, next) => {
+    try {
+        const { memberId } = req.params;
+        let { service, date, timeSlot, view } = req.body;
+
+        if (!service || !date || !timeSlot) throw new BadRequestError("Missing required Field")
+
+        const serviceData = await ServiceModel.findById(service)
+        if (!serviceData) throw new NotFoundError("Invalid Service ID")
+
+        const member = await MemberModel.findById(memberId)
+        if (!member) throw new NotFoundError("Invalid Member Id ")
+        const studioId = member?.studio;
+        const appointment = await AppointmentModel.create({
+            member: memberId,
+            studio: studioId,
+            service: service,
+            date,
+            timeSlot,
+            view,
+            // notes,
+            status: "confirmed"
+        })
+
+        await MemberModel.findByIdAndUpdate(memberId, {
+            $push: { appointments: appointment._id }
+        }, { new: true })
+
+        serviceData.contingentUsage -= 1;
+        await serviceData.save();
+        return res.status(201).json({
+            success: true,
+            appointment: appointment
+        })
+    } catch (error) {
+        next(error);
+    }
+}
+
 const getMyAppointment = async (req, res, next) => {
     try {
         const userId = req.user?._id
@@ -136,7 +176,12 @@ const cancelAppointment = async (req, res, next) => {
 
 const allAppointments = async (req, res, next) => {
     try {
-        const appointment = await AppointmentModel.find();
+        const appointment = await AppointmentModel.find()
+            .populate('member', 'firstName lastName')
+            .populate('studio', 'studioName')
+            .populate('service', 'name')
+            .sort({ createdAt: -1 });
+        if (!appointment || appointment.length === 0) throw new NotFoundError("No Appointment Booked")
         return res.status(200).json({
             success: true,
             appointments: appointment
@@ -147,6 +192,33 @@ const allAppointments = async (req, res, next) => {
     }
 }
 
+const appointmentByMemberId = async (req, res, next) => {
+    try {
+        const { memberId } = req.params;
 
+        if (!mongoose.Types.ObjectId.isValid(memberId)) {
+            throw new NotFoundError("Invalid Member ID");
+        }
 
-module.exports = { createAppointment, getMyAppointment, cancelAppointment,allAppointments }
+        const now = new Date();
+
+        // Find only appointments with date >= today
+        const appointment = await AppointmentModel.find({
+            member: memberId,
+            date: { $gte: now }
+        })
+            .populate('member', 'firstName lastName')
+            .populate('service', 'name')
+            .populate('studio', 'studioName')
+        //   .sort({ date: -1 }); // soonest first
+
+        return res.status(200).json({
+            success: true,
+            appointment: appointment || [],
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { createAppointment, getMyAppointment, cancelAppointment, allAppointments, appointmentByMemberId, createAppointmentByStaff }

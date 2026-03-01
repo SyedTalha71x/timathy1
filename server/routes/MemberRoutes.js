@@ -9,11 +9,11 @@ const {
     updateMemberCheckIn
 } = require('../controllers/MemberController');
 const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
-const { isAdmin } = require('../middleware/RoleCheck');
+const { isAdmin, isStaff } = require('../middleware/RoleCheck');
 // const upload = require('../config/upload')
 const router = express.Router();
 
-router.get('/members', verifyAccessToken, isAdmin, getMembers)
+router.get('/members', verifyAccessToken, isStaff, getMembers)
 router.get('/:id', verifyAccessToken, getMemberById)
 router.post('/create', verifyAccessToken, isAdmin, createMember)
 router.post('/login', loginMember)

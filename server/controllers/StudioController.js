@@ -96,7 +96,8 @@ const getStudioByMemberId = async (req, res, next) => {
 
     const studio = await StudioModel
       .findOne({ users: userId })
-      .populate("users", "firstName lastName email phone role");
+      .populate("users", "firstName lastName email phone role")
+      .populate('services','name description duration price')
 
     if (!studio) throw new NotFoundError("Studio not found");
 
