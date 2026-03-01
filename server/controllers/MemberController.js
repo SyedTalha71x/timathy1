@@ -297,8 +297,27 @@ const getMemberById = async (req, res, next) => {
 
 const getMembers = async (req, res, next) => {
   try {
+    const userId = req.user?._id;
     const member = await MemberModel.find();
     if (!member) throw new NotFoundError('no member Available');
+    return res.status(200).json({
+      status: true,
+      member:member
+    })
+  }
+  catch (error) {
+    next(error)
+  }
+}
+
+
+// update member checkIn by id
+
+const updateMemberCheckIn = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const member = await MemberModel.findByIdAndUpdate(id, { checkIn: true }, { new: true });
+    if (!member) throw new NotFoundError('Member not found');
     return res.status(200).json({
       status: true,
       member
@@ -308,7 +327,6 @@ const getMembers = async (req, res, next) => {
     next(error)
   }
 }
-
 
 // get me
 
@@ -320,4 +338,5 @@ module.exports = {
   deleteMemberById,
   getMemberById,
   getMembers,
+  updateMemberCheckIn
 };

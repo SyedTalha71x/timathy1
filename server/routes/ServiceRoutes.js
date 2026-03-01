@@ -1,5 +1,5 @@
 const express = require('express');
-const { upload } = require('../config/upload');
+const { uploadImage } = require('../config/upload');
 const {
   createService,
   deleteService,
@@ -13,7 +13,7 @@ const { isAdmin } = require('../middleware/RoleCheck');
 const router = express.Router();
 
 // Create a service (staff only)
-router.post('/create', verifyAccessToken, isAdmin, upload.single('image'), createService);
+router.post('/create', verifyAccessToken, isAdmin, uploadImage.single('image'), createService);
 
 // Get all services for a studio (optional: studioId param)
 router.get('/studio-services', verifyAccessToken, getAllServices);

@@ -2,71 +2,42 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// make sure uploads folder exists
-const uploadDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("Uploads folder created at:", uploadDir);
-}
+// --- Folders ---
+const uploadsDir = path.join(__dirname, "../uploads");
+const videoDir = path.join(uploadsDir, "videos");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
+// Ensure directories exist
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
+
+/** 
+ * MemoryStorage for small files (images, PDFs)
+ * File is kept in memory as req.file.buffer
+ */
+const memoryStorage = multer.memoryStorage();
+const uploadImage = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
+});
+
+/**
+ * DiskStorage for large videos
+ * File is saved on disk at uploads/videos/
+ */
+const diskStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, videoDir),
   filename: (req, file, cb) => {
     const uniqueName = Date.now() + "-" + file.originalname;
     cb(null, uniqueName);
   },
 });
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 500 * 1024 * 1024, // 500 MB
-  },
-  fileFilter: (req, file, cb) => {
-    // VIDEO
-    if (file.fieldname === "videoUrl") {
-      const allowedExtensions = [".mp4", ".avi", ".mov", ".mkv"];
-      const allowedMimeTypes = [
-        "video/mp4",
-        "video/x-matroska",
-        "video/x-msvideo",
-        "video/quicktime",
-      ];
-
-      const ext = path.extname(file.originalname).toLowerCase();
-
-      if (
-        !allowedExtensions.includes(ext) ||
-        !allowedMimeTypes.includes(file.mimetype)
-      ) {
-        return cb(
-          new Error("Only video files (.mp4, .avi, .mov, .mkv) are allowed"),
-          false
-        );
-      }
-
-      return cb(null, true);
-    }
-
-    // THUMBNAIL
-    if (file.fieldname === "thumbnail") {
-      const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
-
-      if (!allowedImageTypes.includes(file.mimetype)) {
-        return cb(
-          new Error("Only image files (jpeg, png, webp) are allowed"),
-          false
-        );
-      }
-
-      return cb(null, true);
-    }
-
-    // Any other field is rejected
-    cb(new Error("Unexpected field"), false);
-  },
+const uploadVideo = multer({
+  storage: diskStorage,
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB max
 });
 
-module.exports = { upload };
+module.exports = {
+  uploadImage,
+  uploadVideo,
+};

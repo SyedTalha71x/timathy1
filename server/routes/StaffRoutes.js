@@ -9,15 +9,15 @@ const {
 } = require('../controllers/StaffController');
 const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
 const { isAdmin } = require('../middleware/RoleCheck');
-const { upload } = require('../config/upload')
+const { uploadImage } = require('../config/upload')
 const router = express.Router();
 
 
 router.get('/staff', verifyAccessToken, isAdmin, getStaff)
 router.get('/:id', verifyAccessToken, getStaffById)
-router.post('/create', upload.single('img'), createStaff)
+router.post('/create', uploadImage.single('img'), verifyAccessToken, isAdmin, createStaff)
 router.post('/login', loginStaff)
-router.put('/:id', upload.single('img'), verifyAccessToken, updateStaffById)
+router.put('/:id', uploadImage.single('img'), verifyAccessToken, updateStaffById)
 router.delete('/:id', verifyAccessToken, deleteStaffById)
 
 module.exports = router

@@ -6,7 +6,10 @@ import { useState, useRef, useEffect } from "react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
 import NotifyModalMain from '../NotifyModal';
-
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStudioServices } from "../../../features/services/servicesSlice";
+import { createAppointmentByStaff } from "../../../features/appointments/AppointmentSlice"
+import { createAppointment } from "../../../features/appointments/AppointmentApi";
 const MAX_PARTICIPANTS = 5;
 
 // Helper function to extract hex color from various formats
@@ -67,10 +70,10 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
       {member.image ? (
         <img src={member.image} alt="" className="w-7 h-7 rounded-lg object-cover" />
       ) : (
-        <InitialsAvatar 
-          firstName={member.firstName || member.name?.split(" ")[0]} 
-          lastName={member.lastName || member.name?.split(" ")[1]} 
-          size={28} 
+        <InitialsAvatar
+          firstName={member.firstName || member.name?.split(" ")[0]}
+          lastName={member.lastName || member.name?.split(" ")[1]}
+          size={28}
         />
       )}
       <span className="text-content-primary text-sm font-medium">
@@ -95,7 +98,7 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
 };
 
 // Member Tag Input Component
-const MemberTagInput = ({ 
+const MemberTagInput = ({
   members, setMembers, searchMembers, placeholder = "Search members...",
   maxMembers = MAX_PARTICIPANTS, onEditMemberNote, memberRelations = {}
 }) => {
@@ -135,7 +138,7 @@ const MemberTagInput = ({
   const selectMember = (member) => {
     if (isFull) return;
     setMembers([...members, {
-      id: member.id,
+      id: member._id,
       name: member.name || `${member.firstName} ${member.lastName}`,
       firstName: member.firstName, lastName: member.lastName, image: member.image,
       notes: member.notes || [], note: member.note || "",
@@ -153,10 +156,10 @@ const MemberTagInput = ({
       <div className={`bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text ${isFull ? 'opacity-75' : ''}`}
         onClick={() => !isFull && inputRef.current?.focus()}>
         {members.map((member, index) => (
-          <MemberTag 
-            key={member.id} 
-            member={member} 
-            onRemove={() => setMembers(members.filter((_, i) => i !== index))} 
+          <MemberTag
+            key={member._id}
+            member={member}
+            onRemove={() => setMembers(members.filter((_, i) => i !== index))}
             onEditMemberNote={onEditMemberNote}
             relationsCount={getRelationsCount(member.id)}
           />
@@ -173,7 +176,7 @@ const MemberTagInput = ({
         <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-48 overflow-y-auto">
           {searchResults.length > 0 ? searchResults.map((member) => (
             <button key={member.id} onClick={() => selectMember(member)} className="w-full text-left p-3 hover:bg-surface-hover flex items-center gap-3">
-              {member.image ? <img src={member.image} alt="" className="w-8 h-8 rounded-lg object-cover" /> : 
+              {member.image ? <img src={member.image} alt="" className="w-8 h-8 rounded-lg object-cover" /> :
                 <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size={32} />}
               <div><div className="text-sm text-content-primary">{member.name || `${member.firstName} ${member.lastName}`}</div></div>
             </button>
@@ -186,15 +189,18 @@ const MemberTagInput = ({
 
 // Appointment Type Dropdown
 const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showTrialTypes = false }) => {
+
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+
   // Filter out trial types unless explicitly requested
-  const filteredTypes = showTrialTypes 
-    ? appointmentTypes 
+  const filteredTypes = showTrialTypes
+    ? appointmentTypes
     : appointmentTypes.filter(t => !t.isTrialType);
-  
+
   const selectedType = filteredTypes.find(t => t.name === value);
+
+
 
   useEffect(() => {
     const handleClickOutside = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false); };
@@ -231,7 +237,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
 };
 
 const AddAppointmentModal = ({
-  isOpen, onClose, appointmentTypesMain = [], onSubmit, 
+  isOpen, onClose, appointmentTypesMain = [], onSubmit,
   setIsNotifyMemberOpenMain, setNotifyActionMain,
   // Also accept alternative prop names from calendar.jsx
   setIsNotifyMemberOpen, setNotifyAction,
@@ -242,6 +248,69 @@ const AddAppointmentModal = ({
   selectedDate = null, // Pre-selected date from MiniCalendar or Calendar click
   selectedTime = null, // Pre-selected time slot from Calendar click (e.g., "09:00")
 }) => {
+  const { services } = useSelector((state) => state.services || {});
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch(fetchStudioServices());
+  }, [dispatch]);
+
+  // Convert 24-hour time to AM/PM format
+  const formatAMPM = (time24) => {
+    const [hour, min] = time24.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
+  };
+
+
+
+  // generate slots randomly
+  // Generate time slots for a day based on studio hours and appointment duration
+  // Generate time slots for multiple blocks with AM/PM display
+  const generateSlots = (blocks) => {
+    if (!Array.isArray(blocks)) {
+      blocks = [
+        { start: "09:00", end: "12:00", duration: 60 },  // morning
+        { start: "13:00", end: "16:00", duration: 60 },  // afternoon
+        { start: "17:00", end: "20:00", duration: 60 }   // evening
+      ];
+    }
+
+    const allSlots = [];
+
+    blocks.forEach(({ start, end, duration }) => {
+      let [hour, min] = start.split(":").map(Number);
+      const [endHour, endMin] = end.split(":").map(Number);
+
+      while (hour < endHour || (hour === endHour && min < endMin)) {
+        const startTime = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+
+        let tempMin = min + duration;
+        let tempHour = hour;
+        if (tempMin >= 60) {
+          tempHour += Math.floor(tempMin / 60);
+          tempMin = tempMin % 60;
+        }
+
+        if (tempHour > endHour || (tempHour === endHour && tempMin > endMin)) break;
+
+        const endTime = `${String(tempHour).padStart(2, "0")}:${String(tempMin).padStart(2, "0")}`;
+
+        allSlots.push({
+          start: startTime,
+          end: endTime,
+          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}` // for dropdown display
+        });
+
+        hour = tempHour;
+        min = tempMin;
+      }
+    });
+
+    return allSlots;
+  };
+
+
   // Format selectedDate to YYYY-MM-DD string
   const getFormattedDate = (date) => {
     if (!date) return "";
@@ -251,7 +320,7 @@ const AddAppointmentModal = ({
     const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  
+
   // Extract time from selectedTime (handles formats like "09:00" or "09:00 - 09:30")
   const getInitialTime = (time) => {
     if (!time) return "";
@@ -261,14 +330,14 @@ const AddAppointmentModal = ({
     }
     return time.trim();
   };
-  
+
   const initialDate = getFormattedDate(selectedDate);
   const initialTime = getInitialTime(selectedTime);
-  
+
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingAppointmentData, setPendingAppointmentData] = useState(null);
-  
+
   // Recurring options state
   const [recurringOptions, setRecurringOptions] = useState({
     frequency: "weekly",
@@ -276,31 +345,39 @@ const AddAppointmentModal = ({
     startDate: initialDate,
     occurrences: 5,
   });
-  
-  const [appointmentData, setAppointmentData] = useState({ date: initialDate, timeSlot: initialTime, type: "", members: selectedMemberMain ? [{
-    id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
-    firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
-    notes: selectedMemberMain.notes || [], note: selectedMemberMain.note || "",
-    noteImportance: selectedMemberMain.noteImportance || "unimportant",
-    noteStartDate: selectedMemberMain.noteStartDate || "",
-    noteEndDate: selectedMemberMain.noteEndDate || "",
-  }] : [] });
 
+  const [appointmentData, setAppointmentData] = useState({
+    date: initialDate,
+    timeSlot: { start: initialTime, end: "" }, // store object instead of string
+    type: "",
+    members: selectedMemberMain ? [{
+      id: selectedMemberMain._id,
+      name: selectedMemberMain.name || selectedMemberMain.title,
+      firstName: selectedMemberMain.firstName,
+      lastName: selectedMemberMain.lastName,
+      image: selectedMemberMain.image,
+      notes: selectedMemberMain.notes || [],
+      note: selectedMemberMain.note || "",
+      noteImportance: selectedMemberMain.noteImportance || "unimportant",
+      noteStartDate: selectedMemberMain.noteStartDate || "",
+      noteEndDate: selectedMemberMain.noteEndDate || "",
+    }] : []
+  });
   // Update appointmentData when modal opens with new selectedDate or selectedTime
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const newDate = getFormattedDate(selectedDate);
     const newTime = getInitialTime(selectedTime);
-    
+
     // Reset and set new values when modal opens
     setAppointmentData(prev => ({
       ...prev,
       date: newDate || prev.date,
-      timeSlot: newTime || "",
+      timeSlot: { start: newTime || "", end: "" },
       type: "",
       members: selectedMemberMain ? [{
-        id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
+        id: selectedMemberMain._id, name: selectedMemberMain.name || selectedMemberMain.title,
         firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
         notes: selectedMemberMain.notes || [], note: selectedMemberMain.note || "",
         noteImportance: selectedMemberMain.noteImportance || "unimportant",
@@ -308,7 +385,7 @@ const AddAppointmentModal = ({
         noteEndDate: selectedMemberMain.noteEndDate || "",
       }] : prev.members,
     }));
-    
+
     if (newDate) {
       setRecurringOptions(prev => ({
         ...prev,
@@ -322,7 +399,7 @@ const AddAppointmentModal = ({
   if (!isOpen) return null;
 
   const updateAppointment = (field, value) => setAppointmentData({ ...appointmentData, [field]: value });
-  
+
   const updateRecurringOptions = (field, value) => {
     setRecurringOptions(prev => {
       const next = { ...prev, [field]: value };
@@ -340,24 +417,24 @@ const AddAppointmentModal = ({
 
   const handleSearchMembers = (query) => {
     if (searchMembersMain) return searchMembersMain(query);
-    return availableMembersLeads.filter(m => m.name?.toLowerCase().includes(query.toLowerCase()) || 
+    return availableMembersLeads.filter(m => m.name?.toLowerCase().includes(query.toLowerCase()) ||
       `${m.firstName} ${m.lastName}`.toLowerCase().includes(query.toLowerCase()));
   };
 
-  const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);
-  const availableSlots = getAvailableSlots(appointmentData.date);
+  // const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);
+  const availableSlots = generateSlots("09:00", "17:00", 30);
 
   // Helper: generate all recurring dates based on frequency, startDate, and occurrences
   const generateRecurringDates = (options) => {
     const dates = [];
     const { frequency, startDate, dayOfWeek, occurrences } = options;
     if (!startDate || !occurrences) return [startDate];
-    
+
     const start = new Date(startDate + "T12:00:00"); // noon to avoid timezone issues
-    
+
     for (let i = 0; i < occurrences; i++) {
       const current = new Date(start);
-      
+
       if (frequency === "daily") {
         current.setDate(start.getDate() + i);
       } else if (frequency === "weekly") {
@@ -382,79 +459,77 @@ const AddAppointmentModal = ({
       } else if (frequency === "monthly") {
         current.setMonth(start.getMonth() + i);
       }
-      
+
       const year = current.getFullYear();
       const month = String(current.getMonth() + 1).padStart(2, '0');
       const day = String(current.getDate()).padStart(2, '0');
       dates.push(`${year}-${month}-${day}`);
     }
-    
+
     return dates;
   };
 
   // Prepare appointment data but don't submit yet - show notify modal first
   const handleBook = () => {
-    if (appointmentData.members.length === 0) { alert("Please add at least one member."); return; }
-    
-    // Get appointment type details
+    // Basic validation
+    if (!appointmentData.type || appointmentData.members.length === 0 || !appointmentData.timeSlot.start) {
+      alert("Please complete all fields");
+      return;
+    }
+
     const selectedType = appointmentTypesMain.find(t => t.name === appointmentData.type);
-    const duration = selectedType?.duration || 30;
-    
-    // Calculate end time
-    const [hours, minutes] = appointmentData.timeSlot.split(':').map(Number);
-    const endDate = new Date(2000, 0, 1, hours, minutes + duration);
-    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-    
-    // Generate dates: single or recurring
-    const dates = showRecurringOptions
-      ? generateRecurringDates(recurringOptions)
-      : [appointmentData.date];
-    
-    // Build appointment data for each member AND each date
+    if (!selectedType) {
+      alert("Invalid appointment type selected");
+      return;
+    }
+
+
+    let { start, end } = appointmentData.timeSlot;
+
+    // Always calculate end if missing
+    if (!end) {
+      const [hours, minutes] = start.split(":").map(Number);
+      const endDate = new Date(2000, 0, 1, hours, minutes + (selectedType.duration || 30));
+      end = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+    }
+
+    const dates = showRecurringOptions ? generateRecurringDates(recurringOptions) : [appointmentData.date];
+
+    // Prepare appointments array
     const appointmentsToCreate = [];
-    
-    dates.forEach((date) => {
-      appointmentData.members.forEach((member) => {
+    dates.forEach(date => {
+      appointmentData.members.forEach(() => {
+        // if (!member._id) return; // skip invalid members
         appointmentsToCreate.push({
-          name: member.firstName || member.name?.split(" ")[0] || "",
-          lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
-          memberId: member.id,
-          type: appointmentData.type,
-          date: date,
-          startTime: appointmentData.timeSlot,
-          endTime: endTime,
-          time: `${appointmentData.timeSlot} - ${endTime}`,
-          color: selectedType?.color || "bg-[#808080]",
-          colorHex: getColorHex(selectedType),
-          specialNote: member.note ? { text: member.note, isImportant: member.noteImportance === "important" } : null,
-          // Mark as part of a series for potential future use
-          isRecurring: showRecurringOptions,
-          recurringInfo: showRecurringOptions ? { frequency: recurringOptions.frequency, occurrences: recurringOptions.occurrences } : null,
+          memberId: selectedMemberMain?._id,
+          service: selectedType._id,
+          date,
+          timeSlot: {
+            start, end
+          },
+          view: selectedType.view || "upcoming"
         });
       });
     });
-    
-    // Store pending data and show notify modal
+
+    // Set for notification modal
     setPendingAppointmentData(appointmentsToCreate);
     setShowNotifyModal(true);
   };
 
-  // Actually create the appointments after notify decision
+  // Confirm booking after optional notification
   const handleConfirmBooking = (shouldNotify, notificationOptions) => {
-    if (pendingAppointmentData && onSubmit) {
-      pendingAppointmentData.forEach((aptData) => {
-        onSubmit(aptData);
+    if (pendingAppointmentData) {
+      pendingAppointmentData.forEach(apt => {
+        dispatch(createAppointmentByStaff({ memberId: apt.memberId, appointmentData: apt }));
       });
     }
-    
-    // Close everything
+
     setShowNotifyModal(false);
     setPendingAppointmentData(null);
     onClose();
-    
-    if (shouldNotify) {
-      console.log("Notification requested:", notificationOptions);
-    }
+
+    if (shouldNotify) console.log("Notify members:", notificationOptions);
   };
 
   // Cancel booking from notify modal - go back to form
@@ -467,7 +542,7 @@ const AddAppointmentModal = ({
   // Get member names for notify modal display
   const getMemberNames = () => {
     if (!pendingAppointmentData || pendingAppointmentData.length === 0) return "";
-    return pendingAppointmentData.map(apt => 
+    return pendingAppointmentData.map(apt =>
       apt.lastName ? `${apt.name} ${apt.lastName}` : apt.name
     ).join(", ");
   };
@@ -482,14 +557,14 @@ const AddAppointmentModal = ({
         <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2 flex items-center gap-2"><Users size={14} className="text-content-faint" />Participants</label>
-            <MemberTagInput members={appointmentData.members} setMembers={(m) => updateAppointment("members", m)} 
+            <MemberTagInput members={appointmentData.members} setMembers={(m) => updateAppointment("members", m)}
               searchMembers={handleSearchMembers} onEditMemberNote={handleEditMemberNote} memberRelations={memberRelations} />
           </div>
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
-            <AppointmentTypeDropdown value={appointmentData.type} onChange={(t) => updateAppointment("type", t)} appointmentTypes={appointmentTypesMain} />
+            <AppointmentTypeDropdown value={appointmentData.type} onChange={(t) => updateAppointment("type", t)} appointmentTypes={services} />
           </div>
-          
+
           {/* Booking Type Toggle */}
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2">Booking Type</label>
@@ -504,46 +579,60 @@ const AddAppointmentModal = ({
               </button>
             </div>
           </div>
-          
+
           {/* Single Booking Options */}
           {!showRecurringOptions && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-content-faint mb-2">Date</label>
                 <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
-                  <span className={appointmentData.date ? "text-content-primary" : "text-content-faint"}>{appointmentData.date ? (() => { const [y,m,d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                  <span className={appointmentData.date ? "text-content-primary" : "text-content-faint"}>{appointmentData.date ? (() => { const [y, m, d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                   <DatePickerField value={appointmentData.date} onChange={(val) => updateAppointment("date", val)} />
                 </div>
               </div>
               <div>
                 <label className="block text-xs text-content-faint mb-2">Time Slot</label>
-                <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
-                  disabled={!appointmentData.date} className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none disabled:opacity-50">
+                {/* // Time dropdown */}
+                <select
+                  value={appointmentData.timeSlot.start}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    const slot = availableSlots.find(s => s.start === start);
+                    const endTime = slot?.end || appointmentData.timeSlot.end;
+                    setAppointmentData(prev => ({
+                      ...prev,
+                      timeSlot: { start, end: endTime }
+                    }));
+                  }}
+                  className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5"
+                >
                   <option value="">Select time...</option>
-                  {availableSlots.map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
+                  {availableSlots.map((slot, idx) => (
+                    <option key={idx} value={slot.start}>{slot.time}</option>
+                  ))}
                 </select>
               </div>
             </div>
           )}
-          
+
           {/* Recurring Options */}
           {showRecurringOptions && (
             <div className="space-y-4 bg-surface-dark rounded-xl p-4">
               <div>
                 <label className="block text-xs text-content-faint mb-2">Frequency</label>
                 <div className="grid grid-cols-3 gap-1 bg-surface-card p-1 rounded-xl">
-                  {[{v:"daily",l:"Daily"},{v:"weekly",l:"Weekly"},{v:"monthly",l:"Monthly"}].map(f=>(
-                    <button key={f.v} type="button" onClick={()=>updateRecurringOptions("frequency",f.v)}
-                      className={`py-2 text-xs font-medium rounded-lg transition-colors ${recurringOptions.frequency===f.v?"bg-primary text-white":"text-content-muted hover:text-content-primary"}`}>{f.l}</button>
+                  {[{ v: "daily", l: "Daily" }, { v: "weekly", l: "Weekly" }, { v: "monthly", l: "Monthly" }].map(f => (
+                    <button key={f.v} type="button" onClick={() => updateRecurringOptions("frequency", f.v)}
+                      className={`py-2 text-xs font-medium rounded-lg transition-colors ${recurringOptions.frequency === f.v ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>{f.l}</button>
                   ))}
                 </div>
               </div>
 
-              <div className={`grid gap-4 ${recurringOptions.frequency==="weekly"?"grid-cols-2":"grid-cols-1"}`}>
+              <div className={`grid gap-4 ${recurringOptions.frequency === "weekly" ? "grid-cols-2" : "grid-cols-1"}`}>
                 <div>
                   <label className="block text-xs text-content-faint mb-2">Start Date</label>
                   <div className="w-full flex items-center justify-between bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5">
-                    <span className={recurringOptions.startDate ? "text-content-primary" : "text-content-faint"}>{recurringOptions.startDate ? (() => { const [y,m,d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    <span className={recurringOptions.startDate ? "text-content-primary" : "text-content-faint"}>{recurringOptions.startDate ? (() => { const [y, m, d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                     <DatePickerField value={recurringOptions.startDate} onChange={(val) => {
                       setRecurringOptions(prev => {
                         const next = { ...prev, startDate: val };
@@ -555,7 +644,7 @@ const AddAppointmentModal = ({
                     }} />
                   </div>
                 </div>
-                {recurringOptions.frequency==="weekly" && (
+                {recurringOptions.frequency === "weekly" && (
                   <div>
                     <label className="block text-xs text-content-faint mb-2">Day of Week</label>
                     <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
@@ -575,10 +664,23 @@ const AddAppointmentModal = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-content-faint mb-2">Time Slot</label>
-                  <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
-                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
+                  <select
+                    value={appointmentData.timeSlot.start}
+                    onChange={(e) => {
+                      const start = e.target.value;
+                      const slot = availableSlots.find(s => s.start === start);
+                      const endTime = slot?.end || appointmentData.timeSlot.end;
+                      setAppointmentData(prev => ({
+                        ...prev,
+                        timeSlot: { start, end: endTime }
+                      }));
+                    }}
+                    className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5"
+                  >
                     <option value="">Select time...</option>
-                    {getAvailableSlots(recurringOptions.startDate).map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
+                    {availableSlots.map((slot, idx) => (
+                      <option key={idx} value={slot.start}>{slot.time}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -591,16 +693,16 @@ const AddAppointmentModal = ({
 
               {/* Frequency description */}
               <div className="text-xs text-content-faint">
-                {recurringOptions.frequency==="daily"&&"Creates an appointment every day starting from the selected date."}
-                {recurringOptions.frequency==="weekly"&&"Creates an appointment every week on the selected day."}
-                {recurringOptions.frequency==="monthly"&&recurringOptions.startDate&&(()=>{
-                  const day=new Date(recurringOptions.startDate).getDate();
-                  const s=["th","st","nd","rd"];
-                  const v=day%100;
-                  const suffix=s[(v-20)%10]||s[v]||s[0];
-                  return`Creates an appointment on the ${day}${suffix} of each month.`;
+                {recurringOptions.frequency === "daily" && "Creates an appointment every day starting from the selected date."}
+                {recurringOptions.frequency === "weekly" && "Creates an appointment every week on the selected day."}
+                {recurringOptions.frequency === "monthly" && recurringOptions.startDate && (() => {
+                  const day = new Date(recurringOptions.startDate).getDate();
+                  const s = ["th", "st", "nd", "rd"];
+                  const v = day % 100;
+                  const suffix = s[(v - 20) % 10] || s[v] || s[0];
+                  return `Creates an appointment on the ${day}${suffix} of each month.`;
                 })()}
-                {recurringOptions.frequency==="monthly"&&!recurringOptions.startDate&&"Creates an appointment on the same day each month. Select a start date."}
+                {recurringOptions.frequency === "monthly" && !recurringOptions.startDate && "Creates an appointment on the same day each month. Select a start date."}
               </div>
             </div>
           )}

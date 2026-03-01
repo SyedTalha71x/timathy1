@@ -31,6 +31,7 @@ const createStaff = async (req, res, next) => {
       phone,
       city,
       street,
+      country,
       zipCode,
       dateOfBirth,
       houseNumber
@@ -62,6 +63,7 @@ const createStaff = async (req, res, next) => {
       username,
       city,
       street,
+      country,
       zipCode,
       dateOfBirth,
       email,

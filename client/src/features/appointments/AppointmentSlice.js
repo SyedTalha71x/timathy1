@@ -47,9 +47,34 @@ export const fetchAllAppointments = createAsyncThunk('appointments/all', async (
 })
 
 
+// fetch appointment by member id
+
+export const fetchAppointmentByMemberId = createAsyncThunk('appointments/member', async (memberId, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.appointmentByMemberId(memberId);
+        return res.appointment
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data);
+    }
+})
+
+
+// create appointment by staff for member
+export const createAppointmentByStaff = createAsyncThunk('appointments/createByStaff', async ({ memberId, appointmentData }, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.createAppointmentByStaff(memberId, appointmentData);
+        return res.appointment
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data);
+    }
+})
+
 const appointmentSlice = createSlice({
     name: 'appointment',
     initialState: {
+        appointmentsByMember: {},
         appointments: [],
         loading: false,
         error: null
@@ -116,6 +141,36 @@ const appointmentSlice = createSlice({
             .addCase(fetchAllAppointments.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
+            })
+
+            // appointment by member id
+            .addCase(fetchAppointmentByMemberId.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAppointmentByMemberId.fulfilled, (state, action) => {
+                state.loading = false;
+                const memberId = action.meta.arg;       // the member ID you dispatched with
+                state.appointmentsByMember[memberId] = action.payload;  // store per member
+            })
+            .addCase(fetchAppointmentByMemberId.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message;
+            })
+
+            // create appointment by staff for member
+            .addCase(createAppointmentByStaff.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createAppointmentByStaff.fulfilled, (state, action) => {
+                state.loading = false;
+                // Optionally, you can add the newly created appointment to the list
+                state.appointments.push(action.payload);
+            })
+            .addCase(createAppointmentByStaff.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message;
             })
     }
 })

@@ -25,3 +25,15 @@ export const allAppointments = async () => {
     const res = await api.get('/appointment/all-appointments', { withCredentials: true })
     return res.data;
 }
+
+export const appointmentByMemberId = async (memberId) => {
+    const res = await api.get(`/appointment/member/${memberId}`, { withCredentials: true })
+    return res.data;
+}
+
+
+// appointment create by staff for member
+export const createAppointmentByStaff = async (memberId, appointmentData) => {
+    const res = await api.post(`/appointment/create/${memberId}`, appointmentData, { withCredentials: true })
+    return res.data;
+}

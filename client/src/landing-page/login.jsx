@@ -8,9 +8,10 @@ import { memberLogin, staffLoginThunk } from '../features/auth/authSlice'
 // Import logo
 import OrgaGymLogo from "../../public/Orgagym white without text.svg"
 import { useSelector, useDispatch } from "react-redux"
-import { fetchMyAppointments } from "../features/appointments/AppointmentSlice"
-import { fetchstudioServices } from "../features/services/servicesSlice"
+import { fetchAllAppointments, fetchMyAppointments } from "../features/appointments/AppointmentSlice"
+import { fetchStudioServices } from "../features/services/servicesSlice"
 import { fetchMyStudio } from "../features/studio/studioSlice"
+import { fetchAllMember } from "../features/member/memberSlice"
 
 // ============================================================================
 // LOGIN PAGE COMPONENT
@@ -167,8 +168,9 @@ export default function SignInPage() {
       try {
         const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
 
-        dispatch(fetchMyAppointments())
-        dispatch(fetchstudioServices())
+        dispatch(fetchAllAppointments())
+        dispatch(fetchAllMember());
+        dispatch(fetchStudioServices())
         dispatch(fetchMyStudio())
         // success → redirect
         navigate(config.redirectPath)
@@ -183,7 +185,7 @@ export default function SignInPage() {
         const res = await dispatch(memberLogin(currentFormData)).unwrap()
 
         dispatch(fetchMyAppointments())
-        dispatch(fetchstudioServices())
+        dispatch(fetchStudioServices())
         dispatch(fetchMyStudio())
         // success → redirect
         navigate(config.redirectPath)
@@ -235,7 +237,7 @@ export default function SignInPage() {
             type="email"
             placeholder={`Enter your ${config.label.toLowerCase()} email`}
             className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
-            value={currentFormData.email}
+            value={currentFormData.email.toLowerCase()}
             onChange={(e) => handleInputChange(activeLoginType, "email", e.target.value)}
             autoComplete="email"
           />

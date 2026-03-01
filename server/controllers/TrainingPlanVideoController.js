@@ -32,14 +32,12 @@ const createTrainingVideoUpload = async (req, res, next) => {
             throw new NotFoundError("Video file is missing or empty");
         }
 
-        if (!thumbnailFile || !thumbnailFile.path || thumbnailFile.size === 0) {
-            throw new NotFoundError("Thumbnail is missing or empty");
-        }
+       
 
 
         // Upload thumbnail
         const cloudinaryThumbnailUpload = await uploadThumbnail(
-            thumbnailFile.path
+            thumbnailFile.buffer
         );
 
         // Upload video
