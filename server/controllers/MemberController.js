@@ -302,7 +302,7 @@ const getMembers = async (req, res, next) => {
     if (!member) throw new NotFoundError('no member Available');
     return res.status(200).json({
       status: true,
-      member:member
+      member: member
     })
   }
   catch (error) {
@@ -328,7 +328,38 @@ const updateMemberCheckIn = async (req, res, next) => {
   }
 }
 
-// get me
+// for temporary member creation
+
+const createTemporaryMember = async (req, res, next) => {
+  try {
+    const userId = req.user?._id
+    const { firstName, lastName, email, gender, telephone, mobileNumber, street, city, zipCode, country, about, archivedAt } = req.body;
+
+    const member = await MemberModel.create({
+      firstName,
+      lastName,
+      gender,
+      email,
+      telephone,
+      mobileNumber,
+      about,
+      country,
+      archivedAt,
+      street,
+      city,
+      zipCode,
+      specialsNotes: [],
+      createdBy: userId
+    })
+    return res.status(200).json({
+      success: true,
+      user: member
+    })
+  }
+  catch (error) {
+    next(error)
+  }
+}
 
 
 module.exports = {
@@ -338,5 +369,6 @@ module.exports = {
   deleteMemberById,
   getMemberById,
   getMembers,
-  updateMemberCheckIn
+  updateMemberCheckIn,
+  createTemporaryMember
 };

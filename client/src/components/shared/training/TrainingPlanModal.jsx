@@ -12,12 +12,14 @@ import VideoModal from "./video-modal"
 // HINWEIS: Pfad anpassen je nach Position der Datei im Projekt
 // Für shared/training/: "../../../utils/studio-states/training-states"
 // Für studio-components/training-components/: "../../utils/studio-states/training-states"
-import {
-  trainingPlansData,
-  getVideoById as getVideoByIdFromState,
-  getDifficultyColor as getDifficultyColorFromState,
-  getMemberTrainingPlans as getMemberTrainingPlansFromState,
-} from "../../../utils/studio-states/training-states"
+// import {
+//   // trainingPlansData,
+//   // getVideoById as getVideoByIdFromState,
+//   // getDifficultyColor as getDifficultyColorFromState,
+//   // getMemberTrainingPlans as getMemberTrainingPlansFromState,
+// } from "../../../utils/studio-states/training-states"
+import { fetchAllPlans, fetchShowAssignedPlans } from "../../../features/training/TrainingSlice"
+import { useDispatch, useSelector } from "react-redux"
 
 // ============================================================================
 // TRAINING PLANS MODAL - For Member View
@@ -49,24 +51,26 @@ import {
 export default function TrainingPlansModalMain({
   isOpen,
   onClose,
-  // Support both prop naming conventions
+
   selectedMemberMain,
-  selectedMember, // Alternative prop name from appointments.jsx
-  memberTrainingPlansMain,
-  memberTrainingPlans, // Alternative prop name
-  availableTrainingPlansMain,
-  availableTrainingPlans, // Alternative prop name
+  selectedMember, 
+
   onAssignPlanMain,
-  onAssignPlan, // Alternative prop name
+  onAssignPlan, 
   onRemovePlanMain,
-  onRemovePlan, // Alternative prop name
-  getVideoById,
+  onRemovePlan,
+
   onVideoClick,
 }) {
   // Normalize props - use whichever is provided
   const member = selectedMemberMain || selectedMember;
   const onAssign = onAssignPlanMain || onAssignPlan;
   const onRemove = onRemovePlanMain || onRemovePlan;
+
+  // -------------------------------------
+  // Selector state
+  // -------------------------------------
+  const { plansByMember, myPlans } = useSelector((state) => state.trainings)
 
   // -------------------------------------------------------------------------
   // STATE - Plan Management
@@ -75,7 +79,7 @@ export default function TrainingPlansModalMain({
   const [searchQuery, setSearchQuery] = useState("")
   const [confirmRemove, setConfirmRemove] = useState(null)
   const [viewingPlan, setViewingPlan] = useState(null)
-  const [localAssignedPlanIds, setLocalAssignedPlanIds] = useState([])
+  // const [localAssignedPlanIds, setLocalAssignedPlanIds] = useState([])
 
   // -------------------------------------------------------------------------
   // STATE - Video Modal (matching VideoModal component props)
@@ -87,43 +91,59 @@ export default function TrainingPlansModalMain({
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const videoRef = useRef(null)
+  const dispatch = useDispatch();
+
+
+  // ---------------------------------
+  // Effects
+  // ---------------------------------
+
 
   // -------------------------------------------------------------------------
   // DATA FROM TRAINING-STATES
   // -------------------------------------------------------------------------
   // Get member's assigned plans from training-states
-  const memberPlansFromState = useMemo(() => {
-    if (member?.id) {
-      return getMemberTrainingPlansFromState(member.id);
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(fetchAllPlans())
     }
-    return [];
-  }, [member?.id]);
+  }, [dispatch, isOpen])
+
+  useEffect(() => {
+    if (member?._id) {
+      dispatch(fetchShowAssignedPlans(member._id));
+    }
+  }, [dispatch, member?._id]);
+
 
   // Initialize local assigned plan IDs when modal opens or member changes
-  useEffect(() => {
-    const assignedIds = memberPlansFromState.map(mp => mp.planId || mp.plan?.id || mp.id);
-    setLocalAssignedPlanIds(assignedIds);
-  }, [memberPlansFromState]);
+  // useEffect(() => {
+  //   const assignedIds = memberPlansFromState.map(mp => mp.planId || mp.plan?.id || mp.id);
+  //   setLocalAssignedPlanIds(assignedIds);
+  // }, [memberPlansFromState]);
 
   // All plans from training-states
-  const allPlans = useMemo(() => {
-    return trainingPlansData.filter(p => p.isActive !== false);
-  }, []);
 
-  // Member's assigned plans (combining state data with local changes)
   const memberPlans = useMemo(() => {
-    return allPlans.filter(plan => localAssignedPlanIds.includes(plan.id));
-  }, [allPlans, localAssignedPlanIds]);
+    if (!member?._id) return [];
+    const plansForMember = plansByMember[member._id];
+    return Array.isArray(plansForMember) ? plansForMember : [];
+  }, [plansByMember, member?._id]);
 
-  // Available plans (not yet assigned)
+  const allPlans = useMemo(() => {
+    return myPlans?.filter(p => p.isActive !== false) || []
+  }, [myPlans])
+
   const availablePlans = useMemo(() => {
-    return allPlans.filter(plan => !localAssignedPlanIds.includes(plan.id));
-  }, [allPlans, localAssignedPlanIds]);
+    return allPlans.filter(
+      plan => !memberPlans.some(mp => mp._id === plan._id)
+    )
+  }, [allPlans, memberPlans])
 
-  // Video lookup - always use training-states
-  const getVideo = (videoId) => {
-    return getVideoByIdFromState(videoId);
-  };
+  // Video lookup - 
+  // const getVideo = (video) => {
+  //   return fetchShowAssignedPlans(video);
+  // };
 
   // -------------------------------------------------------------------------
   // EARLY RETURN
@@ -134,18 +154,16 @@ export default function TrainingPlansModalMain({
   // HANDLERS - Plan Assignment
   // -------------------------------------------------------------------------
   const handleAssignPlan = (planId) => {
-    setLocalAssignedPlanIds(prev => [...prev, planId]);
     if (onAssign) {
-      onAssign(member.id, planId);
+      onAssign(member._id, planId)
     }
   };
 
   const handleRemovePlan = (planId) => {
-    setLocalAssignedPlanIds(prev => prev.filter(id => id !== planId));
     if (onRemove) {
-      onRemove(member.id, planId);
+      onRemove(member._id, planId)
     }
-    setConfirmRemove(null);
+    setConfirmRemove(null)
   };
 
   // -------------------------------------------------------------------------
@@ -211,7 +229,7 @@ export default function TrainingPlansModalMain({
   // -------------------------------------------------------------------------
   // HELPER FUNCTIONS
   // -------------------------------------------------------------------------
-  
+
   // Get difficulty badge color (transparent background)
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
@@ -242,11 +260,11 @@ export default function TrainingPlansModalMain({
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-surface-dark rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -265,8 +283,8 @@ export default function TrainingPlansModalMain({
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-2 hover:bg-zinc-700 text-content-muted hover:text-content-primary rounded-lg transition-colors"
           >
             <X size={20} />
@@ -294,10 +312,10 @@ export default function TrainingPlansModalMain({
               <div className="space-y-3">
                 {memberPlans.map((plan) => {
                   const showDifficulty = isValidDifficulty(plan.difficulty);
-                  
+
                   return (
-                    <div 
-                      key={plan.id} 
+                    <div
+                      key={plan._id}
                       className="bg-surface-card rounded-xl p-4 hover:bg-surface-hover transition-colors"
                     >
                       <div className="flex items-start justify-between">
@@ -311,7 +329,7 @@ export default function TrainingPlansModalMain({
                             )}
                           </div>
                           <p className="text-content-muted text-sm mb-3">{plan.description}</p>
-                          
+
                           {/* Plan Details */}
                           <div className="flex items-center gap-4 text-xs text-content-faint flex-wrap">
                             {plan.duration && (
@@ -345,7 +363,7 @@ export default function TrainingPlansModalMain({
                             <Eye size={18} />
                           </button>
                           <button
-                            onClick={() => setConfirmRemove(plan.id)}
+                            onClick={() => setConfirmRemove(plan._id)}
                             className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-dark transition-colors"
                             title="Unassign Plan"
                           >
@@ -355,7 +373,7 @@ export default function TrainingPlansModalMain({
                       </div>
 
                       {/* Confirm Unassign Dialog */}
-                      {confirmRemove === plan.id && (
+                      {confirmRemove === plan._id && (
                         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
                           <span className="text-sm text-content-muted">Unassign this plan?</span>
                           <div className="flex gap-2">
@@ -366,7 +384,7 @@ export default function TrainingPlansModalMain({
                               Cancel
                             </button>
                             <button
-                              onClick={() => handleRemovePlan(plan.id)}
+                              onClick={() => handleRemovePlan(plan._id)}
                               className="px-3 py-1.5 text-xs text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
                             >
                               Unassign
@@ -404,19 +422,19 @@ export default function TrainingPlansModalMain({
         {/* ASSIGN PLAN MODAL */}
         {/* ================================================================= */}
         {showAssignModal && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
             onClick={() => setShowAssignModal(false)}
           >
-            <div 
+            <div
               className="bg-surface-dark rounded-xl w-full max-w-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <h3 className="text-lg font-medium text-content-primary">Assign Training Plan</h3>
-                <button 
-                  onClick={() => setShowAssignModal(false)} 
+                <button
+                  onClick={() => setShowAssignModal(false)}
                   className="p-2 hover:bg-zinc-700 text-content-muted hover:text-content-primary rounded-lg transition-colors"
                 >
                   <X size={18} />
@@ -443,10 +461,10 @@ export default function TrainingPlansModalMain({
                   <div className="space-y-1">
                     {filteredAvailablePlans.map((plan) => {
                       const showDifficulty = isValidDifficulty(plan.difficulty);
-                      
+
                       return (
                         <div
-                          key={plan.id}
+                          key={plan._id}
                           className="p-3 rounded-xl hover:bg-surface-card transition-colors flex items-center justify-between group"
                         >
                           <div className="flex-1 min-w-0">
@@ -471,7 +489,7 @@ export default function TrainingPlansModalMain({
                               <Eye size={16} />
                             </button>
                             <button
-                              onClick={() => handleAssignPlan(plan.id)}
+                              onClick={() => handleAssignPlan(plan._id)}
                               className="p-2 text-content-muted hover:text-primary rounded-lg hover:bg-surface-dark transition-colors"
                               title="Assign Plan"
                             >
@@ -511,7 +529,7 @@ export default function TrainingPlansModalMain({
         selectedPlan={viewingPlan}
         onClose={() => setViewingPlan(null)}
         onVideoClick={handleVideoClick}
-        getVideoById={getVideo}
+        // getVideoById={getVideo}
         getDifficultyColor={getDifficultyColorSolid}
       />
 

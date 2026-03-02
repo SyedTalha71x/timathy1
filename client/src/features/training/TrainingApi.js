@@ -36,9 +36,31 @@ export const createTrainingPlan = async (planData) => {
     return res.data
 }
 
+//  all training plan to show
+export const getAllTrainingPlans = async () => {
+    const res = await api.get('/plan/all', { withCredentials: true });
+    return res.data;
+
+}
 // Update Plan
 
 export const updateTrainingPlan = async (planId, planData) => {
     const res = await api.put(`/plan/update/${planId}`, planData, { withCredentials: true })
+    return res.data
+}
+
+
+//  plan Assigned to Member
+
+export const assignPlanToMember = async (memberId, planId) => {
+    const res = await api.post(`/plan/assign/${memberId}`, { planId }, { withCredentials: true })
+    return res.data
+}
+
+
+// all assigned plans of members
+
+export const getAllAssignedPlansOfMember = async (memberId) => {
+    const res = await api.get(`/plan/assigned/${memberId}`, {}, { withCredentials: true })
     return res.data
 }

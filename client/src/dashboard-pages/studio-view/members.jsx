@@ -66,6 +66,7 @@ import { addMember, archiveMember, fetchAllMember, setMemberFilters, unarchiveMe
 // import { fetchAppointmentByMemberId } from "../../features/appointments/AppointmentSlice"
 import { createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 import { fetchStudioServices } from "../../features/services/servicesSlice"
+import { assignPlan, fetchAllPlans } from "../../features/training/TrainingSlice"
 
 
 const StatusTag = ({ memberId, compact = false }) => {
@@ -132,16 +133,26 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 };
 export default function Members({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
-  const trainingVideos = trainingVideosData
+  // const trainingVideos = trainingVideosData
+
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch();
+  // =================================
+  // All redux State here
+  // =================================
   const { members, memberFilters, filterStatus, filterMemberType, loading } = useSelector((state) => state.member)
   const { services } = useSelector((state) => state.services);
+  const { myPlans } = useSelector((state) => state.trainings)
   const isAdminMode = mode === "admin" && studioIdProp !== null
+  // ================================
+  //  all fetched data dispatch here
+  // ================================
   useEffect(() => {
     dispatch(fetchStudioServices())
+    dispatch(fetchAllPlans())
   }, [dispatch])
+
   // ============================================
   // Load members data via shared hook
   // ============================================
@@ -896,31 +907,28 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   }
 
   const filteredAndSortedMembers = () => {
-    // If memberFilters are active, show only those members
-    if (memberFilters.length > 0) {
-      const filterIds = memberFilters.map(f => f.memberId);
-      return members.filter((member) => filterIds.includes(member._id));
-    }
-
     let filtered = [...members];
 
-    // Apply status filters using member.status
-    if (members.status === "active") {
-      filtered = filtered.filter((member) => member.status === "active");
-    } else if (members.status === "paused") {
-      filtered = filtered.filter((member) => member.status === "paused");
-    } else if (members.status === "archived") {
-      filtered = filtered.filter((member) => member.status === "archived");
+    // Status filter
+    if (filterStatus && filterStatus !== 'all') {
+      filtered = filtered.filter(member => member.status === filterStatus);
     }
 
-    // Apply member type filters directly
+    // Member type filter
+    if (filterMemberType && filterMemberType !== 'all') {
+      // Make sure the member object has a property called 'memberType'
+      filtered = filtered.filter(
+        member => member.memberType?.toLowerCase() === filterMemberType.toLowerCase()
+      );
+    }
 
-    // filtered = filtered.filter((member) => member.memberType === "full");
+    // Specific member filters (if any)
+    if (memberFilters.length > 0) {
+      const filterIds = memberFilters.map(f => f.memberId);
+      filtered = filtered.filter(member => filterIds.includes(member._id));
+    }
 
-    // filtered = filtered.filter((member) => member.memberType === "temporary");
-
-
-    // Sort members
+    // Sorting
     filtered.sort((a, b) => {
       let comparison = 0;
 
@@ -1041,36 +1049,38 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   const [showTrainingPlansModalMain, setShowTrainingPlansModalMain] = useState(false)
   const [selectedMemberForTrainingPlansMain, setSelectedMemberForTrainingPlansMain] = useState(null)
   const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
-  const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
-    {
-      id: 1,
-      name: "Beginner Full Body",
-      description: "Complete full body workout for beginners",
-      duration: "4 weeks",
-      difficulty: "Beginner",
-    },
-    {
-      id: 2,
-      name: "Advanced Strength Training",
-      description: "High intensity strength building program",
-      duration: "8 weeks",
-      difficulty: "Advanced",
-    },
-    {
-      id: 3,
-      name: "Weight Loss Circuit",
-      description: "Fat burning circuit training program",
-      duration: "6 weeks",
-      difficulty: "Intermediate",
-    },
-    {
-      id: 4,
-      name: "Muscle Building Split",
-      description: "Targeted muscle building program",
-      duration: "12 weeks",
-      difficulty: "Intermediate",
-    },
-  ])
+  // const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
+  //   {
+  //     id: 1,
+  //     name: "Beginner Full Body",
+  //     description: "Complete full body workout for beginners",
+  //     duration: "4 weeks",
+  //     difficulty: "Beginner",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Advanced Strength Training",
+  //     description: "High intensity strength building program",
+  //     duration: "8 weeks",
+  //     difficulty: "Advanced",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Weight Loss Circuit",
+  //     description: "Fat burning circuit training program",
+  //     duration: "6 weeks",
+  //     difficulty: "Intermediate",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Muscle Building Split",
+  //     description: "Targeted muscle building program",
+  //     duration: "12 weeks",
+  //     difficulty: "Intermediate",
+  //   },
+  // ])
+
+
 
   const handleCalendarClick = (member) => {
     setSelectedMemberForAppointmentsMain(member)
@@ -1083,21 +1093,12 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   }
 
   const handleAssignTrainingPlanMain = (memberId, planId) => {
-    const plan = availableTrainingPlansMain.find((p) => p.id === Number.parseInt(planId))
+    const plan = myPlans.find((p) => p._id === planId);
     if (plan) {
-      const assignedPlan = {
-        ...plan,
-        assignedDate: new Date().toLocaleDateString(),
-      }
-
-      setMemberTrainingPlansMain((prev) => ({
-        ...prev,
-        [memberId]: [...(prev[memberId] || []), assignedPlan],
-      }))
-
-      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+      dispatch(assignPlan({ memberId, planId })); // pass as object
+      toast.success(`Training plan "${plan.name}" assigned successfully!`);
     }
-  }
+  };
 
   const handleRemoveTrainingPlanMain = (memberId, planId) => {
     setMemberTrainingPlansMain((prev) => ({
@@ -1330,7 +1331,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       m.email?.toLowerCase().includes(q) ||
       `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
     ).map(m => ({
-      id: `member-${m.id}`,
+      id: `member-${m._id}`,
       email: m.email,
       name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
       firstName: m.firstName,
@@ -1346,7 +1347,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       s.email?.toLowerCase().includes(q) ||
       `${s.firstName} ${s.lastName}`.toLowerCase().includes(q)
     ).map(s => ({
-      id: `staff-${s.id}`,
+      id: `staff-${s._id}`,
       email: s.email,
       name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
       firstName: s.firstName,
@@ -1727,7 +1728,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-content-primary truncate">{member.title}</p>
+                            <p className="text-sm text-content-primary truncate">{member.firstName} {member.lastName}</p>
                             <p className="text-xs text-content-faint truncate">{member.email}</p>
                           </div>
                         </button>
@@ -2110,12 +2111,12 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                      {member.title}
+                                      {member.firstName} {member.lastName}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                     <StatusTag
-                                      status={member.status}
+                                      memberId={member._id}
                                       reason={member.reason}
                                       compact={true}
                                     />
@@ -2160,7 +2161,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                   </div>
                                   <div className="grid grid-cols-4 gap-1">
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); handleCalendarClick(member); }}
+                                      onClick={() => handleCalendarClick(member)}
                                       className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
                                     >
                                       <Calendar size={18} />
@@ -2804,8 +2805,12 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
           setSelectedMemberForTrainingPlansMain(null)
         }}
         selectedMemberMain={selectedMemberForTrainingPlansMain}
-        memberTrainingPlansMain={memberTrainingPlansMain[selectedMemberForTrainingPlansMain?.id] || []}
-        availableTrainingPlansMain={availableTrainingPlansMain}
+        memberTrainingPlansMain={
+          myPlans.filter(
+            (plan) => plan.memberId === selectedMemberForTrainingPlansMain?._id
+          )
+        }
+        availableTrainingPlansMain={myPlans}
         onAssignPlanMain={handleAssignTrainingPlanMain}
         onRemovePlanMain={handleRemoveTrainingPlanMain}
       />

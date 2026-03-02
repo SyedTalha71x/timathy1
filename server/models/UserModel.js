@@ -92,6 +92,14 @@ const UserSchema = new mongoose.Schema({
         },
         // required: true,
     },
+    telephone: {
+        type: String,
+        validate: {
+            validator: v => /^\d{10,15}$/.test(v),
+            message: props => `${props.value} is not a valid phone number!`
+        },
+        // required: true,
+    },
     zipCode: {
         type: String,
         validate: {

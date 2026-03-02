@@ -9,7 +9,7 @@ import NotifyModalMain from '../NotifyModal';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStudioServices } from "../../../features/services/servicesSlice";
 import { createAppointmentByStaff } from "../../../features/appointments/AppointmentSlice"
-import { createAppointment } from "../../../features/appointments/AppointmentApi";
+// import { createAppointment } from "../../../features/appointments/AppointmentApi";
 const MAX_PARTICIPANTS = 5;
 
 // Helper function to extract hex color from various formats
@@ -157,7 +157,7 @@ const MemberTagInput = ({
         onClick={() => !isFull && inputRef.current?.focus()}>
         {members.map((member, index) => (
           <MemberTag
-            key={member._id}
+            key={member.id}
             member={member}
             onRemove={() => setMembers(members.filter((_, i) => i !== index))}
             onEditMemberNote={onEditMemberNote}
@@ -422,7 +422,7 @@ const AddAppointmentModal = ({
   };
 
   // const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);
-  const availableSlots = generateSlots("09:00", "17:00", 30);
+  const availableSlots = generateSlots();
 
   // Helper: generate all recurring dates based on frequency, startDate, and occurrences
   const generateRecurringDates = (options) => {
@@ -471,59 +471,47 @@ const AddAppointmentModal = ({
 
   // Prepare appointment data but don't submit yet - show notify modal first
   const handleBook = () => {
-    // Basic validation
     if (!appointmentData.type || appointmentData.members.length === 0 || !appointmentData.timeSlot.start) {
       alert("Please complete all fields");
       return;
     }
 
-    const selectedType = appointmentTypesMain.find(t => t.name === appointmentData.type);
-    if (!selectedType) {
-      alert("Invalid appointment type selected");
+    const selectedType = services.find(t => t.name === appointmentData.type);
+    if (!selectedType._id) {
+      alert("Invalid service selected");
       return;
     }
 
-
     let { start, end } = appointmentData.timeSlot;
 
-    // Always calculate end if missing
     if (!end) {
       const [hours, minutes] = start.split(":").map(Number);
       const endDate = new Date(2000, 0, 1, hours, minutes + (selectedType.duration || 30));
       end = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
     }
 
-    const dates = showRecurringOptions ? generateRecurringDates(recurringOptions) : [appointmentData.date];
-
-    // Prepare appointments array
-    const appointmentsToCreate = [];
-    dates.forEach(date => {
-      appointmentData.members.forEach(() => {
-        // if (!member._id) return; // skip invalid members
-        appointmentsToCreate.push({
-          memberId: selectedMemberMain?._id,
-          service: selectedType._id,
-          date,
-          timeSlot: {
-            start, end
-          },
-          view: selectedType.view || "upcoming"
-        });
-      });
-    });
-
-    // Set for notification modal
-    setPendingAppointmentData(appointmentsToCreate);
+    const payload = {
+      memberId: appointmentData.members[0]?.id,
+      serviceId: selectedType?._id,
+      date: showRecurringOptions ? recurringOptions.startDate : appointmentData.date,
+      timeSlot: { start, end },
+      view: selectedType.view || "upcoming",
+      bookingType: showRecurringOptions ? "recurring" : "single",
+      frequency: showRecurringOptions ? recurringOptions.frequency : undefined,
+      occurrences: showRecurringOptions ? recurringOptions.occurrences : 1
+    };
+    console.log("Booking payload:", payload);
+    setPendingAppointmentData(payload);
     setShowNotifyModal(true);
   };
-
   // Confirm booking after optional notification
   const handleConfirmBooking = (shouldNotify, notificationOptions) => {
-    if (pendingAppointmentData) {
-      pendingAppointmentData.forEach(apt => {
-        dispatch(createAppointmentByStaff({ memberId: apt.memberId, appointmentData: apt }));
-      });
-    }
+    dispatch(
+      createAppointmentByStaff({
+        memberId: pendingAppointmentData.memberId,
+        appointmentData: pendingAppointmentData
+      })
+    );
 
     setShowNotifyModal(false);
     setPendingAppointmentData(null);
@@ -541,10 +529,12 @@ const AddAppointmentModal = ({
 
   // Get member names for notify modal display
   const getMemberNames = () => {
-    if (!pendingAppointmentData || pendingAppointmentData.length === 0) return "";
-    return pendingAppointmentData.map(apt =>
-      apt.lastName ? `${apt.name} ${apt.lastName}` : apt.name
-    ).join(", ");
+    if (!pendingAppointmentData) return "";
+
+    const member = appointmentData.members[0];
+    if (!member) return "";
+
+    return member.name || `${member.firstName} ${member.lastName}`;
   };
 
   return (
@@ -709,7 +699,13 @@ const AddAppointmentModal = ({
         </div>
         <div className="px-6 py-4 border-t border-border flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Cancel</button>
-          <button disabled={!appointmentData.type || !appointmentData.members.length || (!showRecurringOptions ? (!appointmentData.date || !appointmentData.timeSlot) : (!recurringOptions.startDate || !appointmentData.timeSlot))}
+          <button disabled={
+            !appointmentData.type ||
+            !appointmentData.members.length ||
+            (!showRecurringOptions
+              ? (!appointmentData.date || !appointmentData.timeSlot.start)
+              : (!recurringOptions.startDate || !appointmentData.timeSlot.start))
+          }
             onClick={handleBook} className="flex-1 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-hover disabled:bg-surface-button rounded-xl">
             {showRecurringOptions ? "Book Series" : "Book Appointment"}
           </button>
@@ -726,10 +722,26 @@ const AddAppointmentModal = ({
         entityName={getMemberNames()}
         date={
           showRecurringOptions
-            ? recurringOptions.startDate && new Date(recurringOptions.startDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-            : pendingAppointmentData?.[0]?.date && new Date(pendingAppointmentData[0].date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+            ? recurringOptions.startDate &&
+            new Date(recurringOptions.startDate).toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+            })
+            : pendingAppointmentData?.date &&
+            new Date(pendingAppointmentData.date).toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+            })
         }
-        time={pendingAppointmentData?.[0]?.time || ""}
+        time={
+          pendingAppointmentData?.timeSlot
+            ? `${pendingAppointmentData.timeSlot.start} - ${pendingAppointmentData.timeSlot.end}`
+            : ""
+        }
         isRecurring={showRecurringOptions}
         recurringInfo={showRecurringOptions ? recurringOptions : null}
       />

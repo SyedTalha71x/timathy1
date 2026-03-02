@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createPlan, showMyPlan,updateTrainingPlan } = require('../controllers/TrainingPlanController');
+const { createPlan, showMyPlan, updateTrainingPlan, createPlanForMember, fetchAllPlans ,showAssignedPlans} = require('../controllers/TrainingPlanController');
 const { verifyAccessToken } = require('../middleware/verifyToken');
-
+const { isStaff } = require('../middleware/RoleCheck');
 router.post('/create', verifyAccessToken, createPlan);
 router.get('/myPlan', verifyAccessToken, showMyPlan);
 router.put('/update/:planId', verifyAccessToken, updateTrainingPlan);
+router.post('/assign/:memberId', verifyAccessToken, isStaff, createPlanForMember);
+router.get('/all', verifyAccessToken, isStaff, fetchAllPlans);
+router.get('/assigned/:memberId', verifyAccessToken, showAssignedPlans);
 module.exports = router;

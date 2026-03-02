@@ -17,15 +17,15 @@ const createPlan = async (req, res, next) => {
 
 
         // to know who create plan (admin || staff) or member himself
-        let finalMemberId;
-        if (role === 'admin' || role === "staff") {
-            if (!bodyMemberId) {
-                throw new BadRequestError('Member ID is required for admin and staff');
-            }
-            finalMemberId = bodyMemberId;
-        } else {
-            finalMemberId = userId;
-        }
+        // let finalMemberId;
+        // if (role === 'admin' || role === "staff") {
+        //     if (!bodyMemberId) {
+        //         throw new BadRequestError('Member ID is required for admin and staff');
+        //     }
+        //     finalMemberId = bodyMemberId;
+        // } else {
+        //     finalMemberId = userId;
+        // }
 
 
         // checking videos which i add from exercise did it available in database or not?
@@ -48,13 +48,13 @@ const createPlan = async (req, res, next) => {
             workoutsPerWeek,
             exercises,
             createdBy: userId,
-            member: finalMemberId
+            // member: finalMemberId
         });
 
 
 
         // Add the plan to the user's createdPlans array
-        await MemberModel.findByIdAndUpdate(userId, { $push: { createdPlans: newPlan._id } });
+        // await MemberModel.findByIdAndUpdate(userId, { $push: { createdPlans: newPlan._id } });
 
         res.status(201).json({ success: true, plan: newPlan });
     }
@@ -124,8 +124,75 @@ const updateTrainingPlan = async (req, res, next) => {
 }
 
 
+const fetchAllPlans = async (req, res, next) => {
+    try {
+        const userId = req.user?._id
+        const allPlans = await TrainingPlanModel.find()
+            .populate('exercises', 'video reps sets rest')
+            .populate('exercises.video', 'title description videoUrl thumbnail duration difficulty')
+            .populate('createdBy', 'firstName lastName');
+        res.status(200).json({ success: true, plans: allPlans });
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+const createPlanForMember = async (req, res, next) => {
+    try {
+        // const userId = req.user?._id;
+        const { memberId } = req.params;
+
+        const { planId } = req.body
+
+        const plan = await TrainingPlanModel.findById(planId);
+        if (!plan) throw new NotFoundError("Training plan not found")
+
+        const member = await MemberModel.findById(memberId);
+        if (!member) throw new NotFoundError("Member not found")
+
+        await MemberModel.findByIdAndUpdate(memberId, { $push: { createdPlans: planId } }, { new: true });
+        await TrainingPlanModel.findByIdAndUpdate(planId, { $push: { member: memberId } });
+        await member.save();
+
+        res.status(200).json({ success: true, plan: plan });
+    }
+    catch (error) {
+        next(error)
+    }
+
+}
+
+const showAssignedPlans = async (req, res, next) => {
+    try {
+        const { memberId } = req.params;
+
+        const plan = await MemberModel.findById(memberId)
+            .populate({
+                path: 'createdPlans',
+                select: 'name description duration difficulty category workoutsPerWeek exercises createdBy isPublic likes uses',
+                populate: [
+                    {
+                        path: 'exercises.video',
+                        select: 'title description videoUrl thumbnail duration difficulty targetMuscles',
+                    },
+                    {
+                        path: 'createdBy',
+                        select: 'firstName lastName'
+                    }
+                ]
+            });
+        res.status(200).json({ success: true, plans: plan.createdPlans });
+    } catch (error) {
+        next(error)
+    }
+}
+
 module.exports = {
     createPlan,
     showMyPlan,
-    updateTrainingPlan
+    updateTrainingPlan,
+    fetchAllPlans,
+    createPlanForMember,
+    showAssignedPlans
 }

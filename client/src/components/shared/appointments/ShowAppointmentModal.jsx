@@ -114,7 +114,7 @@ const AppointmentModalMain = ({
             <div className="space-y-3">
               {appointments.map((appointment) => {
                 const appointmentType = appointmentTypesMain.find(
-                  (type) => type.name === appointment.service.name
+                  (type) => type.name === appointment.serviceId.name
                 );
                 const bgColor = getColorHex(appointmentType);
 
@@ -127,7 +127,7 @@ const AppointmentModalMain = ({
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-medium text-sm text-white">{appointment.service.name}</p>
+                        <p className="font-medium text-sm text-white">{appointment.serviceId.name}</p>
                         <p className="text-sm text-white/70 mt-1">
                           {new Date(appointment.date).toLocaleDateString([], {
                             month: "short",
