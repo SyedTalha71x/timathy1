@@ -9,7 +9,7 @@ import PreviewModal from '../../components/studio-components/medical-history-com
 import DeleteModal from '../../components/studio-components/medical-history-components/DeleteModal';
 
 // Imports
-import toast, { Toaster } from "react-hot-toast";
+import toast from "../../components/shared/SharedToast";
 
 // Sortable Form Card Component
 const SortableFormCard = ({ form, children, isDragDisabled }) => {
@@ -514,16 +514,7 @@ const Assessment = () => {
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+
       <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         {/* Header */}
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">

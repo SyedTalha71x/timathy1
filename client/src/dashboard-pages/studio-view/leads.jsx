@@ -2,7 +2,7 @@
 import React from "react"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Search, Plus, X, ChevronLeft, ChevronRight, File, ClipboardList } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import { useNavigate, useLocation } from "react-router-dom"
 
 // @dnd-kit imports
@@ -27,7 +27,7 @@ import ViewLeadDetailsModal from "../../components/studio-components/lead-studio
 import ConfirmationModal from "../../components/studio-components/lead-studio-components/confirmation-modal"
 import EditColumnModal from "../../components/studio-components/lead-studio-components/edit-column-modal"
 import TrialTrainingModal from "../../components/shared/appointments/CreateTrialTrainingModal"
-import LeadHistoryModal from "../../components/studio-components/lead-studio-components/lead-history-modal"
+import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
 import TrialAppointmentModal from "../../components/studio-components/lead-studio-components/trial-appointment-modal"
 import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
 import DeleteConfirmationModal from "../../components/studio-components/lead-studio-components/delete-confirmation-modal"
@@ -66,6 +66,22 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   })
 
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
+
+  // Lead history data — replace with real API data later
+  // Previously this was hardcoded inside LeadHistoryModal
+  const [leadHistoryData] = useState({
+    general: [
+      { id: 1, date: "2024-01-15", time: "14:30", field: "Status", oldValue: "Active prospect", newValue: "Passive prospect", changedBy: "Admin" },
+      { id: 2, date: "2024-01-10", time: "09:15", field: "Phone Number", oldValue: "+1234567890", newValue: "+1234567891", changedBy: "Self" },
+      { id: 3, date: "2024-01-05", time: "16:45", field: "Email", oldValue: "old@email.com", newValue: "new@email.com", changedBy: "Admin" },
+    ],
+    communication: [],
+    trial: [
+      { id: 1, date: "2024-01-20", time: "10:00", action: "Trial Training Booked", trialType: "Cardio", trialDate: "2024-01-25", trialTime: "14:00", status: "Scheduled", bookedBy: "Admin" },
+      { id: 2, date: "2024-01-18", time: "15:30", action: "Trial Training Completed", trialType: "Strength", trialDate: "2024-01-18", trialTime: "15:00", status: "Completed", bookedBy: "Admin" },
+      { id: 3, date: "2024-01-15", time: "11:00", action: "Trial Training Cancelled", trialType: "Flexibility", trialDate: "2024-01-16", trialTime: "09:00", status: "Cancelled", bookedBy: "Admin" },
+    ],
+  })
 
   const [columns, setColumns] = useState([
     { id: "active", title: "Active prospect", color: "#10b981" },
@@ -1253,17 +1269,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
 
   return (
-    <div className="min-h-screen rounded-3xl p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1 overflow-x-hidden md:overflow-x-visible">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+    <div className="min-h-screen rounded-3xl p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1 overflow-x-hidden">
+
 
       {/* Admin Mode Banner */}
       {isAdminMode && (
@@ -1750,7 +1757,14 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         />
       )}
 
-      {showHistoryModalLead && <LeadHistoryModal lead={selectedLead} onClose={() => setShowHistoryModalLead(false)} />}
+      {showHistoryModalLead && selectedLead && (
+        <SharedHistoryModal
+          variant="lead"
+          person={selectedLead}
+          history={leadHistoryData}
+          onClose={() => setShowHistoryModalLead(false)}
+        />
+      )}
 
       <EditColumnModal
         isVisible={isEditColumnModalOpen}

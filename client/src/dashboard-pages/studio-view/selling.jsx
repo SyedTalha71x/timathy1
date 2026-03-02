@@ -6,7 +6,7 @@ import { X, Plus, ShoppingBasket, ExternalLink, History, Search, Trash2, Shoppin
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/studio-components/selling-components/custom-sidebar-selling"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
-import { toast, Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import CreateTempMemberModal from "../../components/shared/members/CreateTempMemberModal"
 import DeleteConfirmationModal from "../../components/studio-components/selling-components/delete-confirmation-modal"
 import SalesJournalModal from "../../components/studio-components/selling-components/sales-journal-modal"
@@ -785,16 +785,7 @@ Payment: ${sale.paymentMethod}
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+
 
       <div
         className={`
@@ -982,8 +973,8 @@ Payment: ${sale.paymentMethod}
                   ${isRightSidebarOpen ? "lg:grid-cols-4 xl:grid-cols-4" : "lg:grid-cols-4 xl:grid-cols-5"} 
                   gap-4 md:gap-6 auto-rows-fr`}
               >
-                {/* Individual Sale Tile - only in products tab */}
-                {activeTab === "products" && (
+                {/* Individual Sale Tile - only in products tab, hidden during search */}
+                {activeTab === "products" && !searchQuery && (
                   <div
                     onClick={() => {
                       setIndividualSaleData({ name: "", price: "", vatRate: 19 })

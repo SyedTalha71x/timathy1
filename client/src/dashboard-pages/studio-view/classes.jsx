@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { X, Clock, Search, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Plus, Users, Briefcase } from "lucide-react"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
 import MiniCalendar from "../../components/studio-components/appointments-components/mini-calender"
@@ -160,7 +160,7 @@ export default function Classes() {
   return (
     <>
       <style>{`.upcoming-class-tile{transition:all .2s;cursor:pointer}.upcoming-class-tile:hover{filter:brightness(1.15);box-shadow:0 4px 12px rgba(0,0,0,.4)}@media(max-width:1023px){.fc .fc-toolbar{display:none!important}}`}</style>
-      <Toaster position="top-right" toastOptions={{duration:2000,style:{background:"#333",color:"#fff"}}}/>
+
 
       <div className="relative h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-surface-card transition-all duration-500 ease-in-out overflow-hidden">
         <main className="flex-1 min-w-0 flex flex-col min-h-0 pt-4 pb-4 pl-4 pr-0">

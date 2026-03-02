@@ -44,7 +44,7 @@ const CustomSelect = ({
   const selectedOption = options.find(opt => String(opt.value) === String(value))
 
   const filteredOptions = searchable && search
-    ? options.filter(opt => opt.label.toLowerCase().includes(search.toLowerCase()))
+    ? options.filter(opt => opt.divider || opt.label.toLowerCase().includes(search.toLowerCase()))
     : options
 
   // Position dropdown relative to trigger using portal
@@ -136,15 +136,19 @@ const CustomSelect = ({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault()
-        setHighlightedIndex(prev =>
-          prev < filteredOptions.length - 1 ? prev + 1 : 0
-        )
+        setHighlightedIndex(prev => {
+          let next = prev < filteredOptions.length - 1 ? prev + 1 : 0
+          while (filteredOptions[next]?.divider && next < filteredOptions.length - 1) next++
+          return filteredOptions[next]?.divider ? prev : next
+        })
         break
       case "ArrowUp":
         e.preventDefault()
-        setHighlightedIndex(prev =>
-          prev > 0 ? prev - 1 : filteredOptions.length - 1
-        )
+        setHighlightedIndex(prev => {
+          let next = prev > 0 ? prev - 1 : filteredOptions.length - 1
+          while (filteredOptions[next]?.divider && next > 0) next--
+          return filteredOptions[next]?.divider ? prev : next
+        })
         break
       case "Enter":
         e.preventDefault()
@@ -245,6 +249,10 @@ const CustomSelect = ({
               </div>
             ) : (
               filteredOptions.map((opt, index) => {
+                // Divider support
+                if (opt.divider) {
+                  return <div key={`divider-${index}`} className="my-1 border-t border-border mx-2" />
+                }
                 const isSelected = String(opt.value) === String(value)
                 const isHighlighted = index === highlightedIndex
                 return (

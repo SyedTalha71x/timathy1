@@ -21,7 +21,7 @@ import {
   Edit,
   Users,
 } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import { useNavigate } from "react-router-dom"
 
 // ============================================================================
@@ -538,16 +538,7 @@ export default function Training() {
           }
         `}
       </style>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+
       <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         <div className="w-full mx-auto">
           {/* Header */}

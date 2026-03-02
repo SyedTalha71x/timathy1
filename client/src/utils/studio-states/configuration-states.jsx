@@ -3962,6 +3962,32 @@ export const DEFAULT_CONTRACT_PAUSE_REASONS = [
   { id: 8, name: "Personal Reasons", maxDays: 30, requiresProof: false },
 ];
 
+export const DEFAULT_CONTRACT_CHANGE_REASONS = [
+  { id: 1, name: "Upgrade" },
+  { id: 2, name: "Downgrade" },
+  { id: 3, name: "Member Request" },
+  { id: 4, name: "Financial Reasons" },
+  { id: 5, name: "Relocation" },
+  { id: 6, name: "Promotion / Offer" },
+];
+
+export const DEFAULT_CONTRACT_RENEW_REASONS = [
+  { id: 1, name: "Member Satisfaction" },
+  { id: 2, name: "Promotion / Offer" },
+  { id: 3, name: "Contract Expiry" },
+  { id: 4, name: "Member Request" },
+  { id: 5, name: "Loyalty Renewal" },
+];
+
+export const DEFAULT_CONTRACT_BONUS_TIME_REASONS = [
+  { id: 1, name: "Compensation" },
+  { id: 2, name: "Studio Closure" },
+  { id: 3, name: "Equipment Unavailable" },
+  { id: 4, name: "Promotion / Offer" },
+  { id: 5, name: "Goodwill Gesture" },
+  { id: 6, name: "Member Complaint" },
+];
+
 export const DEFAULT_VAT_RATES = [
   { name: "Standard", percentage: 19, description: "Standard VAT rate" },
   { name: "Reduced", percentage: 7, description: "Reduced VAT rate" },
@@ -4684,6 +4710,9 @@ export default {
   DEFAULT_CONTRACT_TYPES,
   DEFAULT_CONTRACT_SETTINGS,
   DEFAULT_CONTRACT_PAUSE_REASONS,
+  DEFAULT_CONTRACT_CHANGE_REASONS,
+  DEFAULT_CONTRACT_RENEW_REASONS,
+  DEFAULT_CONTRACT_BONUS_TIME_REASONS,
   DEFAULT_VAT_RATES,
   
   // Default Settings

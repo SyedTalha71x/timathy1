@@ -1,13 +1,19 @@
 
 /* eslint-disable react/prop-types */
-import { X, ChevronDown, ChevronUp } from "lucide-react"
+import { X, ChevronDown, ChevronUp, Info } from "lucide-react"
 import { useState } from "react"
-import { DEFAULT_CONTRACT_TYPES, studioData } from "../../../utils/studio-states/configuration-states"
+import { DEFAULT_CONTRACT_TYPES, DEFAULT_CONTRACT_CHANGE_REASONS, studioData } from "../../../utils/studio-states/configuration-states"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
 
 export function ChangeContractModal({ contract, onClose, onSubmit, initialData = null }) {
   const currency = studioData?.currency || "â‚¬"
+
+  // Today's date string (local timezone) for min attribute and default value
+  const getTodayDate = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
 
   // Use DEFAULT_CONTRACT_TYPES, excluding the current contract type
   const contractTypes = (DEFAULT_CONTRACT_TYPES || []).filter(
@@ -18,7 +24,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
   // Otherwise start with empty selection ("Select contract type")
   const [changeData, setChangeData] = useState({
     newContractType: initialData?.newContractType || "",
-    startDate: initialData?.startDate || "",
+    startDate: initialData?.startDate || getTodayDate(),
   })
 
   const [discount, setDiscount] = useState(
@@ -43,15 +49,15 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
   // Date validation error
   const [dateError, setDateError] = useState("")
 
+  // Reason for change
+  const reasonPresets = DEFAULT_CONTRACT_CHANGE_REASONS.map(r => r.name)
+  const initReason = initialData?.changeReason || ""
+  const isPresetReason = reasonPresets.includes(initReason)
+  const [changeReason, setChangeReason] = useState(isPresetReason ? initReason : (initReason ? "other" : ""))
+  const [customReason, setCustomReason] = useState(isPresetReason ? "" : initReason)
+
   const selectedContractType = contractTypes.find((type) => type.name === changeData.newContractType)
   const currentContractType = (DEFAULT_CONTRACT_TYPES || []).find((type) => type.name === contract?.contractType)
-
-  // Today's date string for min attribute
-  const getTomorrowDate = () => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split("T")[0]
-  }
 
   // Calculate end date based on start date + duration
   const calculateEndDate = () => {
@@ -74,14 +80,14 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
   const handleInputChange = (e) => {
     const { name, value } = e.target
     
-    // Validate start date is in the future
+    // Validate start date is today or in the future
     if (name === "startDate") {
       const selected = new Date(value)
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       
-      if (selected <= today) {
-        setDateError("Start date must be in the future")
+      if (selected < today) {
+        setDateError("Start date must be today or in the future")
       } else {
         setDateError("")
       }
@@ -104,13 +110,13 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
   const handleSubmit = (e) => {
     e.preventDefault()
     
-    // Final validation: start date must be in the future
+    // Final validation: start date must be today or in the future
     const selected = new Date(changeData.startDate)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    if (selected <= today) {
-      setDateError("Start date must be in the future")
+    if (selected < today) {
+      setDateError("Start date must be today or in the future")
       return
     }
 
@@ -122,6 +128,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
       endDate: contractEndDate,
       discount: discount.percentage > 0 ? discount : null,
       selectedContractType: selectedType,
+      changeReason: changeReason === "other" ? (customReason.trim() || "Other") : (changeReason || null),
     })
   }
 
@@ -217,6 +224,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
                   <DatePickerField
                     value={changeData.startDate}
                     onChange={(val) => handleInputChange({ target: { name: 'startDate', value: val } })}
+                    minDate={getTodayDate()}
                   />
                 </div>
                 {dateError && (
@@ -239,6 +247,17 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
                   />
                 </div>
               )}
+
+              {/* Info: What happens to the current contract */}
+              {changeData.startDate && (
+                <div className="flex items-start gap-2.5 bg-primary/10 border border-primary/20 rounded-xl p-3">
+                  <Info size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-xs text-content-secondary leading-relaxed">
+                    The current <span className="text-content-primary font-medium">{contract?.contractType}</span> contract will be automatically cancelled on <span className="text-content-primary font-medium">{new Date(changeData.startDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span> when the new contract takes effect.
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -360,10 +379,39 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
             </div>
           )}
 
+          {/* Reason for Change */}
+          {selectedContractType && (
+            <div className="space-y-1.5">
+              <label className="text-xs text-content-secondary block pl-1">
+                Reason for Change <span className="text-content-faint">(optional)</span>
+              </label>
+              <CustomSelect
+                name="changeReason"
+                value={changeReason}
+                onChange={(e) => setChangeReason(e.target.value)}
+                options={[
+                  ...DEFAULT_CONTRACT_CHANGE_REASONS.map(r => ({ value: r.name, label: r.name })),
+                  { divider: true },
+                  { value: "other", label: "Other" },
+                ]}
+                placeholder="Select a reason"
+              />
+              {changeReason === "other" && (
+                <input
+                  type="text"
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  placeholder="Please specify..."
+                  className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
+                />
+              )}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={!isFormValid}
-            className={`w-full py-2 px-4 text-content-primary text-sm rounded-xl transition-colors ${
+            className={`w-full py-2 px-4 text-white text-sm rounded-xl transition-colors ${
               isFormValid
                 ? "bg-orange-500 hover:bg-orange-600"
                 : "bg-surface-button text-content-muted cursor-not-allowed"
