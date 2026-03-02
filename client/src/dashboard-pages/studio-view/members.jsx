@@ -233,14 +233,6 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   })
 
 
-// ============================================
-// Load members data via shared hook (fallback)
-// ============================================
-const { data: membersHookData, isLoading: membersLoading, error: membersError } = useStudioMembers({
-  studioId: studioIdProp,
-  mode,
-})
-
 // Helper function for contract redirect
   const redirectToContract = (memberId) => {
     if (isAdminMode) {

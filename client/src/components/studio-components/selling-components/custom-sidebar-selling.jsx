@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
+import CustomSelect from "../../shared/CustomSelect"
 import { formatCurrency, getCurrencySymbol } from "../../../utils/studio-states/selling-states"
 
 /**
@@ -228,15 +229,16 @@ const SidebarAreaSelling = ({
                       <span className="text-xs bg-surface-button px-2 py-1 rounded">
                         {item.type === "service" ? "Service" : "Product"}
                       </span>
-                      <select
+                      <CustomSelect
+                        name={`vatRate-${item.id}`}
                         value={item.vatRate}
                         onChange={(e) => updateItemVatRate(item.id, Number(e.target.value))}
-                        className="text-xs bg-surface-card hover:bg-surface-hover px-2 py-1 rounded cursor-pointer outline-none transition-colors border border-border open_sans_font"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <option value={19}>VAT: 19% (eat-in)</option>
-                        <option value={7}>VAT: 7% (take-away)</option>
-                      </select>
+                        options={[
+                          { value: 19, label: "VAT: 19% (eat-in)" },
+                          { value: 7, label: "VAT: 7% (take-away)" },
+                        ]}
+                        className="!py-1 !text-xs !rounded-lg"
+                      />
                     </div>
                   </div>
                 </div>

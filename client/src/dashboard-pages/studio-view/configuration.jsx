@@ -50,7 +50,8 @@ import {
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
-import { Modal, notification, QRCode } from "antd"
+import { Modal, QRCode } from "antd"
+import toast from "../../components/shared/SharedToast"
 import dayjs from "dayjs"
 
 import ContractBuilder from "../../components/studio-components/configuration-components/ContractBuilder"
@@ -1045,7 +1046,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const data = await response.json()
       setPublicHolidays(data.map(h => ({ date: h.date, name: h.name, countryCode: h.countryCode })))
     } catch (error) {
-      notification.error({ message: "Error", description: "Could not load public holidays" })
+      toast.error("Error — Could not load public holidays")
     } finally {
       setIsLoadingHolidays(false)
     }
@@ -1053,17 +1054,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const addPublicHolidaysToClosingDays = () => {
     if (publicHolidays.length === 0) {
-      notification.warning({ message: "No Holidays", description: "Please select a country first" })
+      toast.error("No Holidays — Please select a country first")
       return
     }
     const existingDates = closingDays.map(d => d.date)
     const newHolidays = publicHolidays.filter(h => !existingDates.includes(h.date))
     if (newHolidays.length === 0) {
-      notification.info({ message: "No New Holidays", description: "All holidays already added" })
+      toast.success("No New Holidays — All holidays already added")
       return
     }
     setClosingDays([...closingDays, ...newHolidays.map(h => ({ date: h.date, description: h.name }))])
-    notification.success({ message: "Added", description: `Added ${newHolidays.length} holidays` })
+    toast.success(`Added — Added ${newHolidays.length} holidays`)
   }
 
   const handleLogoUpload = (e) => {
@@ -1072,7 +1073,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const url = URL.createObjectURL(file)
       setLogoUrl(url)
       setLogo([file])
-      notification.success({ message: "Logo uploaded successfully" })
+      toast.success("Logo uploaded successfully")
     }
   }
 
@@ -1094,7 +1095,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     if (field === "name" && value.trim()) {
       const duplicate = roles.find((r, i) => i !== index && r.name.toLowerCase() === value.toLowerCase().trim())
       if (duplicate) {
-        notification.error({ message: "Duplicate name", description: "Role name already exists" })
+        toast.error("Duplicate name — Role name already exists")
         return
       }
     }
@@ -1104,11 +1105,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleDeleteRole = (index) => {
     if (roles[index].isAdmin) {
-      notification.error({ message: "Cannot delete Admin role" })
+      toast.error("Cannot delete Admin role")
       return
     }
     if (roles[index].staffCount > 0) {
-      notification.error({ message: "Reassign staff first" })
+      toast.error("Reassign staff first")
       return
     }
     setRoles(roles.filter((_, i) => i !== index))
@@ -1141,10 +1142,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const remainingAdmins = adminStaff.filter(id => !staffBeingMovedFromAdmin.includes(id))
       
       if (staffBeingMovedFromAdmin.length > 0 && remainingAdmins.length === 0) {
-        notification.error({ 
-          message: "Cannot remove last admin", 
-          description: "At least one staff member must remain in the Admin role." 
-        })
+        toast.error("Cannot remove last admin — At least one staff member must remain in the Admin role.")
         return
       }
     }
@@ -1200,27 +1198,27 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleSaveAppointmentType = () => {
     if (!appointmentTypeForm.name.trim()) {
-      notification.error({ message: "Please enter a name for the appointment type" })
+      toast.error("Please enter a name for the appointment type")
       return
     }
     if (!appointmentTypeForm.duration || appointmentTypeForm.duration < 5) {
-      notification.error({ message: "Please enter a valid duration (min. 5 minutes)" })
+      toast.error("Please enter a valid duration (min. 5 minutes)")
       return
     }
     if (!appointmentTypeForm.interval || appointmentTypeForm.interval < 5) {
-      notification.error({ message: "Please enter a valid interval (min. 5 minutes)" })
+      toast.error("Please enter a valid interval (min. 5 minutes)")
       return
     }
     if (appointmentTypeForm.slotsRequired === undefined || appointmentTypeForm.slotsRequired === null || appointmentTypeForm.slotsRequired === "") {
-      notification.error({ message: "Please enter the slots required" })
+      toast.error("Please enter the slots required")
       return
     }
     if (!appointmentTypeForm.maxParallel || appointmentTypeForm.maxParallel < 1) {
-      notification.error({ message: "Please enter max parallel (min. 1)" })
+      toast.error("Please enter max parallel (min. 1)")
       return
     }
     if (appointmentTypeForm.contingentUsage === undefined || appointmentTypeForm.contingentUsage === null || appointmentTypeForm.contingentUsage === "") {
-      notification.error({ message: "Please enter the contingent usage" })
+      toast.error("Please enter the contingent usage")
       return
     }
     
@@ -1231,14 +1229,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           ? { ...t, ...appointmentTypeForm }
           : t
       ))
-      notification.success({ message: "Appointment type updated" })
+      toast.success("Appointment type updated")
     } else {
       // Create new
       setAppointmentTypes([...appointmentTypes, {
         id: Date.now(),
         ...appointmentTypeForm
       }])
-      notification.success({ message: "Appointment type created" })
+      toast.success("Appointment type created")
     }
     
     setShowAppointmentTypeModal(false)
@@ -1253,7 +1251,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       okType: "danger",
       onOk: () => {
         setAppointmentTypes(appointmentTypes.filter(t => t.id !== id))
-        notification.success({ message: "Appointment type deleted" })
+        toast.success("Appointment type deleted")
       }
     })
   }
@@ -1287,7 +1285,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const handleRemoveCategory = (index) => {
     const category = appointmentCategories[index]
     if (appointmentTypes.some(t => t.category === category)) {
-      notification.error({ message: "Cannot remove", description: "Category is in use" })
+      toast.error("Cannot remove — Category is in use")
       return
     }
     setAppointmentCategories(appointmentCategories.filter((_, i) => i !== index))
@@ -1317,23 +1315,23 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleSaveClassType = () => {
     if (!classTypeForm.name.trim()) {
-      notification.error({ message: "Please enter a name for the class type" })
+      toast.error("Please enter a name for the class type")
       return
     }
     if (!classTypeForm.duration || classTypeForm.duration < 5) {
-      notification.error({ message: "Please enter a valid duration (min. 5 minutes)" })
+      toast.error("Please enter a valid duration (min. 5 minutes)")
       return
     }
     if (!classTypeForm.maxParticipants || classTypeForm.maxParticipants < 1) {
-      notification.error({ message: "Please enter max participants (min. 1)" })
+      toast.error("Please enter max participants (min. 1)")
       return
     }
     if (editingClassType) {
       setClassTypes(classTypes.map(t => t.id === editingClassType.id ? { ...t, ...classTypeForm } : t))
-      notification.success({ message: "Class type updated" })
+      toast.success("Class type updated")
     } else {
       setClassTypes([...classTypes, { id: Date.now(), ...classTypeForm }])
-      notification.success({ message: "Class type created" })
+      toast.success("Class type created")
     }
     setShowClassTypeModal(false)
     setEditingClassType(null)
@@ -1346,7 +1344,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       okText: "Delete", okType: "danger",
       onOk: () => {
         setClassTypes(classTypes.filter(t => t.id !== id))
-        notification.success({ message: "Class type deleted" })
+        toast.success("Class type deleted")
       },
     })
   }
@@ -1359,7 +1357,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const handleRemoveClassCategory = (index) => {
     const category = classCategories[index]
     if (classTypes.some(t => t.category === category)) {
-      notification.error({ message: "Cannot remove", description: "Category is in use by a class type" })
+      toast.error("Cannot remove — Category is in use by a class type")
       return
     }
     setClassCategories(classCategories.filter((_, i) => i !== index))
@@ -1393,27 +1391,27 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleSaveContractType = () => {
     if (!editingContractType.name.trim()) {
-      notification.error({ message: "Please enter a contract name" })
+      toast.error("Please enter a contract name")
       return
     }
     if (!editingContractType.duration || editingContractType.duration < 1) {
-      notification.error({ message: "Please enter a valid duration" })
+      toast.error("Please enter a valid duration")
       return
     }
     if (!editingContractType.billingPeriod) {
-      notification.error({ message: "Please select a billing period" })
+      toast.error("Please select a billing period")
       return
     }
     if (editingContractType.userCapacity === undefined || editingContractType.userCapacity === null || editingContractType.userCapacity === "") {
-      notification.error({ message: "Please enter a contingent value (0 for unlimited)" })
+      toast.error("Please enter a contingent value (0 for unlimited)")
       return
     }
     if (contractForms.length === 0) {
-      notification.error({ message: "Please create a contract form first" })
+      toast.error("Please create a contract form first")
       return
     }
     if (!editingContractType.contractFormId) {
-      notification.error({ message: "Please select a contract form" })
+      toast.error("Please select a contract form")
       return
     }
     
@@ -1421,10 +1419,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const updated = [...contractTypes]
       updated[editingContractTypeIndex] = editingContractType
       setContractTypes(updated)
-      notification.success({ message: "Contract type updated" })
+      toast.success("Contract type updated")
     } else {
       setContractTypes([...contractTypes, editingContractType])
-      notification.success({ message: "Contract type created" })
+      toast.success("Contract type created")
     }
     
     setContractTypeModalVisible(false)
@@ -1441,14 +1439,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       okType: "danger",
       onOk: () => {
         setContractTypes(contractTypes.filter((_, i) => i !== index))
-        notification.success({ message: "Contract type deleted" })
+        toast.success("Contract type deleted")
       }
     })
   }
 
   const handleCreateContractForm = () => {
     if (!newContractFormName.trim()) {
-      notification.error({ message: "Please enter a name" })
+      toast.error("Please enter a name")
       return
     }
     const newForm = {
@@ -3346,7 +3344,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onClick={() => {
                         setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== deletingIntroMaterialIndex))
                         setDeletingIntroMaterialIndex(null)
-                        notification.success({ message: "Material deleted successfully" })
+                        toast.success("Material deleted successfully")
                       }}
                       className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                     >
@@ -3672,7 +3670,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onClick={() => {
                         setContractForms(contractForms.filter(f => f.id !== deletingContractFormId))
                         setDeletingContractFormId(null)
-                        notification.success({ message: "Contract form deleted" })
+                        toast.success("Contract form deleted")
                       }}
                       className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                     >
@@ -4119,7 +4117,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             if (settings.emailSignature) {
                               birthdayEditorRef.current?.insertHTML(settings.emailSignature)
                             } else {
-                              notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                              toast.error("No email signature configured — Please set up your email signature first.")
                             }
                           }}
                           className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4269,7 +4267,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 if (settings.emailSignature) {
                                   appointmentEditorRefs.current[type]?.insertHTML(settings.emailSignature)
                                 } else {
-                                  notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                                  toast.error("No email signature configured — Please set up your email signature first.")
                                 }
                               }}
                               className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4420,7 +4418,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 if (settings.emailSignature) {
                                   classEditorRefs.current[type]?.insertHTML(settings.emailSignature)
                                 } else {
-                                  notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                                  toast.error("No email signature configured — Please set up your email signature first.")
                                 }
                               }}
                               className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4879,16 +4877,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <button
                     onClick={() => {
                       if (!settings.smtpHost || !settings.smtpUser) {
-                        notification.error({ message: "Missing SMTP Settings", description: "Please fill in SMTP Host and Username" })
+                        toast.error("Missing SMTP Settings — Please fill in SMTP Host and Username")
                         return
                       }
-                      notification.loading({ message: "Testing connection...", key: "smtp-test" })
+                      toast.loading("Testing connection...", { id: "smtp-test" })
                       setTimeout(() => {
-                        notification.success({ 
-                          message: "Connection successful!", 
-                          description: `Connected to ${settings.smtpHost}:${settings.smtpPort}`,
-                          key: "smtp-test"
-                        })
+                        toast.success(`Connection successful! — Connected to ${settings.smtpHost}:${settings.smtpPort}`, { id: "smtp-test" })
                       }, 1500)
                     }}
                     className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
@@ -4899,16 +4893,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <button
                     onClick={() => {
                       if (!settings.smtpHost || !settings.smtpUser || !settings.smtpFromEmail) {
-                        notification.error({ message: "Missing SMTP Settings", description: "Please fill in all SMTP fields" })
+                        toast.error("Missing SMTP Settings — Please fill in all SMTP fields")
                         return
                       }
-                      notification.loading({ message: "Sending test email...", key: "smtp-send" })
+                      toast.loading("Sending test email...", { id: "smtp-send" })
                       setTimeout(() => {
-                        notification.success({ 
-                          message: "Test email sent!", 
-                          description: `From: ${settings.senderName} <${settings.smtpFromEmail}>`,
-                          key: "smtp-send"
-                        })
+                        toast.success(`Test email sent! — From: ${settings.senderName} <${settings.smtpFromEmail}>`, { id: "smtp-send" })
                       }, 2000)
                     }}
                     className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
@@ -5005,7 +4995,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           einvoiceEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -5077,7 +5067,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           cancellationEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -5149,7 +5139,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           conclusionEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -5221,7 +5211,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           renewalEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -5293,7 +5283,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           changeEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -5365,7 +5355,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           sepaMandateEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -5636,7 +5626,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(appearance.primaryColor)
-                            notification.success({ message: "Copied!", duration: 1.5 })
+                            toast.success("Copied!")
                           }}
                           className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                           title="Copy color code"
@@ -6097,7 +6087,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           setIntroMaterialEditorVisible(false)
           setEditingIntroMaterial(null)
           setEditingIntroMaterialIndex(null)
-          notification.success({ message: "Material saved successfully" })
+          toast.success("Material saved successfully")
         }}
       />
 
