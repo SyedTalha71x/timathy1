@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import {
-  Calendar,
-  Users,
-  UserPlus,
-  DollarSign,
-  TrendingUp,
+import { 
+  Calendar, 
+  Users, 
+  UserPlus, 
+  DollarSign, 
+  TrendingUp, 
   TrendingDown,
   ChevronDown,
   ArrowUpRight,
@@ -62,12 +62,13 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
               {prefix}{typeof value === "number" ? value.toLocaleString() : value}{suffix}
             </h3>
             {change !== undefined && (
-              <span className={`flex items-center text-xs px-1.5 py-0.5 rounded ${isNeutral
-                ? "text-content-muted bg-gray-500/20"
-                : isPositive
-                  ? "text-green-400 bg-green-500/20"
-                  : "text-red-400 bg-red-500/20"
-                }`}>
+              <span className={`flex items-center text-xs px-1.5 py-0.5 rounded ${
+                isNeutral 
+                  ? "text-content-muted bg-gray-500/20" 
+                  : isPositive 
+                    ? "text-green-400 bg-green-500/20" 
+                    : "text-red-400 bg-red-500/20"
+              }`}>
                 {isNeutral ? "—" : isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                 {!isNeutral && <span>{Math.abs(change)}%</span>}
               </span>
@@ -240,22 +241,22 @@ const LeadOriginMap = ({ data, height = 450 }) => {
         .leaflet-marker-pane { z-index: 3 !important; }
         .leaflet-popup-pane { z-index: 4 !important; }
       `}</style>
-
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 className="text-lg font-semibold text-content-primary">Lead Origin</h3>
         <div className="text-sm text-content-muted">
           Total: <span className="font-bold text-primary">{data.totalLeads}</span> leads
         </div>
       </div>
-
+      
       <div className="w-full overflow-hidden rounded-xl relative" style={{ zIndex: 1 }}>
-        <div
-          ref={mapRef}
+        <div 
+          ref={mapRef} 
           style={{ height: `${height}px`, width: '100%', minWidth: '280px', position: 'relative', zIndex: 1 }}
           className="rounded-xl"
         />
       </div>
-
+      
       <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
@@ -304,31 +305,12 @@ export default function AnalyticsDashboard() {
   // ==============================
   // USESELECTOR & DISPATCH
   // ==============================
-
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments)
   const { members } = useSelector((state) => state.members)
   // const {leads} = useSelector((state) => state.leads)  
   const { services } = useSelector((state) => state.services)
 
-
-
-  // ==============================
-  // EFFECTS
-  // ==============================
-  useEffect(() => {
-    dispatch(fetchAllAppointments())
-    // dispatch(fetchAllMembers());
-    // dispatch(());
-  }, [dispatch])
-
-
-  const appointmentsCounts = appointments.reduce((acc, app) => {
-    if (app.view === "upcoming") acc.upcoming += 1;
-    if (app.view === "past") acc.confirmed += 1;
-    if (app.view === "pending") acc.canceled += 1;
-    return acc;
-  }, { upcoming: 0, confirmed: 0, canceled: 0 })
   // ==============================
   // NAVIGATION HOOK
   // ==============================
@@ -340,7 +322,7 @@ export default function AnalyticsDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const analyticsFilterRef = useRef(null)
   const [activeTab, setActiveTab] = useState("Appointments")
-
+  
   // New states for enhanced features
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("thisMonth")
   const [isTimePeriodDropdownOpen, setIsTimePeriodDropdownOpen] = useState(false)
@@ -348,6 +330,15 @@ export default function AnalyticsDashboard() {
 
   // Get training videos data
   const trainingVideos = trainingVideosData
+
+  // ==============================
+  // EFFECTS
+  // ==============================
+  useEffect(() => {
+    dispatch(fetchAllAppointments())
+    // dispatch(fetchAllMembers());
+    // dispatch(());
+  }, [dispatch])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -360,6 +351,15 @@ export default function AnalyticsDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // ==============================
+  // COMPUTED DATA FROM REDUX STATE
+  // ==============================
+  const appointmentsCounts = appointments.reduce((acc, app) => {
+    if (app.view === "upcoming") acc.upcoming += 1;
+    if (app.view === "past") acc.confirmed += 1;
+    if (app.view === "pending") acc.canceled += 1;
+    return acc;
+  }, { upcoming: 0, confirmed: 0, canceled: 0 })
 
   // ==============================
   // CHART CONFIGURATIONS WITH RESPONSIVE OPTIONS
@@ -466,7 +466,7 @@ export default function AnalyticsDashboard() {
             <ChartCard title="Most Popular Booking Times">
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[400px] sm:min-w-0">
-                  <Chart
+                  <Chart 
                     options={{
                       ...popularTimesChart.options,
                       chart: {
@@ -475,8 +475,8 @@ export default function AnalyticsDashboard() {
                       },
                       stroke: { show: false, width: 0 }
                     }}
-                    series={popularTimesChart.series}
-                    type="bar"
+                    series={popularTimesChart.series} 
+                    type="bar" 
                     height={getResponsiveChartHeight()}
                   />
                 </div>
@@ -561,7 +561,7 @@ export default function AnalyticsDashboard() {
             <ChartCard title="New Leads & Converted">
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[500px] sm:min-w-0">
-                  <Chart
+                  <Chart 
                     options={{
                       ...leadsChart.options,
                       chart: {
@@ -570,8 +570,8 @@ export default function AnalyticsDashboard() {
                       },
                       stroke: { show: false, width: 0 }
                     }}
-                    series={leadsChart.series}
-                    type="bar"
+                    series={leadsChart.series} 
+                    type="bar" 
                     height={getResponsiveChartHeight()}
                   />
                 </div>
@@ -742,7 +742,7 @@ export default function AnalyticsDashboard() {
           <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
-
+              
               {/* Time Period Filter - inline with title */}
               <div className="relative" ref={timePeriodRef}>
                 <button
@@ -755,7 +755,7 @@ export default function AnalyticsDashboard() {
                   </span>
                   <ChevronDown size={16} className={`text-content-muted transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-
+                
                 {isTimePeriodDropdownOpen && (
                   <div className="absolute left-0 mt-2 w-48 bg-surface-card rounded-xl shadow-lg border border-border-subtle z-50 overflow-hidden">
                     {timePeriodOptions.map((option) => (
@@ -765,10 +765,11 @@ export default function AnalyticsDashboard() {
                           setSelectedTimePeriod(option.value)
                           setIsTimePeriodDropdownOpen(false)
                         }}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${selectedTimePeriod === option.value
-                          ? 'bg-primary/20 text-primary'
-                          : 'text-content-primary'
-                          }`}
+                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${
+                          selectedTimePeriod === option.value 
+                            ? 'bg-primary/20 text-primary' 
+                            : 'text-content-primary'
+                        }`}
                       >
                         {option.label}
                       </button>
@@ -789,10 +790,11 @@ export default function AnalyticsDashboard() {
                 <button
                   key={tab.name}
                   onClick={() => setActiveTab(tab.name)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.name
-                    ? "bg-primary text-white shadow-lg shadow-primary/25"
-                    : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
-                    }`}
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                    activeTab === tab.name
+                      ? "bg-primary text-white shadow-lg shadow-primary/25"
+                      : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
+                  }`}
                 >
                   <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
                   {tab.name}
