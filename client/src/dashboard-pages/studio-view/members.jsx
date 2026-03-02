@@ -79,6 +79,7 @@ import {
 } from "../../features/member/memberSlice"
 import { createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 import { fetchStudioServices } from "../../features/services/servicesSlice"
+import { assignPlan, fetchAllPlans } from "../../features/training/TrainingSlice"
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -203,27 +204,34 @@ const getMemberId = (member) => member?._id || member?.id;
 const getMemberTitle = (member) => member?.title || `${member?.firstName || ''} ${member?.lastName || ''}`.trim();
 
 export default function Members({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
-  const trainingVideos = trainingVideosData
+  // const trainingVideos = trainingVideosData
+
   const navigate = useNavigate()
   const location = useLocation()
-  const dispatch = useDispatch()
-
-  // Redux state
-  const {
-    members,
-    memberFilters,
-    filterStatus,
-    filterMemberType,
-    loading: reduxLoading,
-  } = useSelector((state) => state.member)
-  const { services } = useSelector((state) => state.services)
-
+  const dispatch = useDispatch();
+  // =================================
+  // All redux State here
+  // =================================
+  const { members, memberFilters, filterStatus, filterMemberType, loading } = useSelector((state) => state.member)
+  const { services } = useSelector((state) => state.services);
+  const { myPlans } = useSelector((state) => state.trainings)
   const isAdminMode = mode === "admin" && studioIdProp !== null
-
-  // Fetch services on mount
+  // ================================
+  //  all fetched data dispatch here
+  // ================================
   useEffect(() => {
     dispatch(fetchStudioServices())
+    dispatch(fetchAllPlans())
   }, [dispatch])
+
+  // ============================================
+  // Load members data via shared hook
+  // ============================================
+  const { data: membersHookData, isLoading: membersLoading, error: membersError } = useStudioMembers({
+    studioId: studioIdProp,
+    mode,
+  })
+
 
 // ============================================
 // Load members data via shared hook (fallback)
@@ -975,31 +983,28 @@ const { data: membersHookData, isLoading: membersLoading, error: membersError } 
   };
 
   const filteredAndSortedMembers = () => {
-    // If memberFilters are active, show only those members
+    let filtered = [...members];
+
+    // Status filter
+    if (filterStatus && filterStatus !== 'all') {
+      filtered = filtered.filter(member => member.status === filterStatus);
+    }
+
+    // Member type filter
+    if (filterMemberType && filterMemberType !== 'all') {
+      // Make sure the member object has a property called 'memberType'
+      filtered = filtered.filter(
+        member => member.memberType?.toLowerCase() === filterMemberType.toLowerCase()
+      );
+    }
+
+    // Specific member filters (if any)
     if (memberFilters.length > 0) {
       const filterIds = memberFilters.map(f => f.memberId);
-      return members.filter((member) => filterIds.includes(getMemberId(member)));
-    }
-    
-    let filtered = [...members]
-
-    // Apply status filters
-    if (filterStatus === "active") {
-      filtered = filtered.filter((member) => getMemberStatus(member) === 'active')
-    } else if (filterStatus === "paused") {
-      filtered = filtered.filter((member) => getMemberStatus(member) === 'paused')
-    } else if (filterStatus === "archived") {
-      filtered = filtered.filter((member) => getMemberStatus(member) === 'archived')
+      filtered = filtered.filter(member => filterIds.includes(member._id));
     }
 
-    // Apply member type filters
-    if (filterMemberType === "full") {
-      filtered = filtered.filter((member) => member.memberType === "full")
-    } else if (filterMemberType === "temporary") {
-      filtered = filtered.filter((member) => member.memberType === "temporary")
-    }
-
-    // Sort members
+    // Sorting
     filtered.sort((a, b) => {
       let comparison = 0;
       
@@ -1111,36 +1116,38 @@ const { data: membersHookData, isLoading: membersLoading, error: membersError } 
   const [showTrainingPlansModalMain, setShowTrainingPlansModalMain] = useState(false)
   const [selectedMemberForTrainingPlansMain, setSelectedMemberForTrainingPlansMain] = useState(null)
   const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
-  const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
-    {
-      id: 1,
-      name: "Beginner Full Body",
-      description: "Complete full body workout for beginners",
-      duration: "4 weeks",
-      difficulty: "Beginner",
-    },
-    {
-      id: 2,
-      name: "Advanced Strength Training",
-      description: "High intensity strength building program",
-      duration: "8 weeks",
-      difficulty: "Advanced",
-    },
-    {
-      id: 3,
-      name: "Weight Loss Circuit",
-      description: "Fat burning circuit training program",
-      duration: "6 weeks",
-      difficulty: "Intermediate",
-    },
-    {
-      id: 4,
-      name: "Muscle Building Split",
-      description: "Targeted muscle building program",
-      duration: "12 weeks",
-      difficulty: "Intermediate",
-    },
-  ])
+  // const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
+  //   {
+  //     id: 1,
+  //     name: "Beginner Full Body",
+  //     description: "Complete full body workout for beginners",
+  //     duration: "4 weeks",
+  //     difficulty: "Beginner",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Advanced Strength Training",
+  //     description: "High intensity strength building program",
+  //     duration: "8 weeks",
+  //     difficulty: "Advanced",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Weight Loss Circuit",
+  //     description: "Fat burning circuit training program",
+  //     duration: "6 weeks",
+  //     difficulty: "Intermediate",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Muscle Building Split",
+  //     description: "Targeted muscle building program",
+  //     duration: "12 weeks",
+  //     difficulty: "Intermediate",
+  //   },
+  // ])
+
+
 
   const handleCalendarClick = (member) => {
     setSelectedMemberForAppointmentsMain(member)
@@ -1153,21 +1160,12 @@ const { data: membersHookData, isLoading: membersLoading, error: membersError } 
   }
 
   const handleAssignTrainingPlanMain = (memberId, planId) => {
-    const plan = availableTrainingPlansMain.find((p) => p.id === Number.parseInt(planId))
+    const plan = myPlans.find((p) => p._id === planId);
     if (plan) {
-      const assignedPlan = {
-        ...plan,
-        assignedDate: new Date().toLocaleDateString(),
-      }
-
-      setMemberTrainingPlansMain((prev) => ({
-        ...prev,
-        [memberId]: [...(prev[memberId] || []), assignedPlan],
-      }))
-
-      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+      dispatch(assignPlan({ memberId, planId })); // pass as object
+      toast.success(`Training plan "${plan.name}" assigned successfully!`);
     }
-  }
+  };
 
   const handleRemoveTrainingPlanMain = (memberId, planId) => {
     setMemberTrainingPlansMain((prev) => ({
@@ -1392,7 +1390,7 @@ const { data: membersHookData, isLoading: membersLoading, error: membersError } 
       m.email?.toLowerCase().includes(q) ||
       `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
     ).map(m => ({
-      id: `member-${getMemberId(m)}`,
+      id: `member-${m._id}`,
       email: m.email,
       name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
       firstName: m.firstName,
@@ -1407,7 +1405,7 @@ const { data: membersHookData, isLoading: membersLoading, error: membersError } 
       s.email?.toLowerCase().includes(q) ||
       `${s.firstName} ${s.lastName}`.toLowerCase().includes(q)
     ).map(s => ({
-      id: `staff-${s.id}`,
+      id: `staff-${s._id}`,
       email: s.email,
       name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
       firstName: s.firstName,
@@ -2015,58 +2013,9 @@ const AdminBanner = () => {
                           ) : (
                             <span className="text-content-faint text-xs">-</span>
                           )}
-                        </div>
-                        
-                        <div className="col-span-2">
-                          <StatusTag
-                            status={status}
-                            reason={member.reason}
-                            compact={isCompactView}
-                          />
-                        </div>
-                        
-                        <div className="col-span-1">
-                          <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>
-                            {member.memberType === "full" ? "Full" : "Temp"}
-                          </span>
-                        </div>
-                        
-                        <div className="col-span-1">
-                          <button
-                            onClick={() => handleRelationClick(member)}
-                            className={`${isCompactView ? 'text-xs' : 'text-sm'} text-primary hover:text-primary-hover inline-flex items-center gap-1`}
-                          >
-                            <Users size={isCompactView ? 12 : 14} />
-                            {Object.values(memberRelationsMain[mid] || {}).flat().length}
-                          </button>
-                        </div>
-                        
-                        <div className="col-span-3 flex items-center justify-end gap-0.5">
-                         {!isAdminMode && (
-  <button
-    onClick={() => handleChatClick(member)}
-    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-    title="Chat"
-  >
-    <MessageCircle size={isCompactView ? 16 : 18} />
-  </button>
-)}
-                          <button
-                            onClick={() => handleCalendarClick(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Appointments"
-                          >
-                            <Calendar size={isCompactView ? 16 : 18} />
-                          </button>
-                          <div className="relative">
-                          <button
-                            onClick={() => handleTrainingPlansClickMain(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Training Plans"
-                          >
-                            <Dumbbell size={isCompactView ? 16 : 18} />
-                          </button>
-                          <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-content-primary truncate">{member.firstName} {member.lastName}</p>
+                            <p className="text-xs text-content-faint truncate">{member.email}</p>
                           </div>
                           <div className="relative">
                           <button
@@ -2448,6 +2397,159 @@ const AdminBanner = () => {
                               >
                                 <StickyNote size={14} />
                               </button>
+                            </div>
+                          </div>
+
+                          {/* Mobile Row */}
+                          <div className="lg:hidden">
+                            {/* Main Row - Tappable */}
+                            <div
+                              className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
+                              onClick={() => setExpandedMobileRowId(expandedMobileRowId === member.id ? null : member.id)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <MemberSpecialNoteIcon
+                                  member={member}
+                                  onEditMember={handleEditMember}
+                                  size="sm"
+                                  position="relative"
+                                />
+                                <div className="relative flex-shrink-0">
+                                  {member.image ? (
+                                    <img
+                                      src={member.image}
+                                      alt={member.title}
+                                      className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
+                                    />
+                                  ) : (
+                                    <InitialsAvatar
+                                      firstName={member.firstName}
+                                      lastName={member.lastName}
+                                      size={isCompactView ? "sm" : "md"}
+                                    />
+                                  )}
+                                  <BirthdayBadge
+                                    show={isBirthday(member.dateOfBirth)}
+                                    dateOfBirth={member.dateOfBirth}
+                                    size="sm"
+                                    withTooltip={true}
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                      {member.firstName} {member.lastName}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                    <StatusTag
+                                      memberId={member._id}
+                                      reason={member.reason}
+                                      compact={true}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Expand/Collapse Indicator */}
+                                <div className="flex-shrink-0 p-1">
+                                  <ChevronDown
+                                    size={18}
+                                    className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === member.id ? 'rotate-180' : ''}`}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Expandable Actions Panel */}
+                            <div
+                              className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === member.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
+                                }`}
+                            >
+                              <div className="px-3 pb-3 pt-1">
+                                <div className="bg-surface-dark rounded-xl p-2">
+                                  {/* Member Info Badges */}
+                                  <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.memberType === "full"
+                                      ? "bg-white/10 text-content-secondary"
+                                      : "bg-primary/20 text-primary"
+                                      }`}>
+                                      {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                    </span>
+                                    {member.gender && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
+                                        {member.gender}
+                                      </span>
+                                    )}
+                                    {member.dateOfBirth && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
+                                        {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-1">
+                                    <button
+                                      onClick={() => handleCalendarClick(member)}
+                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <Calendar size={18} />
+                                      <span className="text-[10px]">Calendar</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
+                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <Dumbbell size={18} />
+                                      <span className="text-[10px]">Training</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
+                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <History size={18} />
+                                      <span className="text-[10px]">History</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
+                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <FileText size={18} />
+                                      <span className="text-[10px]">Docs</span>
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-1 mt-1">
+                                    {!isAdminMode && (
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <MessageCircle size={18} />
+                                        <span className="text-[10px]">Chat</span>
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
+                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <Users size={18} />
+                                      <span className="text-[10px]">Relations</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
+                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <Eye size={18} />
+                                      <span className="text-[10px]">Details</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
+                                      className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <Pencil size={18} />
+                                      <span className="text-[10px]">Edit</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -2912,8 +3014,12 @@ const AdminBanner = () => {
           setSelectedMemberForTrainingPlansMain(null)
         }}
         selectedMemberMain={selectedMemberForTrainingPlansMain}
-        memberTrainingPlansMain={memberTrainingPlansMain[getMemberId(selectedMemberForTrainingPlansMain)] || []}
-        availableTrainingPlansMain={availableTrainingPlansMain}
+        memberTrainingPlansMain={
+          myPlans.filter(
+            (plan) => plan.memberId === selectedMemberForTrainingPlansMain?._id
+          )
+        }
+        availableTrainingPlansMain={myPlans}
         onAssignPlanMain={handleAssignTrainingPlanMain}
         onRemovePlanMain={handleRemoveTrainingPlanMain}
       />

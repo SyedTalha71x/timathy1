@@ -40,8 +40,8 @@ const trainingPlanSchema = new mongoose.Schema(
     },
     member: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Member',
-      required: true
+      ref: 'member',
+      // required: true
     },
     isPublic: {
       type: Boolean,

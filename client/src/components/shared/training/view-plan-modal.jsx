@@ -28,12 +28,12 @@ const ViewPlanModal = ({
   // FALLBACK FUNKTIONEN AUS TRAINING-STATES
   // -------------------------------------------------------------------------
   // Verwende Props wenn vorhanden, sonst Fallback aus training-states
-  const getVideo = (videoId) => {
-    if (getVideoById) {
-      return getVideoById(videoId);
-    }
-    return getVideoByIdFromState(videoId);
-  };
+  // const getVideo = (videoId) => {
+  //   if (getVideoById) {
+  //     return getVideoById(videoId);
+  //   }
+  //   return getVideoByIdFromState(videoId);
+  // };
 
   const getDifficultyBadgeColor = (difficulty) => {
     if (getDifficultyColor) {
@@ -84,7 +84,7 @@ const ViewPlanModal = ({
                   {selectedPlan.createdBy && (
                     <div className="flex items-center justify-between">
                       <span className="text-content-muted text-sm">Created by</span>
-                      <span className="text-content-primary text-sm truncate ml-2">{selectedPlan.createdBy}</span>
+                      <span className="text-content-primary text-sm truncate ml-2">{selectedPlan.createdBy.firstName} {selectedPlan.createdBy.lastName}</span>
                     </div>
                   )}
                   {selectedPlan.duration && (
@@ -133,17 +133,17 @@ const ViewPlanModal = ({
               
               {exercises.length > 0 ? (
                 <div className="space-y-4">
-                  {exercises.map((exercise, index) => {
-                    const video = getVideo(exercise.videoId);
+                  {exercises.map((exercise,index) => {
+                    const video = exercise.video;
                     return (
-                      <div key={index} className="bg-surface-dark rounded-xl p-3 sm:p-4">
+                      <div key={video._id} className="bg-surface-dark rounded-xl p-3 sm:p-4">
                         <div className="flex items-start gap-3 sm:gap-4">
                           <div className="bg-primary text-white rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0">
                             {index + 1}
                           </div>
                           {video?.thumbnail && (
                             <img
-                              src={video.thumbnail || "/placeholder.svg"}
+                              src={video.thumbnail?.url || "/placeholder.svg"}
                               alt={video?.title}
                               className="w-16 sm:w-20 h-12 sm:h-15 object-cover rounded flex-shrink-0"
                             />

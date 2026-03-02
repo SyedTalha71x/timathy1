@@ -22,7 +22,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   }
 
   return (
-    <div 
+    <div
       className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]} ${className}`}
     >
       {getInitials()}
@@ -100,12 +100,12 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
               <p className="text-accent-red text-sm mb-4">{error}</p>
-              <button 
+              <button
                 onClick={startCamera}
                 className="px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary-hover transition-colors"
               >
@@ -115,16 +115,16 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
           ) : (
             <>
               <div className="relative bg-black rounded-xl overflow-hidden aspect-square mb-4">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
+                <video
+                  ref={videoRef}
+                  autoPlay
                   playsInline
                   muted
                   className="w-full h-full object-cover"
                 />
               </div>
               <canvas ref={canvasRef} className="hidden" />
-              
+
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -202,13 +202,12 @@ const EditMemberModalMain = ({
   const [activeTab, setActiveTab] = useState(editModalTabMain || "details")
   const [editingRelations, setEditingRelations] = useState(false)
   const [showCameraModal, setShowCameraModal] = useState(false)
-  const [isTrainingGoalDropdownOpen, setIsTrainingGoalDropdownOpen] = useState(false)
-  const {countries, loading} = useCountries();
+  const { countries, loading } = useCountries();
   const specialNoteTextareaRef = useRef(null)
-  
+
   // Local copy of relations for editing (only committed on save)
   const [localRelations, setLocalRelations] = useState(null)
-  
+
   // Local copy of notes for editing (only committed on save)
   const [localNotes, setLocalNotes] = useState([])
   const [isAddingNote, setIsAddingNote] = useState(false)
@@ -271,7 +270,7 @@ const EditMemberModalMain = ({
       } else {
         setLocalNotes([])
       }
-      
+
       setIsAddingNote(false)
       setNewNote({
         status: "general",
@@ -280,7 +279,7 @@ const EditMemberModalMain = ({
         startDate: "",
         endDate: "",
       })
-      
+
       if (memberRelationsMain[selectedMemberMain.id]) {
         setLocalRelations(JSON.parse(JSON.stringify(memberRelationsMain[selectedMemberMain.id])))
       } else {
@@ -309,7 +308,7 @@ const EditMemberModalMain = ({
         setShowPersonDropdown(false)
       }
     }
-    
+
     if (showPersonDropdown) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -319,12 +318,12 @@ const EditMemberModalMain = ({
   const handleAddNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!newNote.text.trim()) {
       toast.error("Please enter note text")
       return
     }
-    
+
     const note = {
       id: Date.now(),
       status: newNote.status,
@@ -334,7 +333,7 @@ const EditMemberModalMain = ({
       endDate: newNote.endDate || "",
       createdAt: new Date().toISOString(),
     }
-    
+
     setLocalNotes(prev => [note, ...prev])
     setNewNote({
       status: "general",
@@ -346,14 +345,14 @@ const EditMemberModalMain = ({
     setIsAddingNote(false)
     toast.success("Note added")
   }
-  
+
   const handleDeleteNote = (noteId, e) => {
     e.preventDefault()
     e.stopPropagation()
     setLocalNotes(prev => prev.filter(n => n.id !== noteId))
     toast.success("Note removed")
   }
-  
+
   const handleEditNoteClick = (note, e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -367,29 +366,29 @@ const EditMemberModalMain = ({
     })
     setIsAddingNote(true)
   }
-  
+
   const handleUpdateNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!newNote.text.trim()) {
       toast.error("Please enter note text")
       return
     }
-    
-    setLocalNotes(prev => prev.map(n => 
-      n.id === editingNoteId 
+
+    setLocalNotes(prev => prev.map(n =>
+      n.id === editingNoteId
         ? {
-            ...n,
-            status: newNote.status,
-            text: newNote.text.trim(),
-            isImportant: newNote.isImportant,
-            startDate: newNote.startDate || "",
-            endDate: newNote.endDate || "",
-          }
+          ...n,
+          status: newNote.status,
+          text: newNote.text.trim(),
+          isImportant: newNote.isImportant,
+          startDate: newNote.startDate || "",
+          endDate: newNote.endDate || "",
+        }
         : n
     ))
-    
+
     setNewNote({
       status: "general",
       text: "",
@@ -401,7 +400,7 @@ const EditMemberModalMain = ({
     setIsAddingNote(false)
     toast.success("Note updated")
   }
-  
+
   const getStatusInfo = (statusId) => {
     return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
   }
@@ -409,18 +408,18 @@ const EditMemberModalMain = ({
   const handleAddRelation = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
-    const finalRelation = newRelation.relation === "custom" 
-      ? newRelation.customRelation 
+
+    const finalRelation = newRelation.relation === "custom"
+      ? newRelation.customRelation
       : newRelation.relation
-    
+
     if (!newRelation.name || !finalRelation) {
       toast.error("Please fill in all fields")
       return
     }
 
     const relationId = Date.now()
-    
+
     setLocalRelations(prev => {
       const updated = { ...prev }
       if (!updated[newRelation.category]) {
@@ -453,7 +452,7 @@ const EditMemberModalMain = ({
   const handleDeleteRelation = (category, relationId, e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     setLocalRelations(prev => ({
       ...prev,
       [category]: prev[category].filter((rel) => rel.id !== relationId)
@@ -464,17 +463,17 @@ const EditMemberModalMain = ({
   const handleSubmit = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     const importantNote = localNotes.find(n => n.isImportant)
     const firstNote = localNotes[0]
     const primaryNote = importantNote || firstNote
-    
+
     handleInputChangeMain({ target: { name: "notes", value: localNotes } })
     handleInputChangeMain({ target: { name: "note", value: primaryNote ? primaryNote.text : "" } })
     handleInputChangeMain({ target: { name: "noteImportance", value: primaryNote?.isImportant ? "important" : "unimportant" } })
     handleInputChangeMain({ target: { name: "noteStartDate", value: primaryNote?.startDate || "" } })
     handleInputChangeMain({ target: { name: "noteEndDate", value: primaryNote?.endDate || "" } })
-    
+
     handleEditSubmitMain(e, localRelations, localNotes)
   }
 
@@ -532,33 +531,30 @@ const EditMemberModalMain = ({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-border mb-6">
-          <button 
+          <button
             onClick={(e) => handleTabClick("details", e)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "details" 
-                ? "text-primary border-b-2 border-primary" 
+            className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "details"
+                ? "text-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
-            }`}
+              }`}
           >
             Details
           </button>
-          <button 
+          <button
             onClick={(e) => handleTabClick("note", e)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "note" 
-                ? "text-primary border-b-2 border-primary" 
+            className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "note"
+                ? "text-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
-            }`}
+              }`}
           >
             Special Notes
           </button>
-          <button 
+          <button
             onClick={(e) => handleTabClick("relations", e)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "relations" 
-                ? "text-primary border-b-2 border-primary" 
+            className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "relations"
+                ? "text-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
-            }`}
+              }`}
           >
             Relations
           </button>
@@ -588,7 +584,7 @@ const EditMemberModalMain = ({
                       <InitialsAvatar firstName={editFormMain.firstName} lastName={editFormMain.lastName} size="lg" />
                     )}
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     <input type="file" id="avatar" className="hidden" accept="image/*" onChange={handleImageUpload} />
                     <label htmlFor="avatar" className="bg-primary hover:bg-primary-hover px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2 transition-colors">
@@ -605,7 +601,7 @@ const EditMemberModalMain = ({
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">First Name<span className="text-accent-red ml-1">*</span></label>
@@ -635,7 +631,17 @@ const EditMemberModalMain = ({
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
                       <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                        <span className={editFormMain.dateOfBirth ? "text-content-primary" : "text-content-faint"}>{editFormMain.dateOfBirth ? (() => { const [y,m,d] = (editFormMain.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <span className={editFormMain.dateOfBirth ? "text-content-primary" : "text-content-faint"}>
+                          {editFormMain.dateOfBirth
+                            ? (() => {
+                              const date = new Date(editFormMain.dateOfBirth);
+                              const d = String(date.getDate()).padStart(2, '0');
+                              const m = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
+                              const y = date.getFullYear();
+                              return `${d}.${m}.${y}`;
+                            })()
+                            : "Select date"}
+                        </span>
                         <DatePickerField value={editFormMain.dateOfBirth || ""} onChange={(val) => handleInputChangeMain({ target: { name: "dateOfBirth", value: val } })} />
                       </div>
                     </div>
@@ -645,7 +651,7 @@ const EditMemberModalMain = ({
                 {/* Contact Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Email<span className="text-accent-red ml-1">*</span></label>
                     <input type="email" name="email" value={editFormMain.email} onChange={handleInputChangeMain} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" required />
@@ -666,7 +672,7 @@ const EditMemberModalMain = ({
                 {/* Address Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Street & Number</label>
                     <input type="text" name="street" value={editFormMain.street} onChange={handleInputChangeMain} placeholder="Main Street 123" className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" />
@@ -703,7 +709,7 @@ const EditMemberModalMain = ({
                 {/* Additional Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Training Goal</label>
                     <div className="relative">
@@ -768,7 +774,7 @@ const EditMemberModalMain = ({
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Auto-Archive Due Date</label>
                       <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                        <span className={editFormMain.autoArchiveDate ? "text-content-primary" : "text-content-faint"}>{editFormMain.autoArchiveDate ? (() => { const [y,m,d] = (editFormMain.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <span className={editFormMain.autoArchiveDate ? "text-content-primary" : "text-content-faint"}>{editFormMain.autoArchiveDate ? (() => { const [y, m, d] = (editFormMain.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={editFormMain.autoArchiveDate || ""} onChange={(val) => handleInputChangeMain({ target: { name: "autoArchiveDate", value: val } })} />
                       </div>
                     </div>
@@ -789,7 +795,7 @@ const EditMemberModalMain = ({
                     {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
                   </button>
                 </div>
-                
+
                 {isAddingNote && (
                   <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
                     <div>
@@ -804,91 +810,91 @@ const EditMemberModalMain = ({
                         {NOTE_STATUSES.map((status) => (<option key={status.id} value={status.id}>{status.label}</option>))}
                       </select>
                     </div>
-                    
+
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Note</label>
                       <textarea ref={specialNoteTextareaRef} value={newNote.text} onChange={(e) => setNewNote({ ...newNote, text: e.target.value })} className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors" placeholder="Enter note..." />
                     </div>
-                    
+
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={newNote.isImportant} onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })} className="h-4 w-4 accent-primary" />
                         <span className="text-sm text-content-secondary">Important</span>
                       </label>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y, m, d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
                         </div>
                       </div>
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y, m, d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
                         </div>
                       </div>
                     </div>
-                    
+
                     <button type="button" onClick={editingNoteId ? handleUpdateNote : handleAddNote} disabled={!newNote.text.trim()} className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newNote.text.trim() ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover"}`}>
                       {editingNoteId ? "Update Note" : "Add Note"}
                     </button>
                   </div>
                 )}
-                
+
                 {!isAddingNote && (
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {localNotes.length > 0 ? (
-                    [...localNotes].sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0)).map((note) => {
-                      const statusInfo = getStatusInfo(note.status)
-                      const isExpanded = expandedNoteId === note.id
-                      
-                      return (
-                        <div key={note.id} className="bg-surface-dark rounded-lg overflow-hidden">
-                          <div className="flex items-center justify-between p-3 cursor-pointer" onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}>
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">{statusInfo.label}</span>
-                              {note.isImportant && (<span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">Important</span>)}
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {localNotes.length > 0 ? (
+                      [...localNotes].sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0)).map((note) => {
+                        const statusInfo = getStatusInfo(note.status)
+                        const isExpanded = expandedNoteId === note.id
+
+                        return (
+                          <div key={note.id} className="bg-surface-dark rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between p-3 cursor-pointer" onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}>
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">{statusInfo.label}</span>
+                                {note.isImportant && (<span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">Important</span>)}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={(e) => { e.stopPropagation(); handleEditNoteClick(note, e) }} className="text-content-faint hover:text-primary p-1 transition-colors"><Pencil size={14} /></button>
+                                <button type="button" onClick={(e) => handleDeleteNote(note.id, e)} className="text-content-faint hover:text-accent-red p-1 transition-colors"><Trash2 size={14} /></button>
+                                {isExpanded ? <ChevronUp size={16} className="text-content-muted" /> : <ChevronDown size={16} className="text-content-muted" />}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <button type="button" onClick={(e) => { e.stopPropagation(); handleEditNoteClick(note, e) }} className="text-content-faint hover:text-primary p-1 transition-colors"><Pencil size={14} /></button>
-                              <button type="button" onClick={(e) => handleDeleteNote(note.id, e)} className="text-content-faint hover:text-accent-red p-1 transition-colors"><Trash2 size={14} /></button>
-                              {isExpanded ? <ChevronUp size={16} className="text-content-muted" /> : <ChevronDown size={16} className="text-content-muted" />}
-                            </div>
+
+                            {!isExpanded && (
+                              <div className="px-3 pb-2">
+                                <p className="text-content-muted text-sm truncate">{note.text}</p>
+                                {(note.startDate || note.endDate) && (
+                                  <p className="text-xs text-content-faint mt-1">
+                                    {note.startDate && note.endDate ? <>Valid: {note.startDate} - {note.endDate}</> : note.startDate ? <>Valid from: {note.startDate}</> : <>Valid until: {note.endDate}</>}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {isExpanded && (
+                              <div className="px-3 pb-3 border-t border-border-subtle">
+                                <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">{note.text}</p>
+                                {(note.startDate || note.endDate) && (
+                                  <div className="mt-2 text-xs text-content-faint">
+                                    {note.startDate && note.endDate ? <>Valid: {note.startDate} - {note.endDate}</> : note.startDate ? <>Valid from: {note.startDate}</> : <>Valid until: {note.endDate}</>}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          
-                          {!isExpanded && (
-                            <div className="px-3 pb-2">
-                              <p className="text-content-muted text-sm truncate">{note.text}</p>
-                              {(note.startDate || note.endDate) && (
-                                <p className="text-xs text-content-faint mt-1">
-                                  {note.startDate && note.endDate ? <>Valid: {note.startDate} - {note.endDate}</> : note.startDate ? <>Valid from: {note.startDate}</> : <>Valid until: {note.endDate}</>}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          
-                          {isExpanded && (
-                            <div className="px-3 pb-3 border-t border-border-subtle">
-                              <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">{note.text}</p>
-                              {(note.startDate || note.endDate) && (
-                                <div className="mt-2 text-xs text-content-faint">
-                                  {note.startDate && note.endDate ? <>Valid: {note.startDate} - {note.endDate}</> : note.startDate ? <>Valid from: {note.startDate}</> : <>Valid until: {note.endDate}</>}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div className="text-content-faint text-sm text-center py-8">No special notes yet. Click "Add Note" to create one.</div>
-                  )}
-                </div>
+                        )
+                      })
+                    ) : (
+                      <div className="text-content-faint text-sm text-center py-8">No special notes yet. Click "Add Note" to create one.</div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -900,7 +906,7 @@ const EditMemberModalMain = ({
                   <p className="text-xs text-content-muted uppercase tracking-wider">Relations for</p>
                   <p className="text-content-primary font-medium">{selectedMemberMain?.firstName} {selectedMemberMain?.lastName}</p>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-content-secondary font-medium">Relations</label>
                   <button type="button" onClick={handleEditingRelationsToggle} className="text-sm text-primary hover:text-primary/80">{editingRelations ? "Done" : "Add New"}</button>

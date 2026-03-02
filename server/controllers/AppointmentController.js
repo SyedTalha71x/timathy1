@@ -13,12 +13,12 @@ const createAppointment = async (req, res, next) => {
         const userId = req.user?._id
 
 
-        let { service, date, timeSlotId, view } = req.body;
+        let { serviceId, date, timeSlotId, view } = req.body;
 
-        if (!service || !date || !timeSlotId) throw new BadRequestError("Missing required Field")
+        if (!serviceId || !date || !timeSlotId) throw new BadRequestError("Missing required Field")
 
-        const serviceData = await ServiceModel.findById(service)
-        if (!serviceData) throw new NotFoundError("Invalid Service ID")
+        const serviceData = await ServiceModel.findById(serviceId)
+        if (!serviceData) throw new NotFoundError("Invalid serviceId ID")
 
         const member = await MemberModel.findById(userId)
         if (!member) throw new NotFoundError("Invalid Member Id ")
@@ -45,7 +45,7 @@ const createAppointment = async (req, res, next) => {
         const appointment = await AppointmentModel.create({
             member: userId,
             studio: studioId,
-            service: service,
+            serviceId: serviceId,
             date,
             timeSlot: timeSlotId,
             view,
@@ -73,50 +73,125 @@ const createAppointment = async (req, res, next) => {
 }
 
 // create Appointment for member by staff
+// const mongoose = require("mongoose");
+
 const createAppointmentByStaff = async (req, res, next) => {
     try {
         const { memberId } = req.params;
-        let { service, date, timeSlot, view } = req.body;
-
-        if (!service || !date || !timeSlot) throw new BadRequestError("Missing required Field")
-
-        const serviceData = await ServiceModel.findById(service)
-        if (!serviceData) throw new NotFoundError("Invalid Service ID")
-
-        const member = await MemberModel.findById(memberId)
-        if (!member) throw new NotFoundError("Invalid Member Id ")
-        const studioId = member?.studio;
-        const appointment = await AppointmentModel.create({
-            member: memberId,
-            studio: studioId,
-            service: service,
+        const {
+            serviceId,
             date,
             timeSlot,
             view,
-            // notes,
-            status: "confirmed"
-        })
+            bookingType = "single",
+            frequency,
+            occurrences = 1,
+        } = req.body;
 
-        await MemberModel.findByIdAndUpdate(memberId, {
-            $push: { appointments: appointment._id }
-        }, { new: true })
+        if (!serviceId || !date || !timeSlot)
+            throw new BadRequestError("Missing required field");
 
-        serviceData.contingentUsage -= 1;
-        await serviceData.save();
-        return res.status(201).json({
-            success: true,
-            appointment: appointment
-        })
+        const serviceData = await ServiceModel.findById(serviceId);
+        if (!serviceData)
+            throw new NotFoundError("Invalid serviceId ID");
+
+        const member = await MemberModel.findById(memberId);
+        if (!member)
+            throw new NotFoundError("Invalid Member ID");
+
+        const studioId = member.studio;
+
+        // SINGLE BOOKING
+        if (bookingType === "single") {
+            const appointment = await AppointmentModel.create({
+                member: memberId,
+                studio: studioId,
+                serviceId: serviceId,
+                date,
+                timeSlot,
+                view,
+                bookingType: "single",
+                status: "confirmed",
+            });
+
+            await MemberModel.findByIdAndUpdate(memberId, {
+                $push: { appointments: appointment._id },
+            });
+
+            serviceData.contingentUsage -= 1;
+            await serviceData.save();
+
+            return res.status(201).json({
+                success: true,
+                appointment,
+            });
+        }
+
+        // RECURRING BOOKING
+        if (bookingType === "recurring") {
+            if (!frequency || !occurrences)
+                throw new BadRequestError("Missing recurring details");
+
+            // const recurringGroupId = new mongoose.Types.ObjectId();
+            let appointments = [];
+            let currentDate = new Date(date);
+
+            for (let i = 0; i < occurrences; i++) {
+                appointments.push({
+                    member: memberId,
+                    studio: studioId,
+                    serviceId: serviceId,
+                    date: new Date(currentDate),
+                    timeSlot,
+                    view,
+                    bookingType: "recurring",
+                    frequency,
+                    occurrences,
+                    // recurringGroupId,
+                    status: "confirmed",
+                });
+
+                if (frequency === "daily")
+                    currentDate.setDate(currentDate.getDate() + 1);
+
+                if (frequency === "weekly")
+                    currentDate.setDate(currentDate.getDate() + 7);
+
+                if (frequency === "monthly")
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+
+            const createdAppointments =
+                await AppointmentModel.insertMany(appointments);
+
+            await MemberModel.findByIdAndUpdate(memberId, {
+                $push: {
+                    appointments: {
+                        $each: createdAppointments.map(a => a._id),
+                    },
+                },
+            });
+            if (serviceData.contingentUsage < occurrences)
+                throw new BadRequestError("No remaining contingent");
+            serviceData.contingentUsage -= occurrences;
+            await serviceData.save();
+
+            return res.status(201).json({
+                success: true,
+                appointments: createdAppointments,
+            });
+        }
+
     } catch (error) {
         next(error);
     }
-}
+};
 
 const getMyAppointment = async (req, res, next) => {
     try {
         const userId = req.user?._id
         const appointment = await AppointmentModel.find({ member: userId })
-            .populate('service', 'name')
+            .populate('serviceId', 'name')
             .populate('studio', 'studioName')
             .sort({ createdAt: -1 })
         if (!appointment || appointment.length === 0) throw new NotFoundError("No Appointment Booked")
@@ -179,7 +254,7 @@ const allAppointments = async (req, res, next) => {
         const appointment = await AppointmentModel.find()
             .populate('member', 'firstName lastName')
             .populate('studio', 'studioName')
-            .populate('service', 'name')
+            .populate('serviceId', 'name')
             .sort({ createdAt: -1 });
         if (!appointment || appointment.length === 0) throw new NotFoundError("No Appointment Booked")
         return res.status(200).json({
@@ -208,7 +283,7 @@ const appointmentByMemberId = async (req, res, next) => {
             date: { $gte: now }
         })
             .populate('member', 'firstName lastName')
-            .populate('service', 'name')
+            .populate('serviceId', 'name')
             .populate('studio', 'studioName')
         //   .sort({ date: -1 }); // soonest first
 

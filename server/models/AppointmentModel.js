@@ -11,7 +11,7 @@ const AppointmentSchema = new mongoose.Schema({
         ref: 'Studio',
         required: true
     },
-    service: {
+    serviceId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service',
         required: true
@@ -45,7 +45,19 @@ const AppointmentSchema = new mongoose.Schema({
         type: Number,
         default: 5
     },
-
+    bookingType: {
+        type: String,
+        enum: ['single', 'recurring'],
+        default: 'single'
+    },
+    frequency: {
+        type: String,
+        enum: ['daily', 'weekly', 'monthly']
+    },
+    occurrences: {
+        type: Number,
+        default: 1
+    },
 }, { timestamps: true });
 
 AppointmentSchema.index(

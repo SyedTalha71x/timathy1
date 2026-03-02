@@ -212,7 +212,7 @@ const VideoModal = ({
               onLoadedMetadata={handleLoadedMetadata}
               onEnded={() => setIsPlaying(false)}
             >
-              <source src={selectedVideo.videoUrl} type="video/mp4" />
+              <source src={selectedVideo.videoUrl?.url} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
 

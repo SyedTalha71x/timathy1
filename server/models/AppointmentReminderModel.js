@@ -4,7 +4,7 @@ const appointmentReminderSchema = new mongoose.Schema(
     {
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Member",
+            ref: "member",
             required: true,
         },
         reminders: [
