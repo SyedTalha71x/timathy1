@@ -44,6 +44,9 @@ import {
   EyeOff,
   AlertTriangle,
   Timer,
+  ArrowRightLeft,
+  RefreshCw,
+  Gift,
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
@@ -102,6 +105,9 @@ import {
   DEFAULT_CONTRACT_TYPES,
   DEFAULT_CONTRACT_SETTINGS,
   DEFAULT_CONTRACT_PAUSE_REASONS,
+  DEFAULT_CONTRACT_CHANGE_REASONS,
+  DEFAULT_CONTRACT_RENEW_REASONS,
+  DEFAULT_CONTRACT_BONUS_TIME_REASONS,
   DEFAULT_VAT_RATES,
   
   // Communication Config
@@ -199,6 +205,9 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "contract-forms", label: "Contract Forms" },
       { id: "contract-types", label: "Contract Types" },
       { id: "pause-reasons", label: "Pause Reasons" },
+      { id: "change-reasons", label: "Change Reasons" },
+      { id: "renew-reasons", label: "Renew Reasons" },
+      { id: "bonus-time-reasons", label: "Bonus Time Reasons" },
     ],
   },
   {
@@ -215,6 +224,9 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "e-invoice-template", label: "E-Invoice", group: "Email Templates" },
       { id: "contract-cancellation-template", label: "Contract Cancellation", group: "Email Templates" },
       { id: "contract-conclusion-template", label: "Conclusion of Contract", group: "Email Templates" },
+      { id: "contract-renewal-template", label: "Contract Renewal", group: "Email Templates" },
+      { id: "contract-change-template", label: "Contract Change", group: "Email Templates" },
+      { id: "sepa-mandate-template", label: "SEPA Mandate", group: "Email Templates" },
     ],
   },
   {
@@ -701,6 +713,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
   const [contractPauseReasons, setContractPauseReasons] = useState([])
+  const [contractChangeReasons, setContractChangeReasons] = useState([])
+  const [contractRenewReasons, setContractRenewReasons] = useState([])
+  const [contractBonusTimeReasons, setContractBonusTimeReasons] = useState([])
 
   // Communication Settings
   const [settings, setSettings] = useState({})
@@ -738,6 +753,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const einvoiceEditorRef = useRef(null)
   const cancellationEditorRef = useRef(null)
   const conclusionEditorRef = useRef(null)
+  const renewalEditorRef = useRef(null)
+  const changeEditorRef = useRef(null)
+  const sepaMandateEditorRef = useRef(null)
   const qrCodeRef = useRef(null)
 
   // ============================================
@@ -802,6 +820,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setContractTypes(config.contracts.types)
     setContractForms(config.contracts.forms)
     setContractPauseReasons(config.contracts.pauseReasons)
+    setContractChangeReasons(config.contracts.changeReasons || DEFAULT_CONTRACT_CHANGE_REASONS)
+    setContractRenewReasons(config.contracts.renewReasons || DEFAULT_CONTRACT_RENEW_REASONS)
+    setContractBonusTimeReasons(config.contracts.bonusTimeReasons || DEFAULT_CONTRACT_BONUS_TIME_REASONS)
 
     // Communication
     setSettings(config.communication.settings)
@@ -3839,6 +3860,159 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
         )
 
+      case "change-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Change Reasons"
+              description="Define reasons for contract changes"
+              action={
+                <button
+                  onClick={() => setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: "" }])}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractChangeReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No change reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractChangeReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractChangeReasons]
+                          updated[index].name = e.target.value
+                          setContractChangeReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => setContractChangeReasons(contractChangeReasons.filter((_, i) => i !== index))}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "renew-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Renew Reasons"
+              description="Define reasons for contract renewals"
+              action={
+                <button
+                  onClick={() => setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: "" }])}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractRenewReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <RefreshCw className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No renew reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractRenewReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractRenewReasons]
+                          updated[index].name = e.target.value
+                          setContractRenewReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => setContractRenewReasons(contractRenewReasons.filter((_, i) => i !== index))}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "bonus-time-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Bonus Time Reasons"
+              description="Define reasons for granting bonus time"
+              action={
+                <button
+                  onClick={() => setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: "" }])}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractBonusTimeReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <Gift className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No bonus time reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractBonusTimeReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractBonusTimeReasons]
+                          updated[index].name = e.target.value
+                          setContractBonusTimeReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => setContractBonusTimeReasons(contractBonusTimeReasons.filter((_, i) => i !== index))}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
       // ========================
       // COMMUNICATION SECTIONS
       // ========================
@@ -4806,7 +4980,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="text"
                     value={settings.einvoiceSubject || ""}
                     onChange={(e) => setSettings({ ...settings, einvoiceSubject: e.target.value })}
-                    placeholder="Invoice {Invoice_Number} - {Selling_Date}"
+                    placeholder="e.g. Invoice {Invoice_Number}"
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
@@ -4844,7 +5018,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     ref={einvoiceEditorRef}
                     value={settings.einvoiceTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, einvoiceTemplate: v })}
-                    placeholder="Dear {Member_First_Name}, please find attached your invoice #{Invoice_Number}..."
+                    placeholder="e.g. Dear {Member_First_Name}, please find your invoice attached..."
                     minHeight={120}
                     showImages={true}
                   />
@@ -4878,7 +5052,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="text"
                     value={settings.contractCancellationSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
-                    placeholder="Contract Cancellation Confirmation - {Contract_Type}"
+                    placeholder="e.g. Contract Cancellation Confirmation"
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
@@ -4916,7 +5090,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     ref={cancellationEditorRef}
                     value={settings.contractCancellationTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, contractCancellationTemplate: v })}
-                    placeholder="Dear {Member_First_Name}, we confirm the cancellation of your {Contract_Type} contract effective {Contract_End_Date}..."
+                    placeholder="e.g. Dear {Member_First_Name}, we confirm the cancellation of your contract..."
                     minHeight={120}
                     showImages={true}
                   />
@@ -4950,7 +5124,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="text"
                     value={settings.contractConclusionSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
-                    placeholder="Welcome to {Studio_Name} - Your {Contract_Type} Contract"
+                    placeholder="e.g. Welcome to {Studio_Name}"
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
@@ -4988,7 +5162,223 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     ref={conclusionEditorRef}
                     value={settings.contractConclusionTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, contractConclusionTemplate: v })}
-                    placeholder="Dear {Member_First_Name}, welcome to {Studio_Name}! Your {Contract_Type} contract starts on {Contract_Start_Date}..."
+                    placeholder="e.g. Dear {Member_First_Name}, welcome to {Studio_Name}! Your contract starts on {Contract_Start_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-renewal-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Renewal Template" description="Email template sent to members when their contract is renewed" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractRenewalSubject: (settings.contractRenewalSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractRenewalSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractRenewalSubject: e.target.value })}
+                    placeholder="e.g. Contract Renewal Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => renewalEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          renewalEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={renewalEditorRef}
+                    value={settings.contractRenewalTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractRenewalTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, your contract has been successfully renewed..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-change-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Change Template" description="Email template sent to members when their contract is changed" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Old_Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractChangeSubject: (settings.contractChangeSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractChangeSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractChangeSubject: e.target.value })}
+                    placeholder="e.g. Contract Change Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Old_Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => changeEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          changeEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={changeEditorRef}
+                    value={settings.contractChangeTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractChangeTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, your contract has been changed..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "sepa-mandate-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="SEPA Mandate Template" description="Email template sent to members when a new SEPA mandate is issued" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Account_Holder}", "{IBAN}", "{BIC}", "{Bank_Name}", "{Mandate_Reference}", "{Mandate_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, sepaMandateSubject: (settings.sepaMandateSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.sepaMandateSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, sepaMandateSubject: e.target.value })}
+                    placeholder="e.g. SEPA Direct Debit Mandate Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Account_Holder}", "{IBAN}", "{BIC}", "{Bank_Name}", "{Mandate_Reference}", "{Mandate_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => sepaMandateEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          sepaMandateEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={sepaMandateEditorRef}
+                    value={settings.sepaMandateTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, sepaMandateTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, we hereby confirm your SEPA direct debit mandate..."
                     minHeight={120}
                     showImages={true}
                   />

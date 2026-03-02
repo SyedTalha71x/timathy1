@@ -19,6 +19,7 @@ import {
   Search,
   X,
   ClipboardList,
+  Timer,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
 
@@ -41,6 +42,7 @@ const NAVIGATION_ITEMS = [
     icon: Bell,
     sections: [
       { id: "appointment-notifications", label: "Appointments" },
+      { id: "classes-notifications", label: "Classes" },
       { id: "general-notifications", label: "General" },
     ],
   },
@@ -86,6 +88,12 @@ const SettingsPage = () => {
       emailReminder: { enabled: true, timeBeforeHours: 24 },
       smsReminder: { enabled: true, timeBeforeHours: 2 },
       pushReminder: { enabled: true, timeBeforeHours: 1 },
+    },
+    classReminders: {
+      enabled: true,
+      emailReminder: { enabled: true, timeBeforeHours: 24 },
+      pushReminder: { enabled: true, timeBeforeHours: 1 },
+      spotAvailable: { enabled: true, email: true, push: true },
     },
     bulletinBoard: {
       enabled: true,
@@ -211,6 +219,45 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       [category]: {
         ...notificationSettings[category],
         [field]: value,
+      },
+    }
+    setNotificationSettings(updated)
+    // TODO: dispatch to backend when endpoint is available
+  }
+
+  const handleToggleClassReminders = (checked) => {
+    const updated = {
+      ...notificationSettings,
+      classReminders: { ...notificationSettings.classReminders, enabled: checked },
+    }
+    setNotificationSettings(updated)
+    // TODO: dispatch(updateReminders({ reminderData: updated.classReminders })) when backend is ready
+  }
+
+  const handleUpdateClassReminderSettings = (reminderType, field, value) => {
+    const updated = {
+      ...notificationSettings,
+      classReminders: {
+        ...notificationSettings.classReminders,
+        [reminderType]: {
+          ...notificationSettings.classReminders[reminderType],
+          [field]: value,
+        },
+      },
+    }
+    setNotificationSettings(updated)
+    // TODO: dispatch to backend when endpoint is available
+  }
+
+  const handleUpdateSpotAvailable = (field, value) => {
+    const updated = {
+      ...notificationSettings,
+      classReminders: {
+        ...notificationSettings.classReminders,
+        spotAvailable: {
+          ...notificationSettings.classReminders.spotAvailable,
+          [field]: value,
+        },
       },
     }
     setNotificationSettings(updated)
@@ -489,6 +536,135 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                     />
                     <span className="text-xs text-content-muted">hours before appointment</span>
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+
+      // ---- CLASS NOTIFICATIONS ----
+      case "classes-notifications":
+        return (
+          <div className="space-y-6 max-w-xl">
+            <div>
+              <h3 className="text-lg font-semibold text-content-primary mb-1">Class Notifications</h3>
+              <p className="text-sm text-content-faint">Configure notifications for class enrollments, cancellations, and reminders.</p>
+            </div>
+
+            <div className="flex items-center justify-between bg-surface-card rounded-xl p-4 border border-border">
+              <div>
+                <p className="text-sm font-medium text-content-primary">Enable Class Notifications</p>
+                <p className="text-xs text-content-faint mt-0.5">Send automated notifications for enrollments, changes, and reminders</p>
+              </div>
+              <Toggle
+                checked={notificationSettings.classReminders.enabled}
+                onChange={(checked) => handleToggleClassReminders(checked)}
+              />
+            </div>
+
+            {notificationSettings.classReminders.enabled && (
+              <div className="space-y-3">
+                {/* Email Channel */}
+                <div className="bg-surface-card rounded-xl p-4 border border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Mail size={16} className="text-content-muted" />
+                      <div>
+                        <p className="text-sm font-medium text-content-primary">Email Notifications</p>
+                        <p className="text-xs text-content-faint">Enrollment confirmations, cancellations, and reminders via email</p>
+                      </div>
+                    </div>
+                    <Toggle
+                      checked={notificationSettings.classReminders.emailReminder.enabled}
+                      onChange={(checked) => handleUpdateClassReminderSettings("emailReminder", "enabled", checked)}
+                    />
+                  </div>
+                </div>
+
+                {/* Push Channel */}
+                <div className="bg-surface-card rounded-xl p-4 border border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Bell size={16} className="text-content-muted" />
+                      <div>
+                        <p className="text-sm font-medium text-content-primary">Push Notifications</p>
+                        <p className="text-xs text-content-faint">Enrollment confirmations, cancellations, and reminders via push</p>
+                      </div>
+                    </div>
+                    <Toggle
+                      checked={notificationSettings.classReminders.pushReminder.enabled}
+                      onChange={(checked) => handleUpdateClassReminderSettings("pushReminder", "enabled", checked)}
+                    />
+                  </div>
+                </div>
+
+                {/* Reminder Timing */}
+                <div className="bg-surface-card rounded-xl p-4 border border-border space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Clock size={16} className="text-content-muted" />
+                    <div>
+                      <p className="text-sm font-medium text-content-primary">Reminder Timing</p>
+                      <p className="text-xs text-content-faint">How early to send class reminders</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 ml-7">
+                    <span className="text-xs text-content-muted">Remind</span>
+                    <input
+                      type="number"
+                      value={notificationSettings.classReminders.emailReminder.timeBeforeHours}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 1
+                        handleUpdateClassReminderSettings("emailReminder", "timeBeforeHours", val)
+                        handleUpdateClassReminderSettings("pushReminder", "timeBeforeHours", val)
+                      }}
+                      min={1}
+                      max={168}
+                      className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
+                    />
+                    <span className="text-xs text-content-muted">hours before class</span>
+                  </div>
+                </div>
+
+                {/* Class-specific: Spot Available */}
+                <div className="bg-surface-card rounded-xl p-4 border border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Timer size={16} className="text-content-muted" />
+                      <div>
+                        <p className="text-sm font-medium text-content-primary">Spot Available</p>
+                        <p className="text-xs text-content-faint">Notify when a spot opens in a full class you're watching</p>
+                      </div>
+                    </div>
+                    <Toggle
+                      checked={notificationSettings.classReminders.spotAvailable.enabled}
+                      onChange={(checked) => handleUpdateSpotAvailable("enabled", checked)}
+                    />
+                  </div>
+
+                  {notificationSettings.classReminders.spotAvailable.enabled && (
+                    <div className="ml-7 space-y-2.5 pt-1 border-t border-border">
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2.5">
+                          <Mail size={14} className="text-content-muted" />
+                          <span className="text-sm text-content-primary">Email</span>
+                        </div>
+                        <Toggle
+                          checked={notificationSettings.classReminders.spotAvailable.email}
+                          onChange={(checked) => handleUpdateSpotAvailable("email", checked)}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <Bell size={14} className="text-content-muted" />
+                          <span className="text-sm text-content-primary">Push</span>
+                        </div>
+                        <Toggle
+                          checked={notificationSettings.classReminders.spotAvailable.push}
+                          onChange={(checked) => handleUpdateSpotAvailable("push", checked)}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

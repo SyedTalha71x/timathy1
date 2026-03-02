@@ -1,41 +1,28 @@
 ""
 
 /* eslint-disable react/prop-types */
-import { X } from "lucide-react"
+import { X, Info } from "lucide-react"
 import { useState } from "react"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
-
-const contractTypes = [
-  {
-    id: "basic",
-    name: "Basic",
-    duration: "12 months",
-    cost: "$29.99",
-    billingPeriod: "Monthly",
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    duration: "12 months",
-    cost: "$49.99",
-    billingPeriod: "Monthly",
-  },
-  {
-    id: "bronze",
-    name: "Bronze",
-    duration: "6 months",
-    cost: "$19.99",
-    billingPeriod: "Monthly",
-  },
-]
+import { DEFAULT_CONTRACT_TYPES, DEFAULT_CONTRACT_RENEW_REASONS, studioData } from "../../../utils/studio-states/configuration-states"
 
 export function RenewContractModal({ contract, onClose, onSubmit }) {
+  const currency = studioData?.currency || "€"
+  const contractTypes = DEFAULT_CONTRACT_TYPES || []
+
+  const getTodayDate = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  const today = getTodayDate()
+  const isExpired = contract?.endDate ? contract.endDate < today : false
+
   const [renewalData, setRenewalData] = useState({
-    startAfterCurrent: true,
-    customStartDate: "",
-    duration: "12",
-    contractType: contract?.contractType || "Basic",
+    startAfterCurrent: !isExpired,
+    customStartDate: isExpired ? today : "",
+    contractType: contract?.contractType || "",
   })
 
   const [discount, setDiscount] = useState({
@@ -43,6 +30,33 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
     duration: "1",
     isPermanent: false,
   })
+
+  const [renewReason, setRenewReason] = useState("")
+  const [customReason, setCustomReason] = useState("")
+
+  const selectedContractType = contractTypes.find((type) => type.name === renewalData.contractType)
+
+  const formatCost = (type) => {
+    if (!type) return "N/A"
+    const cost = type.cost || 0
+    return `${currency}${cost}`
+  }
+
+  const getDurationDisplay = () => {
+    if (!selectedContractType?.duration) return ""
+    const months = parseInt(selectedContractType.duration)
+    if (months === 1) return "1 Month"
+    return `${months} Months`
+  }
+
+  const getGapDays = () => {
+    if (renewalData.startAfterCurrent || !renewalData.customStartDate || !contract?.endDate) return 0
+    const endDate = new Date(contract.endDate + 'T00:00')
+    const startDate = new Date(renewalData.customStartDate + 'T00:00')
+    const diffTime = startDate.getTime() - endDate.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays > 0 ? diffDays : 0
+  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -64,11 +78,10 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
     e.preventDefault()
     onSubmit({
       ...renewalData,
+      renewReason: renewReason === "other" ? (customReason.trim() || "Other") : (renewReason || null),
       discount: discount.percentage > 0 ? discount : null,
     })
   }
-
-  const selectedContractType = contractTypes.find((type) => type.name === renewalData.contractType)
 
   // Calculate final price after discount
   const calculateFinalPrice = () => {
@@ -76,7 +89,7 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
       return null
     }
 
-    const originalPrice = Number.parseFloat(selectedContractType.cost.replace("$", ""))
+    const originalPrice = selectedContractType.cost || 0
     const discountAmount = (originalPrice * discount.percentage) / 100
     const finalPrice = originalPrice - discountAmount
 
@@ -84,7 +97,7 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
       originalPrice,
       discountAmount,
       finalPrice,
-      currency: selectedContractType.cost.charAt(0),
+      currency,
     }
   }
 
@@ -109,27 +122,29 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
             <label className="text-sm text-content-muted">Contract Information</label>
             <div className="bg-surface-dark p-3 rounded-xl border border-border">
               <p className="text-content-primary text-sm">Current Contract: {contract?.contractType}</p>
-              <p className="text-content-muted text-xs">Expires: {contract?.endDate}</p>
+              <p className={`text-xs ${isExpired ? 'text-accent-red' : 'text-content-muted'}`}>{isExpired ? 'Expired' : 'Expires'}: {contract?.endDate ? new Date(contract.endDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</p>
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm text-content-muted">Start Date</label>
             <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="startAfterCurrent"
-                  checked={renewalData.startAfterCurrent}
-                  onChange={handleInputChange}
-                  className="primary-check"
-                />
-                <span className="text-content-primary text-sm">Start after current contract period</span>
-              </label>
+              {!isExpired && (
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="startAfterCurrent"
+                    checked={renewalData.startAfterCurrent}
+                    onChange={handleInputChange}
+                    className="primary-check"
+                  />
+                  <span className="text-content-primary text-sm">Start after current contract period</span>
+                </label>
+              )}
 
               {!renewalData.startAfterCurrent && (
                 <div>
-                  <label className="text-xs text-content-muted block mb-1">Custom Start Date</label>
+                  {!isExpired && <label className="text-xs text-content-muted block mb-1">Custom Start Date</label>}
                   <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border border-border">
                     <span className={`flex-1 text-sm ${renewalData.customStartDate ? 'text-content-primary' : 'text-content-muted'}`}>
                       {renewalData.customStartDate ? new Date(renewalData.customStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
@@ -137,28 +152,20 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
                     <DatePickerField
                       value={renewalData.customStartDate}
                       onChange={(val) => setRenewalData({ ...renewalData, customStartDate: val })}
+                      minDate={today}
                     />
                   </div>
+                  {!isExpired && getGapDays() > 0 && (
+                    <div className="flex items-start gap-2.5 bg-primary/10 border border-primary/20 rounded-xl p-3 mt-2">
+                      <Info size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                      <div className="text-xs text-content-secondary leading-relaxed">
+                        There will be a gap of <span className="text-content-primary font-medium">{getGapDays()} {getGapDays() === 1 ? 'day' : 'days'}</span> without an active contract (from <span className="text-content-primary font-medium">{new Date(contract.endDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span> to <span className="text-content-primary font-medium">{new Date(renewalData.customStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>).
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="duration" className="text-sm text-content-muted">
-              Duration (months)
-            </label>
-            <CustomSelect
-              name="duration"
-              value={renewalData.duration}
-              onChange={handleInputChange}
-              options={[
-                { value: "6", label: "6 months" },
-                { value: "12", label: "12 months" },
-                { value: "24", label: "24 months" },
-              ]}
-              placeholder="Select duration"
-            />
           </div>
 
           <div className="space-y-2">
@@ -169,22 +176,51 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
               name="contractType"
               value={renewalData.contractType}
               onChange={handleInputChange}
-              options={contractTypes.map((type) => ({ value: type.name, label: `${type.name} - ${type.cost}` }))}
+              options={contractTypes.map((type) => ({ value: type.name, label: type.name }))}
               placeholder="Select contract type"
+              searchable
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-content-muted">Reason</label>
+            <CustomSelect
+              name="renewReason"
+              value={renewReason}
+              onChange={(e) => setRenewReason(e.target.value)}
+              options={[
+                ...DEFAULT_CONTRACT_RENEW_REASONS.map(r => ({ value: r.name, label: r.name })),
+                { divider: true },
+                { value: "other", label: "Other" },
+              ]}
+              placeholder="Select a reason"
+            />
+            {renewReason === "other" && (
+              <input
+                type="text"
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder="Please specify..."
+                className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
+              />
+            )}
           </div>
 
           {selectedContractType && (
             <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
               <h4 className="text-content-primary text-sm font-medium mb-2">Contract Details</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="block text-content-muted text-xs">Duration</span>
+                  <span className="text-content-primary">{getDurationDisplay()}</span>
+                </div>
                 <div>
                   <span className="block text-content-muted text-xs">Cost</span>
-                  <span className="text-content-primary">{selectedContractType.cost}</span>
+                  <span className="text-content-primary">{formatCost(selectedContractType)}</span>
                 </div>
                 <div>
                   <span className="block text-content-muted text-xs">Billing Period</span>
-                  <span className="text-content-primary">{selectedContractType.billingPeriod}</span>
+                  <span className="text-content-primary capitalize">{selectedContractType.billingPeriod}</span>
                 </div>
               </div>
             </div>

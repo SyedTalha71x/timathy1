@@ -1025,6 +1025,40 @@ export function ContractFormFillModal({
         .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
         .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
         .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+
+        /* Force light mode inside the A4 contract document */
+        .contract-doc-light {
+          --color-border: #d1d5db;
+          --color-surface-card: #ffffff;
+          --color-surface-hover: #f3f4f6;
+          --color-surface-button: #e5e7eb;
+          --color-surface-button-hover: #d1d5db;
+          --color-surface-dark: #f3f4f6;
+          --color-content-primary: #111827;
+          --color-content-secondary: #374151;
+          --color-content-muted: #6b7280;
+          --color-content-faint: #9ca3af;
+          --color-primary: #f97316;
+          --color-primary-hover: #ea580c;
+          --color-accent-red: #ef4444;
+          --color-secondary: #6366f1;
+          color-scheme: light;
+        }
+        .contract-doc-light *, .contract-doc-light { color-scheme: light; }
+        .contract-doc-light input:not([type="checkbox"]):not([type="radio"]),
+        .contract-doc-light select,
+        .contract-doc-light textarea {
+          background-color: #ffffff !important;
+          color: #111827 !important;
+          border-color: #d1d5db !important;
+        }
+        .contract-doc-light input::placeholder { color: #9ca3af !important; }
+        .contract-doc-light .bg-surface-dark { background-color: #f3f4f6 !important; }
+        .contract-doc-light .bg-white { background-color: #ffffff !important; }
+        .contract-doc-light .border-border { border-color: #d1d5db !important; }
+        .contract-doc-light .text-content-muted { color: #6b7280 !important; }
+        .contract-doc-light .text-content-secondary { color: #374151 !important; }
+        .contract-doc-light .text-accent-red { color: #ef4444 !important; }
       `}</style>
       
       {/* Generate Contract Confirmation Prompt */}
@@ -1221,7 +1255,7 @@ export function ContractFormFillModal({
           {/* A4 Page */}
           <div
             ref={contractPageRef}
-            className="bg-white shadow-2xl"
+            className="bg-white shadow-2xl contract-doc-light"
             style={{
               width: `${PAGE_WIDTH_PX}px`,
               height: `${PAGE_HEIGHT_PX}px`,

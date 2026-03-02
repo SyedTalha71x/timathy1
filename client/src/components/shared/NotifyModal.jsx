@@ -23,6 +23,11 @@ import { useState, useEffect } from "react"
 //   recurringInfo: { frequency: "weekly", occurrences: 5 }
 //   onConfirm:     (shouldNotify, { email, push }) => void
 //   onClose:       () => void   ("Back" - returns to parent form)
+//   customTitle:   string (optional — overrides modal title)
+//   customMessage: string|JSX (optional — overrides message content)
+//   hideBack:      boolean (optional — hides "Back" button)
+//   hidePush:      boolean (optional — hides push notification checkbox)
+//   hideNotificationOptions: boolean (optional — hides all notification checkboxes)
 //
 // LEGACY INTERFACE (calendar.jsx drag & drop - kept for backward compatibility):
 //   notifyAction:       "change" | "cancel"
@@ -47,6 +52,11 @@ const NotifyModalMain = ({
   isRecurring = false,
   recurringInfo,   // { frequency, occurrences }
   onConfirm,       // (shouldNotify, { email, push }) => void
+  customTitle,     // optional: override modal title
+  customMessage,   // optional: override message content (JSX or string)
+  hideBack = false, // optional: hide "Back" button
+  hidePush = false, // optional: hide push notification checkbox
+  hideNotificationOptions = false, // optional: hide all notification checkboxes
 
   // --- Legacy interface (calendar.jsx) ---
   notifyAction,
@@ -285,7 +295,7 @@ const NotifyModalMain = ({
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-border flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-content-primary">Notify {EntityLabel}</h2>
+          <h2 className="text-lg font-semibold text-content-primary">{customTitle || `Notify ${EntityLabel}`}</h2>
           <button onClick={handleClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg">
             <X size={20} />
           </button>
@@ -293,43 +303,51 @@ const NotifyModalMain = ({
 
         {/* Content */}
         <div className="p-6">
-          {renderMessage()}
+          {customMessage ? (
+            typeof customMessage === "string" 
+              ? <p className="text-content-primary text-sm">{customMessage}</p>
+              : customMessage
+          ) : renderMessage()}
 
           {/* Notification Options */}
-          <div className="mt-4 space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={emailNotification}
-                onChange={(e) => setEmailNotification(e.target.checked)}
-                className="notify-check"
-              />
-              <span className="text-content-primary text-sm">Email Notification</span>
-            </label>
-
-            {/* App Push Notification - only for members, not leads */}
-            {!isLead && (
+          {!hideNotificationOptions && (
+            <div className="mt-4 space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={pushNotification}
-                  onChange={(e) => setPushNotification(e.target.checked)}
+                  checked={emailNotification}
+                  onChange={(e) => setEmailNotification(e.target.checked)}
                   className="notify-check"
                 />
-                <span className="text-content-primary text-sm">App Push Notification</span>
+                <span className="text-content-primary text-sm">Email Notification</span>
               </label>
-            )}
-          </div>
+
+              {/* App Push Notification - only for members, not leads */}
+              {!isLead && !hidePush && (
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pushNotification}
+                    onChange={(e) => setPushNotification(e.target.checked)}
+                    className="notify-check"
+                  />
+                  <span className="text-content-primary text-sm">App Push Notification</span>
+                </label>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
-          <button
-            onClick={handleClose}
-            className="w-full sm:w-auto px-5 py-2.5 bg-surface-button text-sm font-medium text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
-          >
-            Back
-          </button>
+        <div className={`px-6 py-4 border-t border-border flex flex-col-reverse sm:flex-row gap-2 ${hideBack ? 'sm:justify-end' : 'sm:justify-between'}`}>
+          {!hideBack && (
+            <button
+              onClick={handleClose}
+              className="w-full sm:w-auto px-5 py-2.5 bg-surface-button text-sm font-medium text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
+            >
+              Back
+            </button>
+          )}
 
           <div className="flex flex-col-reverse sm:flex-row gap-2">
             <button

@@ -4,6 +4,7 @@ import Sidebar from "./components/sidebar"
 import DashboardHeader from "./components/DashboardHeader"
 import CentralSidebar from "./components/central-sidebar"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { ToastProvider } from "../../components/shared/SharedToast"
 
 // Sidebar Modals (WidgetSelectionModal is now handled internally by CentralSidebar)
 
@@ -49,7 +50,10 @@ const Dashboardlayout = () => {
   const isSellingPage = location.pathname.includes("/selling")
   const isLeadsPage = location.pathname.includes("/leads")
   const isMyAreaPage = location.pathname.includes("/my-area")
+  const isCommunicationPage = location.pathname.includes("/communication")
+  const isConfigurationPage = location.pathname.includes("/configuration")
   const hasNoRightSidebar = isSellingPage || isLeadsPage || isMyAreaPage
+  const hasOwnScroll = isCommunicationPage || isConfigurationPage
 
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), [])
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), [])
@@ -95,6 +99,7 @@ const Dashboardlayout = () => {
 
   return (
     <ExternalSidebarContext.Provider value={{ isExternalSidebarOpen, setIsExternalSidebarOpen, toggleExternalSidebar }}>
+    <ToastProvider>
       {/* Global styles for widget drag & drop animations + selection/drag prevention */}
       <style>
         {`
@@ -149,7 +154,7 @@ const Dashboardlayout = () => {
           <main
             ref={mainRef}
             className={`
-              flex-1 md:h-screen h-[calc(100vh-3.5rem)] overflow-y-auto 
+              flex-1 md:h-screen h-[calc(100vh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
               lg:pt-0 md:pt-14 sm:pt-14 pt-14
               pb-10 p-2
               transition-all duration-500 ease-in-out
@@ -293,6 +298,7 @@ const Dashboardlayout = () => {
           )}
         </div>
       </div>
+    </ToastProvider>
     </ExternalSidebarContext.Provider>
   )
 }

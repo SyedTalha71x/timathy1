@@ -564,16 +564,7 @@ export default function MarketplacePage() {
           }
         `}
       </style>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+
       <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary lg:p-3 md:p-3 sm:p-2 p-1 transition-all duration-500 ease-in-out flex-1">
         <div className="md:p-6 p-3">
           {/* Header with title, sort (mobile) */}

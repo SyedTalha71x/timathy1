@@ -557,13 +557,7 @@ export default function MyArea() {
   // ============================================
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: { background: "#333", color: "#fff" },
-        }}
-      />
+
 
       <div className="flex flex-col md:flex-row rounded-3xl bg-surface-base text-content-primary min-h-screen">
         <main className="flex-1 min-w-0 p-2 overflow-hidden">

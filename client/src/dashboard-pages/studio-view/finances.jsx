@@ -6,6 +6,7 @@ import CheckFundsModal from "../../components/studio-components/finance-componen
 import SepaXmlModal from "../../components/studio-components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/studio-states/finance-states"
 import { useNavigate } from "react-router-dom"
+import { useStudioFinances } from "../../hooks/useStudioFinances"
 
 import { IoIosMenu } from "react-icons/io"
 
@@ -50,8 +51,18 @@ const MaskedIban = ({ iban, className = "" }) => {
 };
 
 
-export default function FinancesPage() {
+export default function FinancesPage({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
   const navigate = useNavigate()
+  const isAdminMode = mode === "admin" && studioIdProp !== null
+
+  // ============================================
+  // Load finance data via shared hook
+  // ============================================
+  const { data: financesHookData, isLoading: financesLoading, error: financesError } = useStudioFinances({
+    studioId: studioIdProp,
+    mode,
+  })
+
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const [isCustomPeriodExpanded, setIsCustomPeriodExpanded] = useState(false)
@@ -62,6 +73,16 @@ export default function FinancesPage() {
   const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod]?.transactions || [])
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
   const [financialState, setFinancialState] = useState(financialData)
+
+  // Admin mode: Load data from hook
+  useEffect(() => {
+    if (isAdminMode && financesHookData) {
+      setFinancialState(financesHookData.financialData)
+      const periodData = financesHookData.financialData[selectedPeriod]
+      setFilteredTransactions(periodData?.transactions || [])
+    }
+  }, [isAdminMode, financesHookData])
+
   const [checkFundsModalOpen, setCheckFundsModalOpen] = useState(false)
   const [servicesModalOpen, setServicesModalOpen] = useState(false)
   const [selectedServices, setSelectedServices] = useState([])
@@ -247,6 +268,37 @@ export default function FinancesPage() {
   return (
     <>
       <style>{`@keyframes wobble { 0%, 100% { transform: rotate(0deg); } 15% { transform: rotate(-1deg); } 30% { transform: rotate(1deg); } 45% { transform: rotate(-1deg); } 60% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } 90% { transform: rotate(1deg); } } .animate-wobble { animation: wobble 0.5s ease-in-out infinite; } .dragging { opacity: 0.5; border: 2px dashed #fff; } .drag-over { border: 2px dashed #888; }`}</style>
+
+      {/* Admin Mode Banner */}
+      {isAdminMode && (
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+          <div className="bg-blue-500/20 p-2 rounded-lg">
+            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+            <p className="text-xs text-content-muted">Viewing finances for this studio. Changes are saved per-studio.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isAdminMode && financesLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {isAdminMode && financesError && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
+          <p className="text-red-400 text-sm">Failed to load finances: {financesError}</p>
+        </div>
+      )}
+
+      {(!isAdminMode || (!financesLoading && !financesError)) && (
       <div className="min-h-screen rounded-3xl p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -388,6 +440,7 @@ export default function FinancesPage() {
           <button onClick={() => setSepaModalOpen(true)} className="bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label="Run Payment"><Play size={22} /></button>
         </div>
       </div>
+      )}
     </>
   )
 }

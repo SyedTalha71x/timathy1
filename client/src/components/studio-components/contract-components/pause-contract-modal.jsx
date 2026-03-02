@@ -3,26 +3,44 @@ import { X } from "lucide-react"
 import { useState } from "react"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
+import { DEFAULT_CONTRACT_PAUSE_REASONS } from "../../../utils/studio-states/configuration-states"
 
 export function PauseContractModal({ onClose, onSubmit }) {
+  const getTodayDate = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  const getNextDay = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00')
+    d.setDate(d.getDate() + 1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
   const [reason, setReason] = useState("")
+  const [customReason, setCustomReason] = useState("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [errors, setErrors] = useState({})
 
   const validateForm = () => {
     const newErrors = {}
+    const today = getTodayDate()
     
     if (!reason) {
       newErrors.reason = "Please select a reason"
     }
     if (!startDate) {
       newErrors.startDate = "Please select a start date"
+    } else if (startDate < today) {
+      newErrors.startDate = "Start date cannot be in the past"
     }
     if (!endDate) {
       newErrors.endDate = "Please select an end date"
+    } else if (endDate < today) {
+      newErrors.endDate = "End date cannot be in the past"
     }
-    if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+    if (startDate && endDate && endDate <= startDate) {
       newErrors.endDate = "End date must be after start date"
     }
     
@@ -37,7 +55,7 @@ export function PauseContractModal({ onClose, onSubmit }) {
       return
     }
     
-    onSubmit({ reason, startDate, endDate })
+    onSubmit({ reason: reason === "other" ? (customReason.trim() || "Other") : reason, startDate, endDate })
   }
 
   return (
@@ -60,16 +78,23 @@ export function PauseContractModal({ onClose, onSubmit }) {
                 if (errors.reason) setErrors({ ...errors, reason: null })
               }}
               options={[
-                { value: "vacation", label: "Vacation" },
-                { value: "medical", label: "Medical Leave" },
-                { value: "pregnancy", label: "Pregnancy" },
-                { value: "financial", label: "Financial Reasons" },
+                ...DEFAULT_CONTRACT_PAUSE_REASONS.map(r => ({ value: r.name, label: r.name })),
+                { divider: true },
                 { value: "other", label: "Other" },
               ]}
               placeholder="Select a reason"
               className={errors.reason ? '!border-accent-red' : ''}
             />
             {errors.reason && <p className="text-accent-red text-xs">{errors.reason}</p>}
+            {reason === "other" && (
+              <input
+                type="text"
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder="Please specify..."
+                className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <label htmlFor="startDate" className="text-sm text-content-muted">
@@ -84,7 +109,10 @@ export function PauseContractModal({ onClose, onSubmit }) {
                 onChange={(val) => {
                   setStartDate(val)
                   if (errors.startDate) setErrors({ ...errors, startDate: null })
+                  // Clear end date if it's now before the new start date
+                  if (endDate && val > endDate) setEndDate("")
                 }}
+                minDate={getTodayDate()}
               />
             </div>
             {errors.startDate && <p className="text-accent-red text-xs">{errors.startDate}</p>}
@@ -103,6 +131,7 @@ export function PauseContractModal({ onClose, onSubmit }) {
                   setEndDate(val)
                   if (errors.endDate) setErrors({ ...errors, endDate: null })
                 }}
+                minDate={startDate ? getNextDay(startDate) : getTodayDate()}
               />
             </div>
             {errors.endDate && <p className="text-accent-red text-xs">{errors.endDate}</p>}

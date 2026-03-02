@@ -20,6 +20,16 @@ const NOTE_STATUSES = [
   { id: "general", label: "General" },
 ]
 
+// Training Goal Options
+const TRAINING_GOALS = [
+  { id: "strength", label: "Muscle Building" },
+  { id: "cardio", label: "Endurance" },
+  { id: "weight_loss", label: "Weight Loss" },
+  { id: "back_pain", label: "Back & Posture" },
+  { id: "fitness", label: "General Fitness" },
+  { id: "energy", label: "More Energy" },
+]
+
 const AddLeadModal = ({ 
   isVisible, 
   onClose, 
@@ -38,6 +48,7 @@ const AddLeadModal = ({
   const [editingRelations, setEditingRelations] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false)
+  const [isTrainingGoalDropdownOpen, setIsTrainingGoalDropdownOpen] = useState(false)
   const {countries, loading} = useCountries();
   
   // Note management state
@@ -72,6 +83,7 @@ const AddLeadModal = ({
     city: "",
     country: "",
     details: "",
+    trainingGoal: "",
     relations: {
       family: [],
       friendship: [],
@@ -305,6 +317,7 @@ const AddLeadModal = ({
       city: "",
       country: "",
       details: "",
+      trainingGoal: "",
       relations: {
         family: [],
         friendship: [],
@@ -439,6 +452,7 @@ const AddLeadModal = ({
       city: "",
       country: "",
       details: "",
+      trainingGoal: "",
       relations: {
         family: [],
         friendship: [],
@@ -793,6 +807,61 @@ const AddLeadModal = ({
                           </>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-content-secondary block mb-2">Training Goal</label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsTrainingGoalDropdownOpen(!isTrainingGoalDropdownOpen)}
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary text-sm flex items-center justify-between border border-transparent"
+                      >
+                        <span>{TRAINING_GOALS.find(g => g.id === formData.trainingGoal)?.label || 'Select Training Goal'}</span>
+                        <svg
+                          className={`w-4 h-4 transition-transform ${isTrainingGoalDropdownOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {isTrainingGoalDropdownOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsTrainingGoalDropdownOpen(false)}
+                          />
+                          <div className="absolute z-20 w-full mt-1 bg-surface-card border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateFormData("trainingGoal", "")
+                                setIsTrainingGoalDropdownOpen(false)
+                              }}
+                              className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-faint text-sm transition-colors"
+                            >
+                              No Goal Selected
+                            </button>
+                            {TRAINING_GOALS.map(goal => (
+                              <button
+                                key={goal.id}
+                                type="button"
+                                onClick={() => {
+                                  updateFormData("trainingGoal", goal.id)
+                                  setIsTrainingGoalDropdownOpen(false)
+                                }}
+                                className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-primary text-sm transition-colors"
+                              >
+                                {goal.label}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { X, Trash2 } from "lucide-react"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
+import { DEFAULT_CONTRACT_BONUS_TIME_REASONS } from "../../../utils/studio-states/configuration-states"
 
 export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
   const existingBonus = contract?.bonusTime
@@ -16,7 +17,11 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
       ? (existingBonus.withExtension ? "With Contract extension" : "Without Contract extension")
       : "Without Contract extension"
   )
-  const [reason, setReason] = useState(existingBonus?.reason || "")
+  const reasonPresets = DEFAULT_CONTRACT_BONUS_TIME_REASONS.map(r => r.name)
+  const initReason = existingBonus?.reason || ""
+  const isPresetReason = reasonPresets.includes(initReason)
+  const [reason, setReason] = useState(isPresetReason ? initReason : (initReason ? "other" : ""))
+  const [customReason, setCustomReason] = useState(isPresetReason ? "" : initReason)
   const [startOption, setStartOption] = useState(existingBonus?.startOption || "current_contract_period")
   const [startDate, setStartDate] = useState(existingBonus?.startDate || "")
   const [bonusPeriod, setBonusPeriod] = useState(existingBonus?.bonusPeriod || "")
@@ -86,7 +91,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
       bonusAmount,
       bonusUnit,
       withExtension: withExtension === "With Contract extension",
-      reason,
+      reason: reason === "other" ? (customReason.trim() || "Other") : (reason || null),
       startOption,
       startDate: startOption === "fixed_time" ? startDate : null,
       bonusPeriod: bonusPeriod || "",
@@ -148,13 +153,26 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-content-secondary text-sm mb-2">Reason for Bonus Time</label>
-              <input
-                type="text"
+              <CustomSelect
+                name="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Enter reason for bonus time"
-                className="bg-surface-dark text-content-primary text-sm px-3 py-2 rounded-xl border border-border w-full focus:outline-none focus:outline-none focus:ring-2 focus:ring-primary"
+                options={[
+                  ...DEFAULT_CONTRACT_BONUS_TIME_REASONS.map(r => ({ value: r.name, label: r.name })),
+                  { divider: true },
+                  { value: "other", label: "Other" },
+                ]}
+                placeholder="Select a reason"
               />
+              {reason === "other" && (
+                <input
+                  type="text"
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  placeholder="Please specify..."
+                  className="w-full mt-2 bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
+                />
+              )}
             </div>
             <div>
               <label className="block text-content-secondary text-sm mb-2">Start of Bonus Time</label>

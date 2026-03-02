@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { X, Plus, Trash2, Tag } from 'lucide-react'
 import ColorPickerModal from './ColorPickerModal'
+import toast from './SharedToast'
 
 export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDeleteTag }) {
   const [newTagName, setNewTagName] = useState("")
@@ -31,6 +32,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
       })
       setNewTagName("")
       setNewTagColor(primaryColor)
+      toast.success("Tag created")
     }
   }
 
@@ -106,7 +108,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
                         {tag.name}
                       </span>
                       <button
-                        onClick={() => onDeleteTag(tag.id)}
+                        onClick={() => { onDeleteTag(tag.id); toast.success("Tag deleted") }}
                         className="text-red-500 hover:text-red-400 transition-colors p-2"
                         title="Delete tag"
                       >
