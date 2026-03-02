@@ -214,7 +214,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   // =================================
   const { members, memberFilters, filterStatus, filterMemberType, loading } = useSelector((state) => state.member)
   const { services } = useSelector((state) => state.services);
-  const { myPlans } = useSelector((state) => state.trainings)
+  const { myPlans = [] } = useSelector((state) => state.trainings)
   const isAdminMode = mode === "admin" && studioIdProp !== null
   // ================================
   //  all fetched data dispatch here
