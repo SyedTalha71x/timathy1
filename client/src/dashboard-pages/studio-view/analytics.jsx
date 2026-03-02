@@ -306,10 +306,10 @@ export default function AnalyticsDashboard() {
   // USESELECTOR & DISPATCH
   // ==============================
   const dispatch = useDispatch();
-  const { appointments } = useSelector((state) => state.appointments)
-  const { members } = useSelector((state) => state.members)
-  // const {leads} = useSelector((state) => state.leads)  
-  const { services } = useSelector((state) => state.services)
+  const { appointments = [] } = useSelector((state) => state.appointments || {})
+  const { members = [] } = useSelector((state) => state.members || {})
+  // const {leads} = useSelector((state) => state.leads || {})  
+  const { services = [] } = useSelector((state) => state.services || {})
 
   // ==============================
   // NAVIGATION HOOK
