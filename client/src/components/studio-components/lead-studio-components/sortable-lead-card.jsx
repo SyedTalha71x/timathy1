@@ -328,7 +328,7 @@ const SortableLeadCard = ({
                   onClick={handleOpenDocuments}
                   className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2"
                 >
-                  <FileText size={14} /> Documents
+                  <FileText size={14} /> Documents{(lead.documents || []).length > 0 ? ` (${lead.documents.length})` : ''}
                 </button>
                 <button
                   onClick={() => {

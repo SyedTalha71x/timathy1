@@ -60,6 +60,7 @@ import {
   DEFAULT_LEAD_SOURCES,
   CONFIGURATION_NAV_ITEMS,
   DEMO_MENU_ITEMS,
+  MEMBER_VIEW_MENU_ITEMS,
   DEFAULT_DEMO_TEMPLATES,
   DEFAULT_CHANGELOG,
   DEFAULT_ACCOUNTS,
@@ -407,6 +408,7 @@ const ConfigurationPage = () => {
   const [demoTemplates, setDemoTemplates] = useState([...DEFAULT_DEMO_TEMPLATES])
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [expandedTemplatePerms, setExpandedTemplatePerms] = useState([])
+  const [templatePermTab, setTemplatePermTab] = useState({}) // tracks "studio" or "member" per template id
 
   // ============================================
   // Helper Functions
@@ -699,7 +701,8 @@ const ConfigurationPage = () => {
       name: "",
       description: "",
       color: "#3b82f6",
-      permissions: Object.fromEntries(DEMO_MENU_ITEMS.map(m => [m.key, false])),
+      studioPermissions: Object.fromEntries(DEMO_MENU_ITEMS.map(m => [m.key, false])),
+      memberViewPermissions: Object.fromEntries(MEMBER_VIEW_MENU_ITEMS.map(m => [m.key, false])),
     }
     setDemoTemplates([...demoTemplates, newTemplate])
     setEditingTemplate(newTemplate.id)
@@ -709,17 +712,18 @@ const ConfigurationPage = () => {
     setDemoTemplates(demoTemplates.map(t => t.id === id ? { ...t, [field]: value } : t))
   }
 
-  const handleToggleTemplatePermission = (id, key) => {
+  const handleToggleTemplatePermission = (id, key, permType = "studioPermissions") => {
     setDemoTemplates(demoTemplates.map(t => {
       if (t.id !== id) return t
-      return { ...t, permissions: { ...t.permissions, [key]: !t.permissions[key] } }
+      return { ...t, [permType]: { ...t[permType], [key]: !t[permType][key] } }
     }))
   }
 
-  const handleToggleAllPermissions = (id, value) => {
+  const handleToggleAllPermissions = (id, value, permType = "studioPermissions") => {
+    const menuItems = permType === "memberViewPermissions" ? MEMBER_VIEW_MENU_ITEMS : DEMO_MENU_ITEMS
     setDemoTemplates(demoTemplates.map(t => {
       if (t.id !== id) return t
-      return { ...t, permissions: Object.fromEntries(DEMO_MENU_ITEMS.map(m => [m.key, value])) }
+      return { ...t, [permType]: Object.fromEntries(menuItems.map(m => [m.key, value])) }
     }))
   }
 
@@ -741,7 +745,8 @@ const ConfigurationPage = () => {
       ...template,
       id: Date.now(),
       name: `${template.name} (Copy)`,
-      permissions: { ...template.permissions },
+      studioPermissions: { ...template.studioPermissions },
+      memberViewPermissions: { ...template.memberViewPermissions },
     }
     setDemoTemplates([...demoTemplates, duplicate])
     setEditingTemplate(duplicate.id)
@@ -1941,7 +1946,7 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader
               title="Access Templates"
-              description="Create and manage permission templates for user access"
+              description="Create and manage permission templates for Studio View and Member View"
               action={
                 <button
                   onClick={handleAddDemoTemplate}
@@ -1977,8 +1982,11 @@ const ConfigurationPage = () => {
                 {demoTemplates.map((template) => {
                   const isEditing = editingTemplate === template.id
                   const isExpanded = expandedTemplatePerms.includes(template.id)
-                  const enabledCount = Object.values(template.permissions).filter(Boolean).length
-                  const totalCount = DEMO_MENU_ITEMS.length
+                  const studioEnabledCount = Object.values(template.studioPermissions || {}).filter(Boolean).length
+                  const studioTotalCount = DEMO_MENU_ITEMS.length
+                  const memberEnabledCount = Object.values(template.memberViewPermissions || {}).filter(Boolean).length
+                  const memberTotalCount = MEMBER_VIEW_MENU_ITEMS.length
+                  const activePermTab = templatePermTab[template.id] || "studio"
 
                   return (
                     <SettingsCard key={template.id} className="!p-4">
@@ -1993,7 +2001,8 @@ const ConfigurationPage = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h3 className="text-white font-medium text-sm truncate">{template.name || "Unnamed Template"}</h3>
-                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0">{enabledCount}/{totalCount}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title="Studio View">S: {studioEnabledCount}/{studioTotalCount}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title="Member View">M: {memberEnabledCount}/{memberTotalCount}</span>
                           </div>
                           {template.description && !isEditing && (
                             <p className="text-xs text-gray-500 truncate mt-0.5">{template.description}</p>
@@ -2067,50 +2076,128 @@ const ConfigurationPage = () => {
                         </div>
                       )}
 
-                      {/* Collapsible permissions */}
+                      {/* Collapsible permissions with Studio View / Member View tabs */}
                       {isExpanded && (
                         <div className="mt-3 pt-3 border-t border-[#2F2F2F]">
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="text-xs font-medium text-gray-400">Menu Permissions</label>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleToggleAllPermissions(template.id, true)}
-                                className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                              >
-                                Enable All
-                              </button>
-                              <span className="text-gray-600">|</span>
-                              <button
-                                onClick={() => handleToggleAllPermissions(template.id, false)}
-                                className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                              >
-                                Disable All
-                              </button>
-                            </div>
+                          {/* Tab switcher */}
+                          <div className="flex items-center gap-1 mb-3 bg-[#141414] rounded-lg p-1">
+                            <button
+                              onClick={() => setTemplatePermTab(prev => ({ ...prev, [template.id]: "studio" }))}
+                              className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                activePermTab === "studio"
+                                  ? "bg-orange-500 text-white"
+                                  : "text-gray-400 hover:text-white hover:bg-[#2F2F2F]"
+                              }`}
+                            >
+                              Studio View
+                              <span className="ml-1.5 opacity-70">({studioEnabledCount}/{studioTotalCount})</span>
+                            </button>
+                            <button
+                              onClick={() => setTemplatePermTab(prev => ({ ...prev, [template.id]: "member" }))}
+                              className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                activePermTab === "member"
+                                  ? "bg-orange-500 text-white"
+                                  : "text-gray-400 hover:text-white hover:bg-[#2F2F2F]"
+                              }`}
+                            >
+                              Member View
+                              <span className="ml-1.5 opacity-70">({memberEnabledCount}/{memberTotalCount})</span>
+                            </button>
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
-                            {DEMO_MENU_ITEMS.map((menuItem) => {
-                              const isEnabled = template.permissions[menuItem.key]
-                              return (
-                                <button
-                                  key={menuItem.key}
-                                  onClick={() => handleToggleTemplatePermission(template.id, menuItem.key)}
-                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-all text-left ${
-                                    isEnabled
-                                      ? "border-green-500/30 bg-green-500/10 text-green-400"
-                                      : "border-[#333333] bg-[#141414] text-gray-500"
-                                  }`}
-                                >
-                                  <div className={`w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0 ${
-                                    isEnabled ? "bg-green-500" : "border border-gray-600"
-                                  }`}>
-                                    {isEnabled && <Check className="w-2.5 h-2.5 text-white" />}
-                                  </div>
-                                  <span className="truncate">{menuItem.label}</span>
-                                </button>
-                              )
-                            })}
-                          </div>
+
+                          {/* Studio View Permissions */}
+                          {activePermTab === "studio" && (
+                            <>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-medium text-gray-400">Studio View – Menu Permissions</label>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleToggleAllPermissions(template.id, true, "studioPermissions")}
+                                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                                  >
+                                    Enable All
+                                  </button>
+                                  <span className="text-gray-600">|</span>
+                                  <button
+                                    onClick={() => handleToggleAllPermissions(template.id, false, "studioPermissions")}
+                                    className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                                  >
+                                    Disable All
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                                {DEMO_MENU_ITEMS.map((menuItem) => {
+                                  const isEnabled = template.studioPermissions?.[menuItem.key]
+                                  return (
+                                    <button
+                                      key={menuItem.key}
+                                      onClick={() => handleToggleTemplatePermission(template.id, menuItem.key, "studioPermissions")}
+                                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-all text-left ${
+                                        isEnabled
+                                          ? "border-green-500/30 bg-green-500/10 text-green-400"
+                                          : "border-[#333333] bg-[#141414] text-gray-500"
+                                      }`}
+                                    >
+                                      <div className={`w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0 ${
+                                        isEnabled ? "bg-green-500" : "border border-gray-600"
+                                      }`}>
+                                        {isEnabled && <Check className="w-2.5 h-2.5 text-white" />}
+                                      </div>
+                                      <span className="truncate">{menuItem.label}</span>
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </>
+                          )}
+
+                          {/* Member View Permissions */}
+                          {activePermTab === "member" && (
+                            <>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-medium text-gray-400">Member View – Menu Permissions</label>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleToggleAllPermissions(template.id, true, "memberViewPermissions")}
+                                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                                  >
+                                    Enable All
+                                  </button>
+                                  <span className="text-gray-600">|</span>
+                                  <button
+                                    onClick={() => handleToggleAllPermissions(template.id, false, "memberViewPermissions")}
+                                    className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                                  >
+                                    Disable All
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                                {MEMBER_VIEW_MENU_ITEMS.map((menuItem) => {
+                                  const isEnabled = template.memberViewPermissions?.[menuItem.key]
+                                  return (
+                                    <button
+                                      key={menuItem.key}
+                                      onClick={() => handleToggleTemplatePermission(template.id, menuItem.key, "memberViewPermissions")}
+                                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-all text-left ${
+                                        isEnabled
+                                          ? "border-green-500/30 bg-green-500/10 text-green-400"
+                                          : "border-[#333333] bg-[#141414] text-gray-500"
+                                      }`}
+                                    >
+                                      <div className={`w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0 ${
+                                        isEnabled ? "bg-green-500" : "border border-gray-600"
+                                      }`}>
+                                        {isEnabled && <Check className="w-2.5 h-2.5 text-white" />}
+                                      </div>
+                                      <span className="truncate">{menuItem.label}</span>
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </SettingsCard>

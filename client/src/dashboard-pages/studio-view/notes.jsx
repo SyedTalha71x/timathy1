@@ -10,6 +10,7 @@ import TagManagerModal from "../../components/shared/TagManagerModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
+import toast from "../../components/shared/SharedToast"
 
 // Available tags
 const AVAILABLE_TAGS = [
@@ -471,6 +472,7 @@ export default function NotesApp() {
     setHasUnsavedChanges(false)
     loadedNoteIdRef.current = note.id
     setSelectedNote(note)
+    toast.success("Note created")
     
     // Focus title input after render - iOS needs longer delay and special handling
     const focusTitleInput = () => {
@@ -503,6 +505,7 @@ export default function NotesApp() {
     if (selectedNote?.id === noteId) {
       setSelectedNote(null)
     }
+    toast.success("Note deleted")
   }
 
   // Duplicate note
@@ -529,10 +532,12 @@ export default function NotesApp() {
     } else {
       selectNote(duplicated)
     }
+    toast.success("Note duplicated")
   }
 
   // Toggle pin
   const togglePin = (noteId) => {
+    const note = notes[activeTab].find(n => n.id === noteId)
     setNotes(prev => ({
       ...prev,
       [activeTab]: prev[activeTab].map(note =>
@@ -543,6 +548,7 @@ export default function NotesApp() {
     if (selectedNote?.id === noteId) {
       setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }))
     }
+    toast.success(note?.isPinned ? "Note unpinned" : "Note pinned")
   }
 
   // Move note to other tab
@@ -559,6 +565,7 @@ export default function NotesApp() {
     }))
 
     setActiveTab(targetTab)
+    toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes`)
     
     // On mobile: go back to list; on desktop: keep the note selected in new tab
     const isMobile = window.innerWidth < 768

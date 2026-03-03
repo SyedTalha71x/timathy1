@@ -24,13 +24,13 @@ import {
   File,
   ClipboardList,
 } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import AddStaffModal from "../../components/studio-components/staff-components/add-staff-modal"
 import EditStaffModal from "../../components/studio-components/staff-components/edit-staff-modal"
 import StaffPlanningModal from "../../components/studio-components/staff-components/staff-planning-modal"
 import VacationCalendarModal from "../../components/studio-components/staff-components/vacation-calendar-modal"
-import StaffHistoryModal from "../../components/studio-components/staff-components/staff-history-modal"
+import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
 import { StaffColorIndicator, communicationSettingsData } from "../../utils/studio-states"
 import { useStudioStaff } from "../../hooks/useStudioStaff"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
@@ -84,6 +84,16 @@ const RoleTag = ({ role, compact = false }) => {
   );
 };
 
+// Count Badge for icon buttons (Documents)
+const IconBadge = ({ count }) => {
+  if (!count) return null;
+  return (
+    <span className="absolute -top-1 -right-1 bg-secondary text-white text-[9px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1 pointer-events-none">
+      {count}
+    </span>
+  );
+};
+
 // Initials Avatar Component - Blue background with initials (for Staff)
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
   const getInitials = () => {
@@ -132,6 +142,35 @@ const { data: staffHookData, isLoading: staffLoading, error: staffError } = useS
   const [isVacationRequestModalOpen, setIsVacationRequestModalOpen] = useState(false)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [selectedStaffForHistory, setSelectedStaffForHistory] = useState(null)
+
+  // Staff history data — replace with real API data later
+  // Previously this was hardcoded inside StaffHistoryModal
+  const [staffHistoryData] = useState({
+    profile: [
+      { id: 1, date: "2024-01-15", time: "14:30", field: "Role", oldValue: "Employee", newValue: "Senior Employee", changedBy: "Admin" },
+      { id: 2, date: "2024-01-10", time: "09:15", field: "Vacation Entitlement", oldValue: "25 days", newValue: "30 days", changedBy: "HR Manager" },
+      { id: 3, date: "2024-01-05", time: "16:45", field: "Phone", oldValue: "+1234567890", newValue: "+1234567891", changedBy: "Self" },
+    ],
+    actions: [
+      { id: 1, date: "2024-01-18", time: "10:30", action: "Moved Appointment", details: "Moved meeting with client from 14:00 to 15:30", target: "Meeting with ABC Corp", performedBy: "System" },
+      { id: 2, date: "2024-01-17", time: "16:20", action: "Changed Member Data", details: "Updated contact information", target: "Member: John Smith", performedBy: "Self" },
+      { id: 3, date: "2024-01-16", time: "11:15", action: "Created To-Do List", details: "Created new project task list", target: "Project Alpha Tasks", performedBy: "Self" },
+      { id: 4, date: "2024-01-15", time: "09:45", action: "Deleted To-Do List", details: "Removed completed task list", target: "Old Project Tasks", performedBy: "Self" },
+      { id: 5, date: "2024-01-14", time: "13:20", action: "Assigned Task", details: "Assigned new client follow-up", target: "Task: Client Follow-up", performedBy: "Manager" },
+    ],
+    login: [
+      { id: 1, date: "2024-01-20", time: "08:30", action: "Login", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
+      { id: 2, date: "2024-01-19", time: "17:45", action: "Logout", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
+      { id: 3, date: "2024-01-19", time: "08:15", action: "Login", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
+      { id: 4, date: "2024-01-18", time: "18:00", action: "Logout", ipAddress: "192.168.1.105", device: "Safari on iPhone" },
+    ],
+    vacation: [
+      { id: 1, startDate: "2023-12-20", endDate: "2023-12-29", days: 8, status: "Approved", requestDate: "2023-11-15", approvedBy: "Manager" },
+      { id: 2, startDate: "2023-08-15", endDate: "2023-08-25", days: 9, status: "Approved", requestDate: "2023-07-10", approvedBy: "Manager" },
+      { id: 3, startDate: "2023-05-01", endDate: "2023-05-05", days: 5, status: "Approved", requestDate: "2023-04-01", approvedBy: "HR Manager" },
+    ],
+    communication: [],
+  })
   const [viewMode, setViewMode] = useState("list")
 
   const [isCompactView, setIsCompactView] = useState(false);
@@ -800,16 +839,6 @@ const AdminBanner = () => {
           }
         `}
         </style>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 2000,
-            style: {
-              background: "#333",
-              color: "#fff",
-            },
-          }}
-        />
 
         <div
           className="flex flex-col lg:flex-row rounded-3xl bg-surface-base transition-all duration-500 text-content-primary relative"
@@ -1317,13 +1346,6 @@ const AdminBanner = () => {
                           
                           {/* Actions */}
                           <div className="col-span-3 flex items-center justify-end gap-0.5">
-                            <button
-                              onClick={() => handleHistoryClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                              title="History"
-                            >
-                              <History size={isCompactView ? 16 : 18} />
-                            </button>
                             {!isAdminMode && (
   <button
     onClick={() => handleChatClick(staff)}
@@ -1333,6 +1355,16 @@ const AdminBanner = () => {
     <MessageCircle size={isCompactView ? 16 : 18} />
   </button>
 )}
+                            <div className="relative">
+                            <button
+                              onClick={() => handleDocumentClick(staff)}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                              title="Documents"
+                            >
+                              <FileText size={isCompactView ? 16 : 18} />
+                            </button>
+                            <IconBadge count={(staff.documents || []).length} />
+                            </div>
                             <button
                               onClick={() => handleVacationContingentClick(staff)}
                               className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
@@ -1341,11 +1373,11 @@ const AdminBanner = () => {
                               <TbPlusMinus size={isCompactView ? 16 : 18} />
                             </button>
                             <button
-                              onClick={() => handleDocumentClick(staff)}
+                              onClick={() => handleHistoryClick(staff)}
                               className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                              title="Documents"
+                              title="History"
                             >
-                              <FileText size={isCompactView ? 16 : 18} />
+                              <History size={isCompactView ? 16 : 18} />
                             </button>
                             <button
                               onClick={() => handleViewDetails(staff)}
@@ -1424,14 +1456,7 @@ const AdminBanner = () => {
                             <div className="px-3 pb-3 pt-1">
                               <div className="bg-surface-dark rounded-xl p-2">
                                 <div className="grid grid-cols-4 gap-1">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleHistoryClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <History size={18} />
-                                    <span className="text-[10px]">History</span>
-                                  </button>
-                               {!isAdminMode && (
+                                  {!isAdminMode && (
   <button
     onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
     className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
@@ -1440,6 +1465,16 @@ const AdminBanner = () => {
     <span className="text-[10px]">Chat</span>
   </button>
 )}
+                                  <div className="relative">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDocumentClick(staff); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <FileText size={18} />
+                                    <span className="text-[10px]">Docs</span>
+                                  </button>
+                                  <IconBadge count={(staff.documents || []).length} />
+                                  </div>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleVacationContingentClick(staff); }}
                                     className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
@@ -1448,11 +1483,11 @@ const AdminBanner = () => {
                                     <span className="text-[10px]">Vacation</span>
                                   </button>
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); handleDocumentClick(staff); }}
+                                    onClick={(e) => { e.stopPropagation(); handleHistoryClick(staff); }}
                                     className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
                                   >
-                                    <FileText size={18} />
-                                    <span className="text-[10px]">Docs</span>
+                                    <History size={18} />
+                                    <span className="text-[10px]">History</span>
                                   </button>
                                 </div>
                                 <div className="grid grid-cols-2 gap-1 mt-1">
@@ -1533,13 +1568,6 @@ const AdminBanner = () => {
                             {/* Action buttons */}
                             <div className="space-y-1 bg-surface-dark rounded-lg p-1.5">
                               <div className="grid grid-cols-4 gap-1">
-                                <button
-                                  onClick={() => handleHistoryClick(staff)}
-                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                  title="History"
-                                >
-                                  <History size={14} />
-                                </button>
                                {!isAdminMode && (
   <button
     onClick={() => handleChatClick(staff)}
@@ -1549,6 +1577,16 @@ const AdminBanner = () => {
     <MessageCircle size={14} />
   </button>
 )}
+                                <div className="relative flex items-center justify-center">
+                                <button
+                                  onClick={() => handleDocumentClick(staff)}
+                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                  title="Documents"
+                                >
+                                  <FileText size={14} />
+                                </button>
+                                <IconBadge count={(staff.documents || []).length} />
+                                </div>
                                 <button
                                   onClick={() => handleVacationContingentClick(staff)}
                                   className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
@@ -1557,11 +1595,11 @@ const AdminBanner = () => {
                                   <TbPlusMinus size={14} />
                                 </button>
                                 <button
-                                  onClick={() => handleDocumentClick(staff)}
+                                  onClick={() => handleHistoryClick(staff)}
                                   className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                  title="Documents"
+                                  title="History"
                                 >
-                                  <FileText size={14} />
+                                  <History size={14} />
                                 </button>
                               </div>
                               <div className="grid grid-cols-2 gap-1">
@@ -1654,13 +1692,6 @@ const AdminBanner = () => {
 
                             {/* Action Buttons */}
                             <div className="flex flex-wrap gap-2 justify-center">
-                              <button
-                                onClick={() => handleHistoryClick(staff)}
-                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="History"
-                              >
-                                <History size={18} />
-                              </button>
                          {!isAdminMode && (
   <button
     onClick={() => handleChatClick(staff)}
@@ -1670,6 +1701,16 @@ const AdminBanner = () => {
     <MessageCircle size={18} />
   </button>
 )}
+                              <div className="relative">
+                              <button
+                                onClick={() => handleDocumentClick(staff)}
+                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                title="Documents"
+                              >
+                                <FileText size={18} />
+                              </button>
+                              <IconBadge count={(staff.documents || []).length} />
+                              </div>
                               <button
                                 onClick={() => handleVacationContingentClick(staff)}
                                 className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
@@ -1678,11 +1719,11 @@ const AdminBanner = () => {
                                 <TbPlusMinus size={18} />
                               </button>
                               <button
-                                onClick={() => handleDocumentClick(staff)}
+                                onClick={() => handleHistoryClick(staff)}
                                 className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="Documents"
+                                title="History"
                               >
-                                <FileText size={18} />
+                                <History size={18} />
                               </button>
                               <button
                                 onClick={() => handleViewDetails(staff)}
@@ -1787,12 +1828,14 @@ const AdminBanner = () => {
         )}
 
         {isHistoryModalOpen && selectedStaffForHistory && (
-          <StaffHistoryModal
+          <SharedHistoryModal
+            variant="staff"
+            person={selectedStaffForHistory}
+            history={staffHistoryData}
             onClose={() => {
               setIsHistoryModalOpen(false)
               setSelectedStaffForHistory(null)
             }}
-            staff={selectedStaffForHistory}
           />
         )}
 

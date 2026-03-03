@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Search, Calendar, Clock, CheckCircle, X, ArrowUp, ArrowDown, UserX } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import DatePickerField from "../../components/shared/DatePickerField"
 
 export default function CheckIns() {
@@ -287,16 +287,7 @@ export default function CheckIns() {
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "var(--color-surface-dark)",
-            color: "var(--color-content-primary)",
-          },
-        }}
-      />
+
       <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         
         {/* Header */}

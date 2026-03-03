@@ -15,7 +15,7 @@ import {
   Bell,
   ChevronRight,
   Apple,
-  ClipboardList,
+  Timer,
   BarChart3,
   Target,
   BookOpen,
@@ -84,6 +84,11 @@ const MemberViewSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCol
       icon: Calendar,
       label: "Appointments",
       to: "/member-view/appointment",
+    },
+    {
+      icon: Timer,
+      label: "Classes",
+      to: "/member-view/classes",
     },
     {
       icon: CgGym,

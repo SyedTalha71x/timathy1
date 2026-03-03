@@ -208,6 +208,7 @@ export const CONFIGURATION_NAV_ITEMS = [
 // ============================================
 // Access - Menu Items & Default Templates
 // ============================================
+// Studio View Menu Items (admin/studio side)
 export const DEMO_MENU_ITEMS = [
   { key: "my-area", label: "My Area" },
   { key: "appointments", label: "Appointments" },
@@ -234,16 +235,33 @@ export const DEMO_MENU_ITEMS = [
   { key: "tickets", label: "Tickets" },
 ];
 
+// Member View Menu Items (end-customer/member side)
+export const MEMBER_VIEW_MENU_ITEMS = [
+  { key: "mv-studio", label: "Studio" },
+  { key: "mv-communication", label: "Communication" },
+  { key: "mv-appointments", label: "Appointments" },
+  { key: "mv-classes", label: "Classes" },
+  { key: "mv-training", label: "Training" },
+  { key: "mv-nutrition", label: "Nutrition" },
+  { key: "mv-settings", label: "Settings" },
+];
+
 export const DEFAULT_DEMO_TEMPLATES = [
   {
     id: "basic",
     name: "Basic",
     description: "Limited access with core features",
     color: "#10b981",
-    permissions: Object.fromEntries(
+    studioPermissions: Object.fromEntries(
       DEMO_MENU_ITEMS.map((m) => [
         m.key,
         ["my-area", "appointments", "members", "analytics"].includes(m.key),
+      ])
+    ),
+    memberViewPermissions: Object.fromEntries(
+      MEMBER_VIEW_MENU_ITEMS.map((m) => [
+        m.key,
+        ["mv-studio", "mv-appointments", "mv-classes"].includes(m.key),
       ])
     ),
   },
@@ -252,10 +270,16 @@ export const DEFAULT_DEMO_TEMPLATES = [
     name: "Standard",
     description: "Full access with some restrictions",
     color: "#3b82f6",
-    permissions: Object.fromEntries(
+    studioPermissions: Object.fromEntries(
       DEMO_MENU_ITEMS.map((m) => [
         m.key,
         !["configuration", "finances", "marketplace"].includes(m.key),
+      ])
+    ),
+    memberViewPermissions: Object.fromEntries(
+      MEMBER_VIEW_MENU_ITEMS.map((m) => [
+        m.key,
+        !["mv-settings"].includes(m.key),
       ])
     ),
   },
@@ -264,7 +288,8 @@ export const DEFAULT_DEMO_TEMPLATES = [
     name: "Premium",
     description: "Complete platform access",
     color: "#f59e0b",
-    permissions: Object.fromEntries(DEMO_MENU_ITEMS.map((m) => [m.key, true])),
+    studioPermissions: Object.fromEntries(DEMO_MENU_ITEMS.map((m) => [m.key, true])),
+    memberViewPermissions: Object.fromEntries(MEMBER_VIEW_MENU_ITEMS.map((m) => [m.key, true])),
   },
 ];
 

@@ -56,7 +56,13 @@ import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 import AdminFeedback from './dashboard-pages/admin-view/feedback'
 import EditStudioMembersPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-members-page'
 import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-staff-page'
+import EditStudioLeadsPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-leads-page'
+import EditStudioContractsPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-contracts-page'
+import EditStudioFinancesPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-finances-page'
 
+
+// ─── Standalone Public Pages (outside all dashboard layouts) ─────────────────
+import TrialTraining from './dashboard-pages/studio-view/subpage/trial-training'
 
 // Member Dashboard  
 import MemberDashboardLayout from "./layouts/member-view/member-view-layout";
@@ -67,6 +73,7 @@ import MemberSettings from './dashboard-pages/member-view/settings'
 import MemberTraining from './dashboard-pages/member-view/training'
 import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
 import MemberNutritionTracker from './dashboard-pages/member-view/nutrition-tracker'
+import MemberClasses from './dashboard-pages/member-view/classes'
 // import { useEffect } from "react";
 // import { fetchMyStudio } from "./features/studio/studioSlice";
 // import { fetchStudioServices } from "./features/services/servicesSlice";
@@ -87,7 +94,7 @@ function App() {
   // const dispatch = useDispatch();
   // const navigate = useNavigate();
 
-  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training");
 
 
 
@@ -137,6 +144,16 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            STANDALONE PUBLIC PAGE — Trial Training Booking
+            ─────────────────────────────────────────────────────────────────
+            This route is intentionally OUTSIDE all dashboard layouts.
+            It is a self-contained page for potential customers to book
+            a trial training session — no auth, no sidebar, no nav.
+            File: dashboard-pages/studio-view/subpage/trial-training.jsx
+        ═══════════════════════════════════════════════════════════════════ */}
+        <Route path="/trial-training" element={<TrialTraining />} />
 
 
 
@@ -196,6 +213,9 @@ function App() {
           <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
           <Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
           <Route path="studio-staff/:studioId" element={<EditStudioStaffPage />} />
+          <Route path="studio-leads/:studioId" element={<EditStudioLeadsPage />} />
+          <Route path="studio-contracts/:studioId" element={<EditStudioContractsPage />} />
+          <Route path="studio-finances/:studioId" element={<EditStudioFinancesPage />} />
 
 
 
@@ -207,6 +227,7 @@ function App() {
           // </ProtectedRoutes>
         }>
           <Route path="appointment" element={<MemberAppointments />} />
+          <Route path="classes" element={<MemberClasses />} />
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />
           <Route path="settings" element={<MemberSettings />} />

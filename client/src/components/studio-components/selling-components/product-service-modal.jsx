@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Plus, Minus, Crop } from "lucide-react"
 import { currencyConfig, getCurrencySymbol } from "../../../utils/studio-states/selling-states"
+import CustomSelect from "../../shared/CustomSelect"
 // Shared modals
 import ImageCropModal from '../../shared/image-handler/ImageCropModal'
 import ImageSourceModal from '../../shared/image-handler/ImageSourceModal'
@@ -287,15 +288,15 @@ const ProductServiceModal = ({
                   {/* VAT */}
                   <div>
                     <label className="text-sm text-content-primary block mb-2">VAT Rate (%)</label>
-                    <select
+                    <CustomSelect
                       name="vatRate"
                       value={formData.vatRate}
                       onChange={handleInputChangeMain}
-                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary outline-none border border-transparent focus:border-primary transition-colors open_sans_font"
-                    >
-                      <option value={7} style={{ color: "#000", background: "#fff" }}>7% (take-away)</option>
-                      <option value={19} style={{ color: "#000", background: "#fff" }}>19% (eat-in)</option>
-                    </select>
+                      options={[
+                        { value: 7, label: "7% (take-away)" },
+                        { value: 19, label: "19% (eat-in)" },
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -371,15 +372,15 @@ const ProductServiceModal = ({
                   {/* VAT */}
                   <div>
                     <label className="text-sm text-content-primary block mb-2">VAT Rate (%)</label>
-                    <select
+                    <CustomSelect
                       name="vatRate"
                       value={formData.vatRate}
                       onChange={handleInputChangeMain}
-                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary outline-none border border-transparent focus:border-primary transition-colors open_sans_font"
-                    >
-                      <option value={7} style={{ color: "#000", background: "#fff" }}>7% (take-away)</option>
-                      <option value={19} style={{ color: "#000", background: "#fff" }}>19% (eat-in)</option>
-                    </select>
+                      options={[
+                        { value: 7, label: "7% (take-away)" },
+                        { value: 19, label: "19% (eat-in)" },
+                      ]}
+                    />
                   </div>
                 </>
               )}

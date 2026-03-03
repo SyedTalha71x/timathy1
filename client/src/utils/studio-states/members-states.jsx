@@ -153,6 +153,15 @@ export const memberHistoryData = {
       { id: 1, date: "2024-03-01", action: "Contract Signed", details: "48-month membership — Premium All-Access", user: "Admin" },
       { id: 2, date: "2024-12-15", action: "Contract Amended", details: "Added personal training add-on (4x/month)", user: "Admin" },
     ],
+    communication: [
+      { id: 1, channel: "email", subject: "Welcome to FitStudio!", date: "2024-03-01", time: "10:15", to: "john@example.com", preview: "Dear John, welcome to FitStudio! Your Premium All-Access membership is now active.", body: "<p>Dear John,</p><p>Welcome to <strong>FitStudio</strong>! Your Premium All-Access membership is now active.</p><p>Your contract starts on <strong>March 1, 2024</strong>. We look forward to seeing you at the studio!</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "email", subject: "SEPA Direct Debit Mandate Confirmation", date: "2024-03-01", time: "10:20", to: "john@example.com", preview: "Dear John, we hereby confirm your SEPA direct debit mandate.", body: "<p>Dear John,</p><p>We hereby confirm your SEPA direct debit mandate with the following details:</p><p>Account Holder: <strong>John Doe</strong><br/>IBAN: <strong>DE89 3704 0044 0532 0130 00</strong><br/>BIC: <strong>COBADEFFXXX</strong><br/>Bank: <strong>Commerzbank</strong><br/>Mandate Reference: <strong>SEPA-M4X7K2-AB3CD</strong></p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 3, channel: "push", title: "Appointment Reminder", date: "2025-02-14", time: "18:00", preview: "Reminder: Personal Training tomorrow at 10:00", body: "<p>Reminder: You have a <strong>Personal Training</strong> session tomorrow at <strong>10:00</strong>.</p>", status: "delivered", sentBy: "System" },
+      { id: 4, channel: "email", subject: "Invoice #2025-02 — February Membership Fee", date: "2025-02-01", time: "08:00", to: "john@example.com", preview: "Dear John, please find your invoice for February 2025 attached.", body: "<p>Dear John,</p><p>Please find your invoice for <strong>February 2025</strong> attached.</p><p>Amount: <strong>€49.99</strong><br/>Due date: February 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 5, channel: "email", subject: "Contract Amendment Confirmation", date: "2024-12-15", time: "11:30", to: "john@example.com", preview: "Dear John, your contract has been amended to include personal training.", body: "<p>Dear John,</p><p>Your contract has been amended. The following changes are now active:</p><p><strong>Added:</strong> Personal Training add-on (4x/month)</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 6, channel: "push", title: "Class Cancelled", date: "2025-01-28", time: "12:00", preview: "Your Group Yoga class on Jan 30 has been cancelled.", body: "<p>Your <strong>Group Yoga</strong> class on <strong>January 30 at 16:00</strong> has been cancelled.</p>", status: "delivered", sentBy: "System" },
+      { id: 7, channel: "email", subject: "Invoice #2025-01 — January Membership Fee", date: "2025-01-01", time: "08:00", to: "john@example.com", preview: "Dear John, please find your invoice for January 2025 attached.", body: "<p>Dear John,</p><p>Please find your invoice for <strong>January 2025</strong> attached.</p><p>Amount: <strong>€49.99</strong><br/>Due date: January 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+    ],
   },
   2: {
     general: [
@@ -173,6 +182,12 @@ export const memberHistoryData = {
     contracts: [
       { id: 1, date: "2021-11-15", action: "Contract Signed", details: "Standard membership — 24 months", user: "Reception" },
       { id: 2, date: "2023-11-15", action: "Contract Renewed", details: "Extended for another 24 months", user: "Admin" },
+    ],
+    communication: [
+      { id: 1, channel: "email", subject: "Contract Renewal Confirmation", date: "2023-11-15", time: "09:00", to: "jane@example.com", preview: "Dear Jane, your contract has been successfully renewed for another 24 months.", body: "<p>Dear Jane,</p><p>Your contract has been successfully renewed for another <strong>24 months</strong>.</p><p>New end date: <strong>November 15, 2025</strong></p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 2, channel: "email", subject: "Membership Pause Confirmation", date: "2025-01-08", time: "10:25", to: "jane@example.com", preview: "Dear Jane, your membership has been paused due to vacation leave.", body: "<p>Dear Jane,</p><p>Your membership has been <strong>paused</strong> effective immediately.</p><p>Reason: <strong>Vacation Leave</strong></p><p>If you'd like to reactivate your membership, please contact us.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 3, channel: "push", title: "Membership Paused", date: "2025-01-08", time: "10:26", preview: "Your membership has been paused. Contact us to reactivate.", body: "<p>Your membership has been <strong>paused</strong>. Contact us when you'd like to reactivate.</p>", status: "delivered", sentBy: "System" },
+      { id: 4, channel: "email", subject: "Invoice #2025-01 — January Membership Fee", date: "2025-01-01", time: "08:00", to: "jane@example.com", preview: "Dear Jane, please find your invoice for January 2025 attached.", body: "<p>Dear Jane,</p><p>Please find your invoice for <strong>January 2025</strong> attached.</p><p>Amount: <strong>€39.99</strong><br/>Due date: January 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
     ],
   },
   3: {
@@ -196,6 +211,11 @@ export const memberHistoryData = {
     ],
     contracts: [
       { id: 1, date: "2022-06-15", action: "Contract Signed", details: "60-month membership — Fitness Plus", user: "Admin" },
+    ],
+    communication: [
+      { id: 1, channel: "email", subject: "Welcome to FitStudio!", date: "2022-06-15", time: "11:00", to: "emily@example.com", preview: "Dear Emily, welcome to FitStudio! Your Fitness Plus membership is now active.", body: "<p>Dear Emily,</p><p>Welcome to <strong>FitStudio</strong>! Your Fitness Plus membership is now active.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "push", title: "New Class Available", date: "2025-02-01", time: "09:00", preview: "Early Morning Bootcamp is now available — book your spot!", body: "<p>A new class <strong>Early Morning Bootcamp</strong> has been added to the schedule. Book your spot now!</p>", status: "delivered", sentBy: "System" },
+      { id: 3, channel: "email", subject: "Invoice #2025-02 — February Membership Fee", date: "2025-02-01", time: "08:00", to: "emily@example.com", preview: "Dear Emily, please find your invoice for February 2025 attached.", body: "<p>Dear Emily,</p><p>Please find your invoice for <strong>February 2025</strong> attached.</p><p>Amount: <strong>€49.99</strong><br/>Due date: February 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
     ],
   },
   4: {
@@ -223,6 +243,12 @@ export const memberHistoryData = {
       { id: 1, date: "2023-01-10", action: "Contract Signed", details: "Standard membership — 36 months", user: "Reception" },
       { id: 2, date: "2025-01-20", action: "Contract Upgraded", details: "Upgraded to Premium tier with VIP access", user: "Admin" },
     ],
+    communication: [
+      { id: 1, channel: "email", subject: "Contract Upgrade Confirmation", date: "2025-01-20", time: "13:10", to: "michael@example.com", preview: "Dear Michael, your membership has been upgraded to Premium tier.", body: "<p>Dear Michael,</p><p>Your membership has been upgraded to <strong>Premium tier</strong> with VIP access.</p><p>You now have access to the VIP Lounge, priority scheduling, and exclusive wellness services.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 2, channel: "push", title: "Welcome to Premium!", date: "2025-01-20", time: "13:15", preview: "Congrats! Your account has been upgraded to Premium with VIP access.", body: "<p>Congratulations! Your account has been upgraded to <strong>Premium</strong>. Enjoy VIP access and priority scheduling.</p>", status: "delivered", sentBy: "System" },
+      { id: 3, channel: "email", subject: "Invoice #2025-02 — February Premium Fee", date: "2025-02-01", time: "08:00", to: "michael@example.com", preview: "Dear Michael, please find your invoice for February 2025 attached.", body: "<p>Dear Michael,</p><p>Please find your invoice for <strong>February 2025</strong> attached.</p><p>Amount: <strong>€89.99</strong><br/>Due date: February 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 4, channel: "push", title: "Appointment Reminder", date: "2025-02-21", time: "18:00", preview: "Reminder: Spa Treatment tomorrow at 11:00", body: "<p>Reminder: You have a <strong>Spa Treatment</strong> appointment tomorrow at <strong>11:00</strong>.</p>", status: "delivered", sentBy: "System" },
+    ],
   },
   5: {
     general: [
@@ -240,6 +266,10 @@ export const memberHistoryData = {
     ],
     contracts: [
       { id: 1, date: "2023-09-01", action: "Contract Signed", details: "Standard membership — 36 months", user: "Admin" },
+    ],
+    communication: [
+      { id: 1, channel: "email", subject: "Appointment Confirmation — Strength Training", date: "2025-02-10", time: "14:00", to: "sarah@example.com", preview: "Dear Sarah, your Strength Training appointment has been confirmed.", body: "<p>Dear Sarah,</p><p>Your <strong>Strength Training</strong> appointment on <strong>February 12 at 18:30</strong> has been confirmed.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "push", title: "Workout Streak! 🔥", date: "2025-02-15", time: "20:00", preview: "You've trained 3 times this week — keep it up!", body: "<p>You've trained <strong>3 times</strong> this week — keep up the great work! 🔥</p>", status: "delivered", sentBy: "System" },
     ],
   },
   6: {
@@ -262,6 +292,11 @@ export const memberHistoryData = {
     contracts: [
       { id: 1, date: "2024-06-01", action: "Contract Signed", details: "Standard membership — 24 months", user: "Admin" },
     ],
+    communication: [
+      { id: 1, channel: "email", subject: "Welcome to FitStudio!", date: "2024-06-01", time: "09:30", to: "robert@example.com", preview: "Dear Robert, welcome to FitStudio! Your membership is now active.", body: "<p>Dear Robert,</p><p>Welcome to <strong>FitStudio</strong>! Your Standard membership is now active.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "email", subject: "Rehab Package Confirmation", date: "2025-02-10", time: "10:30", to: "robert@example.com", preview: "Dear Robert, your 8-session knee rehab package has been activated.", body: "<p>Dear Robert,</p><p>Your <strong>8-session knee rehabilitation package</strong> has been activated.</p><p>Amount: <strong>€120.00</strong></p><p>Please coordinate with your trainer for scheduling.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 3, channel: "push", title: "Appointment Reminder", date: "2025-02-18", time: "18:00", preview: "Reminder: Physio Rehab Session tomorrow at 10:00", body: "<p>Reminder: You have a <strong>Physio Rehab Session</strong> tomorrow at <strong>10:00</strong>.</p>", status: "delivered", sentBy: "System" },
+    ],
   },
   7: {
     general: [
@@ -278,6 +313,10 @@ export const memberHistoryData = {
     ],
     finance: [],
     contracts: [],
+    communication: [
+      { id: 1, channel: "email", subject: "Trial Workout Scheduled", date: "2025-02-01", time: "10:05", to: "lisa@example.com", preview: "Dear Lisa, your trial workout has been scheduled for February 5 at 10:00.", body: "<p>Dear Lisa,</p><p>Your <strong>Trial Workout</strong> has been scheduled for <strong>February 5, 2025 at 10:00</strong>.</p><p>Please arrive 10 minutes early. We look forward to seeing you!</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 2, channel: "push", title: "Welcome!", date: "2025-01-24", time: "15:40", preview: "Thanks for signing up for a gym tour! See you tomorrow at 11:00.", body: "<p>Thanks for signing up! Your <strong>Gym Tour & Consultation</strong> is scheduled for tomorrow at <strong>11:00</strong>.</p>", status: "delivered", sentBy: "System" },
+    ],
   },
   8: {
     general: [],
@@ -293,6 +332,10 @@ export const memberHistoryData = {
     ],
     contracts: [
       { id: 1, date: "2024-02-01", action: "Contract Signed", details: "Standard membership — 24 months", user: "Reception" },
+    ],
+    communication: [
+      { id: 1, channel: "email", subject: "Welcome to FitStudio!", date: "2024-02-01", time: "14:00", to: "david@example.com", preview: "Dear David, welcome to FitStudio! Your membership is now active.", body: "<p>Dear David,</p><p>Welcome to <strong>FitStudio</strong>! Your Standard membership is now active starting <strong>February 1, 2024</strong>.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "push", title: "Appointment Completed", date: "2025-02-13", time: "19:00", preview: "Great session! Your Group HIIT Class has been logged.", body: "<p>Great session! Your <strong>Group HIIT Class</strong> has been logged. Keep it up!</p>", status: "delivered", sentBy: "System" },
     ],
   },
   9: {
@@ -311,6 +354,11 @@ export const memberHistoryData = {
     ],
     contracts: [
       { id: 1, date: "2024-03-15", action: "Contract Signed", details: "Standard membership — 24 months", user: "Admin" },
+    ],
+    communication: [
+      { id: 1, channel: "email", subject: "Welcome to FitStudio!", date: "2024-03-15", time: "12:00", to: "anna@example.com", preview: "Dear Anna, welcome to FitStudio! Your membership is now active.", body: "<p>Dear Anna,</p><p>Welcome to <strong>FitStudio</strong>! Your Standard membership is now active.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "email", subject: "SEPA Direct Debit Mandate Confirmation", date: "2024-03-15", time: "12:05", to: "anna@example.com", preview: "Dear Anna, we hereby confirm your SEPA direct debit mandate.", body: "<p>Dear Anna,</p><p>We hereby confirm your SEPA direct debit mandate.</p><p>Account Holder: <strong>Anna Weber</strong><br/>IBAN: <strong>DE75 5121 0800 1245 1261 99</strong><br/>BIC: <strong>DAAEDEDDXXX</strong><br/>Bank: <strong>Apobank</strong><br/>Mandate Reference: <strong>SEPA-R8T2P1-XY9FG</strong></p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "Admin" },
+      { id: 3, channel: "push", title: "Lunchtime Workout Completed", date: "2025-02-14", time: "13:05", preview: "Great job on your Lunchtime Express Workout today!", body: "<p>Great job on your <strong>Lunchtime Express Workout</strong> today! 💪</p>", status: "delivered", sentBy: "System" },
     ],
   },
   10: {
@@ -331,6 +379,12 @@ export const memberHistoryData = {
     ],
     contracts: [
       { id: 1, date: "2024-01-01", action: "Contract Signed", details: "Standard membership — 24 months", user: "Admin" },
+    ],
+    communication: [
+      { id: 1, channel: "email", subject: "Welcome to FitStudio!", date: "2024-01-01", time: "07:00", to: "tom@example.com", preview: "Dear Tom, welcome to FitStudio! Your membership is now active.", body: "<p>Dear Tom,</p><p>Welcome to <strong>FitStudio</strong>! Your Standard membership is now active starting <strong>January 1, 2024</strong>.</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 2, channel: "push", title: "Workout Streak! 🔥", date: "2025-02-17", time: "09:00", preview: "5 sessions this month — you're on fire!", body: "<p>You've completed <strong>5 sessions</strong> this month — you're on fire! 🔥 Keep going!</p>", status: "delivered", sentBy: "System" },
+      { id: 3, channel: "email", subject: "Invoice #2025-02 — February Membership Fee", date: "2025-02-01", time: "08:00", to: "tom@example.com", preview: "Dear Tom, please find your invoice for February 2025 attached.", body: "<p>Dear Tom,</p><p>Please find your invoice for <strong>February 2025</strong> attached.</p><p>Amount: <strong>€49.99</strong><br/>Due date: February 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
+      { id: 4, channel: "email", subject: "Invoice #2025-01 — January Membership Fee", date: "2025-01-01", time: "08:00", to: "tom@example.com", preview: "Dear Tom, please find your invoice for January 2025 attached.", body: "<p>Dear Tom,</p><p>Please find your invoice for <strong>January 2025</strong> attached.</p><p>Amount: <strong>€49.99</strong><br/>Due date: January 5, 2025</p><p>Best regards,<br/>FitStudio Team</p>", status: "delivered", sentBy: "System" },
     ],
   },
 };
@@ -400,7 +454,7 @@ export const getMemberContingent = (memberId) =>
   memberContingentData[memberId] || { current: { used: 0, total: 0 }, future: {} };
 
 export const getMemberHistory = (memberId) => 
-  memberHistoryData[memberId] || { general: [], checkins: [], appointments: [], finance: [], contracts: [] };
+  memberHistoryData[memberId] || { general: [], checkins: [], appointments: [], finance: [], contracts: [], communication: [] };
 
 export const getMemberRelations = (memberId) => 
   memberRelationsData[memberId] || { family: [], friendship: [], relationship: [], work: [], other: [] };

@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, Users, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, Pin, PinOff, Copy, Trash2, Edit, GripVertical } from "lucide-react"
 
 // toast removed
+import toast from "../../components/shared/SharedToast"
 import RepeatTaskModal from "../../components/studio-components/todo-components/repeat-task-modal"
 import AssignModal from "../../components/shared/to-do/assign-modal"
 import TagsModal from "../../components/shared/to-do/edit-tags"
@@ -1455,6 +1456,8 @@ export default function TodoApp() {
           : task
       )
     )
+    const statusMessages = { completed: "Task marked as completed", canceled: "Task cancelled", ongoing: "Task moved to ongoing" }
+    if (statusMessages[newStatus]) toast.success(statusMessages[newStatus])
   }
 
   const handleTaskUpdate = (updatedTask) => {
@@ -1495,12 +1498,14 @@ export default function TodoApp() {
   }
 
   const handleTaskPinToggle = (taskId) => {
+    const task = tasks.find(t => t.id === taskId)
     setTasks((prevTasks) =>
       prevTasks.map((task) => (task.id === taskId ? { ...task, isPinned: !task.isPinned } : task))
     )
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask({ ...selectedMobileTask, isPinned: !selectedMobileTask.isPinned })
     }
+    toast.success(task?.isPinned ? "Task unpinned" : "Task pinned")
   }
 
   const handleEditRequest = (task) => {
@@ -1518,6 +1523,7 @@ export default function TodoApp() {
       handleTaskRemove(selectedTask.id)
       setIsDeleteModalOpen(false)
       setSelectedTask(null)
+      toast.success("Task deleted successfully")
     }
   }
 
@@ -1534,7 +1540,7 @@ export default function TodoApp() {
         createdAt: new Date().toISOString(),
       },
     ])
-    
+    toast.success("Task duplicated")
   }
 
   const handleRepeatRequest = (task) => {
@@ -1578,7 +1584,7 @@ export default function TodoApp() {
       createdAt: new Date().toISOString(),
     }
     setTasks((prevTasks) => [...prevTasks, newTask])
-    
+    toast.success("Task created successfully")
   }
 
   // ============================================
@@ -1646,7 +1652,7 @@ export default function TodoApp() {
       setSelectedTime("")
       setSelectedAssignees([])
       setSelectedTags([])
-      
+      toast.success("Task created successfully")
     }
   }, [tasks, selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput])
 

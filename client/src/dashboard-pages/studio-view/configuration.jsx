@@ -44,10 +44,14 @@ import {
   EyeOff,
   AlertTriangle,
   Timer,
+  ArrowRightLeft,
+  RefreshCw,
+  Gift,
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
-import { Modal, notification, QRCode } from "antd"
+import { Modal, QRCode } from "antd"
+import toast from "../../components/shared/SharedToast"
 import dayjs from "dayjs"
 
 import ContractBuilder from "../../components/studio-components/configuration-components/ContractBuilder"
@@ -102,6 +106,9 @@ import {
   DEFAULT_CONTRACT_TYPES,
   DEFAULT_CONTRACT_SETTINGS,
   DEFAULT_CONTRACT_PAUSE_REASONS,
+  DEFAULT_CONTRACT_CHANGE_REASONS,
+  DEFAULT_CONTRACT_RENEW_REASONS,
+  DEFAULT_CONTRACT_BONUS_TIME_REASONS,
   DEFAULT_VAT_RATES,
   
   // Communication Config
@@ -199,6 +206,9 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "contract-forms", label: "Contract Forms" },
       { id: "contract-types", label: "Contract Types" },
       { id: "pause-reasons", label: "Pause Reasons" },
+      { id: "change-reasons", label: "Change Reasons" },
+      { id: "renew-reasons", label: "Renew Reasons" },
+      { id: "bonus-time-reasons", label: "Bonus Time Reasons" },
     ],
   },
   {
@@ -215,6 +225,9 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "e-invoice-template", label: "E-Invoice", group: "Email Templates" },
       { id: "contract-cancellation-template", label: "Contract Cancellation", group: "Email Templates" },
       { id: "contract-conclusion-template", label: "Conclusion of Contract", group: "Email Templates" },
+      { id: "contract-renewal-template", label: "Contract Renewal", group: "Email Templates" },
+      { id: "contract-change-template", label: "Contract Change", group: "Email Templates" },
+      { id: "sepa-mandate-template", label: "SEPA Mandate", group: "Email Templates" },
     ],
   },
   {
@@ -701,6 +714,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
   const [contractPauseReasons, setContractPauseReasons] = useState([])
+  const [contractChangeReasons, setContractChangeReasons] = useState([])
+  const [contractRenewReasons, setContractRenewReasons] = useState([])
+  const [contractBonusTimeReasons, setContractBonusTimeReasons] = useState([])
 
   // Communication Settings
   const [settings, setSettings] = useState({})
@@ -738,6 +754,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const einvoiceEditorRef = useRef(null)
   const cancellationEditorRef = useRef(null)
   const conclusionEditorRef = useRef(null)
+  const renewalEditorRef = useRef(null)
+  const changeEditorRef = useRef(null)
+  const sepaMandateEditorRef = useRef(null)
   const qrCodeRef = useRef(null)
 
   // ============================================
@@ -802,6 +821,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setContractTypes(config.contracts.types)
     setContractForms(config.contracts.forms)
     setContractPauseReasons(config.contracts.pauseReasons)
+    setContractChangeReasons(config.contracts.changeReasons || DEFAULT_CONTRACT_CHANGE_REASONS)
+    setContractRenewReasons(config.contracts.renewReasons || DEFAULT_CONTRACT_RENEW_REASONS)
+    setContractBonusTimeReasons(config.contracts.bonusTimeReasons || DEFAULT_CONTRACT_BONUS_TIME_REASONS)
 
     // Communication
     setSettings(config.communication.settings)
@@ -1024,7 +1046,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const data = await response.json()
       setPublicHolidays(data.map(h => ({ date: h.date, name: h.name, countryCode: h.countryCode })))
     } catch (error) {
-      notification.error({ message: "Error", description: "Could not load public holidays" })
+      toast.error("Error — Could not load public holidays")
     } finally {
       setIsLoadingHolidays(false)
     }
@@ -1032,17 +1054,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const addPublicHolidaysToClosingDays = () => {
     if (publicHolidays.length === 0) {
-      notification.warning({ message: "No Holidays", description: "Please select a country first" })
+      toast.error("No Holidays — Please select a country first")
       return
     }
     const existingDates = closingDays.map(d => d.date)
     const newHolidays = publicHolidays.filter(h => !existingDates.includes(h.date))
     if (newHolidays.length === 0) {
-      notification.info({ message: "No New Holidays", description: "All holidays already added" })
+      toast.success("No New Holidays — All holidays already added")
       return
     }
     setClosingDays([...closingDays, ...newHolidays.map(h => ({ date: h.date, description: h.name }))])
-    notification.success({ message: "Added", description: `Added ${newHolidays.length} holidays` })
+    toast.success(`Added — Added ${newHolidays.length} holidays`)
   }
 
   const handleLogoUpload = (e) => {
@@ -1051,7 +1073,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const url = URL.createObjectURL(file)
       setLogoUrl(url)
       setLogo([file])
-      notification.success({ message: "Logo uploaded successfully" })
+      toast.success("Logo uploaded successfully")
     }
   }
 
@@ -1073,7 +1095,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     if (field === "name" && value.trim()) {
       const duplicate = roles.find((r, i) => i !== index && r.name.toLowerCase() === value.toLowerCase().trim())
       if (duplicate) {
-        notification.error({ message: "Duplicate name", description: "Role name already exists" })
+        toast.error("Duplicate name — Role name already exists")
         return
       }
     }
@@ -1083,11 +1105,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleDeleteRole = (index) => {
     if (roles[index].isAdmin) {
-      notification.error({ message: "Cannot delete Admin role" })
+      toast.error("Cannot delete Admin role")
       return
     }
     if (roles[index].staffCount > 0) {
-      notification.error({ message: "Reassign staff first" })
+      toast.error("Reassign staff first")
       return
     }
     setRoles(roles.filter((_, i) => i !== index))
@@ -1120,10 +1142,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const remainingAdmins = adminStaff.filter(id => !staffBeingMovedFromAdmin.includes(id))
       
       if (staffBeingMovedFromAdmin.length > 0 && remainingAdmins.length === 0) {
-        notification.error({ 
-          message: "Cannot remove last admin", 
-          description: "At least one staff member must remain in the Admin role." 
-        })
+        toast.error("Cannot remove last admin — At least one staff member must remain in the Admin role.")
         return
       }
     }
@@ -1179,27 +1198,27 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleSaveAppointmentType = () => {
     if (!appointmentTypeForm.name.trim()) {
-      notification.error({ message: "Please enter a name for the appointment type" })
+      toast.error("Please enter a name for the appointment type")
       return
     }
     if (!appointmentTypeForm.duration || appointmentTypeForm.duration < 5) {
-      notification.error({ message: "Please enter a valid duration (min. 5 minutes)" })
+      toast.error("Please enter a valid duration (min. 5 minutes)")
       return
     }
     if (!appointmentTypeForm.interval || appointmentTypeForm.interval < 5) {
-      notification.error({ message: "Please enter a valid interval (min. 5 minutes)" })
+      toast.error("Please enter a valid interval (min. 5 minutes)")
       return
     }
     if (appointmentTypeForm.slotsRequired === undefined || appointmentTypeForm.slotsRequired === null || appointmentTypeForm.slotsRequired === "") {
-      notification.error({ message: "Please enter the slots required" })
+      toast.error("Please enter the slots required")
       return
     }
     if (!appointmentTypeForm.maxParallel || appointmentTypeForm.maxParallel < 1) {
-      notification.error({ message: "Please enter max parallel (min. 1)" })
+      toast.error("Please enter max parallel (min. 1)")
       return
     }
     if (appointmentTypeForm.contingentUsage === undefined || appointmentTypeForm.contingentUsage === null || appointmentTypeForm.contingentUsage === "") {
-      notification.error({ message: "Please enter the contingent usage" })
+      toast.error("Please enter the contingent usage")
       return
     }
     
@@ -1210,14 +1229,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           ? { ...t, ...appointmentTypeForm }
           : t
       ))
-      notification.success({ message: "Appointment type updated" })
+      toast.success("Appointment type updated")
     } else {
       // Create new
       setAppointmentTypes([...appointmentTypes, {
         id: Date.now(),
         ...appointmentTypeForm
       }])
-      notification.success({ message: "Appointment type created" })
+      toast.success("Appointment type created")
     }
     
     setShowAppointmentTypeModal(false)
@@ -1232,7 +1251,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       okType: "danger",
       onOk: () => {
         setAppointmentTypes(appointmentTypes.filter(t => t.id !== id))
-        notification.success({ message: "Appointment type deleted" })
+        toast.success("Appointment type deleted")
       }
     })
   }
@@ -1266,7 +1285,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const handleRemoveCategory = (index) => {
     const category = appointmentCategories[index]
     if (appointmentTypes.some(t => t.category === category)) {
-      notification.error({ message: "Cannot remove", description: "Category is in use" })
+      toast.error("Cannot remove — Category is in use")
       return
     }
     setAppointmentCategories(appointmentCategories.filter((_, i) => i !== index))
@@ -1296,23 +1315,23 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleSaveClassType = () => {
     if (!classTypeForm.name.trim()) {
-      notification.error({ message: "Please enter a name for the class type" })
+      toast.error("Please enter a name for the class type")
       return
     }
     if (!classTypeForm.duration || classTypeForm.duration < 5) {
-      notification.error({ message: "Please enter a valid duration (min. 5 minutes)" })
+      toast.error("Please enter a valid duration (min. 5 minutes)")
       return
     }
     if (!classTypeForm.maxParticipants || classTypeForm.maxParticipants < 1) {
-      notification.error({ message: "Please enter max participants (min. 1)" })
+      toast.error("Please enter max participants (min. 1)")
       return
     }
     if (editingClassType) {
       setClassTypes(classTypes.map(t => t.id === editingClassType.id ? { ...t, ...classTypeForm } : t))
-      notification.success({ message: "Class type updated" })
+      toast.success("Class type updated")
     } else {
       setClassTypes([...classTypes, { id: Date.now(), ...classTypeForm }])
-      notification.success({ message: "Class type created" })
+      toast.success("Class type created")
     }
     setShowClassTypeModal(false)
     setEditingClassType(null)
@@ -1325,7 +1344,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       okText: "Delete", okType: "danger",
       onOk: () => {
         setClassTypes(classTypes.filter(t => t.id !== id))
-        notification.success({ message: "Class type deleted" })
+        toast.success("Class type deleted")
       },
     })
   }
@@ -1338,7 +1357,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const handleRemoveClassCategory = (index) => {
     const category = classCategories[index]
     if (classTypes.some(t => t.category === category)) {
-      notification.error({ message: "Cannot remove", description: "Category is in use by a class type" })
+      toast.error("Cannot remove — Category is in use by a class type")
       return
     }
     setClassCategories(classCategories.filter((_, i) => i !== index))
@@ -1372,27 +1391,27 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleSaveContractType = () => {
     if (!editingContractType.name.trim()) {
-      notification.error({ message: "Please enter a contract name" })
+      toast.error("Please enter a contract name")
       return
     }
     if (!editingContractType.duration || editingContractType.duration < 1) {
-      notification.error({ message: "Please enter a valid duration" })
+      toast.error("Please enter a valid duration")
       return
     }
     if (!editingContractType.billingPeriod) {
-      notification.error({ message: "Please select a billing period" })
+      toast.error("Please select a billing period")
       return
     }
     if (editingContractType.userCapacity === undefined || editingContractType.userCapacity === null || editingContractType.userCapacity === "") {
-      notification.error({ message: "Please enter a contingent value (0 for unlimited)" })
+      toast.error("Please enter a contingent value (0 for unlimited)")
       return
     }
     if (contractForms.length === 0) {
-      notification.error({ message: "Please create a contract form first" })
+      toast.error("Please create a contract form first")
       return
     }
     if (!editingContractType.contractFormId) {
-      notification.error({ message: "Please select a contract form" })
+      toast.error("Please select a contract form")
       return
     }
     
@@ -1400,10 +1419,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const updated = [...contractTypes]
       updated[editingContractTypeIndex] = editingContractType
       setContractTypes(updated)
-      notification.success({ message: "Contract type updated" })
+      toast.success("Contract type updated")
     } else {
       setContractTypes([...contractTypes, editingContractType])
-      notification.success({ message: "Contract type created" })
+      toast.success("Contract type created")
     }
     
     setContractTypeModalVisible(false)
@@ -1420,14 +1439,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       okType: "danger",
       onOk: () => {
         setContractTypes(contractTypes.filter((_, i) => i !== index))
-        notification.success({ message: "Contract type deleted" })
+        toast.success("Contract type deleted")
       }
     })
   }
 
   const handleCreateContractForm = () => {
     if (!newContractFormName.trim()) {
-      notification.error({ message: "Please enter a name" })
+      toast.error("Please enter a name")
       return
     }
     const newForm = {
@@ -3325,7 +3344,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onClick={() => {
                         setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== deletingIntroMaterialIndex))
                         setDeletingIntroMaterialIndex(null)
-                        notification.success({ message: "Material deleted successfully" })
+                        toast.success("Material deleted successfully")
                       }}
                       className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                     >
@@ -3651,7 +3670,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onClick={() => {
                         setContractForms(contractForms.filter(f => f.id !== deletingContractFormId))
                         setDeletingContractFormId(null)
-                        notification.success({ message: "Contract form deleted" })
+                        toast.success("Contract form deleted")
                       }}
                       className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                     >
@@ -3839,6 +3858,159 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
         )
 
+      case "change-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Change Reasons"
+              description="Define reasons for contract changes"
+              action={
+                <button
+                  onClick={() => setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: "" }])}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractChangeReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No change reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractChangeReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractChangeReasons]
+                          updated[index].name = e.target.value
+                          setContractChangeReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => setContractChangeReasons(contractChangeReasons.filter((_, i) => i !== index))}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "renew-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Renew Reasons"
+              description="Define reasons for contract renewals"
+              action={
+                <button
+                  onClick={() => setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: "" }])}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractRenewReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <RefreshCw className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No renew reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractRenewReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractRenewReasons]
+                          updated[index].name = e.target.value
+                          setContractRenewReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => setContractRenewReasons(contractRenewReasons.filter((_, i) => i !== index))}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "bonus-time-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Bonus Time Reasons"
+              description="Define reasons for granting bonus time"
+              action={
+                <button
+                  onClick={() => setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: "" }])}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractBonusTimeReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <Gift className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No bonus time reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractBonusTimeReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractBonusTimeReasons]
+                          updated[index].name = e.target.value
+                          setContractBonusTimeReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => setContractBonusTimeReasons(contractBonusTimeReasons.filter((_, i) => i !== index))}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
       // ========================
       // COMMUNICATION SECTIONS
       // ========================
@@ -3945,7 +4117,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             if (settings.emailSignature) {
                               birthdayEditorRef.current?.insertHTML(settings.emailSignature)
                             } else {
-                              notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                              toast.error("No email signature configured — Please set up your email signature first.")
                             }
                           }}
                           className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4095,7 +4267,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 if (settings.emailSignature) {
                                   appointmentEditorRefs.current[type]?.insertHTML(settings.emailSignature)
                                 } else {
-                                  notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                                  toast.error("No email signature configured — Please set up your email signature first.")
                                 }
                               }}
                               className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4246,7 +4418,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 if (settings.emailSignature) {
                                   classEditorRefs.current[type]?.insertHTML(settings.emailSignature)
                                 } else {
-                                  notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                                  toast.error("No email signature configured — Please set up your email signature first.")
                                 }
                               }}
                               className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4705,16 +4877,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <button
                     onClick={() => {
                       if (!settings.smtpHost || !settings.smtpUser) {
-                        notification.error({ message: "Missing SMTP Settings", description: "Please fill in SMTP Host and Username" })
+                        toast.error("Missing SMTP Settings — Please fill in SMTP Host and Username")
                         return
                       }
-                      notification.loading({ message: "Testing connection...", key: "smtp-test" })
+                      toast.loading("Testing connection...", { id: "smtp-test" })
                       setTimeout(() => {
-                        notification.success({ 
-                          message: "Connection successful!", 
-                          description: `Connected to ${settings.smtpHost}:${settings.smtpPort}`,
-                          key: "smtp-test"
-                        })
+                        toast.success(`Connection successful! — Connected to ${settings.smtpHost}:${settings.smtpPort}`, { id: "smtp-test" })
                       }, 1500)
                     }}
                     className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
@@ -4725,16 +4893,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <button
                     onClick={() => {
                       if (!settings.smtpHost || !settings.smtpUser || !settings.smtpFromEmail) {
-                        notification.error({ message: "Missing SMTP Settings", description: "Please fill in all SMTP fields" })
+                        toast.error("Missing SMTP Settings — Please fill in all SMTP fields")
                         return
                       }
-                      notification.loading({ message: "Sending test email...", key: "smtp-send" })
+                      toast.loading("Sending test email...", { id: "smtp-send" })
                       setTimeout(() => {
-                        notification.success({ 
-                          message: "Test email sent!", 
-                          description: `From: ${settings.senderName} <${settings.smtpFromEmail}>`,
-                          key: "smtp-send"
-                        })
+                        toast.success(`Test email sent! — From: ${settings.senderName} <${settings.smtpFromEmail}>`, { id: "smtp-send" })
                       }, 2000)
                     }}
                     className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
@@ -4806,7 +4970,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="text"
                     value={settings.einvoiceSubject || ""}
                     onChange={(e) => setSettings({ ...settings, einvoiceSubject: e.target.value })}
-                    placeholder="Invoice {Invoice_Number} - {Selling_Date}"
+                    placeholder="e.g. Invoice {Invoice_Number}"
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
@@ -4831,7 +4995,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           einvoiceEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4844,7 +5008,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     ref={einvoiceEditorRef}
                     value={settings.einvoiceTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, einvoiceTemplate: v })}
-                    placeholder="Dear {Member_First_Name}, please find attached your invoice #{Invoice_Number}..."
+                    placeholder="e.g. Dear {Member_First_Name}, please find your invoice attached..."
                     minHeight={120}
                     showImages={true}
                   />
@@ -4878,7 +5042,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="text"
                     value={settings.contractCancellationSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
-                    placeholder="Contract Cancellation Confirmation - {Contract_Type}"
+                    placeholder="e.g. Contract Cancellation Confirmation"
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
@@ -4903,7 +5067,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           cancellationEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4916,7 +5080,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     ref={cancellationEditorRef}
                     value={settings.contractCancellationTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, contractCancellationTemplate: v })}
-                    placeholder="Dear {Member_First_Name}, we confirm the cancellation of your {Contract_Type} contract effective {Contract_End_Date}..."
+                    placeholder="e.g. Dear {Member_First_Name}, we confirm the cancellation of your contract..."
                     minHeight={120}
                     showImages={true}
                   />
@@ -4950,7 +5114,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="text"
                     value={settings.contractConclusionSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
-                    placeholder="Welcome to {Studio_Name} - Your {Contract_Type} Contract"
+                    placeholder="e.g. Welcome to {Studio_Name}"
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
@@ -4975,7 +5139,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         if (settings.emailSignature) {
                           conclusionEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured — Please set up your email signature first.")
                         }
                       }}
                       className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
@@ -4988,7 +5152,223 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     ref={conclusionEditorRef}
                     value={settings.contractConclusionTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, contractConclusionTemplate: v })}
-                    placeholder="Dear {Member_First_Name}, welcome to {Studio_Name}! Your {Contract_Type} contract starts on {Contract_Start_Date}..."
+                    placeholder="e.g. Dear {Member_First_Name}, welcome to {Studio_Name}! Your contract starts on {Contract_Start_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-renewal-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Renewal Template" description="Email template sent to members when their contract is renewed" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractRenewalSubject: (settings.contractRenewalSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractRenewalSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractRenewalSubject: e.target.value })}
+                    placeholder="e.g. Contract Renewal Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => renewalEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          renewalEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={renewalEditorRef}
+                    value={settings.contractRenewalTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractRenewalTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, your contract has been successfully renewed..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-change-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Change Template" description="Email template sent to members when their contract is changed" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Old_Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractChangeSubject: (settings.contractChangeSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractChangeSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractChangeSubject: e.target.value })}
+                    placeholder="e.g. Contract Change Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Old_Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => changeEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          changeEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={changeEditorRef}
+                    value={settings.contractChangeTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractChangeTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, your contract has been changed..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "sepa-mandate-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="SEPA Mandate Template" description="Email template sent to members when a new SEPA mandate is issued" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Account_Holder}", "{IBAN}", "{BIC}", "{Bank_Name}", "{Mandate_Reference}", "{Mandate_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, sepaMandateSubject: (settings.sepaMandateSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.sepaMandateSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, sepaMandateSubject: e.target.value })}
+                    placeholder="e.g. SEPA Direct Debit Mandate Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Account_Holder}", "{IBAN}", "{BIC}", "{Bank_Name}", "{Mandate_Reference}", "{Mandate_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => sepaMandateEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          sepaMandateEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={sepaMandateEditorRef}
+                    value={settings.sepaMandateTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, sepaMandateTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, we hereby confirm your SEPA direct debit mandate..."
                     minHeight={120}
                     showImages={true}
                   />
@@ -5246,7 +5626,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(appearance.primaryColor)
-                            notification.success({ message: "Copied!", duration: 1.5 })
+                            toast.success("Copied!")
                           }}
                           className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                           title="Copy color code"
@@ -5707,7 +6087,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           setIntroMaterialEditorVisible(false)
           setEditingIntroMaterial(null)
           setEditingIntroMaterialIndex(null)
-          notification.success({ message: "Material saved successfully" })
+          toast.success("Material saved successfully")
         }}
       />
 

@@ -302,6 +302,14 @@ export const WysiwygEditor = forwardRef(({
     }
   }, [showEmojiPicker])
 
+  // Keep placeholder in sync with prop (ReactQuill only sets it on mount)
+  useEffect(() => {
+    const quill = quillRef.current?.getEditor()
+    if (quill?.root) {
+      quill.root.dataset.placeholder = placeholder
+    }
+  }, [placeholder])
+
   // Visibility change handler - restore content if lost when switching tabs
   useEffect(() => {
     const handleVisibilityChange = () => {
