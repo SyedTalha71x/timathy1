@@ -1730,6 +1730,7 @@ const AdminBanner = () => {
                     className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
                     title="Clear all filters"
                   >
+<<<<<<< HEAD
                     <X size={14} className="text-secondary hover:text-secondary-hover" />
                   </button>
                 )}
@@ -1752,6 +1753,18 @@ const AdminBanner = () => {
                       ) : (
                         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold">
                           {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+=======
+                    <Search className="text-content-muted flex-shrink-0" size={16} />
+
+                    {/* Filter Chips */}
+                    {memberFilters.map((filter) => (
+                      <div
+                        key={filter._id}
+                        className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
+                      >
+                        <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                          {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
+>>>>>>> e7ad5ea (member full completed same for appointment fully completed just 1% left which is filter)
                         </div>
                       )}
                       <div className="flex-1 min-w-0">

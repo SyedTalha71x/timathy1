@@ -19,8 +19,8 @@ import {
   Plus,
   CalendarCheck,
 } from "lucide-react"
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import toast, { Toaster } from "react-hot-toast"
+import { useState, useEffect, useCallback, useRef } from "react"
+import toast from "../../components/shared/SharedToast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 import { useSelector, useDispatch } from 'react-redux'
 import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData, studioData, isStudioClosedOnDate } from "../../utils/studio-states"
