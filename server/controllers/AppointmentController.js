@@ -31,7 +31,8 @@ const createAppointment = async (req, res, next) => {
         const existingAppointment = await AppointmentModel.findOne({
             studio: studioId,
             date,
-            "timeSlot.start": timeSlotId.start
+            "timeSlot.start": timeSlotId.start,
+            "timeSlot.isBlocked": timeSlotId.isBlocked,
         })
 
         if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
@@ -81,14 +82,14 @@ const createAppointmentByStaff = async (req, res, next) => {
         const {
             serviceId,
             date,
-            timeSlot,
+            timeSlotId,
             view,
             bookingType = "single",
             frequency,
             occurrences = 1,
         } = req.body;
 
-        if (!serviceId || !date || !timeSlot)
+        if (!serviceId || !date || !timeSlotId)
             throw new BadRequestError("Missing required field");
 
         const serviceData = await ServiceModel.findById(serviceId);
@@ -99,6 +100,20 @@ const createAppointmentByStaff = async (req, res, next) => {
         if (!member)
             throw new NotFoundError("Invalid Member ID");
 
+        const existingAppointment = await AppointmentModel.findOne({
+            studio: studioId,
+            date,
+            "timeSlot.start": timeSlotId.start,
+            "timeSlot.isBlocked": timeSlotId.isBlocked,
+        })
+        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
+        const today = new Date();
+        const selectedDate = new Date(date);
+        let status = "confirmed";
+        if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+            status = "completed";
+            view = 'past';
+        }
         const studioId = member.studio;
 
         // SINGLE BOOKING
@@ -108,10 +123,10 @@ const createAppointmentByStaff = async (req, res, next) => {
                 studio: studioId,
                 serviceId: serviceId,
                 date,
-                timeSlot,
+                timeSlot: timeSlotId,
                 view,
                 bookingType: "single",
-                status: "confirmed",
+                status,
             });
 
             await MemberModel.findByIdAndUpdate(memberId, {
@@ -142,13 +157,13 @@ const createAppointmentByStaff = async (req, res, next) => {
                     studio: studioId,
                     serviceId: serviceId,
                     date: new Date(currentDate),
-                    timeSlot,
+                    timeSlot: timeSlotId,
                     view,
                     bookingType: "recurring",
                     frequency,
                     occurrences,
                     // recurringGroupId,
-                    status: "confirmed",
+                    status,
                 });
 
                 if (frequency === "daily")

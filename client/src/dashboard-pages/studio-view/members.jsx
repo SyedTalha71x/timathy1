@@ -1658,7 +1658,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                     {/* Filter Chips */}
                     {memberFilters.map((filter) => (
                       <div
-                        key={filter.members._id}
+                        key={filter._id}
                         className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                       >
                         <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">

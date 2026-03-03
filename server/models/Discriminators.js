@@ -77,13 +77,13 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Appointment'
     }],
-    bookTrials: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'BookTrial'
-    }],
+    // bookTrials: [{
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'BookTrial'
+    // }],
     relations: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Relation',
+        ref: 'relations',
     }],
     contract: {
         type: mongoose.Schema.Types.ObjectId,

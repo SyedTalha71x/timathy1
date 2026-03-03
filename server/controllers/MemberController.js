@@ -15,6 +15,8 @@ const {
 } = require('../middleware/error/httpErrors');
 const UserModel = require('../models/UserModel');
 const StudioModel = require('../models/StudioModel');
+const RelationModel = require('../models/RelationModel');
+
 
 /**
  * Create new member
@@ -333,7 +335,14 @@ const updateMemberCheckIn = async (req, res, next) => {
 const createTemporaryMember = async (req, res, next) => {
   try {
     const userId = req.user?._id
-    const { firstName, lastName, email, gender, telephone, mobileNumber, street, city, zipCode, country, about, archivedAt } = req.body;
+    const { firstName, lastName, email, gender, telephone, mobileNumber, street, city, zipCode, country, about, archivedAt, relationId } = req.body;
+
+    const relation = await RelationModel.findById(relationId);
+    if (!relation) throw new NotFoundError('Invalid Relation Id')
+
+    if (!req.file) throw new NotFoundError("Invalid File")
+
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
 
     const member = await MemberModel.create({
       firstName,
@@ -348,7 +357,14 @@ const createTemporaryMember = async (req, res, next) => {
       street,
       city,
       zipCode,
+      memberType: 'temporary',
+      status: 'full',
+      img: {
+        url: cloudinaryResult.secure_url,
+        public_id: cloudinaryResult.public_id
+      },
       specialsNotes: [],
+      relations: relationId,
       createdBy: userId
     })
     return res.status(200).json({

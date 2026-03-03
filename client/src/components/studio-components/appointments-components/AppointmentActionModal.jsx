@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Edit, User, Ban, Trash2, AlertTriangle, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
 import { useNavigate } from "react-router-dom";
-
+import { useSelector, useDispatch } from 'react-redux'
+import { fetchAllAppointments } from '../../../features/appointments/AppointmentSlice'
 // Helper to parse date from appointment format "Mon | 27-01-2025" to Date object
 const parseDateFromAppointment = (dateString) => {
   if (!dateString) return null;
@@ -52,6 +53,7 @@ export default function AppointmentActionModal({
   appointmentsMain,
   setAppointmentsMain,
 }) {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
@@ -60,20 +62,20 @@ export default function AppointmentActionModal({
   
   // Support both prop names
   const appointmentData = appointment || appointmentMain;
-  
+
   if (!isOpen || !appointmentData) return null;
 
   const isCancelled = appointmentData.isCancelled || appointmentData.status === "cancelled";
   const isBlocked = appointmentData.isBlocked || appointmentData.type === "Blocked Time";
-  
+
   // Check if this is a Lead (Trial Training with leadId)
   const isLead = appointmentData.isTrial && appointmentData.leadId;
-  
+
   // Get member info
   const firstName = appointmentData.firstName || appointmentData.name?.split(" ")[0] || "";
   const lastName = appointmentData.lastName || appointmentData.name?.split(" ")[1] || "";
-  const fullName = appointmentData.name ? 
-    (appointmentData.lastName ? `${appointmentData.name} ${appointmentData.lastName}` : appointmentData.name) 
+  const fullName = appointmentData.name ?
+    (appointmentData.lastName ? `${appointmentData.name} ${appointmentData.lastName}` : appointmentData.name)
     : `${firstName} ${lastName}`.trim();
 
   // Handle clicking on special note icon
@@ -88,8 +90,8 @@ export default function AppointmentActionModal({
 
   // Get relations count for member or lead
   const getRelationsCount = () => {
-    const relations = isLead 
-      ? leadRelations[appointmentData.leadId] 
+    const relations = isLead
+      ? leadRelations[appointmentData.leadId]
       : memberRelations[appointmentData.memberId];
     if (!relations) return 0;
     return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0);
@@ -114,7 +116,7 @@ export default function AppointmentActionModal({
   // Handle View Profile - navigate to Members or Leads page
   const handleViewProfile = () => {
     onClose();
-    
+
     if (isLead) {
       // Navigate to Leads page with filter
       navigate('/dashboard/leads', {
@@ -140,8 +142,8 @@ export default function AppointmentActionModal({
     // This avoids triggering the external NotifyModal
     if (appointmentsMain && setAppointmentsMain) {
       const updatedAppointments = appointmentsMain.map((app) =>
-        app.id === appointmentData.id 
-          ? { ...app, status: "cancelled", isCancelled: true } 
+        app.id === appointmentData.id
+          ? { ...app, status: "cancelled", isCancelled: true }
           : app
       );
       setAppointmentsMain(updatedAppointments);
@@ -150,10 +152,10 @@ export default function AppointmentActionModal({
       // This should only happen if the parent component doesn't pass state props
       onCancel();
     }
-    
+
     setShowNotifyModal(false);
     onClose();
-    
+
     if (shouldNotify) {
       console.log("Notification requested for cancellation:", { email: emailNotification, push: pushNotification });
     }
@@ -215,31 +217,31 @@ export default function AppointmentActionModal({
                 position="relative"
               />
             )}
-            
+
             {/* Avatar - Hide for Leads, show for Members */}
             {!isBlocked && !isLead && (
               appointmentData.image || appointmentData.avatar || appointmentData.logo ? (
-                <img 
-                  src={appointmentData.image || appointmentData.avatar || appointmentData.logo} 
+                <img
+                  src={appointmentData.image || appointmentData.avatar || appointmentData.logo}
                   alt={fullName}
                   className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
                 />
               ) : (
-                <InitialsAvatar 
-                  firstName={firstName} 
-                  lastName={lastName} 
-                  size={48} 
+                <InitialsAvatar
+                  firstName={firstName}
+                  lastName={lastName}
+                  size={48}
                 />
               )
             )}
-            
+
             {/* Name and Details */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="text-content-primary font-medium truncate">{fullName}</h3>
                 {/* Relations Button - for both members and leads */}
                 {!isBlocked && (
-                  <button 
+                  <button
                     onClick={handleRelationsClick}
                     className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
                     title="View Relations"
@@ -250,8 +252,8 @@ export default function AppointmentActionModal({
                 )}
               </div>
               <p className="text-content-muted text-sm">
-                {appointmentData.isTrial && appointmentData.trialType 
-                  ? `Trial Training • ${appointmentData.trialType}` 
+                {appointmentData.isTrial && appointmentData.trialType
+                  ? `Trial Training • ${appointmentData.trialType}`
                   : appointmentData.type}
               </p>
               <p className="text-content-muted text-sm">
@@ -267,7 +269,7 @@ export default function AppointmentActionModal({
               <p className="text-accent-red text-sm font-medium">This appointment has been cancelled</p>
             </div>
           )}
-          
+
           {appointmentData.isPast && !isCancelled && (
             <div className="flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-xl px-4 py-3">
               <p className="text-accent-yellow text-sm">This is a past appointment</p>
@@ -321,11 +323,11 @@ export default function AppointmentActionModal({
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4"
           onClick={handleCancelDelete}
         >
-          <div 
+          <div
             className="bg-surface-card w-full max-w-sm rounded-xl overflow-hidden border border-border shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -362,12 +364,12 @@ export default function AppointmentActionModal({
 
       {/* Integrated Notify Member Modal (identical to EditAppointmentModal) */}
       {showNotifyModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4" 
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4"
           onClick={handleCancelNotify}
         >
-          <div 
-            className="bg-surface-card w-[90%] sm:w-[480px] rounded-xl overflow-hidden border border-border shadow-2xl" 
+          <div
+            className="bg-surface-card w-[90%] sm:w-[480px] rounded-xl overflow-hidden border border-border shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-border flex justify-between items-center">
@@ -381,8 +383,8 @@ export default function AppointmentActionModal({
               <p className="text-content-primary text-sm">
                 <span className="font-semibold text-primary">{fullName}'s</span>{" "}
                 <span className="text-content-muted">
-                  ({appointmentData.isTrial && appointmentData.trialType 
-                    ? `Trial Training • ${appointmentData.trialType}` 
+                  ({appointmentData.isTrial && appointmentData.trialType
+                    ? `Trial Training • ${appointmentData.trialType}`
                     : appointmentData.type})
                 </span> appointment on{" "}
                 <span className="font-semibold text-primary">
@@ -405,7 +407,7 @@ export default function AppointmentActionModal({
                   />
                   <span className="text-content-primary text-sm">Email Notification</span>
                 </label>
-                
+
                 {/* App Push Notification - only for members, not leads */}
                 {!isLead && (
                   <label className="flex items-center gap-3 cursor-pointer">

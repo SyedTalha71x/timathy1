@@ -11,6 +11,7 @@ const {
 } = require('../controllers/MemberController');
 const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
 const { isAdmin, isStaff } = require('../middleware/RoleCheck');
+const { uploadImage } = require('../config/upload');
 // const upload = require('../config/upload')
 const router = express.Router();
 
@@ -21,5 +22,5 @@ router.post('/login', loginMember)
 router.put('/update', verifyAccessToken, updateUserById)
 router.delete('/:id', verifyAccessToken, isAdmin, deleteMemberById)
 router.patch('/check-in/:id', verifyAccessToken, updateMemberCheckIn)
-router.post('/temporary', verifyAccessToken, isStaff, createTemporaryMember)
+router.post('/temporary', uploadImage.single('img'), verifyAccessToken, isStaff, createTemporaryMember)
 module.exports = router

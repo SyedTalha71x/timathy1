@@ -10,7 +10,7 @@ import * as memberApi from "./memberApi";
 export const memberCreate = createAsyncThunk('member/create', async (memberData, { rejectWithValue }) => {
     try {
         const res = await memberApi.registerMember(memberData)
-        return res.member
+        return res.user
     }
     catch (error) {
         return rejectWithValue(error.response?.data)
@@ -32,7 +32,15 @@ export const fetchAllMember = createAsyncThunk('member/all', async (_, { rejectW
 
 
 
-
+export const createTemporaryMember = createAsyncThunk('member/temporary', async (memberData, { rejectWithValue }) => {
+    try {
+        const res = await memberApi.temporaryMember(memberData);
+        return res.user;
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
 
 
 
@@ -142,6 +150,20 @@ const memberSlice = createSlice({
             .addCase(memberCreate.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to create member';
+            })
+
+            // temporary Member
+            .addCase(createTemporaryMember.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createTemporaryMember.fulfilled, (state, action) => {
+                state.loading = false;
+                state.members = action.payload;
+            })
+            .addCase(createTemporaryMember.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
             })
 
     }
