@@ -9,6 +9,7 @@ import NotifyModalMain from '../NotifyModal';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStudioServices } from "../../../features/services/servicesSlice";
 import { createAppointmentByStaff } from "../../../features/appointments/AppointmentSlice"
+import { fetchAllMember } from "../../../features/member/memberSlice";
 // import { createAppointment } from "../../../features/appointments/AppointmentApi";
 const MAX_PARTICIPANTS = 5;
 
@@ -249,9 +250,11 @@ const AddAppointmentModal = ({
   selectedTime = null, // Pre-selected time slot from Calendar click (e.g., "09:00")
 }) => {
   const { services } = useSelector((state) => state.services || {});
+  const { members } = useSelector((state) => state.member || []);
   const dispatch = useDispatch()
   useEffect(() => {
     dispatch(fetchStudioServices());
+    dispatch(fetchAllMember());
   }, [dispatch]);
 
   // Convert 24-hour time to AM/PM format
@@ -416,9 +419,19 @@ const AddAppointmentModal = ({
   };
 
   const handleSearchMembers = (query) => {
+    // If you have a custom search function, use it
     if (searchMembersMain) return searchMembersMain(query);
-    return availableMembersLeads.filter(m => m.name?.toLowerCase().includes(query.toLowerCase()) ||
-      `${m.firstName} ${m.lastName}`.toLowerCase().includes(query.toLowerCase()));
+
+    // If query is empty, return all members
+    if (!query || query.trim() === "") {
+      return members;
+    }
+
+    // Otherwise, filter members by name
+    return members.filter((m) =>
+      m.name?.toLowerCase().includes(query.toLowerCase()) ||
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(query.toLowerCase())
+    );
   };
 
   // const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);

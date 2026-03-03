@@ -1791,25 +1791,16 @@ const AdminBanner = () => {
                 )}
               </button>
 
-              <div className="hidden lg:block relative" ref={sortDropdownRef}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowSortDropdown(!showSortDropdown);
-                  }}
-                  className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
-                >
-                  {getSortIcon()}
-                  <span>{currentSortLabel}</span>
-                </button>
-
-                {showSortDropdown && (
-                  <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
-                    <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
-                        Sort by
-                      </div>
-                      {sortOptions.map((option) => (
+                    {/* Filter Chips */}
+                    {memberFilters.map((filter) => (
+                      <div
+                        key={filter._id}
+                        className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
+                      >
+                        <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                          {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
+                        </div>
+                        <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                         <button
                           key={option.value}
                           onClick={(e) => {

@@ -29,6 +29,10 @@ const AppointmentSchema = new mongoose.Schema({
         end: {
             type: String,
             required: true
+        },
+        isBlocked: {
+            type: Boolean,
+            default: false
         }
     },
     status: {
@@ -40,6 +44,10 @@ const AppointmentSchema = new mongoose.Schema({
         type: String,
         enum: ['upcoming', 'pending', 'past'],
         default: 'upcoming'
+    },
+    isTrial: {
+        type: Boolean,
+        default: false
     },
     contingentUsed: {
         type: Number,

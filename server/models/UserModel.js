@@ -121,11 +121,15 @@ const UserSchema = new mongoose.Schema({
     chats: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'chats'
-    }]
-    // about: {
-    //     type: String,
-    //     // required: true,
-    // },
+    }],
+    about: {
+        type: String,
+        // required: true,
+    },
+    img: {
+        url: String,
+        public_id: String
+    }
 }, options);
 
 

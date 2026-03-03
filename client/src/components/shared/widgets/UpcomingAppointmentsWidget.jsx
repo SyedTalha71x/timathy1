@@ -5,7 +5,7 @@ import { Clock, Dumbbell, ChevronDown, ChevronUp, Calendar } from "lucide-react"
 import { MemberSpecialNoteIcon } from "../../shared/special-note/shared-special-note-icon"
 import DatePickerField from "../DatePickerField"
 
-const UpcomingAppointmentsWidget = ({ 
+const UpcomingAppointmentsWidget = ({
   isSidebarEditing,
   appointments = [],
   onAppointmentClick,
@@ -74,38 +74,62 @@ const UpcomingAppointmentsWidget = ({
     }
   }
 
+  // lets normalize backend api
+  // 🔁 Normalize backend appointment structure to match widget expectations
+  const normalizedAppointments = appointments.map(item => {
+  const appointmentDate = new Date(item.date);
+  const [hours, minutes] = (item.timeSlot?.start || "00:00").split(":");
+  const startDateTime = new Date(item.date);
+  startDateTime.setUTCHours(+hours, +minutes, 0, 0);
+
+  return {
+    ...item,
+    id: item._id,
+    memberId: item.member?._id,
+    name: item.member?.firstName || "",
+    lastName: item.member?.lastName || "",
+    startTime: item.timeSlot?.start || "",
+    endTime: item.timeSlot?.end || "",
+    type: item.serviceId?.name || "",
+    isCancelled: item.status === "canceled",
+    isBlocked: item.timeSlot?.isBlocked || false,
+    isPast: startDateTime < new Date(),
+    isTrial: item.isTrial || false,
+    color: "bg-primary",
+    originalISODate: item.date
+  };
+});
+
+
+
+
   // Filter appointments by selected date (when showDatePicker is true OR filterDate is provided)
   const getFilteredAppointments = () => {
-    // Only filter if date picker is shown OR an external filterDate is provided
     if (!showDatePicker && !filterDate) {
-      return appointments // No filtering if neither is active
+      return normalizedAppointments
     }
 
-    const formatDate = (date) => {
-      const day = String(date.getDate()).padStart(2, "0")
-      const month = String(date.getMonth() + 1).padStart(2, "0")
-      const year = date.getFullYear()
-      return `${day}-${month}-${year}`
-    }
+    return normalizedAppointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.originalISODate)
+      const selected = new Date(selectedDate)
 
-    const formattedSelectedDate = formatDate(selectedDate)
-    
-    return appointments.filter((appointment) => {
-      const appointmentDate = appointment.date?.split("|")[1]?.trim()
-      return appointmentDate === formattedSelectedDate
+      return (
+        appointmentDate.getFullYear() === selected.getFullYear() &&
+        appointmentDate.getMonth() === selected.getMonth() &&
+        appointmentDate.getDate() === selected.getDate()
+      )
     })
   }
 
   // Filter for upcoming appointments (not cancelled, not blocked)
-  const upcomingAppointments = getFilteredAppointments()
-    .filter(app => !app.isCancelled && !app.isBlocked && app.type !== "Blocked Time")
-
+  const upcomingAppointments = normalizedAppointments
+  .filter(app => !app.isCancelled && !app.isBlocked && !app.isTrial);
   // Format date for display
   const formatDisplayDate = (date) => {
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
-    
+
     if (date.toDateString() === today.toDateString()) {
       return "Today"
     } else if (date.toDateString() === tomorrow.toDateString()) {
@@ -136,28 +160,27 @@ const UpcomingAppointmentsWidget = ({
   }
 
   return (
-    <div 
-className={`rounded-xl ${backgroundColor} flex flex-col ${
-  isCollapsed 
-    ? 'h-auto' 
-    : useFixedHeight 
-      ? 'h-[320px] md:h-[340px]' 
-      : 'flex-1 min-h-0'
-}`}
+    <div
+      className={`rounded-xl ${backgroundColor} flex flex-col ${isCollapsed
+        ? 'h-auto'
+        : useFixedHeight
+          ? 'h-[320px] md:h-[340px]'
+          : 'flex-1 min-h-0'
+        }`}
     >
       {/* Full Header with title */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0 px-3 pt-2.5 pb-2">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-content-primary">Upcoming Appointments</h2>
-            
+
             {/* Show selected date indicator when explicitly enabled */}
             {showDateIndicator && filterDate && !showDatePicker && (
               <span className="text-xs text-content-muted bg-surface-button px-2 py-0.5 rounded-lg">
                 {formatDisplayDate(selectedDate)}
               </span>
             )}
-            
+
             {/* Date Picker Button (only in my-area) */}
             {showDatePicker && (
               <div
@@ -176,17 +199,17 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
               </div>
             )}
           </div>
-          
+
           {!isSidebarEditing && showCollapseButton && (
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-1 bg-surface-button hover:bg-surface-button-hover rounded-lg cursor-pointer transition-colors text-content-primary"
-            title={isCollapsed ? "Expand" : "Collapse"}
-          >
-            {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-          </button>
-        )}
-      </div>
+              title={isCollapsed ? "Expand" : "Collapse"}
+            >
+              {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+            </button>
+          )}
+        </div>
       )}
 
       {/* Compact Header for Sidebar - only DatePicker, no title */}
@@ -211,41 +234,36 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
 
       {/* Appointments List */}
       {!isCollapsed && (
-       <div
+        <div
           ref={listRef}
           className="overflow-y-auto custom-scrollbar px-3 pb-2 space-y-2 flex-1 min-h-0"
           style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
         >
           {upcomingAppointments.length > 0 ? (
             upcomingAppointments.map((appointment) => {
-              const firstName = appointment.name || ""
-              const lastName = appointment.lastName || ""
-              const isBlocked = appointment.isBlocked || appointment.type === "Blocked Time"
-              
+              const name = appointment.name || ""
+              const isBlocked = appointment.timeSlot?.isBlocked 
+
               // Get member data to access their special notes
               const memberData = getMemberById ? getMemberById(appointment.memberId) : null
               const memberWithNotes = {
                 ...appointment,
-                id: appointment.memberId || appointment.id,
-                firstName,
-                lastName,
+                id: appointment.memberId || appointment._id,
+                name,
                 note: memberData?.note || "",
                 noteStartDate: memberData?.noteStartDate || "",
                 noteEndDate: memberData?.noteEndDate || "",
                 noteImportance: memberData?.noteImportance || "unimportant",
                 notes: memberData?.notes || [],
               }
-              
+
               return (
                 <div
                   key={appointment.id}
-                  className={`${appointment.color} ${
-                    appointment.isCancelled ? "bg-surface-button" : ""
-                  } ${
-                    appointment.isPast && !appointment.isCancelled ? "opacity-45" : ""
-                  } ${
-                    isBlocked ? "bg-surface-dark" : ""
-                  } rounded-xl cursor-pointer p-2.5 relative w-full transition-all hover:brightness-110`}
+                  className={`${appointment.color} ${appointment.isCancelled ? "bg-surface-button" : ""
+                    } ${appointment.isPast && !appointment.isCancelled ? "opacity-45" : ""
+                    } ${isBlocked ? "bg-surface-dark" : ""
+                    } rounded-xl cursor-pointer p-2.5 relative w-full transition-all hover:brightness-110`}
                   onClick={() => handleAppointmentClick(appointment)}
                 >
                   {/* Icons row at top */}
@@ -267,8 +285,8 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                         />
                       )}
                       {!isBlocked && !appointment.isTrial && onOpenTrainingPlansModal && (
-                        <div 
-                          className="cursor-pointer rounded p-0.5 transition-all duration-200 hover:scale-110 active:scale-95" 
+                        <div
+                          className="cursor-pointer rounded p-0.5 transition-all duration-200 hover:scale-110 active:scale-95"
                           onClick={(e) => handleDumbbellClick(appointment, e)}
                           title="Training Plans"
                         >
@@ -277,16 +295,15 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                       )}
                     </div>
                     {!isBlocked && onCheckIn && (
-                      <button 
+                      <button
                         onClick={(e) => handleCheckIn(e, appointment.id)}
                         disabled={appointment.isPast}
-                        className={`min-w-[80px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
-                          appointment.isPast 
-                            ? "bg-white/10 text-white/50 border-white/20 cursor-not-allowed" 
-                            : appointment.isCheckedIn 
-                              ? "bg-white/20 hover:bg-white/30 text-white/80 border-white/30" 
-                              : "bg-black hover:bg-black/80 text-white border-transparent"
-                        }`}
+                        className={`min-w-[80px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${appointment.isPast
+                          ? "bg-white/10 text-white/50 border-white/20 cursor-not-allowed"
+                          : appointment.isCheckedIn
+                            ? "bg-white/20 hover:bg-white/30 text-white/80 border-white/30"
+                            : "bg-black hover:bg-black/80 text-white border-transparent"
+                          }`}
                       >
                         {appointment.isCheckedIn ? "Checked In" : "Check In"}
                       </button>
@@ -304,16 +321,18 @@ className={`rounded-xl ${backgroundColor} flex flex-col ${
                         {appointment._pendingMove?.originalStartTime || appointment.startTime} - {appointment.endTime}
                       </p>
                       <p className="text-[10px] opacity-70">
-                        {(appointment._pendingMove?.originalDate || appointment.date)?.split("|")[0]?.trim()}
+                        {new Date(appointment.originalISODate).toLocaleDateString("en-US", {
+                          weekday: "short"
+                        })?.split("|")[0]?.trim()}
                       </p>
                     </div>
                     <p className="text-[11px] mt-1 opacity-70">
-                      {appointment.isTrial 
-                        ? (appointment.trialType 
-                            ? `Trial Training • ${appointment.trialType}` 
-                            : "Trial Training") 
-                        : appointment.isCancelled 
-                          ? <span className="text-red-400">Cancelled</span> 
+                      {appointment.isTrial
+                        ? (appointment.trialType
+                          ? `Trial Training • ${appointment.trialType}`
+                          : "Trial Training")
+                        : appointment.isCancelled
+                          ? <span className="text-red-400">Cancelled</span>
                           : appointment.type}
                     </p>
                     {/* Show note for blocked appointments */}

@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import {
   X,
   Clock,
@@ -18,8 +19,8 @@ import {
   Plus,
   CalendarCheck,
 } from "lucide-react"
-import { useState, useEffect, useCallback, useRef } from "react"
-import toast from "../../components/shared/SharedToast"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 import { useSelector, useDispatch } from 'react-redux'
 import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData, studioData, isStudioClosedOnDate } from "../../utils/studio-states"
@@ -40,22 +41,26 @@ import EditMemberModalMain from "../../components/studio-components/members-comp
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
 import EditBlockedSlotModalMain from "../../components/studio-components/appointments-components/EditBlockedSlotModalMain"
-import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { cancelAppointment, fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { fetchAllMember, setMemberFilters } from "../../features/member/memberSlice"
+import { createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 
 export default function Appointments() {
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments)
+  const { members } = useSelector((state) => state.member)
   const navigate = useNavigate();
   const calendarRef = useRef(null);
 
   // Helper function to get member data by ID (for special notes)
   const getMemberById = (memberId) => {
     if (!memberId) return null;
-    return membersData.find(m => m.id === memberId) || null;
+    return members.find(m => m._id === memberId) || null;
   };
   useEffect(() => {
     dispatch(fetchAllAppointments());
-  },[dispatch])
+    dispatch(fetchAllMember())
+  }, [dispatch])
 
   // Disable main container scrolling on mount
   useEffect(() => {
@@ -91,7 +96,7 @@ export default function Appointments() {
     };
   }, []);
 
-  const [appointmentsMain, setAppointmentsMain] = useState(initialAppointmentsData)
+  // const [appointmentsMain, setAppointmentsMain] = useState(initialAppointmentsData)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
@@ -118,16 +123,19 @@ export default function Appointments() {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024
       setIsMobile(mobile)
-      // Set day view on mobile by default
+
       if (mobile && calendarRef.current) {
-        calendarRef.current.changeView("timeGridDay")
-        setCurrentView("timeGridDay")
+        // Defer the calendar update to avoid flushSync warning
+        setTimeout(() => {
+          calendarRef.current.changeView("timeGridDay")
+          setCurrentView("timeGridDay")
+        }, 0)
       }
     }
 
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
   // Close FAB menu when clicking outside
@@ -143,6 +151,40 @@ export default function Appointments() {
       return () => document.removeEventListener("click", handleClickOutside)
     }
   }, [isMobileFabOpen])
+
+  // first normilize data
+  const [normalizedAppointments, setNormalizedAppointments] = useState([]);
+
+
+  useEffect(() => {
+    if (!appointments || appointments.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const normalized = appointments.map(app => {
+      const appDate = new Date(app.date);
+      appDate.setHours(0, 0, 0, 0);
+
+      return {
+        ...app,
+        id: app._id,
+        memberId: app.member?._id,
+        name: app.member?.firstName || "",
+        lastName: app.member?.lastName || "",
+        type: app.serviceId?.name || "Appointment",
+        isPast: appDate < today,
+        isCancelled: app.status === "cancelled",
+        isTrial: app.isTrial || app.bookingType === "trial",
+        isBlocked: app.isBlocked || app.status === "blocked",
+        timeSlot: app.timeSlot || { start: "00:00", end: "00:00" },
+        dateISO: app.date
+      };
+    });
+
+    setNormalizedAppointments(normalized);
+  }, [appointments]);
+
 
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
   const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
@@ -162,7 +204,7 @@ export default function Appointments() {
   const [selectedMemberMain, setSelectedMemberMain] = useState(null)
 
   // Member filter states (like members.jsx)
-  const [memberFilters, setMemberFilters] = useState([])
+  const { memberFilters } = useSelector((state) => state.member)
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
@@ -262,36 +304,65 @@ export default function Appointments() {
   ])
 
   // Filter appointments based on selected filters AND member filters
-  const filteredAppointments = appointmentsMain.filter((appointment) => {
-    // First check appointment type filters
-    let passesTypeFilter = false;
+  const filteredAppointments = appointments.filter((appointment) => {
 
-    if (appointment.isBlocked || appointment.type === "Blocked Time") {
+    let passesTypeFilter = false;
+    const isBlocked = appointment.timeSlot?.isBlocked;
+
+
+    if (isBlocked) {
       passesTypeFilter = appointmentFilters["Blocked Time Slots"];
-    } else if (appointment.isCancelled) {
+    } else if (appointment.status === "canceled") {
       passesTypeFilter = appointmentFilters["Cancelled Appointments"];
-    } else if (appointment.isPast) {
+    } else if (appointment.view === "past") {
       passesTypeFilter = appointmentFilters["Past Appointments"];
     } else if (appointment.isTrial) {
       passesTypeFilter = appointmentFilters["Trial Training"];
     } else {
-      // For regular appointments, check against the appointment type name
       passesTypeFilter = appointmentFilters[appointment.type] !== false;
     }
 
-    // If no member filters, just return the type filter result
-    if (memberFilters.length === 0) {
-      return passesTypeFilter;
+    if (!passesTypeFilter) return false;
+
+    if (!memberFilters || memberFilters.length === 0) return true;
+
+    const appointmentName = `${appointment.name || ""}`.trim().toLowerCase();
+    return memberFilters.some((filter) =>
+      appointmentName.includes(filter.member?.firstName.toLowerCase())
+    );
+  });
+
+  // calenderEvent
+  const calendarEvents = normalizedAppointments.flatMap(app => {
+    const occurrences = [];
+    const totalOccurrences = app.bookingType === "recurring" ? app.occurrences : 1;
+    const stepDays = app.frequency === "weekly" ? 7 : app.frequency === "daily" ? 1 : 30;
+
+    for (let i = 0; i < totalOccurrences; i++) {
+      const start = new Date(app.date);
+      const end = new Date(app.date);
+
+      if (app.timeSlot) {
+        const [startH, startM] = app.timeSlot.start.split(":");
+        const [endH, endM] = app.timeSlot.end.split(":");
+
+        start.setDate(start.getDate() + i * stepDays);
+        start.setHours(+startH, +startM, 0, 0);
+
+        end.setDate(end.getDate() + i * stepDays);
+        end.setHours(+endH, +endM, 0, 0);
+      }
+
+      occurrences.push({
+        id: totalOccurrences > 1 ? `${app._id}_${i}` : app._id,
+        title: `${app.name} - ${app.type}`,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        extendedProps: { ...app }
+      });
     }
 
-    // Check if appointment matches any of the member/lead filters
-    const appointmentName = `${appointment.name || ""} ${appointment.lastName || ""}`.trim().toLowerCase();
-    const passesMemberFilter = memberFilters.some(filter => {
-      const filterName = filter.memberName.toLowerCase();
-      return appointmentName.includes(filterName) || filterName.includes(appointmentName);
-    });
-
-    return passesTypeFilter && passesMemberFilter;
+    return occurrences;
   });
 
   const handleFilterChange = (filterName) => {
@@ -302,13 +373,15 @@ export default function Appointments() {
   }
 
   const toggleAllFilters = () => {
-    const allEnabled = Object.values(appointmentFilters).every((value) => value)
-    const newState = {}
+    const allEnabled = Object.values(appointmentFilters).every(Boolean);
+
+    const newState = {};
     Object.keys(appointmentFilters).forEach((key) => {
-      newState[key] = !allEnabled
-    })
-    setAppointmentFilters(newState)
-  }
+      newState[key] = !allEnabled;
+    });
+
+    setAppointmentFilters(newState);
+  };
 
   // Handler for dumbbell click in Upcoming Appointments (from calendar page)
   const handleDumbbellClickMain = (member) => {
@@ -377,7 +450,7 @@ export default function Appointments() {
     const query = searchQuery.toLowerCase();
 
     // Get members
-    const memberSuggestions = membersData
+    const memberSuggestions = members
       .filter(member => {
         const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
         const alreadyFiltered = memberFilters.some(f =>
@@ -430,7 +503,7 @@ export default function Appointments() {
 
   // Handle removing a member filter
   const handleRemoveFilter = (memberId) => {
-    setMemberFilters(memberFilters.filter(f => f.memberId !== memberId));
+    dispatch(setMemberFilters(memberFilters.filter(f => f.memberId !== memberId)));
   };
 
   // Handle keyboard navigation
@@ -614,47 +687,23 @@ export default function Appointments() {
   };
 
   const handleAppointmentSubmit = (appointmentData) => {
-    setAppointmentsMain(prev => {
-      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
-      const newAppointment = {
-        id: newId,
-        ...appointmentData,
-        status: "pending",
-        isTrial: false,
-        isCancelled: false,
-        isPast: false,
-        date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
-      };
-      return [...prev, newAppointment];
-    });
+    dispatch(createAppointmentByStaff({ memberId: members._id, appointmentData }))
   }
 
   const handleTrialSubmit = (trialData) => {
-    setAppointmentsMain(prev => {
-      const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
-      const newTrial = {
-        id: newId,
-        ...trialData,
-        status: "pending",
-        isTrial: true,
-        isCancelled: false,
-        isPast: false,
-        date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
-      };
-      return [...prev, newTrial];
-    });
+    dispatch(createAppointmentByStaff({ memberId: members._id, trialData }))
   }
 
   const handleCheckInMain = (appointmentId) => {
     // Don't allow check-in changes for past appointments
-    const appointment = appointmentsMain.find(app => app.id === appointmentId);
+    const appointment = appointments.find(app => app.id === appointmentId);
     if (appointment?.isPast) return;
 
-    setAppointmentsMain((prevAppointments) =>
+    (prevAppointments) =>
       prevAppointments.map((appointment) =>
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment
       )
-    )
+
 
   }
 
@@ -672,22 +721,14 @@ export default function Appointments() {
   }
 
   const handleCancelAppointmentMain = (appointmentId) => {
-    const idToCancel = appointmentId || selectedAppointmentMain?.id
-    if (!idToCancel) return
-    const updatedAppointments = appointmentsMain.map((app) =>
-      app.id === idToCancel ? { ...app, status: "cancelled", isCancelled: true } : app
-    )
-    setAppointmentsMain(updatedAppointments)
-    setSelectedAppointmentMain(null)
-    setshowAppointmentOptionsModalMain(false)
-    setIsNotifyMemberOpenMain(true)
+    dispatch(cancelAppointment(appointmentId));
     setNotifyActionMain("cancel")
   }
 
   // Delete appointment permanently (for already cancelled appointments)
   const handleDeleteAppointmentMain = () => {
     if (!selectedAppointmentMain) return
-    setAppointmentsMain(appointmentsMain.filter((a) => a.id !== selectedAppointmentMain.id))
+    appointments.filter((a) => a.id !== selectedAppointmentMain.id)
     setSelectedAppointmentMain(null)
     setshowAppointmentOptionsModalMain(false)
     // No notify modal - just delete directly
@@ -708,7 +749,7 @@ export default function Appointments() {
   }
 
   const handleEditNoteMain = (appointmentId, currentNote) => {
-    const appointment = appointmentsMain.find(app => app.id === appointmentId)
+    const appointment = appointments.find(app => app._id === appointmentId)
     if (appointment) {
       setSelectedAppointmentForNoteMain(appointment)
       setShowEditNoteModalMain(true)
@@ -718,11 +759,11 @@ export default function Appointments() {
   }
 
   const handleSaveSpecialNoteMain = (appointmentId, updatedNote) => {
-    setAppointmentsMain(prevAppointments =>
+    (prevAppointments) =>
       prevAppointments.map(appointment =>
-        appointment.id === appointmentId ? { ...appointment, specialNote: updatedNote } : appointment
+        appointment._id === appointmentId ? { ...appointment, specialNote: updatedNote } : appointment
       )
-    )
+
 
     setShowEditNoteModalMain(false)
     setSelectedAppointmentForNoteMain(null)
@@ -763,29 +804,50 @@ export default function Appointments() {
   }, [activeNoteIdMain, hoveredNoteId, hoverTimeout])
 
   // Special Note Edit Modal Component
-  const SpecialNoteEditModal = ({ isOpen, onClose, appointment, onSave }) => {
-    const [noteText, setNoteText] = useState(appointment?.specialNote?.text || "")
-    const [isImportant, setIsImportant] = useState(appointment?.specialNote?.isImportant || false)
-    const [startDate, setStartDate] = useState(appointment?.specialNote?.startDate || "")
-    const [endDate, setEndDate] = useState(appointment?.specialNote?.endDate || "")
+  const SpecialNoteEditModal = ({
+    isOpen,
+    onClose,
+    members,
+    onSave,
+    noteIndex // pass index of note you want to edit
+  }) => {
+
+    const currentNote = members?.specialsNotes?.[noteIndex]
+
+    const [noteText, setNoteText] = useState("")
+    const [isImportant, setIsImportant] = useState(false)
+    const [startDate, setStartDate] = useState("")
+    const [endDate, setEndDate] = useState("")
 
     useEffect(() => {
-      if (appointment) {
-        setNoteText(appointment.specialNote?.text || "")
-        setIsImportant(appointment.specialNote?.isImportant || false)
-        setStartDate(appointment.specialNote?.startDate || "")
-        setEndDate(appointment.specialNote?.endDate || "")
+      if (currentNote) {
+        setNoteText(currentNote.note || "")
+        setIsImportant(currentNote.important || false)
+        setStartDate(
+          currentNote.valid?.from
+            ? new Date(currentNote.valid.from).toISOString().slice(0, 10)
+            : ""
+        )
+        setEndDate(
+          currentNote.valid?.until
+            ? new Date(currentNote.valid.until).toISOString().slice(0, 10)
+            : ""
+        )
       }
-    }, [appointment])
+    }, [currentNote])
 
     if (!isOpen) return null
 
     const handleSave = () => {
-      onSave(appointment.id, {
-        text: noteText,
-        isImportant,
-        startDate,
-        endDate,
+      if (!members?._id) return
+
+      onSave(members._id, noteIndex, {
+        note: noteText,
+        important: isImportant,
+        valid: {
+          from: startDate || null,
+          until: endDate || null
+        }
       })
     }
 
@@ -794,35 +856,69 @@ export default function Appointments() {
         <div className="bg-surface-dark w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
           <div className="px-6 py-4 border-b border-border flex justify-between items-center">
             <h2 className="text-lg font-semibold text-content-primary">Edit Special Note</h2>
-            <button onClick={onClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg"><X size={20} /></button>
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg">
+              <X size={20} />
+            </button>
           </div>
+
           <div className="p-6 space-y-4">
             <div>
               <label className="text-sm text-content-muted mb-1 block">Note</label>
-              <textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={4}
-                className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none resize-none" placeholder="Enter special note..." />
+              <textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                rows={4}
+                className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none resize-none"
+                placeholder="Enter special note..."
+              />
             </div>
+
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={isImportant} onChange={(e) => setIsImportant(e.target.checked)}
-                className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary" />
+              <input
+                type="checkbox"
+                checked={isImportant}
+                onChange={(e) => setIsImportant(e.target.checked)}
+                className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary"
+              />
               <span className="text-sm text-content-primary">Mark as important</span>
             </label>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-content-muted mb-1 block">Start Date</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none" />
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none"
+                />
               </div>
+
               <div>
                 <label className="text-sm text-content-muted mb-1 block">End Date</label>
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none" />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none"
+                />
               </div>
             </div>
           </div>
+
           <div className="px-6 py-4 border-t border-border flex gap-2">
-            <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary/90 transition-colors">Save Note</button>
-            <button onClick={onClose} className="px-4 py-2.5 bg-surface-dark text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button transition-colors">Cancel</button>
+            <button
+              onClick={handleSave}
+              className="flex-1 px-4 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              Save Note
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2.5 bg-surface-dark text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button transition-colors"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </div>,
@@ -834,14 +930,21 @@ export default function Appointments() {
   const navigateMobileDay = (direction) => {
     const newDate = new Date(selectedDate)
     newDate.setDate(newDate.getDate() + direction)
+
     setSelectedDate(newDate)
     setMiniCalendarDate(newDate)
-    // Use setTimeout to ensure state is updated before calendar navigation
-    setTimeout(() => {
+
+    // setTimeout(() => {
+    //   if (calendarRef.current) {
+    //     calendarRef.current.gotoDate(newDate)
+    //   }
+    // }, 0)
+    // use queueMicroTask to prevent FlashSync warning
+    queueMicrotask(() => {
       if (calendarRef.current) {
         calendarRef.current.gotoDate(newDate)
       }
-    }, 0)
+    })
   }
 
   const formatMobileDateDisplay = (date) => {
@@ -1236,15 +1339,15 @@ export default function Appointments() {
                         <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                           {getSearchSuggestions().map((person) => (
                             <button
-                              key={person.id}
-                              onClick={() => handleSelectMember(person)}
+                              key={person._id}
+                              onClick={() => handleSelectMember(person._id)}
                               className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button-hover transition-colors text-left"
                             >
                               {/* Members: Show profile image or initials avatar */}
                               {person.type === 'member' && (
-                                person.image ? (
+                                person.img ? (
                                   <img
-                                    src={person.image}
+                                    src={person.img?.url}
                                     alt={`${person.firstName} ${person.lastName}`}
                                     className="w-8 h-8 rounded-lg object-cover"
                                   />
@@ -1353,7 +1456,7 @@ export default function Appointments() {
                     isSidebarEditing={false}
                     appointments={filteredAppointments}
                     onAppointmentClick={handleAppointmentOptionsModalMain}
-                    onCheckIn={handleCheckInMain}
+                    // onCheckIn={handleCheckInMain}
                     onOpenEditMemberModal={handleOpenEditMemberModal}
                     onOpenEditLeadModal={handleOpenEditLeadModal}
                     onOpenTrainingPlansModal={handleDumbbellClickMain}
@@ -1368,11 +1471,11 @@ export default function Appointments() {
             <div className={`flex-1 bg-surface-base lg:rounded-l-xl rounded-xl lg:rounded-none overflow-hidden transition-all duration-500 lg:h-full min-h-[500px] lg:min-h-0 ${isSidebarCollapsed ? "lg:w-full" : ""}`}>
               <Calendar
                 ref={calendarRef}
-                appointmentsMain={appointmentsMain}
+                appointmentsMain={calendarEvents}
                 onDateSelect={handleDateSelect}
                 memberFilters={memberFilters}
                 selectedDate={selectedDate}
-                setAppointmentsMain={setAppointmentsMain}
+                // setAppointmentsMain={setAppointmentsMain}
                 appointmentFilters={appointmentFilters}
                 setSelectedAppointmentMain={setSelectedAppointmentMain}
                 onOpenSelectedAppointmentModal={setIsAppointmentActionModalOpen}
@@ -1401,10 +1504,10 @@ export default function Appointments() {
           selectedDate={selectedDate}
           selectedTime={null}
         />
-        <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onDelete={handleDeleteAppointmentMain} onViewMember={handleViewMemberDetailsMain} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsMain} leadRelations={leadRelationsMain} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
+        <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onDelete={handleDeleteAppointmentMain} onViewMember={handleViewMemberDetailsMain} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsMain} leadRelations={leadRelationsMain} appointmentsMain={appointments} setAppointmentsMain={appointments} />
         {isEditAppointmentModalOpenMain && selectedAppointmentMain && (
           <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointmentsMain}
-            handleAppointmentChange={(changes) => setSelectedAppointmentMain((prev) => ({ ...prev, ...changes }))} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} onClose={() => { setisEditAppointmentModalOpenMain(false); setSelectedAppointmentMain(null) }} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />
+            handleAppointmentChange={(changes) => setSelectedAppointmentMain((prev) => ({ ...prev, ...changes }))} appointmentsMain={appointments} setAppointmentsMain={appointments} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} onClose={() => { setisEditAppointmentModalOpenMain(false); setSelectedAppointmentMain(null) }} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />
         )}
         {isNotifyMemberOpenMain && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={() => setIsNotifyMemberOpenMain(false)}>
@@ -1425,7 +1528,7 @@ export default function Appointments() {
           // Use formatDate (with dashes) instead of formatDateForDisplay (with slashes)
           // Calendar expects format: "Wed | 29-01-2025"
           const newBlock = {
-            id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1,
+            id: Math.max(0, ...appointments.map(a => a.id)) + 1,
             name: "BLOCKED",
             time: `${blockData.startTime} - ${blockData.endTime}`,
             date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,
@@ -1444,7 +1547,7 @@ export default function Appointments() {
             isCancelled: false,
             isPast: false
           }
-          setAppointmentsMain([...appointmentsMain, newBlock]);
+          // setAppointmentsMain([...appointments, newBlock]);
           setIsBlockModalOpen(false)
         }} />
         {/* EditBlockedSlotModal for editing blocked time slots */}
@@ -1454,7 +1557,7 @@ export default function Appointments() {
             onClose={() => { setIsEditBlockedModalOpen(false); setBlockedEditData(null); }}
             initialBlock={blockedEditData}
             onDelete={(id) => {
-              setAppointmentsMain(appointmentsMain.filter((apt) => apt.id !== id));
+              appointments.filter((apt) => apt.id !== id);
               setIsEditBlockedModalOpen(false);
               setBlockedEditData(null);
               toast.success("Blocked time slot deleted");
@@ -1469,7 +1572,7 @@ export default function Appointments() {
                 return `${day}-${month}-${year}`;
               };
               const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDateLocal(new Date(blockData.startDate))}`;
-              setAppointmentsMain(appointmentsMain.map((apt) =>
+              appointments.map((apt) =>
                 apt.id === blockedEditData.id
                   ? {
                     ...apt,
@@ -1484,7 +1587,7 @@ export default function Appointments() {
                     },
                   }
                   : apt
-              ));
+              );
               setIsEditBlockedModalOpen(false);
               setBlockedEditData(null);
               toast.success("Blocked time slot updated");
