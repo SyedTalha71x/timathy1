@@ -188,7 +188,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   }
 
   return (
-    <div 
+    <div
       className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
@@ -233,15 +233,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   })
 
 
-<<<<<<< HEAD
-=======
-// ============================================
-// Load members data via shared hook (fallback)
-// ============================================
-
-
->>>>>>> e3e911a (members appointments fully completed with filters now working on lead)
-// Helper function for contract redirect
+  // Helper function for contract redirect
   const redirectToContract = (memberId) => {
     if (isAdminMode) {
       navigate(`/admin-dashboard/customers`)
@@ -249,13 +241,13 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       navigate(`/dashboard/contracts?member=${memberId}`)
     }
   }
-  
+
   // Search autocomplete state
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
-  
+
   const [isEditModalOpenMain, setIsEditModalOpenMain] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
   const [selectedMemberMain, setSelectedMemberMain] = useState(null)
@@ -446,11 +438,11 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   const handleCreateAssessmentClick = (member, fromDocManagement = false) => {
     setSelectedMemberMain(member)
     setAssessmentFromDocumentManagement(fromDocManagement)
-    
+
     if (fromDocManagement) {
       setShowDocumentModal(false)
     }
-    
+
     setIsAssessmentSelectionModalOpen(true)
   }
 
@@ -466,13 +458,13 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       memberId,
       documentData,
     }))
-    
+
     setIsAssessmentFormModalOpen(false)
     setSelectedAssessment(null)
     setIsEditingAssessment(false)
     setEditingAssessmentDocument(null)
     setIsViewingAssessment(false)
-    
+
     if (assessmentFromDocumentManagement) {
       if (selectedMemberForDocuments && getMemberId(selectedMemberForDocuments) === memberId) {
         // Re-open document modal - the Redux store will have updated data
@@ -480,7 +472,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       }
       setAssessmentFromDocumentManagement(false)
     }
-    
+
     toast.success("Medical history saved successfully")
   }
 
@@ -515,7 +507,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     selectedMemberId: null,
   })
   // memberRelationsMain wird für EditMember Modal verwendet
- const [memberRelationsMain, setMemberRelationsMain] = useState([])
+  const [memberRelationsMain, setMemberRelationsMain] = useState([])
 
   // Countries hook für CreateTempMemberModal
   const { countries, loading: countriesLoading } = useCountries()
@@ -568,7 +560,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       setFreeAppointmentsMain(membersHookData.freeAppointments || [])
       setMemberHistoryMain(membersHookData.memberHistory || {})
       setMemberRelationsMain(membersHookData.memberRelations || [])
-      
+
       // Admin immer List View
       if (isAdminMode) {
         setViewMode('list')
@@ -638,7 +630,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       const mid = getMemberId(member);
       const isAlreadyFiltered = memberFilters.some(f => f.memberId === mid);
       if (isAlreadyFiltered) return false;
-      
+
       const title = getMemberTitle(member);
       return title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         member.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -696,12 +688,12 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   // 
   const handleEditSubmitMain = (e, localRelations = null, localNotes = null) => {
     e.preventDefault()
-    
+
     const notesToSave = localNotes || editFormMain.notes || []
-    
+
     const importantNote = notesToSave.find(n => n.isImportant)
     const primaryNote = importantNote || notesToSave[0]
-    
+
     const updatedData = {
       ...editFormMain,
       title: `${editFormMain.firstName} ${editFormMain.lastName}`,
@@ -712,12 +704,12 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       noteEndDate: primaryNote?.endDate || "",
       noteStatus: primaryNote?.status || "general",
     }
-    
+
     dispatch(updateMember({
       memberId: getMemberId(selectedMemberMain),
       updatedData,
     }))
-    
+
     // Update relations if provided
     if (localRelations && selectedMemberMain) {
       setMemberRelationsMain(prev => ({
@@ -725,7 +717,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         [getMemberId(selectedMemberMain)]: localRelations
       }))
     }
-    
+
     setIsEditModalOpenMain(false)
     setSelectedMemberMain(null)
     toast.success("Member details have been updated successfully")
@@ -781,7 +773,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
         setShowSortDropdown(false);
       }
-      
+
       if (mobileSortDropdownRef.current && !mobileSortDropdownRef.current.contains(event.target)) {
         setShowMobileSortDropdown(false);
       }
@@ -827,8 +819,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.ctrlKey || e.metaKey) return;
-      
-      const anyModalOpen = 
+
+      const anyModalOpen =
         showCreateTempMemberModal ||
         isEditModalOpenMain ||
         isViewDetailsModalOpen ||
@@ -847,10 +839,10 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         showSepaNotifyModal ||
         isAssessmentSelectionModalOpen ||
         isAssessmentFormModalOpen;
-      
+
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
-      
+        document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+
       if (e.key === 'Escape') {
         e.preventDefault();
         if (isViewDetailsModalOpen) setIsViewDetailsModalOpen(false);
@@ -872,20 +864,20 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         else if (isAssessmentSelectionModalOpen) setIsAssessmentSelectionModalOpen(false);
         return;
       }
-      
+
       if (anyModalOpen || hasVisibleModal) return;
-      
+
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setShowCreateTempMemberModal(true);
       }
-      
+
       if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [
@@ -950,7 +942,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Name';
 
   const getSortIcon = () => {
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />;
   };
@@ -1007,7 +999,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     // Sorting
     filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
         case 'name':
           comparison = (getMemberTitle(a)).localeCompare(getMemberTitle(b));
@@ -1043,7 +1035,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         default:
           comparison = 0;
       }
-        
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
@@ -1076,7 +1068,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     const updatedNotes = [newNote, ...existingNotes]
     const importantNote = updatedNotes.find(n => n.isImportant)
     const primaryNote = importantNote || updatedNotes[0]
-    
+
     dispatch(updateMember({
       memberId,
       updatedData: {
@@ -1087,7 +1079,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         noteEndDate: primaryNote?.endDate || "",
       },
     }))
-    
+
     setIsMemberSpecialNoteModalOpen(false)
     setSelectedMemberForNote(null)
     toast.success("Special note added successfully")
@@ -1383,8 +1375,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   const handleSearchMemberForEmail = (query) => {
     if (!query) return [];
     const q = query.toLowerCase();
-    
-    const memberResults = members.filter(m => 
+
+    const memberResults = members.filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -1398,8 +1390,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       image: m.image || m.avatar,
       type: 'member'
     }));
-    
-    const staffResults = staffData.filter(s => 
+
+    const staffResults = staffData.filter(s =>
       s.firstName?.toLowerCase().includes(q) ||
       s.lastName?.toLowerCase().includes(q) ||
       s.email?.toLowerCase().includes(q) ||
@@ -1413,7 +1405,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       image: s.img,
       type: 'staff'
     }));
-    
+
     return [...memberResults, ...staffResults].slice(0, 10);
   };
 
@@ -1477,22 +1469,22 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     toast.success("Relation deleted successfully")
   }
 
-const AdminBanner = () => {
-  if (!isAdminMode) return null
-  return (
-    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
-      <div className="bg-blue-500/20 p-2 rounded-lg">
-        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+  const AdminBanner = () => {
+    if (!isAdminMode) return null
+    return (
+      <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+        <div className="bg-blue-500/20 p-2 rounded-lg">
+          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-blue-300">Admin Mode – {studioNameProp || `Studio #${studioIdProp}`}</p>
+          <p className="text-xs text-content-muted">Viewing members for this studio. Changes are saved per-studio.</p>
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-medium text-blue-300">Admin Mode – {studioNameProp || `Studio #${studioIdProp}`}</p>
-        <p className="text-xs text-content-muted">Viewing members for this studio. Changes are saved per-studio.</p>
-      </div>
-    </div>
-  )
-}
+    )
+  }
 
   const getMemberAppointmentsMain = (memberId) => {
     return appointmentsMain.filter((app) => app.memberId === memberId)
@@ -1547,262 +1539,153 @@ const AdminBanner = () => {
             <>
               {/* Header */}
               <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Members</h1>
-              
-              {/* Sort Button - Mobile: next to title */}
-              <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowMobileSortDropdown(!showMobileSortDropdown);
-                  }}
-                  className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
-                >
-                  {getSortIcon()}
-                  <span>{currentSortLabel}</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Members</h1>
 
-                {showMobileSortDropdown && (
-                  <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
-                    <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
-                        Sort by
-                      </div>
-                      {sortOptions.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMobileSortOptionClick(option.value);
-                          }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                            sortBy === option.value 
-                              ? 'text-content-primary bg-surface-hover' 
-                              : 'text-content-secondary'
-                          }`}
-                        >
-                          <span>{option.label}</span>
-                          {sortBy === option.value && (
-                            <span className="text-content-muted">
-                              {sortDirection === 'asc' 
-                                ? <ArrowUp size={14} /> 
-                                : <ArrowDown size={14} />
-                              }
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-            {/* View Toggle - Desktop only */}
-{!isAdminMode && (
-<div className="hidden lg:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
-                <div className="relative group">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === 'grid'
-                        ? 'bg-primary text-white'
-                        : 'text-secondary hover:text-secondary-hover'
-                    }`}
-                  >
-                    <Grid3X3 size={16} />
-                  </button>
-                  
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">Grid View</span>
-                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
-                  </div>
-                </div>
-                
-                <div className="relative group">
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === 'list'
-                        ? 'bg-primary text-white'
-                        : 'text-secondary hover:text-secondary-hover'
-                    }`}
-                  >
-                    <List size={16} />
-                  </button>
-                  
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">List View</span>
-                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
-                  </div>
-                </div>
-
-                <div className="h-6 w-px bg-border mx-1"></div>
-                <div className="relative group">
-                  <button
-                    onClick={() => setIsCompactView(!isCompactView)}
-                    className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex gap-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
-                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
-                      </div>
-                      <div className="flex gap-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
-                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
-                      </div>
-                    </div>
-                  </button>
-                  
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
-                  </div>
-                </div>
-            </div>
-            )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="hidden lg:block relative group">
-                <button
-                  onClick={() => setShowCreateTempMemberModal(true)}
-                  className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
-                >
-                  <Plus size={14} className="sm:w-4 sm:h-4" />
-                  <span className='hidden sm:inline'>Create Temporary Member</span>
-                </button>
-                
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Create Temporary Member</span>
-                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Search Bar with Inline Filter Chips */}
-          <div className="mb-4" ref={searchDropdownRef}>
-            <div className="relative">
-              <div 
-                className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
-                onClick={() => searchInputRef.current?.focus()}
-              >
-                <Search className="text-content-muted flex-shrink-0" size={16} />
-                
-                {memberFilters.map((filter) => (
-                  <div 
-                    key={filter.memberId}
-                    className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
-                  >
-                    <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                      {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
-                    </div>
-                    <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
+                  {/* Sort Button - Mobile: next to title */}
+                  <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleRemoveFilter(filter.memberId);
+                        setShowMobileSortDropdown(!showMobileSortDropdown);
                       }}
-                      className="p-0.5 hover:bg-primary/30 rounded transition-colors"
+                      className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                     >
-                      <X size={12} className="text-secondary hover:text-secondary-hover" />
+                      {getSortIcon()}
+                      <span>{currentSortLabel}</span>
                     </button>
-                  </div>
-                ))}
-                
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder={memberFilters.length > 0 ? "Add more..." : "Search members..."}
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchDropdown(true);
-                  }}
-                  onFocus={() => searchQuery && setShowSearchDropdown(true)}
-                  onKeyDown={handleSearchKeyDown}
-                  className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
-                />
-                
-                {memberFilters.length > 0 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      dispatch(setMemberFiltersAction([]));
-                    }}
-                    className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                    title="Clear all filters"
-                  >
-                    <X size={14} className="text-secondary hover:text-secondary-hover" />
-                  </button>
-                )}
-              </div>
-              
-              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-                  {getSearchSuggestions().map((member) => (
-                    <button
-                      key={getMemberId(member)}
-                      onClick={() => handleSelectMember(member)}
-                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left"
-                    >
-                      {member.image ? (
-                        <img 
-                          src={member.image} 
-                          alt={getMemberTitle(member)} 
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold">
-                          {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+
+                    {showMobileSortDropdown && (
+                      <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
+                        <div className="py-1">
+                          <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
+                            Sort by
+                          </div>
+                          {sortOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMobileSortOptionClick(option.value);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value
+                                ? 'text-content-primary bg-surface-hover'
+                                : 'text-content-secondary'
+                                }`}
+                            >
+                              <span>{option.label}</span>
+                              {sortBy === option.value && (
+                                <span className="text-content-muted">
+                                  {sortDirection === 'asc'
+                                    ? <ArrowUp size={14} />
+                                    : <ArrowDown size={14} />
+                                  }
+                                </span>
+                              )}
+                            </button>
+                          ))}
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-content-primary truncate">{getMemberTitle(member)}</p>
-                        <p className="text-xs text-content-faint truncate">{member.email}</p>
                       </div>
+                    )}
+                  </div>
+
+                  {/* View Toggle - Desktop only */}
+                  {!isAdminMode && (
+                    <div className="hidden lg:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
+                      <div className="relative group">
+                        <button
+                          onClick={() => setViewMode('grid')}
+                          className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
+                            ? 'bg-primary text-white'
+                            : 'text-secondary hover:text-secondary-hover'
+                            }`}
+                        >
+                          <Grid3X3 size={16} />
+                        </button>
+
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                          <span className="font-medium">Grid View</span>
+                          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
+                        </div>
+                      </div>
+
+                      <div className="relative group">
+                        <button
+                          onClick={() => setViewMode('list')}
+                          className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
+                            ? 'bg-primary text-white'
+                            : 'text-secondary hover:text-secondary-hover'
+                            }`}
+                        >
+                          <List size={16} />
+                        </button>
+
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                          <span className="font-medium">List View</span>
+                          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
+                        </div>
+                      </div>
+
+                      <div className="h-6 w-px bg-border mx-1"></div>
+                      <div className="relative group">
+                        <button
+                          onClick={() => setIsCompactView(!isCompactView)}
+                          className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
+                        >
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex gap-0.5">
+                              <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                              <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                            </div>
+                            <div className="flex gap-0.5">
+                              <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                              <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                            </div>
+                          </div>
+                        </button>
+
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                          <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="hidden lg:block relative group">
+                    <button
+                      onClick={() => setShowCreateTempMemberModal(true)}
+                      className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+                    >
+                      <Plus size={14} className="sm:w-4 sm:h-4" />
+                      <span className='hidden sm:inline'>Create Temporary Member</span>
                     </button>
-                  ))}
-                </div>
-              )}
-              
-              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                  <p className="text-sm text-content-faint text-center">No members found</p>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Filters Section - Collapsible */}
-          <div className="mb-4 sm:mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <button
-                onClick={() => setFiltersExpanded(!filtersExpanded)}
-                className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
-              >
-                <Filter size={14} />
-                <span className="text-xs sm:text-sm font-medium">Filters</span>
-                <ChevronDown 
-                  size={14} 
-                  className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
-                />
-                {!filtersExpanded && (filterStatus !== 'all' || filterMemberType !== 'all') && (
-                  <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                    {(filterStatus !== 'all' ? 1 : 0) + (filterMemberType !== 'all' ? 1 : 0)}
-                  </span>
-                )}
-              </button>
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                      <span className="font-medium">Create Temporary Member</span>
+                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                    {/* Filter Chips */}
+              {/* Search Bar with Inline Filter Chips */}
+              <div className="mb-4" ref={searchDropdownRef}>
+                <div className="relative">
+                  <div
+                    className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
+                    onClick={() => searchInputRef.current?.focus()}
+                  >
+                    <Search className="text-content-muted flex-shrink-0" size={16} />
+
                     {memberFilters.map((filter) => (
                       <div
-                        key={filter._id}
+                        key={filter.memberId}
                         className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                       >
                         <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
@@ -1810,953 +1693,1030 @@ const AdminBanner = () => {
                         </div>
                         <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                         <button
-                          key={option.value}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSortOptionClick(option.value);
+                            handleRemoveFilter(filter.memberId);
                           }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                            sortBy === option.value 
-                              ? 'text-content-primary bg-surface-hover' 
-                              : 'text-content-secondary'
-                          }`}
+                          className="p-0.5 hover:bg-primary/30 rounded transition-colors"
                         >
-                          <span>{option.label}</span>
-                          {sortBy === option.value && (
-                            <span className="text-content-muted">
-                              {sortDirection === 'asc' 
-                                ? <ArrowUp size={14} /> 
-                                : <ArrowDown size={14} />
-                              }
-                            </span>
+                          <X size={12} className="text-secondary hover:text-secondary-hover" />
+                        </button>
+                      </div>
+                    ))}
+
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder={memberFilters.length > 0 ? "Add more..." : "Search members..."}
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSearchDropdown(true);
+                      }}
+                      onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                      onKeyDown={handleSearchKeyDown}
+                      className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
+                    />
+
+                    {memberFilters.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(setMemberFiltersAction([]));
+                        }}
+                        className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
+                        title="Clear all filters"
+                      >
+                        <X size={14} className="text-secondary hover:text-secondary-hover" />
+                      </button>
+                    )}
+                  </div>
+
+                  {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+                      {getSearchSuggestions().map((member) => (
+                        <button
+                          key={getMemberId(member)}
+                          onClick={() => handleSelectMember(member)}
+                          className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left"
+                        >
+                          {member.image ? (
+                            <img
+                              src={member.image}
+                              alt={getMemberTitle(member)}
+                              className="w-8 h-8 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold">
+                              {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                            </div>
                           )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-content-primary truncate">{getMemberTitle(member)}</p>
+                            <p className="text-xs text-content-faint truncate">{member.email}</p>
+                          </div>
                         </button>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
+                  )}
 
-            <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className="flex flex-wrap gap-1.5 sm:gap-3">
-                <button
-                  onClick={() => dispatch(setFilterStatus('all'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterStatus === 'all'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  All ({members.length})
-                </button>
-                <button
-                  onClick={() => dispatch(setFilterStatus('active'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterStatus === 'active'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  Active ({members.filter((m) => getMemberStatus(m) === 'active').length})
-                </button>
-                <button
-                  onClick={() => dispatch(setFilterStatus('paused'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterStatus === 'paused'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  Paused ({members.filter((m) => getMemberStatus(m) === 'paused').length})
-                </button>
-                <button
-                  onClick={() => dispatch(setFilterStatus('archived'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterStatus === 'archived'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  Archived ({members.filter((m) => getMemberStatus(m) === 'archived').length})
-                </button>
-
-                <div className="h-6 w-px bg-border mx-1 hidden sm:block self-center"></div>
-                <button
-                  onClick={() => dispatch(setFilterMemberType('all'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterMemberType === 'all'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  All Types
-                </button>
-                <button
-                  onClick={() => dispatch(setFilterMemberType('full'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterMemberType === 'full'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  Full Members
-                </button>
-                <button
-                  onClick={() => dispatch(setFilterMemberType('temporary'))}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                    filterMemberType === 'temporary'
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
-                >
-                  Temporary Members
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="open_sans_font">
-            {viewMode === "list" ? (
-              <div className="bg-surface-card rounded-xl overflow-hidden">
-                <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
-                  <div className="col-span-3">Member</div>
-                  <div className="col-span-1">Gender</div>
-                  <div className="col-span-1">Age</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-1">Type</div>
-                  <div className="col-span-1">Relations</div>
-                  <div className="col-span-3 text-right">Actions</div>
-                </div>
-                
-                {filteredAndSortedMembers().length > 0 ? (
-                  filteredAndSortedMembers().map((member, index) => {
-                    const mid = getMemberId(member);
-                    const title = getMemberTitle(member);
-                    const status = getMemberStatus(member);
-                    return (
-                    <div 
-                      key={mid}
-                      className={`group hover:bg-surface-hover transition-colors ${
-                        index !== filteredAndSortedMembers().length - 1 ? 'border-b border-border' : ''
-                      }`}
-                    >
-                      {/* Desktop Table Row */}
-                      <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
-                        <div className="col-span-3 flex items-center gap-3 min-w-0">
-                          <MemberSpecialNoteIcon
-                            member={member}
-                            onEditMember={handleEditMember}
-                            size={isCompactView ? "sm" : "md"}
-                            position="relative"
-                          />
-                          <div className="relative flex-shrink-0">
-                            {member.image ? (
-                              <img
-                                src={member.image}
-                                alt={title}
-                                className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg object-cover`}
-                              />
-                            ) : (
-                              <InitialsAvatar 
-                                firstName={member.firstName} 
-                                lastName={member.lastName} 
-                                size={isCompactView ? "sm" : "lg"}
-                              />
-                            )}
-                            <BirthdayBadge 
-                              show={isBirthday(member.dateOfBirth)} 
-                              dateOfBirth={member.dateOfBirth}
-                              size={isCompactView ? "sm" : "md"}
-                              withTooltip={true}
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                {title}
-                              </span>
-                            </div>
-                            {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' ? (
-                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint`}>
-                                Auto-archive: {member.autoArchiveDate}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                        
-                        <div className="col-span-1">
-                          <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>
-                            {member.gender || '-'}
-                          </span>
-                        </div>
-                        
-                        <div className="col-span-1">
-                          {member.dateOfBirth ? (
-                            <div className="flex flex-col">
-                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-primary`}>
-                                {calculateAgeMain(member.dateOfBirth)} yrs
-                              </span>
-                              <span className="text-[10px] text-content-faint">
-                                {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-content-faint text-xs">-</span>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-content-primary truncate">{member.firstName} {member.lastName}</p>
-                            <p className="text-xs text-content-faint truncate">{member.email}</p>
-                          </div>
-                          <div className="relative">
-                          <button
-                            onClick={() => handleDocumentClick(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Documents"
-                          >
-                            <FileText size={isCompactView ? 16 : 18} />
-                          </button>
-                          <IconBadge count={(member.documents || []).length} />
-                          </div>
-                          <button
-                            onClick={() => handlePaymentClick(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Payment Details"
-                          >
-                            <CreditCard size={isCompactView ? 16 : 18} />
-                          </button>
-                          <button
-                            onClick={() => handleHistoryClick(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                            title="History"
-                          >
-                            <History size={isCompactView ? 16 : 18} />
-                          </button>
-                          <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
-                          <button
-                            onClick={() => handleViewDetails(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                            title="View Details"
-                          >
-                            <Eye size={isCompactView ? 16 : 18} />
-                          </button>
-                          <button
-                            onClick={() => handleEditMember(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Edit"
-                          >
-                            <Pencil size={isCompactView ? 16 : 18} />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* Mobile Row */}
-                      <div className="lg:hidden">
-                        <div 
-                          className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
-                          onClick={() => setExpandedMobileRowId(expandedMobileRowId === mid ? null : mid)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <MemberSpecialNoteIcon
-                              member={member}
-                              onEditMember={handleEditMember}
-                              size="sm"
-                              position="relative"
-                            />
-                            <div className="relative flex-shrink-0">
-                              {member.image ? (
-                                <img
-                                  src={member.image}
-                                  alt={title}
-                                  className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
-                                />
-                              ) : (
-                                <InitialsAvatar 
-                                  firstName={member.firstName} 
-                                  lastName={member.lastName} 
-                                  size={isCompactView ? "sm" : "md"}
-                                />
-                              )}
-                              <BirthdayBadge 
-                                show={isBirthday(member.dateOfBirth)} 
-                                dateOfBirth={member.dateOfBirth}
-                                size="sm"
-                                withTooltip={true}
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                  {title}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <StatusTag
-                                  status={status}
-                                  reason={member.reason}
-                                  compact={true}
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="flex-shrink-0 p-1">
-                              <ChevronDown 
-                                size={18} 
-                                className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === mid ? 'rotate-180' : ''}`} 
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div 
-                          className={`overflow-hidden transition-all duration-200 ease-in-out ${
-                            expandedMobileRowId === mid ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
-                          }`}
-                        >
-                          <div className="px-3 pb-3 pt-1">
-                            <div className="bg-surface-dark rounded-xl p-2">
-                              <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                  member.memberType === "full" 
-                                    ? "bg-white/10 text-content-secondary" 
-                                    : "bg-primary/20 text-primary"
-                                }`}>
-                                  {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                                </span>
-                                {member.gender && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                    {member.gender}
-                                  </span>
-                                )}
-                                {member.dateOfBirth && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                    {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="grid grid-cols-5 gap-1">
-                                {!isAdminMode && (
-  <button
-    onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
-    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-  >
-    <MessageCircle size={18} />
-    <span className="text-[10px]">Chat</span>
-  </button>
-)}
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleCalendarClick(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <Calendar size={18} />
-                                  <span className="text-[10px]">Calendar</span>
-                                </button>
-                                <div className="relative">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <Dumbbell size={18} />
-                                  <span className="text-[10px]">Training</span>
-                                </button>
-                                <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
-                                </div>
-                                <div className="relative">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <FileText size={18} />
-                                  <span className="text-[10px]">Docs</span>
-                                </button>
-                                <IconBadge count={(member.documents || []).length} />
-                                </div>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handlePaymentClick(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <CreditCard size={18} />
-                                  <span className="text-[10px]">Payment</span>
-                                </button>
-                              </div>
-                              <div className="grid grid-cols-4 gap-1 mt-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <Users size={18} />
-                                  <span className="text-[10px]">Relations</span>
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <History size={18} />
-                                  <span className="text-[10px]">History</span>
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <Eye size={18} />
-                                  <span className="text-[10px]">Details</span>
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <Pencil size={18} />
-                                  <span className="text-[10px]">Edit</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                  {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                      <p className="text-sm text-content-faint text-center">No members found</p>
                     </div>
-                  )})
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-content-muted text-sm">
-                      {filterStatus === "active"
-                        ? "No active members found."
-                        : filterStatus === "paused"
-                          ? "No paused members found."
-                          : filterStatus === "archived"
-                            ? "No archived members found."
-                            : "No members found."}
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            ) : // GRID VIEW
-              isCompactView ? (
-                // COMPACT GRID VIEW
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                  {filteredAndSortedMembers().length > 0 ? (
-                    filteredAndSortedMembers().map((member) => {
-                      const mid = getMemberId(member);
-                      const title = getMemberTitle(member);
-                      const status = getMemberStatus(member);
-                      const { firstName, lastName } = getFirstAndLastName(title);
-                      return (
-                      <div 
-                        key={mid}
-                        className="bg-surface-card rounded-xl hover:bg-surface-hover transition-colors group relative overflow-hidden"
+
+              {/* Filters Section - Collapsible */}
+              <div className="mb-4 sm:mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <button
+                    onClick={() => setFiltersExpanded(!filtersExpanded)}
+                    className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
+                  >
+                    <Filter size={14} />
+                    <span className="text-xs sm:text-sm font-medium">Filters</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+                    />
+                    {!filtersExpanded && (filterStatus !== 'all' || filterMemberType !== 'all') && (
+                      <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                        {(filterStatus !== 'all' ? 1 : 0) + (filterMemberType !== 'all' ? 1 : 0)}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Filter Chips */}
+                  <div className="flex gap-2">
+                    {memberFilters.map((filter) => (
+                      <div
+                        key={filter._id}
+                        className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                       >
-                        <div className="absolute top-2 left-2 z-10">
-                          <MemberSpecialNoteIcon
-                            member={member}
-                            onEditMember={handleEditMember}
-                            size="sm"
-                            position="relative"
-                          />
+                        <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                          {filter.memberName.split(' ')[0]?.charAt(0)}
+                          {filter.memberName.split(' ')[1]?.charAt(0) || ''}
                         </div>
+                        <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                        <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${
-                          status === 'archived' ? 'bg-red-500' : status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
-                        }`} title={status === 'archived' ? 'Archived' : status === 'active' ? 'Active' : 'Paused'} />
+                <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-3">
+                    <button
+                      onClick={() => dispatch(setFilterStatus('all'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      All ({members.length})
+                    </button>
+                    <button
+                      onClick={() => dispatch(setFilterStatus('active'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'active'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      Active ({members.filter((m) => getMemberStatus(m) === 'active').length})
+                    </button>
+                    <button
+                      onClick={() => dispatch(setFilterStatus('paused'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'paused'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      Paused ({members.filter((m) => getMemberStatus(m) === 'paused').length})
+                    </button>
+                    <button
+                      onClick={() => dispatch(setFilterStatus('archived'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'archived'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      Archived ({members.filter((m) => getMemberStatus(m) === 'archived').length})
+                    </button>
 
-                        <div className="p-3 pt-4">
-                          <div className="flex flex-col items-center mb-2">
-                            {member.image ? (
-                              <img
-                                src={member.image}
-                                alt={title}
-                                className="w-12 h-12 rounded-xl object-cover mb-2"
-                              />
-                            ) : (
-                              <InitialsAvatar 
-                                firstName={firstName} 
-                                lastName={lastName} 
-                                size="lg"
-                                className="mb-2 rounded-xl"
-                              />
-                            )}
-                            <div className="text-center w-full min-w-0">
-                              <p className="text-content-primary font-medium text-sm leading-tight truncate">
-                                {firstName}
-                              </p>
-                              <p className="text-content-faint text-xs truncate">
-                                {lastName}
-                              </p>
-                            </div>
-                          </div>
+                    <div className="h-6 w-px bg-border mx-1 hidden sm:block self-center"></div>
 
-                          {member.dateOfBirth && (
-                            <div className="flex items-center justify-center gap-1.5 mb-2 text-[10px]">
-                              <span className="text-content-muted">
-                                {calculateAgeMain(member.dateOfBirth)} yrs
-                              </span>
-                              <span className="text-content-faint">•</span>
-                              <span className="text-content-faint">
-                                {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                              </span>
-                            </div>
-                          )}
+                    <button
+                      onClick={() => dispatch(setFilterMemberType('all'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterMemberType === 'all'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      All Types
+                    </button>
+                    <button
+                      onClick={() => dispatch(setFilterMemberType('full'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterMemberType === 'full'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      Full Members
+                    </button>
+                    <button
+                      onClick={() => dispatch(setFilterMemberType('temporary'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterMemberType === 'temporary'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      Temporary Members
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-                          <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                            <span className="text-[10px] text-content-faint bg-surface-dark px-1.5 py-0.5 rounded">
-                              {member.memberType === "full" ? "Full" : "Temp"}
-                            </span>
-                            {member.gender && (
-                              <span className="text-[10px] text-content-muted bg-surface-dark px-1.5 py-0.5 rounded">
-                                {member.gender}
-                              </span>
-                            )}
-                            <button
-                              onClick={() => handleRelationClick(member)}
-                              className="text-[10px] text-primary bg-surface-dark px-1.5 py-0.5 rounded flex items-center gap-0.5"
-                            >
-                              <Users size={9} />
-                              {Object.values(memberRelationsMain[mid] || {}).flat().length}
-                            </button>
-                          </div>
+              <div className="open_sans_font">
+                {viewMode === "list" ? (
+                  <div className="bg-surface-card rounded-xl overflow-hidden">
+                    <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
+                      <div className="col-span-3">Member</div>
+                      <div className="col-span-1">Gender</div>
+                      <div className="col-span-1">Age</div>
+                      <div className="col-span-2">Status</div>
+                      <div className="col-span-1">Type</div>
+                      <div className="col-span-1">Relations</div>
+                      <div className="col-span-3 text-right">Actions</div>
+                    </div>
 
-                          <div className="space-y-1 bg-surface-dark rounded-lg p-1.5">
-                            <div className="grid grid-cols-5 gap-1">
-                            {!isAdminMode && (
-  <button
-    onClick={() => handleChatClick(member)}
-    className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-    title="Chat"
-  >
-    <MessageCircle size={14} />
-  </button>
-)}
-                              <button
-                                onClick={() => handleCalendarClick(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Appointments"
-                              >
-                                <Calendar size={14} />
-                              </button>
-                              <div className="relative flex items-center justify-center">
-                              <button
-                                onClick={() => handleTrainingPlansClickMain(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Training Plans"
-                              >
-                                <Dumbbell size={14} />
-                              </button>
-                              <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
-                              </div>
-                              <div className="relative flex items-center justify-center">
-                              <button
-                                onClick={() => handleDocumentClick(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Documents"
-                              >
-                                <FileText size={14} />
-                              </button>
-                              <IconBadge count={(member.documents || []).length} />
-                              </div>
-                              <button
-                                onClick={() => handlePaymentClick(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Payment Details"
-                              >
-                                <CreditCard size={14} />
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-4 gap-1">
-                              <button
-                                onClick={() => handleHistoryClick(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="History"
-                              >
-                                <History size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleViewDetails(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Details"
-                              >
-                                <Eye size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleEditMember(member)}
-                                className="p-1.5 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Edit"
-                              >
-                                <Pencil size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleEditMemberNote(member)}
-                                className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Add Note"
-                              >
-                                <StickyNote size={14} />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Mobile Row */}
-                          <div className="lg:hidden">
-                            {/* Main Row - Tappable */}
-                            <div
-                              className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
-                              onClick={() => setExpandedMobileRowId(expandedMobileRowId === member.id ? null : member.id)}
-                            >
-                              <div className="flex items-center gap-3">
+                    {filteredAndSortedMembers().length > 0 ? (
+                      filteredAndSortedMembers().map((member, index) => {
+                        const mid = getMemberId(member);
+                        const title = getMemberTitle(member);
+                        const status = getMemberStatus(member);
+                        return (
+                          <div
+                            key={mid}
+                            className={`group hover:bg-surface-hover transition-colors ${index !== filteredAndSortedMembers().length - 1 ? 'border-b border-border' : ''
+                              }`}
+                          >
+                            {/* Desktop Table Row */}
+                            <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
+                              <div className="col-span-3 flex items-center gap-3 min-w-0">
                                 <MemberSpecialNoteIcon
                                   member={member}
                                   onEditMember={handleEditMember}
-                                  size="sm"
+                                  size={isCompactView ? "sm" : "md"}
                                   position="relative"
                                 />
                                 <div className="relative flex-shrink-0">
                                   {member.image ? (
                                     <img
                                       src={member.image}
-                                      alt={member.title}
-                                      className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
+                                      alt={title}
+                                      className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg object-cover`}
                                     />
                                   ) : (
                                     <InitialsAvatar
                                       firstName={member.firstName}
                                       lastName={member.lastName}
-                                      size={isCompactView ? "sm" : "md"}
+                                      size={isCompactView ? "sm" : "lg"}
                                     />
                                   )}
                                   <BirthdayBadge
                                     show={isBirthday(member.dateOfBirth)}
                                     dateOfBirth={member.dateOfBirth}
-                                    size="sm"
+                                    size={isCompactView ? "sm" : "md"}
                                     withTooltip={true}
                                   />
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
                                     <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                      {member.firstName} {member.lastName}
+                                      {title}
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                    <StatusTag
-                                      memberId={member._id}
-                                      reason={member.reason}
-                                      compact={true}
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Expand/Collapse Indicator */}
-                                <div className="flex-shrink-0 p-1">
-                                  <ChevronDown
-                                    size={18}
-                                    className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === member.id ? 'rotate-180' : ''}`}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Expandable Actions Panel */}
-                            <div
-                              className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === member.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
-                                }`}
-                            >
-                              <div className="px-3 pb-3 pt-1">
-                                <div className="bg-surface-dark rounded-xl p-2">
-                                  {/* Member Info Badges */}
-                                  <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.memberType === "full"
-                                      ? "bg-white/10 text-content-secondary"
-                                      : "bg-primary/20 text-primary"
-                                      }`}>
-                                      {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                  {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' ? (
+                                    <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint`}>
+                                      Auto-archive: {member.autoArchiveDate}
                                     </span>
-                                    {member.gender && (
-                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                        {member.gender}
-                                      </span>
-                                    )}
-                                    {member.dateOfBirth && (
-                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                        {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="grid grid-cols-4 gap-1">
-                                    <button
-                                      onClick={() => handleCalendarClick(member)}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Calendar size={18} />
-                                      <span className="text-[10px]">Calendar</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Dumbbell size={18} />
-                                      <span className="text-[10px]">Training</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <History size={18} />
-                                      <span className="text-[10px]">History</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <FileText size={18} />
-                                      <span className="text-[10px]">Docs</span>
-                                    </button>
-                                  </div>
-                                  <div className="grid grid-cols-4 gap-1 mt-1">
-                                    {!isAdminMode && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <MessageCircle size={18} />
-                                        <span className="text-[10px]">Chat</span>
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Users size={18} />
-                                      <span className="text-[10px]">Relations</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Eye size={18} />
-                                      <span className="text-[10px]">Details</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Pencil size={18} />
-                                      <span className="text-[10px]">Edit</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )})
-                  ) : (
-                    <div className="text-center py-8 col-span-full">
-                      <p className="text-content-muted text-sm">
-                        {filterStatus === "active"
-                          ? "No active members found."
-                          : filterStatus === "paused"
-                            ? "No paused members found."
-                            : filterStatus === "archived"
-                              ? "No archived members found."
-                              : "No members found."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // DETAILED GRID VIEW
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredAndSortedMembers().length > 0 ? (
-                    filteredAndSortedMembers().map((member) => {
-                      const mid = getMemberId(member);
-                      const title = getMemberTitle(member);
-                      const status = getMemberStatus(member);
-                      const { firstName, lastName } = getFirstAndLastName(title);
-                      return (
-                      <div
-                        key={mid}
-                        className="bg-surface-card rounded-xl relative p-4"
-                      >
-                        <div className="absolute top-3 left-3 z-10">
-                          <MemberSpecialNoteIcon
-                            member={member}
-                            onEditMember={handleEditMember}
-                            size="md"
-                            position="relative"
-                          />
-                        </div>
-
-                        <div className="flex flex-col">
-                          <div className="flex flex-col items-center mb-4">
-                            <div className="relative mb-3">
-                              {member.image ? (
-                                <img
-                                  src={member.image}
-                                  className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
-                                  alt=""
-                                />
-                              ) : (
-                                <InitialsAvatar 
-                                  firstName={firstName} 
-                                  lastName={lastName} 
-                                  size="xl"
-                                  className="rounded-xl"
-                                />
-                              )}
-                              <BirthdayBadge 
-                                show={isBirthday(member.dateOfBirth)} 
-                                dateOfBirth={member.dateOfBirth}
-                                size="md"
-                                withTooltip={true}
-                              />
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <div className="flex flex-col sm:flex-row items-center gap-2">
-                                <h3 className="text-content-primary font-medium truncate text-lg">
-                                  {title}
-                                </h3>
-
-                                <div className="flex items-center gap-2">
-                                  <StatusTag
-                                    status={status}
-                                    reason={member.reason}
-                                  />
+                                  ) : null}
                                 </div>
                               </div>
 
-                              {member.dateOfBirth && (
-                                <div className="flex items-center gap-2 mt-1 text-sm">
-                                  <span className="text-content-secondary">
-                                    {calculateAgeMain(member.dateOfBirth)} years old
-                                  </span>
-                                  <span className="text-content-faint">•</span>
-                                  <span className="text-content-faint">
-                                    {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                                  </span>
-                                </div>
-                              )}
-
-                              <div className="text-sm mt-1 flex items-center gap-2 flex-wrap justify-center">
-                                {member.gender && (
-                                  <>
-                                    <span className="text-content-muted">{member.gender}</span>
-                                    <span className="text-content-faint">•</span>
-                                  </>
-                                )}
-                                <span className="text-content-muted">
-                                  {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                              <div className="col-span-1">
+                                <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>
+                                  {member.gender || '-'}
                                 </span>
                               </div>
 
-                              {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' && (
-                                <p className="text-content-muted text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                                  Auto-archive: {member.autoArchiveDate}
-                                  {new Date(member.autoArchiveDate) <= new Date() && (
-                                    <Clock size={16} className="text-primary ml-1" />
-                                  )}
-                                </p>
-                              )}
-                              <div className="mt-2">
+                              <div className="col-span-1">
+                                {member.dateOfBirth ? (
+                                  <div className="flex flex-col">
+                                    <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-primary`}>
+                                      {calculateAgeMain(member.dateOfBirth)} yrs
+                                    </span>
+                                    <span className="text-[10px] text-content-faint">
+                                      {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-content-faint text-xs">-</span>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-content-primary truncate">{member.firstName} {member.lastName}</p>
+                                  <p className="text-xs text-content-faint truncate">{member.email}</p>
+                                </div>
+                                <div className="relative">
+                                  <button
+                                    onClick={() => handleDocumentClick(member)}
+                                    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                                    title="Documents"
+                                  >
+                                    <FileText size={isCompactView ? 16 : 18} />
+                                  </button>
+                                  <IconBadge count={(member.documents || []).length} />
+                                </div>
                                 <button
-                                  onClick={() => handleRelationClick(member)}
-                                  className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
+                                  onClick={() => handlePaymentClick(member)}
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                                  title="Payment Details"
                                 >
-                                  <Users size={12} />
-                                  Relations ({Object.values(memberRelationsMain[mid] || {}).flat().length})
+                                  <CreditCard size={isCompactView ? 16 : 18} />
+                                </button>
+                                <button
+                                  onClick={() => handleHistoryClick(member)}
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                                  title="History"
+                                >
+                                  <History size={isCompactView ? 16 : 18} />
+                                </button>
+                                <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
+                                <button
+                                  onClick={() => handleViewDetails(member)}
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
+                                  title="View Details"
+                                >
+                                  <Eye size={isCompactView ? 16 : 18} />
+                                </button>
+                                <button
+                                  onClick={() => handleEditMember(member)}
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
+                                  title="Edit"
+                                >
+                                  <Pencil size={isCompactView ? 16 : 18} />
                                 </button>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="bg-surface-dark rounded-lg p-2 mt-auto">
-                            <div className="grid grid-cols-6 gap-1">
-                             {!isAdminMode && (
-  <button
-    onClick={() => handleChatClick(member)}
-    className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-    title="Start Chat"
-  >
-    <MessageCircle size={16} />
-  </button>
-)}
-                              <button
-                                onClick={() => handleCalendarClick(member)}
-                                className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="View Appointments"
+                            {/* Mobile Row */}
+                            <div className="lg:hidden">
+                              <div
+                                className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
+                                onClick={() => setExpandedMobileRowId(expandedMobileRowId === mid ? null : mid)}
                               >
-                                <Calendar size={16} />
-                              </button>
-                              <div className="relative flex items-center justify-center">
-                              <button
-                                onClick={() => handleTrainingPlansClickMain(member)}
-                                className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Training Plans"
-                              >
-                                <Dumbbell size={16} />
-                              </button>
-                              <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
-                              </div>
-                              <div className="relative flex items-center justify-center">
-                              <button
-                                onClick={() => handleDocumentClick(member)}
-                                className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Document Management"
-                              >
-                                <FileText size={16} />
-                              </button>
-                              <IconBadge count={(member.documents || []).length} />
-                              </div>
-                              <button
-                                onClick={() => handlePaymentClick(member)}
-                                className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="Payment Details"
-                              >
-                                <CreditCard size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleHistoryClick(member)}
-                                className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                title="View History"
-                              >
-                                <History size={16} />
-                              </button>
-                            </div>
+                                <div className="flex items-center gap-3">
+                                  <MemberSpecialNoteIcon
+                                    member={member}
+                                    onEditMember={handleEditMember}
+                                    size="sm"
+                                    position="relative"
+                                  />
+                                  <div className="relative flex-shrink-0">
+                                    {member.image ? (
+                                      <img
+                                        src={member.image}
+                                        alt={title}
+                                        className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
+                                      />
+                                    ) : (
+                                      <InitialsAvatar
+                                        firstName={member.firstName}
+                                        lastName={member.lastName}
+                                        size={isCompactView ? "sm" : "md"}
+                                      />
+                                    )}
+                                    <BirthdayBadge
+                                      show={isBirthday(member.dateOfBirth)}
+                                      dateOfBirth={member.dateOfBirth}
+                                      size="sm"
+                                      withTooltip={true}
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                        {title}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                      <StatusTag
+                                        status={status}
+                                        reason={member.reason}
+                                        compact={true}
+                                      />
+                                    </div>
+                                  </div>
 
-                            <div className="grid grid-cols-2 gap-1 mt-1.5">
-                              <button
-                                onClick={() => handleViewDetails(member)}
-                                className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                  <div className="flex-shrink-0 p-1">
+                                    <ChevronDown
+                                      size={18}
+                                      className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === mid ? 'rotate-180' : ''}`}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div
+                                className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === mid ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
+                                  }`}
                               >
-                                <Eye size={14} />
-                                <span className="text-xs font-medium">Details</span>
-                              </button>
-                              <button
-                                onClick={() => handleEditMember(member)}
-                                className="p-2 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                              >
-                                <Pencil size={14} />
-                                <span className="text-xs font-medium">Edit</span>
-                              </button>
+                                <div className="px-3 pb-3 pt-1">
+                                  <div className="bg-surface-dark rounded-xl p-2">
+                                    <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.memberType === "full"
+                                        ? "bg-white/10 text-content-secondary"
+                                        : "bg-primary/20 text-primary"
+                                        }`}>
+                                        {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                      </span>
+                                      {member.gender && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
+                                          {member.gender}
+                                        </span>
+                                      )}
+                                      {member.dateOfBirth && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
+                                          {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="grid grid-cols-5 gap-1">
+                                      {!isAdminMode && (
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
+                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                        >
+                                          <MessageCircle size={18} />
+                                          <span className="text-[10px]">Chat</span>
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleCalendarClick(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <Calendar size={18} />
+                                        <span className="text-[10px]">Calendar</span>
+                                      </button>
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
+                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                        >
+                                          <Dumbbell size={18} />
+                                          <span className="text-[10px]">Training</span>
+                                        </button>
+                                        <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
+                                      </div>
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
+                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                        >
+                                          <FileText size={18} />
+                                          <span className="text-[10px]">Docs</span>
+                                        </button>
+                                        <IconBadge count={(member.documents || []).length} />
+                                      </div>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handlePaymentClick(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <CreditCard size={18} />
+                                        <span className="text-[10px]">Payment</span>
+                                      </button>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-1 mt-1">
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <Users size={18} />
+                                        <span className="text-[10px]">Relations</span>
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <History size={18} />
+                                        <span className="text-[10px]">History</span>
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <Eye size={18} />
+                                        <span className="text-[10px]">Details</span>
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <Pencil size={18} />
+                                        <span className="text-[10px]">Edit</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )
+                      })
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-content-muted text-sm">
+                          {filterStatus === "active"
+                            ? "No active members found."
+                            : filterStatus === "paused"
+                              ? "No paused members found."
+                              : filterStatus === "archived"
+                                ? "No archived members found."
+                                : "No members found."}
+                        </p>
                       </div>
-                    )})
+                    )}
+                  </div>
+                ) : // GRID VIEW
+                  isCompactView ? (
+                    // COMPACT GRID VIEW
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                      {filteredAndSortedMembers().length > 0 ? (
+                        filteredAndSortedMembers().map((member) => {
+                          const mid = getMemberId(member);
+                          const title = getMemberTitle(member);
+                          const status = getMemberStatus(member);
+                          const { firstName, lastName } = getFirstAndLastName(title);
+                          return (
+                            <div
+                              key={mid}
+                              className="bg-surface-card rounded-xl hover:bg-surface-hover transition-colors group relative overflow-hidden"
+                            >
+                              <div className="absolute top-2 left-2 z-10">
+                                <MemberSpecialNoteIcon
+                                  member={member}
+                                  onEditMember={handleEditMember}
+                                  size="sm"
+                                  position="relative"
+                                />
+                              </div>
+
+                              <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${status === 'archived' ? 'bg-red-500' : status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
+                                }`} title={status === 'archived' ? 'Archived' : status === 'active' ? 'Active' : 'Paused'} />
+
+                              <div className="p-3 pt-4">
+                                <div className="flex flex-col items-center mb-2">
+                                  {member.image ? (
+                                    <img
+                                      src={member.image}
+                                      alt={title}
+                                      className="w-12 h-12 rounded-xl object-cover mb-2"
+                                    />
+                                  ) : (
+                                    <InitialsAvatar
+                                      firstName={firstName}
+                                      lastName={lastName}
+                                      size="lg"
+                                      className="mb-2 rounded-xl"
+                                    />
+                                  )}
+                                  <div className="text-center w-full min-w-0">
+                                    <p className="text-content-primary font-medium text-sm leading-tight truncate">
+                                      {firstName}
+                                    </p>
+                                    <p className="text-content-faint text-xs truncate">
+                                      {lastName}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {member.dateOfBirth && (
+                                  <div className="flex items-center justify-center gap-1.5 mb-2 text-[10px]">
+                                    <span className="text-content-muted">
+                                      {calculateAgeMain(member.dateOfBirth)} yrs
+                                    </span>
+                                    <span className="text-content-faint">•</span>
+                                    <span className="text-content-faint">
+                                      {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                    </span>
+                                  </div>
+                                )}
+
+                                <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                                  <span className="text-[10px] text-content-faint bg-surface-dark px-1.5 py-0.5 rounded">
+                                    {member.memberType === "full" ? "Full" : "Temp"}
+                                  </span>
+                                  {member.gender && (
+                                    <span className="text-[10px] text-content-muted bg-surface-dark px-1.5 py-0.5 rounded">
+                                      {member.gender}
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={() => handleRelationClick(member)}
+                                    className="text-[10px] text-primary bg-surface-dark px-1.5 py-0.5 rounded flex items-center gap-0.5"
+                                  >
+                                    <Users size={9} />
+                                    {Object.values(memberRelationsMain[mid] || {}).flat().length}
+                                  </button>
+                                </div>
+
+                                <div className="space-y-1 bg-surface-dark rounded-lg p-1.5">
+                                  <div className="grid grid-cols-5 gap-1">
+                                    {!isAdminMode && (
+                                      <button
+                                        onClick={() => handleChatClick(member)}
+                                        className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Chat"
+                                      >
+                                        <MessageCircle size={14} />
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => handleCalendarClick(member)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Appointments"
+                                    >
+                                      <Calendar size={14} />
+                                    </button>
+                                    <div className="relative flex items-center justify-center">
+                                      <button
+                                        onClick={() => handleTrainingPlansClickMain(member)}
+                                        className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Training Plans"
+                                      >
+                                        <Dumbbell size={14} />
+                                      </button>
+                                      <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
+                                    </div>
+                                    <div className="relative flex items-center justify-center">
+                                      <button
+                                        onClick={() => handleDocumentClick(member)}
+                                        className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Documents"
+                                      >
+                                        <FileText size={14} />
+                                      </button>
+                                      <IconBadge count={(member.documents || []).length} />
+                                    </div>
+                                    <button
+                                      onClick={() => handlePaymentClick(member)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Payment Details"
+                                    >
+                                      <CreditCard size={14} />
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-1">
+                                    <button
+                                      onClick={() => handleHistoryClick(member)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="History"
+                                    >
+                                      <History size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleViewDetails(member)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Details"
+                                    >
+                                      <Eye size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditMember(member)}
+                                      className="p-1.5 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Edit"
+                                    >
+                                      <Pencil size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditMemberNote(member)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Add Note"
+                                    >
+                                      <StickyNote size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Mobile Row */}
+                                <div className="lg:hidden">
+                                  {/* Main Row - Tappable */}
+                                  <div
+                                    className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
+                                    onClick={() => setExpandedMobileRowId(expandedMobileRowId === member.id ? null : member.id)}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <MemberSpecialNoteIcon
+                                        member={member}
+                                        onEditMember={handleEditMember}
+                                        size="sm"
+                                        position="relative"
+                                      />
+                                      <div className="relative flex-shrink-0">
+                                        {member.image ? (
+                                          <img
+                                            src={member.image}
+                                            alt={member.title}
+                                            className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
+                                          />
+                                        ) : (
+                                          <InitialsAvatar
+                                            firstName={member.firstName}
+                                            lastName={member.lastName}
+                                            size={isCompactView ? "sm" : "md"}
+                                          />
+                                        )}
+                                        <BirthdayBadge
+                                          show={isBirthday(member.dateOfBirth)}
+                                          dateOfBirth={member.dateOfBirth}
+                                          size="sm"
+                                          withTooltip={true}
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                            {member.firstName} {member.lastName}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                          <StatusTag
+                                            memberId={member._id}
+                                            reason={member.reason}
+                                            compact={true}
+                                          />
+                                        </div>
+                                      </div>
+
+                                      {/* Expand/Collapse Indicator */}
+                                      <div className="flex-shrink-0 p-1">
+                                        <ChevronDown
+                                          size={18}
+                                          className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === member.id ? 'rotate-180' : ''}`}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Expandable Actions Panel */}
+                                  <div
+                                    className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === member.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
+                                      }`}
+                                  >
+                                    <div className="px-3 pb-3 pt-1">
+                                      <div className="bg-surface-dark rounded-xl p-2">
+                                        {/* Member Info Badges */}
+                                        <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.memberType === "full"
+                                            ? "bg-white/10 text-content-secondary"
+                                            : "bg-primary/20 text-primary"
+                                            }`}>
+                                            {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                          </span>
+                                          {member.gender && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
+                                              {member.gender}
+                                            </span>
+                                          )}
+                                          {member.dateOfBirth && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
+                                              {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-1">
+                                          <button
+                                            onClick={() => handleCalendarClick(member)}
+                                            className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <Calendar size={18} />
+                                            <span className="text-[10px]">Calendar</span>
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
+                                            className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <Dumbbell size={18} />
+                                            <span className="text-[10px]">Training</span>
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
+                                            className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <History size={18} />
+                                            <span className="text-[10px]">History</span>
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
+                                            className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <FileText size={18} />
+                                            <span className="text-[10px]">Docs</span>
+                                          </button>
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-1 mt-1">
+                                          {!isAdminMode && (
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
+                                              className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                            >
+                                              <MessageCircle size={18} />
+                                              <span className="text-[10px]">Chat</span>
+                                            </button>
+                                          )}
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
+                                            className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <Users size={18} />
+                                            <span className="text-[10px]">Relations</span>
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
+                                            className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <Eye size={18} />
+                                            <span className="text-[10px]">Details</span>
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
+                                            className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                          >
+                                            <Pencil size={18} />
+                                            <span className="text-[10px]">Edit</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })
+                      ) : (
+                        <div className="text-center py-8 col-span-full">
+                          <p className="text-content-muted text-sm">
+                            {filterStatus === "active"
+                              ? "No active members found."
+                              : filterStatus === "paused"
+                                ? "No paused members found."
+                                : filterStatus === "archived"
+                                  ? "No archived members found."
+                                  : "No members found."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   ) : (
-                    <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
-                      <p className="text-content-muted">
-                        {filterStatus === "active"
-                          ? "No active members found."
-                          : filterStatus === "paused"
-                            ? "No paused members found."
-                            : filterStatus === "archived"
-                              ? "No archived members found."
-                              : "No members found."}
-                      </p>
+                    // DETAILED GRID VIEW
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredAndSortedMembers().length > 0 ? (
+                        filteredAndSortedMembers().map((member) => {
+                          const mid = getMemberId(member);
+                          const title = getMemberTitle(member);
+                          const status = getMemberStatus(member);
+                          const { firstName, lastName } = getFirstAndLastName(title);
+                          return (
+                            <div
+                              key={mid}
+                              className="bg-surface-card rounded-xl relative p-4"
+                            >
+                              <div className="absolute top-3 left-3 z-10">
+                                <MemberSpecialNoteIcon
+                                  member={member}
+                                  onEditMember={handleEditMember}
+                                  size="md"
+                                  position="relative"
+                                />
+                              </div>
+
+                              <div className="flex flex-col">
+                                <div className="flex flex-col items-center mb-4">
+                                  <div className="relative mb-3">
+                                    {member.image ? (
+                                      <img
+                                        src={member.image}
+                                        className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
+                                        alt=""
+                                      />
+                                    ) : (
+                                      <InitialsAvatar
+                                        firstName={firstName}
+                                        lastName={lastName}
+                                        size="xl"
+                                        className="rounded-xl"
+                                      />
+                                    )}
+                                    <BirthdayBadge
+                                      show={isBirthday(member.dateOfBirth)}
+                                      dateOfBirth={member.dateOfBirth}
+                                      size="md"
+                                      withTooltip={true}
+                                    />
+                                  </div>
+                                  <div className="flex flex-col items-center">
+                                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                                      <h3 className="text-content-primary font-medium truncate text-lg">
+                                        {title}
+                                      </h3>
+
+                                      <div className="flex items-center gap-2">
+                                        <StatusTag
+                                          status={status}
+                                          reason={member.reason}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {member.dateOfBirth && (
+                                      <div className="flex items-center gap-2 mt-1 text-sm">
+                                        <span className="text-content-secondary">
+                                          {calculateAgeMain(member.dateOfBirth)} years old
+                                        </span>
+                                        <span className="text-content-faint">•</span>
+                                        <span className="text-content-faint">
+                                          {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div className="text-sm mt-1 flex items-center gap-2 flex-wrap justify-center">
+                                      {member.gender && (
+                                        <>
+                                          <span className="text-content-muted">{member.gender}</span>
+                                          <span className="text-content-faint">•</span>
+                                        </>
+                                      )}
+                                      <span className="text-content-muted">
+                                        {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                      </span>
+                                    </div>
+
+                                    {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' && (
+                                      <p className="text-content-muted text-sm truncate mt-1 text-center sm:text-left flex items-center">
+                                        Auto-archive: {member.autoArchiveDate}
+                                        {new Date(member.autoArchiveDate) <= new Date() && (
+                                          <Clock size={16} className="text-primary ml-1" />
+                                        )}
+                                      </p>
+                                    )}
+                                    <div className="mt-2">
+                                      <button
+                                        onClick={() => handleRelationClick(member)}
+                                        className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
+                                      >
+                                        <Users size={12} />
+                                        Relations ({Object.values(memberRelationsMain[mid] || {}).flat().length})
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="bg-surface-dark rounded-lg p-2 mt-auto">
+                                  <div className="grid grid-cols-6 gap-1">
+                                    {!isAdminMode && (
+                                      <button
+                                        onClick={() => handleChatClick(member)}
+                                        className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Start Chat"
+                                      >
+                                        <MessageCircle size={16} />
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => handleCalendarClick(member)}
+                                      className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="View Appointments"
+                                    >
+                                      <Calendar size={16} />
+                                    </button>
+                                    <div className="relative flex items-center justify-center">
+                                      <button
+                                        onClick={() => handleTrainingPlansClickMain(member)}
+                                        className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Training Plans"
+                                      >
+                                        <Dumbbell size={16} />
+                                      </button>
+                                      <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
+                                    </div>
+                                    <div className="relative flex items-center justify-center">
+                                      <button
+                                        onClick={() => handleDocumentClick(member)}
+                                        className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Document Management"
+                                      >
+                                        <FileText size={16} />
+                                      </button>
+                                      <IconBadge count={(member.documents || []).length} />
+                                    </div>
+                                    <button
+                                      onClick={() => handlePaymentClick(member)}
+                                      className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Payment Details"
+                                    >
+                                      <CreditCard size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleHistoryClick(member)}
+                                      className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="View History"
+                                    >
+                                      <History size={16} />
+                                    </button>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-1 mt-1.5">
+                                    <button
+                                      onClick={() => handleViewDetails(member)}
+                                      className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                    >
+                                      <Eye size={14} />
+                                      <span className="text-xs font-medium">Details</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditMember(member)}
+                                      className="p-2 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                    >
+                                      <Pencil size={14} />
+                                      <span className="text-xs font-medium">Edit</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })
+                      ) : (
+                        <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
+                          <p className="text-content-muted">
+                            {filterStatus === "active"
+                              ? "No active members found."
+                              : filterStatus === "paused"
+                                ? "No paused members found."
+                                : filterStatus === "archived"
+                                  ? "No archived members found."
+                                  : "No members found."}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
-          </div>
+              </div>
 
-         
+
             </>
           )}
           <CreateTempMemberModal
@@ -3065,7 +3025,7 @@ const AdminBanner = () => {
         signature={communicationSettingsData?.emailSignature || ""}
       />
 
-      
+
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setShowCreateTempMemberModal(true)}
