@@ -1,5 +1,8 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit')
+
+
+// all routes
 const AdminRoutes = require('./AdminRoutes')
 const StaffRoutes = require('./StaffRoutes');
 const MemberRoutes = require('./MemberRoutes');
@@ -17,6 +20,12 @@ const UserGoalRoutes = require('./nutrition/UserGoalRoutes')
 const ReminderRoutes = require('./ReminderRoutes')
 const NutritionNotificationRoutes = require('./nutrition/NutritionNotificationRoutes')
 const ChatRoutes = require('./ChatRoutes');
+const RelationRoutes = require('./RelationRoutes')
+const SpecialNoteRoutes = require('./SpecialNoteRoutes')
+const LeadRoutes = require('./LeadRoutes')
+
+
+
 
 const router = express.Router();
 
@@ -60,12 +69,16 @@ router.use('/studio', StudioRoutes)
 router.use('/service', ServiceRoutes)
 router.use('/training', TrainingVideoUploadRoutes)
 router.use('/plan', TrainingPlanRoutes)
-router.use('/nutrition/remider', NutritionNotificationRoutes)
+router.use('/nutrition/reminder', NutritionNotificationRoutes)
 
 
 router.use('/reminder', ReminderRoutes)
 router.use('/notification', NotificationRoutes)
 router.use('/email', EmailRoutes)
+
+router.use('/relation', RelationRoutes);
+router.use('/special', SpecialNoteRoutes);
+router.use('/lead', LeadRoutes);
 
 
 module.exports = router

@@ -42,27 +42,8 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         ref: 'User'
     },
     specialsNotes: [{
-        status: {
-            type: String,
-            enum: ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow-up', 'general'],
-            default: 'general'
-        },
-        note: {
-            type: String,
-            required: true
-        },
-        important: {
-            type: Boolean,
-            default: false
-        },
-        valid: {
-            from: {
-                type: Date
-            },
-            until: {
-                type: Date
-            }
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'specialNotes'
     }],
     checkIn: {
         type: Boolean,
@@ -70,8 +51,13 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'paused', 'canceled'],
+        enum: ['active', 'paused', 'canceled', 'archived'],
         default: 'active',
+    },
+    memberType: {
+        type: String,
+        enum: ['full', 'temporary', 'archived'],
+        default: 'full'
     },
     appointments: [{
         type: mongoose.Schema.Types.ObjectId,

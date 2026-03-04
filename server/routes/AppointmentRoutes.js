@@ -7,7 +7,7 @@ const router = express.Router()
 
 router.post('/create', verifyAccessToken, createAppointment)
 router.get('/myAppointments', verifyAccessToken, getMyAppointment)
-router.patch('/:id/cancel', verifyAccessToken, cancelAppointment)
+router.patch('/:appointmentId/cancel', verifyAccessToken, cancelAppointment)
 router.get('/all-appointments', verifyAccessToken, isStaff,allAppointments);
 router.get('/member/:memberId', verifyAccessToken, appointmentByMemberId);
 router.post('/create/:memberId', verifyAccessToken, createAppointmentByStaff);

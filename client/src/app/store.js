@@ -11,6 +11,11 @@ import userGoalReducers from '../features/userGoals/userGoalSlice'
 import dailySummeryReducers from '../features/dailysummery/dailySummerySlice';
 import reminderReducers from '../features/notification/notificationSlice'
 import chatReducers from '../features/communication/chatSlice';
+import relationReducer from '../features/relation/relationSlice';
+import leadReducer from '../features/lead/leadSlice';
+import specialNotesReducer from '../features/specialNotes/specialNoteSlice'
+
+
 
 export const store = configureStore({
     reducer: {
@@ -25,6 +30,9 @@ export const store = configureStore({
         goal: userGoalReducers,
         dailySummery: dailySummeryReducers,
         reminder: reminderReducers,
-        chats: chatReducers
+        chats: chatReducers,
+        relation: relationReducer,
+        leads: leadReducer,
+        specials: specialNotesReducer
     }
 })

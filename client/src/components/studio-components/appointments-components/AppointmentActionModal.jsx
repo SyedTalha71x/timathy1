@@ -5,7 +5,7 @@ import { X, Edit, User, Ban, Trash2, AlertTriangle, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
-import { fetchAllAppointments } from '../../../features/appointments/AppointmentSlice'
+import { cancelAppointment, fetchAllAppointments } from '../../../features/appointments/AppointmentSlice'
 // Helper to parse date from appointment format "Mon | 27-01-2025" to Date object
 const parseDateFromAppointment = (dateString) => {
   if (!dateString) return null;
@@ -59,7 +59,7 @@ export default function AppointmentActionModal({
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [emailNotification, setEmailNotification] = useState(true);
   const [pushNotification, setPushNotification] = useState(true);
-  
+
   // Support both prop names
   const appointmentData = appointment || appointmentMain;
 
@@ -138,18 +138,9 @@ export default function AppointmentActionModal({
 
   // Confirm cancel with notification choice
   const handleConfirmCancel = (shouldNotify) => {
-    // If we have direct access to appointments state, update it directly
-    // This avoids triggering the external NotifyModal
-    if (appointmentsMain && setAppointmentsMain) {
-      const updatedAppointments = appointmentsMain.map((app) =>
-        app.id === appointmentData.id
-          ? { ...app, status: "cancelled", isCancelled: true }
-          : app
-      );
-      setAppointmentsMain(updatedAppointments);
+    if (appointmentData && appointmentData._id) {
+      dispatch(cancelAppointment(appointmentData._id)); // only the string ID
     } else if (onCancel) {
-      // Fallback to legacy handler - but this will trigger external modal
-      // This should only happen if the parent component doesn't pass state props
       onCancel();
     }
 

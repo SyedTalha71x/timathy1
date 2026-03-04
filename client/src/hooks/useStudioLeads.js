@@ -23,6 +23,8 @@ import {
   studioLeadsRelatonData,
   studioMembersData,
 } from "../utils/admin-panel-states/customers-states"
+import { fetchMyStudio } from "../features/studio/studioSlice"
+import { useDispatch, useSelector } from "react-redux"
 
 /**
  * Loads leads data from static default files.
@@ -87,6 +89,8 @@ function loadLeadsFromDefaults({ studioId, mode }) {
  * @returns {{ data, updateData, isLoading, error, mode, studioId }}
  */
 export function useStudioLeads({ studioId = null, mode = "studio" } = {}) {
+  const { leads } = useSelector((state) => state.leads)
+  const dispatch = useDispatch()
   const [data, setData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -99,44 +103,26 @@ export function useStudioLeads({ studioId = null, mode = "studio" } = {}) {
       setError(null)
 
       try {
-        // ========================================
-        // CURRENT: Load from static defaults
-        // FUTURE:  Replace with API call, e.g.:
-        //
-        // if (mode === "admin" && studioId) {
-        //   const res = await fetch(`/api/admin/studios/${studioId}/leads`)
-        //   const json = await res.json()
-        //   if (!cancelled) setData(json)
-        // } else {
-        //   const res = await fetch(`/api/studio/leads`)
-        //   const json = await res.json()
-        //   if (!cancelled) setData(json)
-        // }
-        // ========================================
-        const result = loadLeadsFromDefaults({ studioId, mode })
+        let result
 
-        // Simulate tiny async delay (remove when using real API)
-        await new Promise((r) => setTimeout(r, 50))
-
-        if (!cancelled) {
-          setData(result)
+        if (mode === "admin" && studioId) {
+          const res = await fetch(`/api/admin/studios/${studioId}/leads`)
+          result = await res.json()
+        } else {
+          const res = await dispatch(fetchMyStudio())
+          result = await res.json()
         }
+
+        if (!cancelled) setData(result)
       } catch (err) {
-        if (!cancelled) {
-          setError(err.message || "Failed to load leads data")
-        }
+        if (!cancelled) setError(err.message || "Failed to load leads data")
       } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
+        if (!cancelled) setIsLoading(false)
       }
     }
 
     load()
-
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [studioId, mode])
 
   /**

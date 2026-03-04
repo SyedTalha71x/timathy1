@@ -8,7 +8,7 @@ import DatePickerField from '../DatePickerField';
 import NotifyModalMain from '../NotifyModal';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStudioServices } from "../../../features/services/servicesSlice";
-import { createAppointmentByStaff } from "../../../features/appointments/AppointmentSlice"
+import { createdAppointmentByStaff } from "../../../features/appointments/AppointmentSlice"
 import { fetchAllMember } from "../../../features/member/memberSlice";
 // import { createAppointment } from "../../../features/appointments/AppointmentApi";
 const MAX_PARTICIPANTS = 5;
@@ -520,7 +520,7 @@ const AddAppointmentModal = ({
   // Confirm booking after optional notification
   const handleConfirmBooking = (shouldNotify, notificationOptions) => {
     dispatch(
-      createAppointmentByStaff({
+      createdAppointmentByStaff({
         memberId: pendingAppointmentData.memberId,
         appointmentData: pendingAppointmentData
       })

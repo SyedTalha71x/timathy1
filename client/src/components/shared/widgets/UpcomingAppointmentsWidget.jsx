@@ -77,6 +77,7 @@ const UpcomingAppointmentsWidget = ({
   // lets normalize backend api
   // 🔁 Normalize backend appointment structure to match widget expectations
   const normalizedAppointments = appointments.map(item => {
+ 
   const appointmentDate = new Date(item.date);
   const [hours, minutes] = (item.timeSlot?.start || "00:00").split(":");
   const startDateTime = new Date(item.date);
@@ -259,7 +260,7 @@ const UpcomingAppointmentsWidget = ({
 
               return (
                 <div
-                  key={appointment.id}
+                  key={appointment._id}
                   className={`${appointment.color} ${appointment.isCancelled ? "bg-surface-button" : ""
                     } ${appointment.isPast && !appointment.isCancelled ? "opacity-45" : ""
                     } ${isBlocked ? "bg-surface-dark" : ""
@@ -313,7 +314,7 @@ const UpcomingAppointmentsWidget = ({
                   {/* Content */}
                   <div className="text-white">
                     <p className="font-semibold text-sm truncate">
-                      {appointment.name} {appointment.lastName}
+                      {appointment.name}
                     </p>
                     <div className="flex items-center justify-between mt-1.5">
                       <p className="text-[11px] flex gap-1.5 items-center opacity-80">

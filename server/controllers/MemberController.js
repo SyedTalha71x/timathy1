@@ -16,6 +16,7 @@ const {
 const UserModel = require('../models/UserModel');
 const StudioModel = require('../models/StudioModel');
 const RelationModel = require('../models/RelationModel');
+const specialNotesModel = require('../models/SpecialNotesModel');
 
 
 /**
@@ -335,10 +336,15 @@ const updateMemberCheckIn = async (req, res, next) => {
 const createTemporaryMember = async (req, res, next) => {
   try {
     const userId = req.user?._id
-    const { firstName, lastName, email, gender, telephone, mobileNumber, street, city, zipCode, country, about, archivedAt, relationId } = req.body;
+    const studioId = req.user?.studioId
+    const { firstName, lastName, email, gender, telephone, mobileNumber, street, city, zipCode, country, about, archivedAt, relationId, noteId } = req.body;
 
     const relation = await RelationModel.findById(relationId);
     if (!relation) throw new NotFoundError('Invalid Relation Id')
+
+    const specialNote = await specialNotesModel.findById(noteId)
+    if (!specialNote) throw new NotFoundError('Invalid specialNote Id')
+
 
     if (!req.file) throw new NotFoundError("Invalid File")
 
@@ -357,16 +363,30 @@ const createTemporaryMember = async (req, res, next) => {
       street,
       city,
       zipCode,
+      studio: studioId,
       memberType: 'temporary',
-      status: 'full',
+      status: 'active',
       img: {
         url: cloudinaryResult.secure_url,
         public_id: cloudinaryResult.public_id
       },
-      specialsNotes: [],
+      specialsNotes: noteId,
       relations: relationId,
       createdBy: userId
     })
+
+
+    await RelationModel.findByIdAndUpdate(relationId, {
+      $addToSet: { memberId: member._id }
+    },
+      { new: true }
+    )
+    await specialNote.findByIdAndUpdate(noteId, {
+      $addToSet: { memberId: member._id }
+    },
+      { new: true }
+    )
+
     return res.status(200).json({
       success: true,
       user: member
