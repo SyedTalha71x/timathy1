@@ -61,7 +61,7 @@ export const fetchAppointmentByMemberId = createAsyncThunk('appointments/member'
 
 
 // create appointment by staff for member
-export const createAppointmentByStaff = createAsyncThunk('appointments/createByStaff', async ({ memberId, appointmentData }, { rejectWithValue }) => {
+export const createdAppointmentByStaff = createAsyncThunk('appointments/createByStaff', async ({ memberId, appointmentData }, { rejectWithValue }) => {
     try {
         const res = await AppointmentsApi.createAppointmentByStaff(memberId, appointmentData);
         return res.appointment
@@ -159,16 +159,16 @@ const appointmentSlice = createSlice({
             })
 
             // create appointment by staff for member
-            .addCase(createAppointmentByStaff.pending, (state) => {
+            .addCase(createdAppointmentByStaff.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(createAppointmentByStaff.fulfilled, (state, action) => {
+            .addCase(createdAppointmentByStaff.fulfilled, (state, action) => {
                 state.loading = false;
                 // Optionally, you can add the newly created appointment to the list
                 state.appointments.push(action.payload);
             })
-            .addCase(createAppointmentByStaff.rejected, (state, action) => {
+            .addCase(createdAppointmentByStaff.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message;
             })

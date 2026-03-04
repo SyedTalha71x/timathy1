@@ -19,8 +19,8 @@ import {
   Plus,
   CalendarCheck,
 } from "lucide-react"
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import toast, { Toaster } from "react-hot-toast"
+import { useState, useEffect, useCallback, useRef } from "react"
+import toast from "../../components/shared/SharedToast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 import { useSelector, useDispatch } from 'react-redux'
 import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData, studioData, isStudioClosedOnDate } from "../../utils/studio-states"
@@ -41,9 +41,9 @@ import EditMemberModalMain from "../../components/studio-components/members-comp
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
 import EditBlockedSlotModalMain from "../../components/studio-components/appointments-components/EditBlockedSlotModalMain"
-import { cancelAppointment, fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { cancelAppointment, createdAppointmentByStaff, fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
 import { fetchAllMember, setMemberFilters } from "../../features/member/memberSlice"
-import { createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
+// import { canceledAppointment, createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 
 export default function Appointments() {
   const dispatch = useDispatch();
@@ -687,11 +687,11 @@ export default function Appointments() {
   };
 
   const handleAppointmentSubmit = (appointmentData) => {
-    dispatch(createAppointmentByStaff({ memberId: members._id, appointmentData }))
+    dispatch(createdAppointmentByStaff({ memberId: members._id, appointmentData }))
   }
 
   const handleTrialSubmit = (trialData) => {
-    dispatch(createAppointmentByStaff({ memberId: members._id, trialData }))
+    dispatch(createdAppointmentByStaff({ memberId: members._id, trialData }))
   }
 
   const handleCheckInMain = (appointmentId) => {
@@ -709,8 +709,15 @@ export default function Appointments() {
 
   const handleNotifyMemberMain = (shouldNotify) => {
     setIsNotifyMemberOpenMain(false)
-    if (shouldNotify) { }
-    else { }
+
+    if (!selectedAppointmentMain) return
+
+    dispatch(cancelAppointment({
+      id: selectedAppointmentMain,
+      notify: shouldNotify
+    }))
+
+    setSelectedAppointmentMain(null)
   }
 
   // Legacy handler - kept for compatibility but now handled via tag system
@@ -721,7 +728,7 @@ export default function Appointments() {
   }
 
   const handleCancelAppointmentMain = (appointmentId) => {
-    dispatch(cancelAppointment(appointmentId));
+    setSelectedAppointmentMain(appointmentId);
     setNotifyActionMain("cancel")
   }
 
@@ -738,7 +745,7 @@ export default function Appointments() {
 
   const handleAppointmentOptionsModalMain = (appointment) => {
     // If it's a blocked slot, open EditBlockedSlotModal directly
-    if (appointment.isBlocked || appointment.type === "Blocked Time") {
+    if (appointment.timeSlot?.isBlocked) {
       setBlockedEditData({ ...appointment })
       setIsEditBlockedModalOpen(true)
       return
@@ -1054,7 +1061,7 @@ export default function Appointments() {
           }
         }
       `}</style>
-     
+
 
       <div className="relative h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-surface-card transition-all duration-500 ease-in-out overflow-hidden">
         <main className="flex-1 min-w-0 flex flex-col min-h-0 pt-4 pb-4 pl-4 pr-0">

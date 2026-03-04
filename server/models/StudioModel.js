@@ -65,9 +65,9 @@ const studioSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-    court:{
-      type:String,
-      required:true
+    court: {
+      type: String,
+      required: true
     },
     // REPLACED structure (easier booking logic)
     openingHours: [openingHourSchema],
@@ -98,7 +98,11 @@ const studioSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service'
       }
-    ]
+    ],
+    leads: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'lead'
+    }]
   },
   { timestamps: true }
 );

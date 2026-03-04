@@ -196,7 +196,7 @@ const Calendar = forwardRef(({
   useEffect(() => {
     dispatch(fetchAllMember())
     dispatch(fetchAllAppointments())
-  })
+  }, [dispatch])
 
 
 
@@ -597,33 +597,30 @@ const Calendar = forwardRef(({
       const tooltipX = rect.left + rect.width / 2
       const tooltipY = rect.top - 4
 
-      const dateParts = appointment.date?.split("|")
-      let formattedDate = "N/A"
-      if (dateParts && dateParts.length > 1) {
-        const datePart = dateParts[1].trim()
-        const [day, month, year] = datePart.split("-")
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        formattedDate = `${day} ${monthNames[Number.parseInt(month) - 1]} ${year}`
+      const appointmentDate = appointment.date ? new Date(appointment.date) : null;
+      let formattedDate = "N/A";
+
+      if (appointmentDate && !isNaN(appointmentDate)) {
+        const options = { weekday: "short", day: "numeric", month: "short", year: "numeric" };
+        formattedDate = appointmentDate.toLocaleDateString("en-US", options);
       }
 
-      const fullName = appointment.lastName
-        ? `${appointment.name} ${appointment.lastName}`
-        : (appointment.name || event.title)
+      const fullName = appointment.name
 
       setTooltip({
         show: true, x: tooltipX, y: tooltipY,
         content: {
           name: fullName,
           date: formattedDate,
-          time: `${appointment.startTime || "N/A"} - ${appointment.endTime || "N/A"}`,
+          time: `${appointment.timeSlot?.start || "N/A"} - ${appointment.timeSlot?.end || "N/A"}`,
           type: appointment.isTrial && appointment.trialType
             ? `Trial Training • ${appointment.trialType}`
             : (appointment.type || event.extendedProps?.type || "N/A"),
           // Include note for blocked slots
-          note: (appointment.isBlocked || appointment.type === "Blocked Time")
+          note: (appointment.timeSlot?.isBlocked || appointment.type === "Blocked Time")
             ? (appointment.specialNote?.text || "")
             : null,
-          isBlocked: appointment.isBlocked || appointment.type === "Blocked Time",
+          isBlocked: appointment.timeSlot?.isBlocked || appointment.type === "Blocked Time",
         },
       })
     }, 150); // 150ms delay - prevents tooltip when quickly moving across screen
@@ -1676,9 +1673,9 @@ const Calendar = forwardRef(({
               eventMaxStack={10}
               eventDisplay={(args) => { const viewType = calendarRef.current?.getApi()?.view?.type; return viewType === 'auto'; }}
 
-              eventDidMount={(info) => { if (info.view.type === "dayGridMonth") info.el.style.display = 'none'; }}
-              
-                // Don't hide anything for month view
+              eventDidMount={(info) => { if (info.view.type === "dayGridMonth") info.el.style.display = 'auto'; }}
+
+              // Don't hide anything for month view
               dayCellDidMount={(info) => {
                 const dateStr = formatDateLocal(info.date);
                 const closedInfo = isStudioClosedOnDate(dateStr);

@@ -233,6 +233,14 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   })
 
 
+<<<<<<< HEAD
+=======
+// ============================================
+// Load members data via shared hook (fallback)
+// ============================================
+
+
+>>>>>>> e3e911a (members appointments fully completed with filters now working on lead)
 // Helper function for contract redirect
   const redirectToContract = (memberId) => {
     if (isAdminMode) {
@@ -1521,7 +1529,7 @@ const AdminBanner = () => {
           <AdminBanner />
 
           {/* Loading State */}
-          {(membersLoading || reduxLoading) && (
+          {(membersLoading) && (
             <div className="flex items-center justify-center py-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
             </div>
@@ -1535,7 +1543,7 @@ const AdminBanner = () => {
           )}
 
           {/* Main Content - nur wenn geladen */}
-          {!membersLoading && !reduxLoading && !membersError && (
+          {!membersLoading && !membersError && (
             <>
               {/* Header */}
               <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">

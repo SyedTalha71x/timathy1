@@ -43,16 +43,22 @@ import SortableColumn from "../../components/studio-components/lead-studio-compo
 import SortableLeadCard from "../../components/studio-components/lead-studio-components/sortable-lead-card"
 
 // Data and hooks
-import { 
-  hardcodedLeads, 
-  memberRelationsLeadNew, 
+import {
+  hardcodedLeads,
+  memberRelationsLeadNew,
   DEFAULT_LEAD_SOURCES,
 } from "../../utils/studio-states/leads-states"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads, appointmentTypesData, freeAppointmentsData, leadsData as leadsDataMain } from "../../utils/studio-states"
 import { useStudioLeads } from "../../hooks/useStudioLeads"
+import { useDispatch, useSelector } from "react-redux"
+import { createLeadThunk } from "../../features/lead/leadSlice"
+import { createNoteThunk } from "../../features/specialNotes/specialNoteSlice"
 
 export default function LeadManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
+
+  const { leads, loading } = useSelector((state) => state.leads)
+  const dispatch = useDispatch();
   const navigate = useNavigate()
   const location = useLocation()
   const isAdminMode = mode === "admin" && studioIdProp !== null
@@ -118,7 +124,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
-  const [leads, setLeads] = useState([])
+  // const [leads, setLeads] = useState([])
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [isCreateContractModalOpen, setIsCreateContractModalOpen] = useState(false)
   const [isEditColumnModalOpen, setIsEditColumnModalOpen] = useState(false)
@@ -136,8 +142,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   // Toggle column collapse
   const toggleColumnCollapse = (columnId) => {
-    setCollapsedColumns(prev => 
-      prev.includes(columnId) 
+    setCollapsedColumns(prev =>
+      prev.includes(columnId)
         ? prev.filter(id => id !== columnId)
         : [...prev, columnId]
     )
@@ -165,7 +171,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   // Trial appointments state (simple state like appointments.jsx)
   const [trialAppointmentsMain, setTrialAppointmentsMain] = useState([])
-  
+
   // Lead Special Note Modal states
   const [isLeadSpecialNoteModalOpen, setIsLeadSpecialNoteModalOpen] = useState(false)
   const [selectedLeadForNote, setSelectedLeadForNote] = useState(null)
@@ -237,7 +243,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleDragStart = (event) => {
     const { active } = event
     setActiveId(active.id)
-    
+
     const lead = leads.find((l) => l.id === active.id)
     if (lead) {
       setActiveLead(lead)
@@ -261,7 +267,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // Handle drag end - the main logic
   const handleDragEnd = (event) => {
     const { active, over } = event
-    
+
     setActiveId(null)
     setActiveLead(null)
 
@@ -303,18 +309,18 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
       const columnLeads = leads.filter((l) => l.columnId === sourceColumnId)
       const oldIndex = columnLeads.findIndex((l) => l.id === activeId)
-      const newIndex = overLead 
+      const newIndex = overLead
         ? columnLeads.findIndex((l) => l.id === overId)
         : columnLeads.length - 1
 
       if (oldIndex !== newIndex) {
         const reorderedColumnLeads = arrayMove(columnLeads, oldIndex, newIndex)
-        
+
         // Rebuild full leads array with new order
         const otherLeads = leads.filter((l) => l.columnId !== sourceColumnId)
         const newLeads = [...otherLeads, ...reorderedColumnLeads]
-        
-        setLeads(newLeads)
+
+        // setLeads(newLeads)
         updateLocalStorage(newLeads)
         toast.success("Lead reordered")
       }
@@ -322,7 +328,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     }
 
     // Different column - check for special cases
-    
+
     // Moving TO trial column
     if (targetColumnId === "trial") {
       setDragConfirmation({
@@ -354,7 +360,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // Move lead to a new column
   const moveLeadToColumn = (lead, sourceColumnId, targetColumnId, overId = null) => {
     const targetColumnLeads = leads.filter((l) => l.columnId === targetColumnId)
-    
+
     // Find insertion index
     let insertIndex = targetColumnLeads.length
     if (overId) {
@@ -375,13 +381,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     const otherLeads = leads.filter((l) => l.id !== lead.id)
     const beforeTarget = otherLeads.filter((l) => l.columnId !== targetColumnId)
     const targetLeads = otherLeads.filter((l) => l.columnId === targetColumnId)
-    
+
     targetLeads.splice(insertIndex, 0, updatedLead)
     const newLeads = [...beforeTarget, ...targetLeads]
 
-    setLeads(newLeads)
+    // setLeads(newLeads)
     updateLocalStorage(newLeads)
-    
+
     const targetColumn = columns.find((c) => c.id === targetColumnId)
     toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
   }
@@ -405,10 +411,10 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleConfirmToTrialWithBooking = () => {
     const { lead } = dragConfirmation
     setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-    
+
     // Mark that we should move to trial after successful booking
     setShouldMoveToTrialAfterBooking(true)
-    
+
     // Open trial booking modal (don't move yet - move after successful booking)
     setSelectedLead(lead)
     setSelectedLeadForTrial(lead)
@@ -418,7 +424,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleConfirmToTrialWithoutBooking = () => {
     const { lead } = dragConfirmation
     setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-    
+
     // Just move to trial column without booking
     const newLeads = leads.map((l) => {
       if (l.id === lead.id) {
@@ -426,13 +432,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       }
       return l
     })
-    setLeads(newLeads)
-    
+    // setLeads(newLeads)
+
     // Update localStorage
     if (lead.source === "localStorage") {
       updateLocalStorage(newLeads)
     }
-    
+
     toast.success(`${lead.firstName} moved to Trial Training Arranged`)
   }
 
@@ -440,7 +446,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleConfirmFromTrial = () => {
     const { lead, targetColumnId } = dragConfirmation
     setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-    
+
     // Open the special note modal for moving from trial
     handleEditLeadNote(lead, targetColumnId)
   }
@@ -453,12 +459,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // ============================================
   // Sorting Functions
   // ============================================
-  
+
   // Function to get relation count for a lead
   const getRelationCount = (leadId) => {
     const relations = memberRelationsLead[leadId]
     if (!relations) return 0
-    
+
     // Count all relations across all categories
     let count = 0
     Object.values(relations).forEach(categoryArray => {
@@ -485,19 +491,19 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           const nameB = `${b.firstName || ''} ${b.surname || ''}`.toLowerCase()
           comparison = nameA.localeCompare(nameB)
           break
-        
+
         case 'relations':
           const relCountA = getRelationCount(a.id)
           const relCountB = getRelationCount(b.id)
           comparison = relCountA - relCountB
           break
-        
+
         case 'date':
           const dateA = new Date(a.createdAt || 0)
           const dateB = new Date(b.createdAt || 0)
           comparison = dateA - dateB
           break
-        
+
         default:
           return 0
       }
@@ -513,7 +519,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     setColumnSortSettings(prev => {
       const currentSettings = prev[columnId]
       const newSortOrder = currentSettings.sortBy === sortBy && currentSettings.sortOrder === 'asc' ? 'desc' : 'asc'
-      
+
       return {
         ...prev,
         [columnId]: {
@@ -588,7 +594,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     if (isAdminMode) {
       // Admin mode: Load from hook data
       if (leadsHookData) {
-        setLeads(leadsHookData.leads)
+        // setLeads(leadsHookData.leads)
         setMemberRelationsLead(leadsHookData.memberRelations)
       }
       return
@@ -604,7 +610,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       }))
       combinedLeads = [...hardcodedLeads, ...parsedStoredLeads]
     }
-    setLeads(combinedLeads)
+    // setLeads(combinedLeads)
   }, [isAdminMode, leadsHookData])
 
   // Handle navigation state for filtering (from AppointmentActionModal)
@@ -613,13 +619,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       // Find the lead
       const lead = leads.find(l => l.id === location.state.filterLeadId)
       const leadName = location.state.filterLeadName || (lead ? `${lead.firstName} ${lead.lastName}` : 'Lead')
-      
+
       // Add to filter (same behavior as members page)
       setLeadFilters([{
         leadId: location.state.filterLeadId,
         leadName: leadName
       }])
-      
+
       // Clear the navigation state
       navigate(location.pathname, { replace: true, state: {} })
     }
@@ -630,12 +636,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     const handleKeyPress = (e) => {
       // Ignore if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
+
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
-      
+
       // Check if ANY modal is open
-      const anyModalOpen = 
+      const anyModalOpen =
         isModalOpen ||
         isEditModalOpenLead ||
         isViewDetailsModalOpen ||
@@ -654,11 +660,11 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         isLeadSpecialNoteModalOpen ||
         showHistoryModalLead ||
         dragConfirmation.isOpen;
-      
+
       // Also check if any modal overlay is visible in the DOM
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
-      
+        document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+
       // ESC key - Close modals (should work even when modals are open)
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -677,22 +683,22 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         else if (showHistoryModalLead) setShowHistoryModalLead(false);
         return;
       }
-      
+
       if (anyModalOpen || hasVisibleModal) return;
-      
+
       // C key - Create Lead
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setIsModalOpen(true);
       }
-      
+
       // V key - Toggle compact/detailed view
       if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setIsCompactView(prev => !prev);
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [
@@ -724,7 +730,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         setIsCompactView(true);
       }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -781,11 +787,11 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         // Add new note to existing notes array
         const existingNotes = lead.notes || []
         const updatedNotes = [newNote, ...existingNotes]
-        
+
         // Find the first important note or first note for backwards compatibility
         const importantNote = updatedNotes.find(n => n.isImportant)
         const primaryNote = importantNote || updatedNotes[0]
-        
+
         return {
           ...lead,
           notes: updatedNotes,
@@ -802,12 +808,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       }
       return lead
     })
-    setLeads(updatedLeads)
+    // setLeads(updatedLeads)
     updateLocalStorage(updatedLeads)
     setIsLeadSpecialNoteModalOpen(false)
     setSelectedLeadForNote(null)
     setTargetColumnForNote(null)
-    
+
     if (targetColumnId) {
       const targetColumn = columns.find((c) => c.id === targetColumnId)
       toast.success(`Special note added and lead moved to ${targetColumn?.title || targetColumnId}`)
@@ -818,7 +824,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   const confirmDeleteLead = () => {
     const updatedLeads = leads.filter((lead) => lead.id !== leadToDelete.id)
-    setLeads(updatedLeads)
+    // setLeads(updatedLeads)
     if (leadToDelete?.source === "localStorage") {
       updateLocalStorage(updatedLeads)
     }
@@ -832,48 +838,54 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     setIsDocumentModalOpen(true)
   }
 
-  const handleSaveLead = (data) => {
-    const now = new Date().toISOString()
-    // Get first non-trial column as default status
-    const defaultStatus = columns.find(col => col.id !== "trial")?.id || "active"
-    
-    const newLead = {
-      id: `l${Date.now()}`,
-      firstName: data.firstName,
-      surname: data.lastName,
-      email: data.email,
-      phoneNumber: data.phone,
-      telephoneNumber: data.telephoneNumber || "",
-      gender: data.gender || "",
-      birthday: data.birthday || null,
-      street: data.street || "",
-      zipCode: data.zipCode || "",
-      city: data.city || "",
-      country: data.country || "",
-      leadSource: data.source || "", // Lead source from form (Website, Google Ads, etc.)
-      details: data.details || "",
-      trialPeriod: data.trialPeriod,
-      hasTrialTraining: data.hasTrialTraining,
-      avatar: data.avatar,
-      source: "localStorage", // Internal source marker
-      status: data.status || defaultStatus,
-      columnId: data.hasTrialTraining ? "trial" : data.status || defaultStatus,
-      createdAt: now,
-      specialNote: {
-        text: data.note || "",
-        isImportant: data.noteImportance === "important",
-        startDate: data.noteStartDate || null,
-        endDate: data.noteEndDate || null,
-      },
-      company: data.company || "",
-      interestedIn: data.interestedIn || "",
-      address: data.address || "",
+  const handleSaveLead = async (data) => {
+    try {
+      const defaultStatus = columns.find(col => col.id !== "trial")?.id || "active";
+
+      const leadPayload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || "",
+        phone: data.phone ? Number(data.phone) : undefined,
+        telephone: data.telephoneNumber ? Number(data.telephoneNumber) : undefined,
+        gender: data.gender || "male",
+        dateOfBirth: new Date(data.birthday),
+        city: data.city,
+        street: data.street,
+        zipCode: Number(data.zipCode),
+        country: data.country,
+        source: data.source || "",
+        status: data.status || defaultStatus,
+        trainingGoal: data.interestedIn || "",
+        about: data.details || "",
+        studioId: studioIdProp,
+      };
+
+      // Create Lead
+      const createdLead = await dispatch(createLeadThunk(leadPayload)).unwrap();
+
+      // Create special note if it exists
+      if (data.note) {
+        const notePayload = {
+          note: data.note,
+          status: data.noteStatus || "general",
+          isImportant: data.noteImportance === "important",
+          valid: {
+            from: data.noteStartDate ? new Date(data.noteStartDate) : null,
+            until: data.noteEndDate ? new Date(data.noteEndDate) : null,
+          },
+          leadId: createdLead._id,
+        };
+
+        await dispatch(createNoteThunk(notePayload)).unwrap();
+      }
+
+      toast.success("Lead has been added");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to create lead");
     }
-    const updatedLeads = [...leads, newLead]
-    setLeads(updatedLeads)
-    updateLocalStorage(updatedLeads)
-    toast.success("Lead has been added")
-  }
+  };
 
   const handleSaveEdit = (data) => {
     // Check if there's a pending move from trial column
@@ -890,41 +902,42 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
-            ...lead,
-            firstName: data.firstName,
-            surname: data.surname,
-            email: data.email,
-            phoneNumber: data.phoneNumber,
-            telephoneNumber: data.telephoneNumber !== undefined ? data.telephoneNumber : (lead.telephoneNumber || ""),
-            gender: data.gender || lead.gender || "",
-            street: data.street || lead.street || "",
-            zipCode: data.zipCode || lead.zipCode || "",
-            city: data.city || lead.city || "",
-            country: data.country || lead.country || "",
-            leadSource: data.source || lead.leadSource || "", // Lead source from form
-            details: data.details || lead.details || "",
-            trialPeriod: data.trialPeriod,
-            hasTrialTraining: pendingMove && pendingMove.leadId === lead.id ? false : data.hasTrialTraining,
-            avatar: data.avatar,
-            status: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : data.status || lead.status,
-            columnId: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : (data.hasTrialTraining ? "trial" : data.status || lead.columnId),
-            notes: data.notes || lead.notes || [],
-            specialNote: {
-              text: data.specialNote?.text || "",
-              isImportant: data.specialNote?.isImportant || false,
-              startDate: data.specialNote?.startDate || null,
-              endDate: data.specialNote?.endDate || null,
-            },
-            company: data.company || lead.company,
-            interestedIn: data.interestedIn || lead.interestedIn,
-            birthday: data.birthday || lead.birthday,
-            address: data.address || lead.address,
-          }
+          ...lead,
+          firstName: data.firstName,
+          surname: data.surname,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          telephoneNumber: data.telephoneNumber !== undefined ? data.telephoneNumber : (lead.telephoneNumber || ""),
+          gender: data.gender || lead.gender || "",
+          street: data.street || lead.street || "",
+          zipCode: data.zipCode || lead.zipCode || "",
+          city: data.city || lead.city || "",
+          country: data.country || lead.country || "",
+          leadSource: data.source || lead.leadSource || "", // Lead source from form
+          details: data.details || lead.details || "",
+          trialPeriod: data.trialPeriod,
+          hasTrialTraining: pendingMove && pendingMove.leadId === lead.id ? false : data.hasTrialTraining,
+          avatar: data.avatar,
+          status: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : data.status || lead.status,
+          columnId: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : (data.hasTrialTraining ? "trial" : data.status || lead.columnId),
+          notes: data.notes || lead.notes || [],
+          specialNote: {
+            text: data.specialNote?.text || "",
+            isImportant: data.specialNote?.isImportant || false,
+            startDate: data.specialNote?.startDate || null,
+            endDate: data.specialNote?.endDate || null,
+          },
+          company: data.company || lead.company,
+          interestedIn: data.interestedIn || lead.interestedIn,
+          birthday: data.birthday || lead.birthday,
+          address: data.address || lead.address,
+        }
         : lead
     )
-    setLeads(updatedLeads)
+    // setLeads(updatedLeads)
+    // dispatch()
     updateLocalStorage(updatedLeads)
-    
+
     // Clear pending move and show appropriate toast
     if (pendingMove && pendingMove.leadId === data.id) {
       sessionStorage.removeItem('pendingLeadMove')
@@ -960,8 +973,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // Helper function to check if lead has medical history
   const leadHasMedicalHistory = (lead) => {
     if (!lead || !lead.documents) return false
-    return lead.documents.some(doc => 
-      doc.type === "medicalHistory" || 
+    return lead.documents.some(doc =>
+      doc.type === "medicalHistory" ||
       doc.category === "medicalHistory" ||
       doc.section === "medicalHistory"
     )
@@ -969,7 +982,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   const handleSaveNewTrialTraining = (trialData) => {
     const trialLead = selectedLeadForTrial
-    
+
     // Create new appointment with unique ID and lead name
     const newAppointment = {
       ...trialData,
@@ -982,9 +995,9 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       isCancelled: false,
       isPast: false,
     }
-    
+
     setTrialAppointmentsMain(prev => [...prev, newAppointment])
-    
+
     // Always move lead to trial column when booking trial training (if not already there)
     if (trialLead && trialLead.columnId !== "trial") {
       const newLeads = leads.map((l) => {
@@ -993,26 +1006,26 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         }
         return l
       })
-      setLeads(newLeads)
-      
+      // setLeads(newLeads)
+
       // Update localStorage
       if (trialLead.source === "localStorage") {
         updateLocalStorage(newLeads)
       }
-      
+
       toast.success("Trial training booked and lead moved to Trial Training Arranged!")
     } else {
       toast.success("Trial training booked successfully!")
     }
-    
+
     // Reset flag if it was set
     setShouldMoveToTrialAfterBooking(false)
     setIsTrialModalOpen(false)
     setSelectedLeadForTrial(null)
-    
+
     // Trigger refresh of trial appointments list
     setTrialAppointmentsRefreshKey(prev => prev + 1)
-    
+
     // Open Medical History Prompt Modal after successful booking
     // BUT ONLY if the lead does NOT have Medical History yet
     if (trialLead && !leadHasMedicalHistory(trialLead)) {
@@ -1027,7 +1040,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       const filterIds = leadFilters.map(f => f.leadId);
       return leads.filter((lead) => filterIds.includes(lead.id));
     }
-    
+
     // No live filtering while typing - list only changes when chips are selected
     return leads;
   }, [leads, leadFilters])
@@ -1039,7 +1052,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       // Exclude already filtered leads
       const isAlreadyFiltered = leadFilters.some(f => f.leadId === lead.id);
       if (isAlreadyFiltered) return false;
-      
+
       const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase();
       return fullName.includes(searchQuery.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1131,12 +1144,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleCreateAssessmentClick = (lead, fromDocManagement = false) => {
     setSelectedLead(lead)
     setAssessmentFromDocumentManagement(fromDocManagement)
-    
+
     // Close document management modal if coming from there
     if (fromDocManagement) {
       setIsDocumentModalOpen(false)
     }
-    
+
     setIsAssessmentSelectionModalOpen(true)
   }
 
@@ -1148,16 +1161,16 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   const handleAssessmentComplete = (documentData) => {
     // Add the document directly to lead.documents or update it
-    setLeads(prevLeads => 
+    (prevLeads =>
       prevLeads.map(lead => {
         if (lead.id === selectedLead.id) {
           const existingDocuments = lead.documents || []
-          
+
           if (documentData.isEdit) {
             // Update bestehendes document
             return {
               ...lead,
-              documents: existingDocuments.map(doc => 
+              documents: existingDocuments.map(doc =>
                 doc.id === documentData.id ? documentData : doc
               ),
               hasAssessment: true
@@ -1174,13 +1187,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         return lead
       })
     )
-    
+
     setIsAssessmentFormModalOpen(false)
     setSelectedAssessment(null)
     setIsEditingAssessment(false)
     setEditingAssessmentDocument(null)
     setIsViewingAssessment(false)
-    
+
     // Only show contract prompt if NOT from document management
     if (assessmentFromDocumentManagement) {
       // Update selectedLeadForDocuments with the new document
@@ -1188,7 +1201,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         const existingDocuments = selectedLeadForDocuments.documents || []
         let updatedDocuments
         if (documentData.isEdit) {
-          updatedDocuments = existingDocuments.map(doc => 
+          updatedDocuments = existingDocuments.map(doc =>
             doc.id === documentData.id ? documentData : doc
           )
         } else {
@@ -1230,8 +1243,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   const handleDocumentsUpdate = (leadId, documents) => {
     // Update lead documents in state
-    setLeads(prevLeads => 
-      prevLeads.map(lead => 
+    (prevLeads =>
+      prevLeads.map(lead =>
         lead.id === leadId ? { ...lead, documents } : lead
       )
     )
@@ -1249,9 +1262,9 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleMedicalHistoryPromptConfirm = () => {
     setShowMedicalHistoryPromptModal(false)
     // Set a default medical history assessment
-    setSelectedAssessment({ 
-      id: 'medical-history-default', 
-      title: 'Medical History Assessment' 
+    setSelectedAssessment({
+      id: 'medical-history-default',
+      title: 'Medical History Assessment'
     })
     setIsAssessmentFormModalOpen(true)
     // selectedLead ist bereits gesetzt vom Trial Booking
@@ -1304,447 +1317,447 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       {/* Main Content - skip if admin mode and still loading/error */}
       {(!isAdminMode || (!leadsLoading && !leadsError)) && (<>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-content-primary font-bold">Leads</h1>
-          
-          {/* Compact/Detailed View Toggle - Desktop only */}
-          <div className="hidden md:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
-            <div className="relative group">
-              <button
-                onClick={() => setIsCompactView(!isCompactView)}
-                className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
-              >
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex gap-0.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                    <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl text-content-primary font-bold">Leads</h1>
+
+            {/* Compact/Detailed View Toggle - Desktop only */}
+            <div className="hidden md:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
+              <div className="relative group">
+                <button
+                  onClick={() => setIsCompactView(!isCompactView)}
+                  className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex gap-0.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                    </div>
+                    <div className="flex gap-0.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                    </div>
                   </div>
-                  <div className="flex gap-0.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                    <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                  </div>
+                </button>
+
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Create Lead + Sidebar Toggle - always together on the right */}
+          <div className="flex items-center gap-2">
+            {/* Create Lead Button with Tooltip */}
+            <div className="hidden md:block relative group">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+              >
+                <Plus size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Create Lead</span>
               </button>
-              
+
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
+                <span className="font-medium">Create Lead</span>
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                  C
+                </span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
               </div>
             </div>
           </div>
         </div>
-        
-        {/* Create Lead + Sidebar Toggle - always together on the right */}
-        <div className="flex items-center gap-2">
-          {/* Create Lead Button with Tooltip */}
-          <div className="hidden md:block relative group">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
-            >
-              <Plus size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Create Lead</span>
-            </button>
-            
-            {/* Tooltip */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-              <span className="font-medium">Create Lead</span>
-              <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                C
-              </span>
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Search Bar with Inline Filter Chips */}
-      <div className="mb-4 sm:mb-6" ref={searchDropdownRef}>
-        <div className="relative">
-          <div 
-            className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
-            onClick={() => searchInputRef.current?.focus()}
-          >
-            <Search className="text-content-muted flex-shrink-0" size={16} />
-            
-            {/* Filter Chips */}
-            {leadFilters.map((filter) => (
-              <div 
-                key={filter.leadId}
-                className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
-              >
-                <span className="text-content-primary text-xs whitespace-nowrap">{filter.leadName}</span>
+        {/* Search Bar with Inline Filter Chips */}
+        <div className="mb-4 sm:mb-6" ref={searchDropdownRef}>
+          <div className="relative">
+            <div
+              className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
+              onClick={() => searchInputRef.current?.focus()}
+            >
+              <Search className="text-content-muted flex-shrink-0" size={16} />
+
+              {/* Filter Chips */}
+              {leadFilters.map((filter) => (
+                <div
+                  key={filter.leadId}
+                  className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
+                >
+                  <span className="text-content-primary text-xs whitespace-nowrap">{filter.leadName}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveLeadFilter(filter.leadId);
+                    }}
+                    className="p-0.5 hover:bg-primary/30 rounded transition-colors"
+                  >
+                    <X size={12} className="text-content-muted hover:text-content-primary" />
+                  </button>
+                </div>
+              ))}
+
+              {/* Search Input */}
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder={leadFilters.length > 0 ? "Add more..." : "Search leads..."}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchDropdown(true);
+                }}
+                onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                onKeyDown={handleSearchKeyDown}
+                className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-gray-500 [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+              />
+
+              {/* Clear All Button */}
+              {leadFilters.length > 0 && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRemoveLeadFilter(filter.leadId);
+                    setLeadFilters([]);
                   }}
-                  className="p-0.5 hover:bg-primary/30 rounded transition-colors"
+                  className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
+                  title="Clear all filters"
                 >
-                  <X size={12} className="text-content-muted hover:text-content-primary" />
+                  <X size={14} className="text-content-muted hover:text-content-primary" />
                 </button>
+              )}
+            </div>
+
+            {/* Autocomplete Dropdown */}
+            {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+                {getSearchSuggestions().map((lead) => (
+                  <button
+                    key={lead.id}
+                    onClick={() => handleSelectLead(lead)}
+                    className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-content-primary truncate">{lead.firstName} {lead.surname}</p>
+                      <p className="text-xs text-content-faint truncate">{lead.email}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
-            ))}
-            
-            {/* Search Input */}
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder={leadFilters.length > 0 ? "Add more..." : "Search leads..."}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSearchDropdown(true);
-              }}
-              onFocus={() => searchQuery && setShowSearchDropdown(true)}
-              onKeyDown={handleSearchKeyDown}
-              className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-gray-500 [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
-            />
-            
-            {/* Clear All Button */}
-            {leadFilters.length > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLeadFilters([]);
-                }}
-                className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                title="Clear all filters"
-              >
-                <X size={14} className="text-content-muted hover:text-content-primary" />
-              </button>
+            )}
+
+            {/* No results message */}
+            {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                <p className="text-sm text-content-faint text-center">No leads found</p>
+              </div>
             )}
           </div>
-          
-          {/* Autocomplete Dropdown */}
-          {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-              {getSearchSuggestions().map((lead) => (
-                <button
-                  key={lead.id}
-                  onClick={() => handleSelectLead(lead)}
-                  className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-content-primary truncate">{lead.firstName} {lead.surname}</p>
-                    <p className="text-xs text-content-faint truncate">{lead.email}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          
-          {/* No results message */}
-          {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-              <p className="text-sm text-content-faint text-center">No leads found</p>
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* Kanban Board with DnD Context */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={collisionDetection}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        autoScroll={false}
-      >
-        {/* Mobile: CSS Grid (1 column), Desktop: Flexbox for equal width columns */}
-        <div 
-          className="
+        {/* Kanban Board with DnD Context */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={collisionDetection}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          autoScroll={false}
+        >
+          {/* Mobile: CSS Grid (1 column), Desktop: Flexbox for equal width columns */}
+          <div
+            className="
             grid grid-cols-1 gap-4 pb-4
             md:flex md:flex-row md:flex-nowrap md:h-[calc(100vh-220px)] md:min-h-[400px] md:overflow-y-visible
           "
-        >
-          {columns.map((column) => {
-            const isCollapsed = collapsedColumns.includes(column.id)
-            const expandedCount = columns.length - collapsedColumns.length
-            const columnLeads = getColumnLeads(column.id)
-            
-            // Collapsed state - show minimal bar (horizontal on mobile, vertical on desktop)
-            if (isCollapsed) {
-              return (
-                <div 
-                  key={column.id}
-                  className="w-full h-12 md:w-12 md:h-full md:flex-shrink-0 transition-all duration-300 ease-in-out overflow-visible hover:z-[100] relative"
-                >
-                  <div 
-                    className="w-full h-full rounded-xl flex flex-row md:flex-col items-center px-3 py-2 md:px-0 md:py-3 transition-colors overflow-visible"
-                    style={{ backgroundColor: column.color + '20' }}
-                  >
-                    {/* === MOBILE LAYOUT === */}
-                    {/* Color indicator - first on mobile */}
-                    <div 
-                      className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0 md:hidden"
-                      style={{ backgroundColor: column.color }}
-                    />
-                    
-                    {/* Title - mobile only */}
-                    <span className="font-medium text-content-primary text-xs sm:text-sm whitespace-nowrap ml-2 md:hidden">
-                      {column.title}
-                    </span>
-                    
-                    {/* Lead count badge - mobile */}
-                    <span 
-                      className="ml-2 shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full md:hidden"
-                    >
-                      {columnLeads.length}
-                    </span>
-                    
-                    {/* Expand button - right side on mobile */}
-                    <div className="relative group flex-shrink-0 hover:z-[100] ml-auto md:hidden">
-                      <button 
-                        className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
-                        onClick={() => toggleColumnCollapse(column.id)}
-                      >
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className="text-content-muted"
-                        >
-                          <path d="m6 9 6 6 6-6"/>
-                        </svg>
-                      </button>
-                    </div>
+          >
+            {columns.map((column) => {
+              const isCollapsed = collapsedColumns.includes(column.id)
+              const expandedCount = columns.length - collapsedColumns.length
+              const columnLeads = getColumnLeads(column.id)
 
-                    {/* === DESKTOP LAYOUT === */}
-                    {/* Expand button - top on desktop */}
-                    <div className="relative group flex-shrink-0 hover:z-[100] hidden md:block">
-                      <button 
-                        className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
-                        onClick={() => toggleColumnCollapse(column.id)}
+              // Collapsed state - show minimal bar (horizontal on mobile, vertical on desktop)
+              if (isCollapsed) {
+                return (
+                  <div
+                    key={column.id}
+                    className="w-full h-12 md:w-12 md:h-full md:flex-shrink-0 transition-all duration-300 ease-in-out overflow-visible hover:z-[100] relative"
+                  >
+                    <div
+                      className="w-full h-full rounded-xl flex flex-row md:flex-col items-center px-3 py-2 md:px-0 md:py-3 transition-colors overflow-visible"
+                      style={{ backgroundColor: column.color + '20' }}
+                    >
+                      {/* === MOBILE LAYOUT === */}
+                      {/* Color indicator - first on mobile */}
+                      <div
+                        className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0 md:hidden"
+                        style={{ backgroundColor: column.color }}
+                      />
+
+                      {/* Title - mobile only */}
+                      <span className="font-medium text-content-primary text-xs sm:text-sm whitespace-nowrap ml-2 md:hidden">
+                        {column.title}
+                      </span>
+
+                      {/* Lead count badge - mobile */}
+                      <span
+                        className="ml-2 shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full md:hidden"
                       >
-                        <ChevronRight size={16} className="text-content-muted" />
-                      </button>
-                      {/* Tooltip */}
-                      <div className="absolute left-0 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
-                        <span className="font-medium">Expand column</span>
-                        <div className="absolute -top-1 left-2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                        {columnLeads.length}
+                      </span>
+
+                      {/* Expand button - right side on mobile */}
+                      <div className="relative group flex-shrink-0 hover:z-[100] ml-auto md:hidden">
+                        <button
+                          className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+                          onClick={() => toggleColumnCollapse(column.id)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-content-muted"
+                          >
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
+                        </button>
                       </div>
-                    </div>
-                    
-                    {/* Lead count badge - desktop */}
-                    <span 
-                      className="hidden md:block mt-2 shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full"
-                    >
-                      {columnLeads.length}
-                    </span>
-                    
-                    {/* Vertical title with color indicator - desktop only */}
-                    <div 
-                      className="hidden md:flex flex-1 items-center justify-center py-4"
-                    >
-                      <div 
-                        className="flex items-center gap-2"
-                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+
+                      {/* === DESKTOP LAYOUT === */}
+                      {/* Expand button - top on desktop */}
+                      <div className="relative group flex-shrink-0 hover:z-[100] hidden md:block">
+                        <button
+                          className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+                          onClick={() => toggleColumnCollapse(column.id)}
+                        >
+                          <ChevronRight size={16} className="text-content-muted" />
+                        </button>
+                        {/* Tooltip */}
+                        <div className="absolute left-0 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
+                          <span className="font-medium">Expand column</span>
+                          <div className="absolute -top-1 left-2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                        </div>
+                      </div>
+
+                      {/* Lead count badge - desktop */}
+                      <span
+                        className="hidden md:block mt-2 shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full"
                       >
-                        <span className="font-medium text-content-primary text-xs sm:text-sm whitespace-nowrap transform rotate-180">
-                          {column.title}
-                        </span>
-                        <div 
-                          className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0 transform rotate-180"
-                          style={{ backgroundColor: column.color }}
-                        />
+                        {columnLeads.length}
+                      </span>
+
+                      {/* Vertical title with color indicator - desktop only */}
+                      <div
+                        className="hidden md:flex flex-1 items-center justify-center py-4"
+                      >
+                        <div
+                          className="flex items-center gap-2"
+                          style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+                        >
+                          <span className="font-medium text-content-primary text-xs sm:text-sm whitespace-nowrap transform rotate-180">
+                            {column.title}
+                          </span>
+                          <div
+                            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0 transform rotate-180"
+                            style={{ backgroundColor: column.color }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
+                )
+              }
+
+              // Expanded state - show full column
+              // Mobile: Grid cell (full width), Desktop: Flex item with equal width
+              return (
+                <div
+                  key={column.id}
+                  className="w-full min-h-[300px] md:h-full md:flex-1 md:basis-0 md:min-w-0 transition-all duration-300 ease-in-out overflow-visible"
+                >
+                  <SortableColumn
+                    id={column.id}
+                    title={column.title}
+                    color={column.color}
+                    leads={columnLeads}
+                    onViewDetails={handleViewLeadDetails}
+                    onAddTrial={handleAddTrialTraining}
+                    onCreateContract={handleCreateContract}
+                    onEditLead={handleEditLead}
+                    onDeleteLead={handleDeleteLead}
+                    isEditable={!column.isFixed}
+                    onEditColumn={handleEditColumn}
+                    memberRelationsLead={memberRelationsLead}
+                    setShowHistoryModalLead={setShowHistoryModalLead}
+                    setSelectedLead={setSelectedLead}
+                    onManageTrialAppointments={handleManageTrialAppointments}
+                    onEditNote={() => { }}
+                    onOpenDocuments={handleOpenDocuments}
+                    onCreateAssessment={handleCreateAssessmentClick}
+                    isCompactView={isCompactView}
+                    expandedLeadId={expandedLeadId}
+                    setExpandedLeadId={setExpandedLeadId}
+                    sortSettings={columnSortSettings[column.id]}
+                    onSortChange={(sortBy) => handleSortChange(column.id, sortBy)}
+                    onToggleSortOrder={() => handleToggleSortOrder(column.id)}
+                    onToggleCollapse={() => toggleColumnCollapse(column.id)}
+                  />
                 </div>
               )
-            }
-            
-            // Expanded state - show full column
-            // Mobile: Grid cell (full width), Desktop: Flex item with equal width
-            return (
-              <div 
-                key={column.id}
-                className="w-full min-h-[300px] md:h-full md:flex-1 md:basis-0 md:min-w-0 transition-all duration-300 ease-in-out overflow-visible"
-              >
-                <SortableColumn
-                  id={column.id}
-                  title={column.title}
-                  color={column.color}
-                  leads={columnLeads}
-                  onViewDetails={handleViewLeadDetails}
-                  onAddTrial={handleAddTrialTraining}
-                  onCreateContract={handleCreateContract}
-                  onEditLead={handleEditLead}
-                  onDeleteLead={handleDeleteLead}
-                  isEditable={!column.isFixed}
-                  onEditColumn={handleEditColumn}
-                  memberRelationsLead={memberRelationsLead}
-                  setShowHistoryModalLead={setShowHistoryModalLead}
-                  setSelectedLead={setSelectedLead}
-                  onManageTrialAppointments={handleManageTrialAppointments}
-                  onEditNote={() => {}}
-                  onOpenDocuments={handleOpenDocuments}
-                  onCreateAssessment={handleCreateAssessmentClick}
-                  isCompactView={isCompactView}
-                  expandedLeadId={expandedLeadId}
-                  setExpandedLeadId={setExpandedLeadId}
-                  sortSettings={columnSortSettings[column.id]}
-                  onSortChange={(sortBy) => handleSortChange(column.id, sortBy)}
-                  onToggleSortOrder={() => handleToggleSortOrder(column.id)}
-                  onToggleCollapse={() => toggleColumnCollapse(column.id)}
-                />
-              </div>
-            )
-          })}
-        </div>
+            })}
+          </div>
 
-        {/* Drag Overlay - shows the dragged item */}
-        <DragOverlay 
-          dropAnimation={{
-            duration: 200,
-            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-          }}
-          style={{ zIndex: 99999 }}
-        >
-          {activeLead ? (
-            <SortableLeadCard
-              lead={activeLead}
-              columnId={activeLead.columnId}
-              index={0}
-              memberRelationsLead={memberRelationsLead}
-              isDraggingOverlay={true}
-              isCompactView={isCompactView}
-              expandedLeadId={expandedLeadId}
-              setExpandedLeadId={setExpandedLeadId}
-              onViewDetails={() => {}}
-              onAddTrial={() => {}}
-              onCreateContract={() => {}}
-              onEditLead={() => {}}
-              onDeleteLead={() => {}}
-              setShowHistoryModalLead={() => {}}
-              setSelectedLead={() => {}}
-              onManageTrialAppointments={() => {}}
-              onEditNote={() => {}}
-              onOpenDocuments={() => {}}
-              onCreateAssessment={() => {}}
-            />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          {/* Drag Overlay - shows the dragged item */}
+          <DragOverlay
+            dropAnimation={{
+              duration: 200,
+              easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+            }}
+            style={{ zIndex: 99999 }}
+          >
+            {activeLead ? (
+              <SortableLeadCard
+                lead={activeLead}
+                columnId={activeLead.columnId}
+                index={0}
+                memberRelationsLead={memberRelationsLead}
+                isDraggingOverlay={true}
+                isCompactView={isCompactView}
+                expandedLeadId={expandedLeadId}
+                setExpandedLeadId={setExpandedLeadId}
+                onViewDetails={() => { }}
+                onAddTrial={() => { }}
+                onCreateContract={() => { }}
+                onEditLead={() => { }}
+                onDeleteLead={() => { }}
+                setShowHistoryModalLead={() => { }}
+                setSelectedLead={() => { }}
+                onManageTrialAppointments={() => { }}
+                onEditNote={() => { }}
+                onOpenDocuments={() => { }}
+                onCreateAssessment={() => { }}
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
 
-      {/* All Modals (keeping existing) */}
-      <AddLeadModal 
-        isVisible={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSave={handleSaveLead}
-        columns={columns}
-        availableMembersLeads={availableMembersLeads}
-        leadSources={DEFAULT_LEAD_SOURCES}
-      />
+        {/* All Modals (keeping existing) */}
+        <AddLeadModal
+          isVisible={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveLead}
+          columns={columns}
+          availableMembersLeads={availableMembersLeads}
+          leadSources={DEFAULT_LEAD_SOURCES}
+        />
 
-      <EditLeadModal
-        isVisible={isEditModalOpenLead}
-        onClose={() => {
-          setIsEditModalOpenLead(false)
-          setSelectedLead(null)
-          setSelectedEditTab("details")
-          // Clear any pending move if user closes without saving
-          sessionStorage.removeItem('pendingLeadMove')
-        }}
-        onSave={handleSaveEdit}
-        leadData={selectedLead}
-        memberRelationsLead={memberRelationsLead}
-        setMemberRelationsLead={setMemberRelationsLead}
-        editingRelationsLead={editingRelationsLead}
-        setEditingRelationsLead={setEditingRelationsLead}
-        newRelationLead={newRelationLead}
-        setNewRelationLead={setNewRelationLead}
-        availableMembersLeads={availableMembersLeads}
-        columns={columns}
-        handleAddRelationLead={handleAddRelationLead}
-        handleDeleteRelationLead={handleDeleteRelationLead}
-        initialTab={selectedEditTab}
-        leadSources={DEFAULT_LEAD_SOURCES}
-      />
-
-      <ViewLeadDetailsModal
-        isVisible={isViewDetailsModalOpen}
-        onClose={() => {
-          setIsViewDetailsModalOpen(false)
-          setSelectedLead(null)
-          setSelectedViewTab("details")
-        }}
-        leadData={selectedLead}
-        memberRelationsLead={memberRelationsLead}
-        columns={columns}
-        onEditLead={handleEditLead}
-        initialTab={selectedViewTab}
-      />
-
-      <TrialTrainingModal
-        isOpen={isTrialModalOpen}
-        onClose={handleTrialModalClose}
-        lockedLead={selectedLeadForTrial}
-        appointmentTypesMain={appointmentTypesData}
-        freeAppointmentsMain={freeAppointmentsData}
-        leadsData={leadsDataMain}
-        leadRelations={memberRelationsLead}
-        onOpenEditLeadModal={handleOpenEditLeadModal}
-        onSubmit={(trialData) => {
-          handleSaveNewTrialTraining(trialData);
-        }}
-      />
-
-      {isCreateContractModalOpen && (
-        <ContractModal
+        <EditLeadModal
+          isVisible={isEditModalOpenLead}
           onClose={() => {
-            setIsCreateContractModalOpen(false)
+            setIsEditModalOpenLead(false)
             setSelectedLead(null)
+            setSelectedEditTab("details")
+            // Clear any pending move if user closes without saving
+            sessionStorage.removeItem('pendingLeadMove')
           }}
-          onSave={(contractData) => {
-            // Check if contract is Active or Ongoing (Draft)
-            const contractStatus = contractData.status || "Active"
-            const isOngoing = contractStatus === "Ongoing" || contractData.isDraft === true
-            
-            // Get member info for filter
-            const memberName = contractData.memberName || `${selectedLead?.firstName} ${selectedLead?.surname}`.trim()
-            const memberId = contractData.memberId || selectedLead?.id
-            
-            if (isOngoing) {
-              // Draft contract - keep the lead, don't convert yet
-              toast.success("Contract saved as draft. Lead will be converted when contract is activated.")
-            } else {
-              // Active contract - delete the lead (lead becomes a member)
-              const updatedLeads = leads.filter((lead) => lead.id !== selectedLead?.id)
-              setLeads(updatedLeads)
-              if (selectedLead?.source === "localStorage") {
-                updateLocalStorage(updatedLeads)
-              }
-              toast.success("Contract created successfully! Lead has been converted to member.")
-            }
-            
-            setIsCreateContractModalOpen(false)
+          onSave={handleSaveEdit}
+          leadData={selectedLead}
+          memberRelationsLead={memberRelationsLead}
+          setMemberRelationsLead={setMemberRelationsLead}
+          editingRelationsLead={editingRelationsLead}
+          setEditingRelationsLead={setEditingRelationsLead}
+          newRelationLead={newRelationLead}
+          setNewRelationLead={setNewRelationLead}
+          availableMembersLeads={availableMembersLeads}
+          columns={columns}
+          handleAddRelationLead={handleAddRelationLead}
+          handleDeleteRelationLead={handleDeleteRelationLead}
+          initialTab={selectedEditTab}
+          leadSources={DEFAULT_LEAD_SOURCES}
+        />
+
+        <ViewLeadDetailsModal
+          isVisible={isViewDetailsModalOpen}
+          onClose={() => {
+            setIsViewDetailsModalOpen(false)
             setSelectedLead(null)
-            
-            // Navigate to contracts page with filter set
-            navigate("/dashboard/contract", {
-              state: {
-                filterMemberId: memberId,
-                filterMemberName: memberName,
-                fromLeads: true
-              }
-            })
+            setSelectedViewTab("details")
           }}
-          leadData={
-            selectedLead
-              ? {
+          leadData={selectedLead}
+          memberRelationsLead={memberRelationsLead}
+          columns={columns}
+          onEditLead={handleEditLead}
+          initialTab={selectedViewTab}
+        />
+
+        <TrialTrainingModal
+          isOpen={isTrialModalOpen}
+          onClose={handleTrialModalClose}
+          lockedLead={selectedLeadForTrial}
+          appointmentTypesMain={appointmentTypesData}
+          freeAppointmentsMain={freeAppointmentsData}
+          leadsData={leadsDataMain}
+          leadRelations={memberRelationsLead}
+          onOpenEditLeadModal={handleOpenEditLeadModal}
+          onSubmit={(trialData) => {
+            handleSaveNewTrialTraining(trialData);
+          }}
+        />
+
+        {isCreateContractModalOpen && (
+          <ContractModal
+            onClose={() => {
+              setIsCreateContractModalOpen(false)
+              setSelectedLead(null)
+            }}
+            onSave={(contractData) => {
+              // Check if contract is Active or Ongoing (Draft)
+              const contractStatus = contractData.status || "Active"
+              const isOngoing = contractStatus === "Ongoing" || contractData.isDraft === true
+
+              // Get member info for filter
+              const memberName = contractData.memberName || `${selectedLead?.firstName} ${selectedLead?.surname}`.trim()
+              const memberId = contractData.memberId || selectedLead?.id
+
+              if (isOngoing) {
+                // Draft contract - keep the lead, don't convert yet
+                toast.success("Contract saved as draft. Lead will be converted when contract is activated.")
+              } else {
+                // Active contract - delete the lead (lead becomes a member)
+                const updatedLeads = leads.filter((lead) => lead.id !== selectedLead?.id)
+                // setLeads(updatedLeads)
+                if (selectedLead?.source === "localStorage") {
+                  updateLocalStorage(updatedLeads)
+                }
+                toast.success("Contract created successfully! Lead has been converted to member.")
+              }
+
+              setIsCreateContractModalOpen(false)
+              setSelectedLead(null)
+
+              // Navigate to contracts page with filter set
+              navigate("/dashboard/contract", {
+                state: {
+                  filterMemberId: memberId,
+                  filterMemberName: memberName,
+                  fromLeads: true
+                }
+              })
+            }}
+            leadData={
+              selectedLead
+                ? {
                   id: selectedLead.id,
                   name: `${selectedLead.firstName} ${selectedLead.surname}`,
                   email: selectedLead.email,
@@ -1752,248 +1765,248 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                   company: selectedLead.company,
                   interestedIn: selectedLead.interestedIn,
                 }
-              : null
-          }
+                : null
+            }
+          />
+        )}
+
+        {showHistoryModalLead && selectedLead && (
+          <SharedHistoryModal
+            variant="lead"
+            person={selectedLead}
+            history={leadHistoryData}
+            onClose={() => setShowHistoryModalLead(false)}
+          />
+        )}
+
+        <EditColumnModal
+          isVisible={isEditColumnModalOpen}
+          onClose={() => {
+            setIsEditColumnModalOpen(false)
+            setSelectedColumn(null)
+          }}
+          column={selectedColumn}
+          onSave={handleSaveColumn}
         />
-      )}
 
-      {showHistoryModalLead && selectedLead && (
-        <SharedHistoryModal
-          variant="lead"
-          person={selectedLead}
-          history={leadHistoryData}
-          onClose={() => setShowHistoryModalLead(false)}
+        <ConfirmationModal
+          isOpen={isDeleteConfirmationModalOpen}
+          onClose={() => {
+            setIsDeleteConfirmationModalOpen(false)
+            setLeadToDelete(null)
+          }}
+          onConfirm={confirmDeleteLead}
+          title="Delete Lead"
+          message={leadToDelete ? (
+            <>
+              Are you sure you want to delete <span className="font-semibold">{leadToDelete.firstName} {leadToDelete.surname}</span>? This action cannot be undone.
+            </>
+          ) : ''}
+          confirmText="Delete"
+          isDestructive={true}
         />
-      )}
 
-      <EditColumnModal
-        isVisible={isEditColumnModalOpen}
-        onClose={() => {
-          setIsEditColumnModalOpen(false)
-          setSelectedColumn(null)
-        }}
-        column={selectedColumn}
-        onSave={handleSaveColumn}
-      />
+        {/* Drag Confirmation Dialog */}
+        {dragConfirmation.isOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+            <div className="bg-surface-base w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl overflow-hidden">
+              {/* Header with X button */}
+              <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-border flex justify-between items-center">
+                <h3 className="text-base sm:text-lg font-semibold text-content-primary">
+                  {dragConfirmation.type === "toTrial" ? "Move to Trial Training?" : "Move Lead from Trial Training?"}
+                </h3>
+                <button
+                  onClick={handleCancelDragConfirmation}
+                  className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-      <ConfirmationModal
-        isOpen={isDeleteConfirmationModalOpen}
-        onClose={() => {
-          setIsDeleteConfirmationModalOpen(false)
-          setLeadToDelete(null)
-        }}
-        onConfirm={confirmDeleteLead}
-        title="Delete Lead"
-        message={leadToDelete ? (
-          <>
-            Are you sure you want to delete <span className="font-semibold">{leadToDelete.firstName} {leadToDelete.surname}</span>? This action cannot be undone.
-          </>
-        ) : ''}
-        confirmText="Delete"
-        isDestructive={true}
-      />
+              {/* Content */}
+              <div className="px-4 sm:px-6 py-4 sm:py-6">
+                <p className="text-content-secondary mb-4 sm:mb-6 text-sm sm:text-base">
+                  {dragConfirmation.type === "toTrial"
+                    ? `Moving ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} to Trial Training Arranged.`
+                    : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
+                </p>
 
-      {/* Drag Confirmation Dialog */}
-      {dragConfirmation.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-surface-base w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl overflow-hidden">
-            {/* Header with X button */}
-            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-border flex justify-between items-center">
-              <h3 className="text-base sm:text-lg font-semibold text-content-primary">
-                {dragConfirmation.type === "toTrial" ? "Move to Trial Training?" : "Move Lead from Trial Training?"}
-              </h3>
-              <button 
-                onClick={handleCancelDragConfirmation}
-                className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            {/* Content */}
-            <div className="px-4 sm:px-6 py-4 sm:py-6">
-              <p className="text-content-secondary mb-4 sm:mb-6 text-sm sm:text-base">
-                {dragConfirmation.type === "toTrial"
-                  ? `Moving ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} to Trial Training Arranged.`
-                  : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
-              </p>
-              
-              {/* Buttons */}
-              <div className="flex flex-col gap-2 sm:gap-3">
-                {dragConfirmation.type === "toTrial" ? (
-                  <>
+                {/* Buttons */}
+                <div className="flex flex-col gap-2 sm:gap-3">
+                  {dragConfirmation.type === "toTrial" ? (
+                    <>
+                      <button
+                        onClick={handleConfirmToTrialWithBooking}
+                        className="w-full px-3 sm:px-4 py-2.5 bg-trial text-white text-sm sm:text-base rounded-xl hover:bg-trial/80 transition-colors"
+                      >
+                        Yes, and Book Trial Training
+                      </button>
+                      <button
+                        onClick={handleConfirmToTrialWithoutBooking}
+                        className="w-full px-3 sm:px-4 py-2.5 bg-surface-button-hover text-content-primary text-sm sm:text-base rounded-xl hover:bg-surface-button transition-colors"
+                      >
+                        Yes, Without Booking
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      onClick={handleConfirmToTrialWithBooking}
+                      onClick={handleConfirmFromTrial}
                       className="w-full px-3 sm:px-4 py-2.5 bg-trial text-white text-sm sm:text-base rounded-xl hover:bg-trial/80 transition-colors"
                     >
-                      Yes, and Book Trial Training
+                      Yes, Move Lead
                     </button>
-                    <button
-                      onClick={handleConfirmToTrialWithoutBooking}
-                      className="w-full px-3 sm:px-4 py-2.5 bg-surface-button-hover text-content-primary text-sm sm:text-base rounded-xl hover:bg-surface-button transition-colors"
-                    >
-                      Yes, Without Booking
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={handleConfirmFromTrial}
-                    className="w-full px-3 sm:px-4 py-2.5 bg-trial text-white text-sm sm:text-base rounded-xl hover:bg-trial/80 transition-colors"
-                  >
-                    Yes, Move Lead
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <TrialAppointmentModal
-        isOpen={isTrialAppointmentModalOpen}
-        onClose={() => {
-          setIsTrialAppointmentModalOpen(false)
-          setSelectedLead(null)
-        }}
-        lead={selectedLead}
-        onEditTrial={handleEditTrialAppointment}
-        onDeleteTrial={handleDeleteTrialAppointment}
-        onCreateNewTrial={handleCreateNewTrial}
-        refreshKey={trialAppointmentsRefreshKey}
-      />
-
-      {isEditTrialModalOpen && selectedTrialAppointment && (
-        <EditAppointmentModal
-          selectedAppointmentMain={selectedTrialAppointment}
-          setSelectedAppointmentMain={setSelectedTrialAppointment}
-          appointmentTypesMain={appointmentTypesData}
-          freeAppointmentsMain={freeAppointmentsData}
-          handleAppointmentChange={(changes) =>
-            setSelectedTrialAppointment((prev) => ({ ...prev, ...changes }))
-          }
-          appointmentsMain={trialAppointmentsMain}
-          setAppointmentsMain={setTrialAppointmentsMain}
-          setIsNotifyMemberOpenMain={() => {}}
-          setNotifyActionMain={() => {}}
-          onDelete={(id) => {
-            handleDeleteTrialAppointment(id)
-            setIsEditTrialModalOpen(false)
-            setSelectedTrialAppointment(null)
-          }}
+        <TrialAppointmentModal
+          isOpen={isTrialAppointmentModalOpen}
           onClose={() => {
-            setIsEditTrialModalOpen(false)
-            setSelectedTrialAppointment(null)
+            setIsTrialAppointmentModalOpen(false)
+            setSelectedLead(null)
           }}
-          onOpenEditMemberModal={() => {}}
-          onOpenEditLeadModal={handleOpenEditLeadModal}
-          memberRelations={{}}
-          leadRelations={memberRelationsLead}
+          lead={selectedLead}
+          onEditTrial={handleEditTrialAppointment}
+          onDeleteTrial={handleDeleteTrialAppointment}
+          onCreateNewTrial={handleCreateNewTrial}
+          refreshKey={trialAppointmentsRefreshKey}
         />
-      )}
 
-      <DeleteConfirmationModal
-        isOpen={isDeleteTrialConfirmationModalOpen}
-        onClose={() => {
-          setIsDeleteTrialConfirmationModalOpen(false)
-          setAppointmentToDelete(null)
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Trial Appointment"
-        message="Are you sure you want to delete this trial appointment? This action cannot be undone."
-      />
+        {isEditTrialModalOpen && selectedTrialAppointment && (
+          <EditAppointmentModal
+            selectedAppointmentMain={selectedTrialAppointment}
+            setSelectedAppointmentMain={setSelectedTrialAppointment}
+            appointmentTypesMain={appointmentTypesData}
+            freeAppointmentsMain={freeAppointmentsData}
+            handleAppointmentChange={(changes) =>
+              setSelectedTrialAppointment((prev) => ({ ...prev, ...changes }))
+            }
+            appointmentsMain={trialAppointmentsMain}
+            setAppointmentsMain={setTrialAppointmentsMain}
+            setIsNotifyMemberOpenMain={() => { }}
+            setNotifyActionMain={() => { }}
+            onDelete={(id) => {
+              handleDeleteTrialAppointment(id)
+              setIsEditTrialModalOpen(false)
+              setSelectedTrialAppointment(null)
+            }}
+            onClose={() => {
+              setIsEditTrialModalOpen(false)
+              setSelectedTrialAppointment(null)
+            }}
+            onOpenEditMemberModal={() => { }}
+            onOpenEditLeadModal={handleOpenEditLeadModal}
+            memberRelations={{}}
+            leadRelations={memberRelationsLead}
+          />
+        )}
 
- <DocumentManagementModal
-  entity={selectedLeadForDocuments}
-  entityType="lead"
-  isOpen={isDocumentModalOpen}
-  onClose={() => {
-    setIsDocumentModalOpen(false)
-    setSelectedLeadForDocuments(null)
-  }}
-  onCreateAssessment={() => handleCreateAssessmentClick(selectedLeadForDocuments, true)}
-  onEditAssessment={(doc) => handleEditAssessmentClick(selectedLeadForDocuments, doc)}
-  onViewAssessment={(doc) => handleViewAssessmentClick(selectedLeadForDocuments, doc)}
-  onDocumentsUpdate={handleDocumentsUpdate}
-  sections={[
-    { id: "general", label: "General", icon: File },
-    { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
-  ]}
-/>
+        <DeleteConfirmationModal
+          isOpen={isDeleteTrialConfirmationModalOpen}
+          onClose={() => {
+            setIsDeleteTrialConfirmationModalOpen(false)
+            setAppointmentToDelete(null)
+          }}
+          onConfirm={handleConfirmDelete}
+          title="Delete Trial Appointment"
+          message="Are you sure you want to delete this trial appointment? This action cannot be undone."
+        />
 
-      <AssessmentSelectionModal
-        isOpen={isAssessmentSelectionModalOpen}
-        onClose={() => {
-          setIsAssessmentSelectionModalOpen(false)
-          // Reopen document management if it was from there
-          if (assessmentFromDocumentManagement) {
-            setIsDocumentModalOpen(true)
-          }
-        }}
-        onSelectAssessment={handleAssessmentSelect}
-        onProceedToContract={handleProceedToContract}
-        selectedLead={selectedLead}
-        fromDocumentManagement={assessmentFromDocumentManagement}
-      />
+        <DocumentManagementModal
+          entity={selectedLeadForDocuments}
+          entityType="lead"
+          isOpen={isDocumentModalOpen}
+          onClose={() => {
+            setIsDocumentModalOpen(false)
+            setSelectedLeadForDocuments(null)
+          }}
+          onCreateAssessment={() => handleCreateAssessmentClick(selectedLeadForDocuments, true)}
+          onEditAssessment={(doc) => handleEditAssessmentClick(selectedLeadForDocuments, doc)}
+          onViewAssessment={(doc) => handleViewAssessmentClick(selectedLeadForDocuments, doc)}
+          onDocumentsUpdate={handleDocumentsUpdate}
+          sections={[
+            { id: "general", label: "General", icon: File },
+            { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
+          ]}
+        />
 
-      <AssessmentFormModal
-        isOpen={isAssessmentFormModalOpen}
-        onClose={() => {
-          setIsAssessmentFormModalOpen(false)
-          setSelectedAssessment(null)
-          setIsEditingAssessment(false)
-          setEditingAssessmentDocument(null)
-          setIsViewingAssessment(false)
-          // Reopen document management if it was from there
-          if (assessmentFromDocumentManagement) {
-            setIsDocumentModalOpen(true)
-            setAssessmentFromDocumentManagement(false)
-          }
-        }}
-        assessment={selectedAssessment}
-        selectedLead={selectedLead}
-        onComplete={handleAssessmentComplete}
-        onProceedToContract={handleProceedToContract}
-        fromDocumentManagement={assessmentFromDocumentManagement}
-        existingDocument={editingAssessmentDocument}
-        isEditMode={isEditingAssessment}
-        isViewMode={isViewingAssessment}
-      />
+        <AssessmentSelectionModal
+          isOpen={isAssessmentSelectionModalOpen}
+          onClose={() => {
+            setIsAssessmentSelectionModalOpen(false)
+            // Reopen document management if it was from there
+            if (assessmentFromDocumentManagement) {
+              setIsDocumentModalOpen(true)
+            }
+          }}
+          onSelectAssessment={handleAssessmentSelect}
+          onProceedToContract={handleProceedToContract}
+          selectedLead={selectedLead}
+          fromDocumentManagement={assessmentFromDocumentManagement}
+        />
 
-      <ContractPromptModal
-        isOpen={showContractPromptModal}
-        onClose={handleContractPromptCancel}
-        onConfirm={handleContractPromptConfirm}
-        leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
-      />
+        <AssessmentFormModal
+          isOpen={isAssessmentFormModalOpen}
+          onClose={() => {
+            setIsAssessmentFormModalOpen(false)
+            setSelectedAssessment(null)
+            setIsEditingAssessment(false)
+            setEditingAssessmentDocument(null)
+            setIsViewingAssessment(false)
+            // Reopen document management if it was from there
+            if (assessmentFromDocumentManagement) {
+              setIsDocumentModalOpen(true)
+              setAssessmentFromDocumentManagement(false)
+            }
+          }}
+          assessment={selectedAssessment}
+          selectedLead={selectedLead}
+          onComplete={handleAssessmentComplete}
+          onProceedToContract={handleProceedToContract}
+          fromDocumentManagement={assessmentFromDocumentManagement}
+          existingDocument={editingAssessmentDocument}
+          isEditMode={isEditingAssessment}
+          isViewMode={isViewingAssessment}
+        />
 
-      <MedicalHistoryPromptModal
-        isOpen={showMedicalHistoryPromptModal}
-        onClose={handleMedicalHistoryPromptCancel}
-        onConfirm={handleMedicalHistoryPromptConfirm}
-        leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
-      />
+        <ContractPromptModal
+          isOpen={showContractPromptModal}
+          onClose={handleContractPromptCancel}
+          onConfirm={handleContractPromptConfirm}
+          leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
+        />
 
-      <LeadSpecialNoteModal
-        isOpen={isLeadSpecialNoteModalOpen}
-        onClose={() => {
-          setIsLeadSpecialNoteModalOpen(false)
-          setSelectedLeadForNote(null)
-          setTargetColumnForNote(null)
-        }}
-        lead={selectedLeadForNote}
-        onSave={handleSaveLeadSpecialNote}
-        targetColumnId={targetColumnForNote}
-      />
+        <MedicalHistoryPromptModal
+          isOpen={showMedicalHistoryPromptModal}
+          onClose={handleMedicalHistoryPromptCancel}
+          onConfirm={handleMedicalHistoryPromptConfirm}
+          leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
+        />
+
+        <LeadSpecialNoteModal
+          isOpen={isLeadSpecialNoteModalOpen}
+          onClose={() => {
+            setIsLeadSpecialNoteModalOpen(false)
+            setSelectedLeadForNote(null)
+            setTargetColumnForNote(null)
+          }}
+          lead={selectedLeadForNote}
+          onSave={handleSaveLeadSpecialNote}
+          targetColumnId={targetColumnForNote}
+        />
 
 
-      {/* Floating Action Button - Mobile Only */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Lead"
-      >
-        <Plus size={22} />
-      </button>
+        {/* Floating Action Button - Mobile Only */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          aria-label="Create Lead"
+        >
+          <Plus size={22} />
+        </button>
 
       </>)}
     </div>

@@ -223,17 +223,14 @@ const getMyAppointment = async (req, res, next) => {
 
 const cancelAppointment = async (req, res, next) => {
     try {
-        const userId = req.user?._id;
-        const { id } = req.params;
+        const { appointmentId } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
+        if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
             throw new NotFoundError("Invalid Appointment ID");
         }
 
-        const appointment = await AppointmentModel.findOne({
-            _id: id,
-            member: userId, // make sure it belongs to the logged-in user
-        });
+        // Find appointment by ID only, no ownership check
+        const appointment = await AppointmentModel.findById(appointmentId);
 
         if (!appointment) {
             throw new NotFoundError("Appointment not found");

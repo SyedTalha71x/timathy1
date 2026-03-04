@@ -1,5 +1,8 @@
 const cron = require('node-cron')
 const AppointmentModel = require('../models/AppointmentModel');
+const { MemberModel } = require('../models/Discriminators')
+
+// update Appointment
 const updatePastAppointments = async () => {
     try {
         const now = new Date(new Date().toISOString())
@@ -30,7 +33,29 @@ const updatePastAppointments = async () => {
 }
 
 
+const updateTemporaryMember = async () => {
+    try {
+        const now = new Date()
+
+        const result = await MemberModel.updateMany(
+            {
+                memberType: "temporary",
+                archivedAt: { $lte: now },
+                status: { $ne: "archived" }
+            },
+            {
+                $set: { status: "archived", memberType: 'archived' }
+            }
+        )
+
+        console.log(`Archived ${result.modifiedCount} members`)
+    } catch (error) {
+        console.error("Cron error:", error)
+    }
+}
+
 cron.schedule('0 * * * *', () => {
-    console.log('Running appointment cron...')
+    console.log('Running crons...')
     updatePastAppointments()
+    updateTemporaryMember()
 })
