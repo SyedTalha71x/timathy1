@@ -1154,7 +1154,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     toast.success("Contract has been paused")
   }
 
-  const handleCancelSubmit = ({ reason, cancelDate, cancelToDate }) => {
+  const handleCancelSubmit = ({ reason, cancelDate, cancelToDate, cancellationType, extraordinaryCancellation, cancellationThroughStudio, notificationRule }) => {
     if (selectedContract) {
       setContracts(contracts.map((c) => {
         if (c.id !== selectedContract.id) return c
@@ -1164,6 +1164,10 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
           cancelReason: reason,
           cancelDate: cancelDate || null,
           cancelToDate: cancelToDate || null,
+          cancellationType: cancellationType || "regular",
+          extraordinaryCancellation: extraordinaryCancellation || false,
+          cancellationThroughStudio: cancellationThroughStudio || false,
+          notificationRule: notificationRule ?? true,
         }
         // If cancelToDate is set, store original endDate and update endDate
         if (cancelToDate) {
