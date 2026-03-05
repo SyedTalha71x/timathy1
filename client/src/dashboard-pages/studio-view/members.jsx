@@ -233,14 +233,6 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   })
 
 
-<<<<<<< HEAD
-=======
-// ============================================
-// Load members data via shared hook (fallback)
-// ============================================
-
-
->>>>>>> e3e911a (members appointments fully completed with filters now working on lead)
 // Helper function for contract redirect
   const redirectToContract = (memberId) => {
     if (isAdminMode) {
@@ -1799,21 +1791,32 @@ const AdminBanner = () => {
                 )}
               </button>
 
-                    {/* Filter Chips */}
-                    {memberFilters.map((filter) => (
-                      <div
-                        key={filter._id}
-                        className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
-                      >
-                        <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                          {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
-                        </div>
-                        <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
+              {/* Desktop Sort Dropdown */}
+              <div className="hidden lg:block relative" ref={sortDropdownRef}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSortDropdown(!showSortDropdown);
+                  }}
+                  className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+                >
+                  {getSortIcon()}
+                  <span>{currentSortLabel}</span>
+                </button>
+
+                {showSortDropdown && (
+                  <div className="absolute right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="py-1">
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
+                        Sort by
+                      </div>
+                      {sortOptions.map((option) => (
                         <button
                           key={option.value}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleSortOptionClick(option.value);
+                            setShowSortDropdown(false);
                           }}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                             sortBy === option.value 
@@ -2004,19 +2007,68 @@ const AdminBanner = () => {
                           ) : (
                             <span className="text-content-faint text-xs">-</span>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-content-primary truncate">{member.firstName} {member.lastName}</p>
-                            <p className="text-xs text-content-faint truncate">{member.email}</p>
+                        </div>
+
+                        <div className="col-span-2">
+                          <StatusTag
+                            status={status}
+                            reason={member.reason}
+                            compact={isCompactView}
+                          />
+                        </div>
+
+                        <div className="col-span-1">
+                          <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>
+                            {member.memberType === "full" ? "Full" : "Temp"}
+                          </span>
+                        </div>
+
+                        <div className="col-span-1">
+                          <button
+                            onClick={() => handleRelationClick(member)}
+                            className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
+                          >
+                            <Users size={12} />
+                            {Object.values(memberRelationsMain[mid] || {}).flat().length}
+                          </button>
+                        </div>
+
+                        <div className="col-span-3 flex items-center justify-end gap-0.5">
+                          {!isAdminMode && (
+                            <button
+                              onClick={() => handleChatClick(member)}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                              title="Chat"
+                            >
+                              <MessageCircle size={isCompactView ? 16 : 18} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleCalendarClick(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                            title="Appointments"
+                          >
+                            <Calendar size={isCompactView ? 16 : 18} />
+                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={() => handleTrainingPlansClickMain(member)}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                              title="Training Plans"
+                            >
+                              <Dumbbell size={isCompactView ? 16 : 18} />
+                            </button>
+                            <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
                           </div>
                           <div className="relative">
-                          <button
-                            onClick={() => handleDocumentClick(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Documents"
-                          >
-                            <FileText size={isCompactView ? 16 : 18} />
-                          </button>
-                          <IconBadge count={(member.documents || []).length} />
+                            <button
+                              onClick={() => handleDocumentClick(member)}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                              title="Documents"
+                            >
+                              <FileText size={isCompactView ? 16 : 18} />
+                            </button>
+                            <IconBadge count={(member.documents || []).length} />
                           </div>
                           <button
                             onClick={() => handlePaymentClick(member)}
@@ -2388,159 +2440,6 @@ const AdminBanner = () => {
                               >
                                 <StickyNote size={14} />
                               </button>
-                            </div>
-                          </div>
-
-                          {/* Mobile Row */}
-                          <div className="lg:hidden">
-                            {/* Main Row - Tappable */}
-                            <div
-                              className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
-                              onClick={() => setExpandedMobileRowId(expandedMobileRowId === member.id ? null : member.id)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <MemberSpecialNoteIcon
-                                  member={member}
-                                  onEditMember={handleEditMember}
-                                  size="sm"
-                                  position="relative"
-                                />
-                                <div className="relative flex-shrink-0">
-                                  {member.image ? (
-                                    <img
-                                      src={member.image}
-                                      alt={member.title}
-                                      className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
-                                    />
-                                  ) : (
-                                    <InitialsAvatar
-                                      firstName={member.firstName}
-                                      lastName={member.lastName}
-                                      size={isCompactView ? "sm" : "md"}
-                                    />
-                                  )}
-                                  <BirthdayBadge
-                                    show={isBirthday(member.dateOfBirth)}
-                                    dateOfBirth={member.dateOfBirth}
-                                    size="sm"
-                                    withTooltip={true}
-                                  />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                      {member.firstName} {member.lastName}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                    <StatusTag
-                                      memberId={member._id}
-                                      reason={member.reason}
-                                      compact={true}
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Expand/Collapse Indicator */}
-                                <div className="flex-shrink-0 p-1">
-                                  <ChevronDown
-                                    size={18}
-                                    className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === member.id ? 'rotate-180' : ''}`}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Expandable Actions Panel */}
-                            <div
-                              className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === member.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
-                                }`}
-                            >
-                              <div className="px-3 pb-3 pt-1">
-                                <div className="bg-surface-dark rounded-xl p-2">
-                                  {/* Member Info Badges */}
-                                  <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.memberType === "full"
-                                      ? "bg-white/10 text-content-secondary"
-                                      : "bg-primary/20 text-primary"
-                                      }`}>
-                                      {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                                    </span>
-                                    {member.gender && (
-                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                        {member.gender}
-                                      </span>
-                                    )}
-                                    {member.dateOfBirth && (
-                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                        {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="grid grid-cols-4 gap-1">
-                                    <button
-                                      onClick={() => handleCalendarClick(member)}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Calendar size={18} />
-                                      <span className="text-[10px]">Calendar</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Dumbbell size={18} />
-                                      <span className="text-[10px]">Training</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <History size={18} />
-                                      <span className="text-[10px]">History</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <FileText size={18} />
-                                      <span className="text-[10px]">Docs</span>
-                                    </button>
-                                  </div>
-                                  <div className="grid grid-cols-4 gap-1 mt-1">
-                                    {!isAdminMode && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <MessageCircle size={18} />
-                                        <span className="text-[10px]">Chat</span>
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Users size={18} />
-                                      <span className="text-[10px]">Relations</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Eye size={18} />
-                                      <span className="text-[10px]">Details</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
-                                      className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <Pencil size={18} />
-                                      <span className="text-[10px]">Edit</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
