@@ -76,8 +76,32 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Calculate the actual start date
+    let startDate
+    if (renewalData.startAfterCurrent && contract?.endDate) {
+      // Start the day after the current contract ends
+      const end = new Date(contract.endDate + 'T00:00')
+      end.setDate(end.getDate() + 1)
+      startDate = end.toISOString().split('T')[0]
+    } else {
+      startDate = renewalData.customStartDate || today
+    }
+
+    // Calculate end date from start + duration
+    let endDate = ""
+    if (selectedContractType?.duration) {
+      const start = new Date(startDate)
+      start.setMonth(start.getMonth() + parseInt(selectedContractType.duration))
+      endDate = start.toISOString().split('T')[0]
+    }
+
     onSubmit({
       ...renewalData,
+      startDate,
+      endDate,
+      newContractType: renewalData.contractType,
+      selectedContractType,
       renewReason: renewReason === "other" ? (customReason.trim() || "Other") : (renewReason || null),
       discount: discount.percentage > 0 ? discount : null,
     })

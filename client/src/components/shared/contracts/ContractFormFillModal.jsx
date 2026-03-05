@@ -16,6 +16,8 @@ import {
   Minimize2,
   ImageIcon,
   Printer,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import DatePickerField from "../../shared/DatePickerField"
@@ -205,6 +207,7 @@ const RenderElement = ({
   formValues, 
   onValueChange, 
   systemValues,
+  bankLookupStatus,
   isPreview = false 
 }) => {
   if (!element || element.visible === false) return null;
@@ -342,6 +345,55 @@ const RenderElement = ({
                   onChange={(val) => setUserValue(userVariable, val)}
                   iconSize={14}
                 />
+              </div>
+            ) : userVariable === 'IBAN' ? (
+              <input
+                type="text"
+                value={currentValue}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase();
+                  setUserValue(userVariable, val);
+                }}
+                placeholder={userVariable || '...'}
+                className="flex-1 w-full border border-border rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{
+                  fontSize: `${inputFontSize}px`,
+                  fontFamily: 'monospace',
+                  fontWeight: element.inputBold ? 'bold' : 'normal',
+                  fontStyle: element.inputItalic ? 'italic' : 'normal',
+                  color: inputColor,
+                  minHeight: '28px',
+                  letterSpacing: '0.05em',
+                }}
+                required={element.required}
+              />
+            ) : (userVariable === 'BIC' || userVariable === 'Credit institution') ? (
+              <div className="relative flex-1 w-full">
+                <input
+                  type="text"
+                  value={currentValue}
+                  onChange={(e) => setUserValue(userVariable, userVariable === 'BIC' ? e.target.value.toUpperCase() : e.target.value)}
+                  placeholder={userVariable || '...'}
+                  disabled={bankLookupStatus === "success"}
+                  className="w-full border border-border rounded px-2 pr-7 focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{
+                    fontSize: `${inputFontSize}px`,
+                    fontFamily: userVariable === 'BIC' ? 'monospace' : inputFontFamily,
+                    fontWeight: element.inputBold ? 'bold' : 'normal',
+                    fontStyle: element.inputItalic ? 'italic' : 'normal',
+                    color: bankLookupStatus === "success" ? '#9ca3af' : inputColor,
+                    backgroundColor: bankLookupStatus === "success" ? '#f5f5f5' : '#fff',
+                    minHeight: '28px',
+                    cursor: bankLookupStatus === "success" ? 'not-allowed' : undefined,
+                  }}
+                  required={element.required}
+                />
+                {bankLookupStatus === "loading" && (
+                  <Loader2 size={13} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin" style={{ color: '#9ca3af' }} />
+                )}
+                {bankLookupStatus === "success" && (
+                  <CheckCircle2 size={13} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: '#f59e0b' }} />
+                )}
               </div>
             ) : (
               <input
@@ -750,7 +802,8 @@ export function ContractFormFillModal({
   const containerRef = useRef(null);
   const contractPageRef = useRef(null);
   const sepaFallbackRef = useRef(`SEPA-${Date.now()}`);
-
+  const lastLookedUpIban = useRef("");
+  const [bankLookupStatus, setBankLookupStatus] = useState(null); // null | "loading" | "success" | "error"
   // Load contract form based on contract type
   useEffect(() => {
     if (contractType?.contractFormId) {
@@ -803,9 +856,67 @@ export function ContractFormFillModal({
 
   // Handle value changes
   const handleValueChange = useCallback((fieldName, value) => {
-    setFormValues(prev => ({ ...prev, [fieldName]: value }));
+    setFormValues(prev => {
+      const updated = { ...prev, [fieldName]: value };
+      // Reset BIC and bankName when IBAN changes
+      if (fieldName === 'iban') {
+        setBankLookupStatus(null);
+        lastLookedUpIban.current = "";
+        updated.bic = "";
+        updated.bankName = "";
+      }
+      return updated;
+    });
     setErrors(prev => prev.filter(e => e.field !== fieldName));
   }, []);
+
+  // Auto-fill BIC and bank name via OpenIBAN API (same logic as PaymentDetailsModal)
+  useEffect(() => {
+    const cleaned = (formValues.iban || '').replace(/\s/g, "").toUpperCase();
+
+    // Only lookup when we have a plausible full IBAN and it changed
+    if (cleaned.length < 15 || cleaned === lastLookedUpIban.current) {
+      if (cleaned.length < 15) setBankLookupStatus(null);
+      return;
+    }
+
+    setBankLookupStatus("loading");
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://openiban.com/validate/${encodeURIComponent(cleaned)}?getBIC=true&validateBankCode=true`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        lastLookedUpIban.current = cleaned;
+        if (data.valid && data.bankData) {
+          setFormValues(prev => ({
+            ...prev,
+            bic: data.bankData.bic || prev.bic,
+            bankName: data.bankData.name || prev.bankName,
+          }));
+          setBankLookupStatus("success");
+        } else {
+          setFormValues(prev => ({ ...prev, bic: "", bankName: "" }));
+          setBankLookupStatus("error");
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.warn("Bank lookup failed:", err);
+          setFormValues(prev => ({ ...prev, bic: "", bankName: "" }));
+          setBankLookupStatus("error");
+        }
+      }
+    }, 600);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [formValues.iban]);
 
   // Validate form
   const validateForm = () => {
@@ -1308,6 +1419,7 @@ export function ContractFormFillModal({
                   formValues={formValues}
                   onValueChange={handleValueChange}
                   systemValues={systemValues}
+                  bankLookupStatus={bankLookupStatus}
                 />
               ))}
             </div>
