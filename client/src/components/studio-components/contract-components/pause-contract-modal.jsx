@@ -23,6 +23,8 @@ export function PauseContractModal({ onClose, onSubmit }) {
   const [endDate, setEndDate] = useState("")
   const [errors, setErrors] = useState({})
 
+  const isFormValid = reason && (reason !== "other" || customReason.trim()) && startDate && startDate >= getTodayDate() && endDate && endDate > startDate
+
   const validateForm = () => {
     const newErrors = {}
     const today = getTodayDate()
@@ -138,7 +140,12 @@ export function PauseContractModal({ onClose, onSubmit }) {
           </div>
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
+            disabled={!isFormValid}
+            className={`w-full py-2 px-4 text-sm rounded-xl transition-colors ${
+              isFormValid
+                ? "bg-primary text-white hover:bg-primary-hover"
+                : "bg-surface-button text-content-muted cursor-not-allowed"
+            }`}
           >
             Pause Contract
           </button>

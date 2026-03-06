@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Info, AlertTriangle } from "lucide-react"
+import { X } from "lucide-react"
 import { useState } from "react"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
@@ -18,8 +18,8 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
     reason: "",
     customReason: "",
     cancelDate: today,
-    cancelToDate: "",
-    cancellationType: "regular", // "regular" | "extraordinary" | "throughStudio"
+    cancelToDate: contract?.endDate || "",
+    cancellationType: "extraordinary", // "extraordinary" | "throughStudio"
     notificationRule: true,
   })
 
@@ -46,6 +46,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
   const getCancellationInfo = () => {
     if (!contract?.endDate) return null
 
+    const contractStartDate = contract.startDate ? new Date(contract.startDate + 'T00:00') : null
     const contractEndDate = new Date(contract.endDate + 'T00:00')
     const oneMonthBefore = new Date(contractEndDate)
     oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1)
@@ -54,6 +55,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
       cancellationPeriod: "1 Month",
       latestCancellationDate: oneMonthBefore.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
       contractEndDate: contractEndDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+      contractStartDate: contractStartDate ? contractStartDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A',
       contractEndDateISO: contract.endDate,
     }
   }
@@ -62,7 +64,11 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setCancelData({ ...cancelData, [name]: value })
+    const updates = { ...cancelData, [name]: value }
+    if (name === 'cancellationType' && value === 'throughStudio') {
+      updates.notificationRule = true
+    }
+    setCancelData(updates)
   }
 
   const handleSubmit = (e) => {
@@ -78,32 +84,11 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
     })
   }
 
-  // Info text based on cancellation type and dates
-  const getInfoText = () => {
-    if (!cancelData.cancelToDate && !cancellationInfo) return null
-
-    const effectiveEndDate = cancelData.cancelToDate
-      ? new Date(cancelData.cancelToDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-      : cancellationInfo?.contractEndDate
-
-    if (cancelData.cancellationType === "extraordinary") {
-      return `This is an extraordinary cancellation. The contract will end on ${effectiveEndDate || 'the selected date'}.`
-    }
-    if (cancelData.cancellationType === "throughStudio") {
-      return `This cancellation is initiated by the studio. The contract will end on ${effectiveEndDate || 'the selected date'}.`
-    }
-    if (cancelData.cancelToDate) {
-      return `The contract will be cancelled and end on ${effectiveEndDate}. The member retains access until this date.`
-    }
-    return null
-  }
-
-  const isFormValid = cancelData.reason && cancelData.cancelDate
+  const isFormValid = cancelData.reason && (cancelData.reason !== "other" || cancelData.customReason.trim()) && cancelData.cancelDate && cancelData.cancelToDate
 
   const cancellationTypeOptions = [
-    { id: "regular", label: "Regular Cancellation", description: "Standard cancellation following contract terms" },
-    { id: "extraordinary", label: "Extraordinary Cancellation", description: "Special circumstances (e.g. relocation, health)" },
-    { id: "throughStudio", label: "Cancellation through Studio", description: "Initiated by the studio (e.g. house ban, claims)" },
+    { id: "extraordinary", label: "Extraordinary Cancellation" },
+    { id: "throughStudio", label: "Cancellation through Studio" },
   ]
 
   return (
@@ -116,32 +101,43 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
         .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
         .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
       `}</style>
-      <div className="bg-surface-base rounded-xl p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
-          <X size={20} />
-        </button>
+      <div className="bg-surface-base rounded-xl w-full max-w-md relative max-h-[80vh] flex flex-col">
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between p-6 pb-4 flex-shrink-0">
+          <h3 className="text-content-primary text-lg font-semibold">Cancel Contract</h3>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary">
+            <X size={20} />
+          </button>
+        </div>
 
-        <h3 className="text-content-primary text-lg font-semibold mb-4">Cancel Contract</h3>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto px-6 space-y-4">
           {/* Contract Information */}
           <div className="space-y-2">
             <label className="text-sm text-content-muted">Contract Information</label>
-            <div className="bg-surface-dark p-3 rounded-xl border border-border">
-              <p className="text-content-primary text-sm">{contract?.contractType}</p>
-              <p className="text-xs text-content-muted">
-                {contract?.startDate
-                  ? new Date(contract.startDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                  : 'N/A'}
-                {' — '}
-                {contract?.endDate
-                  ? new Date(contract.endDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                  : 'N/A'}
-              </p>
+            <div className="bg-surface-dark p-3 rounded-xl border border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-content-muted">Contract Type</span>
+                <span className="text-xs text-content-primary font-medium">{contract?.contractType || 'N/A'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-content-muted">Contract Period</span>
+                <span className="text-xs text-content-primary">
+                  {cancellationInfo ? `${cancellationInfo.contractStartDate} — ${cancellationInfo.contractEndDate}` : 'N/A'}
+                </span>
+              </div>
               {cancellationInfo && (
-                <p className="text-xs text-content-faint mt-1">
-                  Cancellation period: {cancellationInfo.cancellationPeriod} (latest: {cancellationInfo.latestCancellationDate})
-                </p>
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-content-muted">Cancellation Period</span>
+                    <span className="text-xs text-content-primary">{cancellationInfo.cancellationPeriod}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-content-muted">Latest Cancellation Date</span>
+                    <span className="text-xs text-content-primary">{cancellationInfo.latestCancellationDate}</span>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -153,7 +149,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
               {cancellationTypeOptions.map((option) => (
                 <label
                   key={option.id}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                     cancelData.cancellationType === option.id
                       ? "border-primary/40 bg-primary/5"
                       : "border-border bg-surface-dark/40 hover:bg-surface-dark/70"
@@ -165,12 +161,9 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
                     value={option.id}
                     checked={cancelData.cancellationType === option.id}
                     onChange={handleInputChange}
-                    className="primary-radio mt-0.5"
+                    className="primary-radio"
                   />
-                  <div>
-                    <span className="text-content-primary text-sm font-medium">{option.label}</span>
-                    <p className="text-content-faint text-xs mt-0.5">{option.description}</p>
-                  </div>
+                  <span className="text-content-primary text-sm font-medium">{option.label}</span>
                 </label>
               ))}
             </div>
@@ -178,7 +171,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
 
           {/* Cancellation Reason */}
           <div className="space-y-2">
-            <label className="text-sm text-content-muted">Reason</label>
+            <label className="text-sm text-content-muted">Reason <span className="text-accent-red">*</span></label>
             <CustomSelect
               name="reason"
               value={cancelData.reason}
@@ -204,7 +197,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
 
           {/* Cancellation Entry Date */}
           <div className="space-y-2">
-            <label className="text-sm text-content-muted">Cancellation Entry Date</label>
+            <label className="text-sm text-content-muted">Cancellation Entry Date <span className="text-accent-red">*</span></label>
             <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border border-border">
               <span className={`flex-1 text-sm ${cancelData.cancelDate ? 'text-content-primary' : 'text-content-muted'}`}>
                 {cancelData.cancelDate
@@ -214,64 +207,45 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
               <DatePickerField
                 value={cancelData.cancelDate}
                 onChange={(val) => setCancelData({ ...cancelData, cancelDate: val })}
+                minDate={today}
+                maxDate={contract?.endDate || undefined}
               />
             </div>
           </div>
 
-          {/* Cancel To Date */}
+          {/* Contract End Date */}
           <div className="space-y-2">
             <label className="text-sm text-content-muted">
-              Contract End Date <span className="text-content-faint">(optional)</span>
+              Contract End Date <span className="text-accent-red">*</span>
             </label>
             <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5 border border-border">
               <span className={`flex-1 text-sm ${cancelData.cancelToDate ? 'text-content-primary' : 'text-content-muted'}`}>
                 {cancelData.cancelToDate
                   ? new Date(cancelData.cancelToDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                  : contract?.endDate
-                    ? `Default: ${new Date(contract.endDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                    : 'Select date'}
+                  : 'Select date'}
               </span>
               <DatePickerField
                 value={cancelData.cancelToDate}
                 onChange={(val) => setCancelData({ ...cancelData, cancelToDate: val })}
                 minDate={today}
+                maxDate={contract?.endDate || undefined}
               />
             </div>
-            <p className="text-xs text-content-faint">
-              Leave empty to use the regular contract end date{cancellationInfo ? ` (${cancellationInfo.contractEndDate})` : ''}.
-            </p>
           </div>
 
-          {/* Info Box */}
-          {getInfoText() && (
-            <div className={`flex items-start gap-2.5 rounded-xl p-3 ${
-              cancelData.cancellationType === "extraordinary"
-                ? "bg-orange-500/10 border border-orange-500/20"
-                : cancelData.cancellationType === "throughStudio"
-                  ? "bg-accent-red/10 border border-accent-red/20"
-                  : "bg-primary/10 border border-primary/20"
-            }`}>
-              <Info size={16} className={`flex-shrink-0 mt-0.5 ${
-                cancelData.cancellationType === "extraordinary"
-                  ? "text-orange-400"
-                  : cancelData.cancellationType === "throughStudio"
-                    ? "text-accent-red"
-                    : "text-primary"
-              }`} />
-              <div className="text-xs text-content-secondary leading-relaxed">
-                {getInfoText()}
-              </div>
-            </div>
-          )}
-
           {/* Notification Rule */}
-          <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
-            <label className="flex items-center space-x-2 cursor-pointer">
+          <div className={`bg-surface-dark/60 p-4 rounded-xl border border-border ${cancelData.cancellationType === 'throughStudio' ? 'opacity-60' : ''}`}>
+            <label className={`flex items-center space-x-2 ${cancelData.cancellationType === 'throughStudio' ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
               <input
                 type="checkbox"
                 name="notificationRule"
-                checked={cancelData.notificationRule}
-                onChange={(e) => setCancelData({ ...cancelData, notificationRule: e.target.checked })}
+                checked={cancelData.cancellationType === 'throughStudio' ? true : cancelData.notificationRule}
+                onChange={(e) => {
+                  if (cancelData.cancellationType !== 'throughStudio') {
+                    setCancelData({ ...cancelData, notificationRule: e.target.checked })
+                  }
+                }}
+                disabled={cancelData.cancellationType === 'throughStudio'}
                 className="primary-check"
               />
               <span className="text-content-secondary text-sm">
@@ -280,8 +254,10 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
             </label>
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3">
+          </div>
+
+          {/* Fixed Footer */}
+          <div className="flex gap-3 p-6 pt-4 flex-shrink-0 border-t border-border">
             <button
               type="button"
               onClick={onClose}
@@ -294,7 +270,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
               disabled={!isFormValid}
               className={`flex-1 py-2 px-4 text-white text-sm rounded-xl transition-colors ${
                 isFormValid
-                  ? "bg-accent-red hover:bg-accent-red/80"
+                  ? "bg-primary hover:bg-primary-hover"
                   : "bg-surface-button text-content-muted cursor-not-allowed"
               }`}
             >

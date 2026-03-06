@@ -7,16 +7,16 @@ import CustomSelect from "../../shared/CustomSelect"
 import { DEFAULT_CONTRACT_BONUS_TIME_REASONS } from "../../../utils/studio-states/configuration-states"
 
 export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
+  const getTodayDate = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
   const existingBonus = contract?.bonusTime
   const isEditMode = !!existingBonus
 
   const [bonusAmount, setBonusAmount] = useState(existingBonus?.bonusAmount || 1)
   const [bonusUnit, setBonusUnit] = useState(existingBonus?.bonusUnit || "days")
-  const [withExtension, setWithExtension] = useState(
-    existingBonus
-      ? (existingBonus.withExtension ? "With Contract extension" : "Without Contract extension")
-      : "Without Contract extension"
-  )
   const reasonPresets = DEFAULT_CONTRACT_BONUS_TIME_REASONS.map(r => r.name)
   const initReason = existingBonus?.reason || ""
   const isPresetReason = reasonPresets.includes(initReason)
@@ -83,14 +83,16 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
       year: "numeric",
     })
 
+  const isFormValid = reason && (reason !== "other" || customReason.trim())
+
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!isFormValid) return
     onSubmit({
       id: existingBonus?.id || `bt-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       contractId: contract.id,
       bonusAmount,
       bonusUnit,
-      withExtension: withExtension === "With Contract extension",
       reason: reason === "other" ? (customReason.trim() || "Other") : (reason || null),
       startOption,
       startDate: startOption === "fixed_time" ? startDate : null,
@@ -152,7 +154,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-content-secondary text-sm mb-2">Reason for Bonus Time</label>
+              <label className="block text-content-secondary text-sm mb-2">Reason for Bonus Time <span className="text-accent-red">*</span></label>
               <CustomSelect
                 name="reason"
                 value={reason}
@@ -197,6 +199,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
                       <DatePickerField
                         value={startDate}
                         onChange={(val) => setStartDate(val)}
+                        minDate={getTodayDate()}
                       />
                     </div>
                   </div>
@@ -252,18 +255,6 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
               {/* Show bonus period for both options when available */}
               {bonusPeriod && <div className="mt-2 text-sm text-content-muted">Bonus Period: {bonusPeriod}</div>}
             </div>
-            <div>
-              <label className="block text-content-secondary text-sm mb-2">Contract Extension</label>
-              <CustomSelect
-                name="withExtension"
-                value={withExtension}
-                onChange={(e) => setWithExtension(e.target.value)}
-                options={[
-                  { value: "Without Contract extension", label: "Without Contract extension" },
-                  { value: "With Contract extension", label: "With Contract extension" },
-                ]}
-              />
-            </div>
             <div className="flex justify-between items-center gap-2 mt-8 pt-4 border-t border-border">
               {/* Delete button - only shown in edit mode */}
               {isEditMode ? (
@@ -288,7 +279,12 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors"
+                  disabled={!isFormValid}
+                  className={`px-4 py-2 text-sm rounded-xl transition-colors ${
+                    isFormValid
+                      ? "bg-primary text-white hover:bg-primary-hover"
+                      : "bg-surface-button text-content-muted cursor-not-allowed"
+                  }`}
                 >
                   {isEditMode ? "Update Bonus Time" : "Add Bonus Time"}
                 </button>

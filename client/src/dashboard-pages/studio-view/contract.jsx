@@ -376,6 +376,9 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
   const [resumeConfirmData, setResumeConfirmData] = useState(null)
   const [removeBonusConfirmData, setRemoveBonusConfirmData] = useState(null)
 
+  // Contract history - initialized from static data, updated dynamically
+  const [history, setHistory] = useState(contractHistory)
+
   // Sort options - matches members.jsx pattern
   const sortOptions = [
     { value: "name", label: "Name" },
@@ -543,7 +546,22 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     return new Date(dateString).toLocaleDateString('de-DE')
   }
 
-  // Calculate the effective end date considering bonus time with extension
+  // Helper to add a history entry for a contract
+  const addHistoryEntry = (contractId, entry) => {
+    setHistory(prev => ({
+      ...prev,
+      [contractId]: [
+        ...(prev[contractId] || []),
+        {
+          id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          date: new Date().toISOString().split('T')[0],
+          ...entry,
+        },
+      ],
+    }))
+  }
+
+  // Calculate the effective end date considering bonus time
   // Also calculates the bonus period dynamically for consistent display
   const getEffectiveEndDate = (contract) => {
     // Check if contract was cancelled early (cancelToDate set)
@@ -569,10 +587,9 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         break
     }
     const bonusPeriod = `${formatDate(start.toISOString().split('T')[0])} - ${formatDate(end.toISOString().split('T')[0])}`
-    const isExtended = !!contract.bonusTime.withExtension
     return { 
-      date: isExtended ? end.toISOString().split('T')[0] : contract.endDate, 
-      isExtended, 
+      date: contract.endDate, 
+      isExtended: false, 
       isCancelledEarly,
       bonusPeriod,
       effectiveEndDate: end.toISOString().split('T')[0],
@@ -863,6 +880,10 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         c.id === resumeConfirmData.id ? { ...c, status: "Active", pauseReason: null } : c
       ))
       toast.success("Contract resumed successfully")
+      addHistoryEntry(resumeConfirmData.id, {
+        action: "Contract Resumed",
+        details: resumeConfirmData.pauseReason ? `Previous pause reason: ${resumeConfirmData.pauseReason}.` : "Contract has been resumed.",
+      })
     }
     setResumeConfirmData(null)
   }
@@ -936,6 +957,10 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         c.id === removeBonusConfirmData.id ? { ...c, bonusTime: null } : c
       ))
       toast.success("Bonus time removed")
+      addHistoryEntry(removeBonusConfirmData.id, {
+        action: "Bonus Time Removed",
+        details: "Bonus time has been removed from this contract.",
+      })
     }
     setRemoveBonusConfirmData(null)
   }
@@ -1152,6 +1177,16 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     setIsPauseModalOpen(false)
     setSelectedContract(null)
     toast.success("Contract has been paused")
+
+    // Add history entry
+    if (selectedContract) {
+      const startFormatted = startDate ? new Date(startDate + 'T00:00').toLocaleDateString('de-DE') : 'N/A'
+      const endFormatted = endDate ? new Date(endDate + 'T00:00').toLocaleDateString('de-DE') : 'N/A'
+      addHistoryEntry(selectedContract.id, {
+        action: "Contract Paused",
+        details: `Reason: ${reason}. Pause period: ${startFormatted} — ${endFormatted}.`,
+      })
+    }
   }
 
   const handleCancelSubmit = ({ reason, cancelDate, cancelToDate, cancellationType, extraordinaryCancellation, cancellationThroughStudio, notificationRule }) => {
@@ -1164,7 +1199,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
           cancelReason: reason,
           cancelDate: cancelDate || null,
           cancelToDate: cancelToDate || null,
-          cancellationType: cancellationType || "regular",
+          cancellationType: cancellationType || "extraordinary",
           extraordinaryCancellation: extraordinaryCancellation || false,
           cancellationThroughStudio: cancellationThroughStudio || false,
           notificationRule: notificationRule ?? true,
@@ -1180,6 +1215,17 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     setIsCancelModalOpen(false)
     setSelectedContract(null)
     toast.success("Contract has been cancelled")
+
+    // Add history entry
+    if (selectedContract) {
+      const entryDateFormatted = cancelDate ? new Date(cancelDate + 'T00:00').toLocaleDateString('de-DE') : new Date().toLocaleDateString('de-DE')
+      const endDateFormatted = cancelToDate ? new Date(cancelToDate + 'T00:00').toLocaleDateString('de-DE') : 'N/A'
+      const typeLabel = cancellationType === 'throughStudio' ? 'Cancellation through Studio' : 'Extraordinary Cancellation'
+      addHistoryEntry(selectedContract.id, {
+        action: "Contract Cancelled",
+        details: `${typeLabel} — Reason: ${reason}. Entry Date: ${entryDateFormatted}. Contract End: ${endDateFormatted}.${notificationRule ? ' Notification sent.' : ''}`,
+      })
+    }
   }
 
   const handleRenewSubmit = (renewalData) => {
@@ -1935,7 +1981,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                           {formatDate(contract.startDate)} - {(() => {
                             const eff = getEffectiveEndDate(contract)
                             if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
-                            if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
                             return formatDate(contract.endDate)
                           })()}
                           {shouldShowExpiring(contract) && (
@@ -1960,10 +2005,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                         <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
                                         {contract.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contract.bonusTime.reason}</span>}
                                         {eff.bonusPeriod && <span className="text-content-muted block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
-                                        {contract.bonusTime.withExtension 
-                                          ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
-                                          : <span className="text-content-faint block text-[10px] mt-0.5">Without extension</span>
-                                        }
                                       </div>
                                     </div>
                                   )
@@ -2095,7 +2136,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   {formatDate(contract.startDate)} - {(() => {
                                     const eff = getEffectiveEndDate(contract)
                                     if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
-                                    if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
                                     return formatDate(contract.endDate)
                                   })()}
                                 </span>
@@ -2267,7 +2307,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         {formatDate(contract.startDate)} - {(() => {
                           const eff = getEffectiveEndDate(contract)
                           if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
-                          if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
                           return formatDate(contract.endDate)
                         })()}
                       </p>
@@ -2316,10 +2355,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
                                     {contract.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contract.bonusTime.reason}</span>}
                                     {eff.bonusPeriod && <span className="text-content-muted block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
-                                    {contract.bonusTime.withExtension 
-                                      ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
-                                      : <span className="text-content-faint block text-[10px] mt-0.5">Without extension</span>
-                                    }
                                   </div>
                                 </div>
                               )
@@ -2495,13 +2530,18 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
             contract={selectedContract}
             onClose={() => setIsBonusTimeModalOpen(false)}
             onSubmit={(bonusData) => {
+              const wasEdit = !!selectedContract.bonusTime
               setContracts(contracts.map(c =>
                 c.id === selectedContract.id
                   ? { ...c, bonusTime: bonusData }
                   : c
               ))
               setIsBonusTimeModalOpen(false)
-              toast.success(selectedContract.bonusTime ? "Bonus time updated successfully" : "Bonus time added successfully")
+              toast.success(wasEdit ? "Bonus time updated successfully" : "Bonus time added successfully")
+              addHistoryEntry(selectedContract.id, {
+                action: wasEdit ? "Bonus Time Updated" : "Bonus Time Added",
+                details: `${bonusData.bonusAmount} ${bonusData.bonusUnit}${bonusData.reason ? ` — Reason: ${bonusData.reason}` : ''}. Start: ${bonusData.startOption === 'fixed_time' ? 'Fixed time' : 'End of current contract period'}.`,
+              })
             }}
             onDelete={() => {
               setContracts(contracts.map(c =>
@@ -2511,6 +2551,10 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
               ))
               setIsBonusTimeModalOpen(false)
               toast.success("Bonus time removed")
+              addHistoryEntry(selectedContract.id, {
+                action: "Bonus Time Removed",
+                details: "Bonus time has been removed from this contract.",
+              })
             }}
           />
         )}
@@ -2619,7 +2663,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
           <SharedHistoryModal
             variant="contract"
             person={selectedContract}
-            history={{ contracts: contractHistory[selectedContract.id] || [] }}
+            history={{ contracts: history[selectedContract.id] || [] }}
             onClose={() => {
               setIsHistoryModalOpen(false)
               setSelectedContract(null)
