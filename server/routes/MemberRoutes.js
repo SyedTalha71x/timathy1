@@ -7,7 +7,8 @@ const {
     getMemberById,
     getMembers,
     updateMemberCheckIn,
-    createTemporaryMember
+    createTemporaryMember,
+    updateMemberByStaff
 } = require('../controllers/MemberController');
 const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
 const { isAdmin, isStaff } = require('../middleware/RoleCheck');
@@ -23,4 +24,6 @@ router.put('/update', verifyAccessToken, updateUserById)
 router.delete('/:id', verifyAccessToken, isAdmin, deleteMemberById)
 router.patch('/check-in/:id', verifyAccessToken, updateMemberCheckIn)
 router.post('/temporary', uploadImage.single('img'), verifyAccessToken, isStaff, createTemporaryMember)
+
+router.put('/update/staff/:memberId', uploadImage.single('img'), verifyAccessToken, updateMemberByStaff)
 module.exports = router

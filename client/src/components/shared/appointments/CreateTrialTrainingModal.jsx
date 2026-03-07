@@ -6,6 +6,10 @@ import AddLeadModal from "../../studio-components/lead-studio-components/add-lea
 import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
 import DatePickerField from '../../shared/DatePickerField';
 import NotifyModalMain from '../NotifyModal';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllLeadsThunk } from "../../../features/lead/leadSlice";
+import { fetchStudioServices } from "../../../features/services/servicesSlice";
+import { createBookingTrialThunk } from "../../../features/appointments/AppointmentSlice";
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -22,20 +26,20 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
   const handleEditNote = (memberData, tab) => {
     // For leads, pass the lead ID to onOpenEditLeadModal
     if (onOpenEditLeadModal) {
-      onOpenEditLeadModal(lead.id, tab || "note");
+      onOpenEditLeadModal(lead._id, tab || "note");
     }
   };
 
   const handleRelationsClick = (e) => {
     e.stopPropagation();
     if (onOpenEditLeadModal) {
-      onOpenEditLeadModal(lead.id, "relations");
+      onOpenEditLeadModal(lead._id, "relations");
     }
   };
 
   // Create member-compatible object for MemberSpecialNoteIcon
   const memberData = {
-    id: lead.id,
+    id: lead._id,
     firstName: lead.firstName,
     lastName: lead.lastName || lead.surname || "",
     name: `${lead.firstName} ${lead.lastName || lead.surname || ""}`.trim(),
@@ -56,10 +60,10 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
         size="sm"
         position="relative"
       />
-      
+
       {/* Name */}
       <span className="text-content-primary text-sm font-medium">{fullName}</span>
-      
+
       {/* Relations Button - always show, even when locked (for viewing) */}
       <button
         onClick={handleRelationsClick}
@@ -69,7 +73,7 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
         <Users size={12} />
         <span>{relationsCount}</span>
       </button>
-      
+
       {/* Remove Button - only show if not locked */}
       {!isLocked && (
         <button
@@ -87,14 +91,14 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
 const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+
   // Filter out trial types - only show regular appointment types
   const filteredTypes = appointmentTypes.filter(t => !t.isTrialType);
   const selectedType = filteredTypes.find(t => t.name === value);
 
   useEffect(() => {
-    const handleClickOutside = (e) => { 
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false); 
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -102,7 +106,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [] }) => 
 
   return (
     <div ref={dropdownRef} className="relative">
-      <button type="button" onClick={() => setIsOpen(!isOpen)} 
+      <button type="button" onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-surface-hover">
         {selectedType ? (
           <div className="flex items-center gap-3">
@@ -145,6 +149,71 @@ const TrialTrainingModal = ({
   // NEW: Locked lead prop - when provided, the lead cannot be changed and no create lead button is shown
   lockedLead = null,
 }) => {
+  const { services } = useSelector((state) => state.services || {})
+  const { leads } = useSelector((state) => state.leads)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(fetchAllLeadsThunk())
+    dispatch(fetchStudioServices())
+  }, [dispatch])
+
+
+
+
+  // Convert 24-hour time to AM/PM format
+  const formatAMPM = (time24) => {
+    const [hour, min] = time24.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
+  };
+  // generate slots randomly
+  // Generate time slots for a day based on studio hours and appointment duration
+  // Generate time slots for multiple blocks with AM/PM display
+  const generateSlots = (blocks) => {
+    if (!Array.isArray(blocks)) {
+      blocks = [
+        { start: "09:00", end: "12:00", duration: 60 },  // morning
+        { start: "13:00", end: "16:00", duration: 60 },  // afternoon
+        { start: "17:00", end: "20:00", duration: 60 }   // evening
+      ];
+    }
+
+    const allSlots = [];
+
+    blocks.forEach(({ start, end, duration }) => {
+      let [hour, min] = start.split(":").map(Number);
+      const [endHour, endMin] = end.split(":").map(Number);
+
+      while (hour < endHour || (hour === endHour && min < endMin)) {
+        const startTime = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+
+        let tempMin = min + duration;
+        let tempHour = hour;
+        if (tempMin >= 60) {
+          tempHour += Math.floor(tempMin / 60);
+          tempMin = tempMin % 60;
+        }
+
+        if (tempHour > endHour || (tempHour === endHour && tempMin > endMin)) break;
+
+        const endTime = `${String(tempHour).padStart(2, "0")}:${String(tempMin).padStart(2, "0")}`;
+
+        allSlots.push({
+          start: startTime,
+          end: endTime,
+          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}` // for dropdown display
+        });
+
+        hour = tempHour;
+        min = tempMin;
+      }
+    });
+
+    return allSlots;
+  };
+
   // Format selectedDate to YYYY-MM-DD string
   const getFormattedDate = (date) => {
     if (!date) return "";
@@ -154,7 +223,7 @@ const TrialTrainingModal = ({
     const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  
+
   // Extract time from selectedTime (handles formats like "09:00" or "09:00 - 09:30")
   const getInitialTime = (time) => {
     if (!time) return "";
@@ -164,7 +233,7 @@ const TrialTrainingModal = ({
     }
     return time.trim();
   };
-  
+
   const initialDate = getFormattedDate(selectedDate);
   const initialTime = getInitialTime(selectedTime);
 
@@ -173,7 +242,7 @@ const TrialTrainingModal = ({
   const [showLeadSuggestions, setShowLeadSuggestions] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
-  
+
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingTrialData, setPendingTrialData] = useState(null);
 
@@ -192,17 +261,17 @@ const TrialTrainingModal = ({
   // Update trialData when modal opens with new selectedDate or selectedTime
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const newDate = getFormattedDate(selectedDate);
     const newTime = getInitialTime(selectedTime);
-    
+
     setTrialData(prev => ({
       ...prev,
       date: newDate || prev.date,
       timeSlot: newTime || "",
       appointmentType: "",
     }));
-    
+
     // Set locked lead when modal opens
     if (lockedLead) {
       setSelectedLead(lockedLead);
@@ -227,11 +296,11 @@ const TrialTrainingModal = ({
   // Filter leads based on search query - same pattern as appointments.jsx
   const getFilteredLeads = () => {
     if (!searchQuery.trim() || isLeadLocked) return [];
-    
-    return leadsData.filter((lead) => {
+
+    return leads.filter((lead) => {
       const fullName = `${lead.firstName} ${lead.lastName || lead.surname || ""}`.toLowerCase();
       const query = searchQuery.toLowerCase();
-      
+
       return fullName.includes(query) ||
         lead.email?.toLowerCase().includes(query) ||
         lead.phone?.toLowerCase().includes(query);
@@ -270,16 +339,13 @@ const TrialTrainingModal = ({
   };
 
   // Get available time slots - same pattern as CreateAppointmentModal/EditAppointmentModal
-  const getAvailableSlots = (selectedDate) => {
-    if (!selectedDate || !Array.isArray(freeAppointmentsMain)) return [];
-    return freeAppointmentsMain.filter((slot) => slot && slot.date === selectedDate);
-  };
+  const availableSlots = generateSlots();
 
   // Get relations count for a lead
   const getRelationsCount = (leadId) => {
     const relations = leadRelations[leadId];
     if (!relations) return 0;
-    return Object.values(relations).reduce((total, categoryRelations) => 
+    return Object.values(relations).reduce((total, categoryRelations) =>
       total + (Array.isArray(categoryRelations) ? categoryRelations.length : 0), 0);
   };
 
@@ -292,56 +358,73 @@ const TrialTrainingModal = ({
     setSearchQuery("");
   };
 
-  // Prepare booking but show notify modal first
   const handleBook = () => {
+    // Get trial training duration from appointmentTypesMain
     if (!selectedLead) {
       alert("Please select a lead.");
       return;
     }
 
-    // Get trial training duration from appointmentTypesMain
-    const trialType = appointmentTypesMain.find(t => t.isTrialType || t.name === "Trial Training");
-    const duration = trialType?.duration || 60;
+    if (!trialData.appointmentType) {
+      alert("Please select an appointment type.");
+      return;
+    }
 
-    // Calculate end time
-    const [hours, minutes] = trialData.timeSlot.split(':').map(Number);
-    const endDate = new Date(2000, 0, 1, hours, minutes + duration);
-    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+    // Get selected appointment type details from services
+    const selectedType = services.find(t => t.name === trialData.appointmentType);
 
-    // Get selected appointment type details
-    const selectedType = appointmentTypesMain.find(t => t.name === trialData.appointmentType);
+    if (!selectedType || !selectedType._id) {
+      alert("Invalid appointment type selected.");
+      return;
+    }
+
+    // Make sure timeSlot has the correct structure
+    if (!trialData.timeSlot || !trialData.timeSlot.start) {
+      alert("Please select a valid time slot.");
+      return;
+    }
 
     const bookingData = {
-      leadId: selectedLead.id,
-      name: selectedLead.firstName,
+      leadId: selectedLead._id,
+      serviceId: selectedType._id,
+      firstName: selectedLead.firstName,
       lastName: selectedLead.lastName || selectedLead.surname || "",
-      type: "Trial Training",
-      trialType: trialData.appointmentType, // The selected appointment type (EMS Strength, etc.)
+      type: trialData.appointmentType,
       date: trialData.date,
-      startTime: trialData.timeSlot,
-      endTime: endTime,
-      time: `${trialData.timeSlot} - ${endTime}`,
-      color: "bg-primary", // Blue for trial training
-      colorHex: "#3F74FF",
+      // Format timeSlot to match what server expects (timeSlotId with start and isBlocked)
+      timeSlotId: {
+        start: trialData.timeSlot.start,
+        end: trialData.timeSlot.end,
+        isBlocked: false
+      },
       isTrial: true,
     };
 
-    // Store pending data and show notify modal
+    // console.log('Sending booking data to server:', bookingData); // Debug log
     setPendingTrialData(bookingData);
     setShowNotifyModal(true);
   };
 
   // Actually create the booking after notify decision
   const handleConfirmBooking = (shouldNotify, notificationOptions) => {
-    if (pendingTrialData && onSubmit) {
-      onSubmit(pendingTrialData);
+    if (pendingTrialData) {
+      // Make sure we're sending the correct data structure
+      const dataForSubmission = {
+        leadId: pendingTrialData.leadId,
+        serviceId: pendingTrialData.serviceId,
+        date: pendingTrialData.date,
+        timeSlotId: pendingTrialData.timeSlotId,
+        isTrial: true
+      };
+  
+      onSubmit(dataForSubmission);
     }
-    
+
     // Close everything
     setShowNotifyModal(false);
     setPendingTrialData(null);
     onClose();
-    
+
     if (shouldNotify) {
       console.log("Notification requested:", notificationOptions);
     }
@@ -361,9 +444,8 @@ const TrialTrainingModal = ({
 
   if (!isOpen) return null;
 
-  const availableSlots = getAvailableSlots(trialData.date);
   const filteredLeads = getFilteredLeads();
-  const leadFullName = selectedLead 
+  const leadFullName = selectedLead
     ? `${selectedLead.firstName} ${selectedLead.lastName || selectedLead.surname || ""}`.trim()
     : "";
 
@@ -384,13 +466,13 @@ const TrialTrainingModal = ({
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2">Lead</label>
             <div ref={containerRef} className="relative">
-              <div 
+              <div
                 className="bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text"
                 onClick={() => !selectedLead && !isLeadLocked && searchInputRef.current?.focus()}
               >
                 {selectedLead ? (
-                  <LeadTag 
-                    lead={selectedLead} 
+                  <LeadTag
+                    lead={selectedLead}
                     onRemove={removeLead}
                     onOpenEditLeadModal={onOpenEditLeadModal}
                     relationsCount={getRelationsCount(selectedLead.id)}
@@ -470,10 +552,10 @@ const TrialTrainingModal = ({
           {/* Appointment Type */}
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
-            <AppointmentTypeDropdown 
-              value={trialData.appointmentType} 
-              onChange={(type) => updateTrialData("appointmentType", type)} 
-              appointmentTypes={appointmentTypesMain} 
+            <AppointmentTypeDropdown
+              value={trialData.appointmentType}
+              onChange={(type) => updateTrialData("appointmentType", type)}
+              appointmentTypes={services}
             />
           </div>
 
@@ -482,22 +564,29 @@ const TrialTrainingModal = ({
             <div>
               <label className="block text-xs text-content-faint mb-2">Date</label>
               <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
-                <span className={trialData.date ? "text-content-primary" : "text-content-faint"}>{trialData.date ? (() => { const [y,m,d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <span className={trialData.date ? "text-content-primary" : "text-content-faint"}>{trialData.date ? (() => { const [y, m, d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                 <DatePickerField value={trialData.date} onChange={(val) => updateTrialData("date", val)} />
               </div>
             </div>
             <div>
               <label className="block text-xs text-content-faint mb-2">Time Slot</label>
               <div className="relative">
-                <select 
-                  value={trialData.timeSlot} 
-                  onChange={(e) => updateTrialData("timeSlot", e.target.value)}
-                  disabled={!trialData.date}
-                  className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none disabled:opacity-50 focus:outline-none focus:border-primary"
+                <select
+                  value={trialData.timeSlot.start}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    const slot = availableSlots.find(s => s.start === start);
+                    const endTime = slot?.end || trialData.timeSlot.end;
+                    setTrialData(prev => ({
+                      ...prev,
+                      timeSlot: { start, end: endTime }
+                    }));
+                  }}
+                  className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5"
                 >
                   <option value="">Select time...</option>
                   {availableSlots.map((slot, idx) => (
-                    <option key={idx} value={slot.time}>{slot.time}</option>
+                    <option key={idx} value={slot.start}>{slot.time}</option>
                   ))}
                 </select>
                 <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
@@ -511,15 +600,15 @@ const TrialTrainingModal = ({
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-border flex gap-3">
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
           >
             Cancel
           </button>
-          <button 
+          <button
             disabled={!selectedLead || !trialData.date || !trialData.timeSlot || !trialData.appointmentType}
-            onClick={handleBook} 
+            onClick={handleBook}
             className="flex-1 py-2.5 text-sm font-medium text-white bg-trial hover:bg-trial/80 disabled:bg-surface-button disabled:cursor-not-allowed rounded-xl transition-colors"
           >
             Book Trial Training

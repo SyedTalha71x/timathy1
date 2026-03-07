@@ -19,7 +19,7 @@ import {
   Plus,
   CalendarCheck,
 } from "lucide-react"
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import toast from "../../components/shared/SharedToast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 import { useSelector, useDispatch } from 'react-redux'
@@ -41,14 +41,18 @@ import EditMemberModalMain from "../../components/studio-components/members-comp
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
 import EditBlockedSlotModalMain from "../../components/studio-components/appointments-components/EditBlockedSlotModalMain"
-import { cancelAppointment, createdAppointmentByStaff, fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { cancelAppointment, createBlockAppointmentThunk, createBookingTrialThunk, createdAppointmentByStaff, fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
 import { fetchAllMember, setMemberFilters } from "../../features/member/memberSlice"
+import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
+import { fetchStudioServices } from "../../features/services/servicesSlice"
 // import { canceledAppointment, createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 
 export default function Appointments() {
   const dispatch = useDispatch();
   const { appointments } = useSelector((state) => state.appointments)
+  const { leads } = useSelector((state) => state.leads)
   const { members } = useSelector((state) => state.member)
+  const { services } = useSelector((state) => state.services)
   const navigate = useNavigate();
   const calendarRef = useRef(null);
 
@@ -57,9 +61,15 @@ export default function Appointments() {
     if (!memberId) return null;
     return members.find(m => m._id === memberId) || null;
   };
+  const getLeadById = (leadId) => {
+    if (!leadId) return null;
+    return leads.find(m => m._id === leadId) || null;
+  };
   useEffect(() => {
     dispatch(fetchAllAppointments());
-    dispatch(fetchAllMember())
+    dispatch(fetchAllMember());
+    dispatch(fetchAllLeadsThunk())
+    dispatch(fetchStudioServices());
   }, [dispatch])
 
   // Disable main container scrolling on mount
@@ -333,36 +343,164 @@ export default function Appointments() {
   });
 
   // calenderEvent
-  const calendarEvents = normalizedAppointments.flatMap(app => {
-    const occurrences = [];
-    const totalOccurrences = app.bookingType === "recurring" ? app.occurrences : 1;
-    const stepDays = app.frequency === "weekly" ? 7 : app.frequency === "daily" ? 1 : 30;
+  const calendarEvents = useMemo(() => {
+    return normalizedAppointments.flatMap(app => {
+      // Skip if app is null or undefined
+      if (!app) return [];
 
-    for (let i = 0; i < totalOccurrences; i++) {
-      const start = new Date(app.date);
-      const end = new Date(app.date);
+      const occurrences = [];
+      const isBlocked = app.status === 'blocked' || app.timeSlot?.isBlocked;
 
-      if (app.timeSlot) {
-        const [startH, startM] = app.timeSlot.start.split(":");
-        const [endH, endM] = app.timeSlot.end.split(":");
-
-        start.setDate(start.getDate() + i * stepDays);
-        start.setHours(+startH, +startM, 0, 0);
-
-        end.setDate(end.getDate() + i * stepDays);
-        end.setHours(+endH, +endM, 0, 0);
+      // Validate date exists
+      if (!app.date) {
+        console.warn('Appointment missing date:', app);
+        return [];
       }
 
-      occurrences.push({
-        id: totalOccurrences > 1 ? `${app._id}_${i}` : app._id,
-        title: `${app.name} - ${app.type}`,
-        start: start.toISOString(),
-        end: end.toISOString(),
-        extendedProps: { ...app }
-      });
-    }
+      // Parse base date
+      const baseDate = new Date(app.date);
+      if (isNaN(baseDate.getTime())) {
+        console.warn('Invalid date for appointment:', app.date, app);
+        return [];
+      }
 
-    return occurrences;
+      // For blocked appointments - single occurrence only
+      if (isBlocked) {
+        // Validate timeSlot exists for blocked appointments
+        if (!app.timeSlot || !app.timeSlot.start || !app.timeSlot.end) {
+          console.warn('Blocked appointment missing timeSlot:', app);
+          return [];
+        }
+
+        try {
+          const [startH, startM] = app.timeSlot.start.split(":").map(Number);
+          const [endH, endM] = app.timeSlot.end.split(":").map(Number);
+
+          // Validate time values
+          if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) {
+            console.warn('Invalid time format for blocked appointment:', app.timeSlot);
+            return [];
+          }
+
+          const start = new Date(baseDate);
+          start.setHours(startH, startM, 0, 0);
+
+          const end = new Date(baseDate);
+          end.setHours(endH, endM, 0, 0);
+
+          // Validate computed dates
+          if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            console.warn('Invalid computed dates for blocked appointment:', app);
+            return [];
+          }
+
+          return [{
+            id: app._id,
+            title: "🔒 BLOCKED",
+            start: start.toISOString(),
+            end: end.toISOString(),
+            extendedProps: {
+              ...app,
+              isBlocked: true,
+              type: 'Blocked Time'
+            },
+            // For styling
+            className: 'blocked-appointment',
+            backgroundColor: '#fee2e2',
+            borderColor: '#dc2626',
+            textColor: '#991b1b'
+          }];
+        } catch (error) {
+          console.warn('Error processing blocked appointment:', error, app);
+          return [];
+        }
+      }
+
+      // For regular appointments (including recurring)
+      const totalOccurrences = app.bookingType === "recurring" ? (app.occurrences || 1) : 1;
+      const stepDays = app.frequency === "weekly" ? 7 : app.frequency === "daily" ? 1 : 30;
+
+      for (let i = 0; i < totalOccurrences; i++) {
+        try {
+          // Create new date objects for each occurrence
+          const start = new Date(baseDate);
+          const end = new Date(baseDate);
+
+          if (app.timeSlot && app.timeSlot.start && app.timeSlot.end) {
+            const [startH, startM] = app.timeSlot.start.split(":").map(Number);
+            const [endH, endM] = app.timeSlot.end.split(":").map(Number);
+
+            // Validate time values
+            if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) {
+              console.warn('Invalid time format for appointment:', app.timeSlot);
+              continue;
+            }
+
+            // Add recurring offset and set time
+            start.setDate(start.getDate() + i * stepDays);
+            start.setHours(startH, startM, 0, 0);
+
+            end.setDate(end.getDate() + i * stepDays);
+            end.setHours(endH, endM, 0, 0);
+          } else {
+            // If no timeSlot, set to full day
+            start.setDate(start.getDate() + i * stepDays);
+            start.setHours(0, 0, 0, 0);
+
+            end.setDate(end.getDate() + i * stepDays);
+            end.setHours(23, 59, 59, 999);
+          }
+
+          // Validate computed dates
+          if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            console.warn('Invalid computed dates for appointment:', app);
+            continue;
+          }
+
+          // Create title based on appointment type
+          let title = '';
+          if (app.view === 'blocked' || app.timeSlot?.isBlocked) {
+            title = '🔒 BLOCKED';
+          } else if (app.name && app.type) {
+            title = `${app.name} - ${app.type}`;
+          } else if (app.name) {
+            title = app.name;
+          } else if (app.type) {
+            title = app.type;
+          } else {
+            title = 'Appointment';
+          }
+
+          occurrences.push({
+            id: totalOccurrences > 1 ? `${app._id}_${i}` : app._id,
+            title: title,
+            start: start.toISOString(),
+            end: end.toISOString(),
+            extendedProps: {
+              ...app,
+              occurrenceIndex: i,
+              totalOccurrences: totalOccurrences
+            }
+          });
+        } catch (error) {
+          console.warn('Error processing appointment occurrence:', error, app);
+          continue;
+        }
+      }
+
+      return occurrences;
+    });
+  })
+
+  // Optional: Filter out any events with invalid dates before returning
+  const validCalendarEvents = calendarEvents.filter(event => {
+    try {
+      const startValid = !isNaN(new Date(event.start).getTime());
+      const endValid = !isNaN(new Date(event.end).getTime());
+      return startValid && endValid;
+    } catch {
+      return false;
+    }
   });
 
   const handleFilterChange = (filterName) => {
@@ -468,18 +606,17 @@ export default function Appointments() {
       }));
 
     // Get leads
-    const leadSuggestions = leadsData
-      .filter(lead => {
-        const fullName = `${lead.firstName} ${lead.lastName}`.toLowerCase();
-        const alreadyFiltered = memberFilters.some(f =>
-          f.memberName.toLowerCase() === fullName
-        );
-        return !alreadyFiltered && (
-          lead.firstName?.toLowerCase().includes(query) ||
-          lead.lastName?.toLowerCase().includes(query) ||
-          fullName.includes(query)
-        );
-      })
+    const leadSuggestions = leads.filter(lead => {
+      const fullName = `${lead.firstName} ${lead.lastName}`.toLowerCase();
+      const alreadyFiltered = memberFilters.some(f =>
+        f.memberName.toLowerCase() === fullName
+      );
+      return !alreadyFiltered && (
+        lead.firstName?.toLowerCase().includes(query) ||
+        lead.lastName?.toLowerCase().includes(query) ||
+        fullName.includes(query)
+      );
+    })
       .map(lead => ({
         ...lead,
         type: 'lead'
@@ -559,7 +696,7 @@ export default function Appointments() {
   // Handler to open Edit Lead Modal from appointment modals (for special notes and relations)
   const handleOpenEditLeadModal = (leadId, tab = "note") => {
     // Find the lead data by ID
-    const lead = leadsData.find(l => l.id === leadId);
+    const lead = leads.find(l => l.id === leadId);
     if (!lead) {
       console.warn("Lead not found:", leadId);
       return;
@@ -687,11 +824,16 @@ export default function Appointments() {
   };
 
   const handleAppointmentSubmit = (appointmentData) => {
-    dispatch(createdAppointmentByStaff({ memberId: members._id, appointmentData }))
+    dispatch(createdAppointmentByStaff({ memberId: appointmentData.memberId, appointmentData }))
   }
 
   const handleTrialSubmit = (trialData) => {
-    dispatch(createdAppointmentByStaff({ memberId: members._id, trialData }))
+    // console.log('Trial data received in parent:', trialData);
+    dispatch(createBookingTrialThunk({
+      leadId: trialData.leadId,
+      trialData: trialData
+    }))
+
   }
 
   const handleCheckInMain = (appointmentId) => {
@@ -1347,7 +1489,7 @@ export default function Appointments() {
                           {getSearchSuggestions().map((person) => (
                             <button
                               key={person._id}
-                              onClick={() => handleSelectMember(person._id)}
+                              onClick={() => handleSelectMember(person)}
                               className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button-hover transition-colors text-left"
                             >
                               {/* Members: Show profile image or initials avatar */}
@@ -1504,7 +1646,7 @@ export default function Appointments() {
           onClose={() => setIsTrialModalOpen(false)}
           appointmentTypesMain={appointmentTypesMain}
           freeAppointmentsMain={freeAppointmentsMain}
-          leadsData={leadsData}
+          leadsData={leads}
           leadRelations={leadRelationsMain}
           onOpenEditLeadModal={handleOpenEditLeadModal}
           onSubmit={handleTrialSubmit}
@@ -1513,8 +1655,8 @@ export default function Appointments() {
         />
         <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onDelete={handleDeleteAppointmentMain} onViewMember={handleViewMemberDetailsMain} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsMain} leadRelations={leadRelationsMain} appointmentsMain={appointments} setAppointmentsMain={appointments} />
         {isEditAppointmentModalOpenMain && selectedAppointmentMain && (
-          <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointmentsMain}
-            handleAppointmentChange={(changes) => setSelectedAppointmentMain((prev) => ({ ...prev, ...changes }))} appointmentsMain={appointments} setAppointmentsMain={appointments} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} onClose={() => { setisEditAppointmentModalOpenMain(false); setSelectedAppointmentMain(null) }} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />
+          <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={services || []} freeAppointmentsMain={freeAppointmentsMain}
+            handleAppointmentChange={(changes) => setSelectedAppointmentMain((prev) => ({ ...prev, ...changes }))} appointmentsMain={appointments} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} onClose={() => { setisEditAppointmentModalOpenMain(false); setSelectedAppointmentMain(null) }} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />
         )}
         {isNotifyMemberOpenMain && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={() => setIsNotifyMemberOpenMain(false)}>
@@ -1531,32 +1673,61 @@ export default function Appointments() {
             </div>
           </div>
         )}
-        <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => setIsBlockModalOpen(false)} selectedDate={selectedDate || new Date()} onSubmit={(blockData) => {
-          // Use formatDate (with dashes) instead of formatDateForDisplay (with slashes)
-          // Calendar expects format: "Wed | 29-01-2025"
-          const newBlock = {
-            id: Math.max(0, ...appointments.map(a => a.id)) + 1,
-            name: "BLOCKED",
-            time: `${blockData.startTime} - ${blockData.endTime}`,
-            date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,
-            color: "bg-red-600",
-            startTime: blockData.startTime,
-            endTime: blockData.endTime,
-            type: "Blocked Time",
-            specialNote: {
-              text: blockData.note || "",
-              startDate: blockData.startDate,
-              endDate: blockData.endDate,
-              isImportant: true
-            },
-            status: "blocked",
-            isBlocked: true,
-            isCancelled: false,
-            isPast: false
-          }
-          // setAppointmentsMain([...appointments, newBlock]);
-          setIsBlockModalOpen(false)
-        }} />
+        <BlockAppointmentModal
+          isOpen={isBlockModalOpen}
+          onClose={() => setIsBlockModalOpen(false)}
+          selectedDate={selectedDate || new Date()}
+          onSubmit={(blockData) => {
+            // blockData now matches your controller's expected structure:
+            // {
+            //   date: "2026-03-09",
+            //   timeSlot: { start: "09:00", end: "10:00" },
+            //   serviceId: "service_id_here",
+            //   note: "optional note"
+            // }
+
+            // Dispatch to server
+            dispatch(createBlockAppointmentThunk(blockData))
+              .unwrap()
+              .then((response) => {
+                // Server returns the created appointment
+                const serverAppointment = response.appointment;
+                console.log('4. Block created successfully:', response);
+
+                // Create display version for your calendar if needed
+                const displayBlock = {
+                  id: serverAppointment._id || Math.max(0, ...appointments.map(a => a.id)) + 1,
+                  name: "BLOCKED",
+                  time: `${blockData.timeSlot.start} - ${blockData.timeSlot.end}`,
+                  date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.date))}`,
+                  color: "bg-red-600",
+                  startTime: blockData.timeSlot.start,
+                  endTime: blockData.timeSlot.end,
+                  type: "Blocked Time",
+                  specialNote: {
+                    text: blockData.note || "",
+                    startDate: blockData.date,
+                    endDate: blockData.date,
+                    isImportant: true
+                  },
+                  status: "blocked",
+                  isBlocked: true,
+                  isCancelled: false,
+                  isPast: false
+                };
+
+                // Update local state with the display version
+                // setAppointmentsMain(prev => [...prev, displayBlock]);
+              })
+              .catch((error) => {
+                console.error('Failed to block time:', error);
+                console.error('5. Block creation failed:', error);
+                alert('Failed to block time slot');
+              });
+
+            setIsBlockModalOpen(false);
+          }}
+        />
         {/* EditBlockedSlotModal for editing blocked time slots */}
         {isEditBlockedModalOpen && blockedEditData && (
           <EditBlockedSlotModalMain

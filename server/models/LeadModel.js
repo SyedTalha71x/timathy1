@@ -13,7 +13,7 @@ const leadSchema = new mongoose.Schema({
         type: String
     },
     phone: {
-        type: Number
+        type: String,
     },
     telephone: {
         type: Number
@@ -47,7 +47,7 @@ const leadSchema = new mongoose.Schema({
     source: {
         type: String
     },
-    status: {
+    column: {
         type: String
     },
     trainingGoal: {
@@ -61,8 +61,27 @@ const leadSchema = new mongoose.Schema({
         ref: 'relations'
     }],
     specialsNotes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'specialNotes'
+        status: {
+            type: String,
+            enum: ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow_up', 'general'],
+            default: 'general'
+        },
+        note: {
+            type: String,
+            // required: true
+        },
+        isImportant: {
+            type: Boolean,
+            default: false
+        },
+        valid: {
+            from: {
+                type: Date
+            },
+            until: {
+                type: Date
+            }
+        },
     }],
     studioId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -74,8 +93,15 @@ const leadSchema = new mongoose.Schema({
     },
     leadNo: {
         type: String
-    }
-
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now()
+    },
+    appointments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Appointment'
+    }]
 
 })
 

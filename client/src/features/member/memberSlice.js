@@ -43,6 +43,21 @@ export const createTemporaryMember = createAsyncThunk('member/temporary', async 
 })
 
 
+// ===================================
+// Update Member Detail By Staff
+// ===================================
+
+
+export const memberUpdatedByStaff = createAsyncThunk('/update/staff/memberId', async ({ memberId, updateMember }, { rejectWithValue }) => {
+    try {
+        const res = await memberApi.updateMemberByStaff(memberId, updateMember)
+        return res.member
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
 
 
 
@@ -159,9 +174,25 @@ const memberSlice = createSlice({
             })
             .addCase(createTemporaryMember.fulfilled, (state, action) => {
                 state.loading = false;
-                state.members = action.payload;
+                state.members.push(action.payload);
             })
             .addCase(createTemporaryMember.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // ++++++++++++++
+            // update by Staff
+            // +++++++++++++
+            .addCase(memberUpdatedByStaff.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(memberUpdatedByStaff.fulfilled, (state, action) => {
+                state.loading = false;
+                state.members = action.payload;
+            })
+            .addCase(memberUpdatedByStaff.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })

@@ -76,10 +76,12 @@ import {
   updateMemberDocuments,
   setFilterMemberType,
   setFilterStatus,
+  createTemporaryMember,
 } from "../../features/member/memberSlice"
 import { createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 import { fetchStudioServices } from "../../features/services/servicesSlice"
 import { assignPlan, fetchAllPlans } from "../../features/training/TrainingSlice"
+import { updateAppointmentThunk } from "../../features/appointments/AppointmentSlice"
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -222,6 +224,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   useEffect(() => {
     dispatch(fetchStudioServices())
     dispatch(fetchAllPlans())
+    dispatch(fetchAllMember())
   }, [dispatch])
 
   // ============================================
@@ -524,10 +527,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     city: "",
     dateOfBirth: "",
     about: "",
-    note: "",
-    noteStartDate: "",
-    noteEndDate: "",
-    noteImportance: "unimportant",
+    specialsNotes: [],
     contractStart: "",
     contractEnd: "",
   })
@@ -567,26 +567,33 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       }
     }
   }, [membersHookData, isAdminMode])
-
   useEffect(() => {
     if (selectedMemberMain) {
       setEditFormMain({
-        firstName: selectedMemberMain.firstName,
-        lastName: selectedMemberMain.lastName,
-        email: selectedMemberMain.email,
-        phone: selectedMemberMain.phone,
-        street: selectedMemberMain.street,
-        zipCode: selectedMemberMain.zipCode,
-        city: selectedMemberMain.city,
-        dateOfBirth: selectedMemberMain.dateOfBirth,
-        about: selectedMemberMain.about,
-        note: selectedMemberMain.note,
-        noteStartDate: selectedMemberMain.noteStartDate,
-        noteEndDate: selectedMemberMain.noteEndDate,
-        noteImportance: selectedMemberMain.noteImportance,
-        contractStart: selectedMemberMain.contractStart,
-        contractEnd: selectedMemberMain.contractEnd,
+        firstName: selectedMemberMain.firstName || "",
+        lastName: selectedMemberMain.lastName || "",
+        email: selectedMemberMain.email || "",
+        phone: selectedMemberMain.phone || "",
+        street: selectedMemberMain.street || "",
+        zipCode: selectedMemberMain.zipCode || "",
+        city: selectedMemberMain.city || "",
+        dateOfBirth: selectedMemberMain.dateOfBirth || "",
+        about: selectedMemberMain.about || "",
+        contractStart: selectedMemberMain.contractStart || "",
+        contractEnd: selectedMemberMain.contractEnd || "",
+        specialsNotes: selectedMemberMain.specialsNotes?.map(note => ({
+          id: note._id || note.id || Date.now(),
+          status: note.status || "general",
+          note: note.note || "",
+          isImportant: note.isImportant || false,
+          valid: {
+            from: note.valid?.from ? new Date(note.valid.from) : null,
+            until: note.valid?.until ? new Date(note.valid.until) : null,
+          },
+          createdAt: note.createdAt || new Date().toISOString(),
+        })) || [],
       })
+      // setLo(selectedMemberMain.specialsNotes || [])
     }
   }, [selectedMemberMain])
 
@@ -678,11 +685,19 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
-    const newTempMember = {
-      ...newMemberData,
-      image: newMemberData.img || null,
+    const formData = new FormData()
+
+    Object.keys(newMemberData).forEach((key) => {
+      if (key !== "img") {
+        formData.append(key, newMemberData[key])
+      }
+    })
+
+    if (newMemberData.img) {
+      formData.append("img", newMemberData.img)
     }
-    dispatch(addMember(newTempMember))
+
+    dispatch(createTemporaryMember(formData))
   }
 
   // 
@@ -946,13 +961,15 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />;
   };
+const safeMembers = Array.isArray(members) ? members : []
+
 
 
   const filterOptions = [
-    { id: "all", label: `All Members (${members.length})` },
-    { id: "active", label: `Active Members (${members.filter((m) => m.status === 'active').length})` },
-    { id: "paused", label: `Paused Members (${members.filter((m) => m.status === 'paused').length})` },
-    { id: "archived", label: `Archived Members (${members.filter((m) => m.status === 'archived').length})` },
+    { id: "all", label: `All Members (${safeMembers.length})` },
+    { id: "active", label: `Active Members (${safeMembers.filter((m) => m.status === 'active').length})` },
+    { id: "paused", label: `Paused Members (${safeMembers.filter((m) => m.status === 'paused').length})` },
+    { id: "archived", label: `Archived Members (${safeMembers.filter((m) => m.status === 'archived').length})` },
   ]
 
   // 
@@ -1235,13 +1252,14 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     const fullAppointment = {
       ...appointment,
       name: getMemberTitle(selectedMemberForAppointmentsMain) || "Member",
-      specialNote: appointment.specialNote || {
-        text: "",
+      specialsNote: appointment.specialNote || {
+        note: "",
         isImportant: false,
-        startDate: "",
-        endDate: "",
+        valid: { from: null, until: null }
       },
     }
+    dispatch(updateAppointmentThunk(fullAppointment))
+    console.log('updated Appointment', fullAppointment)
     setSelectedAppointmentDataMain(fullAppointment)
     setShowSelectedAppointmentModalMain(true)
     setShowAppointmentModalMain(false)
@@ -1742,7 +1760,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                         >
                           {member.image ? (
                             <img
-                              src={member.image}
+                              src={member.img?.url}
                               alt={getMemberTitle(member)}
                               className="w-8 h-8 rounded-lg object-cover"
                             />
@@ -1895,116 +1913,75 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                         const mid = getMemberId(member);
                         const title = getMemberTitle(member);
                         const status = getMemberStatus(member);
+
                         return (
-                          <div
-                            key={mid}
-                            className={`group hover:bg-surface-hover transition-colors ${index !== filteredAndSortedMembers().length - 1 ? 'border-b border-border' : ''
-                              }`}
-                          >
-                            {/* Desktop Table Row */}
+                          <div key={mid} className={`group hover:bg-surface-hover transition-colors ${index !== filteredAndSortedMembers().length - 1 ? 'border-b border-border' : ''}`}>
+                            {/* Desktop Row */}
                             <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
                               <div className="col-span-3 flex items-center gap-3 min-w-0">
-                                <MemberSpecialNoteIcon
-                                  member={member}
-                                  onEditMember={handleEditMember}
-                                  size={isCompactView ? "sm" : "md"}
-                                  position="relative"
-                                />
+                                <MemberSpecialNoteIcon member={member} onEditMember={handleEditMember} size={isCompactView ? "sm" : "md"} position="relative" />
                                 <div className="relative flex-shrink-0">
                                   {member.image ? (
-                                    <img
-                                      src={member.image}
-                                      alt={title}
-                                      className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg object-cover`}
-                                    />
+                                    <img src={member.image} alt={title} className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg object-cover`} />
                                   ) : (
-                                    <InitialsAvatar
-                                      firstName={member.firstName}
-                                      lastName={member.lastName}
-                                      size={isCompactView ? "sm" : "lg"}
-                                    />
+                                    <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size={isCompactView ? "sm" : "lg"} />
                                   )}
-                                  <BirthdayBadge
-                                    show={isBirthday(member.dateOfBirth)}
-                                    dateOfBirth={member.dateOfBirth}
-                                    size={isCompactView ? "sm" : "md"}
-                                    withTooltip={true}
-                                  />
+                                  <BirthdayBadge show={isBirthday(member.dateOfBirth)} dateOfBirth={member.dateOfBirth} size={isCompactView ? "sm" : "md"} withTooltip={true} />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
-                                    <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                      {title}
-                                    </span>
+                                    <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>{title}</span>
                                   </div>
-                                  {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' ? (
-                                    <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint`}>
-                                      Auto-archive: {member.autoArchiveDate}
-                                    </span>
-                                  ) : null}
+                                  {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' && (
+                                    <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint`}>Auto-archive: {member.autoArchiveDate}</span>
+                                  )}
                                 </div>
                               </div>
 
                               <div className="col-span-1">
-                                <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>
-                                  {member.gender || '-'}
-                                </span>
+                                <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>{member.gender || '-'}</span>
                               </div>
 
                               <div className="col-span-1">
                                 {member.dateOfBirth ? (
                                   <div className="flex flex-col">
-                                    <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-primary`}>
-                                      {calculateAgeMain(member.dateOfBirth)} yrs
-                                    </span>
-                                    <span className="text-[10px] text-content-faint">
-                                      {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                                    </span>
+                                    <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-primary`}>{calculateAgeMain(member.dateOfBirth)} yrs</span>
+                                    <span className="text-[10px] text-content-faint">{new Date(member.dateOfBirth).toLocaleDateString('de-DE')}</span>
                                   </div>
                                 ) : (
                                   <span className="text-content-faint text-xs">-</span>
                                 )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-content-primary truncate">{member.firstName} {member.lastName}</p>
-                                  <p className="text-xs text-content-faint truncate">{member.email}</p>
-                                </div>
-                                <div className="relative">
-                                  <button
-                                    onClick={() => handleDocumentClick(member)}
-                                    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                                    title="Documents"
-                                  >
-                                    <FileText size={isCompactView ? 16 : 18} />
-                                  </button>
+                              </div>
+
+                              <div className="col-span-2">
+                                <StatusTag status={status} reason={member.reason} />
+                              </div>
+
+                              <div className="col-span-1">
+                                <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted`}>
+                                  {member.memberType === "full" ? "Full" : "Temp"}
+                                </span>
+                              </div>
+
+                              <div className="col-span-1 flex justify-center">
+                                <Users size={16} /> {/* Relations */}
+                              </div>
+
+                              <div className="col-span-3 flex justify-end gap-1 items-center">
+                                <button onClick={() => handleDocumentClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title="Documents">
+                                  <FileText size={isCompactView ? 16 : 18} />
                                   <IconBadge count={(member.documents || []).length} />
-                                </div>
-                                <button
-                                  onClick={() => handlePaymentClick(member)}
-                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="Payment Details"
-                                >
+                                </button>
+                                <button onClick={() => handlePaymentClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title="Payment">
                                   <CreditCard size={isCompactView ? 16 : 18} />
                                 </button>
-                                <button
-                                  onClick={() => handleHistoryClick(member)}
-                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="History"
-                                >
+                                <button onClick={() => handleHistoryClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title="History">
                                   <History size={isCompactView ? 16 : 18} />
                                 </button>
-                                <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
-                                <button
-                                  onClick={() => handleViewDetails(member)}
-                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="View Details"
-                                >
+                                <button onClick={() => handleViewDetails(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`} title="View Details">
                                   <Eye size={isCompactView ? 16 : 18} />
                                 </button>
-                                <button
-                                  onClick={() => handleEditMember(member)}
-                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="Edit"
-                                >
+                                <button onClick={() => handleEditMember(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`} title="Edit">
                                   <Pencil size={isCompactView ? 16 : 18} />
                                 </button>
                               </div>
@@ -2012,161 +1989,42 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
                             {/* Mobile Row */}
                             <div className="lg:hidden">
-                              <div
-                                className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
-                                onClick={() => setExpandedMobileRowId(expandedMobileRowId === mid ? null : mid)}
-                              >
+                              <div className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`} onClick={() => setExpandedMobileRowId(expandedMobileRowId === mid ? null : mid)}>
                                 <div className="flex items-center gap-3">
-                                  <MemberSpecialNoteIcon
-                                    member={member}
-                                    onEditMember={handleEditMember}
-                                    size="sm"
-                                    position="relative"
-                                  />
+                                  <MemberSpecialNoteIcon member={member} onEditMember={handleEditMember} size="sm" position="relative" />
                                   <div className="relative flex-shrink-0">
                                     {member.image ? (
-                                      <img
-                                        src={member.image}
-                                        alt={title}
-                                        className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
-                                      />
+                                      <img src={member.image} alt={title} className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`} />
                                     ) : (
-                                      <InitialsAvatar
-                                        firstName={member.firstName}
-                                        lastName={member.lastName}
-                                        size={isCompactView ? "sm" : "md"}
-                                      />
+                                      <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size={isCompactView ? "sm" : "md"} />
                                     )}
-                                    <BirthdayBadge
-                                      show={isBirthday(member.dateOfBirth)}
-                                      dateOfBirth={member.dateOfBirth}
-                                      size="sm"
-                                      withTooltip={true}
-                                    />
+                                    <BirthdayBadge show={isBirthday(member.dateOfBirth)} dateOfBirth={member.dateOfBirth} size="sm" withTooltip={true} />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                        {title}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                      <StatusTag
-                                        status={status}
-                                        reason={member.reason}
-                                        compact={true}
-                                      />
+                                    <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>{title}</span>
+                                    <div className="flex gap-1 mt-1 flex-wrap">
+                                      <StatusTag status={status} reason={member.reason} compact />
                                     </div>
                                   </div>
-
-                                  <div className="flex-shrink-0 p-1">
-                                    <ChevronDown
-                                      size={18}
-                                      className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === mid ? 'rotate-180' : ''}`}
-                                    />
-                                  </div>
+                                  <ChevronDown size={18} className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === mid ? 'rotate-180' : ''}`} />
                                 </div>
                               </div>
 
-                              <div
-                                className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === mid ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
-                                  }`}
-                              >
-                                <div className="px-3 pb-3 pt-1">
-                                  <div className="bg-surface-dark rounded-xl p-2">
-                                    <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.memberType === "full"
-                                        ? "bg-white/10 text-content-secondary"
-                                        : "bg-primary/20 text-primary"
-                                        }`}>
-                                        {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                                      </span>
-                                      {member.gender && (
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                          {member.gender}
-                                        </span>
-                                      )}
-                                      {member.dateOfBirth && (
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
-                                          {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="grid grid-cols-5 gap-1">
-                                      {!isAdminMode && (
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
-                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                        >
-                                          <MessageCircle size={18} />
-                                          <span className="text-[10px]">Chat</span>
-                                        </button>
-                                      )}
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleCalendarClick(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <Calendar size={18} />
-                                        <span className="text-[10px]">Calendar</span>
-                                      </button>
-                                      <div className="relative">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
-                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                        >
-                                          <Dumbbell size={18} />
-                                          <span className="text-[10px]">Training</span>
-                                        </button>
-                                        <IconBadge count={(memberTrainingPlansMain[mid] || []).length} />
-                                      </div>
-                                      <div className="relative">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
-                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                        >
-                                          <FileText size={18} />
-                                          <span className="text-[10px]">Docs</span>
-                                        </button>
-                                        <IconBadge count={(member.documents || []).length} />
-                                      </div>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handlePaymentClick(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <CreditCard size={18} />
-                                        <span className="text-[10px]">Payment</span>
-                                      </button>
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-1 mt-1">
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <Users size={18} />
-                                        <span className="text-[10px]">Relations</span>
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <History size={18} />
-                                        <span className="text-[10px]">History</span>
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <Eye size={18} />
-                                        <span className="text-[10px]">Details</span>
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
-                                        className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                      >
-                                        <Pencil size={18} />
-                                        <span className="text-[10px]">Edit</span>
-                                      </button>
-                                    </div>
+                              <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === mid ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                <div className="px-3 pb-3 pt-1 bg-surface-dark rounded-xl">
+                                  <div className="grid grid-cols-4 gap-1">
+                                    <button onClick={(e) => { e.stopPropagation(); handleCalendarClick(member); }} className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors">
+                                      <Calendar size={18} /><span className="text-[10px]">Calendar</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }} className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors">
+                                      <FileText size={18} /><span className="text-[10px]">Docs</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePaymentClick(member); }} className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors">
+                                      <CreditCard size={18} /><span className="text-[10px]">Payment</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }} className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors">
+                                      <History size={18} /><span className="text-[10px]">History</span>
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -2177,17 +2035,12 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                     ) : (
                       <div className="text-center py-8">
                         <p className="text-content-muted text-sm">
-                          {filterStatus === "active"
-                            ? "No active members found."
-                            : filterStatus === "paused"
-                              ? "No paused members found."
-                              : filterStatus === "archived"
-                                ? "No archived members found."
-                                : "No members found."}
+                          {filterStatus === "active" ? "No active members found." : filterStatus === "paused" ? "No paused members found." : filterStatus === "archived" ? "No archived members found." : "No members found."}
                         </p>
                       </div>
                     )}
                   </div>
+
                 ) : // GRID VIEW
                   isCompactView ? (
                     // COMPACT GRID VIEW
@@ -2217,9 +2070,9 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
                               <div className="p-3 pt-4">
                                 <div className="flex flex-col items-center mb-2">
-                                  {member.image ? (
+                                  {member.img?.url ? (
                                     <img
-                                      src={member.image}
+                                      src={member.img.url}
                                       alt={title}
                                       className="w-12 h-12 rounded-xl object-cover mb-2"
                                     />
@@ -2364,9 +2217,9 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                         position="relative"
                                       />
                                       <div className="relative flex-shrink-0">
-                                        {member.image ? (
+                                        {member.img?.url ? (
                                           <img
-                                            src={member.image}
+                                            src={member.img?.url}
                                             alt={member.title}
                                             className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
                                           />
@@ -2717,6 +2570,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
               </div>
 
 
+
+
             </>
           )}
           <CreateTempMemberModal
@@ -2740,6 +2595,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
             editModalTabMain={editModalTabMain}
             setEditModalTabMain={setEditModalTabMain}
             editFormMain={editFormMain}
+            setEditFormMain={setEditFormMain}
             handleInputChangeMain={handleInputChangeMain}
             handleEditSubmitMain={handleEditSubmitMain}
             editingRelationsMain={editingRelationsMain}

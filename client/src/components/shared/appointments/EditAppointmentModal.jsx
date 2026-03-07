@@ -7,6 +7,10 @@ import { X, Clock, User, ChevronDown, AlertTriangle, Check, Users } from "lucide
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 import DatePickerField from '../DatePickerField';
 import NotifyModalMain from '../NotifyModal';
+import { updateAppointmentThunk } from "../../../features/appointments/AppointmentSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { canceledAppointment } from "../../../features/appointments/AppointmentApi";
+import { fetchAllMember } from "../../../features/member/memberSlice";
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -72,8 +76,8 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const filteredTypes = showTrialTypes 
-    ? appointmentTypes 
+  const filteredTypes = showTrialTypes
+    ? appointmentTypes
     : appointmentTypes.filter(t => !t.isTrialType);
 
   const selectedType = filteredTypes.find(t => t.name === value);
@@ -137,25 +141,31 @@ const EditAppointmentModalMain = ({
   leadRelations = {},
 }) => {
   if (!selectedAppointmentMain) return null;
+  const dispatch = useDispatch()
+  const { members } = useSelector((state) => state.member || [])
 
+
+  useEffect(() => {
+    dispatch(fetchAllMember())
+  }, [dispatch])
   // Parse date from appointment format to YYYY-MM-DD for date input
   const parsedDate = parseDateFromAppointment(selectedAppointmentMain.date);
-  
+
   // Use startTime instead of time
-  const currentTime = selectedAppointmentMain.startTime || selectedAppointmentMain.time || "";
-  
+  const currentTimeSlot = selectedAppointmentMain.timeSlot || { start: currentTime, end: "" };
+
   // Check if this is a lead for initial state setup
   const isLeadInit = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
-  
+
   // Store original values for change detection
   // For leads: use trialType, for members: use type
-  const originalType = isLeadInit 
+  const originalType = isLeadInit
     ? (selectedAppointmentMain.trialType || selectedAppointmentMain.type)
     : selectedAppointmentMain.type;
 
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
-  
+
   // Internal NotifyModal state
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(null);
@@ -163,19 +173,19 @@ const EditAppointmentModalMain = ({
 
   // Local state for editing
   const [editDate, setEditDate] = useState(parsedDate);
-  const [editTime, setEditTime] = useState(currentTime);
+  const [editTime, setEditTime] = useState(currentTimeSlot);
   const [editType, setEditType] = useState(originalType);
-  
+
   // Track original values for change detection
   const [originalDate, setOriginalDate] = useState(parsedDate);
-  const [originalTime, setOriginalTime] = useState(currentTime);
+  const [originalTime, setOriginalTime] = useState(currentTimeSlot);
 
   // Update local state when appointment changes
   useEffect(() => {
     const newParsedDate = parseDateFromAppointment(selectedAppointmentMain.date);
     const newTime = selectedAppointmentMain.startTime || selectedAppointmentMain.time || "";
     const isLead = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
-    const newType = isLead 
+    const newType = isLead
       ? (selectedAppointmentMain.trialType || selectedAppointmentMain.type)
       : selectedAppointmentMain.type;
     setEditDate(newParsedDate);
@@ -186,23 +196,66 @@ const EditAppointmentModalMain = ({
   }, [selectedAppointmentMain.id]);
 
   // Check if any changes were made
-  const hasChanges = editDate !== originalDate || 
-                     editTime !== originalTime || 
-                     editType !== originalType;
+  const hasChanges = editDate !== originalDate ||
+    editTime !== originalTime ||
+    editType !== originalType;
 
-  const getAvailableSlots = (selectedDate) => {
-    if (!selectedDate) return [];
-    const slots = freeAppointmentsMain.filter((app) => app.date === selectedDate);
-    // Add current time slot if it's not already in the list
-    if (currentTime) {
-      const timeExists = slots.some((slot) => slot.time === currentTime);
-      if (!timeExists) {
-        slots.unshift({ id: "current", time: currentTime, date: selectedDate });
-      }
-    }
-    return slots;
+  // Convert 24h -> AM/PM
+  const formatAMPM = (time24) => {
+    const [hour, min] = time24.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
   };
 
+  // Generate slots
+  const generateSlots = (blocks) => {
+    if (!Array.isArray(blocks)) {
+      blocks = [
+        { start: "09:00", end: "12:00", duration: 60 },
+        { start: "13:00", end: "16:00", duration: 60 },
+        { start: "17:00", end: "20:00", duration: 60 }
+      ];
+    }
+
+    const allSlots = [];
+
+    blocks.forEach(({ start, end, duration }) => {
+      let [hour, min] = start.split(":").map(Number);
+      const [endHour, endMin] = end.split(":").map(Number);
+
+      while (hour < endHour || (hour === endHour && min < endMin)) {
+
+        const startTime = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+
+        let tempMin = min + duration;
+        let tempHour = hour;
+
+        if (tempMin >= 60) {
+          tempHour += Math.floor(tempMin / 60);
+          tempMin = tempMin % 60;
+        }
+
+        if (tempHour > endHour || (tempHour === endHour && tempMin > endMin)) break;
+
+        const endTime = `${String(tempHour).padStart(2, "0")}:${String(tempMin).padStart(2, "0")}`;
+
+        allSlots.push({
+          start: startTime,
+          end: endTime,
+          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}`
+        });
+
+        hour = tempHour;
+        min = tempMin;
+      }
+    });
+
+    return allSlots;
+  };
+
+
+  const availableSlots = generateSlots();
   const checkAvailability = () => {
     const isAvailable = Math.random() > 0.5;
     if (!isAvailable) {
@@ -217,15 +270,51 @@ const EditAppointmentModalMain = ({
   const generateAlternativeSlots = (date, time) => {
     const baseDate = new Date(date);
     const alternatives = [];
+    const duration = 60; // or get from appointment type
+
     const timeOptions = ["09:00", "11:30", "14:00", "16:30"];
-    timeOptions.forEach((t) => {
-      if (t !== time) alternatives.push({ date, time: t, available: true });
+    timeOptions.forEach((startTime) => {
+      if (startTime !== time) {
+        const [hours, minutes] = startTime.split(":").map(Number);
+        const endDate = new Date(2000, 0, 1, hours, minutes + duration);
+        const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+
+        alternatives.push({
+          date,
+          timeSlot: {
+            start: startTime,
+            end: endTime
+          },
+          time: `${startTime} - ${endTime}`,
+          available: true
+        });
+      }
     });
+
+    // Next 3 days same time
     for (let i = 1; i <= 3; i++) {
       const nextDay = new Date(baseDate);
       nextDay.setDate(baseDate.getDate() + i);
-      alternatives.push({ date: nextDay.toISOString().split("T")[0], time, available: true });
+
+      alternatives.push({
+        date: nextDay.toISOString().split("T")[0],
+        timeSlot: {
+          start: time,
+          end: (() => {
+            const [h, m] = time.split(":").map(Number);
+            const d = new Date(2000, 0, 1, h, m + duration);
+            return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+          })()
+        },
+        time: `${time} - ${(() => {
+          const [h, m] = time.split(":").map(Number);
+          const d = new Date(2000, 0, 1, h, m + duration);
+          return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        })()}`,
+        available: true
+      });
     }
+
     return alternatives;
   };
 
@@ -238,32 +327,31 @@ const EditAppointmentModalMain = ({
   const saveChanges = () => {
     // Check if this is a lead (trial training with leadId)
     const isLeadAppointment = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
-    
+
     // Calculate end time based on appointment type duration
     // For leads: use Trial Training duration (60 min), not the trialType duration
     const selectedType = appointmentTypesMain.find(t => t.name === editType);
     const trialTrainingType = appointmentTypesMain.find(t => t.isTrialType || t.name === "Trial Training");
-    const duration = isLeadAppointment 
-      ? (trialTrainingType?.duration || 60) 
+    const duration = isLeadAppointment
+      ? (trialTrainingType?.duration || 60)
       : (selectedType?.duration || 30);
-    
+
+    let { start, end } = selectedAppointmentMain.timeSlot
     // Parse start time and calculate end time
-    const [hours, minutes] = editTime.split(':').map(Number);
-    const endDate = new Date(2000, 0, 1, hours, minutes + duration);
-    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+    if (!end) {
+      const [hours, minutes] = editTime.split(':').map(Number);
+      const endDate = new Date(2000, 0, 1, hours, minutes + duration);
+      end = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+    };
 
     const updatedAppointment = {
       ...selectedAppointmentMain,
-      // For leads: keep type as original, update trialType. For members: update type
       type: isLeadAppointment ? selectedAppointmentMain.type : editType,
       trialType: isLeadAppointment ? editType : selectedAppointmentMain.trialType,
-      // For leads: KEEP original Trial Training color (blue). For members: use selected type color
       color: isLeadAppointment ? selectedAppointmentMain.color : (selectedType?.color || selectedAppointmentMain.color),
       colorHex: isLeadAppointment ? selectedAppointmentMain.colorHex : (getColorHex(selectedType) || selectedAppointmentMain.colorHex),
-      date: formatDateForAppointment(editDate),
-      startTime: editTime,
-      endTime: endTime,
-      time: `${editTime} - ${endTime}`,
+      date: editDate, // send ISO format
+      timeSlot: { start: editTime.start, end: editTime.end } // proper backend shape
     };
 
     // Store pending changes and show notify modal
@@ -274,27 +362,27 @@ const EditAppointmentModalMain = ({
   // Actually apply the changes after notify decision
   const handleConfirmChanges = (shouldNotify, notificationOptions) => {
     if (notifyAction === "cancel") {
-      // Cancel appointment - mark as cancelled
-      const updatedAppointments = appointmentsMain.map((app) =>
-        app.id === selectedAppointmentMain.id 
-          ? { ...app, status: "cancelled", isCancelled: true } 
-          : app
-      );
-      setAppointmentsMain(updatedAppointments);
+      // Cancel appointment - dispatch to backend
+      dispatch(updateAppointmentThunk({
+        appointmentId: selectedAppointmentMain._id,
+        updateData: { status: "cancelled", isCancelled: true }
+      }));
     } else if (pendingChanges) {
-      // Update appointment with changes
-      const updatedAppointments = appointmentsMain.map((app) =>
-        app.id === selectedAppointmentMain.id ? pendingChanges : app
-      );
-      setAppointmentsMain(updatedAppointments);
+      // Update the single appointment
+      dispatch(updateAppointmentThunk({
+        appointmentId: pendingChanges._id,
+        updateData: pendingChanges
+      }));
+
+      console.log("update Data", pendingChanges);
     }
-    
-    // Close everything
+
+    // Close modals and reset local state
     setShowNotifyModal(false);
     setPendingChanges(null);
     setNotifyAction("change");
     handleClose();
-    
+
     if (shouldNotify) {
       console.log(`Notification requested for ${notifyAction}:`, notificationOptions);
     }
@@ -322,24 +410,24 @@ const EditAppointmentModalMain = ({
     const lastName = selectedAppointmentMain.lastName || selectedAppointmentMain.name?.split(" ").slice(1).join(" ") || "";
     return {
       id: selectedAppointmentMain.memberId || selectedAppointmentMain.id,
-      name: selectedAppointmentMain.lastName 
-        ? `${selectedAppointmentMain.name} ${selectedAppointmentMain.lastName}` 
-        : selectedAppointmentMain.name,
+      name: selectedAppointmentMain.lastName
+        ? `${selectedAppointmentMain.firstName} ${selectedAppointmentMain.lastName}`
+        : selectedAppointmentMain.firstName,
       firstName: firstName,
       lastName: lastName,
-      image: selectedAppointmentMain.memberImage || selectedAppointmentMain.image || null,
+      image: selectedAppointmentMain.img || null,
       note: selectedAppointmentMain.specialNote?.text || "",
       noteImportance: selectedAppointmentMain.specialNote?.isImportant ? "important" : "unimportant",
-      noteStartDate: selectedAppointmentMain.specialNote?.startDate || "",
-      noteEndDate: selectedAppointmentMain.specialNote?.endDate || "",
+      noteStartDate: selectedAppointmentMain.specialNote?.valid.from || "",
+      noteEndDate: selectedAppointmentMain.specialNote?.valid.until || "",
     };
   };
 
   const getRelationsCount = (memberId) => {
     // Check if this is a lead
     const isLeadAppt = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
-    const relations = isLeadAppt 
-      ? leadRelations[selectedAppointmentMain.leadId] 
+    const relations = isLeadAppt
+      ? leadRelations[selectedAppointmentMain.leadId]
       : memberRelations[memberId];
     if (!relations) return 0;
     return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0);
@@ -369,8 +457,8 @@ const EditAppointmentModalMain = ({
   };
 
   const memberData = getMemberFromAppointment();
-  const fullName = selectedAppointmentMain.lastName 
-    ? `${selectedAppointmentMain.name} ${selectedAppointmentMain.lastName}` 
+  const fullName = selectedAppointmentMain.lastName
+    ? `${selectedAppointmentMain.name} ${selectedAppointmentMain.lastName}`
     : selectedAppointmentMain.name;
 
   // Check if this is a lead (trial training with leadId)
@@ -413,20 +501,20 @@ const EditAppointmentModalMain = ({
                   size="sm"
                   position="relative"
                 />
-                
+
                 {/* Avatar - only for members, not leads */}
                 {!isLead && (
                   selectedAppointmentMain.memberImage || selectedAppointmentMain.image ? (
                     <img src={selectedAppointmentMain.memberImage || selectedAppointmentMain.image} alt="" className="w-7 h-7 rounded-lg object-cover" />
                   ) : (
-                    <InitialsAvatar 
-                      firstName={memberData.firstName} 
-                      lastName={memberData.lastName} 
-                      size={28} 
+                    <InitialsAvatar
+                      firstName={memberData.firstName}
+                      lastName={memberData.lastName}
+                      size={28}
                     />
                   )
                 )}
-                
+
                 {/* Name */}
                 <span className="text-content-primary text-sm font-medium">{fullName}</span>
 
@@ -470,17 +558,27 @@ const EditAppointmentModalMain = ({
             <div>
               <label className="block text-xs text-content-faint mb-2">Date</label>
               <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
-                <span className={editDate ? "text-content-primary" : "text-content-faint"}>{editDate ? (() => { const [y,m,d] = editDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <span className={editDate ? "text-content-primary" : "text-content-faint"}>{editDate ? (() => { const [y, m, d] = editDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                 <DatePickerField value={editDate} onChange={setEditDate} />
               </div>
             </div>
             <div>
               <label className="block text-xs text-content-faint mb-2">Time Slot</label>
               <div className="relative">
-                <select value={editTime} onChange={(e) => setEditTime(e.target.value)}
-                  className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary transition-colors">
-                  {getAvailableSlots(editDate).map((slot, idx) => (
-                    <option key={idx} value={slot.time}>{slot.time}</option>
+                <select
+                  value={editTime.start}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    const slot = availableSlots.find(s => s.start === start);
+                    setEditTime({ start, end: slot?.end || "" });
+                  }}
+
+                  className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5"
+                >
+                  {availableSlots.map((slot, idx) => (
+                    <option key={idx} value={slot.start}>
+                      {slot.time}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
@@ -522,14 +620,13 @@ const EditAppointmentModalMain = ({
             className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors">
             Close
           </button>
-          <button 
+          <button
             onClick={checkAvailability}
             disabled={!hasChanges}
-            className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
-              hasChanges 
-                ? "text-white bg-primary hover:bg-primary-hover" 
-                : "text-content-faint bg-surface-button cursor-not-allowed"
-            }`}>
+            className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${hasChanges
+              ? "text-white bg-primary hover:bg-primary-hover"
+              : "text-content-faint bg-surface-button cursor-not-allowed"
+              }`}>
             Save Changes
           </button>
         </div>

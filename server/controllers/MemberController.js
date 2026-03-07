@@ -37,7 +37,9 @@ const createMember = async (req, res, next) => {
       zipCode,
       dateOfBirth,
       houseNumber,
-      studioId
+      studioId,
+      notes,
+      trainingGoal
     } = req.body;
 
     const studio = await StudioModel.findById(studioId);
@@ -74,7 +76,15 @@ const createMember = async (req, res, next) => {
       email,
       memberNumber,
       password: securePassword,
-      studio: studioId
+      trainingGoal,
+      studio: studioId,
+      specialsNotes: Array.isArray(notes) ? notes.map(n => ({
+        status: n.status || "general",
+        note: n.note,
+        isImportant: n.isImportant || false,
+        valid: n.valid || null,
+        createdAt: new Date(),
+      })) : [],
       // img: {
       //   url: cloudinaryResult.secure_url,
       //   public_id: cloudinaryResult.public_id,
@@ -336,14 +346,13 @@ const updateMemberCheckIn = async (req, res, next) => {
 const createTemporaryMember = async (req, res, next) => {
   try {
     const userId = req.user?._id
-    const studioId = req.user?.studioId
-    const { firstName, lastName, email, gender, telephone, mobileNumber, street, city, zipCode, country, about, archivedAt, relationId, noteId } = req.body;
+    const studioId = req.user?.studio
+    const { firstName, lastName, email, gender, telephone, phone, street, city, zipCode, country, about, archivedAt, relationId, notes, trainingGoal } = req.body;
 
-    const relation = await RelationModel.findById(relationId);
-    if (!relation) throw new NotFoundError('Invalid Relation Id')
-
-    const specialNote = await specialNotesModel.findById(noteId)
-    if (!specialNote) throw new NotFoundError('Invalid specialNote Id')
+    if (relationId) {
+      const relation = await RelationModel.findById(relationId);
+      if (!relation) throw new NotFoundError('Invalid Relation Id')
+    }
 
 
     if (!req.file) throw new NotFoundError("Invalid File")
@@ -356,13 +365,14 @@ const createTemporaryMember = async (req, res, next) => {
       gender,
       email,
       telephone,
-      mobileNumber,
+      phone,
       about,
       country,
       archivedAt,
       street,
       city,
       zipCode,
+      trainingGoal,
       studio: studioId,
       memberType: 'temporary',
       status: 'active',
@@ -370,19 +380,27 @@ const createTemporaryMember = async (req, res, next) => {
         url: cloudinaryResult.secure_url,
         public_id: cloudinaryResult.public_id
       },
-      specialsNotes: noteId,
-      relations: relationId,
+      specialsNotes: Array.isArray(notes) ? notes.map(n => ({
+        status: n.status || "general",
+        note: n.note,
+        isImportant: n.isImportant || false,
+        valid: n.valid || null,
+        createdAt: new Date(),
+      })) : [],
+      relations: relationId || null,
       createdBy: userId
     })
 
 
-    await RelationModel.findByIdAndUpdate(relationId, {
-      $addToSet: { memberId: member._id }
-    },
-      { new: true }
-    )
-    await specialNote.findByIdAndUpdate(noteId, {
-      $addToSet: { memberId: member._id }
+    if (relationId) {
+      await RelationModel.findByIdAndUpdate(relationId, {
+        $addToSet: { memberId: member._id }
+      },
+        { new: true }
+      )
+    }
+    await StudioModel.findByIdAndUpdate(studioId, {
+      $addToSet: { users: member._id }
     },
       { new: true }
     )
@@ -398,6 +416,49 @@ const createTemporaryMember = async (req, res, next) => {
 }
 
 
+// update member Detail by staff
+
+const updateMemberByStaff = async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+    const { memberId } = req.params;
+
+    const updateData = { ...req.body };
+
+    // If specialsNotes exists, parse it from JSON string
+    if (updateData.specialsNotes) {
+      try {
+        updateData.specialsNotes = JSON.parse(updateData.specialsNotes);
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid specialsNotes format" });
+      }
+    }
+
+    // Handle file upload
+    if (req.file) {
+      const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+      updateData.img = {
+        url: cloudinaryResult.secure_url,
+        public_id: cloudinaryResult.public_id,
+      };
+    }
+
+    // Update member in DB
+    const updatedMember = await MemberModel.findByIdAndUpdate(
+      memberId,
+      { $set: updateData },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      member: updatedMember, // return the actual updated member
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   createMember,
   loginMember,
@@ -406,5 +467,6 @@ module.exports = {
   getMemberById,
   getMembers,
   updateMemberCheckIn,
-  createTemporaryMember
+  createTemporaryMember,
+  updateMemberByStaff
 };

@@ -23,6 +23,17 @@ export const createMyAppointment = createAsyncThunk('appointment/createAppointme
     }
 })
 
+export const createBlockAppointmentThunk = createAsyncThunk('appointment/block', async (blockAppointment, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.createBlockAppointment(blockAppointment);
+        return res.appointments;
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
 export const cancelAppointment = createAsyncThunk('appointment/cancel', async (appointmentId, { rejectWithValue }) => {
     try {
         const res = await AppointmentsApi.canceledAppointment(appointmentId)
@@ -70,6 +81,46 @@ export const createdAppointmentByStaff = createAsyncThunk('appointments/createBy
         return rejectWithValue(error.response?.data);
     }
 })
+
+// book Trial for Staff
+export const createBookingTrialThunk = createAsyncThunk('appointments/createByStaff/trial', async ({ leadId, trialData }, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.createBookingTrialByStaff(leadId, trialData);
+        return res.appointment
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data);
+    }
+})
+
+
+
+// Update Appointment Thunk
+export const updateAppointmentThunk = createAsyncThunk('appointment/update', async ({ appointmentId, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.updateAppointment(appointmentId, updateData)
+        return res.appointment
+    } catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+// delete Appointment Thunk
+
+export const deleteAppointmentThunk = createAsyncThunk("appointment/delete", async (appointmentId, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.deleteAppointment(appointmentId);
+        return res.data
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+
+
 
 const appointmentSlice = createSlice({
     name: 'appointment',
@@ -171,6 +222,69 @@ const appointmentSlice = createSlice({
             .addCase(createdAppointmentByStaff.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message;
+            })
+
+            // createBookingTrialThunk
+            .addCase(createBookingTrialThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createBookingTrialThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // Optionally, you can add the newly created appointment to the list
+                state.appointments.push(action.payload);
+            })
+            .addCase(createBookingTrialThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message;
+            })
+
+            // block Appointment Slot
+            .addCase(createBlockAppointmentThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createBlockAppointmentThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // Optionally, you can add the newly created appointment to the list
+                state.appointments.push(action.payload);
+            })
+            .addCase(createBlockAppointmentThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message;
+            })
+
+            // update Appointment
+            .addCase(updateAppointmentThunk.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(updateAppointmentThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                const update = action.payload
+                state.appointments = state.appointments.map((appt) =>
+                    appt._id === update._id ? update : appt
+                );
+            })
+            .addCase(updateAppointmentThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // update Appointment
+            .addCase(deleteAppointmentThunk.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(deleteAppointmentThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                const update = action.payload
+                state.appointments = state.appointments.map((appt) =>
+                    appt._id === update._id ? update : appt
+                );
+            })
+            .addCase(deleteAppointmentThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
             })
     }
 })

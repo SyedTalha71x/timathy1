@@ -42,9 +42,31 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         ref: 'User'
     },
     specialsNotes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'specialNotes'
+        status: {
+            type: String,
+            enum: ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow-up', 'general'],
+            default: 'general'
+        },
+        note: {
+            type: String,
+            // required: true
+        },
+        isImportant: {
+            type: Boolean,
+            default: false
+        },
+        valid: {
+            from: {
+                type: Date
+            },
+            until: {
+                type: Date
+            }
+        },
     }],
+    trainingGoal: {
+        type: String,
+    },
     checkIn: {
         type: Boolean,
         default: false,

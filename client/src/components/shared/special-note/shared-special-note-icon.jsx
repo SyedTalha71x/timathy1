@@ -27,12 +27,12 @@ export const getStatusLabel = (statusId) => {
  */
 export const extractNotes = (entity, entityType = "member") => {
   if (!entity) return []
-  
+
   // Check for notes array first (new format)
   if (entity.notes && Array.isArray(entity.notes) && entity.notes.length > 0) {
     return entity.notes
   }
-  
+
   // Lead legacy format - specialNote object
   if (entityType === "lead" && entity.specialNote?.text?.trim()) {
     return [{
@@ -45,7 +45,7 @@ export const extractNotes = (entity, entityType = "member") => {
       createdAt: entity.createdAt || "",
     }]
   }
-  
+
   // Member legacy format - note string
   if (entityType === "member" && entity.note?.trim()) {
     return [{
@@ -57,7 +57,7 @@ export const extractNotes = (entity, entityType = "member") => {
       endDate: entity.noteEndDate || "",
     }]
   }
-  
+
   return []
 }
 
@@ -87,7 +87,7 @@ const SharedSpecialNoteIcon = ({
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
   const [leaveTimeout, setLeaveTimeout] = useState(null)
-  
+
   const noteRef = useRef(null)
   const iconRef = useRef(null)
 
@@ -134,7 +134,7 @@ const SharedSpecialNoteIcon = ({
       if (noteRef.current && noteRef.current.contains(event.target)) {
         return
       }
-      
+
       setIsNoteOpen(false)
       setHoveredNoteId(null)
       if (hoverTimeout) clearTimeout(hoverTimeout)
@@ -150,7 +150,7 @@ const SharedSpecialNoteIcon = ({
   const calculatePosition = (rect) => {
     const viewportHeight = window.innerHeight
     const spaceBelow = viewportHeight - rect.bottom - 16
-    
+
     return {
       top: rect.bottom + 8,
       left: rect.left,
@@ -160,7 +160,7 @@ const SharedSpecialNoteIcon = ({
 
   const handleNoteClick = (e) => {
     e.stopPropagation()
-    
+
     if (!hasValidNote) {
       // No notes - open edit modal to add note
       if (onEdit) {
@@ -168,7 +168,7 @@ const SharedSpecialNoteIcon = ({
       }
       return
     }
-    
+
     const rect = e.currentTarget.getBoundingClientRect()
     setNotePosition(calculatePosition(rect))
     setIsNoteOpen(!isNoteOpen)
@@ -176,9 +176,9 @@ const SharedSpecialNoteIcon = ({
 
   const handleNoteMouseEnter = (e) => {
     e.stopPropagation()
-    
+
     if (!hasValidNote) return // Don't show popup for empty notes
-    
+
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
@@ -187,10 +187,10 @@ const SharedSpecialNoteIcon = ({
       clearTimeout(leaveTimeout)
       setLeaveTimeout(null)
     }
-    
+
     const rect = e.currentTarget.getBoundingClientRect()
     setNotePosition(calculatePosition(rect))
-    
+
     const timeout = setTimeout(() => {
       setHoveredNoteId(entity.id)
     }, 300)
@@ -199,12 +199,12 @@ const SharedSpecialNoteIcon = ({
 
   const handleNoteMouseLeave = (e) => {
     e.stopPropagation()
-    
+
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
-    
+
     const timeout = setTimeout(() => {
       if (!noteRef.current || !noteRef.current.matches(':hover')) {
         setHoveredNoteId(null)
@@ -251,8 +251,8 @@ const SharedSpecialNoteIcon = ({
   const shouldShowNotePopover = isNoteOpen || hoveredNoteId === entity?.id
 
   // Position classes
-  const positionClasses = position === "absolute" 
-    ? "absolute -top-2 -left-2 z-10" 
+  const positionClasses = position === "absolute"
+    ? "absolute -top-2 -left-2 z-10"
     : "flex-shrink-0"
 
   if (!entity) return null
@@ -263,11 +263,10 @@ const SharedSpecialNoteIcon = ({
       {hasValidNote ? (
         <div
           ref={iconRef}
-          className={`${positionClasses} ${
-            hasImportantNote 
-              ? "bg-red-500 hover:bg-red-400" 
+          className={`${positionClasses} ${hasImportantNote
+              ? "bg-red-500 hover:bg-red-400"
               : "bg-blue-500 hover:bg-blue-400"
-          } rounded-full ${containerSize} ${borderWidth} border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
+            } rounded-full ${containerSize} ${borderWidth} border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
           onClick={handleNoteClick}
           onMouseEnter={handleNoteMouseEnter}
           onMouseLeave={handleNoteMouseLeave}
@@ -282,23 +281,21 @@ const SharedSpecialNoteIcon = ({
       ) : (
         <div
           ref={iconRef}
-          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed ${
-            onColoredBackground 
-              ? "border-white/60 hover:border-white" 
+          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed ${onColoredBackground
+              ? "border-white/60 hover:border-white"
               : "border-content-muted hover:border-content-primary"
-          } rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
+            } rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
           onClick={handleNoteClick}
           onPointerDown={(e) => e.stopPropagation()}
           title="Add special note"
         >
-          <StickyNote size={iconSize} className={`${
-            onColoredBackground 
-              ? "text-white/60 group-hover:text-white" 
+          <StickyNote size={iconSize} className={`${onColoredBackground
+              ? "text-white/60 group-hover:text-white"
               : "text-content-muted group-hover:text-content-primary"
-          } transition-colors`} />
+            } transition-colors`} />
         </div>
       )}
-      
+
       {/* Note Popover - Portal */}
       {shouldShowNotePopover && hasValidNote &&
         createPortal(
@@ -334,7 +331,7 @@ const SharedSpecialNoteIcon = ({
                 <X size={16} />
               </button>
             </div>
-            
+
             {/* Scrollable Content - Notes List */}
             <style>{`
               .special-note-scrollable::-webkit-scrollbar {
@@ -349,7 +346,7 @@ const SharedSpecialNoteIcon = ({
                 border-radius: 4px;
               }
             `}</style>
-            <div 
+            <div
               className="p-2 overflow-y-auto flex-1 min-h-0 special-note-scrollable space-y-2"
               style={{
                 scrollbarWidth: 'thin',
@@ -360,34 +357,34 @@ const SharedSpecialNoteIcon = ({
                 .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
                 .slice(0, maxVisibleNotes)
                 .map((note, index) => (
-                <div key={note.id || index} className="bg-surface-dark/50 rounded-lg p-2.5">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
-                      {getStatusLabel(note.status)}
-                    </span>
-                    {note.isImportant && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
-                        Important
+                  <div key={note.id || index} className="bg-surface-dark/50 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
+                        {getStatusLabel(note.status)}
                       </span>
+                      {note.isImportant && (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
+                          Important
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-content-primary text-xs leading-relaxed whitespace-pre-wrap">
+                      {note.note}
+                    </p>
+                    {(note.valid.from || note.valid.until) && (
+                      <p className="text-content-faint text-xs mt-1.5 flex items-center gap-1">
+                        <Calendar size={10} />
+                        {note.valid.from && note.valid.until ? (
+                          <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                        ) : note.startDate ? (
+                          <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                        ) : (
+                          <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
+                        )}
+                      </p>
                     )}
                   </div>
-                  <p className="text-content-primary text-xs leading-relaxed whitespace-pre-wrap">
-                    {note.text}
-                  </p>
-                  {(note.startDate || note.endDate) && (
-                    <p className="text-content-faint text-xs mt-1.5 flex items-center gap-1">
-                      <Calendar size={10} />
-                      {note.startDate && note.endDate ? (
-                        <>Valid: {note.startDate} - {note.endDate}</>
-                      ) : note.startDate ? (
-                        <>Valid from: {note.startDate}</>
-                      ) : (
-                        <>Valid until: {note.endDate}</>
-                      )}
-                    </p>
-                  )}
-                </div>
-              ))}
+                ))}
               {entityNotes.length > maxVisibleNotes && (
                 <button
                   onClick={handleEditNote}

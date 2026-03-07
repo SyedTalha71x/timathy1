@@ -42,6 +42,8 @@ import {
 } from "../../utils/studio-states/analytics-states"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { fetchAllMember } from "../../features/member/memberSlice"
+import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 
 // ==============================
 // STAT CARD COMPONENT - Compact Version
@@ -308,7 +310,7 @@ export default function AnalyticsDashboard() {
   const dispatch = useDispatch();
   const { appointments = [] } = useSelector((state) => state.appointments || {})
   const { members = [] } = useSelector((state) => state.members || {})
-  // const {leads} = useSelector((state) => state.leads || {})  
+  const {leads} = useSelector((state) => state.leads || {})  
   const { services = [] } = useSelector((state) => state.services || {})
 
   // ==============================
@@ -336,8 +338,8 @@ export default function AnalyticsDashboard() {
   // ==============================
   useEffect(() => {
     dispatch(fetchAllAppointments())
-    // dispatch(fetchAllMembers());
-    // dispatch(());
+    dispatch(fetchAllMember());
+    dispatch(fetchAllLeadsThunk());
   }, [dispatch])
 
   // Close dropdown on outside click

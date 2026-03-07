@@ -156,7 +156,7 @@ const EditLeadModal = ({
     if (leadData) {
       setFormData({
         firstName: leadData.firstName || "",
-        lastName: leadData.surname || "",
+        lastName: leadData.lastName || "",
         email: leadData.email || "",
         phone: leadData.phoneNumber || "",
         telephoneNumber: leadData.telephoneNumber || "",
@@ -182,7 +182,7 @@ const EditLeadModal = ({
         setLocalNotes([{
           id: Date.now(),
           status: "general",
-          text: leadData.specialNote.text,
+          note: leadData.specialNote.text,
           isImportant: leadData.specialNote.isImportant || false,
           startDate: leadData.specialNote.startDate || "",
           endDate: leadData.specialNote.endDate || "",
@@ -254,7 +254,7 @@ const EditLeadModal = ({
     const note = {
       id: Date.now(),
       status: newNote.status,
-      text: newNote.text.trim(),
+      note: newNote.text.trim(),
       isImportant: newNote.isImportant,
       startDate: newNote.startDate || "",
       endDate: newNote.endDate || "",
@@ -286,7 +286,7 @@ const EditLeadModal = ({
     setEditingNoteId(note.id)
     setNewNote({
       status: note.status,
-      text: note.text,
+      note: note.text,
       isImportant: note.isImportant,
       startDate: note.startDate || "",
       endDate: note.endDate || "",
@@ -308,7 +308,7 @@ const EditLeadModal = ({
         ? {
             ...n,
             status: newNote.status,
-            text: newNote.text.trim(),
+            note: newNote.text.trim(),
             isImportant: newNote.isImportant,
             startDate: newNote.startDate || "",
             endDate: newNote.endDate || "",
@@ -318,7 +318,7 @@ const EditLeadModal = ({
     
     setNewNote({
       status: "general",
-      text: "",
+      note: "",
       isImportant: false,
       startDate: "",
       endDate: "",
@@ -913,7 +913,7 @@ const EditLeadModal = ({
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
                     <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
-                    <p className="text-content-primary font-medium">{leadData?.firstName} {leadData?.surname}</p>
+                    <p className="text-content-primary font-medium">{leadData?.firstName} {leadData?.lastName}</p>
                   </div>
                   <button
                     type="button"
@@ -968,8 +968,8 @@ const EditLeadModal = ({
                       <label className="text-xs text-content-muted block mb-1.5">Note</label>
                       <textarea
                         ref={specialNoteTextareaRef}
-                        value={newNote.text}
-                        onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
+                        value={newNote.note}
+                        onChange={(e) => setNewNote({ ...newNote, note: e.target.value })}
                         className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors"
                         placeholder="Enter note..."
                       />

@@ -482,7 +482,9 @@ const AddAppointmentModal = ({
     return dates;
   };
 
+   // ===========================================
   // Prepare appointment data but don't submit yet - show notify modal first
+  // ===========================================
   const handleBook = () => {
     if (!appointmentData.type || appointmentData.members.length === 0 || !appointmentData.timeSlot.start) {
       alert("Please complete all fields");
@@ -507,25 +509,22 @@ const AddAppointmentModal = ({
       memberId: appointmentData.members[0]?.id,
       serviceId: selectedType?._id,
       date: showRecurringOptions ? recurringOptions.startDate : appointmentData.date,
-      timeSlot: { start, end },
+      timeSlotId: { start, end },
       view: selectedType.view || "upcoming",
       bookingType: showRecurringOptions ? "recurring" : "single",
       frequency: showRecurringOptions ? recurringOptions.frequency : undefined,
       occurrences: showRecurringOptions ? recurringOptions.occurrences : 1
     };
-    console.log("Booking payload:", payload);
     setPendingAppointmentData(payload);
     setShowNotifyModal(true);
   };
-  // Confirm booking after optional notification
-  const handleConfirmBooking = (shouldNotify, notificationOptions) => {
-    dispatch(
-      createdAppointmentByStaff({
-        memberId: pendingAppointmentData.memberId,
-        appointmentData: pendingAppointmentData
-      })
-    );
 
+  // ===========================================
+  // Confirm booking after optional notification
+  // ===========================================
+  const handleConfirmBooking = (shouldNotify, notificationOptions) => {
+    if (pendingAppointmentData) { onSubmit(pendingAppointmentData) }
+    
     setShowNotifyModal(false);
     setPendingAppointmentData(null);
     onClose();

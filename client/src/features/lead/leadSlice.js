@@ -3,7 +3,7 @@ import * as leadApi from './leadApi'
 
 
 
-export const createLeadThunk = createAsyncThunk('/lead/create', async (leadData, { rejectWithValue }) => {
+export const createLeadThunk = createAsyncThunk('/lead/create', async (leadData , { rejectWithValue }) => {
     try {
         const res = await leadApi.createLead(leadData)
         return res.lead;
@@ -12,7 +12,7 @@ export const createLeadThunk = createAsyncThunk('/lead/create', async (leadData,
         return rejectWithValue(error.response?.data)
     }
 })
-export const fetchAllLeadsThunk = createAsyncThunk('/fetch/lead/all', async (_, { rejectWithValue }) => {
+export const fetchAllLeadsThunk = createAsyncThunk('/fetch/lead/lead-all', async (_, { rejectWithValue }) => {
     try {
         const res = await leadApi.fetchAllLeads()
         return res.lead;

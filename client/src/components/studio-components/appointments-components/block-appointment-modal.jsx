@@ -3,8 +3,20 @@ import { useState, useEffect } from "react"
 import { X, Check, AlertTriangle } from "lucide-react"
 import { appointmentTypesData } from "../../../utils/studio-states"
 import DatePickerField from '../../shared/DatePickerField'
+import { useDispatch, useSelector } from "react-redux"
+import { fetchStudioServices } from "../../../features/services/servicesSlice"
 
 const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, selectedTime = null }) => {
+
+  const { services } = useSelector((state) => state.services)
+
+  const dispatch = useDispatch()
+
+
+
+  useEffect(() => {
+    dispatch(fetchStudioServices())
+  }, [dispatch])
   // Format date to YYYY-MM-DD string using local timezone (not UTC)
   const getFormattedDate = (date) => {
     if (!date) {
@@ -24,19 +36,19 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
   // Parse selectedTime and calculate start/end times
   const parseSelectedTime = (time) => {
     if (!time) return { start: "", end: "" };
-    
+
     // If it's a range like "09:00 - 09:30"
     if (time.includes("-")) {
       const parts = time.split("-").map(t => t.trim());
       return { start: parts[0], end: parts[1] || "" };
     }
-    
+
     // If it's just a start time like "09:00", add 30 minutes for end time
     const startTime = time.trim();
     const [hours, minutes] = startTime.split(":").map(Number);
     const endDate = new Date(2000, 0, 1, hours, minutes + 30);
     const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
-    
+
     return { start: startTime, end: endTime };
   };
 
@@ -64,7 +76,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
     note: "",
   })
   const [showConfirm, setShowConfirm] = useState(false)
-  
+
   // State für geblockte Terminarten - standardmäßig alle ausgewählt
   const [blockedTypes, setBlockedTypes] = useState(() => {
     const initial = {};
@@ -114,11 +126,11 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
 
   // Check if at least one type is selected
   const hasSelectedTypes = Object.values(blockedTypes).some(v => v);
-  
+
   // Check if form is valid
-  const isFormValid = blockData.startDate && blockData.endDate && 
-                      blockData.startTime && blockData.endTime && 
-                      isDateValid() && isTimeValid() && hasSelectedTypes;
+  const isFormValid = blockData.startDate && blockData.endDate &&
+    blockData.startTime && blockData.endTime &&
+    isDateValid() && isTimeValid() && hasSelectedTypes;
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -150,17 +162,29 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
   }
 
   const handleConfirmBlock = () => {
-    // Get selected type names
-    const selectedTypeNames = allAppointmentTypes
-      .filter(type => blockedTypes[type.id])
-      .map(type => type.name);
-    
-    onSubmit({ 
-      ...blockData, 
-      blockAll: areAllSelected,
-      blockedTypes: selectedTypeNames
-    })
-    setShowConfirm(false)
+    const selectedServiceIds = services
+      .filter(service => blockedTypes[service._id])
+      .map(service => service._id);
+
+    if (selectedServiceIds.length === 0) return;
+
+    // Send the entire date range in ONE request, not multiple
+    const blockDataForServer = {
+      startDate: blockData.startDate, // Send startDate
+      endDate: blockData.endDate,     // Send endDate
+      timeSlot: {
+        start: blockData.startTime,
+        end: blockData.endTime
+      },
+      serviceId: selectedServiceIds[0],
+      note: blockData.note || ""
+    };
+
+    console.log('Sending range block:', blockDataForServer);
+
+    // Submit ONE block for the entire range
+    onSubmit(blockDataForServer);
+    setShowConfirm(false);
   }
 
   // Get color hex from color string like "bg-[#EF4444]"
@@ -259,26 +283,25 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
                   </button>
                 </div>
                 <div className="bg-surface-dark border border-border rounded-xl p-3 space-y-1">
-                  {allAppointmentTypes.map((type) => (
-                    <label 
-                      key={type.id} 
+                  {services.map((type) => (
+                    <label
+                      key={type._id}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-hover cursor-pointer transition-colors"
                     >
-                      <div 
-                        className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
-                          blockedTypes[type.id] 
-                            ? 'border-primary bg-primary' 
-                            : 'border-border bg-transparent'
-                        }`}
+                      <div
+                        className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${blockedTypes[type._id]
+                          ? 'border-primary bg-primary'
+                          : 'border-border bg-transparent'
+                          }`}
                         onClick={(e) => {
                           e.preventDefault();
-                          handleTypeToggle(type.id);
+                          handleTypeToggle(type._id);
                         }}
                       >
-                        {blockedTypes[type.id] && <Check size={14} className="text-white" />}
+                        {blockedTypes[type._id] && <Check size={14} className="text-white" />}
                       </div>
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: getColorHex(type) }}
                       />
                       <span className="text-content-primary text-sm">{type.name}</span>
@@ -316,11 +339,10 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
               <button
                 type="submit"
                 disabled={!isFormValid}
-                className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
-                  isFormValid 
-                    ? "text-white bg-primary hover:bg-primary-hover" 
-                    : "text-content-faint bg-surface-button cursor-not-allowed"
-                }`}
+                className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${isFormValid
+                  ? "text-white bg-primary hover:bg-primary-hover"
+                  : "text-content-faint bg-surface-button cursor-not-allowed"
+                  }`}
               >
                 Block Time Slot
               </button>
@@ -332,7 +354,7 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
       {/* Confirmation Dialog */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4" onClick={() => setShowConfirm(false)}>
-          <div 
+          <div
             className="bg-surface-card w-full max-w-sm rounded-xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
@@ -347,8 +369,8 @@ const BlockAppointmentModal = ({ isOpen, onClose, onSubmit, selectedDate, select
               <div className="p-3 bg-surface-dark border border-border rounded-xl text-sm space-y-2">
                 <p className="text-content-secondary">
                   <span className="text-content-faint">Date:</span>{' '}
-                  {blockData.startDate === blockData.endDate 
-                    ? formatDateDisplay(blockData.startDate) 
+                  {blockData.startDate === blockData.endDate
+                    ? formatDateDisplay(blockData.startDate)
                     : `${formatDateDisplay(blockData.startDate)} – ${formatDateDisplay(blockData.endDate)}`}
                 </p>
                 <p className="text-content-secondary">

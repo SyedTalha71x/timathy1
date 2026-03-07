@@ -19,3 +19,12 @@ export const temporaryMember = async (memberData) => {
     const res = await api.post('/member/temporary', memberData, { withCredentials: true })
     return res.data
 }
+
+
+
+// update member by Staff 
+
+export const updateMemberByStaff = async (memberId, updateMember) => {
+    const res = await api.put(`/member/update/staff/${memberId}`, updateMember, { withCredentials: true })
+    return res.data
+}

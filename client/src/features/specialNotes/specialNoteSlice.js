@@ -21,6 +21,15 @@ export const fetchNotesByIdzThunk = createAsyncThunk('/special/note/:id', async 
         return rejectWithValue(error.response?.data)
     }
 })
+export const fetchAllSpecialNotes = createAsyncThunk('/special/note/all', async (_, { rejectWithValue }) => {
+    try {
+        const res = await specialNoteApi.specialNotes()
+        return res.notes;
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
 
 
 
@@ -56,6 +65,18 @@ const specialNoteSlice = createSlice({
                 state.specials = action.payload
             })
             .addCase(fetchNotesByIdzThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            .addCase(fetchAllSpecialNotes.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(fetchAllSpecialNotes.fulfilled, (state, action) => {
+                state.loading = false;
+                state.specials = action.payload
+            })
+            .addCase(fetchAllSpecialNotes.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })

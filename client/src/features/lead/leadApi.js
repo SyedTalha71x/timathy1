@@ -3,7 +3,7 @@ import api from '../../services/apiClient'
 
 
 export const createLead = async (leadData) => {
-    const res = await api.post('/lead/create', leadData, { withCredentials: true })
+    const res = await api.post(`/lead/create`, leadData, { withCredentials: true })
     return res.data
 }
 

@@ -4,6 +4,7 @@ const { MemberModel } = require('../models/Discriminators');
 const StudioModel = require('../models/StudioModel');
 const ServiceModel = require('../models/ServiceModel')
 const { NotFoundError, UnAuthorizedError, BadRequestError } = require('../middleware/error/httpErrors');
+const LeadModel = require('../models/LeadModel');
 
 // createAppointment
 
@@ -73,12 +74,75 @@ const createAppointment = async (req, res, next) => {
     }
 }
 
+const createBlockedAppointment = async (req, res, next) => {
+    try {
+        const userId = req.user?._id
+        let { startDate, endDate, timeSlot, serviceId, note } = req.body; // Changed to startDate/endDate
+
+        if (!startDate || !endDate || !timeSlot || !timeSlot.start || !timeSlot.end) {
+            throw new BadRequestError("Missing required fields for blocked appointment");
+        }
+
+        const service = await ServiceModel.findById(serviceId);
+        if (!service) throw new NotFoundError("Invalid service id");
+
+        const studioId = req.user?.studio;
+        const studio = await StudioModel.findById(studioId);
+        if (!studio) throw new NotFoundError("Invalid Studio Id");
+
+        // Create blocked appointments for each date in the range
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const appointments = [];
+
+        for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+            const currentDate = date.toISOString().split('T')[0];
+
+            // Check if slot is already booked or blocked for this date
+            const existingAppointment = await AppointmentModel.findOne({
+                studio: studioId,
+                date: currentDate,
+                "timeSlot.start": timeSlot.start,
+                "timeSlot.end": timeSlot.end,
+            });
+
+            if (!existingAppointment) {
+                // Create blocked appointment for this date
+                const appointment = await AppointmentModel.create({
+                    serviceId: serviceId,
+                    studio: studioId,
+                    date: currentDate,
+                    timeSlot: {
+                        ...timeSlot,
+                        isBlocked: true,
+                    },
+                    note,
+                    status: "blocked",
+                    view: "blocked"
+                });
+                appointments.push(appointment);
+            }
+        }
+
+        return res.status(201).json({
+            success: true,
+            appointments: appointments
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+
 // create Appointment for member by staff
 // const mongoose = require("mongoose");
 
 const createAppointmentByStaff = async (req, res, next) => {
     try {
+        const userId = req.user?._id;
         const { memberId } = req.params;
+        const studioId = req.user?.studio;
+
         const {
             serviceId,
             date,
@@ -114,7 +178,6 @@ const createAppointmentByStaff = async (req, res, next) => {
             status = "completed";
             view = 'past';
         }
-        const studioId = member.studio;
 
         // SINGLE BOOKING
         if (bookingType === "single") {
@@ -201,6 +264,81 @@ const createAppointmentByStaff = async (req, res, next) => {
         next(error);
     }
 };
+
+const createBookingTrailByStaff = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const studioId = req.user?.studio;
+        const { leadId } = req.params;
+
+        const {
+            serviceId,
+            date,
+            timeSlotId,
+        } = req.body;
+
+        if (!serviceId || !date || !timeSlotId)
+            throw new BadRequestError("Missing required field");
+
+
+        console.log("BODY:", req.body);
+        console.log("PARAMS:", req.params);
+
+        const serviceData = await ServiceModel.findById(serviceId);
+        if (!serviceData)
+            throw new NotFoundError("Invalid serviceId ID");
+
+        const lead = await LeadModel.findById(leadId);
+        if (!lead)
+            throw new NotFoundError("Invalid Member ID");
+
+        const existingAppointment = await AppointmentModel.findOne({
+            studio: studioId,
+            date,
+            "timeSlot.start": timeSlotId.start,
+            "timeSlot.isBlocked": timeSlotId.isBlocked,
+        })
+        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
+        const today = new Date();
+        const selectedDate = new Date(date);
+
+        let status = "confirmed";
+
+        if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+            status = "completed";
+            view = 'past';
+        }
+
+
+        // SINGLE BOOKING
+
+        const appointment = await AppointmentModel.create({
+            lead: leadId,
+            studio: studioId,
+            serviceId: serviceId,
+            date,
+            timeSlot: timeSlotId,
+            view: "upcoming",
+            bookingType: "single",
+            status,
+            isTrial: true,
+
+        })
+        await LeadModel.findByIdAndUpdate(leadId, {
+            $push: { appointments: appointment._id },
+        });
+
+        serviceData.contingentUsage -= 1;
+        await serviceData.save();
+
+        return res.status(201).json({
+            success: true,
+            appointment,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
 const getMyAppointment = async (req, res, next) => {
     try {
@@ -308,4 +446,71 @@ const appointmentByMemberId = async (req, res, next) => {
     }
 };
 
-module.exports = { createAppointment, getMyAppointment, cancelAppointment, allAppointments, appointmentByMemberId, createAppointmentByStaff }
+
+// update appointment
+const updateAppointmentById = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const { appointmentId } = req.params;
+
+        const updateData = req.body;
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+        if (!appointment) throw new NotFoundError("Invalid appointment Id")
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, { $set: updateData }, { new: true })
+
+
+        if (!updatedAppointment) throw new BadRequestError("Invalid data")
+        return res.status(200).json({
+            success: true,
+            appointment: updatedAppointment
+        })
+
+
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+// delete Appointment
+const deleteAppointmentById = async (req, res, next) => {
+    try {
+        const userId = req.user?._id
+        const { appointmentId } = req.params
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        if (!appointment) throw new NotFoundError("Invalid Appointment Id")
+
+        await MemberModel.findByIdAndUpdate(appointment.member, {
+            $pull: { appointments: appointment._id }
+        }, { new: true })
+
+        await AppointmentModel.findByIdAndDelete(appointmentId)
+        return res.status(200).json({
+            success: true,
+            message: "Appointment Deleted Successfully"
+        })
+
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+
+
+
+module.exports = {
+    createAppointment,
+    getMyAppointment,
+    cancelAppointment,
+    allAppointments,
+    appointmentByMemberId,
+    createAppointmentByStaff,
+    createBlockedAppointment,
+    createBookingTrailByStaff,
+    updateAppointmentById,
+    deleteAppointmentById
+}
