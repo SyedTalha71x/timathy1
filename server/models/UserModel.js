@@ -101,7 +101,7 @@ const UserSchema = new mongoose.Schema({
         // required: true,
     },
     zipCode: {
-        type: String,
+        type: Number,
         validate: {
             validator: v => /^\d{4,10}$/.test(v),
             message: props => `${props.value} is not valid zip code!`

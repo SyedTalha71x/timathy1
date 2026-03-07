@@ -52,8 +52,9 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads, appointmentTypesData, freeAppointmentsData, leadsData as leadsDataMain } from "../../utils/studio-states"
 import { useStudioLeads } from "../../hooks/useStudioLeads"
 import { useDispatch, useSelector } from "react-redux"
-import { createLeadThunk } from "../../features/lead/leadSlice"
+import { createLeadThunk, fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 import { createNoteThunk } from "../../features/specialNotes/specialNoteSlice"
+
 
 export default function LeadManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
 
@@ -203,6 +204,16 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     targetColumnId: "",
   })
 
+  // ===========================
+  //  Lead Detail Loads
+  // ===========================
+  useEffect(() => {
+    dispatch(fetchAllLeadsThunk())
+  }, [dispatch])
+
+
+
+
   // Configure sensors for drag detection with mobile optimizations
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -235,7 +246,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       return id.replace("column-", "")
     }
     // Check if it's a lead ID - find which column it belongs to
-    const lead = leads.find((l) => l.id === id)
+    const lead = leads.find((l) => l._id === id)
     return lead?.columnId || null
   }
 
@@ -478,37 +489,71 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // Function to sort leads based on column settings
   const sortLeads = (leadsToSort, columnId) => {
     const settings = columnSortSettings[columnId]
+
+    // Safety check
+    if (!Array.isArray(leadsToSort)) {
+      console.warn('sortLeads received non-array:', leadsToSort)
+      return []
+    }
+
     if (!settings || settings.sortBy === 'custom') {
       return leadsToSort // Return original order for custom sorting
     }
 
     const sorted = [...leadsToSort].sort((a, b) => {
-      let comparison = 0
+      try {
+        let comparison = 0
 
-      switch (settings.sortBy) {
-        case 'name':
-          const nameA = `${a.firstName || ''} ${a.surname || ''}`.toLowerCase()
-          const nameB = `${b.firstName || ''} ${b.surname || ''}`.toLowerCase()
-          comparison = nameA.localeCompare(nameB)
-          break
+        switch (settings.sortBy) {
+          case 'name':
+            // Handle both surname and lastName
+            const nameA = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase().trim()
+            const nameB = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase().trim()
+            comparison = nameA.localeCompare(nameB)
+            break
 
-        case 'relations':
-          const relCountA = getRelationCount(a.id)
-          const relCountB = getRelationCount(b.id)
-          comparison = relCountA - relCountB
-          break
+          case 'relations':
+            // Handle both id and _id
+            const leadIdA = a.id || a._id
+            const leadIdB = b.id || b._id
 
-        case 'date':
-          const dateA = new Date(a.createdAt || 0)
-          const dateB = new Date(b.createdAt || 0)
-          comparison = dateA - dateB
-          break
+            if (!leadIdA || !leadIdB) {
+              console.warn('Lead missing ID:', a, b)
+              return 0
+            }
 
-        default:
-          return 0
+            const relCountA = getRelationCount(leadIdA) || 0
+            const relCountB = getRelationCount(leadIdB) || 0
+            comparison = relCountA - relCountB
+            break
+
+          case 'date':
+            // Try multiple date fields with fallbacks
+            const getDateValue = (lead) => {
+              if (lead.createdAt) return new Date(lead.createdAt).getTime()
+              if (lead._id) {
+                // MongoDB ObjectId contains timestamp
+                const timestamp = parseInt(lead._id.toString().substring(0, 8), 16) * 1000
+                if (!isNaN(timestamp)) return timestamp
+              }
+              if (lead.dateOfBirth) return new Date(lead.dateOfBirth).getTime()
+              return 0
+            }
+
+            const dateA = getDateValue(a)
+            const dateB = getDateValue(b)
+            comparison = dateA - dateB
+            break
+
+          default:
+            return 0
+        }
+
+        return settings.sortOrder === 'asc' ? comparison : -comparison
+      } catch (error) {
+        console.error('Error sorting leads:', error, { a, b, settings })
+        return 0
       }
-
-      return settings.sortOrder === 'asc' ? comparison : -comparison
     })
 
     return sorted
@@ -783,7 +828,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   const handleSaveLeadSpecialNote = (leadId, newNote, targetColumnId) => {
     const updatedLeads = leads.map((lead) => {
-      if (lead.id === leadId) {
+      if (lead._id === leadId) {
         // Add new note to existing notes array
         const existingNotes = lead.notes || []
         const updatedNotes = [newNote, ...existingNotes]
@@ -797,7 +842,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           notes: updatedNotes,
           // Keep specialNote for backwards compatibility
           specialNote: primaryNote ? {
-            text: primaryNote.text,
+            note: primaryNote.text,
             isImportant: primaryNote.isImportant,
             startDate: primaryNote.startDate || null,
             endDate: primaryNote.endDate || null,
@@ -988,7 +1033,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       ...trialData,
       id: Math.max(0, ...trialAppointmentsMain.map(a => a.id), 0) + 1,
       name: trialLead ? trialLead.firstName : trialData.name || "",
-      lastName: trialLead ? (trialLead.surname || trialLead.lastName || "") : trialData.lastName || "",
+      lastName: trialLead ? (trialLead.lastName || "") : trialData.lastName || "",
       leadId: trialLead?.id || null,
       status: "scheduled",
       isTrial: true,
@@ -1035,28 +1080,32 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   // Filter leads based on search
   const filteredLeads = useMemo(() => {
+    // Ensure leads is an array before processing
+    const leadsArray = Array.isArray(leads) ? leads : []
+
     // If leadFilters are active, show only those leads
     if (leadFilters.length > 0) {
-      const filterIds = leadFilters.map(f => f.leadId);
-      return leads.filter((lead) => filterIds.includes(lead.id));
+      const filterIds = leadFilters.map(f => f.leadId); // Fix: map over leadFilters, not leads
+      return leadsArray.filter((lead) => filterIds.includes(lead._id));
     }
 
     // No live filtering while typing - list only changes when chips are selected
-    return leads;
+    return leadsArray;
   }, [leads, leadFilters])
+
 
   // Get search suggestions for autocomplete
   const getSearchSuggestions = () => {
     if (!searchQuery.trim()) return [];
     return leads.filter((lead) => {
       // Exclude already filtered leads
-      const isAlreadyFiltered = leadFilters.some(f => f.leadId === lead.id);
+      const isAlreadyFiltered = leadFilters.some(f => f.leadId === lead._id);
       if (isAlreadyFiltered) return false;
 
-      const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase();
+      const fullName = `${lead.firstName} ${lead.lastName}`.toLowerCase();
       return fullName.includes(searchQuery.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.phoneNumber?.includes(searchQuery) ||
+        lead.phone?.includes(searchQuery) ||
         lead.telephoneNumber?.includes(searchQuery);
     }).slice(0, 6);
   };
@@ -1064,8 +1113,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // Handle selecting a lead from search suggestions
   const handleSelectLead = (lead) => {
     setLeadFilters([...leadFilters, {
-      leadId: lead.id,
-      leadName: `${lead.firstName} ${lead.surname}`.trim()
+      leadId: lead._id,
+      leadName: `${lead.firstName} ${lead.lastName}`.trim()
     }]);
     setSearchQuery("");
     setShowSearchDropdown(false);
@@ -1099,11 +1148,24 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   }, []);
 
   // Get leads for each column
+  // In your LeadsManagement component
   const getColumnLeads = useCallback(
     (columnId) => {
-      const columnLeads = filteredLeads.filter((lead) => lead.columnId === columnId)
-      // Apply sorting
-      return sortLeads(columnLeads, columnId)
+      console.log(`Column ${columnId}:`, {
+        totalLeads: filteredLeads.length,
+        leadsWithColumn: filteredLeads.map(l => ({
+          id: l._id,
+          name: `${l.firstName} ${l.lastName}`,
+          column: l.column  // Now this will show "applied"
+        })),
+        matchingLeads: filteredLeads.filter(l => l.column === columnId).length
+      })
+
+      console.log('filter',sortLeads);
+      return sortLeads(
+        filteredLeads.filter((lead) => lead.column === columnId),  // ← Use column, not status
+        columnId
+      );
     },
     [filteredLeads, columnSortSettings, memberRelationsLead]
   )
@@ -1119,7 +1181,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     const enrichedAppointment = {
       ...appointment,
       name: appointment.name || lead?.firstName || "",
-      lastName: appointment.lastName || lead?.surname || lead?.lastName || "",
+      lastName: appointment.lastName,
       leadId: appointment.leadId || lead?.id || null,
     }
     setSelectedTrialAppointment(enrichedAppointment)
@@ -1438,12 +1500,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
               <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                 {getSearchSuggestions().map((lead) => (
                   <button
-                    key={lead.id}
+                    key={lead._id}
                     onClick={() => handleSelectLead(lead)}
                     className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-content-primary truncate">{lead.firstName} {lead.surname}</p>
+                      <p className="text-sm text-content-primary truncate">{lead.firstName} {lead.lastName}</p>
                       <p className="text-xs text-content-faint truncate">{lead.email}</p>
                     </div>
                   </button>
@@ -1656,7 +1718,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         <AddLeadModal
           isVisible={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveLead}
+          // onSave={handleSaveLead}
           columns={columns}
           availableMembersLeads={availableMembersLeads}
           leadSources={DEFAULT_LEAD_SOURCES}

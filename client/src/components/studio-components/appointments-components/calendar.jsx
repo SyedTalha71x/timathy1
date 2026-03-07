@@ -258,55 +258,182 @@ const Calendar = forwardRef(({
     );
   });
 
-  const calendarEvents = filteredAppointments.map((appointment) => {
-    const startDate = new Date(appointment.dateISO);
-    const [startH, startM] = appointment.timeSlot?.start.split(":").map(Number) || [0, 0];
-    startDate.setHours(startH, startM, 0, 0);
+  // const calendarEvents = filteredAppointments.map((appointment) => {
+  //   const startDate = new Date(appointment.dateISO);
+  //   const [startH, startM] = appointment.timeSlot?.start.split(":").map(Number) || [0, 0];
+  //   startDate.setHours(startH, startM, 0, 0);
 
-    const endDate = new Date(appointment.dateISO);
-    const [endH, endM] = appointment.timeSlot?.end.split(":").map(Number) || [startH + 1, startM];
-    endDate.setHours(endH, endM, 0, 0);
+  //   const endDate = new Date(appointment.dateISO);
+  //   const [endH, endM] = appointment.timeSlot?.end.split(":").map(Number) || [startH + 1, startM];
+  //   endDate.setHours(endH, endM, 0, 0);
 
-    const isPastEvent = appointment.view === "past";
-    const isCancelledEvent = appointment.status === "canceled";
-    const isBlockedEvent = appointment.timeSlot?.isBlocked;
+  //   const isPastEvent = appointment.view === "past";
+  //   const isCancelledEvent = appointment.status === "canceled";
+  //   const isBlockedEvent = appointment.timeSlot?.isBlocked;
 
-    let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1";
-    let borderColor = backgroundColor;
-    let textColor = "#FFFFFF";
+  //   let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1";
+  //   let borderColor = backgroundColor;
+  //   let textColor = "#FFFFFF";
 
-    if (isCancelledEvent) {
-      backgroundColor = borderColor = "#6B7280";
-    } else if (viewMode === "free") {
-      backgroundColor = getCssVar("--color-surface-dark") || "#2a2a2a";
-      borderColor = getCssVar("--color-border") || "#333333";
-      textColor = getCssVar("--color-content-faint") || "#666666";
-    }
+  //   if (isCancelledEvent) {
+  //     backgroundColor = borderColor = "#6B7280";
+  //   } else if (viewMode === "free") {
+  //     backgroundColor = getCssVar("--color-surface-dark") || "#2a2a2a";
+  //     borderColor = getCssVar("--color-border") || "#333333";
+  //     textColor = getCssVar("--color-content-faint") || "#666666";
+  //   }
 
-    return {
-      id: appointment._id,
-      title: appointment.name,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      backgroundColor,
-      borderColor,
-      textColor,
-      isPast: isPastEvent,
-      isCancelled: isCancelledEvent,
-      editable: !isBlockedEvent,
-      extendedProps: {
-        type: appointment.type || "Unknown",
-        isPast: isPastEvent,
-        isCancelled: isCancelledEvent,
-        isBlocked: isBlockedEvent,
-        originalColor: appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1",
-        viewMode,
-        appointment
-      },
-    };
-  }).filter(Boolean);
+  //   return {
+  //     id: appointment._id,
+  //     title: appointment.name,
+  //     start: startDate.toISOString(),
+  //     end: endDate.toISOString(),
+  //     backgroundColor,
+  //     borderColor,
+  //     textColor,
+  //     isPast: isPastEvent,
+  //     isCancelled: isCancelledEvent,
+  //     editable: !isBlockedEvent,
+  //     extendedProps: {
+  //       type: appointment.type || "Unknown",
+  //       isPast: isPastEvent,
+  //       isCancelled: isCancelledEvent,
+  //       isBlocked: isBlockedEvent,
+  //       originalColor: appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1",
+  //       viewMode,
+  //       appointment
+  //     },
+  //   };
+  // }).filter(Boolean);
 
+  const calendarEvents = filteredAppointments
+    .filter(appointment => {
+      // Filter out invalid appointments first
+      if (!appointment) {
+        console.warn('Null appointment found');
+        return false;
+      }
 
+      // Check if dateISO exists and is valid
+      if (!appointment.dateISO) {
+        console.warn('Appointment missing dateISO:', appointment);
+        return false;
+      }
+
+      const testDate = new Date(appointment.dateISO);
+      if (isNaN(testDate.getTime())) {
+        console.warn('Appointment with invalid dateISO:', appointment.dateISO, appointment);
+        return false;
+      }
+
+      return true;
+    })
+    .map((appointment) => {
+      try {
+        // Parse dates safely
+        const startDate = new Date(appointment.dateISO);
+        const endDate = new Date(appointment.dateISO);
+
+        // Handle timeSlot safely
+        let startH = 0, startM = 0, endH = 1, endM = 0;
+
+        if (appointment.timeSlot) {
+          if (appointment.timeSlot.start) {
+            const startParts = appointment.timeSlot.start.split(":").map(Number);
+            if (startParts.length === 2 && !isNaN(startParts[0]) && !isNaN(startParts[1])) {
+              startH = startParts[0];
+              startM = startParts[1];
+            }
+          }
+
+          if (appointment.timeSlot.end) {
+            const endParts = appointment.timeSlot.end.split(":").map(Number);
+            if (endParts.length === 2 && !isNaN(endParts[0]) && !isNaN(endParts[1])) {
+              endH = endParts[0];
+              endM = endParts[1];
+            }
+          } else {
+            // If no end time, set to start time + 1 hour
+            endH = startH + 1;
+            endM = startM;
+          }
+        }
+
+        startDate.setHours(startH, startM, 0, 0);
+        endDate.setHours(endH, endM, 0, 0);
+
+        // Validate final dates
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          console.warn('Invalid computed dates for appointment:', appointment);
+          return null;
+        }
+
+        const isPastEvent = appointment.view === "past";
+        const isCancelledEvent = appointment.status === "canceled";
+        const isBlockedEvent = appointment.timeSlot?.isBlocked || appointment.status === "blocked";
+
+        // Extract color safely
+        let backgroundColor = "#4169E1"; // Default blue
+        try {
+          if (appointment.color) {
+            const colorMatch = appointment.color.match(/bg-\[(#[A-Fa-f0-9]{6})\]/);
+            if (colorMatch && colorMatch[1]) {
+              backgroundColor = colorMatch[1];
+            }
+          }
+        } catch (e) {
+          console.warn('Error parsing color:', e);
+        }
+
+        let borderColor = backgroundColor;
+        let textColor = "#FFFFFF";
+
+        if (isCancelledEvent) {
+          backgroundColor = borderColor = "#6B7280";
+        } else if (viewMode === "free") {
+          backgroundColor = getCssVar("--color-surface-dark") || "#2a2a2a";
+          borderColor = getCssVar("--color-border") || "#333333";
+          textColor = getCssVar("--color-content-faint") || "#666666";
+        }
+
+        // Create title for blocked appointments
+        let title = appointment.name;
+        if (isBlockedEvent) {
+          title = "🔒 BLOCKED";
+        } else if (viewMode === "free") {
+          title = "Free Slot";
+        }
+
+        return {
+          id: appointment._id,
+          title: title,
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          backgroundColor,
+          borderColor,
+          textColor,
+          isPast: isPastEvent,
+          isCancelled: isCancelledEvent,
+          editable: !isBlockedEvent && !isPastEvent && !isCancelledEvent,
+          extendedProps: {
+            type: isBlockedEvent ? "Blocked Time" : (appointment.type || "Unknown"),
+            isPast: isPastEvent,
+            isCancelled: isCancelledEvent,
+            isBlocked: isBlockedEvent,
+            originalColor: backgroundColor,
+            viewMode,
+            appointment
+          },
+          // Add className for special styling
+          className: isBlockedEvent ? 'blocked-appointment' :
+            isCancelledEvent ? 'cancelled-appointment' : ''
+        };
+      } catch (error) {
+        console.warn('Error mapping appointment:', error, appointment);
+        return null;
+      }
+    })
+    .filter(event => event !== null); // Remove any failed mappings
 
 
   // Sync editFormMain with selectedMemberForEdit data

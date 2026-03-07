@@ -4,17 +4,22 @@ const AppointmentSchema = new mongoose.Schema({
     member: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'member',
-        required: true
+        // required: true
+    },
+    lead: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'lead',
+        // required: true
     },
     studio: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio',
-        required: true
+        // required: true
     },
     serviceId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service',
-        required: true
+        // required: true
     },
     date: {
         type: Date,
@@ -33,19 +38,26 @@ const AppointmentSchema = new mongoose.Schema({
         isBlocked: {
             type: Boolean,
             default: false
-        }
+        },
+    },
+    note: {
+        type: String
     },
     status: {
         type: String,
-        enum: ['scheduled', 'pending', 'completed', 'canceled', 'confirmed'],
+        enum: ['scheduled', 'pending', 'completed', 'canceled', 'confirmed', 'blocked'],
         default: 'scheduled'
     },
     view: {
         type: String,
-        enum: ['upcoming', 'pending', 'past'],
+        enum: ['upcoming', 'pending', 'past', 'blocked'],
         default: 'upcoming'
     },
     isTrial: {
+        type: Boolean,
+        default: false
+    },
+    isCheckedIn: {
         type: Boolean,
         default: false
     },

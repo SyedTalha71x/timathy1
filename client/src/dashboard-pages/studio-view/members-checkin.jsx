@@ -2,8 +2,14 @@ import { useState, useRef, useEffect } from "react"
 import { Search, Calendar, Clock, CheckCircle, X, ArrowUp, ArrowDown, UserX } from "lucide-react"
 import toast from "../../components/shared/SharedToast"
 import DatePickerField from "../../components/shared/DatePickerField"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { fetchAllMember } from "../../features/member/memberSlice"
 
 export default function CheckIns() {
+  const dispatch = useDispatch()
+  const { members } = useSelector((state) => state.member)
+  const { appointments } = useSelector((state) => state.appointments)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("upcoming")
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0])
@@ -21,59 +27,69 @@ export default function CheckIns() {
   const searchInputRef = useRef(null)
 
 
-  const [upcomingAppointments, setUpcomingAppointments] = useState([
-    {
-      id: 1,
-      memberId: 1,
-      memberName: "John Doe",
-      appointmentType: "Personal Training",
-      scheduledTime: "10:00 AM - 10:30 AM",
-      date: new Date().toISOString().split('T')[0],
-      isCheckedIn: false,
-      isNoShow: false,
-      duration: "60 min"
-    },
-    {
-      id: 2,
-      memberId: 2,
-      memberName: "Jane Smith",
-      appointmentType: "Group Class",
-      scheduledTime: "11:30 AM - 12:30 PM",
-      date: new Date().toISOString().split('T')[0],
-      isCheckedIn: false,
-      isNoShow: false,
-      duration: "45 min"
-    },
-    {
-      id: 3,
-      memberId: 3,
-      memberName: "Mike Johnson",
-      appointmentType: "Consultation",
-      scheduledTime: "02:00 PM - 3:00 PM",
-      date: new Date().toISOString().split('T')[0],
-      isCheckedIn: true,
-      isNoShow: false,
-      checkInTime: "01:55 PM",
-      duration: "30 min"
-    },
-    {
-      id: 4,
-      memberId: 4,
-      memberName: "Sarah Wilson",
-      appointmentType: "Personal Training",
-      scheduledTime: "09:00 AM - 10:00 AM",
-      date: new Date().toISOString().split('T')[0],
-      isCheckedIn: false,
-      isNoShow: true,
-      duration: "60 min"
-    }
-  ])
+  useEffect(() => {
+    dispatch(fetchAllAppointments())
+    dispatch(fetchAllMember())
+  }, [dispatch])
+
+  const [upcomingAppointments, setUpcomingAppointments] = useState([])
+
+  // ======================= 
+  // all data from backend
+  // =======================
+
+  useEffect(() => {
+    // Initialize state from Redux appointments whenever appointments change
+    setUpcomingAppointments(
+      appointments
+        .filter(a => a.view === 'upcoming')
+        .map(a => ({
+          id: a._id,
+          memberId: a.member?._id || a.lead || null,
+          memberName: a.member
+            ? `${a.member.firstName} ${a.member.lastName}`
+            : a.lead
+              ? `Lead ${a.lead}`
+              : a.note || 'Blocked Slot',
+          appointmentType: a.serviceId?.name || 'N/A',
+          scheduledTime: `${a.timeSlot.start} - ${a.timeSlot.end}`,
+          date: a.date,
+          isCheckedIn: a.isCheckedIn || false,
+          isNoShow: a.status === 'canceled' || false,
+          isTrial: a.isTrial || false,
+          isBlocked: a.timeSlot?.isBlocked || false,
+          note: a.note || ''
+        }))
+    )
+
+    setCheckInHistory(
+      appointments
+        .filter(a => a.view === 'past')
+        .map(a => ({
+          id: a._id,
+          memberId: a.member?._id || null,
+          memberName: a.member
+            ? `${a.member.firstName} ${a.member.lastName}`
+            : 'Unknown Member',
+          appointmentType: a.serviceId?.name || 'N/A',
+          scheduledTime: `${a.timeSlot.start} - ${a.timeSlot.end}`,
+          date: a.date,
+          checkInTime: a.isCheckedIn ? a.timeSlot.end : null,
+          status: a.status,
+          isTrial: a.isTrial || false,
+          note: a.note || ''
+        }))
+    )
+  }, [appointments])
+
+
+
 
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target) &&
-          sortDropdownMobileRef.current && !sortDropdownMobileRef.current.contains(event.target)) {
+        sortDropdownMobileRef.current && !sortDropdownMobileRef.current.contains(event.target)) {
         setShowSortDropdown(false)
       }
       if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
@@ -86,14 +102,14 @@ export default function CheckIns() {
   }, [])
 
   const handleCheckIn = (appointmentId) => {
-    const appointment = upcomingAppointments.find(app => app.id === appointmentId)
+    const appointment = appointments.find(app => app._id === appointmentId)
     if (!appointment) return
 
     const now = new Date()
-    const checkInTime = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    const checkInTime = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     })
 
     setUpcomingAppointments(prev =>
@@ -116,7 +132,7 @@ export default function CheckIns() {
   const handleUndoCheckIn = (appointmentId) => {
     setUpcomingAppointments(prev =>
       prev.map(app =>
-        app.id === appointmentId
+        app._id === appointmentId
           ? { ...app, isCheckedIn: false, checkInTime: undefined }
           : app
       )
@@ -168,7 +184,7 @@ export default function CheckIns() {
   }
 
   const getSortIcon = () => {
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />
   }
@@ -225,16 +241,16 @@ export default function CheckIns() {
       }
       const matchesDate = isDateInRange(app.date)
       const matchesStatus = filterStatus === 'all' ||
-                           (filterStatus === 'checked' && app.isCheckedIn) ||
-                           (filterStatus === 'pending' && !app.isCheckedIn && !app.isNoShow) ||
-                           (filterStatus === 'noshow' && app.isNoShow)
-      
+        (filterStatus === 'checked' && app.isCheckedIn) ||
+        (filterStatus === 'pending' && !app.isCheckedIn && !app.isNoShow) ||
+        (filterStatus === 'noshow' && app.isNoShow)
+
       return matchesDate && matchesStatus
     })
 
     filtered.sort((a, b) => {
       let comparison = 0
-      
+
       switch (sortBy) {
         case 'time':
           comparison = a.scheduledTime.localeCompare(b.scheduledTime)
@@ -248,7 +264,7 @@ export default function CheckIns() {
         default:
           comparison = 0
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison
     })
 
@@ -267,10 +283,10 @@ export default function CheckIns() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
     })
   }
 
@@ -289,13 +305,13 @@ export default function CheckIns() {
     <>
 
       <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
-        
+
         {/* Header */}
         <div className="flex flex-col gap-3 mb-5">
           {/* Top Row: Title */}
           <div className="flex items-center justify-between">
             <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Check-In</h1>
-            
+
             {/* Sort Button - Mobile only (next to title) */}
             <div className="relative sm:hidden" ref={sortDropdownMobileRef}>
               <button
@@ -317,9 +333,8 @@ export default function CheckIns() {
                           e.stopPropagation()
                           handleSortOptionClick(option.value)
                         }}
-                        className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-button transition-colors flex items-center justify-between ${
-                          sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
-                        }`}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-button transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
+                          }`}
                       >
                         <span>{option.label}</span>
                         {sortBy === option.value && (
@@ -384,15 +399,15 @@ export default function CheckIns() {
         {/* Search Bar with Inline Filter Chips */}
         <div className="mb-3" ref={searchDropdownRef}>
           <div className="relative">
-            <div 
+            <div
               className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
               onClick={() => searchInputRef.current?.focus()}
             >
               <Search className="text-content-muted flex-shrink-0" size={14} />
-              
+
               {/* Filter Chips */}
               {memberFilters.map((filter) => (
-                <div 
+                <div
                   key={filter.memberId}
                   className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                 >
@@ -411,7 +426,7 @@ export default function CheckIns() {
                   </button>
                 </div>
               ))}
-              
+
               {/* Search Input */}
               <input
                 ref={searchInputRef}
@@ -426,7 +441,7 @@ export default function CheckIns() {
                 onKeyDown={handleSearchKeyDown}
                 className="flex-1 min-w-[100px] bg-transparent outline-none text-xs sm:text-sm text-content-primary placeholder-content-faint"
               />
-              
+
               {/* Clear All Button */}
               {memberFilters.length > 0 && (
                 <button
@@ -441,7 +456,7 @@ export default function CheckIns() {
                 </button>
               )}
             </div>
-            
+
             {/* Autocomplete Dropdown */}
             {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
@@ -462,7 +477,7 @@ export default function CheckIns() {
                 ))}
               </div>
             )}
-            
+
             {/* No results message */}
             {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
@@ -477,41 +492,37 @@ export default function CheckIns() {
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap flex-1 min-w-0">
             <button
               onClick={() => setFilterStatus('all')}
-              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                filterStatus === 'all'
-                  ? "bg-primary text-white"
-                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-              }`}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${filterStatus === 'all'
+                ? "bg-primary text-white"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                }`}
             >
               All
             </button>
             <button
               onClick={() => setFilterStatus('checked')}
-              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                filterStatus === 'checked'
-                  ? "bg-primary text-white"
-                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-              }`}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${filterStatus === 'checked'
+                ? "bg-primary text-white"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                }`}
             >
               Checked-In
             </button>
             <button
               onClick={() => setFilterStatus('pending')}
-              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                filterStatus === 'pending'
-                  ? "bg-primary text-white"
-                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-              }`}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${filterStatus === 'pending'
+                ? "bg-primary text-white"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                }`}
             >
               Pending
             </button>
             <button
               onClick={() => setFilterStatus('noshow')}
-              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                filterStatus === 'noshow'
-                  ? "bg-primary text-white"
-                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-              }`}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${filterStatus === 'noshow'
+                ? "bg-primary text-white"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                }`}
             >
               No Shows
             </button>
@@ -538,9 +549,8 @@ export default function CheckIns() {
                         e.stopPropagation()
                         handleSortOptionClick(option.value)
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-button transition-colors flex items-center justify-between ${
-                        sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-button transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
+                        }`}
                     >
                       <span>{option.label}</span>
                       {sortBy === option.value && (
@@ -560,21 +570,19 @@ export default function CheckIns() {
         <div className="flex border-b border-border mb-4">
           <button
             onClick={() => setActiveTab("upcoming")}
-            className={`flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors ${
-              activeTab === "upcoming"
-                ? "text-content-primary border-b-2 border-primary"
-                : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors ${activeTab === "upcoming"
+              ? "text-content-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Today ({filteredUpcomingAppointments.length})
           </button>
           <button
             onClick={() => setActiveTab("past")}
-            className={`flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors ${
-              activeTab === "past"
-                ? "text-content-primary border-b-2 border-primary"
-                : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors ${activeTab === "past"
+              ? "text-content-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
+              }`}
           >
             History ({filteredPastCheckIns.length})
           </button>
@@ -587,13 +595,12 @@ export default function CheckIns() {
               filteredUpcomingAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className={`bg-surface-card rounded-xl p-3 border transition-all ${
-                    appointment.isNoShow 
-                      ? 'border-secondary/30 bg-secondary/5' 
-                      : appointment.isCheckedIn 
-                        ? 'border-primary/30 bg-primary/5' 
-                        : 'border-border hover:border-border'
-                  }`}
+                  className={`bg-surface-card rounded-xl p-3 border transition-all ${appointment.isNoShow
+                    ? 'border-secondary/30 bg-secondary/5'
+                    : appointment.isCheckedIn
+                      ? 'border-primary/30 bg-primary/5'
+                      : 'border-border hover:border-border'
+                    }`}
                 >
                   {/* Mobile: Vertical layout, Desktop: Horizontal */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -602,7 +609,7 @@ export default function CheckIns() {
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                         {getInitials(appointment.memberName)}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <h3 className="text-content-primary font-medium text-xs sm:text-sm truncate">{appointment.memberName}</h3>
@@ -680,8 +687,8 @@ export default function CheckIns() {
                 <Calendar className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-content-faint mb-3" strokeWidth={1} />
                 <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">No appointments found</h3>
                 <p className="text-content-faint text-xs sm:text-sm">
-                  {searchQuery || filterStatus !== 'all' 
-                    ? "Try adjusting your search or filters" 
+                  {searchQuery || filterStatus !== 'all'
+                    ? "Try adjusting your search or filters"
                     : "No appointments scheduled for this period"}
                 </p>
               </div>
@@ -698,7 +705,7 @@ export default function CheckIns() {
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                         {getInitials(checkin.memberName)}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <h3 className="text-content-primary font-medium text-xs sm:text-sm truncate">{checkin.memberName}</h3>
@@ -728,8 +735,8 @@ export default function CheckIns() {
                 <Clock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-content-faint mb-3" strokeWidth={1} />
                 <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">No check-in history</h3>
                 <p className="text-content-faint text-xs sm:text-sm">
-                  {searchQuery 
-                    ? "Try adjusting your search" 
+                  {searchQuery
+                    ? "Try adjusting your search"
                     : "Check-in history will appear here"}
                 </p>
               </div>

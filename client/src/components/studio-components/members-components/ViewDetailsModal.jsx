@@ -41,7 +41,7 @@ const ViewDetailsModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [expandedNoteId, setExpandedNoteId] = useState(null);
-  
+
   // Copy states - matching leads exactly
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
@@ -74,21 +74,27 @@ const ViewDetailsModal = ({
   // Get notes array (support both old and new format)
   const getNotes = () => {
     if (!selectedMemberMain) return []
-    if (selectedMemberMain.notes && Array.isArray(selectedMemberMain.notes)) {
-      return selectedMemberMain.notes
+
+    // If specialsNotes exists and is an array, return it
+    if (selectedMemberMain.specialsNotes && Array.isArray(selectedMemberMain.specialsNotes)) {
+      return selectedMemberMain.specialsNotes
     }
-    // Convert old single note format to array
+
+    // Convert old single-note format to array
     if (selectedMemberMain.note && selectedMemberMain.note.trim()) {
       return [{
         id: 1,
         status: "general",
-        text: selectedMemberMain.note,
+        note: selectedMemberMain.note,
         isImportant: selectedMemberMain.noteImportance === "important",
-        startDate: selectedMemberMain.noteStartDate || "",
-        endDate: selectedMemberMain.noteEndDate || "",
+        valid: {
+          from: selectedMemberMain.from || null,
+          until: selectedMemberMain.until || null
+        },
         createdAt: selectedMemberMain.joinDate || new Date().toISOString(),
       }]
     }
+
     return []
   }
 
@@ -255,27 +261,24 @@ const ViewDetailsModal = ({
           <div className="flex border-b border-border">
             <button
               onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "details" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "details" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
+                }`}
             >
               Details
             </button>
             <button
               onClick={() => setActiveTab("note")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "note" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "note" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
+                }`}
             >
               Special Notes
             </button>
             <button
               onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "relations"
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "relations"
+                ? "text-primary border-b-2 border-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               Relations
             </button>
@@ -290,7 +293,7 @@ const ViewDetailsModal = ({
               {/* Personal Information */}
               <div className="space-y-4">
                 <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-content-muted">First Name</p>
@@ -343,15 +346,15 @@ const ViewDetailsModal = ({
                       <p>
                         {(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday)
                           ? (() => {
-                              const birthDate = new Date(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday)
-                              const today = new Date()
-                              let age = today.getFullYear() - birthDate.getFullYear()
-                              const monthDiff = today.getMonth() - birthDate.getMonth()
-                              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                                age--
-                              }
-                              return `${birthDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Age: ${age})`
-                            })()
+                            const birthDate = new Date(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday)
+                            const today = new Date()
+                            let age = today.getFullYear() - birthDate.getFullYear()
+                            const monthDiff = today.getMonth() - birthDate.getMonth()
+                            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                              age--
+                            }
+                            return `${birthDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Age: ${age})`
+                          })()
                           : "-"}
                       </p>
                       {(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday) && (
@@ -375,7 +378,7 @@ const ViewDetailsModal = ({
               {/* Contact Information */}
               <div className="space-y-4 pt-4 border-t border-border">
                 <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
-                
+
                 <div>
                   <p className="text-sm text-content-muted">Email</p>
                   <div className="flex items-center gap-3">
@@ -441,7 +444,7 @@ const ViewDetailsModal = ({
               {/* Address */}
               <div className="space-y-4 pt-4 border-t border-border">
                 <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
-                
+
                 <div>
                   <p className="text-sm text-content-muted">Street & Number</p>
                   <div className="flex items-center gap-3">
@@ -467,8 +470,8 @@ const ViewDetailsModal = ({
                     <p className="text-sm text-content-muted">ZIP Code & City</p>
                     <div className="flex items-center gap-3">
                       <p>
-                        {selectedMemberMain.zipCode && selectedMemberMain.city 
-                          ? `${selectedMemberMain.zipCode} ${selectedMemberMain.city}` 
+                        {selectedMemberMain.zipCode && selectedMemberMain.city
+                          ? `${selectedMemberMain.zipCode} ${selectedMemberMain.city}`
                           : selectedMemberMain.zipCode || selectedMemberMain.city || "-"}
                       </p>
                       {(selectedMemberMain.zipCode || selectedMemberMain.city) && (
@@ -531,13 +534,13 @@ const ViewDetailsModal = ({
               {/* Additional Information */}
               <div className="space-y-4 pt-4 border-t border-border">
                 <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
-                
+
                 <div>
                   <p className="text-sm text-content-muted">Training Goal</p>
                   <p>{TRAINING_GOALS.find(g => g.id === selectedMemberMain.trainingGoal)?.label || "-"}</p>
                 </div>
               </div>
-              
+
               {/* About section */}
               {(selectedMemberMain.about || selectedMemberMain.details) && (
                 <div className="pt-4 border-t border-border">
@@ -560,7 +563,7 @@ const ViewDetailsModal = ({
                   </div>
                 </div>
               )}
-              
+
               {/* Created Date */}
               <div className="pt-4 border-t border-border">
                 <div className="grid grid-cols-2 gap-4">
@@ -568,11 +571,11 @@ const ViewDetailsModal = ({
                     <p className="text-sm text-content-muted">Join Date</p>
                     <p>
                       {selectedMemberMain.joinDate || selectedMemberMain.createdAt
-                        ? new Date(selectedMemberMain.joinDate || selectedMemberMain.createdAt).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          })
+                        ? new Date(selectedMemberMain.joinDate || selectedMemberMain.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })
                         : "-"}
                     </p>
                   </div>
@@ -588,87 +591,87 @@ const ViewDetailsModal = ({
                 <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
                 <p className="text-content-primary font-medium">{selectedMemberMain.firstName} {selectedMemberMain.lastName}</p>
               </div>
-              
+
               {/* Notes List */}
               <div className="space-y-2 max-h-[400px] overflow-y-auto">
                 {getNotes().length > 0 ? (
                   [...getNotes()]
                     .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
                     .map((note) => {
-                    const statusInfo = getStatusInfo(note.status)
-                    const isExpanded = expandedNoteId === note.id
-                    
-                    return (
-                      <div
-                        key={note.id}
-                        className="bg-surface-dark rounded-lg overflow-hidden"
-                      >
-                        {/* Note Header */}
-                        <div 
-                          className="flex items-center justify-between p-3 cursor-pointer"
-                          onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                      const statusInfo = getStatusInfo(note.status)
+                      const isExpanded = expandedNoteId === note.id
+
+                      return (
+                        <div
+                          key={note.id}
+                          className="bg-surface-dark rounded-lg overflow-hidden"
                         >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
-                              {statusInfo.label}
-                            </span>
-                            {note.isImportant && (
-                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
-                                Important
+                          {/* Note Header */}
+                          <div
+                            className="flex items-center justify-between p-3 cursor-pointer"
+                            onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
+                                {statusInfo.label}
                               </span>
-                            )}
+                              {note.isImportant && (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
+                                  Important
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center">
+                              {isExpanded ? (
+                                <ChevronUp size={16} className="text-content-muted" />
+                              ) : (
+                                <ChevronDown size={16} className="text-content-muted" />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center">
-                            {isExpanded ? (
-                              <ChevronUp size={16} className="text-content-muted" />
-                            ) : (
-                              <ChevronDown size={16} className="text-content-muted" />
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Preview & Valid Date (always visible when collapsed) */}
-                        {!isExpanded && (
-                          <div className="px-3 pb-2">
-                            <p className="text-content-muted text-sm truncate">
-                              {note.text}
-                            </p>
-                            {(note.startDate || note.endDate) && (
-                              <p className="text-xs text-content-faint mt-1">
-                                {note.startDate && note.endDate ? (
-                                  <>Valid: {note.startDate} - {note.endDate}</>
-                                ) : note.startDate ? (
-                                  <>Valid from: {note.startDate}</>
-                                ) : (
-                                  <>Valid until: {note.endDate}</>
-                                )}
+
+                          {/* Preview & Valid Date (always visible when collapsed) */}
+                          {!isExpanded && (
+                            <div className="px-3 pb-2">
+                              <p className="text-content-muted text-sm truncate">
+                                {note.note}
                               </p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Note Content (expandable) */}
-                        {isExpanded && (
-                          <div className="px-3 pb-3 border-t border-border-subtle">
-                            <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
-                              {note.text}
-                            </p>
-                            {(note.startDate || note.endDate) && (
-                              <div className="mt-2 text-xs text-content-faint">
-                                {note.startDate && note.endDate ? (
-                                  <>Valid: {note.startDate} - {note.endDate}</>
-                                ) : note.startDate ? (
-                                  <>Valid from: {note.startDate}</>
-                                ) : (
-                                  <>Valid until: {note.endDate}</>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })
+                              {(note.valid.from || note.valid.until) && (
+                                <p className="text-xs text-content-faint mt-1">
+                                  {note.valid.from && note.valid.until ? (
+                                    <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                  ) : note.valid.from ? (
+                                    <>Valid from: {note.valid.from}</>
+                                  ) : (
+                                    <>Valid until: {note.valid.until}</>
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Note Content (expandable) */}
+                          {isExpanded && (
+                            <div className="px-3 pb-3 border-t border-border-subtle">
+                              <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
+                                {note.note}
+                              </p>
+                              {(note.valid.from || note.valid.until) && (
+                                <p className="text-xs text-content-faint mt-1">
+                                  {note.valid.from && note.valid.until ? (
+                                    <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                  ) : note.valid.from ? (
+                                    <>Valid from: {note.valid.from}</>
+                                  ) : (
+                                    <>Valid until: {note.valid.until}</>
+                                  )}
+                                </p>
+                              )}f
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
                 ) : (
                   <div className="text-content-muted text-center py-8">No special notes for this member.</div>
                 )}
@@ -695,17 +698,16 @@ const ViewDetailsModal = ({
                           <div key={category} className="flex flex-col items-center space-y-4">
                             <div className="w-0.5 h-8 bg-content-muted"></div>
                             <div
-                              className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
-                                category === "family"
-                                  ? "bg-accent-yellow text-white"
-                                  : category === "friendship"
-                                    ? "bg-accent-green text-white"
-                                    : category === "relationship"
-                                      ? "bg-accent-red text-white"
-                                      : category === "work"
-                                        ? "bg-accent-blue text-white"
-                                        : "border border-border text-content-secondary"
-                              }`}
+                              className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
+                                ? "bg-accent-yellow text-white"
+                                : category === "friendship"
+                                  ? "bg-accent-green text-white"
+                                  : category === "relationship"
+                                    ? "bg-accent-red text-white"
+                                    : category === "work"
+                                      ? "bg-accent-blue text-white"
+                                      : "border border-border text-content-secondary"
+                                }`}
                             >
                               {category}
                             </div>
@@ -713,11 +715,10 @@ const ViewDetailsModal = ({
                               {relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`bg-surface-button rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-surface-button-hover transition-colors ${
-                                    relation.type === "member" || relation.type === "lead"
-                                      ? "border border-primary/30"
-                                      : ""
-                                  }`}
+                                  className={`bg-surface-button rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-surface-button-hover transition-colors ${relation.type === "member" || relation.type === "lead"
+                                    ? "border border-primary/30"
+                                    : ""
+                                    }`}
                                 >
                                   <div className="text-content-primary text-sm font-medium">{relation.name}</div>
                                   <div className="text-content-muted text-xs">({relation.relation})</div>
@@ -748,11 +749,10 @@ const ViewDetailsModal = ({
                             relations.map((relation) => (
                               <div
                                 key={relation.id}
-                                className={`flex items-center justify-between bg-surface-button rounded-lg p-3 ${
-                                  relation.type === "member" || relation.type === "lead"
-                                    ? "cursor-pointer hover:bg-surface-button-hover border border-primary/30"
-                                    : ""
-                                }`}
+                                className={`flex items-center justify-between bg-surface-button rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
+                                  ? "cursor-pointer hover:bg-surface-button-hover border border-primary/30"
+                                  : ""
+                                  }`}
                               >
                                 <div className="flex items-center flex-wrap gap-1.5">
                                   <span className="text-content-primary font-medium">{relation.name}</span>

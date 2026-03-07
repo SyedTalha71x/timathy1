@@ -5,6 +5,8 @@ import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import DatePickerField from "../DatePickerField"
 import CustomSelect from "../CustomSelect"
+import { useDispatch } from "react-redux"
+import { createTemporaryMember } from "../../../features/member/memberSlice"
 
 // Initials Avatar Component - Orange background with initials
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -21,7 +23,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   }
 
   return (
-    <div 
+    <div
       className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]} ${className}`}
     >
       {getInitials()}
@@ -99,12 +101,12 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
               <p className="text-accent-red text-sm mb-4">{error}</p>
-              <button 
+              <button
                 onClick={startCamera}
                 className="px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary-hover transition-colors"
               >
@@ -114,16 +116,16 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
           ) : (
             <>
               <div className="relative bg-black rounded-xl overflow-hidden aspect-square mb-4">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
+                <video
+                  ref={videoRef}
+                  autoPlay
                   playsInline
                   muted
                   className="w-full h-full object-cover"
                 />
               </div>
               <canvas ref={canvasRef} className="hidden" />
-              
+
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -227,7 +229,7 @@ const CreateTempMemberModal = ({
   const [formData, setFormData] = useState(getDefaultFormState())
   const [activeTab, setActiveTab] = useState(initialTab)
   const [showCameraModal, setShowCameraModal] = useState(false)
-  
+  const dispatch = useDispatch()
   // Notes state
   const [localNotes, setLocalNotes] = useState([])
   const [isAddingNote, setIsAddingNote] = useState(false)
@@ -235,12 +237,11 @@ const CreateTempMemberModal = ({
   const [expandedNoteId, setExpandedNoteId] = useState(null)
   const [newNote, setNewNote] = useState({
     status: "general",
-    text: "",
+    note: "",
     isImportant: false,
-    startDate: "",
-    endDate: "",
+    valid: { from: null, until: null },
   })
-  
+
   // Relations state
   const [localRelations, setLocalRelations] = useState({
     family: [],
@@ -258,11 +259,11 @@ const CreateTempMemberModal = ({
     type: "manual",
     selectedMemberId: null,
   })
-  
+
   // Search state for member/lead search
   const [personSearchQuery, setPersonSearchQuery] = useState("")
   const [showPersonDropdown, setShowPersonDropdown] = useState(false)
-  
+
   // Refs
   const personSearchRef = useRef(null)
   const specialNoteTextareaRef = useRef(null)
@@ -290,7 +291,7 @@ const CreateTempMemberModal = ({
       setIsAddingNote(false)
       setEditingNoteId(null)
       setEditingRelations(false)
-      
+
       // Set default auto-archive date
       setFormData(prev => ({
         ...prev,
@@ -335,18 +336,35 @@ const CreateTempMemberModal = ({
   const handleImageUpload = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, img: reader.result }))
-        toast.success("Avatar selected successfully")
-      }
-      reader.readAsDataURL(file)
+
+      setFormData(prev => ({
+        ...prev,
+        img: file
+      }))
+
+      toast.success("Avatar selected successfully")
     }
   }
 
   // Camera capture handler
   const handleCameraCapture = (imageData) => {
-    setFormData(prev => ({ ...prev, img: imageData }))
+    const arr = imageData.split(",")
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+
+    const file = new File([u8arr], "camera-image.png", { type: mime })
+
+    setFormData(prev => ({
+      ...prev,
+      img: file
+    }))
+
     toast.success("Photo captured successfully")
   }
 
@@ -356,11 +374,13 @@ const CreateTempMemberModal = ({
   }
 
   // Note functions
+
+  // add note local
   const handleAddNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
 
-    if (!newNote.text.trim()) {
+    if (!newNote.note || !newNote.note.trim()) {
       toast.error("Please enter note text")
       return
     }
@@ -368,44 +388,60 @@ const CreateTempMemberModal = ({
     const note = {
       id: Date.now(),
       status: newNote.status,
-      text: newNote.text.trim(),
+      note: newNote.note.trim(),
       isImportant: newNote.isImportant,
-      startDate: newNote.startDate || "",
-      endDate: newNote.endDate || "",
+      valid: {
+        from: newNote.valid.from,
+        until: newNote.valid.until,
+      },
       createdAt: new Date().toISOString(),
     }
 
-    setLocalNotes((prev) => [note, ...prev])
+    setLocalNotes(prev => [note, ...prev])
+
+    // reset form
     setNewNote({
       status: "general",
-      text: "",
+      note: "", // reset matches state property
       isImportant: false,
-      startDate: "",
-      endDate: "",
+      valid: { from: null, until: null },
     })
     setIsAddingNote(false)
     toast.success("Note added")
   }
 
+
+  // delete note from local
   const handleDeleteNote = (noteId, e) => {
-    e.preventDefault()
     e.stopPropagation()
-    setLocalNotes((prev) => prev.filter((n) => n.id !== noteId))
-    toast.success("Note removed")
+
+    // Filter out the note using either id or _id
+    setLocalNotes(prev => prev.filter(note =>
+      (note.id || note._id) !== noteId
+    ))
+
+    toast.success("Note deleted")
   }
 
   const handleEditNoteClick = (note, e) => {
-    e.preventDefault()
     e.stopPropagation()
-    setEditingNoteId(note.id)
+
+    // Handle both id and _id from API
+    setEditingNoteId(note.id || note._id)
+
+    // Convert date strings to Date objects if needed
     setNewNote({
-      status: note.status,
-      text: note.text,
-      isImportant: note.isImportant,
-      startDate: note.startDate || "",
-      endDate: note.endDate || "",
+      status: note.status || "general",
+      note: note.note || "",
+      isImportant: note.isImportant || false,
+      valid: {
+        from: note.valid?.from ? new Date(note.valid.from) : null,
+        until: note.valid?.until ? new Date(note.valid.until) : null,
+      }
     })
+
     setIsAddingNote(true)
+    setExpandedNoteId(null)
   }
 
   const handleUpdateNote = (e) => {
@@ -417,24 +453,22 @@ const CreateTempMemberModal = ({
       return
     }
 
-    setLocalNotes((prev) =>
-      prev.map((n) =>
-        n.id === editingNoteId
-          ? {
-              ...n,
-              status: newNote.status,
-              text: newNote.text.trim(),
-              isImportant: newNote.isImportant,
-              startDate: newNote.startDate || "",
-              endDate: newNote.endDate || "",
-            }
-          : n
-      )
-    )
+    setLocalNotes(prev => prev.map(n =>
+      n.id === editingNoteId
+        ? {
+          ...n,
+          status: newNote.status,
+          note: newNote.text.trim(),
+          isImportant: newNote.isImportant,
+          startDate: newNote.startDate || "",
+          endDate: newNote.endDate || "",
+        }
+        : n
+    ))
 
     setNewNote({
       status: "general",
-      text: "",
+      note: "",
       isImportant: false,
       startDate: "",
       endDate: "",
@@ -503,58 +537,117 @@ const CreateTempMemberModal = ({
   }
 
   // Form submission
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
 
-    // Validate required fields
-    if (!formData.firstName || !formData.firstName.trim()) {
-      toast.error("First Name is required")
-      setActiveTab("details")
+    if (!formData.firstName?.trim()) {
+      toast.error("Please enter a first name")
       return
     }
 
-    if (!formData.lastName || !formData.lastName.trim()) {
-      toast.error("Last Name is required")
-      setActiveTab("details")
+    if (!formData.lastName?.trim()) {
+      toast.error("Please enter a last name")
       return
     }
 
-    if (!formData.email || !formData.email.trim()) {
-      toast.error("Email is required")
-      setActiveTab("details")
+    if (!formData.email?.trim()) {
+      toast.error("Please enter an email")
       return
     }
 
-    // Build the complete member data
-    const importantNote = localNotes.find((n) => n.isImportant)
-    const firstNote = localNotes[0]
-    const primaryNote = importantNote || firstNote
+    try {
+      const formattedNotes = localNotes.map((note) => ({
+        status: note.status || "general",
+        note: note.note,
+        isImportant: note.isImportant || false,
+        valid:
+          note.valid?.from || note.valid?.until
+            ? {
+              from: note.valid?.from
+                ? new Date(note.valid.from).toISOString()
+                : null,
+              until: note.valid?.until
+                ? new Date(note.valid.until).toISOString()
+                : null,
+            }
+            : null,
+      }))
 
-    const newMemberData = {
-      ...formData,
-      title: `${formData.firstName} ${formData.lastName}`,
-      notes: localNotes,
-      note: primaryNote ? primaryNote.text : "",
-      noteImportance: primaryNote?.isImportant ? "important" : "unimportant",
-      noteStartDate: primaryNote?.startDate || "",
-      noteEndDate: primaryNote?.endDate || "",
-      relations: localRelations,
-      isActive: true,
-      isArchived: false,
-      memberType: "temporary",
-      joinDate: new Date().toISOString().split("T")[0],
-      contractStart: "",
-      contractEnd: "",
+      // Build payload
+      const memberPayload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        gender: formData.gender || "male",
+        telephone: formData.telephone
+          ? Number(formData.telephone)
+          : undefined,
+        mobileNumber: formData.mobileNumber
+          ? Number(formData.mobileNumber)
+          : undefined,
+        street: formData.street || "",
+        city: formData.city || "",
+        zipCode: formData.zipCode ? Number(formData.zipCode) : undefined,
+        country: formData.country || "",
+        trainingGoal: formData.trainingGoal || "",
+        about: formData.about || "",
+        relationId: localRelations?.[0]?._id || null,
+        notes: formattedNotes,
+        memberType: "temporary",
+        status: "active",
+      }
+
+      // Convert to FormData
+      const formDataToSend = new FormData()
+      Object.keys(memberPayload).forEach(key => {
+        const value = memberPayload[key]
+        if (value !== undefined && value !== null) {
+          // Convert arrays/objects to JSON strings
+          if (Array.isArray(value) || typeof value === "object") {
+            formDataToSend.append(key, JSON.stringify(value))
+          } else {
+            formDataToSend.append(key, value)
+          }
+        }
+      })
+
+      // Append the image file
+      if (formData.img) {
+        formDataToSend.append("img", formData.img)
+      }
+
+      // Dispatch thunk with FormData
+      const createdMember = await dispatch(
+        createTemporaryMember(formDataToSend)
+      ).unwrap()
+
+      const transformedMember = {
+        ...createdMember,
+        specialsNotes:
+          createdMember.specialsNotes?.map(note => ({
+            id: note._id,
+            status: note.status,
+            note: note.note,
+            isImportant: note.isImportant,
+            valid: note.valid
+              ? {
+                from: note.valid.from ? new Date(note.valid.from) : null,
+                until: note.valid.until ? new Date(note.valid.until) : null,
+              }
+              : { from: null, until: null },
+            createdAt: note.createdAt || new Date().toISOString(),
+          })) || [],
+      }
+
+      setLocalNotes(transformedMember.specialsNotes)
+      if (onSuccess) onSuccess(transformedMember)
+
+      toast.success("Temporary member created")
+      onClose()
+    } catch (err) {
+      console.error("Failed to create member:", err)
+      toast.error("Failed to create temporary member")
     }
-
-    // Call success callback
-    if (onSuccess) {
-      onSuccess(newMemberData)
-    }
-
-    // Close modal
-    onClose()
-    toast.success("Temporary member created successfully")
   }
 
   // Handle tab clicks
@@ -603,25 +696,22 @@ const CreateTempMemberModal = ({
         <div className="flex border-b border-border mb-6">
           <button
             onClick={(e) => handleTabClick("details", e)}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "details" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "details" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Details
           </button>
           <button
             onClick={(e) => handleTabClick("note", e)}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "note" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "note" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Special Notes
           </button>
           <button
             onClick={(e) => handleTabClick("relations", e)}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "relations" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "relations" ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Relations
           </button>
@@ -638,7 +728,7 @@ const CreateTempMemberModal = ({
                     {formData.img ? (
                       <>
                         <img
-                          src={formData.img}
+                          src={URL.createObjectURL(formData.img)}
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
@@ -653,14 +743,14 @@ const CreateTempMemberModal = ({
                         </button>
                       </>
                     ) : (
-                      <InitialsAvatar 
-                        firstName={formData.firstName} 
-                        lastName={formData.lastName} 
+                      <InitialsAvatar
+                        firstName={formData.firstName}
+                        lastName={formData.lastName}
                         size="lg"
                       />
                     )}
                   </div>
-                  
+
                   {/* Image action buttons */}
                   <div className="flex flex-wrap gap-2">
                     <input type="file" id="avatar-upload-temp" className="hidden" accept="image/*" onChange={handleImageUpload} />
@@ -733,7 +823,7 @@ const CreateTempMemberModal = ({
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
                       <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                        <span className={formData.dateOfBirth ? "text-content-primary" : "text-content-faint"}>{formData.dateOfBirth ? (() => { const [y,m,d] = (formData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <span className={formData.dateOfBirth ? "text-content-primary" : "text-content-faint"}>{formData.dateOfBirth ? (() => { const [y, m, d] = (formData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={formData.dateOfBirth || ""} onChange={(val) => setFormData(prev => ({ ...prev, dateOfBirth: val }))} />
                       </div>
                     </div>
@@ -868,7 +958,7 @@ const CreateTempMemberModal = ({
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Auto-Archive Due Date</label>
                     <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                      <span className={formData.autoArchiveDate ? "text-content-primary" : "text-content-faint"}>{formData.autoArchiveDate ? (() => { const [y,m,d] = (formData.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                      <span className={formData.autoArchiveDate ? "text-content-primary" : "text-content-faint"}>{formData.autoArchiveDate ? (() => { const [y, m, d] = (formData.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                       <DatePickerField value={formData.autoArchiveDate || ""} onChange={(val) => setFormData(prev => ({ ...prev, autoArchiveDate: val }))} />
                     </div>
                     <p className="text-xs text-content-faint mt-1">
@@ -897,17 +987,18 @@ const CreateTempMemberModal = ({
                         setEditingNoteId(null)
                         setNewNote({
                           status: "general",
-                          text: "",
+                          note: "",
                           isImportant: false,
-                          startDate: "",
-                          endDate: "",
+                          valid: {
+                            from: null,
+                            until: null
+                          }
                         })
                       }
                       setIsAddingNote(!isAddingNote)
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
-                      isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"
+                      }`}
                   >
                     {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
                   </button>
@@ -939,8 +1030,8 @@ const CreateTempMemberModal = ({
                       <label className="text-xs text-content-muted block mb-1.5">Note</label>
                       <textarea
                         ref={specialNoteTextareaRef}
-                        value={newNote.text}
-                        onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
+                        value={newNote.note}
+                        onChange={(e) => setNewNote({ ...newNote, note: e.target.value })}
                         className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors"
                         placeholder="Enter note..."
                       />
@@ -964,14 +1055,14 @@ const CreateTempMemberModal = ({
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y, m, d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
                         </div>
                       </div>
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y, m, d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
                           <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
                         </div>
                       </div>
@@ -980,12 +1071,11 @@ const CreateTempMemberModal = ({
                     <button
                       type="button"
                       onClick={editingNoteId ? handleUpdateNote : handleAddNote}
-                      disabled={!newNote.text.trim()}
-                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
-                        !newNote.text.trim()
-                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
-                          : "bg-primary hover:bg-primary-hover text-white"
-                      }`}
+                      disabled={!newNote.note.trim()}
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newNote.note.trim()
+                        ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary-hover text-white"
+                        }`}
                     >
                       {editingNoteId ? "Update Note" : "Add Note"}
                     </button>
@@ -993,6 +1083,7 @@ const CreateTempMemberModal = ({
                 )}
 
                 {/* Notes List */}
+                {/* Notes Tab */}
                 {!isAddingNote && (
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {localNotes.length > 0 ? (
@@ -1000,14 +1091,25 @@ const CreateTempMemberModal = ({
                         .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
                         .map((note) => {
                           const statusInfo = getStatusInfo(note.status)
-                          const isExpanded = expandedNoteId === note.id
+                          const isExpanded = expandedNoteId === (note.id || note._id)
+
+                          // SAFELY handle dates - convert to Date objects only once
+                          const fromDate = note.valid?.from ? new Date(note.valid.from) : null
+                          const untilDate = note.valid?.until ? new Date(note.valid.until) : null
+
+                          // Check if dates are valid
+                          const isValidFrom = fromDate && !isNaN(fromDate.getTime())
+                          const isValidUntil = untilDate && !isNaN(untilDate.getTime())
 
                           return (
-                            <div key={note.id} className="bg-surface-dark rounded-lg overflow-hidden">
+                            <div
+                              key={note.id || note._id}
+                              className="bg-surface-dark rounded-lg overflow-hidden"
+                            >
                               {/* Note Header */}
                               <div
                                 className="flex items-center justify-between p-3 cursor-pointer"
-                                onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                                onClick={() => setExpandedNoteId(isExpanded ? null : (note.id || note._id))}
                               >
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                   <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
@@ -1018,7 +1120,6 @@ const CreateTempMemberModal = ({
                                       Important
                                     </span>
                                   )}
-                                  
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <button
@@ -1027,14 +1128,14 @@ const CreateTempMemberModal = ({
                                       e.stopPropagation()
                                       handleEditNoteClick(note, e)
                                     }}
-                                    className="text-content-faint hover:text-primary p-1 transition-colors"
+                                    className="text-content-faint hover:text-primary p-1"
                                   >
                                     <Pencil size={14} />
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={(e) => handleDeleteNote(note.id, e)}
-                                    className="text-content-faint hover:text-accent-red p-1 transition-colors"
+                                    onClick={(e) => handleDeleteNote(note.id || note._id, e)}
+                                    className="text-content-faint hover:text-red-400 p-1"
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -1046,38 +1147,42 @@ const CreateTempMemberModal = ({
                                 </div>
                               </div>
 
-                              {/* Preview (collapsed) */}
+                              {/* Preview & Valid Date (always visible when collapsed) */}
                               {!isExpanded && (
                                 <div className="px-3 pb-2">
-                                  <p className="text-content-muted text-sm truncate">{note.text}</p>
-                                  {(note.startDate || note.endDate) && (
+                                  <p className="text-content-muted text-sm truncate">
+                                    {note.note}
+                                  </p>
+                                  {(isValidFrom || isValidUntil) && (
                                     <p className="text-xs text-content-faint mt-1">
-                                      {note.startDate && note.endDate ? (
-                                        <>Valid: {note.startDate} - {note.endDate}</>
-                                      ) : note.startDate ? (
-                                        <>Valid from: {note.startDate}</>
-                                      ) : (
-                                        <>Valid until: {note.endDate}</>
-                                      )}
+                                      {isValidFrom && isValidUntil ? (
+                                        <>Valid: {fromDate.toLocaleDateString()} - {untilDate.toLocaleDateString()}</>
+                                      ) : isValidFrom ? (
+                                        <>Valid from: {fromDate.toLocaleDateString()}</>
+                                      ) : isValidUntil ? (
+                                        <>Valid until: {untilDate.toLocaleDateString()}</>
+                                      ) : null}
                                     </p>
                                   )}
                                 </div>
                               )}
 
-                              {/* Expanded Content */}
+                              {/* Note Content (expandable) */}
                               {isExpanded && (
                                 <div className="px-3 pb-3 border-t border-border-subtle">
-                                  <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">{note.text}</p>
-                                  {(note.startDate || note.endDate) && (
-                                    <div className="mt-2 text-xs text-content-faint">
-                                      {note.startDate && note.endDate ? (
-                                        <>Valid: {note.startDate} - {note.endDate}</>
-                                      ) : note.startDate ? (
-                                        <>Valid from: {note.startDate}</>
-                                      ) : (
-                                        <>Valid until: {note.endDate}</>
-                                      )}
-                                    </div>
+                                  <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
+                                    {note.note}
+                                  </p>
+                                  {(isValidFrom || isValidUntil) && (
+                                    <p className="text-xs text-content-faint mt-1">
+                                      {isValidFrom && isValidUntil ? (
+                                        <>Valid: {fromDate.toLocaleDateString()} - {untilDate.toLocaleDateString()}</>
+                                      ) : isValidFrom ? (
+                                        <>Valid from: {fromDate.toLocaleDateString()}</>
+                                      ) : isValidUntil ? (
+                                        <>Valid until: {untilDate.toLocaleDateString()}</>
+                                      ) : null}
+                                    </p>
                                   )}
                                 </div>
                               )}
@@ -1086,7 +1191,7 @@ const CreateTempMemberModal = ({
                         })
                     ) : (
                       <div className="text-content-faint text-sm text-center py-8">
-                        No notes yet. Click "Add Note" to create one.
+                        No special notes yet. Click "Add Note" to create one.
                       </div>
                     )}
                   </div>
@@ -1107,9 +1212,8 @@ const CreateTempMemberModal = ({
                   <button
                     type="button"
                     onClick={() => setEditingRelations(!editingRelations)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
-                      editingRelations ? "bg-surface-button text-content-primary" : "bg-primary text-white"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${editingRelations ? "bg-surface-button text-content-primary" : "bg-primary text-white"
+                      }`}
                   >
                     {editingRelations ? <>Done</> : <><Pencil size={14} /> Edit</>}
                   </button>
@@ -1282,13 +1386,12 @@ const CreateTempMemberModal = ({
                         !newRelation.relation ||
                         (newRelation.relation === "custom" && !newRelation.customRelation)
                       }
-                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
-                        !newRelation.name ||
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newRelation.name ||
                         !newRelation.relation ||
                         (newRelation.relation === "custom" && !newRelation.customRelation)
-                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
-                          : "bg-primary hover:bg-primary-hover text-white"
-                      }`}
+                        ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary-hover text-white"
+                        }`}
                     >
                       Add Relation
                     </button>

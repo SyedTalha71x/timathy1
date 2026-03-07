@@ -6,6 +6,8 @@ import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
+import { useDispatch } from "react-redux"
+import { memberUpdatedByStaff } from "../../../features/member/memberSlice"
 
 // Initials Avatar Component - Uses primary color from theme
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -179,6 +181,7 @@ const EditMemberModalMain = ({
   editModalTabMain,
   setEditModalTabMain,
   editFormMain,
+  setEditFormMain,
   handleInputChangeMain,
   handleEditSubmitMain,
   editingRelationsMain,
@@ -199,6 +202,7 @@ const EditMemberModalMain = ({
   handleArchiveMemberMain,
   handleUnarchiveMemberMain,
 }) => {
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState(editModalTabMain || "details")
   const [editingRelations, setEditingRelations] = useState(false)
   const [showCameraModal, setShowCameraModal] = useState(false)
@@ -215,10 +219,9 @@ const EditMemberModalMain = ({
   const [expandedNoteId, setExpandedNoteId] = useState(null)
   const [newNote, setNewNote] = useState({
     status: "general",
-    text: "",
+    note: "",
     isImportant: false,
-    startDate: "",
-    endDate: "",
+    valid: { from: null, until: null },
   })
 
   const [newRelation, setNewRelation] = useState({
@@ -233,6 +236,7 @@ const EditMemberModalMain = ({
   // Search state for member/lead search
   const [personSearchQuery, setPersonSearchQuery] = useState("")
   const [showPersonDropdown, setShowPersonDropdown] = useState(false)
+  const [isTrainingGoalDropdownOpen, setIsTrainingGoalDropdownOpen] = useState(false)
   const personSearchRef = useRef(null)
 
   // Default available members/leads if not provided
@@ -315,56 +319,67 @@ const EditMemberModalMain = ({
     }
   }, [showPersonDropdown])
 
-  const handleAddNote = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (!newNote.text.trim()) {
+  const handleAddNote = () => {
+    if (!newNote.note?.trim()) {
       toast.error("Please enter note text")
       return
     }
 
     const note = {
       id: Date.now(),
-      status: newNote.status,
-      text: newNote.text.trim(),
+      status: newNote.status || "general",
+      note: newNote.note.trim(),
       isImportant: newNote.isImportant,
-      startDate: newNote.startDate || "",
-      endDate: newNote.endDate || "",
+      valid: {
+        from: newNote.startDate ? new Date(newNote.startDate) : null,
+        until: newNote.endDate ? new Date(newNote.endDate) : null,
+      },
       createdAt: new Date().toISOString(),
     }
 
     setLocalNotes(prev => [note, ...prev])
+
     setNewNote({
       status: "general",
-      text: "",
+      note: "",
       isImportant: false,
-      startDate: "",
-      endDate: "",
+      startDate: null,
+      endDate: null,
     })
     setIsAddingNote(false)
     toast.success("Note added")
   }
-
+  // delete note from local
   const handleDeleteNote = (noteId, e) => {
-    e.preventDefault()
     e.stopPropagation()
-    setLocalNotes(prev => prev.filter(n => n.id !== noteId))
-    toast.success("Note removed")
+
+    // Filter out the note using either id or _id
+    setLocalNotes(prev => prev.filter(note =>
+      (note.id || note._id) !== noteId
+    ))
+
+    toast.success("Note deleted")
   }
 
   const handleEditNoteClick = (note, e) => {
-    e.preventDefault()
     e.stopPropagation()
-    setEditingNoteId(note.id)
+
+    // Handle both id and _id from API
+    setEditingNoteId(note.id || note._id)
+
+    // Convert date strings to Date objects if needed
     setNewNote({
-      status: note.status,
-      text: note.text,
-      isImportant: note.isImportant,
-      startDate: note.startDate || "",
-      endDate: note.endDate || "",
+      status: note.status || "general",
+      note: note.note || "",
+      isImportant: note.isImportant || false,
+      valid: {
+        from: note.valid?.from ? new Date(note.valid.from) : null,
+        until: note.valid?.until ? new Date(note.valid.until) : null,
+      }
     })
+
     setIsAddingNote(true)
+    setExpandedNoteId(null)
   }
 
   const handleUpdateNote = (e) => {
@@ -381,7 +396,7 @@ const EditMemberModalMain = ({
         ? {
           ...n,
           status: newNote.status,
-          text: newNote.text.trim(),
+          note: newNote.text.trim(),
           isImportant: newNote.isImportant,
           startDate: newNote.startDate || "",
           endDate: newNote.endDate || "",
@@ -391,7 +406,7 @@ const EditMemberModalMain = ({
 
     setNewNote({
       status: "general",
-      text: "",
+      note: "",
       isImportant: false,
       startDate: "",
       endDate: "",
@@ -460,21 +475,55 @@ const EditMemberModalMain = ({
     toast.success("Relation removed")
   }
 
-  const handleSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
-    e.stopPropagation()
 
-    const importantNote = localNotes.find(n => n.isImportant)
-    const firstNote = localNotes[0]
-    const primaryNote = importantNote || firstNote
+    if (!editFormMain.firstName?.trim()) return toast.error("Enter first name")
+    if (!editFormMain.lastName?.trim()) return toast.error("Enter last name")
+    if (!editFormMain.email?.trim()) return toast.error("Enter email")
 
-    handleInputChangeMain({ target: { name: "notes", value: localNotes } })
-    handleInputChangeMain({ target: { name: "note", value: primaryNote ? primaryNote.text : "" } })
-    handleInputChangeMain({ target: { name: "noteImportance", value: primaryNote?.isImportant ? "important" : "unimportant" } })
-    handleInputChangeMain({ target: { name: "noteStartDate", value: primaryNote?.startDate || "" } })
-    handleInputChangeMain({ target: { name: "noteEndDate", value: primaryNote?.endDate || "" } })
+    try {
+      const formattedNotes = localNotes.map(note => ({
+        status: note.status || "general",
+        note: note.note,
+        isImportant: note.isImportant || false,
+        valid: note.valid?.from || note.valid?.until
+          ? {
+            from: note.valid.from ? new Date(note.valid.from).toISOString() : null,
+            until: note.valid.until ? new Date(note.valid.until).toISOString() : null,
+          }
+          : null,
+      }))
 
-    handleEditSubmitMain(e, localRelations, localNotes)
+      const memberPayload = {
+        ...editFormMain,
+        specialsNotes: formattedNotes,
+      }
+
+      // Convert objects/arrays to JSON for backend if needed
+      const formDataToSend = new FormData()
+      Object.entries(memberPayload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value) || typeof value === "object") {
+            formDataToSend.append(key, JSON.stringify(value))
+          } else {
+            formDataToSend.append(key, value)
+          }
+        }
+      })
+
+      if (editFormMain.img) formDataToSend.append("img", editFormMain.img)
+
+      const updatedMember = await dispatch(memberUpdatedByStaff({
+        memberId: selectedMemberMain._id,
+        updateMember: formDataToSend
+      })).unwrap()
+      toast.success("Member updated successfully")
+      onClose()
+    } catch (err) {
+      console.error("Failed to update member:", err)
+      toast.error("Failed to update member")
+    }
   }
 
   const handleTabClick = (tabName, e) => {
@@ -499,22 +548,41 @@ const EditMemberModalMain = ({
   const handleImageUpload = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        handleInputChangeMain({ target: { name: "image", value: reader.result } })
-        toast.success("Avatar selected successfully")
-      }
-      reader.readAsDataURL(file)
+
+      setFormData(prev => ({
+        ...prev,
+        img: file
+      }))
+
+      toast.success("Avatar selected successfully")
     }
   }
 
+  // Camera capture handler
   const handleCameraCapture = (imageData) => {
-    handleInputChangeMain({ target: { name: "image", value: imageData } })
+    const arr = imageData.split(",")
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+
+    const file = new File([u8arr], "camera-image.png", { type: mime })
+
+    setEditFormMain(prev => ({
+      ...prev,
+      img: file
+    }))
+
     toast.success("Photo captured successfully")
   }
 
+  // Remove image handler
   const handleRemoveImage = () => {
-    handleInputChangeMain({ target: { name: "image", value: null } })
+    setEditFormMain(prev => ({ ...prev, img: null }))
   }
 
   if (!isOpen || !selectedMemberMain) return null
@@ -534,8 +602,8 @@ const EditMemberModalMain = ({
           <button
             onClick={(e) => handleTabClick("details", e)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "details"
-                ? "text-primary border-b-2 border-primary"
-                : "text-content-muted hover:text-content-primary"
+              ? "text-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
               }`}
           >
             Details
@@ -543,8 +611,8 @@ const EditMemberModalMain = ({
           <button
             onClick={(e) => handleTabClick("note", e)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "note"
-                ? "text-primary border-b-2 border-primary"
-                : "text-content-muted hover:text-content-primary"
+              ? "text-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
               }`}
           >
             Special Notes
@@ -552,15 +620,15 @@ const EditMemberModalMain = ({
           <button
             onClick={(e) => handleTabClick("relations", e)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "relations"
-                ? "text-primary border-b-2 border-primary"
-                : "text-content-muted hover:text-content-primary"
+              ? "text-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
               }`}
           >
             Relations
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <form onSubmit={handleFormSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
             {/* Details Tab */}
             {activeTab === "details" && (
@@ -786,18 +854,42 @@ const EditMemberModalMain = ({
             {/* Notes Tab */}
             {activeTab === "note" && (
               <div className="border border-border rounded-xl p-4">
+                {/* Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
                     <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
-                    <p className="text-content-primary font-medium">{selectedMemberMain?.firstName} {selectedMemberMain?.lastName}</p>
+                    <p className="text-content-primary font-medium">
+                      {editFormMain.firstName || "New"} {editFormMain.lastName || "Member"}
+                    </p>
                   </div>
-                  <button type="button" onClick={() => { if (isAddingNote) { setEditingNoteId(null); setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" }); } setIsAddingNote(!isAddingNote) }} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAddingNote) {
+                        setEditingNoteId(null)
+                        setNewNote({
+                          status: "general",
+                          note: "",
+                          isImportant: false,
+                          valid: {
+                            from: null,
+                            until: null
+                          }
+                        })
+                      }
+                      setIsAddingNote(!isAddingNote)
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"
+                      }`}
+                  >
                     {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
                   </button>
                 </div>
 
+                {/* Add/Edit Note Form */}
                 {isAddingNote && (
                   <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
+                    {/* Status Selection */}
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Status</label>
                       <select
@@ -807,22 +899,40 @@ const EditMemberModalMain = ({
                         className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors appearance-none cursor-pointer"
                         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                       >
-                        {NOTE_STATUSES.map((status) => (<option key={status.id} value={status.id}>{status.label}</option>))}
+                        {NOTE_STATUSES.map((status) => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
+                    {/* Note Text */}
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Note</label>
-                      <textarea ref={specialNoteTextareaRef} value={newNote.text} onChange={(e) => setNewNote({ ...newNote, text: e.target.value })} className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors" placeholder="Enter note..." />
+                      <textarea
+                        ref={specialNoteTextareaRef}
+                        value={newNote.note}
+                        onChange={(e) => setNewNote({ ...newNote, note: e.target.value })}
+                        className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none resize-none min-h-[80px] border border-transparent focus:border-primary transition-colors"
+                        placeholder="Enter note..."
+                      />
                     </div>
 
+                    {/* Important Checkbox */}
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" checked={newNote.isImportant} onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })} className="h-4 w-4 accent-primary" />
+                        <input
+                          type="checkbox"
+                          checked={newNote.isImportant}
+                          onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
+                          className="h-4 w-4 accent-primary"
+                        />
                         <span className="text-sm text-content-secondary">Important</span>
                       </label>
                     </div>
 
+                    {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
@@ -840,59 +950,128 @@ const EditMemberModalMain = ({
                       </div>
                     </div>
 
-                    <button type="button" onClick={editingNoteId ? handleUpdateNote : handleAddNote} disabled={!newNote.text.trim()} className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newNote.text.trim() ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover"}`}>
+                    <button
+                      type="button"
+                      onClick={editingNoteId ? handleUpdateNote : handleAddNote}
+                      disabled={!newNote.note}
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newNote.note}
+                        ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary-hover text-white"
+                        }`}
+                    >
                       {editingNoteId ? "Update Note" : "Add Note"}
                     </button>
                   </div>
                 )}
 
+                {/* Notes List */}
+                {/* Notes Tab */}
                 {!isAddingNote && (
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {localNotes.length > 0 ? (
-                      [...localNotes].sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0)).map((note) => {
-                        const statusInfo = getStatusInfo(note.status)
-                        const isExpanded = expandedNoteId === note.id
+                      [...localNotes]
+                        .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                        .map((note) => {
+                          const statusInfo = getStatusInfo(note.status)
+                          const isExpanded = expandedNoteId === (note.id || note._id)
 
-                        return (
-                          <div key={note.id} className="bg-surface-dark rounded-lg overflow-hidden">
-                            <div className="flex items-center justify-between p-3 cursor-pointer" onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}>
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">{statusInfo.label}</span>
-                                {note.isImportant && (<span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">Important</span>)}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); handleEditNoteClick(note, e) }} className="text-content-faint hover:text-primary p-1 transition-colors"><Pencil size={14} /></button>
-                                <button type="button" onClick={(e) => handleDeleteNote(note.id, e)} className="text-content-faint hover:text-accent-red p-1 transition-colors"><Trash2 size={14} /></button>
-                                {isExpanded ? <ChevronUp size={16} className="text-content-muted" /> : <ChevronDown size={16} className="text-content-muted" />}
-                              </div>
-                            </div>
+                          // SAFELY handle dates - convert to Date objects only once
 
-                            {!isExpanded && (
-                              <div className="px-3 pb-2">
-                                <p className="text-content-muted text-sm truncate">{note.text}</p>
-                                {(note.startDate || note.endDate) && (
-                                  <p className="text-xs text-content-faint mt-1">
-                                    {note.startDate && note.endDate ? <>Valid: {note.startDate} - {note.endDate}</> : note.startDate ? <>Valid from: {note.startDate}</> : <>Valid until: {note.endDate}</>}
+
+
+
+                          return (
+                            <div
+                              key={note.id || note._id}
+                              className="bg-surface-dark rounded-lg overflow-hidden"
+                            >
+                              {/* Note Header */}
+                              <div
+                                className="flex items-center justify-between p-3 cursor-pointer"
+                                onClick={() => setExpandedNoteId(isExpanded ? null : (note.id || note._id))}
+                              >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
+                                    {statusInfo.label}
+                                  </span>
+                                  {note.isImportant && (
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
+                                      Important
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleEditNoteClick(note, e)
+                                    }}
+                                    className="text-content-faint hover:text-primary p-1"
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDeleteNote(note.id || note._id, e)}
+                                    className="text-content-faint hover:text-red-400 p-1"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                  {isExpanded ? (
+                                    <ChevronUp size={16} className="text-content-muted" />
+                                  ) : (
+                                    <ChevronDown size={16} className="text-content-muted" />
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Preview & Valid Date (always visible when collapsed) */}
+                              {!isExpanded && (
+                                <div className="px-3 pb-2">
+                                  <p className="text-content-muted text-sm truncate">
+                                    {note.note}
                                   </p>
-                                )}
-                              </div>
-                            )}
+                                  {(note.valid.from || note.valid.until) && (
+                                    <p className="text-xs text-content-faint mt-1">
+                                      {note.valid.from && note.valid.until ? (
+                                        <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : note.valid.from ? (
+                                        <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                                      ) : note.valid.until ? (
+                                        <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : null}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
 
-                            {isExpanded && (
-                              <div className="px-3 pb-3 border-t border-border-subtle">
-                                <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">{note.text}</p>
-                                {(note.startDate || note.endDate) && (
-                                  <div className="mt-2 text-xs text-content-faint">
-                                    {note.startDate && note.endDate ? <>Valid: {note.startDate} - {note.endDate}</> : note.startDate ? <>Valid from: {note.startDate}</> : <>Valid until: {note.endDate}</>}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })
+                              {/* Note Content (expandable) */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-border-subtle">
+                                  <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
+                                    {note.note}
+                                  </p>
+                                  {(note.valid.from || note.valid.until) && (
+                                    <p className="text-xs text-content-faint mt-1">
+                                      {note.valid.from && note.valid.until ? (
+                                        <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : note.valid.from ? (
+                                        <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                                      ) : note.valid.until ? (
+                                        <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : null}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })
                     ) : (
-                      <div className="text-content-faint text-sm text-center py-8">No special notes yet. Click "Add Note" to create one.</div>
+                      <div className="text-content-faint text-sm text-center py-8">
+                        No special notes yet. Click "Add Note" to create one.
+                      </div>
                     )}
                   </div>
                 )}

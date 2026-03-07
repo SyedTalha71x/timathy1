@@ -12,3 +12,8 @@ export const specialNoteByIdz = async (id) => {
     const res = await api.get(`/special/note/${id}`, { withCredentials: true })
     return res.data
 }
+
+export const specialNotes = async () => {
+    const res = await api.get('/special/note/all', { withCredentials: true })
+    return res.data;
+}

@@ -42,7 +42,7 @@ const SortableLeadCard = ({
     transition,
     isDragging,
   } = useSortable({
-    id: lead.id,
+    id: lead._id,
     data: {
       type: "lead",
       lead,
@@ -151,7 +151,7 @@ const SortableLeadCard = ({
             />
             
             <span className="text-content-primary font-medium text-sm truncate">
-              {lead.firstName} {lead.surname}
+              {lead.firstName} {lead.lastName}
             </span>
           </div>
         </div>
@@ -161,7 +161,7 @@ const SortableLeadCard = ({
     return (
       <div
         className="bg-surface-base rounded-xl p-3 sm:p-4 min-h-[120px] sm:min-h-[140px] shadow-2xl border-2 border-primary/50 rotate-2"
-        data-lead-id={lead.id}
+        data-lead-id={lead._id}
       >
         <div className="flex items-center mb-2 sm:mb-3 relative">
           {/* Special Note Icon - Using shared component */}
@@ -173,7 +173,7 @@ const SortableLeadCard = ({
           />
           
           <div className="flex-1 mt-6 min-w-0">
-            <h4 className="font-medium text-content-primary text-lg mb-1 line-clamp-2 break-words">{`${lead.firstName} ${lead.surname}`}</h4>
+            <h4 className="font-medium text-content-primary text-lg mb-1 line-clamp-2 break-words">{`${lead.firstName} ${lead.lastName}`}</h4>
             <p className="text-content-muted text-sm truncate">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
             <p className="text-content-muted text-sm truncate">{lead.email}</p>
           </div>
@@ -209,7 +209,7 @@ const SortableLeadCard = ({
               
               <div className="flex-1 min-w-0">
                 <span className="text-content-primary font-medium text-sm truncate block">
-                  {lead.firstName} {lead.surname}
+                  {lead.firstName} {lead.lastName}
                 </span>
               </div>
             </div>
@@ -267,11 +267,11 @@ const SortableLeadCard = ({
           />
           
           <div className="flex-1 mt-6 min-w-0">
-            <h4 className="font-medium text-content-primary text-lg mb-1 line-clamp-2 break-words">{`${lead.firstName} ${lead.surname}`}</h4>
-            <p className="text-content-muted text-sm truncate">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
+            <h4 className="font-medium text-content-primary text-lg mb-1 line-clamp-2 break-words">{`${lead.firstName} ${lead.lastName}`}</h4>
+            <p className="text-content-muted text-sm truncate">{formatPhoneNumbers(lead.phone, lead.telephoneNumber)}</p>
             <p className="text-content-muted text-sm truncate">{lead.email}</p>
             <p className="text-content-faint text-xs">
-              Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
+              Created: {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString()  : "Unknown date"}
             </p>
       
             <div className="mt-2">

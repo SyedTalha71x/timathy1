@@ -12,6 +12,10 @@ export const createAppointment = async (appointmentData) => {
     return res.data
 }
 
+export const createBlockAppointment = async (blockAppointment) => {
+    const res = await api.post('/appointment/block', blockAppointment, { withCredentials: true })
+    return res.data
+}
 
 export const canceledAppointment = async (appointmentId) => {
     const res = await api.patch(`/appointment/${appointmentId}/cancel`, {}, { withCredentials: true })
@@ -36,4 +40,27 @@ export const appointmentByMemberId = async (memberId) => {
 export const createAppointmentByStaff = async (memberId, appointmentData) => {
     const res = await api.post(`/appointment/create/${memberId}`, appointmentData, { withCredentials: true })
     return res.data;
+}
+
+
+export const createBookingTrialByStaff = async (leadId, trialData) => {
+    const res = await api.post(`/appointment/trial/${leadId}`, trialData, { withCredentials: true })
+    return res.data;
+}
+
+
+
+// =============================
+// Update and Delete Appointment By Staff
+// =============================
+
+export const updateAppointment = async (appointmentId, updateData) => {
+    const res = await api.put(`/appointment/update/${appointmentId}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+
+export const deleteAppointment = async (appointmentId) => {
+    const res = await api.delete(`/appointment/delete/${appointmentId}`, { withCredentials: true })
+    return res.data
 }

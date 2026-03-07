@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { X, Edit3, Trash2, Plus } from 'lucide-react';
-import { fetchAppointmentByMemberId } from '../../../features/appointments/AppointmentSlice'; // adjust path
+import { fetchAllAppointments, fetchAppointmentByMemberId } from '../../../features/appointments/AppointmentSlice'; // adjust path
 
 const getColorHex = (type) => {
   if (!type) return "#808080";
@@ -30,7 +30,11 @@ const AppointmentModalMain = ({
 }) => {
   const dispatch = useDispatch();
   const { appointmentsByMember, loading } = useSelector((state) => state.appointments);
+  // const { services } = useSelector((state) => state.services)
 
+  useEffect(() => {
+    dispatch(fetchAllAppointments())
+  }, [dispatch])
   // Fetch upcoming appointments when modal opens
   useEffect(() => {
     if (isOpen && selectedMemberMain?._id) {

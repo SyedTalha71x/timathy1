@@ -89,7 +89,6 @@ function loadLeadsFromDefaults({ studioId, mode }) {
  * @returns {{ data, updateData, isLoading, error, mode, studioId }}
  */
 export function useStudioLeads({ studioId = null, mode = "studio" } = {}) {
-  const { leads } = useSelector((state) => state.leads)
   const dispatch = useDispatch()
   const [data, setData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -109,8 +108,8 @@ export function useStudioLeads({ studioId = null, mode = "studio" } = {}) {
           const res = await fetch(`/api/admin/studios/${studioId}/leads`)
           result = await res.json()
         } else {
-          const res = await dispatch(fetchMyStudio())
-          result = await res.json()
+          result = await dispatch(fetchMyStudio())
+
         }
 
         if (!cancelled) setData(result)
@@ -123,7 +122,7 @@ export function useStudioLeads({ studioId = null, mode = "studio" } = {}) {
 
     load()
     return () => { cancelled = true }
-  }, [studioId, mode])
+  }, [studioId, mode, dispatch])
 
   /**
    * Update a section of the data (for future save-to-backend).
