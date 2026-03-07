@@ -5,7 +5,7 @@ import {
   Plus,
   ChevronDown,
   FileText,
-  History,
+
   Search,
   Grid3X3,
   List,
@@ -39,10 +39,9 @@ import { ContractManagement } from "../../components/studio-components/contract-
 import { BonusTimeModal } from "../../components/studio-components/contract-components/bonus-time-modal"
 import { RenewContractModal } from "../../components/studio-components/contract-components/renew-contract-modal"
 import { ChangeContractModal } from "../../components/studio-components/contract-components/change-contract-modal"
-import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
 import { DeleteContractModal } from "../../components/studio-components/contract-components/delete-contract-modal"
 import { ContractFormFillModal } from "../../components/shared/contracts/ContractFormFillModal"
-import { contractHistory, initialContracts, sampleLeads } from "../../utils/studio-states/contract-states"
+import { initialContracts, sampleLeads } from "../../utils/studio-states/contract-states"
 import { DEFAULT_CONTRACT_TYPES } from "../../utils/studio-states/configuration-states"
 import { leadsData } from "../../utils/studio-states/leads-states"
 import { membersData } from "../../utils/studio-states"
@@ -362,7 +361,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
   const [isBonusTimeModalOpen, setIsBonusTimeModalOpen] = useState(false)
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false)
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   // State for ContractFormFillModal after contract change
   const [isChangeFormFillOpen, setIsChangeFormFillOpen] = useState(false)
   const [changeFormFillData, setChangeFormFillData] = useState(null)
@@ -375,9 +373,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
   const [renewConfirmData, setRenewConfirmData] = useState(null)
   const [resumeConfirmData, setResumeConfirmData] = useState(null)
   const [removeBonusConfirmData, setRemoveBonusConfirmData] = useState(null)
-
-  // Contract history - initialized from static data, updated dynamically
-  const [history, setHistory] = useState(contractHistory)
 
   // Sort options - matches members.jsx pattern
   const sortOptions = [
@@ -546,20 +541,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     return new Date(dateString).toLocaleDateString('de-DE')
   }
 
-  // Helper to add a history entry for a contract
-  const addHistoryEntry = (contractId, entry) => {
-    setHistory(prev => ({
-      ...prev,
-      [contractId]: [
-        ...(prev[contractId] || []),
-        {
-          id: `h-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-          date: new Date().toISOString().split('T')[0],
-          ...entry,
-        },
-      ],
-    }))
-  }
 
   // Calculate the effective end date considering bonus time
   // Also calculates the bonus period dynamically for consistent display
@@ -770,7 +751,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         isBonusTimeModalOpen ||
         isRenewModalOpen ||
         isChangeModalOpen ||
-        isHistoryModalOpen ||
         isChangeFormFillOpen ||
         isRenewFormFillOpen ||
         renewConfirmData ||
@@ -794,7 +774,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         else if (isChangeModalOpen) setIsChangeModalOpen(false);
         else if (isChangeFormFillOpen) setIsChangeFormFillOpen(false);
         else if (isRenewFormFillOpen) setIsRenewFormFillOpen(false);
-        else if (isHistoryModalOpen) setIsHistoryModalOpen(false);
         return;
       }
 
@@ -828,7 +807,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     isChangeModalOpen,
     isChangeFormFillOpen,
     isRenewFormFillOpen,
-    isHistoryModalOpen,
     renewConfirmData,
     resumeConfirmData,
     removeBonusConfirmData
@@ -880,10 +858,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         c.id === resumeConfirmData.id ? { ...c, status: "Active", pauseReason: null } : c
       ))
       toast.success("Contract resumed successfully")
-      addHistoryEntry(resumeConfirmData.id, {
-        action: "Contract Resumed",
-        details: resumeConfirmData.pauseReason ? `Previous pause reason: ${resumeConfirmData.pauseReason}.` : "Contract has been resumed.",
-      })
     }
     setResumeConfirmData(null)
   }
@@ -957,10 +931,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         c.id === removeBonusConfirmData.id ? { ...c, bonusTime: null } : c
       ))
       toast.success("Bonus time removed")
-      addHistoryEntry(removeBonusConfirmData.id, {
-        action: "Bonus Time Removed",
-        details: "Bonus time has been removed from this contract.",
-      })
     }
     setRemoveBonusConfirmData(null)
   }
@@ -999,10 +969,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     setIsChangeModalOpen(true)
   }
 
-  const handleViewHistory = (contractId) => {
-    setSelectedContract(contracts.find((c) => c.id === contractId))
-    setIsHistoryModalOpen(true)
-  }
 
   const handleAddContract = () => {
     setSelectedLead(null)
@@ -1177,16 +1143,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     setIsPauseModalOpen(false)
     setSelectedContract(null)
     toast.success("Contract has been paused")
-
-    // Add history entry
-    if (selectedContract) {
-      const startFormatted = startDate ? new Date(startDate + 'T00:00').toLocaleDateString('de-DE') : 'N/A'
-      const endFormatted = endDate ? new Date(endDate + 'T00:00').toLocaleDateString('de-DE') : 'N/A'
-      addHistoryEntry(selectedContract.id, {
-        action: "Contract Paused",
-        details: `Reason: ${reason}. Pause period: ${startFormatted} — ${endFormatted}.`,
-      })
-    }
   }
 
   const handleCancelSubmit = ({ reason, cancelDate, cancelToDate, cancellationType, extraordinaryCancellation, cancellationThroughStudio, notificationRule }) => {
@@ -1215,17 +1171,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     setIsCancelModalOpen(false)
     setSelectedContract(null)
     toast.success("Contract has been cancelled")
-
-    // Add history entry
-    if (selectedContract) {
-      const entryDateFormatted = cancelDate ? new Date(cancelDate + 'T00:00').toLocaleDateString('de-DE') : new Date().toLocaleDateString('de-DE')
-      const endDateFormatted = cancelToDate ? new Date(cancelToDate + 'T00:00').toLocaleDateString('de-DE') : 'N/A'
-      const typeLabel = cancellationType === 'throughStudio' ? 'Cancellation through Studio' : 'Extraordinary Cancellation'
-      addHistoryEntry(selectedContract.id, {
-        action: "Contract Cancelled",
-        details: `${typeLabel} — Reason: ${reason}. Entry Date: ${entryDateFormatted}. Contract End: ${endDateFormatted}.${notificationRule ? ' Notification sent.' : ''}`,
-      })
-    }
   }
 
   const handleRenewSubmit = (renewalData) => {
@@ -2024,9 +1969,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                           ) : (
                             <div className={`${isCompactView ? 'p-1.5 w-[28px]' : 'p-2 w-[34px]'}`} />
                           )}
-                          <button onClick={() => handleViewHistory(contract.id)} className={`text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="History">
-                            <History size={isCompactView ? 14 : 18} />
-                          </button>
                           <div className="relative dropdown-trigger">
                             <button onClick={(e) => toggleDropdownContract(contract.id, e)} className={`text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`}>
                               <MoreVertical size={isCompactView ? 14 : 18} />
@@ -2165,9 +2107,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     </button>
                                   </div>
                                   <div className="grid grid-cols-4 gap-1 mt-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <History size={18} /><span className="text-[10px]">History</span>
-                                    </button>
+                                    <div className="p-2" />
                                     <div className="p-2" />
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
@@ -2194,9 +2134,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     </button>
                                   </div>
                                   <div className="grid grid-cols-4 gap-1 mt-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <History size={18} /><span className="text-[10px]">History</span>
-                                    </button>
+                                    <div className="p-2" />
                                     <div className="p-2" />
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
@@ -2211,9 +2149,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
                                     <Pencil size={18} /><span className="text-[10px]">Edit</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                    <History size={18} /><span className="text-[10px]">History</span>
-                                  </button>
+                                  <div className="p-2" />
                                   <div className="p-2" />
                                   <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                     <Trash2 size={18} /><span className="text-[10px]">Delete</span>
@@ -2226,9 +2162,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                    <History size={18} /><span className="text-[10px]">History</span>
-                                  </button>
+                                  <div className="p-2" />
                                   <div className="p-2" />
                                   <div className="p-2" />
                                 </div>
@@ -2442,17 +2376,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                           </>
                         )}
                       </div>
-
-                      {/* Row 2 - History button only */}
-                      <div className="flex justify-center mt-1">
-                        <button
-                          onClick={() => handleViewHistory(contract.id)}
-                          className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center gap-1.5 ${isCompactView ? 'p-1' : 'p-2'}`}
-                        >
-                          <History size={isCompactView ? 12 : 14} />
-                          <span className={`font-medium ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>History</span>
-                        </button>
-                      </div>
                     </div>
                   </div>
                   </React.Fragment>
@@ -2528,10 +2451,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
               ))
               setIsBonusTimeModalOpen(false)
               toast.success(wasEdit ? "Bonus time updated successfully" : "Bonus time added successfully")
-              addHistoryEntry(selectedContract.id, {
-                action: wasEdit ? "Bonus Time Updated" : "Bonus Time Added",
-                details: `${bonusData.bonusAmount} ${bonusData.bonusUnit}${bonusData.reason ? ` — Reason: ${bonusData.reason}` : ''}. Start: ${bonusData.startOption === 'fixed_time' ? 'Fixed time' : 'End of current contract period'}.`,
-              })
             }}
             onDelete={() => {
               setContracts(contracts.map(c =>
@@ -2541,10 +2460,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
               ))
               setIsBonusTimeModalOpen(false)
               toast.success("Bonus time removed")
-              addHistoryEntry(selectedContract.id, {
-                action: "Bonus Time Removed",
-                details: "Bonus time has been removed from this contract.",
-              })
             }}
           />
         )}
@@ -2646,18 +2561,6 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
               salutation: renewFormFillData.contract.salutation || '',
             }}
             existingFormData={renewFormFillData.contract.formData?.formValues || null}
-          />
-        )}
-
-        {isHistoryModalOpen && selectedContract && (
-          <SharedHistoryModal
-            variant="contract"
-            person={selectedContract}
-            history={{ contracts: history[selectedContract.id] || [] }}
-            onClose={() => {
-              setIsHistoryModalOpen(false)
-              setSelectedContract(null)
-            }}
           />
         )}
 
