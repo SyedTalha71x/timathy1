@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { Modal, notification } from 'antd';
+import { Modal } from 'antd';
+import toast from '../../../../shared/SharedToast';
 
 export const usePageManagement = (
   contractPages,
@@ -119,20 +120,14 @@ export const usePageManagement = (
           
           saveToHistory(newPages, [], 'remove_pdf_block');
           
-          notification.success({
-            message: "PDF Block Deleted",
-            description: `All pages from "${pdfFileName}" have been removed`
-          });
+          toast.success(`All pages from "${pdfFileName}" have been removed`);
         }
       });
       return;
     }
     
     if (contractPages.length === 1) {
-      notification.warning({
-        message: "Cannot Delete Page",
-        description: "The contract must have at least one page"
-      });
+      toast.info('The contract must have at least one page');
       return;
     }
 

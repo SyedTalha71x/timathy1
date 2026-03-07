@@ -245,24 +245,22 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
   // Preview Mode Render
   if (previewMode) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-        <div className="bg-surface-base rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80">
+        <div className="bg-surface-base rounded-2xl w-full max-w-6xl h-[95vh] sm:h-[90vh] flex flex-col overflow-hidden shadow-2xl">
           {/* Header - Preview Mode */}
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <button
                 onClick={onClose}
-                className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="flex items-center gap-2">
-                <span className="text-content-primary text-lg font-semibold">{materialName || "Untitled Material"}</span>
-              </div>
+              <span className="text-content-primary text-base sm:text-lg font-semibold truncate">{materialName || "Untitled Material"}</span>
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
+              className="px-3 sm:px-4 py-2 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors flex-shrink-0"
             >
               Close
             </button>
@@ -270,8 +268,8 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
 
           {/* Main Content - Preview Mode */}
           <div className="flex flex-1 overflow-hidden">
-            {/* Slides Sidebar - Preview Mode (read-only) */}
-            <div className="w-48 bg-surface-dark border-r border-border flex flex-col">
+            {/* Slides Sidebar - Preview Mode (hidden on mobile) */}
+            <div className="hidden sm:flex w-48 bg-surface-dark border-r border-border flex-col">
               <div className="p-3 border-b border-border">
                 <div className="text-sm text-content-muted text-center">
                   {pages.length} Page{pages.length !== 1 ? 's' : ''}
@@ -335,18 +333,22 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
               </div>
             </div>
 
-            {/* Content Area - Preview Mode (read-only) */}
+            {/* Content Area - Preview Mode */}
             <div className="flex-1 flex flex-col bg-surface-base overflow-hidden">
               {/* Page Title - Preview Mode */}
-              <div className="p-3 border-b border-border bg-surface-dark">
-                <h2 className="text-content-primary text-lg font-semibold">
+              <div className="p-3 border-b border-border bg-surface-dark flex items-center justify-between">
+                <h2 className="text-content-primary text-base sm:text-lg font-semibold truncate">
                   {currentPage?.title || "Untitled Page"}
                 </h2>
+                {/* Mobile page indicator */}
+                <span className="sm:hidden text-xs text-content-muted flex-shrink-0 ml-2">
+                  {activePageIndex + 1} / {pages.length}
+                </span>
               </div>
 
               {/* Content Display - Preview Mode */}
-              <div className="flex-1 overflow-auto p-4">
-                <div className="bg-white rounded-xl p-6 min-h-[500px] max-h-[600px] overflow-auto">
+              <div className="flex-1 overflow-auto p-3 sm:p-4">
+                <div className="bg-white rounded-xl p-4 sm:p-6 min-h-[300px] sm:min-h-[500px] max-h-none sm:max-h-[600px] overflow-auto">
                   <div 
                     className="prose prose-sm max-w-none"
                     style={{ 
@@ -358,6 +360,31 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
                   />
                 </div>
               </div>
+
+              {/* Mobile Page Navigation - Preview Mode */}
+              {pages.length > 1 && (
+                <div className="sm:hidden flex items-center justify-between p-3 border-t border-border bg-surface-dark">
+                  <button
+                    onClick={() => setActivePageIndex(Math.max(0, activePageIndex - 1))}
+                    disabled={activePageIndex === 0}
+                    className="px-3 py-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl disabled:opacity-30 flex items-center gap-1 text-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Prev
+                  </button>
+                  <span className="text-xs text-content-muted">
+                    {activePageIndex + 1} / {pages.length}
+                  </span>
+                  <button
+                    onClick={() => setActivePageIndex(Math.min(pages.length - 1, activePageIndex + 1))}
+                    disabled={activePageIndex === pages.length - 1}
+                    className="px-3 py-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl disabled:opacity-30 flex items-center gap-1 text-sm"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -368,14 +395,14 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
   // Edit Mode Render
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-      <div className="bg-surface-base rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80">
+      <div className="bg-surface-base rounded-2xl w-full max-w-6xl h-[95vh] sm:h-[90vh] flex flex-col overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
             <button
               onClick={handleCloseAttempt}
-              className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+              className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
@@ -387,25 +414,25 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
                 setHasUnsavedChanges(true)
               }}
               placeholder="Untitled Material"
-              className="bg-surface-dark text-content-primary text-lg font-semibold outline-none border border-border focus:border-primary rounded-lg px-3 py-1.5 min-w-[200px]"
+              className="bg-surface-dark text-content-primary text-base sm:text-lg font-semibold outline-none border border-border focus:border-primary rounded-lg px-3 py-1.5 min-w-0 flex-1 sm:flex-none sm:min-w-[200px]"
             />
             {hasUnsavedChanges && (
-              <span className="text-xs text-primary">Unsaved changes</span>
+              <span className="text-xs text-primary hidden sm:inline flex-shrink-0">Unsaved changes</span>
             )}
           </div>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2 flex-shrink-0 ml-2"
           >
             <Check className="w-4 h-4" />
-            Save
+            <span className="hidden sm:inline">Save</span>
           </button>
         </div>
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Slides Sidebar */}
-          <div className="w-48 bg-surface-dark border-r border-border flex flex-col">
+          {/* Slides Sidebar (hidden on mobile) */}
+          <div className="hidden sm:flex w-48 bg-surface-dark border-r border-border flex-col">
             <div className="p-3 border-b border-border">
               <button
                 onClick={handleAddPage}
@@ -512,18 +539,22 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
           {/* Editor Area */}
           <div className="flex-1 flex flex-col bg-surface-base overflow-hidden">
             {/* Page Title */}
-            <div className="p-3 border-b border-border bg-surface-dark">
+            <div className="p-3 border-b border-border bg-surface-dark flex items-center justify-between gap-2">
               <input
                 type="text"
                 value={currentPage?.title || ""}
                 onChange={(e) => handlePageTitleChange(e.target.value)}
                 placeholder="Page Title"
-                className="w-full bg-transparent text-content-primary text-lg font-semibold outline-none placeholder-content-faint"
+                className="flex-1 min-w-0 bg-transparent text-content-primary text-base sm:text-lg font-semibold outline-none placeholder-content-faint"
               />
+              {/* Mobile page indicator */}
+              <span className="sm:hidden text-xs text-content-muted flex-shrink-0">
+                {activePageIndex + 1} / {pages.length}
+              </span>
             </div>
 
             {/* WysiwygEditor */}
-            <div className="flex-1 overflow-hidden p-4">
+            <div className="flex-1 overflow-hidden p-2 sm:p-4">
               <WysiwygEditor
                 key={`editor-${editorKey}`}
                 value={currentContent}
@@ -535,6 +566,31 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
                 className="h-full"
               />
             </div>
+
+            {/* Mobile Page Navigation - Edit Mode */}
+            {pages.length > 1 && (
+              <div className="sm:hidden flex items-center justify-between p-3 border-t border-border bg-surface-dark">
+                <button
+                  onClick={() => handlePageChange(activePageIndex - 1)}
+                  disabled={activePageIndex === 0}
+                  className="px-3 py-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl disabled:opacity-30 flex items-center gap-1 text-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Prev
+                </button>
+                <span className="text-xs text-content-muted">
+                  {activePageIndex + 1} / {pages.length}
+                </span>
+                <button
+                  onClick={() => handlePageChange(activePageIndex + 1)}
+                  disabled={activePageIndex === pages.length - 1}
+                  className="px-3 py-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl disabled:opacity-30 flex items-center gap-1 text-sm"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

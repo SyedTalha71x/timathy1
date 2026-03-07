@@ -76,8 +76,33 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!isFormValid) return
+
+    // Calculate the actual start date
+    let startDate
+    if (renewalData.startAfterCurrent && contract?.endDate) {
+      // Start the day after the current contract ends
+      const end = new Date(contract.endDate + 'T00:00')
+      end.setDate(end.getDate() + 1)
+      startDate = end.toISOString().split('T')[0]
+    } else {
+      startDate = renewalData.customStartDate || today
+    }
+
+    // Calculate end date from start + duration
+    let endDate = ""
+    if (selectedContractType?.duration) {
+      const start = new Date(startDate)
+      start.setMonth(start.getMonth() + parseInt(selectedContractType.duration))
+      endDate = start.toISOString().split('T')[0]
+    }
+
     onSubmit({
       ...renewalData,
+      startDate,
+      endDate,
+      newContractType: renewalData.contractType,
+      selectedContractType,
       renewReason: renewReason === "other" ? (customReason.trim() || "Other") : (renewReason || null),
       discount: discount.percentage > 0 ? discount : null,
     })
@@ -102,6 +127,7 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
   }
 
   const priceCalculation = calculateFinalPrice()
+  const isFormValid = renewReason && (renewReason !== "other" || customReason.trim()) && (renewalData.startAfterCurrent || renewalData.customStartDate)
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center justify-center z-[1001]">
@@ -183,7 +209,7 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-content-muted">Reason</label>
+            <label className="text-sm text-content-muted">Reason <span className="text-accent-red">*</span></label>
             <CustomSelect
               name="renewReason"
               value={renewReason}
@@ -299,7 +325,12 @@ export function RenewContractModal({ contract, onClose, onSubmit }) {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
+            disabled={!isFormValid}
+            className={`w-full py-2 px-4 text-sm rounded-xl transition-colors ${
+              isFormValid
+                ? "bg-primary text-white hover:bg-primary-hover"
+                : "bg-surface-button text-content-muted cursor-not-allowed"
+            }`}
           >
             Renew Contract
           </button>

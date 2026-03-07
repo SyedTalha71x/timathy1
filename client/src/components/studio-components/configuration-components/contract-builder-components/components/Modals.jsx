@@ -713,6 +713,7 @@ const Modals = ({
   setShowValidationWarning,
   validationWarnings,
   handleSaveAnyway,
+  handleSaveAndCloseAnyway,
   // Hotkeys modal props
   showHotkeysModal,
   setShowHotkeysModal
@@ -2434,10 +2435,18 @@ const Modals = ({
               </button>
               <button
                 onClick={handleSaveAnyway}
-                className="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium"
+                className="px-6 py-2.5 bg-primary/10 text-primary border border-primary/30 rounded-xl hover:bg-primary/20 transition-colors font-medium"
               >
-                Save Anyway
+                Save
               </button>
+              {handleSaveAndCloseAnyway && (
+                <button
+                  onClick={handleSaveAndCloseAnyway}
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium"
+                >
+                  Save & Close
+                </button>
+              )}
             </div>
           </div>
         </div>

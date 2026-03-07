@@ -162,7 +162,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
   }
 
   const priceCalculation = calculateFinalPrice()
-  const isFormValid = selectedContractType && changeData.startDate && !dateError
+  const isFormValid = selectedContractType && changeData.startDate && !dateError && changeReason && (changeReason !== "other" || customReason.trim())
 
   return (
     <div className="fixed inset-0 w-screen h-screen bg-black/50 flex items-center justify-center z-[1001]">
@@ -383,7 +383,7 @@ export function ChangeContractModal({ contract, onClose, onSubmit, initialData =
           {selectedContractType && (
             <div className="space-y-1.5">
               <label className="text-xs text-content-secondary block pl-1">
-                Reason for Change <span className="text-content-faint">(optional)</span>
+                Reason for Change <span className="text-accent-red">*</span>
               </label>
               <CustomSelect
                 name="changeReason"

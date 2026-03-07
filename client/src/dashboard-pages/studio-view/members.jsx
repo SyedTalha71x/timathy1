@@ -236,7 +236,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   })
 
 
-  // Helper function for contract redirect
+// Helper function for contract redirect
   const redirectToContract = (memberId) => {
     if (isAdminMode) {
       navigate(`/admin-dashboard/customers`)
@@ -417,15 +417,32 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         memberId,
         updatedData: { paymentDetails },
       }))
+
+      // If signed directly, store the mandate document in member's documents
+      if (paymentDetails.signatureStatus === "signed" && paymentDetails.mandateDocument) {
+        const currentDocs = selectedMemberForPayment.documents || []
+        dispatch(updateMemberDocuments({
+          memberId,
+          documents: [...currentDocs, paymentDetails.mandateDocument],
+        }))
+      }
+
       setPendingPaymentDetails(paymentDetails)
       setShowSepaNotifyModal(true)
     }
   }
 
   const handleSepaNotifyConfirm = (shouldNotify, options) => {
-    if (shouldNotify && options.email) {
-      // TODO: Send SEPA mandate email using template from configuration
-      console.log("Send SEPA mandate email to:", selectedMemberForPayment?.email, pendingPaymentDetails)
+    if (shouldNotify) {
+      const isSigned = pendingPaymentDetails?.signatureStatus === "signed"
+      if (isSigned && options.email) {
+        // Send SEPA mandate confirmation email with PDF
+        console.log("Send SEPA mandate email to:", selectedMemberForPayment?.email, pendingPaymentDetails)
+      }
+      if (!isSigned && options.push) {
+        // Send push notification to member app to sign the mandate
+        console.log("Send push notification to sign SEPA mandate:", selectedMemberForPayment?.id, pendingPaymentDetails)
+      }
     }
     setShowSepaNotifyModal(false)
     setPendingPaymentDetails(null)
@@ -2743,17 +2760,30 @@ const safeMembers = Array.isArray(members) ? members : []
         entityType="member"
         entityName={selectedMemberForPayment ? `${selectedMemberForPayment.firstName} ${selectedMemberForPayment.lastName}` : ""}
         onConfirm={handleSepaNotifyConfirm}
-        customTitle="SEPA Mandate Notification"
+        customTitle={
+          pendingPaymentDetails?.signatureStatus === "signed"
+            ? "SEPA Mandate Confirmation"
+            : "SEPA Mandate – Signature Required"
+        }
         hideBack
-        hidePush
-        hideNotificationOptions
+        hidePush={pendingPaymentDetails?.signatureStatus === "signed"}
         customMessage={
           selectedMemberForPayment && (
-            <p className="text-content-primary text-sm">
-              Payment details for <span className="font-semibold text-primary">{selectedMemberForPayment.firstName} {selectedMemberForPayment.lastName}</span> have been updated.
-              <br /><br />
-              Do you want to send the SEPA mandate confirmation via email?
-            </p>
+            pendingPaymentDetails?.signatureStatus === "signed" ? (
+              <p className="text-content-primary text-sm">
+                The SEPA mandate for <span className="font-semibold text-primary">{selectedMemberForPayment.firstName} {selectedMemberForPayment.lastName}</span> has been signed and the PDF has been stored in the documents.
+                <br /><br />
+                Do you want to send the SEPA mandate confirmation via email?
+              </p>
+            ) : (
+              <p className="text-content-primary text-sm">
+                Payment details for <span className="font-semibold text-primary">{selectedMemberForPayment.firstName} {selectedMemberForPayment.lastName}</span> have been saved but the mandate has <span className="font-semibold text-primary">not been signed yet</span>.
+                <br /><br />
+                The member needs to sign the mandate in their app. The SEPA mandate PDF will be generated and stored automatically after signing.
+                <br /><br />
+                Do you want to send a push notification to the member to sign?
+              </p>
+            )
           )
         }
       />

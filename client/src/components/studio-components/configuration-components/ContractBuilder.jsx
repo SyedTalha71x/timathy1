@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Modal, notification } from 'antd';
+import toast from '../../shared/SharedToast';
 import {
   FileIcon, FilePlusIcon, SaveIcon, FolderIcon,
   FolderPlusIcon, EditIcon, TrashIcon, EyeIcon,
   UndoIcon, RedoIcon, ZoomInIcon, ZoomOutIcon,
-  PrinterIcon, ChevronLeftIcon, ChevronRightIcon
+  PrinterIcon, ChevronLeftIcon, ChevronRightIcon,
+  XIcon
 } from 'lucide-react';
 
 import { ELEMENT_CATEGORIES, SYSTEM_VARIABLES, USER_VARIABLES } from './contract-builder-components/constants/elementConstants.jsx';
@@ -89,6 +90,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCloseConfirmModal, setShowCloseConfirmModal] = useState(false);
+  const [showDiscardConfirmModal, setShowDiscardConfirmModal] = useState(false);
   const [activeTab, setActiveTab] = useState('properties');
   const [showPreview, setShowPreview] = useState(false);
   const [headerFooterSettingsOpen, setHeaderFooterSettingsOpen] = useState(false);
@@ -457,10 +459,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
   }, [validateVariables]);
 
   const performSave = useCallback(() => {
-    notification.success({
-      message: 'Contract Saved',
-      description: 'The contract has been saved successfully.'
-    });
+    toast.success('Contract saved successfully.');
 
     if (onUpdate) {
       const updatedForm = {
@@ -477,10 +476,33 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
     setShowValidationWarning(false);
   }, [contractPages, folders, globalHeader, globalFooter, contractName, contractForm, onUpdate]);
 
+  // performSave + close the builder (used by "Save & Close" in validation modal)
+  const performSaveAndClose = useCallback(() => {
+    performSave();
+    onClose?.();
+  }, [performSave, onClose]);
+
   // Handler for close button - opens confirmation modal
   const handleCloseClick = useCallback(() => {
     setShowCloseConfirmModal(true);
   }, []);
+
+  // Handler for Save & Close - validates like handleSave but also closes
+  const handleSaveAndClose = useCallback(() => {
+    const warnings = validateVariables();
+    const hasWarnings = warnings.unassignedVariables.length > 0 || 
+                        warnings.fieldsWithoutVariables.length > 0;
+
+    if (hasWarnings) {
+      setValidationWarnings(warnings);
+      setShowValidationWarning(true);
+      setShowCloseConfirmModal(false);
+    } else {
+      performSave();
+      setShowCloseConfirmModal(false);
+      onClose?.();
+    }
+  }, [validateVariables, performSave, onClose]);
 
   // Image Upload Handler
   const handleImageUpload = useCallback((elementId, file) => {
@@ -635,7 +657,8 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
                          showImageCropModal || 
                          showValidationWarning ||
                          showHotkeysModal ||
-                         showCloseConfirmModal;
+                         showCloseConfirmModal ||
+                         showDiscardConfirmModal;
       
       // Check if an input field is focused
       const isInputFocused = e.target.closest('input, textarea, select');
@@ -646,7 +669,9 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
       // ESC - Close builder or close modal
       if (e.key === 'Escape' && !isInputFocused) {
         e.preventDefault();
-        if (showCloseConfirmModal) {
+        if (showDiscardConfirmModal) {
+          setShowDiscardConfirmModal(false);
+        } else if (showCloseConfirmModal) {
           setShowCloseConfirmModal(false);
         } else if (!isModalOpen && onClose) {
           setShowCloseConfirmModal(true);
@@ -688,7 +713,8 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
                                        showImageCropModal || 
                                        showValidationWarning ||
                                        showHotkeysModal ||
-                                       showCloseConfirmModal;
+                                       showCloseConfirmModal ||
+                         showDiscardConfirmModal;
       
       if (e.key === 'ArrowRight' && !isInputFocused && !isModalOpenExceptPreview) {
         e.preventDefault();
@@ -784,6 +810,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
     showValidationWarning, 
     showHotkeysModal,
     showCloseConfirmModal,
+    showDiscardConfirmModal,
     contractPages, 
     currentPage, 
     setContractPages, 
@@ -812,7 +839,8 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
                          showImageCropModal || 
                          showValidationWarning ||
                          showHotkeysModal ||
-                         showCloseConfirmModal;
+                         showCloseConfirmModal ||
+                         showDiscardConfirmModal;
       
       const isInputFocused = document.activeElement && 
                             (document.activeElement.tagName === 'INPUT' || 
@@ -832,7 +860,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
 
     document.addEventListener('wheel', handleWheel, { passive: false });
     return () => document.removeEventListener('wheel', handleWheel);
-  }, [setCanvasZoom, showPreview, showAddPageModal, showCreateFolderModal, headerFooterSettingsOpen, showImageCropModal, showValidationWarning, showCloseConfirmModal]);
+  }, [setCanvasZoom, showPreview, showAddPageModal, showCreateFolderModal, headerFooterSettingsOpen, showImageCropModal, showValidationWarning, showCloseConfirmModal, showDiscardConfirmModal]);
 
   // Close page title editing when clicking outside
   useEffect(() => {
@@ -1097,6 +1125,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
           setShowValidationWarning={setShowValidationWarning}
           validationWarnings={validationWarnings}
           handleSaveAnyway={performSave}
+          handleSaveAndCloseAnyway={onClose ? performSaveAndClose : undefined}
           folders={folders}
           saveToHistory={saveToHistory}
           showHotkeysModal={showHotkeysModal}
@@ -1106,34 +1135,67 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
         {/* Close Confirmation Modal */}
         {showCloseConfirmModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-            <div className="bg-surface-card rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
-              <h3 className="text-lg font-bold text-content-primary mb-2">Close Contract Builder?</h3>
-              <p className="text-content-faint mb-6">Do you want to save your changes before closing?</p>
-              <div className="flex gap-3">
+            <div className="bg-surface-card rounded-xl w-full max-w-md mx-4 shadow-2xl">
+              <div className="flex justify-between items-center p-6 pb-2">
+                <h3 className="text-lg font-bold text-content-primary">Close Contract Builder?</h3>
                 <button
                   onClick={() => setShowCloseConfirmModal(false)}
+                  className="text-content-muted hover:text-content-primary transition-colors p-1 rounded-lg hover:bg-surface-hover"
+                >
+                  <XIcon size={18} />
+                </button>
+              </div>
+              <p className="text-content-faint px-6 mb-6">Do you want to save your changes before closing?</p>
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={() => {
+                    setShowDiscardConfirmModal(true);
+                  }}
                   className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
-                  Cancel
+                  Discard
+                </button>
+                <button
+                  onClick={handleSaveAndClose}
+                  className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
+                >
+                  Save & Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Discard Confirmation Modal */}
+        {showDiscardConfirmModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]">
+            <div className="bg-surface-card rounded-xl w-full max-w-sm mx-4 shadow-2xl">
+              <div className="flex justify-between items-center p-6 pb-2">
+                <h3 className="text-lg font-bold text-content-primary">Discard Changes?</h3>
+                <button
+                  onClick={() => setShowDiscardConfirmModal(false)}
+                  className="text-content-muted hover:text-content-primary transition-colors p-1 rounded-lg hover:bg-surface-hover"
+                >
+                  <XIcon size={18} />
+                </button>
+              </div>
+              <p className="text-content-faint px-6 mb-6">All unsaved changes will be lost. This action cannot be undone.</p>
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={() => setShowDiscardConfirmModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
+                >
+                  Go Back
                 </button>
                 <button
                   onClick={() => {
+                    setShowDiscardConfirmModal(false);
                     setShowCloseConfirmModal(false);
                     onClose?.();
                   }}
                   className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors"
                 >
                   Discard
-                </button>
-                <button
-                  onClick={() => {
-                    performSave();
-                    setShowCloseConfirmModal(false);
-                    onClose?.();
-                  }}
-                  className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
-                >
-                  Save & Close
                 </button>
               </div>
             </div>

@@ -40,7 +40,7 @@ const ToastItem = ({ toast, onDismiss }) => {
   const timerRef = useRef(null)
   const startRef = useRef(Date.now())
 
-  const duration = toast.duration || 3000
+  const duration = toast.duration || 1500
   const Icon = ICONS[toast.type] || Info
   const accent = ACCENT[toast.type] || ACCENT.info
 
@@ -157,7 +157,7 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
-  const addToast = useCallback((type, message, duration = 3000) => {
+  const addToast = useCallback((type, message, duration = 1500) => {
     const id = ++idCounter
     setToasts((prev) => {
       // Max 5 toasts visible

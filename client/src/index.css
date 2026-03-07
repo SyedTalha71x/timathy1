@@ -128,6 +128,21 @@ select {
   color: #ffffff !important;
 }
 
+/* Ensure selection color works on inputs and textareas */
+input::selection,
+textarea::selection,
+[contenteditable]::selection {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+input::-moz-selection,
+textarea::-moz-selection,
+[contenteditable]::-moz-selection {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
 /* Browser date/time/color inputs – adapt picker chrome to theme */
 html {
   color-scheme: dark;
