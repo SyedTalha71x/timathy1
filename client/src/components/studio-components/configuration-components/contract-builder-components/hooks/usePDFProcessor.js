@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { notification } from 'antd';
+import toast from '../../../../shared/SharedToast';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
@@ -12,10 +12,7 @@ export const usePDFProcessor = (contractPages, setContractPages, saveToHistory, 
 
   const handlePdfUpload = async (file) => {
     if (!file || file.type !== 'application/pdf') {
-      notification.error({
-        message: "Invalid File",
-        description: "Please select a PDF file"
-      });
+      toast.error('Please select a PDF file');
       return;
     }
 
@@ -79,19 +76,13 @@ export const usePDFProcessor = (contractPages, setContractPages, saveToHistory, 
       const newPages = [...contractPages, ...pdfPages];
       setContractPages(newPages);
       
-      notification.success({
-        message: "PDF Successfully Imported",
-        description: `${numPages} page(s) have been added`
-      });
+      toast.success(`${numPages} PDF page(s) have been added`);
       
       saveToHistory(newPages, [], 'add_pdf_pages');
       
     } catch (error) {
       console.error('PDF processing error:', error);
-      notification.error({
-        message: "PDF Processing Error",
-        description: "The PDF could not be processed"
-      });
+      toast.error('The PDF could not be processed');
     } finally {
       setIsPdfProcessing(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Modal, notification } from 'antd';
+import { Modal } from 'antd';
+import toast from '../../../../shared/SharedToast';
 import { CONTENT_WIDTH_PX, CONTENT_HEIGHT_PX, clampElementBounds, calculateDynamicContentArea } from '../utils/layoutUtils';
 import { autoResizeElement, updateElementDimensionsWithConstraints, calculateHeadingDimensions } from '../utils/autoResizeUtils';
 
@@ -23,10 +24,7 @@ export const useElementManagement = (
   const addElement = useCallback((type) => {
     const currentPageData = contractPages[currentPage];
     if (currentPageData?.locked) {
-      notification.warning({
-        message: "Page Locked",
-        description: "Elements cannot be added to PDF pages"
-      });
+      toast.info('Elements cannot be added to PDF pages');
       return;
     }
 
@@ -573,10 +571,7 @@ export const useElementManagement = (
 
  const removeAllElements = useCallback(() => {
   if (contractPages[currentPage]?.elements.length === 0) {
-    notification.info({
-      message: "No Elements",
-      description: "There are no elements to delete."
-    });
+    toast.info('There are no elements to delete.');
     return;
   }
 

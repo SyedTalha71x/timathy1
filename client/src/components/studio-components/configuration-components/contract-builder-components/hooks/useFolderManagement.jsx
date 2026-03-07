@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { Modal, notification } from 'antd';
+import { Modal } from 'antd';
+import toast from '../../../../shared/SharedToast';
 
 export const useFolderManagement = (
   folders,
@@ -13,10 +14,7 @@ export const useFolderManagement = (
 ) => {
   const createFolder = useCallback((folderName, folderColor) => {
     if (!folderName || !folderName.trim()) {
-      notification.warning({
-        message: "Create Folder",
-        description: "Please enter a folder name"
-      });
+      toast.info('Please enter a folder name');
       return;
     }
 
@@ -93,10 +91,7 @@ export const useFolderManagement = (
         setSelectedFolder(null);
         saveToHistory(newPages, newFolders, 'delete_folder_with_elements');
         
-        notification.success({
-          message: "Folder and Elements Deleted",
-          description: `The folder "${folder.name}" and its ${folder.elementIds.length} element(s) have been deleted`
-        });
+        toast.success(`Folder "${folder.name}" and its elements have been deleted`);
         
         modalInstance?.destroy();
       };
@@ -124,10 +119,7 @@ export const useFolderManagement = (
         setSelectedFolder(null);
         saveToHistory(newPages, newFolders, 'delete_folder_keep_elements');
         
-        notification.success({
-          message: "Folder Deleted",
-          description: `The folder "${folder.name}" has been deleted. The elements were kept.`
-        });
+        toast.success(`Folder "${folder.name}" has been deleted. Elements were kept.`);
         
         modalInstance?.destroy();
       };
@@ -181,10 +173,7 @@ export const useFolderManagement = (
           setSelectedFolder(null);
           saveToHistory(contractPages, newFolders, 'delete_empty_folder');
           
-          notification.success({
-            message: "Folder Deleted",
-            description: `The folder "${folder.name}" has been deleted`
-          });
+          toast.success(`Folder "${folder.name}" has been deleted`);
         }
       });
     }
@@ -207,10 +196,7 @@ export const useFolderManagement = (
 
   const saveEditFolder = useCallback((folderId, editingFolderName, editingFolderColor) => {
     if (!editingFolderName || !editingFolderName.trim()) {
-      notification.warning({
-        message: "Edit Folder",
-        description: "Please enter a folder name"
-      });
+      toast.info('Please enter a folder name');
       return false;
     }
 
@@ -219,10 +205,7 @@ export const useFolderManagement = (
       color: editingFolderColor 
     });
     
-    notification.success({
-      message: "Folder Updated",
-      description: "Changes have been saved"
-    });
+    toast.success('Changes have been saved');
     
     return true;
   }, [updateFolder]);
