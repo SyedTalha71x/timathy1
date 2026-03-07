@@ -208,6 +208,7 @@ const RenderElement = ({
   onValueChange, 
   systemValues,
   bankLookupStatus,
+  fieldWarnings = {},
   isPreview = false 
 }) => {
   if (!element || element.visible === false) return null;
@@ -395,6 +396,40 @@ const RenderElement = ({
                   <CheckCircle2 size={13} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: '#f59e0b' }} />
                 )}
               </div>
+            ) : (userVariable === 'Telephone number' || userVariable === 'Mobile number') ? (
+              <input
+                type="tel"
+                value={currentValue}
+                onChange={(e) => { const sanitized = e.target.value.replace(/[^0-9+]/g, ''); setUserValue(userVariable, sanitized); }}
+                placeholder={userVariable === 'Mobile number' ? '+49 170 1234567' : '+49 30 12345678'}
+                className="flex-1 w-full border border-border rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{
+                  fontSize: `${inputFontSize}px`,
+                  fontFamily: inputFontFamily,
+                  fontWeight: element.inputBold ? 'bold' : 'normal',
+                  fontStyle: element.inputItalic ? 'italic' : 'normal',
+                  color: inputColor,
+                  minHeight: '28px',
+                }}
+                required={element.required}
+              />
+            ) : userVariable === 'Email Address' ? (
+              <input
+                type="email"
+                value={currentValue}
+                onChange={(e) => setUserValue(userVariable, e.target.value)}
+                placeholder="email@example.com"
+                className="flex-1 w-full border border-border rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{
+                  fontSize: `${inputFontSize}px`,
+                  fontFamily: inputFontFamily,
+                  fontWeight: element.inputBold ? 'bold' : 'normal',
+                  fontStyle: element.inputItalic ? 'italic' : 'normal',
+                  color: inputColor,
+                  minHeight: '28px',
+                }}
+                required={element.required}
+              />
             ) : (
               <input
                 type="text"
@@ -413,6 +448,13 @@ const RenderElement = ({
                 required={element.required}
               />
             )}
+            {/* Inline validation warning */}
+            {userVariable && (() => {
+              const fieldName = USER_VARIABLE_MAPPING[userVariable];
+              return fieldWarnings[fieldName] ? (
+                <div style={{ fontSize: '10px', color: '#ef4444', marginTop: '1px', lineHeight: '1' }}>{fieldWarnings[fieldName]}</div>
+              ) : null;
+            })()}
           </div>
         </div>
       );
@@ -776,8 +818,400 @@ const RenderElement = ({
 };
 
 // =============================================================================
-// MAIN MODAL COMPONENT
+// MOBILE FORM ELEMENT RENDERER - Stacked, full-width form fields
 // =============================================================================
+const MobileFormElement = ({ 
+  element, 
+  formValues, 
+  onValueChange, 
+  systemValues,
+  bankLookupStatus,
+  fieldWarnings = {},
+}) => {
+  if (!element || element.visible === false) return null;
+
+  const getSystemValue = (variable) => {
+    const fieldName = SYSTEM_VARIABLE_MAPPING[variable];
+    return systemValues?.[fieldName] || '';
+  };
+
+  const getUserValue = (variable) => {
+    const fieldName = USER_VARIABLE_MAPPING[variable];
+    return formValues?.[fieldName] || '';
+  };
+
+  const setUserValue = (variable, value) => {
+    const fieldName = USER_VARIABLE_MAPPING[variable];
+    if (fieldName && onValueChange) {
+      onValueChange(fieldName, value);
+    }
+  };
+
+  switch (element.type) {
+    case 'heading':
+    case 'subheading': {
+      const content = element.content && 
+        !['Heading...', 'Subheading...'].includes(element.content) 
+        ? element.content : null;
+      if (!content) return null;
+      
+      return (
+        <div style={{
+          fontSize: `${Math.min(element.fontSize || (element.type === 'heading' ? 24 : 18), element.type === 'heading' ? 22 : 16)}px`,
+          fontFamily: element.fontFamily || 'Arial, sans-serif',
+          fontWeight: element.bold ? 'bold' : 'normal',
+          fontStyle: element.italic ? 'italic' : 'normal',
+          textDecoration: element.underline ? 'underline' : 'none',
+          textAlign: element.alignment || 'left',
+          color: element.color || '#000',
+          textTransform: element.capsLock ? 'uppercase' : undefined,
+          lineHeight: '1.3',
+          paddingTop: '6px',
+          wordWrap: 'break-word',
+        }}>
+          {content}
+        </div>
+      );
+    }
+
+    case 'text': {
+      const labelColor = element.labelColor || '#111827';
+      const inputColor = element.inputColor || '#374151';
+      const labelFontSize = Math.min(element.labelFontSize || 14, 14);
+      const inputFontSize = Math.min(element.inputFontSize || 14, 14);
+      const labelFontFamily = element.labelFontFamily || 'Arial, sans-serif';
+      const inputFontFamily = element.inputFontFamily || 'Arial, sans-serif';
+      
+      const hasCustomLabel = element.label && !['Variable Field (Input)', 'Variable Field (System)'].includes(element.label);
+      const labelText = hasCustomLabel ? element.label : (element.variable || 'Field');
+      const finalLabelColor = hasCustomLabel ? labelColor : '#9ca3af';
+      
+      const userVariable = element.variable;
+      const currentValue = userVariable ? getUserValue(userVariable) : '';
+
+      return (
+        <div>
+          {element.showTitle !== false && (
+            <div style={{
+              fontSize: `${labelFontSize}px`,
+              fontFamily: labelFontFamily,
+              color: finalLabelColor,
+              marginBottom: '4px',
+              fontWeight: element.labelBold ? 'bold' : 'normal',
+              fontStyle: element.labelItalic ? 'italic' : 'normal',
+              textDecoration: element.labelUnderline ? 'underline' : 'none',
+              textTransform: element.labelCapsLock ? 'uppercase' : undefined,
+            }}>
+              {labelText}
+              {element.required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
+            </div>
+          )}
+          {userVariable === 'Salutation' ? (
+            <select
+              value={currentValue}
+              onChange={(e) => setUserValue(userVariable, e.target.value)}
+              className="w-full border border-[#d1d5db] rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+              style={{ fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily, color: inputColor, minHeight: '32px' }}
+            >
+              <option value="">Select...</option>
+              <option value="Mr.">Mr.</option>
+              <option value="Mrs.">Mrs.</option>
+              <option value="Ms.">Ms.</option>
+            </select>
+          ) : userVariable === 'Date of Birth' ? (
+            <div className="flex items-center border border-[#d1d5db] rounded bg-white px-2" style={{ minHeight: '32px' }}>
+              <span className="flex-1" style={{
+                fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily,
+                color: currentValue ? inputColor : '#9ca3af',
+              }}>
+                {currentValue ? new Date(currentValue + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date...'}
+              </span>
+              <DatePickerField value={currentValue} onChange={(val) => setUserValue(userVariable, val)} iconSize={14} />
+            </div>
+          ) : userVariable === 'IBAN' ? (
+            <input
+              type="text"
+              value={currentValue}
+              onChange={(e) => { const val = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase(); setUserValue(userVariable, val); }}
+              placeholder={userVariable || '...'}
+              className="w-full border border-[#d1d5db] rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+              style={{ fontSize: `${inputFontSize}px`, fontFamily: 'monospace', color: inputColor, minHeight: '32px', letterSpacing: '0.05em' }}
+              required={element.required}
+            />
+          ) : (userVariable === 'BIC' || userVariable === 'Credit institution') ? (
+            <div className="relative">
+              <input
+                type="text"
+                value={currentValue}
+                onChange={(e) => setUserValue(userVariable, userVariable === 'BIC' ? e.target.value.toUpperCase() : e.target.value)}
+                placeholder={userVariable || '...'}
+                disabled={bankLookupStatus === "success"}
+                className="w-full border border-[#d1d5db] rounded bg-white px-2 pr-7 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+                style={{
+                  fontSize: `${inputFontSize}px`, fontFamily: userVariable === 'BIC' ? 'monospace' : inputFontFamily,
+                  color: bankLookupStatus === "success" ? '#9ca3af' : inputColor,
+                  backgroundColor: bankLookupStatus === "success" ? '#f5f5f5' : '#fff',
+                  minHeight: '32px', cursor: bankLookupStatus === "success" ? 'not-allowed' : undefined,
+                }}
+                required={element.required}
+              />
+              {bankLookupStatus === "loading" && <Loader2 size={13} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin" style={{ color: '#9ca3af' }} />}
+              {bankLookupStatus === "success" && <CheckCircle2 size={13} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: '#f59e0b' }} />}
+            </div>
+          ) : (userVariable === 'Telephone number' || userVariable === 'Mobile number') ? (
+            <input
+              type="tel"
+              value={currentValue}
+              onChange={(e) => { const sanitized = e.target.value.replace(/[^0-9+]/g, ''); setUserValue(userVariable, sanitized); }}
+              placeholder={userVariable === 'Mobile number' ? '+49 170 1234567' : '+49 30 12345678'}
+              className="w-full border border-[#d1d5db] rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+              style={{
+                fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily,
+                fontWeight: element.inputBold ? 'bold' : 'normal',
+                fontStyle: element.inputItalic ? 'italic' : 'normal',
+                color: inputColor, minHeight: '32px',
+              }}
+              required={element.required}
+            />
+          ) : userVariable === 'Email Address' ? (
+            <input
+              type="email"
+              value={currentValue}
+              onChange={(e) => setUserValue(userVariable, e.target.value)}
+              placeholder="email@example.com"
+              className="w-full border border-[#d1d5db] rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+              style={{
+                fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily,
+                fontWeight: element.inputBold ? 'bold' : 'normal',
+                fontStyle: element.inputItalic ? 'italic' : 'normal',
+                color: inputColor, minHeight: '32px',
+              }}
+              required={element.required}
+            />
+          ) : (
+            <input
+              type="text"
+              value={currentValue}
+              onChange={(e) => setUserValue(userVariable, e.target.value)}
+              placeholder={userVariable || '...'}
+              className="w-full border border-[#d1d5db] rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+              style={{
+                fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily,
+                fontWeight: element.inputBold ? 'bold' : 'normal',
+                fontStyle: element.inputItalic ? 'italic' : 'normal',
+                color: inputColor, minHeight: '32px',
+              }}
+              required={element.required}
+            />
+          )}
+          {/* Inline validation warning */}
+          {userVariable && (() => {
+            const fieldName = USER_VARIABLE_MAPPING[userVariable];
+            return fieldWarnings[fieldName] ? (
+              <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '3px' }}>{fieldWarnings[fieldName]}</div>
+            ) : null;
+          })()}
+        </div>
+      );
+    }
+
+    case 'system-text': {
+      const labelColor = element.labelColor || '#111827';
+      const inputColor = element.inputColor || '#374151';
+      const labelFontSize = Math.min(element.labelFontSize || 14, 14);
+      const inputFontSize = Math.min(element.inputFontSize || 14, 14);
+      const labelFontFamily = element.labelFontFamily || 'Arial, sans-serif';
+      const inputFontFamily = element.inputFontFamily || 'Arial, sans-serif';
+      
+      const hasCustomLabel = element.label && !['Variable Field (Input)', 'Variable Field (System)'].includes(element.label);
+      const labelText = hasCustomLabel ? element.label : (element.variable || 'System Field');
+      const finalLabelColor = hasCustomLabel ? labelColor : '#9ca3af';
+      
+      const sysVariable = element.variable;
+      const displayValue = sysVariable ? getSystemValue(sysVariable) : '';
+
+      return (
+        <div>
+          {element.showTitle !== false && (
+            <div style={{
+              fontSize: `${labelFontSize}px`, fontFamily: labelFontFamily,
+              color: finalLabelColor, marginBottom: '4px',
+              fontWeight: element.labelBold ? 'bold' : 'normal',
+              fontStyle: element.labelItalic ? 'italic' : 'normal',
+            }}>
+              {labelText}
+            </div>
+          )}
+          <div
+            className="w-full border border-[#d1d5db] rounded px-2 flex items-center"
+            style={{
+              fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily,
+              fontWeight: element.inputBold ? 'bold' : 'normal',
+              color: displayValue ? inputColor : '#9ca3af',
+              minHeight: '32px', backgroundColor: '#f3f4f6',
+            }}
+          >
+            {displayValue || `{${sysVariable || 'System Variable'}}`}
+          </div>
+        </div>
+      );
+    }
+
+    case 'textarea': {
+      const isPlaceholder = !element.content || element.content === 'Paragraph...';
+      if (isPlaceholder) return null;
+      
+      return (
+        <div style={{
+          fontSize: `${Math.min(element.fontSize || 14, 14)}px`,
+          fontFamily: element.fontFamily || 'Arial, sans-serif',
+          fontWeight: element.bold ? 'bold' : 'normal',
+          fontStyle: element.italic ? 'italic' : 'normal',
+          textDecoration: element.underline ? 'underline' : 'none',
+          lineHeight: element.lineHeight || 1.5,
+          color: element.color || '#000',
+          textAlign: element.alignment || 'left',
+          textTransform: element.capsLock ? 'uppercase' : undefined,
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+        }}>
+          {element.content}
+        </div>
+      );
+    }
+
+    case 'checkbox': {
+      const checkboxId = `mobile-checkbox-${element.id}`;
+      const isChecked = formValues?.[`checkbox_${element.id}`] || false;
+      
+      const checkboxLabel = element.label && element.label !== 'Checkbox Title...' ? element.label : null;
+      const checkboxDescription = element.showDescription && element.description && element.description !== 'Description...' ? element.description : null;
+      if (!checkboxLabel && !checkboxDescription) return null;
+
+      return (
+        <div className="flex items-start gap-2" style={{ padding: '4px 0' }}>
+          <input 
+            type="checkbox" 
+            id={checkboxId}
+            checked={isChecked}
+            onChange={(e) => onValueChange?.(`checkbox_${element.id}`, e.target.checked)}
+            className="primary-check mt-1"
+            required={element.required}
+          />
+          <label htmlFor={checkboxId} className="flex-1 cursor-pointer">
+            {element.showTitle !== false && checkboxLabel && (
+              <div style={{
+                fontFamily: element.checkboxTitleFontFamily || element.checkboxFontFamily || 'Arial, sans-serif',
+                fontSize: `${Math.min(element.checkboxLabelSize || 16, 15)}px`,
+                color: element.titleColor || '#000',
+                fontWeight: element.titleBold ? 'bold' : 'normal',
+                fontStyle: element.titleItalic ? 'italic' : 'normal',
+                textDecoration: element.titleUnderline ? 'underline' : 'none',
+                textTransform: element.titleCapsLock ? 'uppercase' : undefined,
+              }}>
+                {checkboxLabel}
+                {element.required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
+              </div>
+            )}
+            {checkboxDescription && (
+              <div style={{
+                fontFamily: element.checkboxDescriptionFontFamily || element.checkboxFontFamily || 'Arial, sans-serif',
+                fontSize: `${Math.min(element.checkboxDescriptionSize || 14, 13)}px`,
+                fontWeight: element.descriptionBold ? 'bold' : 'normal',
+                fontStyle: element.descriptionItalic ? 'italic' : 'normal',
+                color: element.descriptionColor || '#374151',
+                whiteSpace: 'pre-wrap',
+                textTransform: element.descriptionCapsLock ? 'uppercase' : undefined,
+                marginTop: '2px',
+              }}>
+                {checkboxDescription}
+              </div>
+            )}
+          </label>
+        </div>
+      );
+    }
+
+    case 'signature': {
+      const signatureValue = formValues?.[`signature_${element.id}`] || null;
+      const today = new Date();
+      const dateFormat = element.dateFormat || 'de-DE';
+      let currentDate = dateFormat === 'iso' 
+        ? today.toISOString().split('T')[0] 
+        : today.toLocaleDateString(dateFormat, { year: 'numeric', month: '2-digit', day: '2-digit' });
+      
+      let locationDateText = '';
+      const showDate = element.showDate !== false;
+      if (element.location && showDate) locationDateText = `${element.location}, ${currentDate}`;
+      else if (element.location) locationDateText = element.location;
+      else if (showDate) locationDateText = currentDate;
+
+      const belowText = element.showBelowSignature && element.belowSignatureText && element.belowSignatureText !== 'Location, Date/Signature...'
+        ? element.belowSignatureText : null;
+
+      return (
+        <div style={{ padding: '4px 0' }}>
+          {element.showLocationDate !== false && locationDateText && (
+            <div style={{
+              fontFamily: element.locationFontFamily || element.signatureFontFamily || 'Arial, sans-serif',
+              fontSize: `${Math.min(element.signatureFontSize || 14, 14)}px`,
+              color: element.locationColor || '#374151',
+              marginBottom: '4px',
+              fontWeight: element.locationBold ? 'bold' : 'normal',
+            }}>
+              {locationDateText}
+              {element.required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
+            </div>
+          )}
+          <SignaturePad
+            value={signatureValue}
+            onChange={(val) => onValueChange?.(`signature_${element.id}`, val)}
+            width={300}
+            height={80}
+          />
+          {element.showBelowSignature !== false && belowText && (
+            <div style={{
+              fontFamily: element.belowTextFontFamily || element.signatureFontFamily || 'Arial, sans-serif',
+              fontSize: `${Math.min(element.belowTextFontSize || 14, 13)}px`,
+              color: element.belowTextColor || '#374151',
+              marginTop: '4px',
+            }}>
+              {belowText}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    case 'divider': {
+      return (
+        <div style={{
+          borderBottom: `${element.height || 1}px ${element.lineStyle || 'solid'} ${element.lineColor || '#000'}`,
+          margin: '6px 0',
+        }} />
+      );
+    }
+
+    case 'image': {
+      if (!element.src) return null;
+      return (
+        <div style={{ padding: '4px 0' }}>
+          <img src={element.src} alt="" style={{ maxWidth: '100%', height: 'auto' }} />
+        </div>
+      );
+    }
+
+    case 'rectangle':
+    case 'circle':
+    case 'triangle':
+    case 'semicircle':
+    case 'arrow':
+      return null;
+
+    default:
+      return null;
+  }
+};
 export function ContractFormFillModal({
   isOpen,
   onClose,
@@ -798,12 +1232,25 @@ export function ContractFormFillModal({
   const [showGeneratePrompt, setShowGeneratePrompt] = useState(false);
   const [showPrintPrompt, setShowPrintPrompt] = useState(false);
   const [showExitPrompt, setShowExitPrompt] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 640);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const containerRef = useRef(null);
   const contractPageRef = useRef(null);
+  const tabsRef = useRef(null);
   const sepaFallbackRef = useRef(`SEPA-${Date.now()}`);
   const lastLookedUpIban = useRef("");
   const [bankLookupStatus, setBankLookupStatus] = useState(null); // null | "loading" | "success" | "error"
+  const [fieldWarnings, setFieldWarnings] = useState({}); // { fieldName: "warning message" }
+
+  // Validation helpers
+  const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  const isValidPhone = (val) => /^\+?[0-9]{4,}$/.test(val.replace(/\s/g, ''));
   // Load contract form based on contract type
   useEffect(() => {
     if (contractType?.contractFormId) {
@@ -868,6 +1315,22 @@ export function ContractFormFillModal({
       return updated;
     });
     setErrors(prev => prev.filter(e => e.field !== fieldName));
+    
+    // Inline validation for email and phone
+    if (fieldName === 'email') {
+      if (value && !isValidEmail(value)) {
+        setFieldWarnings(prev => ({ ...prev, email: 'Invalid email format' }));
+      } else {
+        setFieldWarnings(prev => { const n = { ...prev }; delete n.email; return n; });
+      }
+    }
+    if (fieldName === 'telephone' || fieldName === 'mobile') {
+      if (value && !isValidPhone(value)) {
+        setFieldWarnings(prev => ({ ...prev, [fieldName]: 'Invalid phone number' }));
+      } else {
+        setFieldWarnings(prev => { const n = { ...prev }; delete n[fieldName]; return n; });
+      }
+    }
   }, []);
 
   // Auto-fill BIC and bank name via OpenIBAN API (same logic as PaymentDetailsModal)
@@ -932,6 +1395,22 @@ export function ContractFormFillModal({
               newErrors.push({
                 field: fieldName,
                 message: `${element.label || element.variable} is required`,
+                pageIndex,
+              });
+            }
+            // Email format validation
+            if (element.variable === 'Email Address' && formValues[fieldName] && !isValidEmail(formValues[fieldName])) {
+              newErrors.push({
+                field: fieldName,
+                message: `Please enter a valid email address`,
+                pageIndex,
+              });
+            }
+            // Phone format validation
+            if ((element.variable === 'Telephone number' || element.variable === 'Mobile number') && formValues[fieldName] && !isValidPhone(formValues[fieldName])) {
+              newErrors.push({
+                field: fieldName,
+                message: `Please enter a valid phone number`,
                 pageIndex,
               });
             }
@@ -1092,13 +1571,11 @@ export function ContractFormFillModal({
   const goToNextPage = () => {
     if (currentPageIndex < totalPages - 1) {
       setCurrentPageIndex(currentPageIndex + 1);
-      containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
   const goToPrevPage = () => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
-      containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -1106,12 +1583,23 @@ export function ContractFormFillModal({
   const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1.5));
   const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
 
+  // Auto-scroll page tabs to show active tab
+  useEffect(() => {
+    if (!tabsRef.current) return;
+    const activeTab = tabsRef.current.children[currentPageIndex];
+    if (activeTab) {
+      activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+    // Scroll content area to top on page change
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPageIndex]);
+
   if (!isOpen) return null;
 
   // No contract form linked
   if (!contractForm) {
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1001] p-4">
         <div className="bg-surface-card rounded-2xl w-full max-w-md shadow-xl border border-border">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -1131,7 +1619,9 @@ export function ContractFormFillModal({
   }
 
   return (
-    <div className={`fixed inset-0 bg-black/70 flex items-center justify-center z-50 ${isFullscreen ? 'p-0' : 'p-4'}`}>
+    <div className={`fixed inset-0 z-[1001] bg-black/70 sm:flex sm:items-center sm:justify-center ${
+      isFullscreen ? '' : 'sm:p-4'
+    }`}>
       <style>{`
         .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
         .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
@@ -1174,7 +1664,7 @@ export function ContractFormFillModal({
       
       {/* Generate Contract Confirmation Prompt */}
       {showGeneratePrompt && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002]">
           <div className="bg-surface-card rounded-2xl w-full max-w-md p-6 mx-4 shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
@@ -1208,7 +1698,7 @@ export function ContractFormFillModal({
 
       {/* Print Contract Prompt */}
       {showPrintPrompt && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002]">
           <div className="bg-surface-card rounded-2xl w-full max-w-md p-6 mx-4 shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
@@ -1242,7 +1732,7 @@ export function ContractFormFillModal({
 
       {/* Exit Prompt - Save as Draft or Discard */}
       {showExitPrompt && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002]">
           <div className="bg-surface-card rounded-2xl w-full max-w-md p-6 mx-4 shadow-xl border border-border relative">
             {/* X Button to continue editing */}
             <button
@@ -1282,36 +1772,41 @@ export function ContractFormFillModal({
         </div>
       )}
 
-      <div className={`bg-surface-card rounded-2xl shadow-xl border border-border flex flex-col ${
-        isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-6xl max-h-[95vh]'
+      <div className={`bg-surface-card flex flex-col w-full h-[100dvh] ${
+        isFullscreen ? '' : 'sm:h-auto sm:max-w-6xl sm:max-h-[95vh] sm:rounded-2xl sm:shadow-xl sm:border sm:border-border'
       }`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <FileText className="text-orange-500" size={24} />
-            <div>
-              <h2 className="text-lg font-semibold text-content-primary">{contractForm.name}</h2>
-              <p className="text-sm text-content-muted">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <FileText className="text-orange-500 flex-shrink-0 hidden sm:block" size={24} />
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-lg font-semibold text-content-primary truncate">{contractForm.name}</h2>
+              <p className="text-xs sm:text-sm text-content-muted">
                 Page {currentPageIndex + 1} of {totalPages}
-                {currentPage?.title && ` - ${currentPage.title}`}
+                {currentPage?.title && <span className="hidden sm:inline"> — {currentPage.title}</span>}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-surface-hover rounded-lg px-2 py-1">
-              <button onClick={zoomOut} className="p-1 hover:bg-surface-button-hover rounded" title="Zoom out">
-                <ZoomOut size={18} className="text-content-muted" />
-              </button>
-              <span className="text-sm text-content-muted w-12 text-center">{Math.round(zoom * 100)}%</span>
-              <button onClick={zoomIn} className="p-1 hover:bg-surface-button-hover rounded" title="Zoom in">
-                <ZoomIn size={18} className="text-content-muted" />
-              </button>
-            </div>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Zoom controls - desktop only */}
+            {!isMobile && (
+              <div className="flex items-center gap-1 bg-surface-hover rounded-lg px-2 py-1">
+                <button onClick={zoomOut} className="p-1 hover:bg-surface-button-hover rounded" title="Zoom out">
+                  <ZoomOut size={18} className="text-content-muted" />
+                </button>
+                <span className="text-sm text-content-muted w-12 text-center">{Math.round(zoom * 100)}%</span>
+                <button onClick={zoomIn} className="p-1 hover:bg-surface-button-hover rounded" title="Zoom in">
+                  <ZoomIn size={18} className="text-content-muted" />
+                </button>
+              </div>
+            )}
             
-            <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 hover:bg-surface-hover rounded-lg">
-              {isFullscreen ? <Minimize2 size={20} className="text-content-muted" /> : <Maximize2 size={20} className="text-content-muted" />}
-            </button>
+            {!isMobile && (
+              <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 hover:bg-surface-hover rounded-lg">
+                {isFullscreen ? <Minimize2 size={20} className="text-content-muted" /> : <Maximize2 size={20} className="text-content-muted" />}
+              </button>
+            )}
             
             <button onClick={handleCloseAttempt} className="p-2 hover:bg-surface-hover rounded-lg">
               <X size={20} className="text-content-muted" />
@@ -1321,14 +1816,14 @@ export function ContractFormFillModal({
 
         {/* Page Tabs */}
         {totalPages > 1 && (
-          <div className="flex gap-2 px-4 py-2 border-b border-border overflow-x-auto flex-shrink-0">
+          <div ref={tabsRef} className="flex gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 border-b border-border overflow-x-auto flex-shrink-0">
             {contractForm.pages.map((page, index) => {
               const pageErrors = errors.filter(e => e.pageIndex === index);
               return (
                 <button
                   key={page.id}
                   onClick={() => setCurrentPageIndex(index)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap flex items-center gap-1.5 ${
                     index === currentPageIndex
                       ? 'bg-orange-500 text-white'
                       : 'bg-surface-hover text-content-muted hover:bg-surface-button-hover'
@@ -1346,144 +1841,241 @@ export function ContractFormFillModal({
           </div>
         )}
 
-        {/* Canvas Area */}
-        <div 
-          ref={containerRef}
-          className="flex-1 overflow-auto flex justify-center"
-          style={{ 
-            backgroundColor: '#2a2a2a',
-            backgroundImage: `
-              linear-gradient(45deg, #333 25%, transparent 25%),
-              linear-gradient(-45deg, #333 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #333 75%),
-              linear-gradient(-45deg, transparent 75%, #333 75%)
-            `,
-            backgroundSize: '20px 20px',
-            backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-            padding: '20px',
-          }}
-        >
-          {/* A4 Page */}
-          <div
-            ref={contractPageRef}
-            className="bg-white shadow-2xl contract-doc-light"
-            style={{
-              width: `${PAGE_WIDTH_PX}px`,
-              height: `${PAGE_HEIGHT_PX}px`,
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top center',
-              position: 'relative',
-              flexShrink: 0,
+        {/* Canvas Area / Mobile Form */}
+        {isMobile ? (
+          /* ===== MOBILE: Flowing contract document view ===== */
+          <div 
+            ref={containerRef}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden contract-doc-light"
+            style={{ backgroundColor: '#f5f5f5' }}
+          >
+            <div className="bg-white mx-2 my-2 rounded-lg shadow-sm" style={{
+              padding: `${Math.min(MARGIN_PX * 0.4, 24)}px`,
+              fontFamily: 'Arial, sans-serif',
+              color: '#000',
+            }}>
+              {/* Global Header on mobile */}
+              {contractForm.globalHeader?.enabled && contractForm.globalHeader?.content && (
+                (contractForm.globalHeader.showOnPages === 'all' || 
+                 (contractForm.globalHeader.showOnPages === 'first' && currentPageIndex === 0)) && (
+                  <div 
+                    className="header-footer-content"
+                    style={{
+                      fontSize: '9px',
+                      fontFamily: 'Arial, sans-serif',
+                      color: '#000',
+                      lineHeight: 'normal',
+                      marginBottom: '12px',
+                      paddingBottom: '8px',
+                      borderBottom: '1px solid #e5e7eb',
+                    }}
+                    dangerouslySetInnerHTML={{ __html: contractForm.globalHeader.content }}
+                  />
+                )
+              )}
+
+              {/* Page title on mobile */}
+              {currentPage?.title && (
+                <div style={{
+                  fontSize: '11px',
+                  color: '#6b7280',
+                  marginBottom: '12px',
+                  fontWeight: '500',
+                }}>
+                  {currentPage.title}
+                </div>
+              )}
+              
+              {/* Render elements sorted by Y position for natural reading order */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[...(currentPage?.elements || [])]
+                  .filter(el => el.visible !== false)
+                  .sort((a, b) => (a.y || 0) - (b.y || 0))
+                  .map(element => (
+                    <MobileFormElement
+                      key={element.id}
+                      element={element}
+                      formValues={formValues}
+                      onValueChange={handleValueChange}
+                      systemValues={systemValues}
+                      bankLookupStatus={bankLookupStatus}
+                      fieldWarnings={fieldWarnings}
+                    />
+                  ))
+                }
+              </div>
+
+              {/* Global Footer on mobile */}
+              {contractForm.globalFooter?.enabled && contractForm.globalFooter?.content && (
+                (contractForm.globalFooter.showOnPages === 'all' || 
+                 (contractForm.globalFooter.showOnPages === 'first' && currentPageIndex === 0)) && (
+                  <div 
+                    className="header-footer-content"
+                    style={{
+                      fontSize: '9px',
+                      fontFamily: 'Arial, sans-serif',
+                      color: '#000',
+                      lineHeight: 'normal',
+                      marginTop: '16px',
+                      paddingTop: '8px',
+                      borderTop: '1px solid #e5e7eb',
+                    }}
+                    dangerouslySetInnerHTML={{ __html: contractForm.globalFooter.content }}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        ) : (
+          /* ===== DESKTOP: A4 Canvas view ===== */
+          <div 
+            ref={containerRef}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex justify-center"
+            style={{ 
+              backgroundColor: '#2a2a2a',
+              backgroundImage: `
+                linear-gradient(45deg, #333 25%, transparent 25%),
+                linear-gradient(-45deg, #333 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #333 75%),
+                linear-gradient(-45deg, transparent 75%, #333 75%)
+              `,
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+              padding: '20px',
             }}
           >
-            {/* Global Header */}
-            {contractForm.globalHeader?.enabled && contractForm.globalHeader?.content && (
-              (contractForm.globalHeader.showOnPages === 'all' || 
-               (contractForm.globalHeader.showOnPages === 'first' && currentPageIndex === 0)) && (
-                <div 
-                  className="header-footer-content"
+            {/* Wrapper to constrain scroll to actual page size */}
+            <div style={{
+              width: `${PAGE_WIDTH_PX * zoom}px`,
+              height: `${PAGE_HEIGHT_PX * zoom + 40}px`,
+              flexShrink: 0,
+              position: 'relative',
+            }}>
+              {/* A4 Page */}
+              <div
+                ref={contractPageRef}
+                className="bg-white shadow-2xl contract-doc-light"
+                style={{
+                  width: `${PAGE_WIDTH_PX}px`,
+                  height: `${PAGE_HEIGHT_PX}px`,
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'top left',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                }}
+              >
+                {/* Global Header */}
+                {contractForm.globalHeader?.enabled && contractForm.globalHeader?.content && (
+                  (contractForm.globalHeader.showOnPages === 'all' || 
+                   (contractForm.globalHeader.showOnPages === 'first' && currentPageIndex === 0)) && (
+                    <div 
+                      className="header-footer-content"
+                      style={{
+                        position: 'absolute',
+                        top: `${HEADER_TOP_MARGIN}px`,
+                        left: `${MARGIN_PX}px`,
+                        width: `${CONTENT_WIDTH_PX}px`,
+                        fontSize: '10px',
+                        fontFamily: 'Arial, sans-serif',
+                        color: '#000',
+                        lineHeight: 'normal',
+                        zIndex: 1,
+                      }}
+                      dangerouslySetInnerHTML={{ __html: contractForm.globalHeader.content }}
+                    />
+                  )
+                )}
+                
+                {/* Content Area */}
+                <div
                   style={{
                     position: 'absolute',
-                    top: `${HEADER_TOP_MARGIN}px`,
+                    top: `${MARGIN_PX}px`,
                     left: `${MARGIN_PX}px`,
                     width: `${CONTENT_WIDTH_PX}px`,
-                    fontSize: '10px',
-                    fontFamily: 'Arial, sans-serif',
-                    color: '#000',
-                    lineHeight: 'normal',
-                    zIndex: 1,
+                    height: `${CONTENT_HEIGHT_PX}px`,
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    overflow: 'visible',
+                    zIndex: 2,
                   }}
-                  dangerouslySetInnerHTML={{ __html: contractForm.globalHeader.content }}
-                />
-              )
-            )}
-            
-            {/* Content Area */}
-            <div
-              style={{
-                position: 'absolute',
-                top: `${MARGIN_PX}px`,
-                left: `${MARGIN_PX}px`,
-                width: `${CONTENT_WIDTH_PX}px`,
-                height: `${CONTENT_HEIGHT_PX}px`,
-                border: 'none',
-                backgroundColor: 'transparent',
-                overflow: 'visible',
-                zIndex: 2,
-              }}
-            >
-              {sortedElements.map(element => (
-                <RenderElement
-                  key={element.id}
-                  element={element}
-                  formValues={formValues}
-                  onValueChange={handleValueChange}
-                  systemValues={systemValues}
-                  bankLookupStatus={bankLookupStatus}
-                />
-              ))}
+                >
+                  {sortedElements.map(element => (
+                    <RenderElement
+                      key={element.id}
+                      element={element}
+                      formValues={formValues}
+                      onValueChange={handleValueChange}
+                      systemValues={systemValues}
+                      bankLookupStatus={bankLookupStatus}
+                      fieldWarnings={fieldWarnings}
+                    />
+                  ))}
+                </div>
+                
+                {/* Global Footer */}
+                {contractForm.globalFooter?.enabled && contractForm.globalFooter?.content && (
+                  (contractForm.globalFooter.showOnPages === 'all' || 
+                   (contractForm.globalFooter.showOnPages === 'first' && currentPageIndex === 0)) && (
+                    <div 
+                      className="header-footer-content"
+                      style={{
+                        position: 'absolute',
+                        bottom: `${FOOTER_BOTTOM_MARGIN}px`,
+                        left: `${MARGIN_PX}px`,
+                        width: `${CONTENT_WIDTH_PX}px`,
+                        fontSize: '10px',
+                        fontFamily: 'Arial, sans-serif',
+                        color: '#000',
+                        lineHeight: 'normal',
+                        zIndex: 1,
+                      }}
+                      dangerouslySetInnerHTML={{ __html: contractForm.globalFooter.content }}
+                    />
+                  )
+                )}
+              </div>
             </div>
-            
-            {/* Global Footer */}
-            {contractForm.globalFooter?.enabled && contractForm.globalFooter?.content && (
-              (contractForm.globalFooter.showOnPages === 'all' || 
-               (contractForm.globalFooter.showOnPages === 'first' && currentPageIndex === 0)) && (
-                <div 
-                  className="header-footer-content"
-                  style={{
-                    position: 'absolute',
-                    bottom: `${FOOTER_BOTTOM_MARGIN}px`,
-                    left: `${MARGIN_PX}px`,
-                    width: `${CONTENT_WIDTH_PX}px`,
-                    fontSize: '10px',
-                    fontFamily: 'Arial, sans-serif',
-                    color: '#000',
-                    lineHeight: 'normal',
-                    zIndex: 1,
-                  }}
-                  dangerouslySetInnerHTML={{ __html: contractForm.globalFooter.content }}
-                />
-              )
-            )}
           </div>
-        </div>
+        )}
 
         {/* Error Messages */}
         {errors.length > 0 && (
-          <div className="px-4 py-2 bg-accent-red/10 border-t border-accent-red/30 flex-shrink-0">
-            <div className="flex items-center gap-2 text-accent-red text-sm">
+          <div className="px-3 sm:px-4 py-2 bg-accent-red/10 border-t border-accent-red/30 flex-shrink-0">
+            <div className="flex items-center gap-2 text-accent-red text-xs sm:text-sm">
               <AlertCircle size={16} />
               <span>
-                {errors.length} required field{errors.length > 1 ? 's' : ''} missing
+                {errors.length} field{errors.length > 1 ? 's' : ''} need{errors.length === 1 ? 's' : ''} attention
               </span>
             </div>
           </div>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-border flex-shrink-0">
-          <button onClick={handleCloseAttempt} className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-t border-border flex-shrink-0">
+          <button onClick={handleCloseAttempt} className="px-3 sm:px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button">
             Cancel
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={goToPrevPage}
               disabled={currentPageIndex === 0}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm ${
                 currentPageIndex === 0 ? 'bg-surface-button text-content-faint cursor-not-allowed' : 'bg-surface-hover text-content-primary hover:bg-surface-button-hover'
               }`}
             >
-              <ChevronLeft size={18} /> Previous
+              <ChevronLeft size={18} /> <span className="hidden sm:inline">Previous</span>
             </button>
 
             {currentPageIndex < totalPages - 1 ? (
-              <button onClick={goToNextPage} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover">
+              <button onClick={goToNextPage} className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover">
                 Next <ChevronRight size={18} />
               </button>
             ) : (
-              <button onClick={handleGenerateClick} className="flex items-center gap-2 px-6 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600">
-                <Check size={18} /> Generate Contract
+              <button onClick={handleGenerateClick} className="flex items-center gap-1.5 px-3 sm:px-6 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600">
+                <Check size={18} /> <span className="hidden sm:inline">Generate Contract</span><span className="sm:hidden">Generate</span>
               </button>
             )}
           </div>

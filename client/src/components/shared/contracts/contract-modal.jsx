@@ -6,12 +6,12 @@ import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye }
 import { useState, useEffect } from "react"
 import { DEFAULT_CONTRACT_TYPES, DEFAULT_INTRODUCTORY_MATERIALS, DEFAULT_CONTRACT_FORMS, studioData } from "../../../utils/studio-states/configuration-states"
 import { leadsData } from "../../../utils/studio-states/leads-states"
+import DatePickerField from "../../shared/DatePickerField"
+import CustomSelect from "../../shared/CustomSelect"
 import { membersData } from "../../../utils/studio-states/members-states"
 import IntroMaterialEditorModal from "../../shared/IntroMaterialEditorModal"
 import { ContractFormFillModal } from "./ContractFormFillModal"
 import { toast } from "react-hot-toast"
-import DatePickerField from "../../shared/DatePickerField"
-import CustomSelect from "../../shared/CustomSelect"
 
 // Add print-specific styles
 const printStyles = `
@@ -50,7 +50,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   // Mode detection
   const isEditMode = contract !== null
   const isLeadPreSelected = leadData !== null
-  const currency = studioData?.currency || "€"
+  const currency = studioData?.currency || "â‚¬"
 
   // Parse name helper
   const parseName = (fullName) => {
@@ -131,8 +131,9 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   })
   const [isDiscountExpanded, setIsDiscountExpanded] = useState(false)
 
-  const [contractStartDate, setContractStartDate] = useState(new Date().toISOString().split('T')[0])
-  const [trainingStartDate, setTrainingStartDate] = useState(new Date().toISOString().split('T')[0])
+  const todayDate = new Date().toISOString().split('T')[0]
+  const [contractStartDate, setContractStartDate] = useState(todayDate)
+  const [trainingStartDate, setTrainingStartDate] = useState(todayDate)
   const [contractEndDate, setContractEndDate] = useState("")
 
   const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
@@ -161,7 +162,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       // Map gender to salutation (Herr/Frau), skip "other"
       let salutation = ""
       const gender = (leadData.gender || "").toLowerCase()
-      if (gender === "male" || gender === "männlich" || gender === "m") {
+      if (gender === "male" || gender === "mÃ¤nnlich" || gender === "m") {
         salutation = "Herr"
       } else if (gender === "female" || gender === "weiblich" || gender === "f") {
         salutation = "Frau"
@@ -356,7 +357,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     // Map gender to salutation (Herr/Frau), skip "other"
     let salutation = ""
     const gender = (lead.gender || "").toLowerCase()
-    if (gender === "male" || gender === "männlich" || gender === "m") {
+    if (gender === "male" || gender === "mÃ¤nnlich" || gender === "m") {
       salutation = "Herr"
     } else if (gender === "female" || gender === "weiblich" || gender === "f") {
       salutation = "Frau"
@@ -604,6 +605,11 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
 
       {/* Introductory Materials Selection Modal */}
       {showIntroductoryMaterials && (
@@ -628,77 +634,71 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
               <div className="bg-surface-dark rounded-xl p-8 text-center">
                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-content-faint" />
                 <p className="text-content-muted">No introductory materials available</p>
-                <p className="text-sm text-content-faint mt-1">Materials can be created in Settings â†’ Introductory Materials</p>
+                <p className="text-sm text-content-faint mt-1">Materials can be created in Settings Ã¢â€ â€™ Introductory Materials</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
                 {DEFAULT_INTRODUCTORY_MATERIALS.map((material) => (
                   <div 
                     key={material.id} 
-                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
+                    className="bg-surface-dark rounded-xl p-4 border border-border hover:border-primary transition-colors"
                   >
-                    <div className="p-4 sm:p-5">
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-content-primary font-medium truncate">
-                              {material.name || "Untitled Material"}
-                            </h4>
-                            <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
-                              <BookOpen className="w-4 h-4" />
-                              {material.pages?.length || 0} page{(material.pages?.length || 0) !== 1 ? 's' : ''}
-                            </div>
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-content-primary font-medium truncate">
+                            {material.name || "Untitled Material"}
+                          </h4>
+                          <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
+                            <BookOpen className="w-4 h-4" />
+                            {material.pages?.length || 0} page{(material.pages?.length || 0) !== 1 ? 's' : ''}
                           </div>
                         </div>
-                        
-                        {/* Page previews with content thumbnails */}
-                        {material.pages && material.pages.length > 0 && (
-                          <div className="flex gap-1.5 overflow-x-auto pb-1">
-                            {material.pages.slice(0, 4).map((page, pageIndex) => (
-                              <div 
-                                key={page.id} 
-                                className="w-14 h-[72px] bg-white border border-border rounded-lg flex-shrink-0 overflow-hidden relative"
-                              >
-                                <div 
-                                  className="w-full h-full overflow-hidden pointer-events-none"
-                                  style={{ 
-                                    transform: 'scale(0.12)', 
-                                    transformOrigin: 'top left', 
-                                    width: '833%', 
-                                    height: '833%',
-                                    fontSize: '11px',
-                                    padding: '4px',
-                                    color: '#000',
-                                    lineHeight: '1.3',
-                                    fontFamily: 'Arial, sans-serif'
-                                  }}
-                                  dangerouslySetInnerHTML={{ __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` }}
-                                />
-                                <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
-                                  {pageIndex + 1}
-                                </div>
-                              </div>
-                            ))}
-                            {material.pages.length > 4 && (
-                              <div className="w-14 h-[72px] bg-surface-card border border-border rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-content-muted font-medium">
-                                +{material.pages.length - 4}
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                    <div className="px-4 py-3 bg-surface-card border-t border-border">
+                      
+                      {/* Page previews */}
+                      {material.pages && material.pages.length > 0 && (
+                        <div className="flex gap-1 overflow-x-auto pb-1">
+                          {material.pages.slice(0, 5).map((page) => (
+                            <div 
+                              key={page.id} 
+                              className="w-10 h-14 bg-white border border-border rounded flex-shrink-0 overflow-hidden"
+                            >
+                              <div 
+                                className="w-full h-full overflow-hidden pointer-events-none"
+                                style={{ 
+                                  transform: 'scale(0.1)', 
+                                  transformOrigin: 'top left', 
+                                  width: '1000%', 
+                                  height: '1000%',
+                                  fontSize: '10px',
+                                  padding: '4px',
+                                  color: '#000',
+                                  lineHeight: '1.2',
+                                  fontFamily: 'Arial, sans-serif'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: page.content || '<p style="color:#ccc">Empty</p>' }}
+                              />
+                            </div>
+                          ))}
+                          {material.pages.length > 5 && (
+                            <div className="w-10 h-14 bg-surface-base border border-border rounded flex-shrink-0 flex items-center justify-center text-xs text-content-faint">
+                              +{material.pages.length - 5}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <button 
                         onClick={() => {
                           setSelectedMaterial(material)
                           setShowMaterialPreview(true)
                           setShowIntroductoryMaterials(false)
                         }}
-                        className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Eye className="w-4 h-4" />
-                        Preview
+                        View
                       </button>
                     </div>
                   </div>
@@ -809,7 +809,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                   className="text-content-muted hover:text-content-primary transition-colors p-1.5 hover:bg-surface-button rounded-xl flex items-center gap-1"
                 >
                   <ArrowLeft size={16} />
-                  <span className="text-xs">Back to Selection</span>
+                  <span className="text-xs sm:hidden">Back</span>
+                  <span className="text-xs hidden sm:inline">Back to Selection</span>
                 </button>
               )}
               <button
@@ -822,7 +823,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
           </div>
         </div>
 
-        <div className="px-4 py-3 max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+        <div className="flex flex-col max-h-[75vh]">
+        <div className="px-4 py-3 flex-1 overflow-y-auto custom-scrollbar min-h-0">
           {/* Lead Selection View */}
           {showLeadSelection ? (
             <div className="space-y-6">
@@ -881,7 +883,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
           ) : showFormView ? (
             /* Form View - Contract Settings */
             <div>
-              <div className="space-y-4 mb-4">
+              <div className="space-y-4">
                 {/* Show selected lead info */}
                 {contractData.leadId && (
                   <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
@@ -936,6 +938,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                           <DatePickerField
                             value={contractStartDate}
                             onChange={(val) => setContractStartDate(val)}
+                            minDate={todayDate}
                           />
                         </div>
                       </div>
@@ -948,21 +951,10 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                           <DatePickerField
                             value={trainingStartDate}
                             onChange={(val) => setTrainingStartDate(val)}
+                            minDate={todayDate}
                           />
                         </div>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-content-secondary block pl-1">
-                        Contract End Date ({getDurationDisplay()})
-                      </label>
-                      <input
-                        type="text"
-                        value={contractEndDate}
-                        readOnly
-                        disabled
-                        className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-muted outline-none cursor-not-allowed pointer-events-none"
-                      />
                     </div>
                   </div>
                 )}
@@ -971,7 +963,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                 {selectedContractType && (
                   <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
                     <h4 className="text-content-primary text-sm font-medium mb-2">Contract Details</h4>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="block text-content-muted text-xs">Duration</span>
                         <span className="text-content-primary">{getDurationDisplay()}</span>
@@ -983,6 +975,12 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                       <div>
                         <span className="block text-content-muted text-xs">Billing Period</span>
                         <span className="text-content-primary">{selectedContractType.billingPeriod}</span>
+                      </div>
+                      <div>
+                        <span className="block text-content-muted text-xs">End Date</span>
+                        <span className="text-content-primary">
+                          {contractEndDate ? new Date(contractEndDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1085,21 +1083,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                 )}
               </div>
 
-              {/* Fill out Contract Button */}
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleFillOutContract}
-                  disabled={!selectedContractType}
-                  className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
-                    selectedContractType
-                      ? "bg-orange-500 text-white hover:bg-orange-600"
-                      : "bg-surface-button text-content-muted cursor-not-allowed"
-                  }`}
-                >
-                  <Pencil size={16} /> Fill out Contract
-                </button>
-              </div>
+              {/* Fill out Contract Button moved to fixed footer below scroll area */}
             </div>
           ) : (
             /* Contract Document View (Legacy - keeping for backwards compatibility) */
@@ -1375,6 +1359,24 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
               )}
             </div>
           )}
+        </div>
+        {/* Fixed Footer - outside scroll area */}
+        {!showLeadSelection && showFormView && (
+          <div className="px-4 py-3 border-t border-border flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleFillOutContract}
+              disabled={!selectedContractType}
+              className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
+                selectedContractType
+                  ? "bg-orange-500 text-content-primary hover:bg-orange-600"
+                  : "bg-surface-button text-content-muted cursor-not-allowed"
+              }`}
+            >
+              <Pencil size={16} /> Fill out Contract
+            </button>
+          </div>
+        )}
         </div>
       </div>
 

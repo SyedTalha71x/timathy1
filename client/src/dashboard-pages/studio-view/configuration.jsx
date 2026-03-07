@@ -262,7 +262,7 @@ const SectionHeader = ({ title, description, action }) => (
       <h2 className="text-lg sm:text-xl font-semibold text-content-primary">{title}</h2>
       {description && <p className="text-xs sm:text-sm text-content-muted mt-1">{description}</p>}
     </div>
-    {action}
+    {action && <div className="hidden lg:flex">{action}</div>}
   </div>
 )
 
@@ -313,7 +313,7 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
         placeholder={placeholder}
         maxLength={maxLength}
         className={`w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${
-          error ? "border-red-500" : "border-border focus:border-accent-blue"
+          error ? "border-red-500" : "border-border focus:border-primary"
         } ${Icon ? "pl-10" : ""}`}
       />
     </div>
@@ -358,7 +358,7 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue flex items-center justify-between"
+          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary flex items-center justify-between"
         >
           <span className={selectedOption ? "text-content-primary" : "text-content-faint"}>
             {selectedOption?.label || placeholder || "Select..."}
@@ -446,7 +446,7 @@ const NumberInput = ({ label, value, onChange, min = 0, max, step = 1, suffix, h
         min={min}
         max={max}
         step={step}
-        className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+        className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
       />
       {suffix && <span className="text-sm text-content-muted">{suffix}</span>}
     </div>
@@ -463,7 +463,7 @@ const TimePickerField = ({ label, value, onChange, placeholder = "HH:MM" }) => (
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+      className="bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
     />
   </div>
 )
@@ -758,6 +758,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const changeEditorRef = useRef(null)
   const sepaMandateEditorRef = useRef(null)
   const qrCodeRef = useRef(null)
+  const mobileContentRef = useRef(null)
+  const desktopContentRef = useRef(null)
 
   // ============================================
   // Populate state from hook config when it loads
@@ -1488,6 +1490,60 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       setExpandedCategories([...expandedCategories, categoryId])
     }
     setMobileShowContent(true)
+    // Double RAF: first waits for React commit, second for browser paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        mobileContentRef.current?.scrollTo(0, 0)
+        desktopContentRef.current?.scrollTo(0, 0)
+      })
+    })
+  }
+
+  // Mobile floating + button action per section
+  const getMobileAddAction = () => {
+    switch (activeSection) {
+      case "closing-days":
+        return () => setClosingDays([...closingDays, { date: "", description: "" }])
+      case "appointment-types":
+        return () => handleOpenAppointmentTypeModal(null)
+      case "appointment-categories":
+        return handleAddCategory
+      case "class-types":
+        return () => handleOpenClassTypeModal(null)
+      case "class-categories":
+        return handleAddClassCategory
+      case "staff-roles":
+        return handleAddRole
+      case "lead-sources":
+        return handleAddLeadSource
+      case "intro-materials":
+        return () => {
+          const newMaterial = {
+            id: Date.now(),
+            name: "",
+            pages: [{ id: Date.now(), title: "Page 1", content: "" }]
+          }
+          setEditingIntroMaterial(newMaterial)
+          setEditingIntroMaterialIndex(null)
+          setIntroMaterialEditorVisible(true)
+        }
+      case "contract-forms":
+        return () => setShowCreateFormModal(true)
+      case "contract-types":
+        return handleAddContractType
+      case "pause-reasons":
+        return () => setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
+      case "change-reasons":
+        return () => setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: "" }])
+      case "renew-reasons":
+        return () => setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: "" }])
+      case "bonus-time-reasons":
+        return () => setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: "" }])
+      case "vat-rates":
+        return handleAddVatRate
+      default:
+        return null
+    }
   }
 
   // Toggle category expansion
@@ -1712,7 +1768,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       type={showPassword ? "text" : "password"}
                       value={profileData.password}
                       onChange={(e) => handleProfileInputChange("password", e.target.value)}
-                      className="w-full px-4 py-2.5 pr-12 rounded-xl bg-surface-card border border-border outline-none text-sm text-content-primary focus:border-accent-blue"
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl bg-surface-card border border-border outline-none text-sm text-content-primary focus:border-primary"
                       placeholder="Enter password"
                     />
                     <button
@@ -2175,7 +2231,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       ...calendarSettings,
                       calendarStartTime: e.target.value
                     })}
-                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 <span className="text-content-faint hidden sm:block">—</span>
@@ -2188,7 +2244,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       ...calendarSettings,
                       calendarEndTime: e.target.value
                     })}
-                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
               </div>
@@ -2261,7 +2317,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       min={1}
                       max={100}
                       step={1}
-                      className="w-24 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                     />
                     <span className="text-sm text-content-muted">slots</span>
                   </div>
@@ -2568,7 +2624,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                       min={15}
                       max={180}
-                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                     />
                     <span className="text-sm text-content-muted">min</span>
                   </div>
@@ -2589,7 +2645,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={0}
                     max={studioCapacity}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
 
@@ -2608,7 +2664,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={1}
                     max={studioCapacity}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
 
@@ -2691,7 +2747,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="time"
                     value={classCalendarSettings.calendarStartTime}
                     onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, calendarStartTime: e.target.value })}
-                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 <span className="text-content-faint hidden sm:block">—</span>
@@ -2701,7 +2757,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     type="time"
                     value={classCalendarSettings.calendarEndTime}
                     onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, calendarEndTime: e.target.value })}
-                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
               </div>
@@ -3433,7 +3489,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onChange={(e) => setDefaultAppointmentLimit(Number(e.target.value))}
                       min={0}
                       placeholder="0 = Unlimited"
-                      className="w-32 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                      className="w-32 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                     />
                     <span className="text-content-muted text-sm">credits per billing period</span>
                   </div>
@@ -3469,7 +3525,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <select
                         value={defaultRenewalIndefinite ? "indefinite" : "fixed"}
                         onChange={(e) => setDefaultRenewalIndefinite(e.target.value === "indefinite")}
-                        className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                        className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                       >
                         <option value="fixed">Fixed period</option>
                         <option value="indefinite">Indefinite</option>
@@ -3481,7 +3537,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             value={defaultRenewalPeriod}
                             onChange={(e) => setDefaultRenewalPeriod(Number(e.target.value))}
                             min={1}
-                            className="w-20 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                            className="w-20 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                           <span className="text-content-muted">months</span>
                         </div>
@@ -4092,7 +4148,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         value={settings.birthdayEmailSubject || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayEmailSubject: e.target.value })}
                         placeholder="🎂 Happy Birthday, {Member_First_Name}!"
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                       />
                     </div>
                     
@@ -4242,7 +4298,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               [type]: { ...config, emailSubject: e.target.value }
                             })}
                             placeholder={`${titles[type]} - {Appointment_Type}`}
-                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                         </div>
                         
@@ -4393,7 +4449,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               [type]: { ...config, emailSubject: e.target.value }
                             })}
                             placeholder={`${titles[type]} - {Class_Name}`}
-                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                         </div>
 
@@ -4500,7 +4556,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         value={settings.birthdayAppTitle || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayAppTitle: e.target.value })}
                         placeholder="🎂 Happy Birthday!"
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                       />
                     </div>
                     
@@ -4524,7 +4580,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         onChange={(e) => setSettings({ ...settings, birthdayAppMessage: e.target.value })}
                         placeholder="Happy Birthday, {Member_First_Name}! We wish you a wonderful day."
                         rows={3}
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
                       />
                     </div>
                   </div>
@@ -4628,7 +4684,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               [type]: { ...config, appTitle: e.target.value }
                             })}
                             placeholder={`${titles[type]}`}
-                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                         </div>
                         
@@ -4658,7 +4714,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             })}
                             placeholder={`Enter ${type} push notification message...`}
                             rows={3}
-                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
                           />
                         </div>
                       </div>
@@ -4766,7 +4822,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               [type]: { ...config, appTitle: e.target.value }
                             })}
                             placeholder={`${titles[type]}`}
-                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                         </div>
 
@@ -4796,7 +4852,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             })}
                             placeholder={`Enter ${type} push notification message...`}
                             rows={3}
-                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
                           />
                         </div>
                       </div>
@@ -4851,7 +4907,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <select
                         value={settings.smtpSecure ? "tls" : "none"}
                         onChange={(e) => setSettings({ ...settings, smtpSecure: e.target.value === "tls" })}
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                       >
                         <option value="tls">TLS/SSL</option>
                         <option value="none">None</option>
@@ -4971,7 +5027,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.einvoiceSubject || ""}
                     onChange={(e) => setSettings({ ...settings, einvoiceSubject: e.target.value })}
                     placeholder="e.g. Invoice {Invoice_Number}"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 
@@ -5043,7 +5099,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.contractCancellationSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
                     placeholder="e.g. Contract Cancellation Confirmation"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 
@@ -5115,7 +5171,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.contractConclusionSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
                     placeholder="e.g. Welcome to {Studio_Name}"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 
@@ -5187,7 +5243,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.contractRenewalSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractRenewalSubject: e.target.value })}
                     placeholder="e.g. Contract Renewal Confirmation"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 
@@ -5259,7 +5315,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.contractChangeSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractChangeSubject: e.target.value })}
                     placeholder="e.g. Contract Change Confirmation"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 
@@ -5331,7 +5387,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.sepaMandateSubject || ""}
                     onChange={(e) => setSettings({ ...settings, sepaMandateSubject: e.target.value })}
                     placeholder="e.g. SEPA Direct Debit Mandate Confirmation"
-                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
                 
@@ -5778,7 +5834,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search settings..."
-              className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-accent-blue transition-colors"
+              className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-primary transition-colors"
             />
             {searchQuery && (
               <button
@@ -5866,7 +5922,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       </div>
 
       {/* Mobile Navigation List */}
-      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'hidden' : 'flex'}`}>
+      <div className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? 'hidden' : 'flex'}`}>
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h1 className="text-xl font-bold">Configuration</h1>
@@ -5888,7 +5944,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search settings..."
-              className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-accent-blue transition-colors"
+              className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-primary transition-colors"
             />
             {searchQuery && (
               <button
@@ -5902,7 +5958,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         </div>
 
         {/* Mobile Navigation Items */}
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 min-h-0 overflow-y-auto p-2">
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
             
@@ -5961,26 +6017,37 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         </div>
       </div>
 
-      {/* Mobile Content View */}
-      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'flex' : 'hidden'}`}>
-        {/* Mobile Content Header with Back Button */}
-        <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
-          <button
-            onClick={() => setMobileShowContent(false)}
-            className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-lg font-semibold">{getCurrentSectionTitle()}</h1>
-        </div>
+      {/* Mobile Content View - fixed fullscreen below dashboard header */}
+      {mobileShowContent && (
+        <div className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-30">
+          {/* Mobile Content Header with Back Button - always visible */}
+          <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
+            <button
+              onClick={() => setMobileShowContent(false)}
+              className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-semibold truncate">{getCurrentSectionTitle()}</h1>
+          </div>
 
-        {/* Mobile Content Area */}
-        <div className="flex-1 overflow-y-auto p-4">
-          <div>
+          {/* Mobile Content Area */}
+          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto p-4">
             {renderSectionContent()}
           </div>
+
+          {/* Floating Action Button - Mobile */}
+          {getMobileAddAction() && (
+            <button
+              onClick={getMobileAddAction()}
+              className="fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+              aria-label="Add"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Desktop Main Content */}
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
@@ -5990,7 +6057,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div ref={desktopContentRef} className="flex-1 overflow-y-auto p-6">
           <div>
             {renderSectionContent()}
           </div>

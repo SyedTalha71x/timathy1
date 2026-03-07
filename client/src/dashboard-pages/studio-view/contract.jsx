@@ -1932,7 +1932,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 items-center border-b border-border/50 hover:bg-surface-hover transition-colors relative ${isCompactView ? 'py-2' : 'py-3'} ${contract.status === 'Pending' ? 'border border-dashed border-primary/40 rounded-xl my-1 bg-primary/5' : ''}`}
                       >
                         {isExpiredContract(contract) && (
-                          <div className="absolute inset-0 bg-surface-dark/70 z-[40] pointer-events-none" />
+                          <div className="absolute inset-0 bg-surface-dark/70 z-[1] pointer-events-none" />
                         )}
                         <div className={`flex items-center justify-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>
                           <button
@@ -2089,9 +2089,9 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                             <div className="border-t border-border" />
                           </div>
                         )}
-                      <div className={`bg-surface-card rounded-xl relative ${isExpiredContract(contract) ? 'overflow-visible' : 'overflow-hidden'} ${contract.status === 'Pending' ? 'border border-dashed border-primary/40 bg-primary/5' : ''}`}>
+                      <div className={`bg-surface-card rounded-xl relative overflow-hidden ${contract.status === 'Pending' ? 'border border-dashed border-primary/40 bg-primary/5' : ''}`}>
                         {isExpiredContract(contract) && (
-                          <div className="absolute inset-0 bg-surface-dark/70 z-[40] pointer-events-none rounded-xl" />
+                          <div className="absolute inset-0 bg-surface-dark/70 z-[1] pointer-events-none rounded-xl" />
                         )}
                         <div
                           className="p-3 cursor-pointer"
@@ -2168,9 +2168,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <History size={18} /><span className="text-[10px]">History</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <FileText size={18} /><span className="text-[10px]">Docs</span>
-                                    </button>
+                                    <div className="p-2" />
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <XCircle size={18} /><span className="text-[10px]">Cancel</span>
@@ -2199,9 +2197,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <History size={18} /><span className="text-[10px]">History</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <FileText size={18} /><span className="text-[10px]">Docs</span>
-                                    </button>
+                                    <div className="p-2" />
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <XCircle size={18} /><span className="text-[10px]">Cancel</span>
@@ -2218,9 +2214,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <History size={18} /><span className="text-[10px]">History</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                    <FileText size={18} /><span className="text-[10px]">Docs</span>
-                                  </button>
+                                  <div className="p-2" />
                                   <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                     <Trash2 size={18} /><span className="text-[10px]">Delete</span>
                                   </button>
@@ -2235,18 +2229,14 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <History size={18} /><span className="text-[10px]">History</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                    <FileText size={18} /><span className="text-[10px]">Docs</span>
-                                  </button>
+                                  <div className="p-2" />
                                   <div className="p-2" />
                                 </div>
                               )}
 
                               {contract.status === "Scheduled" && (
                                 <div className="grid grid-cols-4 gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                    <FileText size={18} /><span className="text-[10px]">Docs</span>
-                                  </button>
+                                  <div className="p-2" />
                                   <div className="p-2" />
                                   <div className="p-2" />
                                   <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
@@ -2284,7 +2274,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                     className={`bg-surface-card rounded-xl hover:bg-surface-hover transition-colors relative ${isCompactView ? 'p-3' : 'p-4'} ${contract.status === 'Pending' ? 'border border-dashed border-primary/40 bg-primary/5' : ''}`}
                   >
                     {isExpiredContract(contract) && (
-                      <div className="absolute inset-0 bg-surface-dark/70 z-[40] pointer-events-none rounded-xl" />
+                      <div className="absolute inset-0 bg-surface-dark/70 z-[1] pointer-events-none rounded-xl" />
                     )}
                     <div className="flex flex-col items-center">
                       <button
