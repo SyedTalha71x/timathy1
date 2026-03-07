@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useMemo } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Tag, Pencil, Printer, ClipboardList, AlertCircle } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Tag, Pencil, Printer, ClipboardList, AlertCircle, CreditCard } from "lucide-react"
 import { toast } from "react-hot-toast"
 import TagManagerModal from "./TagManagerModal"
 
@@ -795,7 +795,185 @@ export default function DocumentManagementModal({
     return pdf
   }
 
+  // Helper function to generate PDF for SEPA mandate documents
+  const generateSepaMandatePDF = async (doc) => {
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    const margin = 15
+    const contentWidth = pageWidth - (margin * 2)
+    let yPos = margin
+
+    // Colors
+    const primaryColor = [249, 115, 22] // Orange-500
+    const textColor = [51, 51, 51]
+    const grayColor = [100, 100, 100]
+
+    const paymentDetails = doc.paymentDetails || {}
+    const memberName = doc.memberName || ''
+    const mandateNumber = paymentDetails.sepaMandateNumber || 'N/A'
+
+    // Header bar
+    pdf.setFillColor(...primaryColor)
+    pdf.rect(0, 0, pageWidth, 30, 'F')
+
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFontSize(16)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('SEPA Direct Debit Mandate', margin, 14)
+
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text(`For: ${memberName}`, margin, 22)
+
+    // Date and status (right side)
+    pdf.setFontSize(9)
+    const headerInfo = `${doc.uploadDate || 'N/A'} • ${doc.signed ? 'Signed' : 'Unsigned'}`
+    pdf.text(headerInfo, pageWidth - margin, 14, { align: 'right' })
+
+    yPos = 40
+
+    // Mandate reference
+    pdf.setFillColor(240, 240, 240)
+    pdf.roundedRect(margin, yPos, contentWidth, 10, 1, 1, 'F')
+    pdf.setTextColor(...textColor)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Mandate Reference', margin + 3, yPos + 4)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setTextColor(...grayColor)
+    pdf.text(mandateNumber, margin + 3, yPos + 8)
+    yPos += 16
+
+    // Payment details section
+    pdf.setFillColor(240, 240, 240)
+    pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
+    pdf.setTextColor(...textColor)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Payment Details', margin + 3, yPos + 5)
+    yPos += 12
+
+    const details = [
+      { label: 'Account Holder', value: `${paymentDetails.accountHolderFirstName || ''} ${paymentDetails.accountHolderLastName || ''}`.trim() },
+      { label: 'IBAN', value: paymentDetails.iban || 'N/A' },
+      { label: 'BIC', value: paymentDetails.bic || 'N/A' },
+      { label: 'Bank Name', value: paymentDetails.bankName || 'N/A' },
+    ]
+
+    details.forEach(({ label, value }) => {
+      pdf.setDrawColor(...primaryColor)
+      pdf.setLineWidth(0.5)
+      pdf.line(margin, yPos, margin, yPos + 8)
+
+      pdf.setTextColor(...textColor)
+      pdf.setFontSize(8)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(label, margin + 3, yPos + 3)
+
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(...grayColor)
+      pdf.text(value, margin + 3, yPos + 7)
+
+      yPos += 12
+    })
+
+    yPos += 4
+
+    // Authorization text
+    pdf.setFillColor(240, 240, 240)
+    pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
+    pdf.setTextColor(...textColor)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Authorization', margin + 3, yPos + 5)
+    yPos += 12
+
+    pdf.setTextColor(...grayColor)
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'normal')
+    const authText = `By signing this mandate form, I authorize the creditor to send instructions to my bank to debit my account in accordance with the instructions from the creditor. As part of my rights, I am entitled to a refund from my bank under the terms and conditions of my agreement with my bank. A refund must be claimed within 8 weeks starting from the date on which my account was debited.`
+    const splitAuth = pdf.splitTextToSize(authText, contentWidth - 6)
+    pdf.text(splitAuth, margin + 3, yPos)
+    yPos += splitAuth.length * 4 + 8
+
+    // Signature
+    if (doc.signature) {
+      pdf.setDrawColor(...primaryColor)
+      pdf.setLineWidth(0.3)
+      pdf.line(margin, yPos, pageWidth - margin, yPos)
+      yPos += 5
+
+      pdf.setTextColor(...textColor)
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Signature', margin, yPos)
+      yPos += 5
+
+      try {
+        const signatureData = doc.signature
+        let format = 'PNG'
+        if (signatureData.includes('data:image/jpeg') || signatureData.includes('data:image/jpg')) {
+          format = 'JPEG'
+        }
+
+        pdf.setFillColor(255, 255, 255)
+        pdf.setDrawColor(200, 200, 200)
+        pdf.setLineWidth(0.2)
+        pdf.roundedRect(margin, yPos, 55, 28, 2, 2, 'FD')
+
+        pdf.addImage(signatureData, format, margin + 2, yPos + 1, 50, 25)
+        yPos += 32
+
+        pdf.setTextColor(...grayColor)
+        pdf.setFontSize(7)
+        pdf.setFont('helvetica', 'italic')
+        pdf.text(`Signed: ${doc.uploadDate || 'N/A'}`, margin, yPos)
+      } catch (err) {
+        console.error('Error adding signature:', err)
+        pdf.setTextColor(...grayColor)
+        pdf.setFontSize(8)
+        pdf.text('[Signature attached]', margin, yPos)
+      }
+    }
+
+    // Footer
+    const pageCount = pdf.internal.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i)
+      pdf.setFontSize(7)
+      pdf.setTextColor(...grayColor)
+      pdf.text(
+        `Page ${i}/${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 8,
+        { align: 'center' }
+      )
+    }
+
+    return pdf
+  }
+
   const handleDownload = async (doc) => {
+    // Special handling for SEPA mandate documents - generate PDF
+    if (doc.type === "sepaMandate") {
+      toast.loading(`Generating PDF...`, { id: 'download' })
+      
+      try {
+        const pdf = await generateSepaMandatePDF(doc)
+        const fileName = `${doc.name.replace(/\s+/g, '_')}.pdf`
+        pdf.save(fileName)
+        
+        toast.dismiss('download')
+        toast.success(`${fileName} downloaded`)
+      } catch (err) {
+        console.error('PDF generation error:', err)
+        toast.dismiss('download')
+        toast.error('Failed to generate PDF')
+      }
+      return
+    }
+
     // Special handling for medical history forms - generate PDF
     if (doc.type === "medicalHistory") {
       toast.loading(`Generating PDF...`, { id: 'download' })
@@ -829,6 +1007,35 @@ export default function DocumentManagementModal({
   }
 
   const handlePrint = async (doc) => {
+    // Special handling for SEPA mandate - use PDF
+    if (doc.type === "sepaMandate") {
+      toast.loading(`Generating PDF for printing...`, { id: 'print' })
+      
+      try {
+        const pdf = await generateSepaMandatePDF(doc)
+        const pdfBlob = pdf.output('blob')
+        const pdfUrl = URL.createObjectURL(pdfBlob)
+        
+        const printWindow = window.open(pdfUrl, '_blank')
+        if (printWindow) {
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print()
+            }, 500)
+          }
+        }
+        
+        toast.dismiss('print')
+        toast.success("PDF print dialog opened")
+        return
+      } catch (err) {
+        console.error("Print error:", err)
+        toast.dismiss('print')
+        toast.error("Failed to generate PDF for printing")
+        return
+      }
+    }
+
     // Special handling for medical history forms - use PDF
     if (doc.type === "medicalHistory") {
       toast.loading(`Generating PDF for printing...`, { id: 'print' })
@@ -1032,10 +1239,21 @@ export default function DocumentManagementModal({
     }
   }
 
-  const handleViewDocument = (doc) => {
+  const handleViewDocument = async (doc) => {
     // Medical history forms use the AssessmentFormModal in view mode
     if (doc.type === "medicalHistory" && onViewAssessment) {
       onViewAssessment(doc)
+    } else if (doc.type === "sepaMandate") {
+      // Generate PDF on-the-fly and open in viewer
+      try {
+        const pdf = await generateSepaMandatePDF(doc)
+        const pdfBlob = pdf.output('blob')
+        const pdfFile = new File([pdfBlob], `${doc.name}.pdf`, { type: 'application/pdf' })
+        setViewingDocument({ ...doc, file: pdfFile, type: 'pdf' })
+      } catch (err) {
+        console.error('Error generating SEPA PDF for preview:', err)
+        toast.error('Failed to generate PDF preview')
+      }
     } else {
       setViewingDocument(doc)
     }
@@ -1070,8 +1288,8 @@ export default function DocumentManagementModal({
   }
 
   const startEditing = (doc) => {
-    // Only filled-out medical history forms (type === "medicalHistory") don't have file extension
-    if (doc.type === "medicalHistory") {
+    // sepaMandate and medicalHistory don't have file extensions
+    if (doc.type === "medicalHistory" || doc.type === "sepaMandate") {
       setEditingDocId(doc.id)
       setNewDocName(doc.name)
     } else {
@@ -1092,8 +1310,8 @@ export default function DocumentManagementModal({
     const originalDoc = documents.find((doc) => doc.id === docId)
     
     let finalName
-    // Only filled-out medical history forms (type === "medicalHistory") don't have file extension
-    if (originalDoc.type === "medicalHistory") {
+    // sepaMandate and medicalHistory don't have file extensions
+    if (originalDoc.type === "medicalHistory" || originalDoc.type === "sepaMandate") {
       finalName = newDocName.trim()
     } else {
       const originalExtension = originalDoc.name.split(".").pop()
@@ -1152,6 +1370,10 @@ export default function DocumentManagementModal({
     // Regular uploaded files in medicalHistory section should have colorful icons based on file type
     if (type === "medicalHistory") {
       return <ClipboardList className="w-5 h-5 text-white" />
+    }
+
+    if (type === "sepaMandate") {
+      return <CreditCard className="w-5 h-5 text-white" />
     }
     
     if (!type) return <File className="w-5 h-5 text-content-muted" />
@@ -1351,7 +1573,7 @@ export default function DocumentManagementModal({
                                   if (e.key === 'Escape') setEditingDocId(null)
                                 }}
                               />
-                              {doc.type !== "medicalHistory" && (
+                              {doc.type !== "medicalHistory" && doc.type !== "sepaMandate" && (
                                 <span className="text-content-faint text-sm">.{getFileExtension(doc.name)}</span>
                               )}
                             </div>
@@ -1378,7 +1600,12 @@ export default function DocumentManagementModal({
                               <span className="text-content-faint">-</span>
                               <p className="text-content-muted text-xs">{doc.uploadDate}</p>
                               {doc.type === "medicalHistory" && doc.answers && (
-                                <span className="text-content-muted text-xs">â€¢ {Object.keys(doc.answers).length} answers</span>
+                                <span className="text-content-muted text-xs">• {Object.keys(doc.answers).length} answers</span>
+                              )}
+                              {doc.type === "sepaMandate" && (
+                                <span className={`text-xs ${doc.signed ? 'text-accent-green' : 'text-amber-500'}`}>
+                                  • {doc.signed ? 'Signed' : 'Pending Signature'}
+                                </span>
                               )}
                             </div>
                             
