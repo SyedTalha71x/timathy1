@@ -59,17 +59,9 @@
 
   import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
 
-  import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-modal"
-  import ContractDetailsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-details"
   import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
 
-  import { ContractHistoryModal } from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-history-modal"
-  import StudioFinancesModal from "../../components/admin-dashboard-components/studios-modal/finances-components/finances-modal";
   import { FaPersonRays } from "react-icons/fa6";
-  import StudioLeadsModal from "../../components/admin-dashboard-components/studios-modal/lead-components/lead-overview-modal";
-  import { AddLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/add-lead-modal";
-  import { ViewLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/view-lead-details";
-  import { EditLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/edit-lead-modal";
   import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states"
   import {
     DEFAULT_EDIT_FORM,
@@ -911,20 +903,12 @@
         )}
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
-        <ContractsModal isOpen={isContractsModalOpen} onClose={() => setIsContractsModalOpen(false)} selectedStudio={selectedStudioForModal} studioContracts={studioContracts} handleFileUpload={handleFileUpload} handleDownloadFile={handleDownloadFile} onViewDetails={handleViewContractDetails} handleViewContractHistory={handleViewContractHistory} />
-        <ContractDetailsModal isOpen={isContractDetailsModalOpen} onClose={() => setIsContractDetailsModalOpen(false)} contract={selectedItemForDetails} />
-        {isContractHistoryModalOpen && selectedContractForHistory && <ContractHistoryModal contract={selectedContractForHistory} history={contractHistory[selectedStudioForModal?.id] || []} onClose={() => { setIsContractHistoryModalOpen(false); setSelectedContractForHistory(null) }} />}
-        <StudioLeadsModal isOpen={isLeadsModalOpen} studio={selectedStudioForModal} studioLeads={studioLeads} leadSearchQuery={leadSearchQuery} setLeadSearchQuery={setLeadSearchQuery} getFilteredLeads={getFilteredLeads} onClose={() => { setIsLeadsModalOpen(false); setSelectedStudioForModal(null); setLeadSearchQuery("") }} onViewLead={handleViewLead} onEditLead={handleEditLead} onAddLead={handleAddLead} />
-        <AddLeadModal isVisible={isAddLeadModalOpen} onClose={() => setIsAddLeadModalOpen(false)} onSave={handleSaveLead} leadSources={leadSources} />
-        <ViewLeadModal isVisible={isViewLeadModalOpen} onClose={() => { setIsViewLeadModalOpen(false); setSelectedLead(null) }} leadData={selectedLead} onEditLead={handleEditLead} leadRelations={leadRelations} />
-        <EditLeadModal isVisible={isEditLeadModalOpen} onClose={() => { setIsEditLeadModalOpen(false); setSelectedLead(null) }} onSave={handleSaveEditedLead} leadData={selectedLead} leadSources={leadSources} leadRelations={leadRelations} setLeadRelations={setLeadRelations} availableMembersLeads={availableMembersLeadsMain} initialTab="details" />
         <StudioDetailsModal isOpen={isViewDetailsModalOpen} onClose={() => setIsViewDetailsModalOpen(false)} studio={selectedStudio} franchises={franchises} studioStats={studioStats} DefaultStudioImage={DefaultStudioImage} isContractExpiringSoon={isContractExpiringSoon} onEditStudio={handleEditStudio} onViewFranchiseDetails={handleViewFranchiseDetails} />
         <StudioHistoryModalMain show={showHistory} studio={selectedStudio} studioHistoryMain={studioHistoryMainData} historyTabMain={historyTabMain} setHistoryTabMain={setHistoryTabMain} onClose={() => { setShowHistory(false); setSelectedStudio(null) }} />
         <FranchiseModal isCreateModalOpen={isCreateFranchiseModalOpen} isEditModalOpen={isEditFranchiseModalOpen} onClose={handleCloseModal} franchiseForm={franchiseForm} onInputChange={handleFranchiseInputChange} onSave={handleFranchiseSubmit} onLogoUpload={handleLogoUpload} onArchive={handleArchiveFranchise} selectedFranchise={selectedFranchise} />
         <FranchiseDetailsModal isOpen={isFranchiseDetailsModalOpen} onClose={() => setIsFranchiseDetailsModalOpen(false)} franchise={selectedFranchise} onEditFranchise={handleEditFranchise} assignedStudios={selectedFranchise ? getStudiosByFranchise(selectedFranchise.id) : []} onArchiveFranchise={handleArchiveFranchise} />
         <AssignStudioModal isOpen={isAssignStudioModalOpen} onClose={handleAssignStudioCloseModal} franchises={franchises} selectedFranchiseForAssignment={selectedFranchiseForAssignment} onFranchiseSelect={setSelectedFranchiseForAssignment} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} toast={toast} />
         <StudioManagementModal isOpen={isStudioManagementModalOpen} onClose={handleStudioManagementCloseModal} franchise={selectedFranchiseForManagement} assignedStudios={selectedFranchiseForManagement ? getStudiosByFranchise(selectedFranchiseForManagement.id) : []} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} onUnassignStudio={handleUnassignStudio} onEditStudio={handleEditStudio} toast={toast} />
-        <StudioFinancesModal isOpen={isFinancesModalOpen} onClose={() => setisFinancesModalOpen(false)} studio={selectedStudioForModal} studioFinances={studioFinanceData} financesPeriod={financesPeriod} onPeriodChange={setFinancesPeriod} />
 
         <StudioDocumentManagementModal
           studio={selectedStudioForModal}

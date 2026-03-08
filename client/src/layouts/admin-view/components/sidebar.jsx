@@ -28,8 +28,8 @@ import {
   BadgeDollarSign,
 } from "lucide-react"
 
-import OrgaGymLogoWihoutText from '../../../public/Orgagym white without text.svg'
-import { DUMMY_FEEDBACK } from "../../utils/admin-panel-states/feedback-states"
+import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
+import { DUMMY_FEEDBACK } from "../../../utils/admin-panel-states/feedback-states"
 
 // ============================================
 // Feedback Modal Component (same as main sidebar)
@@ -300,7 +300,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
 
   const menuItems = [
     { icon: Users, label: "Customers", to: "/admin-dashboard/customers" },
-    { icon: RiContractLine, label: "Contract", to: "/admin-dashboard/contract" },
+    { icon: RiContractLine, label: "Contracts", to: "/admin-dashboard/contract" },
     { icon: FaPersonRays, label: "Leads", to: "/admin-dashboard/leads" },
     { icon: RiAccountPinCircleLine, label: "Demo Access", to: "/admin-dashboard/demo-access" },
     {

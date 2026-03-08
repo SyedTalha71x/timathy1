@@ -127,7 +127,7 @@ const TemplateStep = ({ templates, selectedTemplate, onSelect }) => (
     <div className="grid grid-cols-1 gap-3">
       {templates.map((tmpl) => {
         const isSelected = selectedTemplate?.id === tmpl.id;
-        const permEntries = Object.entries(tmpl.permissions);
+        const permEntries = Object.entries(tmpl.permissions || {});
         const enabledCount = permEntries.filter(([, v]) => v).length;
 
         return (
@@ -351,8 +351,8 @@ const EditView = ({ config, onChange, templates, selectedTemplateId, onSelectTem
       <div className="grid grid-cols-1 gap-2">
         {templates.map((tmpl) => {
           const isSelected = selectedTemplateId === tmpl.id;
-          const permCount = Object.values(tmpl.permissions).filter(Boolean).length;
-          const totalPerm = Object.keys(tmpl.permissions).length;
+          const permCount = Object.values(tmpl.permissions || {}).filter(Boolean).length;
+          const totalPerm = Object.keys(tmpl.permissions || {}).length;
           return (
             <button
               key={tmpl.id}

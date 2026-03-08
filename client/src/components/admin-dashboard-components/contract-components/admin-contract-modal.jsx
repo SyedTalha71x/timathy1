@@ -4,13 +4,12 @@
 /* eslint-disable no-unused-vars */
 import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye } from "lucide-react"
 import { useState, useEffect } from "react"
-import { DEFAULT_CONTRACT_TYPES, DEFAULT_INTRODUCTORY_MATERIALS, DEFAULT_CONTRACT_FORMS, studioData } from "../../../utils/studio-states/configuration-states"
-import { leadsData } from "../../../utils/studio-states/leads-states"
+import { DEFAULT_ADMIN_CONTRACT_TYPES, DEFAULT_ADMIN_CONTRACT_FORMS, adminPlatformData } from "../../../utils/admin-panel-states/admin-contract-states"
+import { studioDataNew } from "../../../utils/admin-panel-states/customers-states"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
-import { membersData } from "../../../utils/studio-states/members-states"
 import IntroMaterialEditorModal from "../../shared/IntroMaterialEditorModal"
-import { ContractFormFillModal } from "./ContractFormFillModal"
+import { AdminContractFormFillModal } from "./AdminContractFormFillModal"
 import { toast } from "react-hot-toast"
 
 // Add print-specific styles
@@ -46,11 +45,11 @@ const printStyles = `
  * - If `contract` prop is provided -> Edit Mode
  * - Otherwise -> Add Mode
  */
-export function ContractModal({ onClose, onSave, contract = null, leadData = null }) {
+export function AdminContractModal({ onClose, onSave, contract = null, leadData = null }) {
   // Mode detection
   const isEditMode = contract !== null
   const isLeadPreSelected = leadData !== null
-  const currency = studioData?.currency || "â‚¬"
+  const currency = adminPlatformData?.currency || "â‚¬"
 
   // Parse name helper
   const parseName = (fullName) => {
@@ -61,8 +60,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
 
   // Get initial name based on mode
   const getInitialName = () => {
-    if (isEditMode && contract?.memberName) {
-      return parseName(contract.memberName)
+    if (isEditMode && contract?.studioName) {
+      return parseName(contract.studioName)
     }
     if (leadData?.name) {
       return parseName(leadData.name)
@@ -79,15 +78,15 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   const [showLeadSelection, setShowLeadSelection] = useState(!isEditMode && !isLeadPreSelected)
   const [showFormView, setShowFormView] = useState(true)
   const [contractData, setContractData] = useState({
-    fullName: isEditMode ? (contract?.memberName || "") : (leadData?.name || `${initialFirstName} ${initialLastName}`.trim()),
+    fullName: isEditMode ? (contract?.studioName || "") : (leadData?.name || `${initialFirstName} ${initialLastName}`.trim()),
     studioName: leadData?.company || "",
-    studioOwnerName: isEditMode ? (contract?.memberName || "") : "",
+    studioOwnerName: isEditMode ? (contract?.studioName || "") : (leadData?.name || `${initialFirstName} ${initialLastName}`.trim() || ""),
     contractTerm: "",
     iban: isEditMode ? (contract?.iban || "") : "",
     email: isEditMode ? (contract?.email || "") : (leadData?.email || ""),
     phone: isEditMode ? (contract?.phone || "") : (leadData?.phone || leadData?.phoneNumber || ""),
     sepaMandate: isEditMode ? (contract?.sepaMandate || "") : "",
-    leadId: isEditMode ? (contract?.memberId || contract?.id || "") : (leadData?.id || ""),
+    leadId: isEditMode ? (contract?.studioId || contract?.id || "") : (leadData?.id || ""),
     rateType: isEditMode ? (contract?.contractType || "") : (leadData?.interestedIn || ""),
     signedFile: null,
     // Additional fields for the contract form
@@ -107,7 +106,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     mindestlaufzeit: "",
     preisProWoche: "",
     startDerMitgliedschaft: isEditMode ? (contract?.startDate || "") : "",
-    startDesTrainings: isEditMode ? (contract?.startDate || "") : "",
+    accessStartDate: isEditMode ? (contract?.startDate || "") : "",
     vertragsverlaengerungsdauer: "",
     kuendigungsfrist: "",
     kreditinstitut: "",
@@ -131,8 +130,9 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   })
   const [isDiscountExpanded, setIsDiscountExpanded] = useState(false)
 
-  const [contractStartDate, setContractStartDate] = useState(new Date().toISOString().split('T')[0])
-  const [trainingStartDate, setTrainingStartDate] = useState(new Date().toISOString().split('T')[0])
+  const todayDate = new Date().toISOString().split('T')[0]
+  const [contractStartDate, setContractStartDate] = useState(todayDate)
+  const [accessStartDate, setAccessStartDate] = useState(todayDate)
   const [contractEndDate, setContractEndDate] = useState("")
 
   const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
@@ -193,10 +193,10 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   // Initialize with contract data for edit mode
   useEffect(() => {
     if (isEditMode && contract) {
-      const { firstName, lastName } = parseName(contract.memberName)
+      const { firstName, lastName } = parseName(contract.studioName)
       setContractData((prev) => ({
         ...prev,
-        fullName: contract.memberName || "",
+        fullName: contract.studioName || "",
         email: contract.email || "",
         phone: contract.phone || "",
         vorname: firstName,
@@ -212,7 +212,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
         ort: contract.address?.city || "",
       }))
       setContractStartDate(contract.startDate || new Date().toISOString().split('T')[0])
-      setTrainingStartDate(contract.startDate || new Date().toISOString().split('T')[0])
+      setAccessStartDate(contract.startDate || new Date().toISOString().split('T')[0])
       
       if (contract.discount) {
         setDiscount({
@@ -300,7 +300,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
         const term = searchTerm.toLowerCase()
         
         // Search leads
-        const matchedLeads = leadsData.filter(
+        const matchedLeads = studioDataNew.filter(
           (lead) =>
             (lead.name && lead.name.toLowerCase().includes(term)) ||
             (`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(term)) ||
@@ -309,17 +309,17 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
             lead.phoneNumber?.includes(searchTerm),
         ).map(lead => ({ ...lead, _type: "lead" }))
         
-        // Search members
-        const matchedMembers = membersData.filter(
-          (member) =>
-            (member.title && member.title.toLowerCase().includes(term)) ||
-            (`${member.firstName} ${member.lastName}`.toLowerCase().includes(term)) ||
-            member.email?.toLowerCase().includes(term) ||
-            member.phone?.includes(searchTerm) ||
-            member.memberNumber?.toLowerCase().includes(term),
-        ).map(member => ({ ...member, _type: "member" }))
+        // Search studios
+        const matchedStudios = studioDataNew.filter(
+          (studio) =>
+            (studio.name && studio.name.toLowerCase().includes(term)) ||
+            (studio.ownerName && studio.ownerName.toLowerCase().includes(term)) ||
+            studio.email?.toLowerCase().includes(term) ||
+            studio.phone?.includes(searchTerm) ||
+            studio.studioNumber?.toString().includes(term),
+        ).map(studio => ({ ...studio, _type: "studio" }))
         
-        const combined = [...matchedLeads, ...matchedMembers]
+        const combined = [...matchedLeads, ...matchedStudios]
         setFilteredResults(combined)
         setFilteredLeads(matchedLeads) // keep for backward compat
       }
@@ -328,7 +328,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
 
   // Update selected contract type when rate type changes
   useEffect(() => {
-    const contractType = DEFAULT_CONTRACT_TYPES.find((type) => type.name === contractData.rateType)
+    const contractType = DEFAULT_ADMIN_CONTRACT_TYPES.find((type) => type.name === contractData.rateType)
     setSelectedContractType(contractType || null)
   }, [contractData.rateType])
 
@@ -349,44 +349,74 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   }
 
   const handleLeadSelect = (lead) => {
-    const isMember = lead._type === "member"
-    const firstName = lead.firstName || (lead.name ? lead.name.split(" ")[0] : "")
-    const lastName = lead.lastName || (lead.name ? lead.name.split(" ").slice(1).join(" ") : "")
+    const isStudio = lead._type === "studio"
     
-    // Map gender to salutation (Herr/Frau), skip "other"
-    let salutation = ""
-    const gender = (lead.gender || "").toLowerCase()
-    if (gender === "male" || gender === "mÃ¤nnlich" || gender === "m") {
-      salutation = "Herr"
-    } else if (gender === "female" || gender === "weiblich" || gender === "f") {
-      salutation = "Frau"
+    if (isStudio) {
+      // Studio selected - map studio-specific fields
+      const ownerParts = (lead.ownerName || "").split(" ")
+      const firstName = ownerParts[0] || ""
+      const lastName = ownerParts.slice(1).join(" ") || ""
+
+      setContractData({
+        ...contractData,
+        leadId: lead.id,
+        studioName: lead.name || "",
+        studioOwnerName: lead.ownerName || "",
+        fullName: lead.name || "",
+        email: lead.email || "",
+        phone: lead.phone || "",
+        vorname: firstName,
+        nachname: lastName,
+        emailAdresse: lead.email || "",
+        telefonnummer: lead.phone || "",
+        rateType: "",
+        strasse: lead.street || "",
+        plz: lead.zipCode || "",
+        ort: lead.city || "",
+        anrede: "",
+        mobil: "",
+        geburtsdatum: "",
+        selectedType: "studio",
+      })
+      setSearchTerm(lead.name || "")
+    } else {
+      // Lead selected
+      const firstName = lead.firstName || (lead.name ? lead.name.split(" ")[0] : "")
+      const lastName = lead.lastName || (lead.name ? lead.name.split(" ").slice(1).join(" ") : "")
+      
+      let salutation = ""
+      const gender = (lead.gender || "").toLowerCase()
+      if (gender === "male" || gender === "männlich" || gender === "m") {
+        salutation = "Herr"
+      } else if (gender === "female" || gender === "weiblich" || gender === "f") {
+        salutation = "Frau"
+      }
+
+      const fullName = lead.name || `${firstName} ${lastName}`
+
+      setContractData({
+        ...contractData,
+        leadId: lead.id,
+        studioName: lead.company || "",
+        studioOwnerName: fullName,
+        fullName: fullName,
+        email: lead.email || "",
+        phone: lead.phoneNumber || lead.phone || "",
+        vorname: firstName,
+        nachname: lastName,
+        emailAdresse: lead.email || "",
+        telefonnummer: lead.phoneNumber || lead.phone || "",
+        rateType: lead.interestedIn || "",
+        strasse: lead.street || "",
+        plz: lead.zipCode || "",
+        ort: lead.city || "",
+        anrede: salutation,
+        mobil: lead.mobile || "",
+        geburtsdatum: lead.dateOfBirth || lead.birthday || "",
+        selectedType: "lead",
+      })
+      setSearchTerm(fullName)
     }
-
-    const fullName = lead.name || lead.title || `${firstName} ${lastName}`
-
-    setContractData({
-      ...contractData,
-      leadId: lead.id,
-      studioName: lead.company || "",
-      studioOwnerName: fullName,
-      fullName: fullName,
-      email: lead.email || "",
-      phone: lead.phoneNumber || lead.phone || "",
-      vorname: firstName,
-      nachname: lastName,
-      emailAdresse: lead.email || "",
-      telefonnummer: lead.phoneNumber || lead.phone || "",
-      rateType: lead.interestedIn || "",
-      strasse: lead.street || "",
-      plz: lead.zipCode || "",
-      ort: lead.city || "",
-      anrede: salutation,
-      mobil: lead.mobile || "",
-      geburtsdatum: lead.dateOfBirth || lead.birthday || "",
-      // Track whether the selected person is a lead or member
-      selectedType: isMember ? "member" : "lead",
-    })
-    setSearchTerm(fullName)
     setFilteredResults([])
     setFilteredLeads([])
     setShowLeadSelection(false)
@@ -417,9 +447,9 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       ...contractData,
       contractStartDate,
       contractEndDate,
-      trainingStartDate,
+      accessStartDate,
       startDerMitgliedschaft: contractStartDate,
-      startDesTrainings: trainingStartDate,
+      accessStartDate: accessStartDate,
     }
     
     if (withSignature) {
@@ -441,9 +471,9 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       ...contractData,
       contractStartDate,
       contractEndDate,
-      trainingStartDate,
+      accessStartDate,
       startDerMitgliedschaft: contractStartDate,
-      startDesTrainings: trainingStartDate,
+      accessStartDate: accessStartDate,
     }
     
     if (shouldPrint) {
@@ -461,8 +491,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     const endDate = dataToSave.contractEndDate || contractEndDate
     const newContract = {
       id: isEditMode ? contract.id : Date.now(),
-      memberName: `${dataToSave.vorname} ${dataToSave.nachname}`.trim() || dataToSave.fullName,
-      memberId: dataToSave.leadId || `M-${Date.now()}`,
+      studioName: `${dataToSave.vorname} ${dataToSave.nachname}`.trim() || dataToSave.fullName,
+      studioId: dataToSave.leadId || `M-${Date.now()}`,
       contractType: selectedContractType?.name || dataToSave.rateType,
       contractNumber: dataToSave.mitgliedsnummer || `C-${Date.now()}`,
       status: dataToSave.status || (isEditMode ? contract.status : "Pending"),
@@ -522,18 +552,18 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     // Merge form data into local variables for contract creation
     const firstName = fv.firstName || contractData.vorname
     const lastName = fv.lastName || contractData.nachname
-    const memberName = `${firstName} ${lastName}`.trim()
+    const studioName = `${firstName} ${lastName}`.trim()
     
     // Create the full contract object
     const newContract = {
       id: isEditMode ? contract.id : Date.now(),
       contractNumber: contractData.mitgliedsnummer || `C-${Date.now()}`,
-      memberName: memberName,
-      memberId: contractData.leadId || `M-${Date.now()}`,
+      studioName: studioName,
+      studioId: contractData.leadId || `M-${Date.now()}`,
       contractType: selectedContractType?.name || contractData.rateType,
       startDate: contractStartDate,
       endDate: contractEndDate,
-      trainingStartDate: trainingStartDate,
+      accessStartDate: accessStartDate,
       status: isEditMode ? contract.status : contractStatus,
       autoRenewal: selectedContractType?.autoRenewal || false,
       renewalIndefinite: selectedContractType?.renewalIndefinite ?? true,
@@ -629,7 +659,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
             </div>
 
             {/* Materials Grid */}
-            {DEFAULT_INTRODUCTORY_MATERIALS.length === 0 ? (
+            {[].length === 0 ? (
               <div className="bg-surface-dark rounded-xl p-8 text-center">
                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-content-faint" />
                 <p className="text-content-muted">No introductory materials available</p>
@@ -637,7 +667,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
-                {DEFAULT_INTRODUCTORY_MATERIALS.map((material) => (
+                {[].map((material) => (
                   <div 
                     key={material.id} 
                     className="bg-surface-dark rounded-xl p-4 border border-border hover:border-primary transition-colors"
@@ -697,7 +727,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                         className="w-full px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Eye className="w-4 h-4" />
-                        Preview
+                        View
                       </button>
                     </div>
                   </div>
@@ -801,14 +831,15 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                   <span className="text-xs">Form View</span>
                 </button>
               )}
-              {/* Show "Back to Lead Selection" in form view, but NOT in contract document view */}
+              {/* Show "Back to Studio Selection" in form view, but NOT in contract document view */}
               {!showLeadSelection && !isLeadPreSelected && !isEditMode && showFormView && (
                 <button
                   onClick={handleBackToLeadSelection}
                   className="text-content-muted hover:text-content-primary transition-colors p-1.5 hover:bg-surface-button rounded-xl flex items-center gap-1"
                 >
                   <ArrowLeft size={16} />
-                  <span className="text-xs">Back to Selection</span>
+                  <span className="text-xs sm:hidden">Back</span>
+                  <span className="text-xs hidden sm:inline">Back to Selection</span>
                 </button>
               )}
               <button
@@ -821,21 +852,22 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
           </div>
         </div>
 
-        <div className="px-4 py-3 max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
-          {/* Lead Selection View */}
+        <div className="flex flex-col max-h-[75vh]">
+        <div className="px-4 py-3 flex-1 overflow-y-auto custom-scrollbar min-h-0">
+          {/* Studio Selection View */}
           {showLeadSelection ? (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-content-primary text-lg font-semibold mb-2">Select Lead or Member</h3>
-                <p className="text-content-muted text-sm">Search for an existing lead or member, or proceed without selecting one</p>
+                <h3 className="text-content-primary text-lg font-semibold mb-2">Select Lead or Studio</h3>
+                <p className="text-content-muted text-sm">Search for an existing lead or studio, or proceed without selecting one</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-content-secondary block pl-1">Lead / Member</label>
+                  <label className="text-xs text-content-secondary block pl-1">Lead / Studio</label>
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search for lead or member..."
+                      placeholder="Search for lead or studio..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
@@ -850,16 +882,19 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                           >
                             <div className="flex items-center gap-2">
                               <span className="font-medium">
-                                {item.name || item.title || `${item.firstName} ${item.lastName}`}
+                                {item.name || `${item.firstName} ${item.lastName}`}
                               </span>
                               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                                item._type === "member" 
+                                item._type === "studio" 
                                   ? "bg-primary/20 text-primary" 
                                   : "bg-orange-500/20 text-orange-400"
                               }`}>
-                                {item._type === "member" ? "Member" : "Lead"}
+                                {item._type === "studio" ? "Studio" : "Lead"}
                               </span>
                             </div>
+                            {item._type === "studio" && item.ownerName && (
+                              <div className="text-xs text-content-muted">{item.ownerName}</div>
+                            )}
                             <div className="text-sm text-content-muted">{item.email}</div>
                           </div>
                         ))}
@@ -873,36 +908,46 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                   onClick={handleProceedWithoutLead}
                   className="text-content-muted hover:text-content-primary text-sm underline transition-colors"
                 >
-                  Proceed without selecting a lead or member
+                  Proceed without selecting a lead or studio
                 </button>
               </div>
             </div>
           ) : showFormView ? (
             /* Form View - Contract Settings */
             <div>
-              <div className="space-y-4 mb-4">
+              <div className="space-y-4">
                 {/* Show selected lead info */}
                 {contractData.leadId && (
                   <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
                     <h4 className="text-content-primary text-sm font-medium mb-2 flex items-center gap-2">
-                      {isLeadPreSelected ? "Lead" : (contractData.selectedType === "member" ? "Selected Member" : "Selected Lead")}
+                      {isLeadPreSelected ? "Lead" : (contractData.selectedType === "studio" ? "Selected Studio" : "Selected Lead")}
                       {!isLeadPreSelected && contractData.selectedType && (
                         <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                          contractData.selectedType === "member"
+                          contractData.selectedType === "studio"
                             ? "bg-primary/20 text-primary"
                             : "bg-orange-500/20 text-orange-400"
                         }`}>
-                          {contractData.selectedType === "member" ? "Member" : "Lead"}
+                          {contractData.selectedType === "studio" ? "Studio" : "Lead"}
                         </span>
                       )}
                     </h4>
                     <div className="text-sm text-content-secondary">
+                      {contractData.studioName && (
+                        <p>
+                          <span className="text-content-muted">Studio:</span> {contractData.studioName}
+                        </p>
+                      )}
                       <p>
-                        <span className="text-content-muted">Name:</span> {contractData.fullName}
+                        <span className="text-content-muted">{contractData.studioName ? "Owner:" : "Name:"}</span> {contractData.studioOwnerName || contractData.fullName}
                       </p>
                       {contractData.email && (
                         <p>
                           <span className="text-content-muted">Email:</span> {contractData.email}
+                        </p>
+                      )}
+                      {contractData.phone && (
+                        <p>
+                          <span className="text-content-muted">Phone:</span> {contractData.phone}
                         </p>
                       )}
                     </div>
@@ -916,7 +961,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                     name="rateType"
                     value={contractData.rateType}
                     onChange={handleInputChange}
-                    options={DEFAULT_CONTRACT_TYPES.map((type) => ({ value: type.name, label: type.name }))}
+                    options={DEFAULT_ADMIN_CONTRACT_TYPES.map((type) => ({ value: type.name, label: type.name }))}
                     placeholder="Select contract type"
                     searchable
                   />
@@ -935,33 +980,23 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                           <DatePickerField
                             value={contractStartDate}
                             onChange={(val) => setContractStartDate(val)}
+                            minDate={todayDate}
                           />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs text-content-secondary block pl-1">Training Start Date</label>
+                        <label className="text-xs text-content-secondary block pl-1">Access Start Date</label>
                         <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5">
-                          <span className={`flex-1 text-sm ${trainingStartDate ? 'text-content-primary' : 'text-content-muted'}`}>
-                            {trainingStartDate ? new Date(trainingStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                          <span className={`flex-1 text-sm ${accessStartDate ? 'text-content-primary' : 'text-content-muted'}`}>
+                            {accessStartDate ? new Date(accessStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
                           </span>
                           <DatePickerField
-                            value={trainingStartDate}
-                            onChange={(val) => setTrainingStartDate(val)}
+                            value={accessStartDate}
+                            onChange={(val) => setAccessStartDate(val)}
+                            minDate={todayDate}
                           />
                         </div>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-content-secondary block pl-1">
-                        Contract End Date ({getDurationDisplay()})
-                      </label>
-                      <input
-                        type="text"
-                        value={contractEndDate}
-                        readOnly
-                        disabled
-                        className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-muted outline-none cursor-not-allowed pointer-events-none"
-                      />
                     </div>
                   </div>
                 )}
@@ -970,7 +1005,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                 {selectedContractType && (
                   <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
                     <h4 className="text-content-primary text-sm font-medium mb-2">Contract Details</h4>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="block text-content-muted text-xs">Duration</span>
                         <span className="text-content-primary">{getDurationDisplay()}</span>
@@ -982,6 +1017,12 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                       <div>
                         <span className="block text-content-muted text-xs">Billing Period</span>
                         <span className="text-content-primary">{selectedContractType.billingPeriod}</span>
+                      </div>
+                      <div>
+                        <span className="block text-content-muted text-xs">End Date</span>
+                        <span className="text-content-primary">
+                          {contractEndDate ? new Date(contractEndDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1084,21 +1125,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                 )}
               </div>
 
-              {/* Fill out Contract Button */}
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleFillOutContract}
-                  disabled={!selectedContractType}
-                  className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
-                    selectedContractType
-                      ? "bg-orange-500 text-content-primary hover:bg-orange-600"
-                      : "bg-surface-button text-content-muted cursor-not-allowed"
-                  }`}
-                >
-                  <Pencil size={16} /> Fill out Contract
-                </button>
-              </div>
+              {/* Fill out Contract Button moved to fixed footer below scroll area */}
             </div>
           ) : (
             /* Contract Document View (Legacy - keeping for backwards compatibility) */
@@ -1375,19 +1402,37 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
             </div>
           )}
         </div>
+        {/* Fixed Footer - outside scroll area */}
+        {!showLeadSelection && showFormView && (
+          <div className="px-4 py-3 border-t border-border flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleFillOutContract}
+              disabled={!selectedContractType}
+              className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
+                selectedContractType
+                  ? "bg-orange-500 text-content-primary hover:bg-orange-600"
+                  : "bg-surface-button text-content-muted cursor-not-allowed"
+              }`}
+            >
+              <Pencil size={16} /> Fill out Contract
+            </button>
+          </div>
+        )}
+        </div>
       </div>
 
       {/* Contract Form Fill Modal */}
-      <ContractFormFillModal
+      <AdminContractFormFillModal
         isOpen={showContractFormFillModal}
         onClose={() => setShowContractFormFillModal(false)}
         onSubmit={handleFormFillComplete}
         contractType={selectedContractType}
         contractData={{
-          memberId: contractData.leadId,
+          studioId: contractData.leadId,
           startDate: contractStartDate,
           endDate: contractEndDate,
-          trainingStartDate: trainingStartDate,
+          accessStartDate: accessStartDate,
           sepaReference: contractData.sepaMandate,
         }}
         leadData={{
@@ -1412,11 +1457,11 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
 
 // Backwards compatible exports
 export function AddContractModal({ onClose, onSave, leadData = null }) {
-  return <ContractModal onClose={onClose} onSave={onSave} leadData={leadData} contract={null} />
+  return <AdminContractModal onClose={onClose} onSave={onSave} leadData={leadData} contract={null} />
 }
 
 export function EditContractModal({ onClose, onSave, contract }) {
-  return <ContractModal onClose={onClose} onSave={onSave} contract={contract} leadData={null} />
+  return <AdminContractModal onClose={onClose} onSave={onSave} contract={contract} leadData={null} />
 }
 
-export default ContractModal
+export default AdminContractModal

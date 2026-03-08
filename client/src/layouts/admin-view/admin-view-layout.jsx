@@ -3,9 +3,9 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import Sidebar from '../components/admin-dashboard-components/sidebar'
+import Sidebar from './components/sidebar'
 import { Globe, History, X, Menu, Building2 } from "lucide-react";
-import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../public/Orgagym white without text.svg'
 
 const AdminDashboardLayout = () => {
   const navigate = useNavigate();
