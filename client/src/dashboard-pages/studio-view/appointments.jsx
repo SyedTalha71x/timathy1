@@ -53,17 +53,23 @@ export default function Appointments() {
   const { leads } = useSelector((state) => state.leads)
   const { members } = useSelector((state) => state.member)
   const { services } = useSelector((state) => state.services)
+
+  // Safe fallbacks to prevent crashes when Redux state is not yet loaded
+  const safeAppointments = Array.isArray(appointments) ? appointments : []
+  const safeLeads = Array.isArray(leads) ? leads : []
+  const safeMembers = Array.isArray(members) ? members : []
+  const safeServices = Array.isArray(services) ? services : []
   const navigate = useNavigate();
   const calendarRef = useRef(null);
 
   // Helper function to get member data by ID (for special notes)
   const getMemberById = (memberId) => {
     if (!memberId) return null;
-    return members.find(m => m._id === memberId) || null;
+    return safeMembers.find(m => m._id === memberId) || null;
   };
   const getLeadById = (leadId) => {
     if (!leadId) return null;
-    return leads.find(m => m._id === leadId) || null;
+    return safeLeads.find(m => m._id === leadId) || null;
   };
   useEffect(() => {
     dispatch(fetchAllAppointments());
@@ -167,12 +173,12 @@ export default function Appointments() {
 
 
   useEffect(() => {
-    if (!appointments || appointments.length === 0) return;
+    if (!safeAppointments || safeAppointments.length === 0) return;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const normalized = appointments.map(app => {
+    const normalized = safeAppointments.map(app => {
       const appDate = new Date(app.date);
       appDate.setHours(0, 0, 0, 0);
 
@@ -193,7 +199,7 @@ export default function Appointments() {
     });
 
     setNormalizedAppointments(normalized);
-  }, [appointments]);
+  }, [safeAppointments]);
 
 
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
@@ -314,7 +320,7 @@ export default function Appointments() {
   ])
 
   // Filter appointments based on selected filters AND member filters
-  const filteredAppointments = appointments.filter((appointment) => {
+  const filteredAppointments = safeAppointments.filter((appointment) => {
 
     let passesTypeFilter = false;
     const isBlocked = appointment.timeSlot?.isBlocked;
@@ -838,7 +844,7 @@ export default function Appointments() {
 
   const handleCheckInMain = (appointmentId) => {
     // Don't allow check-in changes for past appointments
-    const appointment = appointments.find(app => app.id === appointmentId);
+    const appointment = safeAppointments.find(app => app.id === appointmentId);
     if (appointment?.isPast) return;
 
     (prevAppointments) =>
@@ -898,7 +904,7 @@ export default function Appointments() {
   }
 
   const handleEditNoteMain = (appointmentId, currentNote) => {
-    const appointment = appointments.find(app => app._id === appointmentId)
+    const appointment = safeAppointments.find(app => app._id === appointmentId)
     if (appointment) {
       setSelectedAppointmentForNoteMain(appointment)
       setShowEditNoteModalMain(true)
@@ -1646,7 +1652,7 @@ export default function Appointments() {
           onClose={() => setIsTrialModalOpen(false)}
           appointmentTypesMain={appointmentTypesMain}
           freeAppointmentsMain={freeAppointmentsMain}
-          leadsData={leads}
+          leadsData={safeLeads}
           leadRelations={leadRelationsMain}
           onOpenEditLeadModal={handleOpenEditLeadModal}
           onSubmit={handleTrialSubmit}
@@ -1655,7 +1661,7 @@ export default function Appointments() {
         />
         <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onDelete={handleDeleteAppointmentMain} onViewMember={handleViewMemberDetailsMain} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsMain} leadRelations={leadRelationsMain} appointmentsMain={appointments} setAppointmentsMain={appointments} />
         {isEditAppointmentModalOpenMain && selectedAppointmentMain && (
-          <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={services || []} freeAppointmentsMain={freeAppointmentsMain}
+          <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={safeServices} freeAppointmentsMain={freeAppointmentsMain}
             handleAppointmentChange={(changes) => setSelectedAppointmentMain((prev) => ({ ...prev, ...changes }))} appointmentsMain={appointments} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} onClose={() => { setisEditAppointmentModalOpenMain(false); setSelectedAppointmentMain(null) }} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />
         )}
         {isNotifyMemberOpenMain && (
@@ -1696,7 +1702,7 @@ export default function Appointments() {
 
                 // Create display version for your calendar if needed
                 const displayBlock = {
-                  id: serverAppointment._id || Math.max(0, ...appointments.map(a => a.id)) + 1,
+                  id: serverAppointment._id || Math.max(0, ...safeAppointments.map(a => a.id)) + 1,
                   name: "BLOCKED",
                   time: `${blockData.timeSlot.start} - ${blockData.timeSlot.end}`,
                   date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.date))}`,
@@ -1735,7 +1741,7 @@ export default function Appointments() {
             onClose={() => { setIsEditBlockedModalOpen(false); setBlockedEditData(null); }}
             initialBlock={blockedEditData}
             onDelete={(id) => {
-              appointments.filter((apt) => apt.id !== id);
+              safeAppointments.filter((apt) => apt.id !== id);
               setIsEditBlockedModalOpen(false);
               setBlockedEditData(null);
               toast.success("Blocked time slot deleted");
@@ -1750,7 +1756,7 @@ export default function Appointments() {
                 return `${day}-${month}-${year}`;
               };
               const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDateLocal(new Date(blockData.startDate))}`;
-              appointments.map((apt) =>
+              safeAppointments.map((apt) =>
                 apt.id === blockedEditData.id
                   ? {
                     ...apt,

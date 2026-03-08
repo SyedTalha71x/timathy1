@@ -650,7 +650,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   // Get search suggestions based on query (exclude already filtered members)
   const getSearchSuggestions = () => {
     if (!searchQuery.trim()) return [];
-    return members.filter((member) => {
+    return safeMembers.filter((member) => {
       const mid = getMemberId(member);
       const isAlreadyFiltered = memberFilters.some(f => f.memberId === mid);
       if (isAlreadyFiltered) return false;
@@ -757,7 +757,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   // 
   const handleArchiveMemberMain = (memberId) => {
-    const member = members.find((m) => getMemberId(m) === memberId)
+    const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (member && member.memberType === "temporary") {
       dispatch(archiveMember(memberId))
       toast.success("Temporary member archived successfully")
@@ -777,7 +777,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   // 
   const handleUnarchiveMemberMain = (memberId) => {
-    const member = members.find((m) => getMemberId(m) === memberId)
+    const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (member && member.memberType === "temporary") {
       dispatch(unarchiveMember(memberId))
       toast.success("Temporary member unarchived successfully")
@@ -1009,7 +1009,7 @@ const safeMembers = Array.isArray(members) ? members : []
   };
 
   const filteredAndSortedMembers = () => {
-    let filtered = [...members];
+    let filtered = [...safeMembers];
 
     // Status filter
     if (filterStatus && filterStatus !== 'all') {
@@ -1095,7 +1095,7 @@ const safeMembers = Array.isArray(members) ? members : []
   }
 
   const handleSaveMemberSpecialNote = (memberId, newNote) => {
-    const member = members.find((m) => getMemberId(m) === memberId)
+    const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (!member) return
 
     const existingNotes = member.notes || []
@@ -1411,7 +1411,7 @@ const safeMembers = Array.isArray(members) ? members : []
     if (!query) return [];
     const q = query.toLowerCase();
 
-    const memberResults = members.filter(m =>
+    const memberResults = safeMembers.filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -1849,7 +1849,7 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      All ({members.length})
+                      All ({safeMembers.length})
                     </button>
                     <button
                       onClick={() => dispatch(setFilterStatus('active'))}
@@ -1858,7 +1858,7 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Active ({members.filter((m) => getMemberStatus(m) === 'active').length})
+                      Active ({safeMembers.filter((m) => getMemberStatus(m) === 'active').length})
                     </button>
                     <button
                       onClick={() => dispatch(setFilterStatus('paused'))}
@@ -1867,7 +1867,7 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Paused ({members.filter((m) => getMemberStatus(m) === 'paused').length})
+                      Paused ({safeMembers.filter((m) => getMemberStatus(m) === 'paused').length})
                     </button>
                     <button
                       onClick={() => dispatch(setFilterStatus('archived'))}
@@ -1876,7 +1876,7 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Archived ({members.filter((m) => getMemberStatus(m) === 'archived').length})
+                      Archived ({safeMembers.filter((m) => getMemberStatus(m) === 'archived').length})
                     </button>
 
                     <div className="h-6 w-px bg-border mx-1 hidden sm:block self-center"></div>
