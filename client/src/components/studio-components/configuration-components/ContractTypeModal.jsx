@@ -87,7 +87,7 @@ const ContractTypeModal = ({
               value={editingContractType.name}
               onChange={(e) => setEditingContractType({ ...editingContractType, name: e.target.value })}
               placeholder="e.g., Premium Membership"
-              className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+              className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
             />
           </div>
           
@@ -107,7 +107,7 @@ const ContractTypeModal = ({
                   value={editingContractType.cost}
                   onChange={(e) => setEditingContractType({ ...editingContractType, cost: Number(e.target.value) })}
                   min={0}
-                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-content-muted flex-shrink-0">{currency}</span>
               </div>
@@ -126,7 +126,7 @@ const ContractTypeModal = ({
                   value={editingContractType.duration}
                   onChange={(e) => setEditingContractType({ ...editingContractType, duration: Number(e.target.value) })}
                   min={1} max={60}
-                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-content-muted flex-shrink-0">months</span>
               </div>
@@ -170,7 +170,7 @@ const ContractTypeModal = ({
                   onChange={(e) => setEditingContractType({ ...editingContractType, userCapacity: Number(e.target.value) })}
                   min={0}
                   placeholder="0 = Unlimited"
-                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-content-muted flex-shrink-0">credits</span>
               </div>
@@ -217,7 +217,7 @@ const ContractTypeModal = ({
                 value={editingContractType.cancellationPeriod}
                 onChange={(e) => setEditingContractType({ ...editingContractType, cancellationPeriod: Number(e.target.value) })}
                 min={0}
-                className="w-20 sm:w-24 bg-surface-card text-content-primary rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                className="w-20 sm:w-24 bg-surface-card text-content-primary rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
               />
               <span className="text-content-muted text-sm">days before end</span>
             </div>
@@ -263,7 +263,7 @@ const ContractTypeModal = ({
                           value={editingContractType.renewalPeriod}
                           onChange={(e) => setEditingContractType({ ...editingContractType, renewalPeriod: Number(e.target.value) })}
                           min={1}
-                          className="w-20 min-w-0 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                          className="w-20 min-w-0 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                         />
                         <CustomSelect
                           name="renewalPeriodUnit"
@@ -295,7 +295,7 @@ const ContractTypeModal = ({
                       value={editingContractType.renewalPrice}
                       onChange={(e) => setEditingContractType({ ...editingContractType, renewalPrice: Number(e.target.value) })}
                       min={0}
-                      className="w-32 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                      className="w-32 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                     />
                     <span className="text-content-muted flex-shrink-0">{currency}</span>
                   </div>

@@ -131,7 +131,7 @@ const ClassTypeModal = ({
                   value={classTypeForm.name}
                   onChange={(e) => setClassTypeForm({ ...classTypeForm, name: e.target.value })}
                   placeholder="e.g., Yoga"
-                  className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
               <div className="space-y-1.5">
@@ -165,7 +165,7 @@ const ClassTypeModal = ({
                 onChange={(e) => setClassTypeForm({ ...classTypeForm, description: e.target.value })}
                 placeholder="Describe what this class includes..."
                 rows={3}
-                className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
+                className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
               />
             </div>
 
@@ -187,7 +187,7 @@ const ClassTypeModal = ({
                     onChange={(e) => setClassTypeForm({ ...classTypeForm, duration: Math.floor(Number(e.target.value)) })}
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={5} max={480}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                   <span className="text-sm text-content-muted">min</span>
                 </div>
@@ -208,7 +208,7 @@ const ClassTypeModal = ({
                   onChange={(e) => setClassTypeForm({ ...classTypeForm, maxParticipants: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                   min={1} max={200}
-                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
             </div>
