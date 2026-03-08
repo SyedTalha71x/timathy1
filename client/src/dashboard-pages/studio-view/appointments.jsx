@@ -54,11 +54,11 @@ export default function Appointments() {
   const { members } = useSelector((state) => state.member)
   const { services } = useSelector((state) => state.services)
 
-  // Safe fallbacks to prevent crashes when Redux state is not yet loaded
-  const safeAppointments = Array.isArray(appointments) ? appointments : []
-  const safeLeads = Array.isArray(leads) ? leads : []
-  const safeMembers = Array.isArray(members) ? members : []
-  const safeServices = Array.isArray(services) ? services : []
+  // Safe fallbacks with stable references to prevent infinite re-renders
+  const safeAppointments = useMemo(() => Array.isArray(appointments) ? appointments : [], [appointments])
+  const safeLeads = useMemo(() => Array.isArray(leads) ? leads : [], [leads])
+  const safeMembers = useMemo(() => Array.isArray(members) ? members : [], [members])
+  const safeServices = useMemo(() => Array.isArray(services) ? services : [], [services])
   const navigate = useNavigate();
   const calendarRef = useRef(null);
 

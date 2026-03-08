@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { Search, Calendar, Clock, CheckCircle, X, ArrowUp, ArrowDown, UserX } from "lucide-react"
 import toast from "../../components/shared/SharedToast"
 import DatePickerField from "../../components/shared/DatePickerField"
@@ -10,6 +10,10 @@ export default function CheckIns() {
   const dispatch = useDispatch()
   const { members } = useSelector((state) => state.member)
   const { appointments } = useSelector((state) => state.appointments)
+
+  // Safe fallbacks with stable references to prevent infinite re-renders
+  const safeMembers = useMemo(() => Array.isArray(members) ? members : [], [members])
+  const safeAppointments = useMemo(() => Array.isArray(appointments) ? appointments : [], [appointments])
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("upcoming")
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0])
@@ -41,7 +45,7 @@ export default function CheckIns() {
   useEffect(() => {
     // Initialize state from Redux appointments whenever appointments change
     setUpcomingAppointments(
-      appointments
+      safeAppointments
         .filter(a => a.view === 'upcoming')
         .map(a => ({
           id: a._id,
@@ -63,7 +67,7 @@ export default function CheckIns() {
     )
 
     setCheckInHistory(
-      appointments
+      safeAppointments
         .filter(a => a.view === 'past')
         .map(a => ({
           id: a._id,
@@ -80,7 +84,7 @@ export default function CheckIns() {
           note: a.note || ''
         }))
     )
-  }, [appointments])
+  }, [safeAppointments])
 
 
 
@@ -102,7 +106,7 @@ export default function CheckIns() {
   }, [])
 
   const handleCheckIn = (appointmentId) => {
-    const appointment = appointments.find(app => app._id === appointmentId)
+    const appointment = safeAppointments.find(app => app._id === appointmentId)
     if (!appointment) return
 
     const now = new Date()

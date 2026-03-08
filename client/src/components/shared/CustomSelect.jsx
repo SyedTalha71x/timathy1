@@ -6,6 +6,8 @@ import { createPortal } from "react-dom"
 /**
  * CustomSelect — Drop-in replacement for native <select>.
  * Renders a fully styled dropdown that uses the app font everywhere.
+ * Trigger is a readOnly <input> so it matches adjacent inputs pixel-perfectly.
+ * Visual styling (bg, padding, border) comes via className prop.
  *
  * Usage:
  *   <CustomSelect
@@ -19,7 +21,7 @@ import { createPortal } from "react-dom"
  *     placeholder="Select gender"
  *     disabled={false}
  *     required={false}
- *     className=""                          // extra classes on the trigger
+ *     className="bg-surface-dark px-4 py-2 border-transparent"  // match surrounding inputs
  *   />
  */
 const CustomSelect = ({
@@ -30,7 +32,7 @@ const CustomSelect = ({
   placeholder = "Select...",
   disabled = false,
   required = false,
-  className = "",
+  className = "bg-surface-dark px-4 py-2 border-transparent hover:border-border",
   searchable = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -175,27 +177,28 @@ const CustomSelect = ({
 
   return (
     <>
-      {/* Trigger button */}
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => (isOpen ? closeDropdown() : openDropdown())}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        className={`w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-left outline-none border transition-colors flex items-center justify-between gap-2 ${
-          isOpen
-            ? "border-primary"
-            : "border-transparent hover:border-border"
-        } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} ${className}`}
-      >
-        <span className={selectedOption ? "text-content-primary truncate" : "text-content-muted truncate"}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
+      {/* Trigger — uses a readOnly input so height matches adjacent inputs exactly */}
+      <div className="relative">
+        <input
+          ref={triggerRef}
+          type="text"
+          readOnly
+          value={selectedOption ? selectedOption.label : ""}
+          placeholder={placeholder}
+          onClick={() => (isOpen ? closeDropdown() : openDropdown())}
+          onKeyDown={handleKeyDown}
+          disabled={disabled}
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          className={`w-full text-sm rounded-xl outline-none border transition-colors cursor-pointer pr-9 text-content-primary placeholder:text-content-faint ${
+            disabled ? "opacity-60 cursor-not-allowed" : ""
+          } ${className} ${isOpen ? "!border-primary" : ""}`}
+        />
         <ChevronDown
           size={16}
-          className={`text-content-muted flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
-      </button>
+      </div>
 
       {/* Hidden native select for form validation */}
       {required && (

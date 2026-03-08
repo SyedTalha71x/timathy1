@@ -65,6 +65,7 @@ import AppointmentTypeModal from "../../components/studio-components/configurati
 import ClassTypeModal from "../../components/studio-components/configuration-components/ClassTypeModal"
 import ContractTypeModal from "../../components/studio-components/configuration-components/ContractTypeModal"
 import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
+import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 // ============================================
@@ -321,92 +322,6 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
     {error && <p className="text-xs text-red-400">{error}</p>}
   </div>
 )
-
-// Select Component
-const SelectField = ({ label, value, onChange, options, placeholder, required, searchable = false }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [search, setSearch] = useState("")
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  const filteredOptions = searchable
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(search.toLowerCase())
-      )
-    : options
-
-  const selectedOption = options.find((opt) => opt.value === value)
-
-  return (
-    <div className="space-y-1.5">
-      {label && (
-        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-          {label}
-          {required && <span className="text-red-400">*</span>}
-        </label>
-      )}
-      <div className="relative" ref={ref}>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary flex items-center justify-between"
-        >
-          <span className={selectedOption ? "text-content-primary" : "text-content-faint"}>
-            {selectedOption?.label || placeholder || "Select..."}
-          </span>
-          <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
-        </button>
-
-        {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg max-h-60 overflow-hidden">
-            {searchable && (
-              <div className="p-2 border-b border-border">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm outline-none border border-border"
-                  autoFocus
-                />
-              </div>
-            )}
-            <div className="overflow-y-auto max-h-48">
-              {filteredOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(opt.value)
-                    setIsOpen(false)
-                    setSearch("")
-                  }}
-                  className={`w-full px-4 py-2.5 text-sm text-left hover:bg-surface-button transition-colors ${
-                    opt.value === value ? "bg-surface-button text-primary" : "text-content-primary"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-              {filteredOptions.length === 0 && (
-                <div className="px-4 py-3 text-sm text-content-faint text-center">No results found</div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // Toggle/Switch Component
 const Toggle = ({ label, checked, onChange, helpText }) => (
@@ -1733,14 +1648,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onChange={(v) => handleProfileInputChange("city", v)}
                     placeholder="Enter city"
                   />
-                  <SelectField
-                    label="Country"
-                    value={profileData.country}
-                    onChange={(v) => handleProfileInputChange("country", v)}
-                    options={countries.map(c => ({ value: c.code, label: c.name }))}
-                    placeholder="Select country"
-                    searchable
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                      Country
+                    </label>
+                    <CustomSelect
+                      name="country"
+                      value={profileData.country}
+                      onChange={(e) => handleProfileInputChange("country", e.target.value)}
+                      options={countries.map(c => ({ value: c.code, label: c.name }))}
+                      placeholder="Select country"
+                      searchable
+                      className="bg-surface-card px-4 py-2.5 border-border"
+                    />
+                  </div>
                 </div>
               </div>
             </SettingsCard>
@@ -1914,15 +1835,22 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   required
                   maxLength={40}
                 />
-                <SelectField
-                  label="Country"
-                  value={studioCountry}
-                  onChange={setStudioCountry}
-                  options={countries.map(c => ({ value: c.code, label: c.name }))}
-                  placeholder="Select country"
-                  required
-                  searchable
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Country
+                    <span className="text-red-400">*</span>
+                  </label>
+                  <CustomSelect
+                    name="studioCountry"
+                    value={studioCountry}
+                    onChange={(e) => setStudioCountry(e.target.value)}
+                    options={countries.map(c => ({ value: c.code, label: c.name }))}
+                    placeholder="Select country"
+                    required
+                    searchable
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
               </div>
             </SettingsCard>
 
@@ -3025,23 +2953,35 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   max={365}
                   suffix="days per year"
                 />
-                <SelectField
-                  label="Default Staff Role"
-                  value={defaultStaffRole}
-                  onChange={setDefaultStaffRole}
-                  options={roles.filter(r => !r.isAdmin).map(r => ({ value: r.id, label: r.name }))}
-                  placeholder="Select default role"
-                />
-                <SelectField
-                  label="Default Staff Country"
-                  value={defaultStaffCountry}
-                  onChange={setDefaultStaffCountry}
-                  options={[
-                    { value: "studio", label: "Same as Studio Country" },
-                    ...countries.map(c => ({ value: c.code, label: c.name }))
-                  ]}
-                  searchable
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Staff Role
+                  </label>
+                  <CustomSelect
+                    name="defaultStaffRole"
+                    value={defaultStaffRole}
+                    onChange={(e) => setDefaultStaffRole(e.target.value)}
+                    options={roles.filter(r => !r.isAdmin).map(r => ({ value: r.id, label: r.name }))}
+                    placeholder="Select default role"
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Staff Country
+                  </label>
+                  <CustomSelect
+                    name="defaultStaffCountry"
+                    value={defaultStaffCountry}
+                    onChange={(e) => setDefaultStaffCountry(e.target.value)}
+                    options={[
+                      { value: "studio", label: "Same as Studio Country" },
+                      ...countries.map(c => ({ value: c.code, label: c.name }))
+                    ]}
+                    searchable
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
               </div>
             </SettingsCard>
           </div>
@@ -3454,16 +3394,22 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <SelectField
-                    label="Default Billing Period"
-                    value={defaultBillingPeriod}
-                    onChange={setDefaultBillingPeriod}
-                    options={[
-                      { value: "weekly", label: "Weekly" },
-                      { value: "monthly", label: "Monthly" },
-                      { value: "annually", label: "Annually" }
-                    ]}
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                      Default Billing Period
+                    </label>
+                    <CustomSelect
+                      name="defaultBillingPeriod"
+                      value={defaultBillingPeriod}
+                      onChange={(e) => setDefaultBillingPeriod(e.target.value)}
+                      options={[
+                        { value: "weekly", label: "Weekly" },
+                        { value: "monthly", label: "Monthly" },
+                        { value: "annually", label: "Annually" }
+                      ]}
+                      className="bg-surface-card px-4 py-2.5 border-border"
+                    />
+                  </div>
                   <NumberInput
                     label="Default Notice Period"
                     value={noticePeriod}
@@ -3522,14 +3468,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       </Tooltip>
                     </label>
                     <div className="flex flex-wrap items-center gap-3">
-                      <select
+                      <CustomSelect
+                        name="defaultRenewalType"
                         value={defaultRenewalIndefinite ? "indefinite" : "fixed"}
                         onChange={(e) => setDefaultRenewalIndefinite(e.target.value === "indefinite")}
-                        className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
-                      >
-                        <option value="fixed">Fixed period</option>
-                        <option value="indefinite">Indefinite</option>
-                      </select>
+                        options={[
+                          { value: "fixed", label: "Fixed period" },
+                          { value: "indefinite", label: "Indefinite" }
+                        ]}
+                        className="bg-surface-card px-4 py-2.5 border-border"
+                      />
                       {!defaultRenewalIndefinite && (
                         <div className="flex items-center gap-2">
                           <input
@@ -4904,14 +4852,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </div>
                     <div className="flex-1">
                       <label className="text-sm font-medium text-content-secondary mb-1.5 block">Security</label>
-                      <select
+                      <CustomSelect
+                        name="smtpSecure"
                         value={settings.smtpSecure ? "tls" : "none"}
                         onChange={(e) => setSettings({ ...settings, smtpSecure: e.target.value === "tls" })}
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
-                      >
-                        <option value="tls">TLS/SSL</option>
-                        <option value="none">None</option>
-                      </select>
+                        options={[
+                          { value: "tls", label: "TLS/SSL" },
+                          { value: "none", label: "None" }
+                        ]}
+                        className="bg-surface-card px-4 py-2.5 border-border"
+                      />
                     </div>
                   </div>
                   <InputField
