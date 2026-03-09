@@ -92,7 +92,7 @@ const SortableLeadCard = ({
   const leadNotes = extractNotes(lead, "lead")
   const hasValidNote = leadNotes.length > 0
   const hasImportantNote = leadNotes.some(n => n.isImportant)
-  const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
+  const hasRelationsCount = lead.relations.length
   const isInTrialColumn = columnId === "trial"
   
   // Check if lead has medical history/assessment

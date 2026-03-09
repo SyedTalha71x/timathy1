@@ -38,20 +38,24 @@ import EditAppointmentModal from "../../components/shared/appointments/EditAppoi
 // ============================================
 // Data Imports
 // ============================================
-import { 
-  memberRelationsData, 
-  availableMembersLeadsNew, 
-  customLinksData 
+import {
+  memberRelationsData,
+  availableMembersLeadsNew,
+  customLinksData
 } from "../../utils/studio-states/myarea-states"
 
-import { 
-  appointmentsData, 
-  membersData, 
-  leadsData, 
-  leadRelationsData, 
-  freeAppointmentsData, 
-  appointmentTypesData 
+import {
+  appointmentsData,
+  membersData,
+  leadsData,
+  leadRelationsData,
+  freeAppointmentsData,
+  appointmentTypesData
 } from "../../utils/studio-states"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAllMember } from "../../features/member/memberSlice"
+import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 
 // ============================================
 // Constants
@@ -109,6 +113,16 @@ const AVAILABLE_TRAINING_PLANS = [
 export default function MyArea() {
   const navigate = useNavigate()
 
+
+  //======================================
+  // UseSelector and useDispatch
+  // =====================================
+  const dispatch = useDispatch()
+  const { appointments } = useSelector((state) => state.appointments)
+  const { members } = useSelector((state) => state.member)
+  const { leads } = useSelector((state) => state.leads)
+
+
   // ============================================
   // Dashboard State
   // ============================================
@@ -139,7 +153,7 @@ export default function MyArea() {
   // Widget Data State
   // ============================================
   const [customLinks, setCustomLinks] = useState(customLinksData)
-  const [appointments, setAppointments] = useState(appointmentsData)
+  // const [appointments, setAppointments] = useState([])
   const [memberRelations, setMemberRelations] = useState(memberRelationsData)
 
   // ============================================
@@ -221,6 +235,16 @@ export default function MyArea() {
     }
   }, [savedViews])
 
+
+  // ==================================
+  // UseEffect to dispatch Redux State 
+  // ==================================
+  useEffect(() => {
+    dispatch(fetchAllMember())
+    dispatch(fetchAllAppointments())
+    dispatch(fetchAllLeadsThunk())
+  }, [dispatch])
+
   // ============================================
   // Widget Management Handlers
   // ============================================
@@ -282,19 +306,19 @@ export default function MyArea() {
   // Appointment Handlers
   // ============================================
   const handleCheckIn = (appointmentId) => {
-    setAppointments((prevAppointments) =>
+    (prevAppointments) =>
       prevAppointments.map((appointment) =>
-        appointment.id === appointmentId 
-          ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } 
+        appointment._id === appointmentId
+          ? { ...appointment, isCheckedIn: !appointment.isCheckedIn }
           : appointment
       )
-    )
-    const appointment = appointments.find((app) => app.id === appointmentId)
+
+    const appointment = appointments.find((app) => app._id === appointmentId)
     toast.success(appointment?.isCheckedIn ? "Member checked out successfully" : "Member checked in successfully")
   }
 
   const handleAppointmentOptionsModal = (appointment) => {
-    if (appointment.isBlocked || appointment.type === "Blocked Time") {
+    if (appointment.timeSlot?.isBlocked || appointment.status === "Blocked") {
       return
     }
     setSelectedAppointmentForAction(appointment)
@@ -308,8 +332,8 @@ export default function MyArea() {
 
   const handleCancelAppointment = () => {
     if (selectedAppointmentForAction) {
-      setAppointments(prev => prev.map(app =>
-        app.id === selectedAppointmentForAction.id
+      (prev => prev.map(app =>
+        app._id === selectedAppointmentForAction._id
           ? { ...app, isCancelled: true }
           : app
       ))
@@ -319,7 +343,7 @@ export default function MyArea() {
   }
 
   const handleDeleteAppointment = () => {
-    setAppointments(prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
+    (prev => prev.filter(a => a._id !== selectedAppointmentForAction?._id))
     setIsAppointmentActionModalOpen(false)
     setSelectedAppointmentForAction(null)
   }
@@ -594,9 +618,8 @@ export default function MyArea() {
 
                 <button
                   onClick={toggleEditing}
-                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
-                    isEditing ? "bg-primary hover:bg-primary-hover text-white" : "bg-primary hover:bg-primary-hover text-white"
-                  }`}
+                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${isEditing ? "bg-primary hover:bg-primary-hover text-white" : "bg-primary hover:bg-primary-hover text-white"
+                    }`}
                 >
                   {isEditing ? <Check size={18} /> : <Edit size={18} />}
                   <span className="hidden sm:inline">
@@ -754,7 +777,7 @@ export default function MyArea() {
           memberRelations={memberRelationsData}
           leadRelations={leadRelationsData}
           appointmentsMain={appointments}
-          setAppointmentsMain={setAppointments}
+        // setAppointmentsMain={setAppointments}
         />
 
         {/* Edit Appointment Modal */}
@@ -764,15 +787,15 @@ export default function MyArea() {
             setSelectedAppointmentMain={setSelectedAppointmentForAction}
             appointmentTypesMain={appointmentTypesData}
             freeAppointmentsMain={freeAppointmentsData}
-            handleAppointmentChange={(changes) => 
+            handleAppointmentChange={(changes) =>
               setSelectedAppointmentForAction((prev) => ({ ...prev, ...changes }))
             }
             appointmentsMain={appointments}
-            setAppointmentsMain={setAppointments}
-            setIsNotifyMemberOpenMain={() => {}}
-            setNotifyActionMain={() => {}}
+            // setAppointmentsMain={setAppointments}
+            setIsNotifyMemberOpenMain={() => { }}
+            setNotifyActionMain={() => { }}
             onDelete={() => {
-              setAppointments(prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
+              (prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
               setIsEditAppointmentModalOpen(false)
               setSelectedAppointmentForAction(null)
             }}
@@ -818,7 +841,7 @@ export default function MyArea() {
             onSave={handleSaveEditLead}
             leadData={selectedLeadForEdit}
             memberRelationsLead={leadRelationsData[selectedLeadForEdit?.id] || {}}
-            setMemberRelationsLead={() => {}}
+            setMemberRelationsLead={() => { }}
             availableMembersLeads={availableMembersLeadsNew}
             columns={LEAD_COLUMNS}
             initialTab={editLeadActiveTab}

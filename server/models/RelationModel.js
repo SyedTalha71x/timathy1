@@ -3,12 +3,16 @@ const mongoose = require('mongoose')
 const relationSchema = new mongoose.Schema({
     entryType: {
         type: String,
-        enum: ['manual_entry', 'existing_member', 'existing_lead'],
-        default: 'manual_entry'
+        enum: ['manual', 'existing_member', 'existing_lead'],
+        default: 'manual'
     },
     name: {
         type: String,
         required: true
+    },
+    ownerMemberId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'member'
     },
     memberId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -16,11 +20,11 @@ const relationSchema = new mongoose.Schema({
     },
     leadId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Lead'
+        ref: 'lead'
     },
     category: {
         type: String,
-        enum: ['family,relationship', 'friendship', 'work', 'other'],
+        enum: ['family', 'relationship', 'friendship', 'work', 'other'],
         default: 'family'
     },
     relationType: {

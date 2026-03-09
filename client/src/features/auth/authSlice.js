@@ -83,6 +83,12 @@ export const staffLoginThunk = createAsyncThunk('/auth/staff/login', async (cred
 })
 
 
+// =============================
+// All Staff Details
+//  ============================
+
+
+
 
 
 const authSlice = createSlice({
@@ -204,6 +210,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message
       })
+
+      
   },
 });
 

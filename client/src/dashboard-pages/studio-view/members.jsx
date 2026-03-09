@@ -214,7 +214,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   // =================================
   // All redux State here
   // =================================
-  const { members, memberFilters, filterStatus, filterMemberType, loading: reduxLoading } = useSelector((state) => state.member)
+  const { members = [], memberFilters, filterStatus, filterMemberType, loading: reduxLoading } = useSelector((state) => state.member || {})
   const { services } = useSelector((state) => state.services);
   const { myPlans = [] } = useSelector((state) => state.trainings || {})
   const isAdminMode = mode === "admin" && studioIdProp !== null
@@ -701,7 +701,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   }
 
   // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
-  const handleTempMemberCreated = (newMemberData) => {
+  const handleTempMemberCreated = async(newMemberData) => {
     const formData = new FormData()
 
     Object.keys(newMemberData).forEach((key) => {
@@ -715,6 +715,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     }
 
     dispatch(createTemporaryMember(formData))
+
+    await dispatch(fetchAllMember())
   }
 
   // 
@@ -978,7 +980,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />;
   };
-const safeMembers = Array.isArray(members) ? members : []
+  const safeMembers = Array.isArray(members) ? members : []
 
 
 
@@ -1002,14 +1004,19 @@ const safeMembers = Array.isArray(members) ? members : []
   // Helper to get member status string
   const getMemberStatus = (member) => {
     // Support both old (isArchived/isActive) and new (status) patterns
-    if (member.status) return member.status;
-    if (member.isArchived) return 'archived';
-    if (member.isActive) return 'active';
-    return 'paused';
+    if (!member) return "active"
+    return member.status || "active";
+    // if (member.isArchived) return 'archived';
+    // if (member.isActive) return 'active';
+    // return 'paused';
   };
 
   const filteredAndSortedMembers = () => {
-    let filtered = [...safeMembers];
+    if (!Array.isArray(members)) {
+      return [];
+    }
+
+    let filtered = [...members];
 
     // Status filter
     if (filterStatus && filterStatus !== 'all') {
@@ -1824,19 +1831,22 @@ const safeMembers = Array.isArray(members) ? members : []
                   </button>
 
                   {/* Filter Chips */}
+                  {/* Filter Chips */}
                   <div className="flex gap-2">
-                    {memberFilters.map((filter) => (
-                      <div
-                        key={filter._id}
-                        className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
-                      >
-                        <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                          {filter.memberName.split(' ')[0]?.charAt(0)}
-                          {filter.memberName.split(' ')[1]?.charAt(0) || ''}
+                    {Array.isArray(memberFilters) && memberFilters.length > 0 ? (
+                      memberFilters.map((filter) => (
+                        <div
+                          key={filter._id}
+                          className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
+                        >
+                          <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                            {filter.memberName?.split(' ')[0]?.charAt(0) || ''}
+                            {filter.memberName?.split(' ')[1]?.charAt(0) || ''}
+                          </div>
+                          <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                         </div>
-                        <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
-                      </div>
-                    ))}
+                      ))
+                    ) : null}
                   </div>
                 </div>
 
@@ -1849,8 +1859,9 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      All ({safeMembers.length})
+                      All ({members?.length || 0})
                     </button>
+
                     <button
                       onClick={() => dispatch(setFilterStatus('active'))}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'active'
@@ -1858,8 +1869,9 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Active ({safeMembers.filter((m) => getMemberStatus(m) === 'active').length})
+                      Active ({Array.isArray(members) ? members.filter(m => m.status === 'active').length : 0})
                     </button>
+
                     <button
                       onClick={() => dispatch(setFilterStatus('paused'))}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'paused'
@@ -1867,8 +1879,19 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Paused ({safeMembers.filter((m) => getMemberStatus(m) === 'paused').length})
+                      Paused ({Array.isArray(members) ? members?.filter((m) => m && m.status === 'paused')?.length : 0})
                     </button>
+
+                    <button
+                      onClick={() => dispatch(setFilterStatus('canceled'))}
+                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'canceled'
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      Canceled ({Array.isArray(members) ? members?.filter((m) => m && m.status === 'canceled')?.length : 0})
+                    </button>
+
                     <button
                       onClick={() => dispatch(setFilterStatus('archived'))}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'archived'
@@ -1876,7 +1899,7 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Archived ({safeMembers.filter((m) => getMemberStatus(m) === 'archived').length})
+                      Archived ({Array.isArray(members) ? members?.filter((m) => m && m.status === 'archived')?.length : 0})
                     </button>
 
                     <div className="h-6 w-px bg-border mx-1 hidden sm:block self-center"></div>
@@ -1890,6 +1913,7 @@ const safeMembers = Array.isArray(members) ? members : []
                     >
                       All Types
                     </button>
+
                     <button
                       onClick={() => dispatch(setFilterMemberType('full'))}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterMemberType === 'full'
@@ -1897,8 +1921,9 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Full Members
+                      Full Members ({Array.isArray(members) ? members?.filter((m) => m && m.memberType === 'full')?.length : 0})
                     </button>
+
                     <button
                       onClick={() => dispatch(setFilterMemberType('temporary'))}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterMemberType === 'temporary'
@@ -1906,7 +1931,7 @@ const safeMembers = Array.isArray(members) ? members : []
                         : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                         }`}
                     >
-                      Temporary Members
+                      Temporary Members ({Array.isArray(members) ? members?.filter((m) => m && m.memberType === 'temporary')?.length : 0})
                     </button>
                   </div>
                 </div>
@@ -2010,8 +2035,8 @@ const safeMembers = Array.isArray(members) ? members : []
                                 <div className="flex items-center gap-3">
                                   <MemberSpecialNoteIcon member={member} onEditMember={handleEditMember} size="sm" position="relative" />
                                   <div className="relative flex-shrink-0">
-                                    {member.image ? (
-                                      <img src={member.image} alt={title} className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`} />
+                                    {member.img ? (
+                                      <img src={member.img?.url} alt={title} className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`} />
                                     ) : (
                                       <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size={isCompactView ? "sm" : "md"} />
                                     )}
@@ -2087,9 +2112,9 @@ const safeMembers = Array.isArray(members) ? members : []
 
                               <div className="p-3 pt-4">
                                 <div className="flex flex-col items-center mb-2">
-                                  {member.img?.url ? (
+                                  {member.img ? (
                                     <img
-                                      src={member.img.url}
+                                      src={member.img?.url}
                                       alt={title}
                                       className="w-12 h-12 rounded-xl object-cover mb-2"
                                     />
@@ -2137,7 +2162,7 @@ const safeMembers = Array.isArray(members) ? members : []
                                     className="text-[10px] text-primary bg-surface-dark px-1.5 py-0.5 rounded flex items-center gap-0.5"
                                   >
                                     <Users size={9} />
-                                    {Object.values(memberRelationsMain[mid] || {}).flat().length}
+                                    {(member.relations || {}).length}
                                   </button>
                                 </div>
 
@@ -2234,7 +2259,7 @@ const safeMembers = Array.isArray(members) ? members : []
                                         position="relative"
                                       />
                                       <div className="relative flex-shrink-0">
-                                        {member.img?.url ? (
+                                        {member.img ? (
                                           <img
                                             src={member.img?.url}
                                             alt={member.title}
@@ -2415,9 +2440,9 @@ const safeMembers = Array.isArray(members) ? members : []
                               <div className="flex flex-col">
                                 <div className="flex flex-col items-center mb-4">
                                   <div className="relative mb-3">
-                                    {member.image ? (
+                                    {member.img ? (
                                       <img
-                                        src={member.image}
+                                        src={member.img?.url}
                                         className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
                                         alt=""
                                       />
@@ -2474,10 +2499,10 @@ const safeMembers = Array.isArray(members) ? members : []
                                       </span>
                                     </div>
 
-                                    {member.memberType !== "full" && member.autoArchiveDate && status !== 'archived' && (
+                                    {member.memberType !== "full" && member.archivedAt && status !== 'archived' && (
                                       <p className="text-content-muted text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                                        Auto-archive: {member.autoArchiveDate}
-                                        {new Date(member.autoArchiveDate) <= new Date() && (
+                                        Auto-archive: {member.archivedAt}
+                                        {new Date(member.archivedAt) <= new Date() && (
                                           <Clock size={16} className="text-primary ml-1" />
                                         )}
                                       </p>
@@ -2488,7 +2513,7 @@ const safeMembers = Array.isArray(members) ? members : []
                                         className="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
                                       >
                                         <Users size={12} />
-                                        Relations ({Object.values(memberRelationsMain[mid] || {}).flat().length})
+                                        Relations ({Object.values(member.relations || {}).flat().length})
                                       </button>
                                     </div>
                                   </div>
@@ -2619,7 +2644,7 @@ const safeMembers = Array.isArray(members) ? members : []
             setEditingRelationsMain={setEditingRelationsMain}
             newRelationMain={newRelationMain}
             setNewRelationMain={setNewRelationMain}
-            availableMembersLeadsMain={availableMembersLeadsMain}
+            // availableMembersLeadsMain={members || leads}
             relationOptionsMain={relationOptionsMain}
             handleAddRelationMain={handleAddRelationMain}
             memberRelationsMain={memberRelationsMain}

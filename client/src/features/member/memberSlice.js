@@ -22,7 +22,7 @@ export const memberCreate = createAsyncThunk('member/create', async (memberData,
 export const fetchAllMember = createAsyncThunk('member/all', async (_, { rejectWithValue }) => {
     try {
         const res = await memberApi.allMember()
-        return res.member
+        return res.members
     }
     catch (error) {
         return rejectWithValue(error.response?.data)
@@ -190,7 +190,7 @@ const memberSlice = createSlice({
             })
             .addCase(memberUpdatedByStaff.fulfilled, (state, action) => {
                 state.loading = false;
-                state.members = action.payload;
+                state.members = action.payload
             })
             .addCase(memberUpdatedByStaff.rejected, (state, action) => {
                 state.loading = false;

@@ -86,3 +86,14 @@ export const StaffLogin = async (credentials) => {
     const res = await api.post('/staff/login', credentials, { withCredentials: true })
     return res.data
 }
+
+
+// ==========================================
+// All Staff Details
+// ==========================================
+
+
+export const allStaffData = async () => {
+    const res = await api.get('/staff/all', {}, { withCredentials: true })
+    return res.data
+}

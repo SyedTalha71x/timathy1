@@ -278,13 +278,14 @@ const deleteStaffById = async (req, res, next) => {
 // get all staff
 const getStaff = async (req, res, next) => {
   try {
-
+    const userId = req.user?._id
+    const studioId = req.user?.studio;
     const page = parseInt(req.query.page || 1);
     const limit = parseInt(req.query.limit || 5);
     const skip = (page - 1) * limit;
 
 
-    const staff = await StaffModel.find().populate('studio', 'studioName studioOwner email phone').skip(skip).limit(limit);
+    const staff = await StaffModel.find({ studio: studioId }).populate('studio', 'studioName studioOwner email phone').skip(skip).limit(limit);
 
     const totalstaff = await StaffModel.countDocuments();
     const totalPages = Math.ceil(totalstaff / limit);

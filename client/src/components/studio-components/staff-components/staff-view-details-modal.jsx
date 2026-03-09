@@ -277,7 +277,7 @@ const StaffViewDetailsModal = ({
                 </div>
                 <div>
                   <p className="text-sm text-content-muted">Birthday</p>
-                  <p>{formatBirthday(selectedStaff.birthday)}</p>
+                  <p>{formatBirthday(selectedStaff.dateOfBirth)}</p>
                 </div>
               </div>
             </div>

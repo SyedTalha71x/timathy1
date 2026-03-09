@@ -8,22 +8,37 @@ const {
     getMembers,
     updateMemberCheckIn,
     createTemporaryMember,
-    updateMemberByStaff
+    updateMemberByStaff,
+    // logoutMember
 } = require('../controllers/MemberController');
-const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
+const { verifyAccessToken } = require('../middleware/verifyToken');
 const { isAdmin, isStaff } = require('../middleware/RoleCheck');
 const { uploadImage } = require('../config/upload');
-// const upload = require('../config/upload')
+
 const router = express.Router();
 
-router.get('/members', verifyAccessToken, isStaff, getMembers)
-router.get('/:id', verifyAccessToken, getMemberById)
-router.post('/create', verifyAccessToken, isAdmin, createMember)
-router.post('/login', loginMember)
-router.put('/update', verifyAccessToken, updateUserById)
-router.delete('/:id', verifyAccessToken, isAdmin, deleteMemberById)
-router.patch('/check-in/:id', verifyAccessToken, updateMemberCheckIn)
-router.post('/temporary', uploadImage.single('img'), verifyAccessToken, isStaff, createTemporaryMember)
+// Public routes
+router.post('/login', loginMember);
+// router.post('/logout', logoutMember);
 
-router.put('/update/staff/:memberId', uploadImage.single('img'), verifyAccessToken, updateMemberByStaff)
-module.exports = router
+// Protected routes (all require authentication)
+router.use(verifyAccessToken);
+
+// Member's own profile routes
+router.get('/profile', getMemberById);
+router.put('/profile', updateUserById);
+
+// Staff routes
+router.get('/members', isStaff, getMembers);
+router.patch('/check-in/:id', isStaff, updateMemberCheckIn);
+router.post('/temporary', isStaff, uploadImage.single('img'), createTemporaryMember);
+router.put('/staff/:memberId', isStaff, uploadImage.single('img'), updateMemberByStaff);
+
+// Admin routes
+router.post('/create', isAdmin, uploadImage.single('img'), createMember);
+router.delete('/:id', isAdmin, deleteMemberById);
+
+// Admin/Staff shared routes
+// router.get('/:id', isAdminOrStaff, getMemberById);
+
+module.exports = router;

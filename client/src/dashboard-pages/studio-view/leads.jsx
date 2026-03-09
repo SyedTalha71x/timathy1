@@ -52,7 +52,7 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads, appointmentTypesData, freeAppointmentsData, leadsData as leadsDataMain } from "../../utils/studio-states"
 import { useStudioLeads } from "../../hooks/useStudioLeads"
 import { useDispatch, useSelector } from "react-redux"
-import { createLeadThunk, fetchAllLeadsThunk } from "../../features/lead/leadSlice"
+import { createLeadThunk, fetchAllLeadsThunk, updateLeadByStaffThunk } from "../../features/lead/leadSlice"
 import { createNoteThunk } from "../../features/specialNotes/specialNoteSlice"
 
 
@@ -143,11 +143,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   // Toggle column collapse
   const toggleColumnCollapse = (columnId) => {
-    setCollapsedColumns(prev =>
-      prev.includes(columnId)
-        ? prev.filter(id => id !== columnId)
-        : [...prev, columnId]
-    )
+    setCollapsedColumns(prev => {
+      if (prev.includes(columnId)) {
+        return prev.filter(id => id !== columnId); // Remove from collapsed
+      } else {
+        return [...prev, columnId]; // Add to collapsed
+      }
+    });
   }
 
   // Assessment states
@@ -178,7 +180,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const [selectedLeadForNote, setSelectedLeadForNote] = useState(null)
   const [targetColumnForNote, setTargetColumnForNote] = useState(null)
 
-  const [memberRelationsLead, setMemberRelationsLead] = useState(memberRelationsLeadNew)
+  const [memberRelationsLead, setMemberRelationsLead] = useState([])
   const [editingRelationsLead, setEditingRelationsLead] = useState(false)
   const [newRelationLead, setNewRelationLead] = useState({
     name: "",
@@ -883,113 +885,189 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     setIsDocumentModalOpen(true)
   }
 
-  const handleSaveLead = async (data) => {
+
+
+  const handleSaveEdit = async (data) => {
     try {
-      const defaultStatus = columns.find(col => col.id !== "trial")?.id || "active";
-
-      const leadPayload = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email || "",
-        phone: data.phone ? Number(data.phone) : undefined,
-        telephone: data.telephoneNumber ? Number(data.telephoneNumber) : undefined,
-        gender: data.gender || "male",
-        dateOfBirth: new Date(data.birthday),
-        city: data.city,
-        street: data.street,
-        zipCode: Number(data.zipCode),
-        country: data.country,
-        source: data.source || "",
-        status: data.status || defaultStatus,
-        trainingGoal: data.interestedIn || "",
-        about: data.details || "",
-        studioId: studioIdProp,
-      };
-
-      // Create Lead
-      const createdLead = await dispatch(createLeadThunk(leadPayload)).unwrap();
-
-      // Create special note if it exists
-      if (data.note) {
-        const notePayload = {
-          note: data.note,
-          status: data.noteStatus || "general",
-          isImportant: data.noteImportance === "important",
-          valid: {
-            from: data.noteStartDate ? new Date(data.noteStartDate) : null,
-            until: data.noteEndDate ? new Date(data.noteEndDate) : null,
-          },
-          leadId: createdLead._id,
-        };
-
-        await dispatch(createNoteThunk(notePayload)).unwrap();
-      }
-
-      toast.success("Lead has been added");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to create lead");
-    }
-  };
-
-  const handleSaveEdit = (data) => {
-    // Check if there's a pending move from trial column
-    const pendingMoveStr = sessionStorage.getItem('pendingLeadMove')
-    let pendingMove = null
-    if (pendingMoveStr) {
-      try {
-        pendingMove = JSON.parse(pendingMoveStr)
-      } catch (e) {
-        console.error('Failed to parse pending move:', e)
-      }
-    }
-
-    const updatedLeads = leads.map((lead) =>
-      lead.id === data.id
-        ? {
-          ...lead,
-          firstName: data.firstName,
-          surname: data.surname,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          telephoneNumber: data.telephoneNumber !== undefined ? data.telephoneNumber : (lead.telephoneNumber || ""),
-          gender: data.gender || lead.gender || "",
-          street: data.street || lead.street || "",
-          zipCode: data.zipCode || lead.zipCode || "",
-          city: data.city || lead.city || "",
-          country: data.country || lead.country || "",
-          leadSource: data.source || lead.leadSource || "", // Lead source from form
-          details: data.details || lead.details || "",
-          trialPeriod: data.trialPeriod,
-          hasTrialTraining: pendingMove && pendingMove.leadId === lead.id ? false : data.hasTrialTraining,
-          avatar: data.avatar,
-          status: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : data.status || lead.status,
-          columnId: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : (data.hasTrialTraining ? "trial" : data.status || lead.columnId),
-          notes: data.notes || lead.notes || [],
-          specialNote: {
-            text: data.specialNote?.text || "",
-            isImportant: data.specialNote?.isImportant || false,
-            startDate: data.specialNote?.startDate || null,
-            endDate: data.specialNote?.endDate || null,
-          },
-          company: data.company || lead.company,
-          interestedIn: data.interestedIn || lead.interestedIn,
-          birthday: data.birthday || lead.birthday,
-          address: data.address || lead.address,
+      // Check if there's a pending move from trial column
+      const pendingMoveStr = sessionStorage.getItem('pendingLeadMove')
+      let pendingMove = null
+      if (pendingMoveStr) {
+        try {
+          pendingMove = JSON.parse(pendingMoveStr)
+        } catch (e) {
+          console.error('Failed to parse pending move:', e)
         }
-        : lead
-    )
-    // setLeads(updatedLeads)
-    // dispatch()
-    updateLocalStorage(updatedLeads)
+      }
 
-    // Clear pending move and show appropriate toast
-    if (pendingMove && pendingMove.leadId === data.id) {
-      sessionStorage.removeItem('pendingLeadMove')
-      const targetColumn = columns.find((c) => c.id === pendingMove.targetColumnId)
-      toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId} with note`)
-    } else {
-      toast.success("Lead has been updated")
+      // CRITICAL: Use selectedLead which is already in scope from the parent component
+      const leadId = selectedLead?._id || selectedLead?.id
+
+      // console.log('selectedLead:', selectedLead)
+      // console.log('leadId from selectedLead:', leadId)
+      // console.log('data received from modal:', data)
+      // console.log('data.relations:', data.relations)
+
+      if (!leadId) {
+        toast.error("Lead ID is missing")
+        return
+      }
+
+      // Find the existing lead to get its current data
+      const existingLead = leads.find(lead => lead._id === leadId || lead.id === leadId)
+      if (!existingLead) {
+        toast.error("Lead not found")
+        return
+      }
+
+      // ===== FIXED: Relations conversion to match backend schema =====
+      let relationsArray = []
+
+      if (data.relations) {
+        // console.log('Processing relations:', data.relations)
+
+        // Check if relations is an object with categories
+        if (typeof data.relations === 'object' && !Array.isArray(data.relations)) {
+          Object.entries(data.relations).forEach(([category, relations]) => {
+            if (Array.isArray(relations)) {
+              relations.forEach(rel => {
+                // Log each relation to see its structure
+                // console.log('Processing relation:', rel)
+
+                relationsArray.push({
+                  entryType: rel.entryType || rel.type || "manual",
+                  name: rel.name || "",
+                  leadId: rel.leadId || null,
+                  memberId: rel.memberId || null,
+                  category: category,
+                  // Use relationType for backend, fallback to relation
+                  relationType: rel.relationType || rel.relation || "",
+                  customRelation: rel.customRelation || null
+                })
+              })
+            }
+          })
+        }
+        // If relations is already an array
+        else if (Array.isArray(data.relations)) {
+          relationsArray = data.relations.map(rel => ({
+            entryType: rel.entryType || rel.type || "manual",
+            name: rel.name || "",
+            leadId: rel.leadId || null,
+            memberId: rel.memberId || null,
+            category: rel.category || "family",
+            relationType: rel.relationType || rel.relation || "",
+            customRelation: rel.customRelation || null
+          }))
+        }
+      }
+
+      // console.log('Converted relations array:', relationsArray)
+
+      // ===== FIXED: SpecialsNotes conversion =====
+      let specialsNotesArray = []
+
+      if (data.specialsNotes && Array.isArray(data.specialsNotes)) {
+        specialsNotesArray = data.specialsNotes.map(note => {
+          // Ensure status is one of the valid enum values
+          let validStatus = note.status || "general";
+          const validStatuses = ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow_up', 'general'];
+
+          if (!validStatuses.includes(validStatus)) {
+            console.warn(`Invalid status "${validStatus}", defaulting to "general"`);
+            validStatus = "general";
+          }
+
+          return {
+            status: validStatus,
+            note: note.note || note.text || "",
+            isImportant: note.isImportant || false,
+            valid: (note.startDate || note.endDate || note.valid?.from || note.valid?.until)
+              ? {
+                from: note.startDate || note.valid?.from || null,
+                until: note.endDate || note.valid?.until || null
+              }
+              : null
+          };
+        });
+      } else if (Array.isArray(data.notes) && data.notes.length > 0) {
+        specialsNotesArray = data.notes.map(note => {
+          let validStatus = note.status || "general";
+          const validStatuses = ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow_up', 'general'];
+
+          if (!validStatuses.includes(validStatus)) {
+            validStatus = "general";
+          }
+
+          return {
+            status: validStatus,
+            note: note.note || note.text || "",
+            isImportant: note.isImportant || false,
+            valid: (note.startDate || note.endDate || note.valid?.from || note.valid?.until)
+              ? {
+                from: note.startDate || note.valid?.from || null,
+                until: note.endDate || note.valid?.until || null
+              }
+              : null
+          };
+        });
+      }
+
+      // console.log('Converted specialsNotes array:', specialsNotesArray)
+      // Prepare the update data matching backend schema
+      const updateData = {
+        firstName: data.firstName || existingLead.firstName,
+        lastName: data.surname || data.lastName || existingLead.lastName,
+        email: data.email || existingLead.email,
+        phone: data.phoneNumber || existingLead.phone,
+        telephone: data.telephoneNumber || existingLead.telephone,
+        gender: data.gender || existingLead.gender,
+        dateOfBirth: data.birthday || existingLead.dateOfBirth,
+        city: data.city || existingLead.city,
+        street: data.street || existingLead.street,
+        country: data.country || existingLead.country,
+        zipCode: data.zipCode || existingLead.zipCode,
+        column: pendingMove && pendingMove.leadId === leadId ? pendingMove.targetColumnId : (data.status || existingLead.column),
+        source: data.source || data.leadSource || existingLead.source,
+        about: data.details || existingLead.about,
+        trainingGoal: data.trainingGoal || existingLead.trainingGoal,
+        specialsNotes: specialsNotesArray,
+        relations: relationsArray  // Use the converted array
+      }
+
+      // ===== CRITICAL FIX: Create API-ready data with stringified arrays =====
+      const apiReadyData = {
+        ...updateData,
+        specialsNotes: specialsNotesArray.length > 0 ? JSON.stringify(specialsNotesArray) : JSON.stringify([]),
+        relations: relationsArray.length > 0 ? JSON.stringify(relationsArray) : JSON.stringify([])
+      }
+
+      // console.log('API-ready data (with stringified arrays):', apiReadyData)
+      // console.log('specialsNotes as string:', apiReadyData.specialsNotes)
+      // console.log('relations as string:', apiReadyData.relations)
+
+      // Dispatch Redux action with the stringified data
+      const result = await dispatch(updateLeadByStaffThunk({
+        leadId: leadId,
+        leadData: apiReadyData  // Use apiReadyData here, NOT updateData
+      })).unwrap()
+
+      // console.log('Update result:', result)
+
+      await dispatch(fetchAllLeadsThunk())
+
+      // Clear pending move and show appropriate toast
+      if (pendingMove && pendingMove.leadId === leadId) {
+        sessionStorage.removeItem('pendingLeadMove')
+        const targetColumn = columns.find((c) => c.id === pendingMove.targetColumnId)
+        toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId}`)
+      } else {
+        toast.success("Lead updated successfully")
+      }
+
+    } catch (error) {
+      console.error('Failed to update lead:', error)
+      toast.error(error.message || "Failed to update lead")
     }
   }
 
@@ -1151,23 +1229,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // In your LeadsManagement component
   const getColumnLeads = useCallback(
     (columnId) => {
-      console.log(`Column ${columnId}:`, {
-        totalLeads: filteredLeads.length,
-        leadsWithColumn: filteredLeads.map(l => ({
-          id: l._id,
-          name: `${l.firstName} ${l.lastName}`,
-          column: l.column  // Now this will show "applied"
-        })),
-        matchingLeads: filteredLeads.filter(l => l.column === columnId).length
-      })
-
-      console.log('filter',sortLeads);
       return sortLeads(
         filteredLeads.filter((lead) => lead.column === columnId),  // ← Use column, not status
         columnId
       );
     },
-    [filteredLeads, columnSortSettings, memberRelationsLead]
+    [filteredLeads, sortLeads]
   )
 
   const handleManageTrialAppointments = (lead) => {
@@ -1540,7 +1607,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           >
             {columns.map((column) => {
               const isCollapsed = collapsedColumns.includes(column.id)
-              const expandedCount = columns.length - collapsedColumns.length
+              const expandedCount = columns.length - collapsedColumns.length;
               const columnLeads = getColumnLeads(column.id)
 
               // Collapsed state - show minimal bar (horizontal on mobile, vertical on desktop)
@@ -1577,7 +1644,11 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                       <div className="relative group flex-shrink-0 hover:z-[100] ml-auto md:hidden">
                         <button
                           className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
-                          onClick={() => toggleColumnCollapse(column.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleColumnCollapse(column.id);
+                          }}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1601,7 +1672,11 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                       <div className="relative group flex-shrink-0 hover:z-[100] hidden md:block">
                         <button
                           className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
-                          onClick={() => toggleColumnCollapse(column.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleColumnCollapse(column.id);
+                          }}
                         >
                           <ChevronRight size={16} className="text-content-muted" />
                         </button>

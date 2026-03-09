@@ -5,8 +5,10 @@ import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import DatePickerField from "../DatePickerField"
 import CustomSelect from "../CustomSelect"
-import { useDispatch } from "react-redux"
-import { createTemporaryMember } from "../../../features/member/memberSlice"
+import { useDispatch, useSelector } from "react-redux"
+import { createTemporaryMember, fetchAllMember } from "../../../features/member/memberSlice"
+import { fetchMyStudio } from "../../../features/studio/studioSlice"
+import { fetchAllLeadsThunk } from "../../../features/lead/leadSlice"
 
 // Initials Avatar Component - Orange background with initials
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -190,13 +192,7 @@ const getDefaultFormState = () => ({
   autoArchiveDate: "",
   autoArchivePeriod: 6,
   notes: [],
-  relations: {
-    family: [],
-    friendship: [],
-    relationship: [],
-    work: [],
-    other: [],
-  },
+  relations: [],
 })
 
 /**
@@ -218,7 +214,7 @@ const CreateTempMemberModal = ({
   show,
   onClose,
   onSuccess,
-  availableMembersLeads = [],
+  // availableMembersLeads = [],
   relationOptions = DEFAULT_RELATION_OPTIONS,
   countries = [],
   countriesLoading = false,
@@ -230,6 +226,11 @@ const CreateTempMemberModal = ({
   const [activeTab, setActiveTab] = useState(initialTab)
   const [showCameraModal, setShowCameraModal] = useState(false)
   const dispatch = useDispatch()
+  // useSelector 
+  const { members } = useSelector((state) => state.member)
+  const { leads } = useSelector((state) => state.leads)
+  const { studio } = useSelector((state) => state.studios)
+
   // Notes state
   const [localNotes, setLocalNotes] = useState([])
   const [isAddingNote, setIsAddingNote] = useState(false)
@@ -239,7 +240,8 @@ const CreateTempMemberModal = ({
     status: "general",
     note: "",
     isImportant: false,
-    valid: { from: null, until: null },
+    startDate: "",
+    endDate: ""
   })
 
   // Relations state
@@ -274,6 +276,72 @@ const CreateTempMemberModal = ({
     date.setDate(date.getDate() + 42) // 6 weeks = 42 days
     return date.toISOString().split('T')[0]
   }
+
+  // ==============================
+  //  dispatch all member and leads
+  // ==============================
+  useEffect(() => {
+    dispatch(fetchMyStudio())
+    dispatch(fetchAllMember())
+    dispatch(fetchAllLeadsThunk())
+  }, [dispatch])
+
+
+  // =======================
+  // filtered member & leads
+  // =======================
+  // Add these helper functions before the return statement
+  const getMemberFullName = (member) => {
+    if (!member) return ''
+    const firstName = member.firstName || ''
+    const lastName = member.lastName || ''
+    return `${firstName} ${lastName}`.toLowerCase().trim()
+  }
+
+  const getLeadFullName = (lead) => {
+    if (!lead) return ''
+    const firstName = lead.firstName || ''
+    const lastName = lead.lastName || ''
+    return `${firstName} ${lastName}`.toLowerCase().trim()
+  }
+
+  // Filter members for search
+  const filteredMembers = members && Array.isArray(members)
+    ? members
+      .filter(member => member && (member.firstName || member.lastName))
+      .map(member => ({
+        id: member._id,
+        name: `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+        type: 'member',
+        original: member
+      }))
+      .filter(person =>
+        person.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+      )
+    : []
+
+  // Filter leads for search
+  const filteredLeads = leads && Array.isArray(leads)
+    ? leads
+      .filter(lead => lead && (lead.firstName || lead.lastName))
+      .map(lead => ({
+        id: lead._id,
+        name: `${lead.firstName || ''} ${lead.lastName || ''}`.trim(),
+        type: 'lead',
+        original: lead
+      }))
+      .filter(person =>
+        person.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+      )
+    : []
+
+  // Combine for dropdown display
+  const searchResults = [
+    ...(newRelation.type === 'member' ? filteredMembers : []),
+    ...(newRelation.type === 'lead' ? filteredLeads : [])
+  ]
+
+
 
   // Reset form when modal opens
   useEffect(() => {
@@ -374,8 +442,6 @@ const CreateTempMemberModal = ({
   }
 
   // Note functions
-
-  // add note local
   const handleAddNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -391,20 +457,21 @@ const CreateTempMemberModal = ({
       note: newNote.note.trim(),
       isImportant: newNote.isImportant,
       valid: {
-        from: newNote.valid.from,
-        until: newNote.valid.until,
+        from: newNote.startDate ? new Date(newNote.startDate) : null,  // Use startDate
+        until: newNote.endDate ? new Date(newNote.endDate) : null,     // Use endDate
       },
       createdAt: new Date().toISOString(),
     }
 
     setLocalNotes(prev => [note, ...prev])
 
-    // reset form
+    // Reset form
     setNewNote({
       status: "general",
-      note: "", // reset matches state property
+      note: "",
       isImportant: false,
-      valid: { from: null, until: null },
+      startDate: "",  // Reset to empty string
+      endDate: "",    // Reset to empty string
     })
     setIsAddingNote(false)
     toast.success("Note added")
@@ -426,18 +493,14 @@ const CreateTempMemberModal = ({
   const handleEditNoteClick = (note, e) => {
     e.stopPropagation()
 
-    // Handle both id and _id from API
     setEditingNoteId(note.id || note._id)
 
-    // Convert date strings to Date objects if needed
     setNewNote({
       status: note.status || "general",
       note: note.note || "",
       isImportant: note.isImportant || false,
-      valid: {
-        from: note.valid?.from ? new Date(note.valid.from) : null,
-        until: note.valid?.until ? new Date(note.valid.until) : null,
-      }
+      startDate: note.valid?.from ? new Date(note.valid.from).toISOString().split('T')[0] : "", // Format for date input
+      endDate: note.valid?.until ? new Date(note.valid.until).toISOString().split('T')[0] : "", // Format for date input
     })
 
     setIsAddingNote(true)
@@ -448,7 +511,7 @@ const CreateTempMemberModal = ({
     e.preventDefault()
     e.stopPropagation()
 
-    if (!newNote.text.trim()) {
+    if (!newNote.note.trim()) {  // Changed from newNote.text to newNote.note
       toast.error("Please enter note text")
       return
     }
@@ -458,10 +521,12 @@ const CreateTempMemberModal = ({
         ? {
           ...n,
           status: newNote.status,
-          note: newNote.text.trim(),
+          note: newNote.note.trim(),  // Changed from newNote.text
           isImportant: newNote.isImportant,
-          startDate: newNote.startDate || "",
-          endDate: newNote.endDate || "",
+          valid: {
+            from: newNote.startDate ? new Date(newNote.startDate) : null,
+            until: newNote.endDate ? new Date(newNote.endDate) : null,
+          }
         }
         : n
     ))
@@ -508,6 +573,8 @@ const CreateTempMemberModal = ({
           name: newRelation.name,
           relation: finalRelation,
           type: newRelation.type,
+          memberId: newRelation.selectedMemberId || null, // Store the member/lead ID
+          customRelation: newRelation.relation === "custom" ? newRelation.customRelation : null
         },
       ]
       return updated
@@ -536,10 +603,12 @@ const CreateTempMemberModal = ({
     toast.success("Relation removed")
   }
 
+
   // Form submission
   const handleFormSubmit = async (e) => {
     e.preventDefault()
 
+    // Validate required fields
     if (!formData.firstName?.trim()) {
       toast.error("Please enter a first name")
       return
@@ -555,65 +624,104 @@ const CreateTempMemberModal = ({
       return
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email.trim())) {
+      toast.error("Please enter a valid email address")
+      return
+    }
+
     try {
-      const formattedNotes = localNotes.map((note) => ({
-        status: note.status || "general",
-        note: note.note,
-        isImportant: note.isImportant || false,
-        valid:
-          note.valid?.from || note.valid?.until
-            ? {
-              from: note.valid?.from
-                ? new Date(note.valid.from).toISOString()
-                : null,
-              until: note.valid?.until
-                ? new Date(note.valid.until).toISOString()
-                : null,
-            }
-            : null,
-      }))
-
-      // Build payload
-      const memberPayload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        gender: formData.gender || "male",
-        telephone: formData.telephone
-          ? Number(formData.telephone)
-          : undefined,
-        mobileNumber: formData.mobileNumber
-          ? Number(formData.mobileNumber)
-          : undefined,
-        street: formData.street || "",
-        city: formData.city || "",
-        zipCode: formData.zipCode ? Number(formData.zipCode) : undefined,
-        country: formData.country || "",
-        trainingGoal: formData.trainingGoal || "",
-        about: formData.about || "",
-        relationId: localRelations?.[0]?._id || null,
-        notes: formattedNotes,
-        memberType: "temporary",
-        status: "active",
-      }
-
-      // Convert to FormData
-      const formDataToSend = new FormData()
-      Object.keys(memberPayload).forEach(key => {
-        const value = memberPayload[key]
-        if (value !== undefined && value !== null) {
-          // Convert arrays/objects to JSON strings
-          if (Array.isArray(value) || typeof value === "object") {
-            formDataToSend.append(key, JSON.stringify(value))
-          } else {
-            formDataToSend.append(key, value)
+      // Format notes properly
+      const formattedNotes = localNotes.map((note) => {
+        return {
+          status: note.status || "general",
+          note: note.note,
+          isImportant: note.isImportant || false,
+          valid: {
+            from: note.valid?.from ? new Date(note.valid.from).toISOString() : null,
+            until: note.valid?.until ? new Date(note.valid.until).toISOString() : null
           }
         }
       })
 
-      // Append the image file
+      // Format relations properly
+      const formattedRelations = []
+
+      Object.entries(localRelations).forEach(([category, relations]) => {
+        relations.forEach(relation => {
+          formattedRelations.push({
+            entryType: relation.type || "manual",
+            name: relation.name,
+            memberId: relation.memberId || null,
+            leadId: relation.leadId || null,
+            category: category,
+            relationType: relation.relation,
+            customRelation: relation.relation === "custom" ? relation.customRelation : null
+          })
+        })
+      })
+
+      console.log('Formatted notes:', formattedNotes)
+      console.log('Formatted relations:', formattedRelations)
+
+      // Build payload
+      const memberPayload = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        gender: formData.gender || "male",
+        dateOfBirth: formData.dateOfBirth || "male",
+        telephone: formData.telephoneNumber ? Number(formData.telephoneNumber.replace(/[^0-9]/g, '')) : undefined,
+        phone: formData.phone ? Number(formData.phone.replace(/[^0-9]/g, '')) : undefined,
+        street: formData.street || "",
+        city: formData.city || "",
+        zipCode: formData.zipCode ? Number(formData.zipCode.replace(/[^0-9]/g, '')) : undefined,
+        country: formData.country || "",
+        about: formData.about || "",
+        trainingGoal: formData.trainingGoal || "",
+        archivedAt: formData.autoArchiveDate ? new Date(formData.autoArchiveDate).toISOString() : undefined,
+        // Send as arrays - your backend will check Array.isArray()
+        notes: formattedNotes,
+        relation: formattedRelations
+      }
+
+      // Remove undefined fields
+      Object.keys(memberPayload).forEach(key =>
+        memberPayload[key] === undefined && delete memberPayload[key]
+      )
+
+      console.log('Final payload:', memberPayload)
+
+      // Create FormData for file upload
+      const formDataToSend = new FormData()
+
+      // IMPORTANT: For arrays/objects, we need to send them as JSON strings
+      // because FormData doesn't support nested structures
+      Object.keys(memberPayload).forEach(key => {
+        const value = memberPayload[key]
+        if (value !== undefined && value !== null) {
+          if (key === 'notes' || key === 'relation') {
+            // Stringify arrays so they can be parsed on the backend
+            formDataToSend.append(key, JSON.stringify(value))
+            console.log(`Appending ${key} as JSON:`, JSON.stringify(value))
+          } else if (typeof value === 'object' && !(value instanceof File)) {
+            formDataToSend.append(key, JSON.stringify(value))
+          } else {
+            formDataToSend.append(key, String(value))
+          }
+        }
+      })
+
+      // Append image file if exists
       if (formData.img) {
         formDataToSend.append("img", formData.img)
+      }
+
+      // Debug: Log FormData contents
+      console.log('FormData entries:')
+      for (let pair of formDataToSend.entries()) {
+        console.log(pair[0], pair[1])
       }
 
       // Dispatch thunk with FormData
@@ -621,32 +729,80 @@ const CreateTempMemberModal = ({
         createTemporaryMember(formDataToSend)
       ).unwrap()
 
+      console.log('Member created successfully:', createdMember)
+
+      // Transform the response for local state
       const transformedMember = {
         ...createdMember,
-        specialsNotes:
-          createdMember.specialsNotes?.map(note => ({
-            id: note._id,
-            status: note.status,
-            note: note.note,
-            isImportant: note.isImportant,
-            valid: note.valid
-              ? {
-                from: note.valid.from ? new Date(note.valid.from) : null,
-                until: note.valid.until ? new Date(note.valid.until) : null,
-              }
-              : { from: null, until: null },
-            createdAt: note.createdAt || new Date().toISOString(),
-          })) || [],
+        specialsNotes: createdMember.specialsNotes?.map(note => ({
+          id: note._id,
+          status: note.status,
+          note: note.note,
+          isImportant: note.isImportant,
+          valid: note.valid ? {
+            from: note.valid.from ? new Date(note.valid.from) : null,
+            until: note.valid.until ? new Date(note.valid.until) : null,
+          } : { from: null, until: null },
+          createdAt: note.createdAt || new Date().toISOString(),
+        })) || [],
+      }
+
+      // Transform relations from response
+      if (createdMember.relations && Array.isArray(createdMember.relations)) {
+        const categorizedRelations = {
+          family: [],
+          friendship: [],
+          relationship: [],
+          work: [],
+          other: []
+        }
+
+        createdMember.relations.forEach(rel => {
+          const category = rel.category || 'other'
+          if (categorizedRelations[category]) {
+            categorizedRelations[category].push({
+              id: rel._id,
+              name: rel.name,
+              relation: rel.relationType,
+              type: rel.entryType,
+              memberId: rel.memberId
+            })
+          } else {
+            categorizedRelations.other.push({
+              id: rel._id,
+              name: rel.name,
+              relation: rel.relationType,
+              type: rel.entryType,
+              memberId: rel.memberId
+            })
+          }
+        })
+
+        setLocalRelations(categorizedRelations)
       }
 
       setLocalNotes(transformedMember.specialsNotes)
-      if (onSuccess) onSuccess(transformedMember)
 
-      toast.success("Temporary member created")
-      onClose()
+      if (onSuccess) {
+        onSuccess(transformedMember)
+      }
+
+      toast.success("Temporary member created successfully")
+
+      setTimeout(() => {
+        onClose()
+      }, 1500)
+
     } catch (err) {
       console.error("Failed to create member:", err)
-      toast.error("Failed to create temporary member")
+
+      if (err.message?.includes("email") || err.message?.includes("Email")) {
+        toast.error("Email already exists or is invalid")
+      } else if (err.message?.includes("validation")) {
+        toast.error("Please check all required fields")
+      } else {
+        toast.error(err.message || "Failed to create temporary member")
+      }
     }
   }
 
@@ -663,6 +819,8 @@ const CreateTempMemberModal = ({
     e.stopPropagation()
     onClose()
   }
+
+
 
   if (!show) return null
 
@@ -1093,13 +1251,8 @@ const CreateTempMemberModal = ({
                           const statusInfo = getStatusInfo(note.status)
                           const isExpanded = expandedNoteId === (note.id || note._id)
 
-                          // SAFELY handle dates - convert to Date objects only once
-                          const fromDate = note.valid?.from ? new Date(note.valid.from) : null
-                          const untilDate = note.valid?.until ? new Date(note.valid.until) : null
 
-                          // Check if dates are valid
-                          const isValidFrom = fromDate && !isNaN(fromDate.getTime())
-                          const isValidUntil = untilDate && !isNaN(untilDate.getTime())
+
 
                           return (
                             <div
@@ -1148,19 +1301,20 @@ const CreateTempMemberModal = ({
                               </div>
 
                               {/* Preview & Valid Date (always visible when collapsed) */}
+
                               {!isExpanded && (
                                 <div className="px-3 pb-2">
                                   <p className="text-content-muted text-sm truncate">
                                     {note.note}
                                   </p>
-                                  {(isValidFrom || isValidUntil) && (
+                                  {(note.valid?.from || note.valid?.until) && (
                                     <p className="text-xs text-content-faint mt-1">
-                                      {isValidFrom && isValidUntil ? (
-                                        <>Valid: {fromDate.toLocaleDateString()} - {untilDate.toLocaleDateString()}</>
-                                      ) : isValidFrom ? (
-                                        <>Valid from: {fromDate.toLocaleDateString()}</>
-                                      ) : isValidUntil ? (
-                                        <>Valid until: {untilDate.toLocaleDateString()}</>
+                                      {note.valid?.from && note.valid?.until ? (
+                                        <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : note.valid?.from ? (
+                                        <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                                      ) : note.valid?.until ? (
+                                        <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
                                       ) : null}
                                     </p>
                                   )}
@@ -1173,14 +1327,14 @@ const CreateTempMemberModal = ({
                                   <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
                                     {note.note}
                                   </p>
-                                  {(isValidFrom || isValidUntil) && (
+                                  {(note.valid?.from || note.valid?.until) && (
                                     <p className="text-xs text-content-faint mt-1">
-                                      {isValidFrom && isValidUntil ? (
-                                        <>Valid: {fromDate.toLocaleDateString()} - {untilDate.toLocaleDateString()}</>
-                                      ) : isValidFrom ? (
-                                        <>Valid from: {fromDate.toLocaleDateString()}</>
-                                      ) : isValidUntil ? (
-                                        <>Valid until: {untilDate.toLocaleDateString()}</>
+                                      {note.valid?.from && note.valid?.until ? (
+                                        <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : note.valid?.from ? (
+                                        <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                                      ) : note.valid?.until ? (
+                                        <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
                                       ) : null}
                                     </p>
                                   )}
@@ -1239,7 +1393,7 @@ const CreateTempMemberModal = ({
                           }
                           options={[
                             { value: "manual", label: "Manual Entry" },
-                            ...(availableMembersLeads.length > 0 ? [
+                            ...(filteredMembers.length > 0 ? [
                               { value: "member", label: "Existing Member" },
                               { value: "lead", label: "Existing Lead" },
                             ] : []),
@@ -1278,16 +1432,10 @@ const CreateTempMemberModal = ({
                               className="w-full bg-surface-dark text-content-primary rounded-xl pl-9 pr-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                             />
                           </div>
-
                           {showPersonDropdown && (
                             <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                              {availableMembersLeads
-                                .filter(
-                                  (p) =>
-                                    p.type === newRelation.type &&
-                                    p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
-                                )
-                                .map((person) => (
+                              {newRelation.type === 'member' && filteredMembers.length > 0 ? (
+                                filteredMembers.map((person) => (
                                   <button
                                     key={person.id}
                                     type="button"
@@ -1297,19 +1445,36 @@ const CreateTempMemberModal = ({
                                         selectedMemberId: person.id,
                                         name: person.name,
                                       })
-                                      setPersonSearchQuery("")
+                                      setPersonSearchQuery(person.name)
                                       setShowPersonDropdown(false)
                                     }}
                                     className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
                                   >
                                     {person.name}
                                   </button>
-                                ))}
-                              {availableMembersLeads.filter(
-                                (p) =>
-                                  p.type === newRelation.type &&
-                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
-                              ).length === 0 && <div className="px-3 py-2 text-sm text-content-faint">No results found</div>}
+                                ))
+                              ) : newRelation.type === 'lead' && filteredLeads.length > 0 ? (
+                                filteredLeads.map((person) => (
+                                  <button
+                                    key={person.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewRelation({
+                                        ...newRelation,
+                                        selectedMemberId: person.id,
+                                        name: person.name,
+                                      })
+                                      setPersonSearchQuery(person.name)
+                                      setShowPersonDropdown(false)
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
+                                  >
+                                    {person.name}
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-3 py-2 text-sm text-content-faint">No results found</div>
+                              )}
                             </div>
                           )}
                         </div>

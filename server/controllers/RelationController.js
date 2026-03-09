@@ -8,82 +8,108 @@ const { MemberModel } = require('../models/Discriminators');
 
 const createRelations = async (req, res, next) => {
     try {
-        const userId = req.user?._id
 
         const { entryType, name, category, relationType, customRelation, memberId, leadId } = req.body
 
-        const member = await MemberModel.findById(memberId)
-        if (!member) throw new BadRequestError("Invalid Id")
-        const lead = await LeadModel.findById(leadId)
-        if (!lead) throw new BadRequestError("Invalid Id")
+        let relation
 
-        const relation = await RelationModel.create({
-            entryType,
-            name,
-            relationType,
-            category,
-            customRelation,
-            leadId,
-            memberId,
-        })
+        // MANUAL PERSON
+        if (entryType === "manual") {
 
-        await MemberModel.findByIdAndUpdate(memberId, {
-            $addToSet: { relations: relation._id }
-        })
-        await LeadModel.findByIdAndUpdate(leadId, {
-            $addToSet: { relations: relation._id }
-        })
+            relation = await RelationModel.create({
+                entryType,
+                name,
+                category,
+                relationType,
+                customRelation
+            })
 
-        return res.status(200).json({
+        }
+
+        // EXISTING MEMBER
+        else if (entryType === "existing_member") {
+
+            const member = await MemberModel.findById(memberId)
+            if (!member) throw new BadRequestError("Invalid member id")
+
+            relation = await RelationModel.create({
+                entryType,
+                name,
+                memberId,
+                category,
+                relationType,
+                customRelation
+            })
+
+            await MemberModel.findByIdAndUpdate(memberId, {
+                $addToSet: { relations: relation._id }
+            })
+
+        }
+
+        // EXISTING LEAD
+        else if (entryType === "existing_lead") {
+
+            const lead = await LeadModel.findById(leadId)
+            if (!lead) throw new BadRequestError("Invalid lead id")
+
+            relation = await RelationModel.create({
+                entryType,
+                name,
+                leadId,
+                category,
+                relationType,
+                customRelation
+            })
+
+            await LeadModel.findByIdAndUpdate(leadId, {
+                $addToSet: { relations: relation._id }
+            })
+
+        }
+
+        console.log('relation', relation)
+        return res.status(201).json({
             success: true,
             relation: relation
         })
-    }
-    catch (error) {
+
+    } catch (error) {
         next(error)
     }
 }
 
 const AllRelationByIdz = async (req, res, next) => {
     try {
+
         const { id } = req.params
 
-        const relation = await RelationModel.find({ $or: [{ memberId: id }, { leadId: id }] })
+        const relations = await RelationModel.find({
+            $or: [{ memberId: id }, { leadId: id }]
+        })
             .populate({
-                path: 'memberId',
-                select: 'firstName lastName img specialNotes',
-                populate: [
-                    {
-                        path: 'specialNote',
-                        select: 'status note important valid',
-                        populate: [{
-                            path: 'valid',
-                            select: 'from until'
-                        }]
-                    }
-                ]
+                path: "memberId",
+                select: "firstName lastName img specialNotes",
+                populate: {
+                    path: "specialNotes",
+                    select: "status note isImportant valid"
+                }
             })
             .populate({
-                path: 'leadId',
-                select: 'firstName lastName img specialNotes',
-                populate: [
-                    {
-                        path: 'specialNote',
-                        select: 'status note important valid',
-                        populate: [{
-                            path: 'valid',
-                            select: 'from until'
-                        }]
-                    }
-                ]
+                path: "leadId",
+                select: "firstName lastName img specialNotes",
+                populate: {
+                    path: "specialNotes",
+                    select: "status note isImportant valid"
+                }
             })
 
         return res.status(200).json({
             success: true,
-            relation: relation
+            relations
         })
-    }
-    catch (error) {
+
+    } catch (error) {
         next(error)
     }
 }

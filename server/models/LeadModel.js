@@ -57,13 +57,39 @@ const leadSchema = new mongoose.Schema({
         type: String
     },
     relations: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'relations'
+        entryType: {
+            type: String,
+            enum: ['manual', 'member', 'lead'],
+            default: 'manual'
+        },
+        name: {
+            type: String,
+            required: true
+        },
+        leadId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'lead'
+        },
+        memberId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'member'
+        },
+        category: {
+            type: String,
+            enum: ['family', 'relationship', 'friendship', 'work', 'other'],
+            default: 'family'
+        },
+        relationType: {
+            type: String,
+        },
+        customRelation: {
+            type: String,
+        }
     }],
     specialsNotes: [{
         status: {
             type: String,
-            enum: ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow_up', 'general'],
+            enum: ['contract_attempt', 'callback_requested', 'interest', 'objection', 'personal_info', 'health', 'follow_up', 'general'],
             default: 'general'
         },
         note: {
@@ -83,6 +109,10 @@ const leadSchema = new mongoose.Schema({
             }
         },
     }],
+    isConverted: {
+        type: Boolean,
+        default: false
+    },
     studioId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
