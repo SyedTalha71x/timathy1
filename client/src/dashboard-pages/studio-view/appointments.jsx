@@ -57,14 +57,6 @@ export default function Appointments() {
   const calendarRef = useRef(null);
 
   // Helper function to get member data by ID (for special notes)
-  const getMemberById = (memberId) => {
-    if (!memberId) return null;
-    return members.find(m => m._id === memberId) || null;
-  };
-  const getLeadById = (leadId) => {
-    if (!leadId) return null;
-    return leads.find(m => m._id === leadId) || null;
-  };
   useEffect(() => {
     dispatch(fetchAllAppointments());
     dispatch(fetchAllMember());
@@ -73,6 +65,18 @@ export default function Appointments() {
   }, [dispatch])
 
   // Disable main container scrolling on mount
+  const getMemberById = (memberId) => {
+
+    if (!memberId) return null;
+    return members && Array.isArray(members)
+      ? members.find(m => m._id === memberId) : null;
+  };
+
+  const getLeadById = (leadId) => {
+    if (!leadId) return null;
+    return leads && Array.isArray(leads)
+      ? leads.find(m => m._id === leadId) : null;
+  };
   useEffect(() => {
     // Reset scroll position to top immediately
     window.scrollTo(0, 0);

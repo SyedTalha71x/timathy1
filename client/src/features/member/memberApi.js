@@ -10,7 +10,7 @@ export const registerMember = async (memberData) => {
 
 
 export const allMember = async () => {
-    const res = await api.get('/member/members', {}, { withCredentials: true })
+    const res = await api.get('/member/members', { withCredentials: true })
     return res.data
 }
 
@@ -25,6 +25,6 @@ export const temporaryMember = async (memberData) => {
 // update member by Staff 
 
 export const updateMemberByStaff = async (memberId, updateMember) => {
-    const res = await api.put(`/member/update/staff/${memberId}`, updateMember, { withCredentials: true })
+    const res = await api.put(`/member/staff/${memberId}`, updateMember, { withCredentials: true })
     return res.data
 }

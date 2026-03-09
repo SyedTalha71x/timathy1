@@ -6,9 +6,10 @@ import useCountries from "../../../hooks/useCountries"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
 import { useDispatch, useSelector } from "react-redux"
-import { createLeadThunk } from "../../../features/lead/leadSlice"
+import { createLeadThunk, fetchAllLeadsThunk } from "../../../features/lead/leadSlice"
 import { createNoteThunk } from "../../../features/specialNotes/specialNoteSlice"
 import { fetchMyStudio } from "../../../features/studio/studioSlice"
+import { fetchAllMember } from "../../../features/member/memberSlice"
 
 /* eslint-disable react/prop-types */
 
@@ -38,7 +39,7 @@ const AddLeadModal = ({
   isVisible,
   onClose,
   // onSave,
-  availableMembersLeads = [],
+  // availableMembersLeads = [],
   columns = [], // Added columns prop
   relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
@@ -49,6 +50,9 @@ const AddLeadModal = ({
   }
 }) => {
   const dispatch = useDispatch()
+  // useSelector 
+  const { members } = useSelector((state) => state.member)
+  const { leads } = useSelector((state) => state.leads)
   const { studio } = useSelector((state) => state.studios)
 
   const [activeTab, setActiveTab] = useState("details")
@@ -67,7 +71,8 @@ const AddLeadModal = ({
     status: "general",
     note: "",
     isImportant: false,
-    valid: { from: null, until: null },
+    startDate: "",
+    endDate: "",
   })
 
   // Get first non-trial column as default status
@@ -90,13 +95,7 @@ const AddLeadModal = ({
     country: "",
     details: "",
     trainingGoal: "",
-    relations: {
-      family: [],
-      friendship: [],
-      relationship: [],
-      work: [],
-      other: [],
-    },
+    relations: [] // Change this to an array instead of nested object
   }
 
   const [formData, setFormData] = useState(initialFormData)
@@ -111,6 +110,7 @@ const AddLeadModal = ({
     selectedMemberId: null,
   })
 
+  const [localRelations, setLocalRelations] = useState([])
   // Search state for member/lead search
   const [personSearchQuery, setPersonSearchQuery] = useState("")
   const [showPersonDropdown, setShowPersonDropdown] = useState(false)
@@ -146,10 +146,15 @@ const AddLeadModal = ({
   // Get status options from columns (exclude trial column)
   const statusOptions = columns.filter(col => col.id !== "trial")
 
+
+  // ==============================
+  //  dispatch all member and leads
+  // ==============================
   useEffect(() => {
     dispatch(fetchMyStudio())
+    dispatch(fetchAllMember())
+    dispatch(fetchAllLeadsThunk())
   }, [dispatch])
-
 
 
   // add note local
@@ -168,8 +173,8 @@ const AddLeadModal = ({
       note: newNote.note.trim(),
       isImportant: newNote.isImportant,
       valid: {
-        from: newNote.valid.from,
-        until: newNote.valid.until,
+        from: newNote.startDate ? new Date(newNote.startDate) : null,
+        until: newNote.endDate ? new Date(newNote.endDate) : null,
       },
       createdAt: new Date().toISOString(),
     }
@@ -181,7 +186,8 @@ const AddLeadModal = ({
       status: "general",
       note: "", // reset matches state property
       isImportant: false,
-      valid: { from: null, until: null },
+      startDate: null,
+      endDate: null,
     })
     setIsAddingNote(false)
     toast.success("Note added")
@@ -275,14 +281,25 @@ const AddLeadModal = ({
     }
 
     try {
+      // Format notes correctly - always include valid field with proper structure
       const formattedNotes = localNotes.map(note => ({
         status: note.status || "general",
         note: note.note,
         isImportant: note.isImportant || false,
-        valid: note.valid?.from || note.valid?.until ? {
+        valid: {
           from: note.valid?.from ? new Date(note.valid.from).toISOString() : null,
           until: note.valid?.until ? new Date(note.valid.until).toISOString() : null
-        } : null,
+        }
+      }));
+
+      const formattedRelations = (formData.relations || []).map(relation => ({
+        entryType: relation.entryType || "manual",
+        name: relation.name,
+        memberId: relation.memberId || null,
+        leadId: relation.leadId || null,
+        category: relation.category || "family",
+        relationType: relation.relation,
+        customRelation: relation.relation === "custom" ? relation.customRelation : null
       }))
 
       const leadPayload = {
@@ -295,100 +312,76 @@ const AddLeadModal = ({
         dateOfBirth: formData.birthday ? new Date(formData.birthday).toISOString() : undefined,
         city: formData.city,
         street: formData.street,
-        zipCode: Number(formData.zipCode),
+        zipCode: formData.zipCode ? Number(formData.zipCode) : undefined,
         country: formData.country,
         source: formData.source || "",
         trainingGoal: formData.trainingGoal || "",
         about: formData.details || "",
         studioId: studio._id,
         notes: formattedNotes,
-        column: formData.column
+        column: formData.column,  // Make sure this matches your controller
+        relation: formattedRelations
       }
+
+      console.log('Submitting lead payload:', JSON.stringify(leadPayload, null, 2))
 
       const createdLead = await dispatch(createLeadThunk(leadPayload)).unwrap()
 
-      // TRANSFORM THE API RESPONSE to match your component's expected structure
-      const transformedLead = {
-        ...createdLead,
-        specialsNotes: createdLead.specialsNotes?.map(note => ({
-          id: note._id,  // Map _id to id
-          status: note.status,
-          note: note.note,
-          isImportant: note.isImportant,
-          valid: note.valid ? {
-            from: note.valid.from ? new Date(note.valid.from) : null,  // Convert string to Date
-            until: note.valid.until ? new Date(note.valid.until) : null,  // Convert string to Date
-          } : { from: null, until: null },
-          createdAt: note.createdAt || new Date().toISOString(),
-        })) || []
-      }
+      console.log('Lead created successfully:', createdLead)
 
-      // Update your local state with the transformed data
-      setLocalNotes(transformedLead.specialsNotes)
+      await dispatch(fetchAllLeadsThunk())
+      toast.success("Lead created successfully")
 
-      toast.success("Lead created")
-      onClose()
+      handleCloseClick(e)
 
     } catch (err) {
       console.error('Failed to create lead:', err)
-      toast.error("Failed to create lead")
+      toast.error(err.message || "Failed to create lead")
     }
   }
-
   // Add relation
   const addRelation = (e) => {
     e.preventDefault()
     e.stopPropagation()
 
-    // Determine the final relation value
-    const finalRelation = newRelation.relation === "custom"
-      ? newRelation.customRelation
-      : newRelation.relation
-
-    if (!newRelation.name || !finalRelation) {
-      toast.error("Please fill in all fields")
-      return
-    }
-
-    const relationId = Date.now()
-    const newRel = {
-      id: relationId,
+    const relationToAdd = {
+      id: Date.now(),
+      entryType: newRelation.type,
       name: newRelation.name,
-      relation: finalRelation,
-      type: newRelation.type,
+      relation: newRelation.relation === "custom" ? newRelation.customRelation : newRelation.relation,
+      category: newRelation.category,
+      memberId: newRelation.selectedMemberId?._id || newRelation.selectedMemberId,
     }
 
+    // Add to formData.relations array
     setFormData(prev => ({
       ...prev,
-      relations: {
-        ...prev.relations,
-        [newRelation.category]: [...prev.relations[newRelation.category], newRel]
-      }
+      relations: [...(prev.relations || []), relationToAdd]
     }))
 
+    // Reset new relation form
     setNewRelation({
       name: "",
       relation: "",
       customRelation: "",
       category: "family",
       type: "manual",
-      selectedMemberId: null
+      selectedMemberId: null,
     })
-    setPersonSearchQuery("")
+
     toast.success("Relation added")
   }
 
   // Remove relation
-  const removeRelation = (category, relationId, e) => {
+  const removeRelation = (relationId, e) => {
     e.preventDefault()
     e.stopPropagation()
+
     setFormData(prev => ({
       ...prev,
-      relations: {
-        ...prev.relations,
-        [category]: prev.relations[category].filter(rel => rel.id !== relationId)
-      }
+      relations: prev.relations.filter(rel => rel.id !== relationId)
     }))
+
     toast.success("Relation removed")
   }
 
@@ -438,7 +431,7 @@ const AddLeadModal = ({
       email: "",
       phone: "",
       telephoneNumber: "",
-      column: defaultStatus,
+      status: defaultStatus,
       hasTrialTraining: false,
       gender: "",
       birthday: "",
@@ -478,6 +471,27 @@ const AddLeadModal = ({
     })
     onClose()
   }
+
+  // Member and Lead Filter for search query
+  const filteredMembers = members && Array.isArray(members)
+    ? members.filter((p) => {
+      if (!p) return false
+      const firstName = p.firstName || ''
+      const lastName = p.lastName || ''
+      const fullName = `${firstName} ${lastName}`.toLowerCase().trim()
+      return fullName.includes(personSearchQuery.toLowerCase())
+    })
+    : []
+
+  const filteredLeads = leads && Array.isArray(leads)
+    ? leads.filter((p) => {
+      if (!p) return false
+      const firstName = p.firstName || ''
+      const lastName = p.lastName || ''
+      const fullName = `${firstName} ${lastName}`.toLowerCase().trim()
+      return fullName.includes(personSearchQuery.toLowerCase())
+    })
+    : []
 
   if (!isVisible) return null
 
@@ -784,7 +798,7 @@ const AddLeadModal = ({
                                   key={column.id}
                                   type="button"
                                   onClick={() => {
-                                    updateFormData("status", column.id)
+                                    updateFormData("column", column.id)
                                     setIsStatusDropdownOpen(false)
                                   }}
                                   className="w-full text-left px-4 py-3 hover:bg-surface-hover text-content-primary text-sm flex items-center gap-3 transition-colors"
@@ -988,7 +1002,6 @@ const AddLeadModal = ({
                 )}
 
                 {/* Notes List */}
-                {/* Notes Tab */}
                 {!isAddingNote && (
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {localNotes.length > 0 ? (
@@ -1219,7 +1232,7 @@ const AddLeadModal = ({
                           )}
                           {showPersonDropdown && personSearchQuery && (
                             <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                              {availableMembersLeads
+                              {filteredMembers
                                 .filter((p) =>
                                   p.type === newRelation.type &&
                                   p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
@@ -1242,7 +1255,7 @@ const AddLeadModal = ({
                                     {person.name}
                                   </button>
                                 ))}
-                              {availableMembersLeads.filter((p) =>
+                              {filteredLeads.filter((p) =>
                                 p.type === newRelation.type &&
                                 p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
                               ).length === 0 && (
@@ -1326,9 +1339,10 @@ const AddLeadModal = ({
                   </div>
                 )}
 
+                {/* Relations display */}
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {Object.entries(formData.relations).map(([category, relations]) =>
-                    relations.map((relation) => (
+                  {formData.relations && formData.relations.length > 0 ? (
+                    formData.relations.map((relation) => (
                       <div
                         key={relation.id}
                         className="flex items-center justify-between bg-surface-dark rounded-lg px-3 py-2"
@@ -1337,25 +1351,23 @@ const AddLeadModal = ({
                           <span className="text-content-primary font-medium">{relation.name}</span>
                           <span className="text-content-muted">({relation.relation})</span>
                           <span className="text-content-faint">•</span>
-                          <span className="text-content-muted capitalize">{category}</span>
+                          <span className="text-content-muted capitalize">{relation.category}</span>
                           <span className="bg-surface-button text-content-secondary text-xs px-2 py-0.5 rounded capitalize">
-                            {relation.type}
+                            {relation.entryType}
                           </span>
                         </div>
                         {editingRelations && (
                           <button
                             type="button"
-                            onClick={(e) => removeRelation(category, relation.id, e)}
+                            onClick={(e) => removeRelation(relation.id, e)}
                             className="text-red-400 hover:text-red-300 ml-2"
                           >
                             <Trash2 size={14} />
                           </button>
                         )}
                       </div>
-                    )),
-                  )}
-
-                  {Object.values(formData.relations).every(arr => arr.length === 0) && (
+                    ))
+                  ) : (
                     <div className="text-content-faint text-sm text-center py-4">
                       No relations added yet
                     </div>

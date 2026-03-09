@@ -14,13 +14,14 @@ import chatReducers from '../features/communication/chatSlice';
 import relationReducer from '../features/relation/relationSlice';
 import leadReducer from '../features/lead/leadSlice';
 import specialNotesReducer from '../features/specialNotes/specialNoteSlice'
-
+import staffReducer from '../features/staff/staffSlice'
 
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         member: memberReducer,
+        staff: staffReducer,
         studios: studioReducer,
         services: servicesReducers,
         appointments: appointmentReducers,

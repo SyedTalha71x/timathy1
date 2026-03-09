@@ -1,18 +1,18 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { useState, createContext, useRef, useEffect } from "react"
+import { useState, createContext, useRef, useEffect, useMemo } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { 
-  X, 
-  Calendar, 
-  Users, 
-  History, 
-  MessageCircle, 
-  Grid3X3, 
-  List, 
-  FileText, 
-  Eye, 
-  ChevronUp, 
+import {
+  X,
+  Calendar,
+  Users,
+  History,
+  MessageCircle,
+  Grid3X3,
+  List,
+  FileText,
+  Eye,
+  ChevronUp,
   ChevronDown,
   Search,
   Filter,
@@ -52,7 +52,7 @@ const RoleTag = ({ role, compact = false }) => {
   const getDynamicRoleColor = (role) => {
     const roleColors = {
       'Telephone operator': 'bg-purple-600',
-      'Software Engineer': 'bg-blue-600', 
+      'Software Engineer': 'bg-blue-600',
       'System Engineer': 'bg-green-600',
       'Manager': 'bg-red-600',
       'Trainer': 'bg-indigo-600',
@@ -110,7 +110,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   }
 
   return (
-    <div 
+    <div
       className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
@@ -124,13 +124,13 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
   const location = useLocation();
   const isAdminMode = mode === "admin" && studioIdProp !== null
 
-// ============================================
-// Load staff data via shared hook
-// ============================================
-const { data: staffHookData, isLoading: staffLoading, error: staffError } = useStudioStaff({
-  studioId: studioIdProp,
-  mode,
-})
+  // ============================================
+  // Load staff data via shared hook
+  // ============================================
+  const { data: staffHookData, isLoading: staffLoading, error: staffError } = useStudioStaff({
+    studioId: studioIdProp,
+    mode,
+  })
   const [isShowDetails, setIsShowDetails] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -180,7 +180,7 @@ const { data: staffHookData, isLoading: staffLoading, error: staffError } = useS
   // Staff filter - array of filtered staff (can be multiple)
   const [staffFilters, setStaffFilters] = useState([])
   // [{ staffId: number, staffName: string }, ...]
-  
+
   // Search autocomplete state  
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
@@ -249,19 +249,19 @@ const { data: staffHookData, isLoading: staffLoading, error: staffError } = useS
   const sortDropdownRef = useRef(null)
   const mobileSortDropdownRef = useRef(null)
 
-useEffect(() => {
-  if (staffHookData) {
-    setStaffMembers(staffHookData.staff)
-    
-    // Admin immer List View
-    if (isAdminMode) {
-      setViewMode('list')
+  useEffect(() => {
+    if (staffHookData) {
+      setStaffMembers(staffHookData.staff)
+
+      // Admin immer List View
+      if (isAdminMode) {
+        setViewMode('list')
+      }
     }
-  }
-}, [staffHookData])
+  }, [staffHookData, isAdminMode])
 
   const trainingVideos = trainingVideosData
-const [staffMembers, setStaffMembers] = useState([])
+  const [staffMembers, setStaffMembers] = useState([])
 
   // Sort options
   const sortOptions = [
@@ -270,7 +270,10 @@ const [staffMembers, setStaffMembers] = useState([])
   ]
 
   // Get unique roles for filter
-  const uniqueRoles = [...new Set(staffMembers.map(s => s.role))].sort()
+  const uniqueRoles = useMemo(() => {
+    return [...new Set(staffMembers.map(s => s.role))].sort()
+  }, [staffMembers])
+
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -312,20 +315,18 @@ const [staffMembers, setStaffMembers] = useState([])
   }, [location.state]);
 
   // Get search suggestions based on query (exclude already filtered staff)
-  const getSearchSuggestions = () => {
+  const getSearchSuggestions = useMemo(() => {
     if (!searchQuery.trim()) return [];
     return staffMembers.filter((staff) => {
-      // Exclude already filtered staff
       const isAlreadyFiltered = staffFilters.some(f => f.staffId === staff.id);
       if (isAlreadyFiltered) return false;
-      
+
       const fullName = `${staff.firstName} ${staff.lastName}`.toLowerCase();
       return fullName.includes(searchQuery.toLowerCase()) ||
         staff.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         staff.email?.toLowerCase().includes(searchQuery.toLowerCase());
     }).slice(0, 6);
-  };
-
+  }, [searchQuery, staffMembers, staffFilters]);
   // Handle selecting a staff from search suggestions
   const handleSelectStaff = (staff) => {
     setStaffFilters([...staffFilters, {
@@ -357,13 +358,13 @@ const [staffMembers, setStaffMembers] = useState([])
     const handleKeyPress = (e) => {
       // Ignore if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
+
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
-      
+
       // Check if ANY modal is open - if so, don't trigger hotkeys
       // Only check local modal states (sidebar modals are checked via DOM)
-      const anyLocalModalOpen = 
+      const anyLocalModalOpen =
         isModalOpen ||
         isRemoveModalOpen ||
         isPlanningModalOpen ||
@@ -378,38 +379,38 @@ const [staffMembers, setStaffMembers] = useState([])
         isVacationContingentModalOpen ||
         isViewDetailsModalOpen ||
         showDocumentModal;
-      
+
       // Also check if any modal overlay is visible in the DOM
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
-      
+        document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+
       if (anyLocalModalOpen || hasVisibleModal) return;
-      
+
       // C key - Create Staff
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setIsModalOpen(true);
       }
-      
+
       // V key - Toggle view mode
       if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
       }
-      
+
       // P key - Staff Planning
       if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         setIsPlanningModalOpen(true);
       }
-      
+
       // K key - Vacation Calendar
       if (e.key === 'k' || e.key === 'K') {
         e.preventDefault();
         setIsVacationRequestModalOpen(true);
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [
@@ -435,10 +436,10 @@ const [staffMembers, setStaffMembers] = useState([])
       const isDesktop = window.innerWidth >= 768; // md breakpoint
       setFiltersExpanded(isDesktop);
     };
-    
+
     // Run on mount
     handleResize();
-    
+
     // Listen for resize
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -452,7 +453,7 @@ const [staffMembers, setStaffMembers] = useState([])
       const filteredStaff = staffMembers.filter((staff) => filterIds.includes(staff.id));
       return filteredStaff;
     }
-    
+
     // No live filtering while typing - list only changes when chips are selected
     let filtered = [...staffMembers]
 
@@ -550,8 +551,8 @@ const [staffMembers, setStaffMembers] = useState([])
 
   // Handler for document updates from DocumentManagementModal
   const handleDocumentsUpdate = (staffId, documents) => {
-    setStaffMembers(prevStaff => 
-      prevStaff.map(staff => 
+    setStaffMembers(prevStaff =>
+      prevStaff.map(staff =>
         staff.id === staffId ? { ...staff, documents } : staff
       )
     )
@@ -561,11 +562,11 @@ const [staffMembers, setStaffMembers] = useState([])
   const handleCreateAssessmentClick = (staff, fromDocManagement = false) => {
     setSelectedStaff(staff)
     setAssessmentFromDocumentManagement(fromDocManagement)
-    
+
     if (fromDocManagement) {
       setShowDocumentModal(false)
     }
-    
+
     setIsAssessmentSelectionModalOpen(true)
   }
 
@@ -576,15 +577,15 @@ const [staffMembers, setStaffMembers] = useState([])
   }
 
   const handleAssessmentComplete = (documentData) => {
-    setStaffMembers(prevStaff => 
+    setStaffMembers(prevStaff =>
       prevStaff.map(staff => {
         if (staff.id === selectedStaff.id) {
           const existingDocuments = staff.documents || []
-          
+
           if (documentData.isEdit) {
             return {
               ...staff,
-              documents: existingDocuments.map(doc => 
+              documents: existingDocuments.map(doc =>
                 doc.id === documentData.id ? documentData : doc
               ),
               hasAssessment: true
@@ -600,19 +601,19 @@ const [staffMembers, setStaffMembers] = useState([])
         return staff
       })
     )
-    
+
     setIsAssessmentFormModalOpen(false)
     setSelectedAssessment(null)
     setIsEditingAssessment(false)
     setEditingAssessmentDocument(null)
     setIsViewingAssessment(false)
-    
+
     if (assessmentFromDocumentManagement) {
       if (selectedMemberForDocuments && selectedMemberForDocuments.id === selectedStaff.id) {
         const existingDocuments = selectedMemberForDocuments.documents || []
         let updatedDocuments
         if (documentData.isEdit) {
-          updatedDocuments = existingDocuments.map(doc => 
+          updatedDocuments = existingDocuments.map(doc =>
             doc.id === documentData.id ? documentData : doc
           )
         } else {
@@ -627,7 +628,7 @@ const [staffMembers, setStaffMembers] = useState([])
       setShowDocumentModal(true)
       setAssessmentFromDocumentManagement(false)
     }
-    
+
     toast.success("Medical history saved successfully")
   }
 
@@ -743,9 +744,9 @@ const [staffMembers, setStaffMembers] = useState([])
   const handleSearchStaffForEmail = (query) => {
     if (!query) return [];
     const q = query.toLowerCase();
-    
+
     // Search in staff (staffMembers uses 'img' not 'image')
-    const staffResults = staffMembers.filter(s => 
+    const staffResults = staffMembers.filter(s =>
       s.firstName?.toLowerCase().includes(q) ||
       s.lastName?.toLowerCase().includes(q) ||
       s.email?.toLowerCase().includes(q) ||
@@ -759,7 +760,7 @@ const [staffMembers, setStaffMembers] = useState([])
       image: s.img, // staffData uses 'img' field
       type: 'staff'
     }));
-    
+
     // Search in members
     const memberResults = (staffHookData?.members || []).filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
@@ -775,26 +776,26 @@ const [staffMembers, setStaffMembers] = useState([])
       image: m.image || m.avatar,
       type: 'member'
     }));
-    
-return [...staffResults, ...memberResults].slice(0, 10);
+
+    return [...staffResults, ...memberResults].slice(0, 10);
   };
 
-const AdminBanner = () => {
-  if (!isAdminMode) return null
-  return (
-    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
-      <div className="bg-blue-500/20 p-2 rounded-lg">
-        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+  const AdminBanner = () => {
+    if (!isAdminMode) return null
+    return (
+      <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+        <div className="bg-blue-500/20 p-2 rounded-lg">
+          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+          <p className="text-xs text-content-muted">Viewing staff for this studio. Changes are saved per-studio.</p>
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
-        <p className="text-xs text-content-muted">Viewing staff for this studio. Changes are saved per-studio.</p>
-      </div>
-    </div>
-  )
-}
+    )
+  }
 
 
   // Select email recipient
@@ -863,895 +864,887 @@ const AdminBanner = () => {
             {/* Main Content - nur wenn geladen */}
             {!staffLoading && !staffError && (
               <>
-              {/* Header */}
-            <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-              <div className="flex items-center gap-3">
-                <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Staff</h1>
-                
-                {/* Sort Button - Mobile: next to title */}
-                <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMobileSortDropdown(!showMobileSortDropdown);
-                    }}
-                    className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
-                  >
-                    {getSortIcon()}
-                    <span>{currentSortLabel}</span>
-                  </button>
+                {/* Header */}
+                <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Staff</h1>
 
-                  {/* Sort Dropdown - Mobile */}
-                  {showMobileSortDropdown && (
-                    <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
-                      <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
-                          Sort by
-                        </div>
-                        {sortOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMobileSortOptionClick(option.value);
-                            }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                              sortBy === option.value 
-                                ? 'text-content-primary bg-surface-hover' 
-                                : 'text-content-secondary'
-                            }`}
-                          >
-                            <span>{option.label}</span>
-                            {sortBy === option.value && (
-                              <span className="text-content-muted">
-                                {sortDirection === 'asc' 
-                                  ? <ArrowUp size={14} /> 
-                                  : <ArrowDown size={14} />
-                                }
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-               {/* View Toggle - Desktop only */}
-                {!isAdminMode && (
-                <div className="hidden lg:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
-                  <div className="relative group">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-lg transition-colors ${
-                        viewMode === 'grid'
-                          ? 'bg-primary text-white'
-                          : 'text-secondary hover:text-secondary-hover'
-                      }`}
-                    >
-                      <Grid3X3 size={16} />
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">Grid View</span>
-                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-                    </div>
-                  </div>
-                  
-                  <div className="relative group">
-                    <button
-                      onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-lg transition-colors ${
-                        viewMode === 'list'
-                          ? 'bg-primary text-white'
-                          : 'text-secondary hover:text-secondary-hover'
-                      }`}
-                    >
-                      <List size={16} />
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">List View</span>
-                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-                    </div>
-                  </div>
-
-                  {/* Compact/Detailed Toggle */}
-                  <div className="h-6 w-px bg-border mx-1"></div>
-                  <div className="relative group">
-                    <button
-                      onClick={() => setIsCompactView(!isCompactView)}
-                      className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
-                    >
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex gap-0.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                          <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                        </div>
-                        <div className="flex gap-0.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                          <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
-                        </div>
-                      </div>
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-                    </div>
-                  </div>
-                </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Action Buttons - Desktop */}
-                <div className="hidden lg:flex items-center gap-2">
-                  <div className="relative group">
-                    <button
-                      onClick={() => setIsPlanningModalOpen(true)}
-                      className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
-                    >
-                      <Users className="h-4 w-4" />
-                      <span>Staff Planning</span>
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">Staff Planning</span>
-                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">P</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button
-                      onClick={() => setIsVacationRequestModalOpen(true)}
-                      className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      <span>Vacation Calendar</span>
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">Vacation Calendar</span>
-                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">K</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-                    </div>
-                  </div>
-
-                  <div className="relative group">
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
-                    >
-                      <Plus size={18} />
-                      <span>Create Staff</span>
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">Create Staff</span>
-                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Action Buttons */}
-            <div className="lg:hidden flex gap-2 mb-4">
-              <button
-                onClick={() => setIsPlanningModalOpen(true)}
-                className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
-              >
-                <Users className="h-4 w-4" />
-                <span>Planning</span>
-              </button>
-              <button
-                onClick={() => setIsVacationRequestModalOpen(true)}
-                className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
-              >
-                <Calendar className="h-4 w-4" />
-                <span>Vacation</span>
-              </button>
-            </div>
-
-            {/* Search Bar with Inline Filter Chips */}
-            <div className="mb-4" ref={searchDropdownRef}>
-              <div className="relative">
-                <div 
-                  className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
-                  onClick={() => searchInputRef.current?.focus()}
-                >
-                  <Search className="text-content-muted flex-shrink-0" size={16} />
-                  
-                  {/* Filter Chips */}
-                  {staffFilters.map((filter) => (
-                    <div 
-                      key={filter.staffId}
-                      className="flex items-center gap-1.5 bg-secondary/20 border border-secondary/40 rounded-lg px-2 py-1 text-sm"
-                    >
-                      <div className="w-5 h-5 rounded bg-secondary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                        {filter.staffName.split(' ')[0]?.charAt(0)}{filter.staffName.split(' ')[1]?.charAt(0) || ''}
-                      </div>
-                      <span className="text-content-primary text-xs whitespace-nowrap">{filter.staffName}</span>
+                    {/* Sort Button - Mobile: next to title */}
+                    <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRemoveFilter(filter.staffId);
+                          setShowMobileSortDropdown(!showMobileSortDropdown);
                         }}
-                        className="p-0.5 hover:bg-secondary/30 rounded transition-colors"
+                        className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                       >
-                        <X size={12} className="text-secondary hover:text-secondary-hover" />
+                        {getSortIcon()}
+                        <span>{currentSortLabel}</span>
                       </button>
-                    </div>
-                  ))}
-                  
-                  {/* Search Input */}
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder={staffFilters.length > 0 ? "Add more..." : "Search staff..."}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSearchDropdown(true);
-                    }}
-                    onFocus={() => searchQuery && setShowSearchDropdown(true)}
-                    onKeyDown={handleSearchKeyDown}
-                    className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
-                  />
-                  
-                  {/* Clear All Button */}
-                  {staffFilters.length > 0 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setStaffFilters([]);
-                      }}
-                      className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                      title="Clear all filters"
-                    >
-                      <X size={14} className="text-secondary hover:text-secondary-hover" />
-                    </button>
-                  )}
-                </div>
-                
-                {/* Autocomplete Dropdown */}
-                {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-                    {getSearchSuggestions().map((staff) => (
-                      <button
-                        key={staff.id}
-                        onClick={() => handleSelectStaff(staff)}
-                        className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left"
-                      >
-                        {staff.img ? (
-                          <img 
-                            src={staff.img} 
-                            alt={`${staff.firstName} ${staff.lastName}`} 
-                            className="w-8 h-8 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-white text-xs font-semibold">
-                            {staff.firstName?.charAt(0)}{staff.lastName?.charAt(0)}
+
+                      {/* Sort Dropdown - Mobile */}
+                      {showMobileSortDropdown && (
+                        <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
+                          <div className="py-1">
+                            <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
+                              Sort by
+                            </div>
+                            {sortOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMobileSortOptionClick(option.value);
+                                }}
+                                className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value
+                                  ? 'text-content-primary bg-surface-hover'
+                                  : 'text-content-secondary'
+                                  }`}
+                              >
+                                <span>{option.label}</span>
+                                {sortBy === option.value && (
+                                  <span className="text-content-muted">
+                                    {sortDirection === 'asc'
+                                      ? <ArrowUp size={14} />
+                                      : <ArrowDown size={14} />
+                                    }
+                                  </span>
+                                )}
+                              </button>
+                            ))}
                           </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-content-primary truncate">{staff.firstName} {staff.lastName}</p>
-                          <p className="text-xs text-content-faint truncate">{staff.role}</p>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                
-                {/* No results message */}
-                {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                    <p className="text-sm text-content-faint text-center">No staff found</p>
-                  </div>
-                )}
-              </div>
-            </div>
+                      )}
+                    </div>
 
-            {/* Filters Section - Collapsible */}
-            <div className="mb-4 sm:mb-6">
-              {/* Filters Header Row */}
-              <div className="flex items-center justify-between mb-2">
-                <button
-                  onClick={() => setFiltersExpanded(!filtersExpanded)}
-                  className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
-                >
-                  <Filter size={14} />
-                  <span className="text-xs sm:text-sm font-medium">Filters</span>
-                  <ChevronDown 
-                    size={14} 
-                    className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
-                  />
-                  {!filtersExpanded && (filterRole !== 'all') && (
-                    <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                      {filterRole !== 'all' ? 1 : 0}
-                    </span>
-                  )}
-                </button>
-
-                {/* Sort Controls - Desktop only */}
-                <div className="hidden lg:block relative" ref={sortDropdownRef}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSortDropdown(!showSortDropdown);
-                    }}
-                    className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
-                  >
-                    {getSortIcon()}
-                    <span>{currentSortLabel}</span>
-                  </button>
-
-                  {showSortDropdown && (
-                    <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
-                      <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
-                          Sort by
-                        </div>
-                        {sortOptions.map((option) => (
+                    {/* View Toggle - Desktop only */}
+                    {!isAdminMode && (
+                      <div className="hidden lg:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
+                        <div className="relative group">
                           <button
-                            key={option.value}
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
+                              ? 'bg-primary text-white'
+                              : 'text-secondary hover:text-secondary-hover'
+                              }`}
+                          >
+                            <Grid3X3 size={16} />
+                          </button>
+
+                          {/* Tooltip */}
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                            <span className="font-medium">Grid View</span>
+                            <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                          </div>
+                        </div>
+
+                        <div className="relative group">
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
+                              ? 'bg-primary text-white'
+                              : 'text-secondary hover:text-secondary-hover'
+                              }`}
+                          >
+                            <List size={16} />
+                          </button>
+
+                          {/* Tooltip */}
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                            <span className="font-medium">List View</span>
+                            <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                          </div>
+                        </div>
+
+                        {/* Compact/Detailed Toggle */}
+                        <div className="h-6 w-px bg-border mx-1"></div>
+                        <div className="relative group">
+                          <button
+                            onClick={() => setIsCompactView(!isCompactView)}
+                            className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex gap-0.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                                <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                              </div>
+                              <div className="flex gap-0.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                                <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-faint'}`}></div>
+                              </div>
+                            </div>
+                          </button>
+
+                          {/* Tooltip */}
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                            <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Action Buttons - Desktop */}
+                    <div className="hidden lg:flex items-center gap-2">
+                      <div className="relative group">
+                        <button
+                          onClick={() => setIsPlanningModalOpen(true)}
+                          className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
+                        >
+                          <Users className="h-4 w-4" />
+                          <span>Staff Planning</span>
+                        </button>
+
+                        {/* Tooltip */}
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                          <span className="font-medium">Staff Planning</span>
+                          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">P</span>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                        </div>
+                      </div>
+
+                      <div className="relative group">
+                        <button
+                          onClick={() => setIsVacationRequestModalOpen(true)}
+                          className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
+                        >
+                          <Calendar className="h-4 w-4" />
+                          <span>Vacation Calendar</span>
+                        </button>
+
+                        {/* Tooltip */}
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                          <span className="font-medium">Vacation Calendar</span>
+                          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">K</span>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                        </div>
+                      </div>
+
+                      <div className="relative group">
+                        <button
+                          onClick={() => setIsModalOpen(true)}
+                          className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <Plus size={18} />
+                          <span>Create Staff</span>
+                        </button>
+
+                        {/* Tooltip */}
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                          <span className="font-medium">Create Staff</span>
+                          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
+                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Action Buttons */}
+                <div className="lg:hidden flex gap-2 mb-4">
+                  <button
+                    onClick={() => setIsPlanningModalOpen(true)}
+                    className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Planning</span>
+                  </button>
+                  <button
+                    onClick={() => setIsVacationRequestModalOpen(true)}
+                    className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>Vacation</span>
+                  </button>
+                </div>
+
+                {/* Search Bar with Inline Filter Chips */}
+                <div className="mb-4" ref={searchDropdownRef}>
+                  <div className="relative">
+                    <div
+                      className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
+                      onClick={() => searchInputRef.current?.focus()}
+                    >
+                      <Search className="text-content-muted flex-shrink-0" size={16} />
+
+                      {/* Filter Chips */}
+                      {staffFilters.map((filter) => (
+                        <div
+                          key={filter.staffId}
+                          className="flex items-center gap-1.5 bg-secondary/20 border border-secondary/40 rounded-lg px-2 py-1 text-sm"
+                        >
+                          <div className="w-5 h-5 rounded bg-secondary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                            {filter.staffName.split(' ')[0]?.charAt(0)}{filter.staffName.split(' ')[1]?.charAt(0) || ''}
+                          </div>
+                          <span className="text-content-primary text-xs whitespace-nowrap">{filter.staffName}</span>
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleSortOptionClick(option.value);
+                              handleRemoveFilter(filter.staffId);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                              sortBy === option.value 
-                                ? 'text-content-primary bg-surface-hover' 
-                                : 'text-content-secondary'
-                            }`}
+                            className="p-0.5 hover:bg-secondary/30 rounded transition-colors"
                           >
-                            <span>{option.label}</span>
-                            {sortBy === option.value && (
-                              <span className="text-content-muted">
-                                {sortDirection === 'asc' 
-                                  ? <ArrowUp size={14} /> 
-                                  : <ArrowDown size={14} />
-                                }
-                              </span>
+                            <X size={12} className="text-secondary hover:text-secondary-hover" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Search Input */}
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder={staffFilters.length > 0 ? "Add more..." : "Search staff..."}
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setShowSearchDropdown(true);
+                        }}
+                        onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                        onKeyDown={handleSearchKeyDown}
+                        className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
+                      />
+
+                      {/* Clear All Button */}
+                      {staffFilters.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStaffFilters([]);
+                          }}
+                          className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
+                          title="Clear all filters"
+                        >
+                          <X size={14} className="text-secondary hover:text-secondary-hover" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Autocomplete Dropdown */}
+                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+                        {getSearchSuggestions().map((staff) => (
+                          <button
+                            key={staff.id}
+                            onClick={() => handleSelectStaff(staff)}
+                            className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left"
+                          >
+                            {staff.img ? (
+                              <img
+                                src={staff.img}
+                                alt={`${staff.firstName} ${staff.lastName}`}
+                                className="w-8 h-8 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-white text-xs font-semibold">
+                                {staff.firstName?.charAt(0)}{staff.lastName?.charAt(0)}
+                              </div>
                             )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-content-primary truncate">{staff.firstName} {staff.lastName}</p>
+                              <p className="text-xs text-content-faint truncate">{staff.role}</p>
+                            </div>
                           </button>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+                    )}
 
-              {/* Filter Pills - Collapsible */}
-              <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="flex flex-wrap gap-1.5 sm:gap-3">
-                  {/* Role Filter Pills */}
-                  <button
-                    onClick={() => setFilterRole('all')}
-                    className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                      filterRole === 'all'
-                        ? "bg-primary text-white"
-                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                    }`}
-                  >
-                    All Roles ({staffMembers.length})
-                  </button>
-                  {uniqueRoles.map(role => (
+                    {/* No results message */}
+                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                        <p className="text-sm text-content-faint text-center">No staff found</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filters Section - Collapsible */}
+                <div className="mb-4 sm:mb-6">
+                  {/* Filters Header Row */}
+                  <div className="flex items-center justify-between mb-2">
                     <button
-                      key={role}
-                      onClick={() => setFilterRole(role)}
-                      className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                        filterRole === role
+                      onClick={() => setFiltersExpanded(!filtersExpanded)}
+                      className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
+                    >
+                      <Filter size={14} />
+                      <span className="text-xs sm:text-sm font-medium">Filters</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+                      />
+                      {!filtersExpanded && (filterRole !== 'all') && (
+                        <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                          {filterRole !== 'all' ? 1 : 0}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Sort Controls - Desktop only */}
+                    <div className="hidden lg:block relative" ref={sortDropdownRef}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowSortDropdown(!showSortDropdown);
+                        }}
+                        className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+                      >
+                        {getSortIcon()}
+                        <span>{currentSortLabel}</span>
+                      </button>
+
+                      {showSortDropdown && (
+                        <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
+                          <div className="py-1">
+                            <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
+                              Sort by
+                            </div>
+                            {sortOptions.map((option) => (
+                              <button
+                                key={option.value}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSortOptionClick(option.value);
+                                }}
+                                className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value
+                                  ? 'text-content-primary bg-surface-hover'
+                                  : 'text-content-secondary'
+                                  }`}
+                              >
+                                <span>{option.label}</span>
+                                {sortBy === option.value && (
+                                  <span className="text-content-muted">
+                                    {sortDirection === 'asc'
+                                      ? <ArrowUp size={14} />
+                                      : <ArrowDown size={14} />
+                                    }
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Filter Pills - Collapsible */}
+                  <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-3">
+                      {/* Role Filter Pills */}
+                      <button
+                        onClick={() => setFilterRole('all')}
+                        className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterRole === 'all'
                           ? "bg-primary text-white"
                           : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                      }`}
-                    >
-                      {role}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Staff List/Grid View */}
-            <div className="open_sans_font">
-              {viewMode === "list" ? (
-                // LIST VIEW
-                <div className="bg-surface-card rounded-xl overflow-hidden">
-                  {/* Table Header - Desktop only */}
-                  <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border-subtle text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
-                    <div className="col-span-3">Staff</div>
-                    <div className="col-span-2">Role</div>
-                    <div className="col-span-2">Username</div>
-                    <div className="col-span-2">About</div>
-                    <div className="col-span-3 text-right">Actions</div>
-                  </div>
-                  
-                  {filteredAndSortedStaff().length > 0 ? (
-                    filteredAndSortedStaff().map((staff, index) => (
-                      <div 
-                        key={staff.id}
-                        className={`group hover:bg-surface-hover transition-colors ${
-                          index !== filteredAndSortedStaff().length - 1 ? 'border-b border-border-subtle' : ''
-                        }`}
+                          }`}
                       >
-                        {/* Desktop Table Row */}
-                        <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
-                          {/* Staff Info */}
-                          <div className="col-span-3 flex items-center gap-3 min-w-0">
-                            <div className="relative flex-shrink-0">
-                              {staff.img ? (
-                                <img
-                                  src={staff.img}
-                                  alt={`${staff.firstName} ${staff.lastName}`}
-                                  className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-xl object-cover`}
-                                />
-                              ) : (
-                                <InitialsAvatar 
-                                  firstName={staff.firstName} 
-                                  lastName={staff.lastName} 
-                                  size={isCompactView ? "sm" : "lg"}
-                                  isStaff={true}
-                                />
-                              )}
-                              <BirthdayBadge 
-                                show={isBirthday(staff.dateOfBirth)} 
-                                dateOfBirth={staff.dateOfBirth}
-                                size={isCompactView ? "sm" : "md"}
-                                withTooltip={true}
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                  {staff.firstName} {staff.lastName}
-                                </span>
-                                <StaffColorIndicator color={staff.color} />
-                              </div>
-                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint truncate block`}>
-                                {staff.email}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Role */}
-                          <div className="col-span-2">
-                            <RoleTag role={staff.role} compact={isCompactView} />
-                          </div>
-                          
-                          {/* Username */}
-                          <div className="col-span-2">
-                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted truncate block`}>
-                              {staff.username || "—"}
-                            </span>
-                          </div>
-                          
-                          {/* About */}
-                          <div className="col-span-2">
-                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted line-clamp-2`}>
-                              {staff.description || staff.about || "—"}
-                            </span>
-                          </div>
-                          
-                          {/* Actions */}
-                          <div className="col-span-3 flex items-center justify-end gap-0.5">
-                            {!isAdminMode && (
-  <button
-    onClick={() => handleChatClick(staff)}
-    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-    title="Chat"
-  >
-    <MessageCircle size={isCompactView ? 16 : 18} />
-  </button>
-)}
-                            <div className="relative">
-                            <button
-                              onClick={() => handleDocumentClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                              title="Documents"
-                            >
-                              <FileText size={isCompactView ? 16 : 18} />
-                            </button>
-                            <IconBadge count={(staff.documents || []).length} />
-                            </div>
-                            <button
-                              onClick={() => handleVacationContingentClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                              title="Vacation Contingent"
-                            >
-                              <TbPlusMinus size={isCompactView ? 16 : 18} />
-                            </button>
-                            <button
-                              onClick={() => handleHistoryClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                              title="History"
-                            >
-                              <History size={isCompactView ? 16 : 18} />
-                            </button>
-                            <button
-                              onClick={() => handleViewDetails(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                              title="View Details"
-                            >
-                              <Eye size={isCompactView ? 16 : 18} />
-                            </button>
-                            <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
-                            <button
-                              onClick={() => handleEdit(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                              title="Edit"
-                            >
-                              <Pencil size={isCompactView ? 16 : 18} />
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {/* Mobile Row */}
-                        <div className="lg:hidden">
-                          <div 
-                            className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
-                            onClick={() => setExpandedMobileRowId(expandedMobileRowId === staff.id ? null : staff.id)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="relative flex-shrink-0">
-                                {staff.img ? (
-                                  <img
-                                    src={staff.img}
-                                    alt={`${staff.firstName} ${staff.lastName}`}
-                                    className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-xl object-cover`}
-                                  />
-                                ) : (
-                                  <InitialsAvatar 
-                                    firstName={staff.firstName} 
-                                    lastName={staff.lastName} 
-                                    size={isCompactView ? "sm" : "md"}
-                                    isStaff={true}
-                                  />
-                                )}
-                                <BirthdayBadge 
-                                  show={isBirthday(staff.dateOfBirth)} 
-                                  dateOfBirth={staff.dateOfBirth}
-                                  size="sm"
-                                  withTooltip={true}
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
-                                    {staff.firstName} {staff.lastName}
-                                  </span>
-                                  <StaffColorIndicator color={staff.color} />
-                                </div>
-                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                  <RoleTag role={staff.role} compact={true} />
-                                </div>
-                              </div>
-                              
-                              <div className="flex-shrink-0 p-1">
-                                <ChevronDown 
-                                  size={18} 
-                                  className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === staff.id ? 'rotate-180' : ''}`} 
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Expandable Actions Panel */}
-                          <div 
-                            className={`overflow-hidden transition-all duration-200 ease-in-out ${
-                              expandedMobileRowId === staff.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
+                        All Roles ({staffMembers.length})
+                      </button>
+                      {uniqueRoles.map(role => (
+                        <button
+                          key={role}
+                          onClick={() => setFilterRole(role)}
+                          className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterRole === role
+                            ? "bg-primary text-white"
+                            : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                             }`}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Staff List/Grid View */}
+                <div className="open_sans_font">
+                  {viewMode === "list" ? (
+                    // LIST VIEW
+                    <div className="bg-surface-card rounded-xl overflow-hidden">
+                      {/* Table Header - Desktop only */}
+                      <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border-subtle text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
+                        <div className="col-span-3">Staff</div>
+                        <div className="col-span-2">Role</div>
+                        <div className="col-span-2">Username</div>
+                        <div className="col-span-2">About</div>
+                        <div className="col-span-3 text-right">Actions</div>
+                      </div>
+
+                      {filteredAndSortedStaff().length > 0 ? (
+                        filteredAndSortedStaff().map((staff, index) => (
+                          <div
+                            key={staff.id}
+                            className={`group hover:bg-surface-hover transition-colors ${index !== filteredAndSortedStaff().length - 1 ? 'border-b border-border-subtle' : ''
+                              }`}
                           >
-                            <div className="px-3 pb-3 pt-1">
-                              <div className="bg-surface-dark rounded-xl p-2">
-                                <div className="grid grid-cols-4 gap-1">
-                                  {!isAdminMode && (
-  <button
-    onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
-    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-  >
-    <MessageCircle size={18} />
-    <span className="text-[10px]">Chat</span>
-  </button>
-)}
-                                  <div className="relative">
+                            {/* Desktop Table Row */}
+                            <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
+                              {/* Staff Info */}
+                              <div className="col-span-3 flex items-center gap-3 min-w-0">
+                                <div className="relative flex-shrink-0">
+                                  {staff.img ? (
+                                    <img
+                                      src={staff.img}
+                                      alt={`${staff.firstName} ${staff.lastName}`}
+                                      className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-xl object-cover`}
+                                    />
+                                  ) : (
+                                    <InitialsAvatar
+                                      firstName={staff.firstName}
+                                      lastName={staff.lastName}
+                                      size={isCompactView ? "sm" : "lg"}
+                                      isStaff={true}
+                                    />
+                                  )}
+                                  <BirthdayBadge
+                                    show={isBirthday(staff.dateOfBirth)}
+                                    dateOfBirth={staff.dateOfBirth}
+                                    size={isCompactView ? "sm" : "md"}
+                                    withTooltip={true}
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                      {staff.firstName} {staff.lastName}
+                                    </span>
+                                    <StaffColorIndicator color={staff.color} />
+                                  </div>
+                                  <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint truncate block`}>
+                                    {staff.email}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Role */}
+                              <div className="col-span-2">
+                                <RoleTag role={staff.role} compact={isCompactView} />
+                              </div>
+
+                              {/* Username */}
+                              <div className="col-span-2">
+                                <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted truncate block`}>
+                                  {staff.username || "—"}
+                                </span>
+                              </div>
+
+                              {/* About */}
+                              <div className="col-span-2">
+                                <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted line-clamp-2`}>
+                                  {staff.description || staff.about || "—"}
+                                </span>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="col-span-3 flex items-center justify-end gap-0.5">
+                                {!isAdminMode && (
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); handleDocumentClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                    onClick={() => handleChatClick(staff)}
+                                    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                                    title="Chat"
                                   >
-                                    <FileText size={18} />
-                                    <span className="text-[10px]">Docs</span>
+                                    <MessageCircle size={isCompactView ? 16 : 18} />
+                                  </button>
+                                )}
+                                <div className="relative">
+                                  <button
+                                    onClick={() => handleDocumentClick(staff)}
+                                    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                                    title="Documents"
+                                  >
+                                    <FileText size={isCompactView ? 16 : 18} />
                                   </button>
                                   <IconBadge count={(staff.documents || []).length} />
-                                  </div>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleVacationContingentClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <TbPlusMinus size={18} />
-                                    <span className="text-[10px]">Vacation</span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleHistoryClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <History size={18} />
-                                    <span className="text-[10px]">History</span>
-                                  </button>
-                                </div>
-                                <div className="grid grid-cols-2 gap-1 mt-1">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleViewDetails(staff); }}
-                                    className="flex items-center justify-center gap-2 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <Eye size={18} />
-                                    <span className="text-xs">View Details</span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleEdit(staff); }}
-                                    className="flex items-center justify-center gap-2 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <Pencil size={18} />
-                                    <span className="text-xs">Edit Staff</span>
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-content-muted text-sm">No staff members found.</p>
-                    </div>
-                  )}
-                </div>
-              ) : // GRID VIEW
-                isCompactView ? (
-                  // COMPACT GRID VIEW
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                    {filteredAndSortedStaff().length > 0 ? (
-                      filteredAndSortedStaff().map((staff) => (
-                        <div 
-                          key={staff.id}
-                          className="bg-surface-card rounded-xl hover:bg-surface-hover transition-colors group relative overflow-hidden"
-                        >
-                          <div className="p-3 pt-4">
-                            {/* Avatar & Name */}
-                            <div className="flex flex-col items-center mb-2">
-                              {staff.img ? (
-                                <img
-                                  src={staff.img}
-                                  alt={`${staff.firstName} ${staff.lastName}`}
-                                  className="w-12 h-12 rounded-xl object-cover mb-2"
-                                />
-                              ) : (
-                                <InitialsAvatar 
-                                  firstName={staff.firstName} 
-                                  lastName={staff.lastName} 
-                                  size="lg"
-                                  className="mb-2"
-                                />
-                              )}
-                              <div className="text-center w-full min-w-0">
-                                <p className="text-content-primary font-medium text-sm leading-tight truncate">
-                                  {staff.firstName}
-                                </p>
-                                <p className="text-content-faint text-xs truncate">
-                                  {staff.lastName}
-                                </p>
-                                {staff.username && (
-                                  <p className="text-content-faint text-xs truncate">
-                                    {staff.username}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Role */}
-                            <div className="flex justify-center mb-2">
-                              <RoleTag role={staff.role} compact={true} />
-                            </div>
-
-                            {/* Action buttons */}
-                            <div className="space-y-1 bg-surface-dark rounded-lg p-1.5">
-                              <div className="grid grid-cols-4 gap-1">
-                               {!isAdminMode && (
-  <button
-    onClick={() => handleChatClick(staff)}
-    className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-    title="Chat"
-  >
-    <MessageCircle size={14} />
-  </button>
-)}
-                                <div className="relative flex items-center justify-center">
-                                <button
-                                  onClick={() => handleDocumentClick(staff)}
-                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                  title="Documents"
-                                >
-                                  <FileText size={14} />
-                                </button>
-                                <IconBadge count={(staff.documents || []).length} />
                                 </div>
                                 <button
                                   onClick={() => handleVacationContingentClick(staff)}
-                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                  title="Vacation"
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+                                  title="Vacation Contingent"
                                 >
-                                  <TbPlusMinus size={14} />
+                                  <TbPlusMinus size={isCompactView ? 16 : 18} />
                                 </button>
                                 <button
                                   onClick={() => handleHistoryClick(staff)}
-                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
                                   title="History"
                                 >
-                                  <History size={14} />
+                                  <History size={isCompactView ? 16 : 18} />
                                 </button>
-                              </div>
-                              <div className="grid grid-cols-2 gap-1">
                                 <button
                                   onClick={() => handleViewDetails(staff)}
-                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
                                   title="View Details"
                                 >
-                                  <Eye size={14} />
+                                  <Eye size={isCompactView ? 16 : 18} />
                                 </button>
+                                <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border/50 mx-1`} />
                                 <button
                                   onClick={() => handleEdit(staff)}
-                                  className="p-1.5 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
                                   title="Edit"
                                 >
-                                  <Pencil size={14} />
+                                  <Pencil size={isCompactView ? 16 : 18} />
                                 </button>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 col-span-full">
-                        <p className="text-content-muted text-sm">No staff members found.</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  // DETAILED GRID VIEW
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredAndSortedStaff().length > 0 ? (
-                      filteredAndSortedStaff().map((staff) => (
-                        <div
-                          key={staff.id}
-                          className="bg-surface-card rounded-xl relative p-4"
-                        >
-                          <div className="flex flex-col">
-                            <div className="flex flex-col items-center mb-4">
-                              <div className="relative mb-3">
-                                {staff.img ? (
-                                  <img
-                                    src={staff.img}
-                                    className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
-                                    alt={`${staff.firstName} ${staff.lastName}`}
-                                  />
-                                ) : (
-                                  <InitialsAvatar 
-                                    firstName={staff.firstName} 
-                                    lastName={staff.lastName} 
-                                    size="xl"
-                                    isStaff={true}
-                                  />
-                                )}
-                                <BirthdayBadge 
-                                  show={isBirthday(staff.dateOfBirth)} 
-                                  dateOfBirth={staff.dateOfBirth}
-                                  size="md"
-                                  withTooltip={true}
-                                />
+
+                            {/* Mobile Row */}
+                            <div className="lg:hidden">
+                              <div
+                                className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
+                                onClick={() => setExpandedMobileRowId(expandedMobileRowId === staff.id ? null : staff.id)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="relative flex-shrink-0">
+                                    {staff.img ? (
+                                      <img
+                                        src={staff.img}
+                                        alt={`${staff.firstName} ${staff.lastName}`}
+                                        className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-xl object-cover`}
+                                      />
+                                    ) : (
+                                      <InitialsAvatar
+                                        firstName={staff.firstName}
+                                        lastName={staff.lastName}
+                                        size={isCompactView ? "sm" : "md"}
+                                        isStaff={true}
+                                      />
+                                    )}
+                                    <BirthdayBadge
+                                      show={isBirthday(staff.dateOfBirth)}
+                                      dateOfBirth={staff.dateOfBirth}
+                                      size="sm"
+                                      withTooltip={true}
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                        {staff.firstName} {staff.lastName}
+                                      </span>
+                                      <StaffColorIndicator color={staff.color} />
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                      <RoleTag role={staff.role} compact={true} />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-shrink-0 p-1">
+                                    <ChevronDown
+                                      size={18}
+                                      className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === staff.id ? 'rotate-180' : ''}`}
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex flex-col items-center">
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-content-primary font-medium text-lg">
-                                    {staff.firstName} {staff.lastName}
-                                  </h3>
-                                  <StaffColorIndicator color={staff.color} />
+
+                              {/* Expandable Actions Panel */}
+                              <div
+                                className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === staff.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
+                                  }`}
+                              >
+                                <div className="px-3 pb-3 pt-1">
+                                  <div className="bg-surface-dark rounded-xl p-2">
+                                    <div className="grid grid-cols-4 gap-1">
+                                      {!isAdminMode && (
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
+                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                        >
+                                          <MessageCircle size={18} />
+                                          <span className="text-[10px]">Chat</span>
+                                        </button>
+                                      )}
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); handleDocumentClick(staff); }}
+                                          className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                        >
+                                          <FileText size={18} />
+                                          <span className="text-[10px]">Docs</span>
+                                        </button>
+                                        <IconBadge count={(staff.documents || []).length} />
+                                      </div>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleVacationContingentClick(staff); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <TbPlusMinus size={18} />
+                                        <span className="text-[10px]">Vacation</span>
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleHistoryClick(staff); }}
+                                        className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <History size={18} />
+                                        <span className="text-[10px]">History</span>
+                                      </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1 mt-1">
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleViewDetails(staff); }}
+                                        className="flex items-center justify-center gap-2 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <Eye size={18} />
+                                        <span className="text-xs">View Details</span>
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleEdit(staff); }}
+                                        className="flex items-center justify-center gap-2 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
+                                      >
+                                        <Pencil size={18} />
+                                        <span className="text-xs">Edit Staff</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-content-muted text-sm">No staff members found.</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : // GRID VIEW
+                    isCompactView ? (
+                      // COMPACT GRID VIEW
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                        {filteredAndSortedStaff().length > 0 ? (
+                          filteredAndSortedStaff().map((staff) => (
+                            <div
+                              key={staff.id}
+                              className="bg-surface-card rounded-xl hover:bg-surface-hover transition-colors group relative overflow-hidden"
+                            >
+                              <div className="p-3 pt-4">
+                                {/* Avatar & Name */}
+                                <div className="flex flex-col items-center mb-2">
+                                  {staff.img ? (
+                                    <img
+                                      src={staff.img}
+                                      alt={`${staff.firstName} ${staff.lastName}`}
+                                      className="w-12 h-12 rounded-xl object-cover mb-2"
+                                    />
+                                  ) : (
+                                    <InitialsAvatar
+                                      firstName={staff.firstName}
+                                      lastName={staff.lastName}
+                                      size="lg"
+                                      className="mb-2"
+                                    />
+                                  )}
+                                  <div className="text-center w-full min-w-0">
+                                    <p className="text-content-primary font-medium text-sm leading-tight truncate">
+                                      {staff.firstName}
+                                    </p>
+                                    <p className="text-content-faint text-xs truncate">
+                                      {staff.lastName}
+                                    </p>
+                                    {staff.username && (
+                                      <p className="text-content-faint text-xs truncate">
+                                        {staff.username}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 mt-2">
-                                  <RoleTag role={staff.role} />
+                                {/* Role */}
+                                <div className="flex justify-center mb-2">
+                                  <RoleTag role={staff.role} compact={true} />
                                 </div>
 
-                                <p className="text-content-muted text-sm mt-2 text-center">
-                                  {staff.email}
-                                </p>
-                                {staff.username && (
-                                  <p className="text-content-faint text-xs mt-1 text-center">
-                                    {staff.username}
+                                {/* Action buttons */}
+                                <div className="space-y-1 bg-surface-dark rounded-lg p-1.5">
+                                  <div className="grid grid-cols-4 gap-1">
+                                    {!isAdminMode && (
+                                      <button
+                                        onClick={() => handleChatClick(staff)}
+                                        className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Chat"
+                                      >
+                                        <MessageCircle size={14} />
+                                      </button>
+                                    )}
+                                    <div className="relative flex items-center justify-center">
+                                      <button
+                                        onClick={() => handleDocumentClick(staff)}
+                                        className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                        title="Documents"
+                                      >
+                                        <FileText size={14} />
+                                      </button>
+                                      <IconBadge count={(staff.documents || []).length} />
+                                    </div>
+                                    <button
+                                      onClick={() => handleVacationContingentClick(staff)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="Vacation"
+                                    >
+                                      <TbPlusMinus size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleHistoryClick(staff)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+                                      title="History"
+                                    >
+                                      <History size={14} />
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1">
+                                    <button
+                                      onClick={() => handleViewDetails(staff)}
+                                      className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
+                                      title="View Details"
+                                    >
+                                      <Eye size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEdit(staff)}
+                                      className="p-1.5 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
+                                      title="Edit"
+                                    >
+                                      <Pencil size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 col-span-full">
+                            <p className="text-content-muted text-sm">No staff members found.</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // DETAILED GRID VIEW
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredAndSortedStaff().length > 0 ? (
+                          filteredAndSortedStaff().map((staff) => (
+                            <div
+                              key={staff.id}
+                              className="bg-surface-card rounded-xl relative p-4"
+                            >
+                              <div className="flex flex-col">
+                                <div className="flex flex-col items-center mb-4">
+                                  <div className="relative mb-3">
+                                    {staff.img ? (
+                                      <img
+                                        src={staff.img}
+                                        className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
+                                        alt={`${staff.firstName} ${staff.lastName}`}
+                                      />
+                                    ) : (
+                                      <InitialsAvatar
+                                        firstName={staff.firstName}
+                                        lastName={staff.lastName}
+                                        size="xl"
+                                        isStaff={true}
+                                      />
+                                    )}
+                                    <BirthdayBadge
+                                      show={isBirthday(staff.dateOfBirth)}
+                                      dateOfBirth={staff.dateOfBirth}
+                                      size="md"
+                                      withTooltip={true}
+                                    />
+                                  </div>
+                                  <div className="flex flex-col items-center">
+                                    <div className="flex items-center gap-2">
+                                      <h3 className="text-content-primary font-medium text-lg">
+                                        {staff.firstName} {staff.lastName}
+                                      </h3>
+                                      <StaffColorIndicator color={staff.color} />
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <RoleTag role={staff.role} />
+                                    </div>
+
+                                    <p className="text-content-muted text-sm mt-2 text-center">
+                                      {staff.email}
+                                    </p>
+                                    {staff.username && (
+                                      <p className="text-content-faint text-xs mt-1 text-center">
+                                        {staff.username}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {(staff.description || staff.about) && (
+                                  <p className="text-content-muted text-sm text-center mb-4 line-clamp-2">
+                                    {staff.description || staff.about}
                                   </p>
                                 )}
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                  {!isAdminMode && (
+                                    <button
+                                      onClick={() => handleChatClick(staff)}
+                                      className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                      title="Start Chat"
+                                    >
+                                      <MessageCircle size={18} />
+                                    </button>
+                                  )}
+                                  <div className="relative">
+                                    <button
+                                      onClick={() => handleDocumentClick(staff)}
+                                      className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                      title="Documents"
+                                    >
+                                      <FileText size={18} />
+                                    </button>
+                                    <IconBadge count={(staff.documents || []).length} />
+                                  </div>
+                                  <button
+                                    onClick={() => handleVacationContingentClick(staff)}
+                                    className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                    title="Vacation Contingent"
+                                  >
+                                    <TbPlusMinus size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleHistoryClick(staff)}
+                                    className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                    title="History"
+                                  >
+                                    <History size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleViewDetails(staff)}
+                                    className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                    title="View Details"
+                                  >
+                                    <Eye size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleEdit(staff)}
+                                    className="p-2.5 text-primary hover:text-primary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
+                                    title="Edit"
+                                  >
+                                    <Pencil size={18} />
+                                  </button>
+                                </div>
                               </div>
                             </div>
-
-                            {(staff.description || staff.about) && (
-                              <p className="text-content-muted text-sm text-center mb-4 line-clamp-2">
-                                {staff.description || staff.about}
-                              </p>
-                            )}
-
-                            {/* Action Buttons */}
-                            <div className="flex flex-wrap gap-2 justify-center">
-                         {!isAdminMode && (
-  <button
-    onClick={() => handleChatClick(staff)}
-    className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-    title="Start Chat"
-  >
-    <MessageCircle size={18} />
-  </button>
-)}
-                              <div className="relative">
-                              <button
-                                onClick={() => handleDocumentClick(staff)}
-                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="Documents"
-                              >
-                                <FileText size={18} />
-                              </button>
-                              <IconBadge count={(staff.documents || []).length} />
-                              </div>
-                              <button
-                                onClick={() => handleVacationContingentClick(staff)}
-                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="Vacation Contingent"
-                              >
-                                <TbPlusMinus size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleHistoryClick(staff)}
-                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="History"
-                              >
-                                <History size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleViewDetails(staff)}
-                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleEdit(staff)}
-                                className="p-2.5 text-primary hover:text-primary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                title="Edit"
-                              >
-                                <Pencil size={18} />
-                              </button>
-                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 col-span-full">
+                            <p className="text-content-muted text-sm">No staff members found.</p>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                       <div className="text-center py-8 col-span-full">
-                        <p className="text-content-muted text-sm">No staff members found.</p>
-                       </div>
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
-            </div>
-            </>
+                </div>
+              </>
             )}
           </div>
         </div>

@@ -5,10 +5,12 @@ import DatePickerField from "../../components/shared/DatePickerField"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
 import { fetchAllMember } from "../../features/member/memberSlice"
+import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 
 export default function CheckIns() {
   const dispatch = useDispatch()
   const { members } = useSelector((state) => state.member)
+  const { leads } = useSelector((state) => state.leads)
   const { appointments } = useSelector((state) => state.appointments)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("upcoming")
@@ -30,6 +32,7 @@ export default function CheckIns() {
   useEffect(() => {
     dispatch(fetchAllAppointments())
     dispatch(fetchAllMember())
+    dispatch(fetchAllLeadsThunk())
   }, [dispatch])
 
   const [upcomingAppointments, setUpcomingAppointments] = useState([])
@@ -49,7 +52,7 @@ export default function CheckIns() {
           memberName: a.member
             ? `${a.member.firstName} ${a.member.lastName}`
             : a.lead
-              ? `Lead ${a.lead}`
+              ? `${a.lead.firstName} ${a.lead.lastName}`
               : a.note || 'Blocked Slot',
           appointmentType: a.serviceId?.name || 'N/A',
           scheduledTime: `${a.timeSlot.start} - ${a.timeSlot.end}`,

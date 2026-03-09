@@ -403,6 +403,7 @@ const allAppointments = async (req, res, next) => {
     try {
         const appointment = await AppointmentModel.find()
             .populate('member', 'firstName lastName')
+            .populate('lead', 'firstName lastName')
             .populate('studio', 'studioName')
             .populate('serviceId', 'name')
             .sort({ createdAt: -1 });

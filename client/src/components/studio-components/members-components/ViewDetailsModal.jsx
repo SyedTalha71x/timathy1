@@ -97,6 +97,28 @@ const ViewDetailsModal = ({
 
     return []
   }
+  const getRelations = () => {
+    if (!selectedMemberMain) return []
+
+    // If specialsNotes exists and is an array, return it
+    if (selectedMemberMain.relations && Array.isArray(selectedMemberMain.relations)) {
+      return selectedMemberMain.relations
+    }
+
+    // Convert old single-note format to array
+    if (selectedMemberMain.relations && selectedMemberMain.relations.trim()) {
+      return [{
+        id: 1,
+        entryType: selectedMemberMain.type,
+        name: selectedMemberMain.name,
+        relation: selectedMemberMain.relation === "custom" ? selectedMemberMain.customRelation : selectedMemberMain.relation,
+        category: selectedMemberMain.category,
+        memberId: selectedMemberMain.selectedMemberId?._id || new Date().toISOString(),
+      }]
+    }
+
+    return []
+  }
 
   // IMPORTANT: Update tab whenever initialTab changes
   useEffect(() => {
@@ -146,7 +168,7 @@ const ViewDetailsModal = ({
 
   const handleCopyTelephone = async () => {
     try {
-      await navigator.clipboard.writeText(selectedMemberMain.telephoneNumber || "");
+      await navigator.clipboard.writeText(selectedMemberMain.telephone || "");
       setCopiedTelephone(true);
       setTimeout(() => setCopiedTelephone(false), 2000);
     } catch (err) {
@@ -422,8 +444,8 @@ const ViewDetailsModal = ({
                   <div>
                     <p className="text-sm text-content-muted">Telephone Number</p>
                     <div className="flex items-center gap-3">
-                      <p>{selectedMemberMain.telephoneNumber || "-"}</p>
-                      {selectedMemberMain.telephoneNumber && (
+                      <p>{selectedMemberMain.telephone || "-"}</p>
+                      {selectedMemberMain.telephone && (
                         <button
                           onClick={handleCopyTelephone}
                           className="p-1 hover:bg-surface-button rounded transition-colors"
@@ -694,45 +716,74 @@ const ViewDetailsModal = ({
                     <div className="relative w-full">
                       <div className="absolute top-0 left-0 right-0 h-0.5 bg-content-muted"></div>
                       <div className="grid grid-cols-5 gap-4 pt-8">
-                        {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
-                          <div key={category} className="flex flex-col items-center space-y-4">
-                            <div className="w-0.5 h-8 bg-content-muted"></div>
-                            <div
-                              className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
-                                ? "bg-accent-yellow text-white"
-                                : category === "friendship"
-                                  ? "bg-accent-green text-white"
-                                  : category === "relationship"
-                                    ? "bg-accent-red text-white"
-                                    : category === "work"
-                                      ? "bg-accent-blue text-white"
-                                      : "border border-border text-content-secondary"
-                                }`}
-                            >
-                              {category}
-                            </div>
-                            <div className="space-y-2">
-                              {relations.map((relation) => (
-                                <div
-                                  key={relation.id}
-                                  className={`bg-surface-button rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-surface-button-hover transition-colors ${relation.type === "member" || relation.type === "lead"
-                                    ? "border border-primary/30"
-                                    : ""
-                                    }`}
-                                >
-                                  <div className="text-content-primary text-sm font-medium">{relation.name}</div>
-                                  <div className="text-content-muted text-xs">({relation.relation})</div>
-                                  <div className="bg-surface-dark text-content-secondary text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
-                                    {relation.type}
+                        {(() => {
+                          // Transform the relations array into a category-based object
+                          const relationsByCategory = {};
+
+                          if (selectedMemberMain.relations && Array.isArray(selectedMemberMain.relations)) {
+                            selectedMemberMain.relations.forEach(relation => {
+                              const category = relation.category || 'other';
+                              if (!relationsByCategory[category]) {
+                                relationsByCategory[category] = [];
+                              }
+                              relationsByCategory[category].push({
+                                id: relation._id,
+                                name: relation.name,
+                                relation: relation.relationType || relation.customRelation,
+                                type: relation.entryType
+                              });
+                            });
+                          }
+
+                          // Define all possible categories with empty arrays as fallbacks
+                          const categories = {
+                            family: relationsByCategory.family || [],
+                            friendship: relationsByCategory.friendship || [],
+                            relationship: relationsByCategory.relationship || [],
+                            work: relationsByCategory.work || [],
+                            other: relationsByCategory.other || []
+                          };
+
+                          return Object.entries(categories).map(([category, relations]) => (
+                            <div key={category} className="flex flex-col items-center space-y-4">
+                              <div className="w-0.5 h-8 bg-content-muted"></div>
+                              <div
+                                className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${category === "family"
+                                    ? "bg-accent-yellow text-white"
+                                    : category === "friendship"
+                                      ? "bg-accent-green text-white"
+                                      : category === "relationship"
+                                        ? "bg-accent-red text-white"
+                                        : category === "work"
+                                          ? "bg-accent-blue text-white"
+                                          : "border border-border text-content-secondary"
+                                  }`}
+                              >
+                                {category}
+                              </div>
+                              <div className="space-y-2">
+                                {relations.map((relation) => (
+                                  <div
+                                    key={relation.id}
+                                    className={`bg-surface-button rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-surface-button-hover transition-colors ${relation.type === "member" || relation.type === "lead"
+                                        ? "border border-primary/30"
+                                        : ""
+                                      }`}
+                                  >
+                                    <div className="text-content-primary text-sm font-medium">{relation.name}</div>
+                                    <div className="text-content-muted text-xs">({relation.relation})</div>
+                                    <div className="bg-surface-dark text-content-secondary text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
+                                      {relation.type}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
-                              {relations.length === 0 && (
-                                <div className="text-content-faint text-xs text-center">No relations</div>
-                              )}
+                                ))}
+                                {relations.length === 0 && (
+                                  <div className="text-content-faint text-xs text-center">No relations</div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -741,34 +792,63 @@ const ViewDetailsModal = ({
                 <div className="bg-surface-dark rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-content-primary mb-4">All Relations</h3>
                   <div className="space-y-4">
-                    {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
-                      <div key={category}>
-                        <h4 className="text-md font-medium text-content-secondary capitalize mb-2">{category}</h4>
-                        <div className="space-y-2 ml-4">
-                          {relations.length > 0 ? (
-                            relations.map((relation) => (
-                              <div
-                                key={relation.id}
-                                className={`flex items-center justify-between bg-surface-button rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
-                                  ? "cursor-pointer hover:bg-surface-button-hover border border-primary/30"
-                                  : ""
-                                  }`}
-                              >
-                                <div className="flex items-center flex-wrap gap-1.5">
-                                  <span className="text-content-primary font-medium">{relation.name}</span>
-                                  <span className="text-content-muted">- {relation.relation}</span>
-                                  <span className="bg-surface-dark text-content-secondary text-xs px-2 py-0.5 rounded capitalize">
-                                    {relation.type}
-                                  </span>
+                    {(() => {
+                      // Transform the relations array into a category-based object for the list view
+                      const relationsByCategory = {};
+
+                      if (selectedMemberMain.relations && Array.isArray(selectedMemberMain.relations)) {
+                        selectedMemberMain.relations.forEach(relation => {
+                          const category = relation.category || 'other';
+                          if (!relationsByCategory[category]) {
+                            relationsByCategory[category] = [];
+                          }
+                          relationsByCategory[category].push({
+                            id: relation._id,
+                            name: relation.name,
+                            relation: relation.relationType || relation.customRelation,
+                            type: relation.entryType
+                          });
+                        });
+                      }
+
+                      // Define all possible categories with empty arrays as fallbacks
+                      const categories = {
+                        family: relationsByCategory.family || [],
+                        friendship: relationsByCategory.friendship || [],
+                        relationship: relationsByCategory.relationship || [],
+                        work: relationsByCategory.work || [],
+                        other: relationsByCategory.other || []
+                      };
+
+                      return Object.entries(categories).map(([category, relations]) => (
+                        <div key={category}>
+                          <h4 className="text-md font-medium text-content-secondary capitalize mb-2">{category}</h4>
+                          <div className="space-y-2 ml-4">
+                            {relations.length > 0 ? (
+                              relations.map((relation) => (
+                                <div
+                                  key={relation.id}
+                                  className={`flex items-center justify-between bg-surface-button rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
+                                      ? "cursor-pointer hover:bg-surface-button-hover border border-primary/30"
+                                      : ""
+                                    }`}
+                                >
+                                  <div className="flex items-center flex-wrap gap-1.5">
+                                    <span className="text-content-primary font-medium">{relation.name}</span>
+                                    <span className="text-content-muted">- {relation.relation}</span>
+                                    <span className="bg-surface-dark text-content-secondary text-xs px-2 py-0.5 rounded capitalize">
+                                      {relation.type}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-content-faint text-sm">No {category} relations</p>
-                          )}
+                              ))
+                            ) : (
+                              <p className="text-content-faint text-sm">No {category} relations</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 </div>
               </div>

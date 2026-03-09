@@ -6,9 +6,10 @@ import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
-import { useDispatch } from "react-redux"
-import { memberUpdatedByStaff } from "../../../features/member/memberSlice"
-
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAllMember, memberUpdatedByStaff } from "../../../features/member/memberSlice"
+import { fetchAllLeadsThunk } from '../../../features/lead/leadSlice'
+import { createRelationThunk } from "../../../features/relation/relationSlice"
 // Initials Avatar Component - Uses primary color from theme
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
   const getInitials = () => {
@@ -188,7 +189,7 @@ const EditMemberModalMain = ({
   setEditingRelationsMain,
   newRelationMain,
   setNewRelationMain,
-  availableMembersLeadsMain,
+  // availableMembersLeadsMain,
   relationOptionsMain = {
     family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
     friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
@@ -203,6 +204,18 @@ const EditMemberModalMain = ({
   handleUnarchiveMemberMain,
 }) => {
   const dispatch = useDispatch();
+
+
+  //  safe initialization
+  const memberState = useSelector((state) => state.member) || {}
+  const leadsState = useSelector((state) => state.leads) || {}
+
+
+  const members = Array.isArray(memberState.members) ? memberState.members : []
+  const leads = Array.isArray(leadsState.leads) ? leadsState.leads : []
+
+
+
   const [activeTab, setActiveTab] = useState(editModalTabMain || "details")
   const [editingRelations, setEditingRelations] = useState(false)
   const [showCameraModal, setShowCameraModal] = useState(false)
@@ -210,7 +223,13 @@ const EditMemberModalMain = ({
   const specialNoteTextareaRef = useRef(null)
 
   // Local copy of relations for editing (only committed on save)
-  const [localRelations, setLocalRelations] = useState(null)
+  const [localRelations, setLocalRelations] = useState({
+    family: [],
+    friendship: [],
+    relationship: [],
+    work: [],
+    other: [],
+  })
 
   // Local copy of notes for editing (only committed on save)
   const [localNotes, setLocalNotes] = useState([])
@@ -249,7 +268,16 @@ const EditMemberModalMain = ({
     { id: 401, name: "Tom Wilson", type: "lead" },
   ]
 
-  const membersLeads = availableMembersLeadsMain?.length > 0 ? availableMembersLeadsMain : defaultAvailableMembers
+
+  // ================================================
+  // Leads and members Dispatch here before page load
+  // ================================================
+  useEffect(() => {
+    dispatch(fetchAllMember())
+    dispatch(fetchAllLeadsThunk())
+  }, [dispatch])
+
+
 
   useEffect(() => {
     if (isOpen) {
@@ -284,7 +312,7 @@ const EditMemberModalMain = ({
         endDate: "",
       })
 
-      if (memberRelationsMain[selectedMemberMain.id]) {
+      if (memberRelationsMain && memberRelationsMain[selectedMemberMain.id]) {
         setLocalRelations(JSON.parse(JSON.stringify(memberRelationsMain[selectedMemberMain.id])))
       } else {
         setLocalRelations({
@@ -420,37 +448,51 @@ const EditMemberModalMain = ({
     return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
   }
 
-  const handleAddRelation = (e) => {
+  // const handleAddRelation = async (e) => {
+  //   e.preventDefault()
+  //   e.stopPropagation()
+
+  //   const relation = {
+  //     id: Date.now(),
+  //     entryType: newRelation.type,
+  //     name: newRelation.name,
+  //     category: newRelation.category,
+  //     memberId: newRelation.selectedMemberId?._id,
+  //   }
+  //   setLocalRelations((prev => [relation, ...prev]))
+
+  //   setNewRelation({
+  //     name: "",
+  //     relation: "",
+  //     customRelation: "",
+  //     category: "family",
+  //     type: "manual",
+  //     selectedMemberId: null,
+  //   })
+
+  //   console.log('relation', relation)
+  //   // return dispatch(createRelationThunk(relation))
+
+  // }
+
+  const handleAddRelation = async (e) => {
     e.preventDefault()
     e.stopPropagation()
 
-    const finalRelation = newRelation.relation === "custom"
-      ? newRelation.customRelation
-      : newRelation.relation
-
-    if (!newRelation.name || !finalRelation) {
-      toast.error("Please fill in all fields")
-      return
+    const relation = {
+      id: Date.now(),
+      entryType: newRelation.type,
+      name: newRelation.name,
+      relation: newRelation.relation === "custom" ? newRelation.customRelation : newRelation.relation,
+      category: newRelation.category,
+      memberId: newRelation.selectedMemberId?._id,
     }
 
-    const relationId = Date.now()
-
-    setLocalRelations(prev => {
-      const updated = { ...prev }
-      if (!updated[newRelation.category]) {
-        updated[newRelation.category] = []
-      }
-      updated[newRelation.category] = [
-        ...updated[newRelation.category],
-        {
-          id: relationId,
-          name: newRelation.name,
-          relation: finalRelation,
-          type: newRelation.type,
-        }
-      ]
-      return updated
-    })
+    // Update the object structure
+    setLocalRelations(prev => ({
+      ...prev,
+      [newRelation.category]: [...(prev[newRelation.category] || []), relation]
+    }))
 
     setNewRelation({
       name: "",
@@ -458,10 +500,8 @@ const EditMemberModalMain = ({
       customRelation: "",
       category: "family",
       type: "manual",
-      selectedMemberId: null
+      selectedMemberId: null,
     })
-    setPersonSearchQuery("")
-    toast.success("Relation added")
   }
 
   const handleDeleteRelation = (category, relationId, e) => {
@@ -495,9 +535,22 @@ const EditMemberModalMain = ({
           : null,
       }))
 
+      const formattedRelations = Object.entries(localRelations).flatMap(([category, relations]) =>
+        relations.map(relation => ({
+          relationId: relation.id, // Keep the local ID for reference
+          category: category,
+          relationType: relation.relation,
+          relatedToId: relation.memberId || null, // If it's a member/lead, store their ID
+          name: relation.name, // For manual entries
+          entryType: relation.entryType || "manual", // 'manual', 'member', or 'lead'
+        }))
+      )
+
+
       const memberPayload = {
         ...editFormMain,
         specialsNotes: formattedNotes,
+        relations: formattedRelations
       }
 
       // Convert objects/arrays to JSON for backend if needed
@@ -518,6 +571,9 @@ const EditMemberModalMain = ({
         memberId: selectedMemberMain._id,
         updateMember: formDataToSend
       })).unwrap()
+
+      await dispatch(fetchAllMember());
+
       toast.success("Member updated successfully")
       onClose()
     } catch (err) {
@@ -549,7 +605,7 @@ const EditMemberModalMain = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
 
-      setFormData(prev => ({
+      setEditFormMain(prev => ({
         ...prev,
         img: file
       }))
@@ -584,6 +640,22 @@ const EditMemberModalMain = ({
   const handleRemoveImage = () => {
     setEditFormMain(prev => ({ ...prev, img: null }))
   }
+
+
+  const filteredMembers = members.filter((p) => {
+    if (!p || !p.firstName || !p.lastName) return false
+    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase()
+    return fullName.includes(personSearchQuery.toLowerCase())
+  })
+
+  const filteredLeads = leads.filter((p) => {
+    if (!p || !p.firstName || !p.lastName) return false
+    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase()
+    return fullName.includes(personSearchQuery.toLowerCase())
+  })
+
+
+
 
   if (!isOpen || !selectedMemberMain) return null
 
@@ -1120,12 +1192,52 @@ const EditMemberModalMain = ({
                           )}
                           {showPersonDropdown && personSearchQuery && (
                             <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                              {membersLeads.filter((p) => p.type === newRelation.type && p.name.toLowerCase().includes(personSearchQuery.toLowerCase())).map((person) => (
-                                <button key={person.id} type="button" onClick={() => { setNewRelation({ ...newRelation, selectedMemberId: person.id, name: person.name }); setPersonSearchQuery(""); setShowPersonDropdown(false) }} className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors">{person.name}</button>
-                              ))}
-                              {membersLeads.filter((p) => p.type === newRelation.type && p.name.toLowerCase().includes(personSearchQuery.toLowerCase())).length === 0 && (
+
+                              {newRelation.type === "member" &&
+                                filteredMembers.map((person) => (
+                                  <button
+                                    key={person._id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewRelation({
+                                        ...newRelation,
+                                        selectedMemberId: person._id,
+                                        name: `${person.firstName} ${person.lastName}`
+                                      })
+                                      setPersonSearchQuery("")
+                                      setShowPersonDropdown(false)
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
+                                  >
+                                    {person.firstName} {person.lastName}
+                                  </button>
+                                ))}
+
+                              {newRelation.type === "lead" &&
+                                filteredLeads.map((person) => (
+                                  <button
+                                    key={person._id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewRelation({
+                                        ...newRelation,
+                                        selectedMemberId: person._id,
+                                        name: `${person.firstName} ${person.lastName}`
+                                      })
+                                      setPersonSearchQuery("")
+                                      setShowPersonDropdown(false)
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
+                                  >
+                                    {person.firstName} {person.lastName}
+                                  </button>
+                                ))}
+
+                              {(newRelation.type === "member" && filteredMembers.length === 0) ||
+                                (newRelation.type === "lead" && filteredLeads.length === 0) ? (
                                 <div className="px-3 py-2 text-sm text-content-faint">No results found</div>
-                              )}
+                              ) : null}
+
                             </div>
                           )}
                         </div>
@@ -1178,7 +1290,7 @@ const EditMemberModalMain = ({
                 )}
 
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {selectedMemberMain && localRelations && Object.entries(localRelations).map(([category, relations]) =>
+                  {selectedMemberMain.relations && localRelations && Object.entries(localRelations).map(([category, relations]) =>
                     relations.map((relation) => (
                       <div key={relation.id} className="flex items-center justify-between bg-surface-dark rounded-lg px-3 py-2">
                         <div className="text-sm flex items-center flex-wrap gap-1.5">

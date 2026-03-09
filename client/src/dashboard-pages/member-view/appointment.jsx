@@ -420,7 +420,7 @@ const Appointments = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <h3 className="text-sm font-medium text-content-primary truncate">{appointment.service?.name}</h3>
+                          <h3 className="text-sm font-medium text-content-primary truncate">{appointment.serviceId?.name}</h3>
                           <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap capitalize ${
                             appointment.status === "confirmed" ? "bg-green-500/15 text-green-400"
                               : appointment.status === "completed" ? "bg-blue-500/15 text-blue-400"

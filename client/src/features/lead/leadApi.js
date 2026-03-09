@@ -7,6 +7,11 @@ export const createLead = async (leadData) => {
     return res.data
 }
 
+// update lead 
+export const updateLeadDataByStaff = async (leadId, leadData) => {
+    const res = await api.put(`/lead/staff/${leadId}`, leadData, { withCredentials: true })
+    return res.data
+}
 
 
 

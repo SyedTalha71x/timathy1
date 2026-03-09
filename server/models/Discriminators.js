@@ -44,7 +44,7 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
     specialsNotes: [{
         status: {
             type: String,
-            enum: ['contract_attempt', 'callback-request', 'interest', 'objection', 'personal_info', 'health', 'follow-up', 'general'],
+            enum: ['contract_attempt', 'callback_request', 'interest', 'objection', 'personal_info', 'health', 'follow_up', 'general'],
             default: 'general'
         },
         note: {
@@ -90,9 +90,43 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
     //     ref: 'BookTrial'
     // }],
     relations: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'relations',
+        entryType: {
+            type: String,
+            enum: ['manual', 'member', 'lead'],
+            default: 'manual'
+        },
+        name: {
+            type: String,
+            required: true
+        },
+        // ownerMemberId: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: 'member'
+        // },
+        memberId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'member'
+        },
+        leadId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'lead'
+        },
+        category: {
+            type: String,
+            enum: ['family', 'relationship', 'friendship', 'work', 'other'],
+            default: 'family'
+        },
+        relationType: {
+            type: String,
+        },
+        customRelation: {
+            type: String,
+        }
     }],
+    // relations: [{
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'relations'
+    // }],
     contract: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Contract',

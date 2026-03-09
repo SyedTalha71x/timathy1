@@ -6,6 +6,9 @@ import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAllMember } from "../../../features/member/memberSlice"
+import { fetchAllLeadsThunk, updateLeadByStaffThunk } from "../../../features/lead/leadSlice"
 
 // Note Status Options
 const NOTE_STATUSES = [
@@ -36,7 +39,7 @@ const EditLeadModal = ({
   leadData,
   memberRelationsLead,
   setMemberRelationsLead,
-  availableMembersLeads = [],
+  // availableMembersLeads = [],
   columns = [], // Added columns prop
   relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
@@ -47,17 +50,34 @@ const EditLeadModal = ({
   },
   initialTab = "details"
 }) => {
+  const dispatch = useDispatch()
+  // useSelector 
+  const { members } = useSelector((state) => state.member)
+  const { leads } = useSelector((state) => state.leads)
+
+  // ==============================
+  //  dispatch all member and leads
+  // ==============================
+  useEffect(() => {
+    dispatch(fetchAllMember())
+    dispatch(fetchAllLeadsThunk())
+  }, [dispatch])
+
+
+
+
+
   const [activeTab, setActiveTab] = useState(initialTab)
   const [editingRelationsLead, setEditingRelationsLead] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false)
   const [isTrainingGoalDropdownOpen, setIsTrainingGoalDropdownOpen] = useState(false)
-  const {countries, loading} = useCountries();
+  const { countries, loading } = useCountries();
   const specialNoteTextareaRef = useRef(null)
-  
+
   // Local copy of relations for editing (only committed on save)
   const [localRelations, setLocalRelations] = useState(null)
-  
+
   // Local copy of notes for editing (only committed on save)
   const [localNotes, setLocalNotes] = useState([])
   const [isAddingNote, setIsAddingNote] = useState(false)
@@ -70,7 +90,7 @@ const EditLeadModal = ({
     startDate: "",
     endDate: "",
   })
-  
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -144,7 +164,7 @@ const EditLeadModal = ({
     { id: 401, name: "Tom Wilson", type: "lead" },
   ]
 
-  const membersLeads = availableMembersLeads.length > 0 ? availableMembersLeads : defaultAvailableMembers
+  // const membersLeads = availableMembersLeads.length > 0 ? availableMembersLeads : defaultAvailableMembers
 
   useEffect(() => {
     if (isVisible) {
@@ -171,8 +191,9 @@ const EditLeadModal = ({
         country: leadData.country || "",
         details: leadData.details || "",
         trainingGoal: leadData.trainingGoal || "",
+
       })
-      
+
       // Initialize local notes copy (deep clone)
       // Support both old single note format and new array format
       if (leadData.notes && Array.isArray(leadData.notes)) {
@@ -191,7 +212,23 @@ const EditLeadModal = ({
       } else {
         setLocalNotes([])
       }
-      
+      if (leadData.relations && Array.isArray(leadData.relations)) {
+        setLocalRelations(JSON.parse(JSON.stringify(leadData.relations)))
+      } else if (leadData.relations && leadData.relations.category) {
+        // Convert old single note to new format
+        setLocalRelations([{
+          id: Date.now(),
+          status: "general",
+          note: leadData.specialNote.text,
+          isImportant: leadData.specialNote.isImportant || false,
+          startDate: leadData.specialNote.startDate || "",
+          endDate: leadData.specialNote.endDate || "",
+          createdAt: leadData.createdAt || new Date().toISOString(),
+        }])
+      } else {
+        setLocalNotes([])
+      }
+
       // Reset note form
       setIsAddingNote(false)
       setNewNote({
@@ -201,7 +238,7 @@ const EditLeadModal = ({
         startDate: "",
         endDate: "",
       })
-      
+
       // Initialize local relations copy (deep clone)
       if (memberRelationsLead[leadData.id]) {
         setLocalRelations(JSON.parse(JSON.stringify(memberRelationsLead[leadData.id])))
@@ -234,7 +271,7 @@ const EditLeadModal = ({
         setShowPersonDropdown(false)
       }
     }
-    
+
     if (showPersonDropdown) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -242,44 +279,44 @@ const EditLeadModal = ({
   }, [showPersonDropdown])
 
   // Note functions
-  const handleAddNote = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (!newNote.text.trim()) {
+  const handleAddNote = () => {
+    if (!newNote.note?.trim()) {
       toast.error("Please enter note text")
       return
     }
-    
+
     const note = {
       id: Date.now(),
-      status: newNote.status,
-      note: newNote.text.trim(),
+      status: newNote.status || "general",
+      note: newNote.note.trim(),
       isImportant: newNote.isImportant,
-      startDate: newNote.startDate || "",
-      endDate: newNote.endDate || "",
+      valid: {
+        from: newNote.startDate ? new Date(newNote.startDate) : null,
+        until: newNote.endDate ? new Date(newNote.endDate) : null,
+      },
       createdAt: new Date().toISOString(),
     }
-    
+
     setLocalNotes(prev => [note, ...prev])
+
     setNewNote({
       status: "general",
-      text: "",
+      note: "",
       isImportant: false,
-      startDate: "",
-      endDate: "",
+      startDate: null,
+      endDate: null,
     })
     setIsAddingNote(false)
     toast.success("Note added")
   }
-  
+
   const handleDeleteNote = (noteId, e) => {
     e.preventDefault()
     e.stopPropagation()
     setLocalNotes(prev => prev.filter(n => n.id !== noteId))
     toast.success("Note removed")
   }
-  
+
   const handleEditNoteClick = (note, e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -293,29 +330,29 @@ const EditLeadModal = ({
     })
     setIsAddingNote(true)
   }
-  
+
   const handleUpdateNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!newNote.text.trim()) {
       toast.error("Please enter note text")
       return
     }
-    
-    setLocalNotes(prev => prev.map(n => 
-      n.id === editingNoteId 
+
+    setLocalNotes(prev => prev.map(n =>
+      n.id === editingNoteId
         ? {
-            ...n,
-            status: newNote.status,
-            note: newNote.text.trim(),
-            isImportant: newNote.isImportant,
-            startDate: newNote.startDate || "",
-            endDate: newNote.endDate || "",
-          }
+          ...n,
+          status: newNote.status,
+          note: newNote.text.trim(),
+          isImportant: newNote.isImportant,
+          startDate: newNote.startDate || "",
+          endDate: newNote.endDate || "",
+        }
         : n
     ))
-    
+
     setNewNote({
       status: "general",
       note: "",
@@ -327,11 +364,11 @@ const EditLeadModal = ({
     setIsAddingNote(false)
     toast.success("Note updated")
   }
-  
+
   const getStatusInfo = (statusId) => {
     return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
   }
-  
+
   const formatNoteDate = (dateString) => {
     if (!dateString) return ""
     return new Date(dateString).toLocaleDateString("de-DE", {
@@ -343,39 +380,86 @@ const EditLeadModal = ({
     })
   }
 
-  const handleAddRelationLead = (e) => {
+  // const handleAddRelationLead = (e) => {
+  //   e.preventDefault()
+  //   e.stopPropagation()
+
+  //   // Determine the final relation value
+  //   const finalRelation = newRelationLead.relation === "custom" 
+  //     ? newRelationLead.customRelation 
+  //     : newRelationLead.relation
+
+  //   if (!newRelationLead.name || !finalRelation) {
+  //     toast.error("Please fill in all fields")
+  //     return
+  //   }
+
+  //   const relationId = Date.now()
+
+  //   // Update local relations copy (not global state)
+  //   setLocalRelations(prev => {
+  //     const updated = { ...prev }
+  //     if (!updated[newRelationLead.category]) {
+  //       updated[newRelationLead.category] = []
+  //     }
+  //     updated[newRelationLead.category] = [
+  //       ...updated[newRelationLead.category],
+  //       {
+  //         id: relationId,
+  //         name: newRelationLead.name,
+  //         relation: finalRelation,
+  //         type: newRelationLead.type,
+  //       }
+  //     ]
+  //     return updated
+  //   })
+
+  //   setNewRelationLead({
+  //     name: "",
+  //     relation: "",
+  //     customRelation: "",
+  //     category: "family",
+  //     type: "manual",
+  //     selectedMemberId: null
+  //   })
+  //   setPersonSearchQuery("")
+  //   toast.success("Relation added")
+  // }
+
+  const handleAddRelationLead = async (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     // Determine the final relation value
-    const finalRelation = newRelationLead.relation === "custom" 
-      ? newRelationLead.customRelation 
+    const finalRelation = newRelationLead.relation === "custom"
+      ? newRelationLead.customRelation
       : newRelationLead.relation
-    
+
     if (!newRelationLead.name || !finalRelation) {
       toast.error("Please fill in all fields")
       return
     }
 
-    const relationId = Date.now()
-    
-    // Update local relations copy (not global state)
-    setLocalRelations(prev => {
-      const updated = { ...prev }
-      if (!updated[newRelationLead.category]) {
-        updated[newRelationLead.category] = []
-      }
-      updated[newRelationLead.category] = [
-        ...updated[newRelationLead.category],
-        {
-          id: relationId,
-          name: newRelationLead.name,
-          relation: finalRelation,
-          type: newRelationLead.type,
-        }
-      ]
-      return updated
-    })
+    const relation = {
+      id: Date.now(),
+      entryType: newRelationLead.type || "manual",
+      name: newRelationLead.name,
+      // Store both formats - one for display, one for backend
+      relation: finalRelation, // For display in UI
+      relationType: finalRelation, // For backend
+      customRelation: newRelationLead.relation === "custom" ? newRelationLead.customRelation : null,
+      category: newRelationLead.category,
+      memberId: newRelationLead.selectedMemberId?._id || newRelationLead.selectedMemberId || null,
+      leadId: null,
+    }
+
+    console.log('Adding relation:', relation)
+
+    // Update the object structure
+    setLocalRelations(prev => ({
+      ...prev,
+      [newRelationLead.category]: [...(prev[newRelationLead.category] || []), relation]
+    }))
 
     setNewRelationLead({
       name: "",
@@ -383,8 +467,9 @@ const EditLeadModal = ({
       customRelation: "",
       category: "family",
       type: "manual",
-      selectedMemberId: null
+      selectedMemberId: null,
     })
+
     setPersonSearchQuery("")
     toast.success("Relation added")
   }
@@ -392,7 +477,7 @@ const EditLeadModal = ({
   const handleDeleteRelationLead = (category, relationId, e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     // Update local relations copy (not global state)
     setLocalRelations(prev => ({
       ...prev,
@@ -411,7 +496,7 @@ const EditLeadModal = ({
   const handleSubmit = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     // Validate required fields
     if (!formData.firstName?.trim()) {
       toast.error("Please enter a first name")
@@ -429,57 +514,98 @@ const EditLeadModal = ({
       toast.error("Please enter a valid email address")
       return
     }
-    
-    // Validate birthday (must be at least 10 years old)
+
+    // Validate birthday
     if (formData.birthday) {
       const birthDate = new Date(formData.birthday)
       const today = new Date()
       const age = today.getFullYear() - birthDate.getFullYear()
       const monthDiff = today.getMonth() - birthDate.getMonth()
       const dayDiff = today.getDate() - birthDate.getDate()
-      
-      // Calculate exact age
+
       const exactAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age
-      
+
       if (exactAge < 10) {
         toast.error("Invalid birth date")
         return
       }
-      
-      // Check if birthdate is in the future
+
       if (birthDate > today) {
         toast.error("Invalid birth date")
         return
       }
     }
-    
-    // Commit local relations to global state on save
-    if (localRelations && leadData?.id) {
-      const updatedRelations = { ...memberRelationsLead }
-      updatedRelations[leadData.id] = localRelations
-      setMemberRelationsLead(updatedRelations)
+
+    // Get the correct lead ID
+    const leadId = leadData?._id || leadData?.id
+
+    // ===== FIXED: Prepare relations for backend =====
+    // Convert the categorized relations object to an array format expected by backend
+    let relationsArray = []
+
+    if (localRelations) {
+      Object.entries(localRelations).forEach(([category, relations]) => {
+        if (Array.isArray(relations)) {
+          relations.forEach(rel => {
+            relationsArray.push({
+              entryType: rel.entryType || rel.type || "manual",
+              name: rel.name || "",
+              leadId: rel.leadId || null,
+              memberId: rel.memberId || null,
+              category: category,
+              relationType: rel.relationType || rel.relation || "", // Use relationType for backend
+              customRelation: rel.customRelation || null
+            })
+          })
+        }
+      })
     }
-    
-    // Build specialNote from first important note or first note for backwards compatibility
-    const importantNote = localNotes.find(n => n.isImportant)
-    const firstNote = localNotes[0]
-    const primaryNote = importantNote || firstNote
-    
-    onSave({
+
+    // console.log('Relations array for backend:', relationsArray)
+
+    // Prepare notes for backend
+    const specialsNotes = localNotes.map(note => ({
+      status: note.status || "general",
+      note: note.note,
+      isImportant: note.isImportant || false,
+      valid: note.valid?.from || note.valid?.until
+        ? {
+          from: note.valid.from ? new Date(note.valid.from).toISOString() : null,
+          until: note.valid.until ? new Date(note.valid.until).toISOString() : null,
+        }
+        : null,
+    }))
+
+    // Prepare data for onSave (frontend format with both display and backend formats)
+    const saveData = {
       ...formData,
-      id: leadData.id,
+      id: leadId,
+      _id: leadId,
       surname: formData.lastName,
       phoneNumber: formData.phone,
       telephoneNumber: formData.telephoneNumber,
-      notes: localNotes,
-      // Keep specialNote for backwards compatibility
-      specialNote: primaryNote ? {
-        text: primaryNote.text,
-        isImportant: primaryNote.isImportant,
-        startDate: primaryNote.startDate,
-        endDate: primaryNote.endDate,
-      } : null,
-    })
+      // Keep original format for UI state updates
+      relations: localRelations,
+      // Add converted format for backend
+      relationsArray: relationsArray,
+      // notes: localNotes,
+      specialsNotes: specialsNotes,
+    }
+
+    // console.log('Saving data:', saveData)
+
+    // Call the onSave prop
+    onSave(saveData)
+
+
+
+    // Update local relations in parent state
+    if (localRelations && leadId) {
+      const updatedRelations = { ...memberRelationsLead }
+      updatedRelations[leadId] = localRelations
+      setMemberRelationsLead(updatedRelations)
+    }
+
     onClose()
   }
 
@@ -511,13 +637,35 @@ const EditLeadModal = ({
     onClose()
   }
 
+
+// Member filter and Led Filter for search query
+  const filteredMembers = members && Array.isArray(members)
+    ? members.filter((p) => {
+      if (!p) return false
+      const firstName = p.firstName || ''
+      const lastName = p.lastName || ''
+      const fullName = `${firstName} ${lastName}`.toLowerCase().trim()
+      return fullName.includes(personSearchQuery.toLowerCase())
+    })
+    : []
+
+  const filteredLeads = leads && Array.isArray(leads)
+    ? leads.filter((p) => {
+      if (!p) return false
+      const firstName = p.firstName || ''
+      const lastName = p.lastName || ''
+      const fullName = `${firstName} ${lastName}`.toLowerCase().trim()
+      return fullName.includes(personSearchQuery.toLowerCase())
+    })
+    : []
+
   if (!isVisible || !leadData) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1001]"
     >
-      <div 
+      <div
         className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col"
       >
         <div className="flex justify-between items-center mb-4">
@@ -529,33 +677,30 @@ const EditLeadModal = ({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-border mb-6">
-          <button 
+          <button
             onClick={(e) => handleTabClick("details", e)}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "details" 
-                ? "text-primary border-b-2 border-primary" 
-                : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
+              ? "text-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Details
           </button>
-          <button 
+          <button
             onClick={(e) => handleTabClick("note", e)}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "note" 
-                ? "text-primary border-b-2 border-primary" 
-                : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
+              ? "text-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Special Notes
           </button>
-          <button 
+          <button
             onClick={(e) => handleTabClick("relations", e)}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "relations" 
-                ? "text-primary border-b-2 border-primary" 
-                : "text-content-muted hover:text-content-primary"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
+              ? "text-primary border-b-2 border-primary"
+              : "text-content-muted hover:text-content-primary"
+              }`}
           >
             Relations
           </button>
@@ -569,7 +714,7 @@ const EditLeadModal = ({
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">
@@ -615,7 +760,7 @@ const EditLeadModal = ({
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
                       <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                        <span className={formData.birthday ? "text-content-primary" : "text-content-faint"}>{formData.birthday ? (() => { const [y,m,d] = (formData.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <span className={formData.birthday ? "text-content-primary" : "text-content-faint"}>{formData.birthday ? (() => { const [y, m, d] = (formData.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={formData.birthday || ""} onChange={(val) => updateFormData("birthday", val)} />
                       </div>
                     </div>
@@ -625,7 +770,7 @@ const EditLeadModal = ({
                 {/* Contact Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">
                       Email<span className="text-accent-red ml-1">*</span>
@@ -674,7 +819,7 @@ const EditLeadModal = ({
                 {/* Address Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Street & Number</label>
                     <input
@@ -726,7 +871,7 @@ const EditLeadModal = ({
                 {/* Lead Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Lead Information</div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Source</label>
@@ -909,11 +1054,13 @@ const EditLeadModal = ({
             {/* Notes Tab */}
             {activeTab === "note" && (
               <div className="border border-border rounded-xl p-4">
-                {/* Lead Name Header */}
+                {/* Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div>
                     <p className="text-xs text-content-muted uppercase tracking-wider">Special Notes for</p>
-                    <p className="text-content-primary font-medium">{leadData?.firstName} {leadData?.lastName}</p>
+                    <p className="text-content-primary font-medium">
+                      {leadData.firstName || "New"} {leadData.lastName || "Member"}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -922,28 +1069,23 @@ const EditLeadModal = ({
                         setEditingNoteId(null)
                         setNewNote({
                           status: "general",
-                          text: "",
+                          note: "",
                           isImportant: false,
-                          startDate: "",
-                          endDate: "",
+                          valid: {
+                            from: null,
+                            until: null
+                          }
                         })
                       }
                       setIsAddingNote(!isAddingNote)
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium ${
-                      isAddingNote 
-                        ? "bg-surface-button text-content-primary" 
-                        : "bg-primary text-white"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${isAddingNote ? "bg-surface-button text-content-primary" : "bg-primary text-white"
+                      }`}
                   >
-                    {isAddingNote ? (
-                      <>Cancel</>
-                    ) : (
-                      <><Plus size={14} /> Add Note</>
-                    )}
+                    {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
                   </button>
                 </div>
-                
+
                 {/* Add/Edit Note Form */}
                 {isAddingNote && (
                   <div className="mb-4 p-4 border border-border rounded-xl space-y-3">
@@ -957,12 +1099,14 @@ const EditLeadModal = ({
                         className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-primary transition-colors appearance-none cursor-pointer"
                         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                       >
-                        {NOTE_STATUSES.map(s => (
-                          <option key={s.id} value={s.id}>{s.label}</option>
+                        {NOTE_STATUSES.map((status) => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
+                          </option>
                         ))}
                       </select>
                     </div>
-                    
+
                     {/* Note Text */}
                     <div>
                       <label className="text-xs text-content-muted block mb-1.5">Note</label>
@@ -974,7 +1118,7 @@ const EditLeadModal = ({
                         placeholder="Enter note..."
                       />
                     </div>
-                    
+
                     {/* Important Checkbox */}
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -987,144 +1131,149 @@ const EditLeadModal = ({
                         <span className="text-sm text-content-secondary">Important</span>
                       </label>
                     </div>
-                    
+
                     {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
-                          <DatePickerField value={newNote.startDate || ""} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
+                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y, m, d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
                         </div>
                       </div>
                       <div>
                         <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
                         <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
-                          <DatePickerField value={newNote.endDate || ""} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
+                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y, m, d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
                         </div>
                       </div>
                     </div>
-                    
+
                     <button
                       type="button"
                       onClick={editingNoteId ? handleUpdateNote : handleAddNote}
-                      disabled={!newNote.text.trim()}
-                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
-                        !newNote.text.trim()
-                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
-                          : "bg-primary hover:bg-primary-hover text-white"
-                      }`}
+                      disabled={!newNote.note}
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newNote.note}
+                        ? "bg-surface-button text-content-primary text-white/50 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary-hover text-white"
+                        }`}
                     >
                       {editingNoteId ? "Update Note" : "Add Note"}
                     </button>
                   </div>
                 )}
-                
-                {/* Notes List - hidden when adding/editing */}
+
+                {/* Notes List */}
+                {/* Notes Tab */}
                 {!isAddingNote && (
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {localNotes.length > 0 ? (
-                    [...localNotes]
-                      .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
-                      .map((note) => {
-                      const statusInfo = getStatusInfo(note.status)
-                      const isExpanded = expandedNoteId === note.id
-                      
-                      return (
-                        <div
-                          key={note.id}
-                          className="bg-surface-dark rounded-lg overflow-hidden"
-                        >
-                          {/* Note Header */}
-                          <div 
-                            className="flex items-center justify-between p-3 cursor-pointer"
-                            onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
-                          >
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
-                                {statusInfo.label}
-                              </span>
-                              {note.isImportant && (
-                                <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
-                                  Important
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleEditNoteClick(note, e)
-                                }}
-                                className="text-content-faint hover:text-primary p-1"
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {localNotes.length > 0 ? (
+                      [...localNotes]
+                        .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                        .map((note) => {
+                          const statusInfo = getStatusInfo(note.status)
+                          const isExpanded = expandedNoteId === (note.id || note._id)
+
+                          // SAFELY handle dates - convert to Date objects only once
+
+
+
+
+                          return (
+                            <div
+                              key={note.id || note._id}
+                              className="bg-surface-dark rounded-lg overflow-hidden"
+                            >
+                              {/* Note Header */}
+                              <div
+                                className="flex items-center justify-between p-3 cursor-pointer"
+                                onClick={() => setExpandedNoteId(isExpanded ? null : (note.id || note._id))}
                               >
-                                <Pencil size={14} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => handleDeleteNote(note.id, e)}
-                                className="text-content-faint hover:text-red-400 p-1"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                              {isExpanded ? (
-                                <ChevronUp size={16} className="text-content-muted" />
-                              ) : (
-                                <ChevronDown size={16} className="text-content-muted" />
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Preview & Valid Date (always visible when collapsed) */}
-                          {!isExpanded && (
-                            <div className="px-3 pb-2">
-                              <p className="text-content-muted text-sm truncate">
-                                {note.text}
-                              </p>
-                              {(note.startDate || note.endDate) && (
-                                <p className="text-xs text-content-faint mt-1">
-                                  {note.startDate && note.endDate ? (
-                                    <>Valid: {note.startDate} - {note.endDate}</>
-                                  ) : note.startDate ? (
-                                    <>Valid from: {note.startDate}</>
-                                  ) : (
-                                    <>Valid until: {note.endDate}</>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
+                                    {statusInfo.label}
+                                  </span>
+                                  {note.isImportant && (
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
+                                      Important
+                                    </span>
                                   )}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          
-                          {/* Note Content (expandable) */}
-                          {isExpanded && (
-                            <div className="px-3 pb-3 border-t border-border-subtle">
-                              <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
-                                {note.text}
-                              </p>
-                              {(note.startDate || note.endDate) && (
-                                <div className="mt-2 text-xs text-content-faint">
-                                  {note.startDate && note.endDate ? (
-                                    <>Valid: {note.startDate} - {note.endDate}</>
-                                  ) : note.startDate ? (
-                                    <>Valid from: {note.startDate}</>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleEditNoteClick(note, e)
+                                    }}
+                                    className="text-content-faint hover:text-primary p-1"
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDeleteNote(note.id || note._id, e)}
+                                    className="text-content-faint hover:text-red-400 p-1"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                  {isExpanded ? (
+                                    <ChevronUp size={16} className="text-content-muted" />
                                   ) : (
-                                    <>Valid until: {note.endDate}</>
+                                    <ChevronDown size={16} className="text-content-muted" />
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Preview & Valid Date (always visible when collapsed) */}
+                              {!isExpanded && (
+                                <div className="px-3 pb-2">
+                                  <p className="text-content-muted text-sm truncate">
+                                    {note.note}
+                                  </p>
+                                  {(note.valid.from || note.valid.until) && (
+                                    <p className="text-xs text-content-faint mt-1">
+                                      {note.valid.from && note.valid.until ? (
+                                        <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : note.valid.from ? (
+                                        <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                                      ) : note.valid.until ? (
+                                        <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : null}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Note Content (expandable) */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-border-subtle">
+                                  <p className="text-content-primary text-sm mt-2 whitespace-pre-wrap break-words">
+                                    {note.note}
+                                  </p>
+                                  {(note.valid.from || note.valid.until) && (
+                                    <p className="text-xs text-content-faint mt-1">
+                                      {note.valid.from && note.valid.until ? (
+                                        <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : note.valid.from ? (
+                                        <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                                      ) : note.valid.until ? (
+                                        <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
+                                      ) : null}
+                                    </p>
                                   )}
                                 </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div className="text-content-faint text-sm text-center py-8">
-                      No special notes yet. Click "Add Note" to create one.
-                    </div>
-                  )}
-                </div>
+                          )
+                        })
+                    ) : (
+                      <div className="text-content-faint text-sm text-center py-8">
+                        No special notes yet. Click "Add Note" to create one.
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -1137,7 +1286,7 @@ const EditLeadModal = ({
                   <p className="text-xs text-content-muted uppercase tracking-wider">Relations for</p>
                   <p className="text-content-primary font-medium">{leadData?.firstName} {leadData?.surname}</p>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-content-secondary font-medium">Relations</label>
                   <button
@@ -1161,11 +1310,10 @@ const EditLeadModal = ({
                             setNewRelationLead({ ...newRelationLead, type: "manual", name: "", selectedMemberId: null })
                             setPersonSearchQuery("")
                           }}
-                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
-                            newRelationLead.type === "manual" 
-                              ? "bg-primary text-white" 
-                              : "bg-surface-button text-content-muted hover:text-content-primary"
-                          }`}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelationLead.type === "manual"
+                            ? "bg-primary text-white"
+                            : "bg-surface-button text-content-muted hover:text-content-primary"
+                            }`}
                         >
                           Manual Entry
                         </button>
@@ -1175,11 +1323,10 @@ const EditLeadModal = ({
                             setNewRelationLead({ ...newRelationLead, type: "member", name: "", selectedMemberId: null })
                             setPersonSearchQuery("")
                           }}
-                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
-                            newRelationLead.type === "member" 
-                              ? "bg-primary text-white" 
-                              : "bg-surface-button text-content-muted hover:text-content-primary"
-                          }`}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelationLead.type === "member"
+                            ? "bg-primary text-white"
+                            : "bg-surface-button text-content-muted hover:text-content-primary"
+                            }`}
                         >
                           Member
                         </button>
@@ -1189,11 +1336,10 @@ const EditLeadModal = ({
                             setNewRelationLead({ ...newRelationLead, type: "lead", name: "", selectedMemberId: null })
                             setPersonSearchQuery("")
                           }}
-                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
-                            newRelationLead.type === "lead" 
-                              ? "bg-primary text-white" 
-                              : "bg-surface-button text-content-muted hover:text-content-primary"
-                          }`}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${newRelationLead.type === "lead"
+                            ? "bg-primary text-white"
+                            : "bg-surface-button text-content-muted hover:text-content-primary"
+                            }`}
                         >
                           Lead
                         </button>
@@ -1243,34 +1389,60 @@ const EditLeadModal = ({
                           )}
                           {showPersonDropdown && personSearchQuery && (
                             <div className="absolute z-20 w-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                              {membersLeads
-                                .filter((p) => 
-                                  p.type === newRelationLead.type && 
-                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
-                                )
-                                .map((person) => (
-                                  <button
-                                    key={person.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setNewRelationLead({
-                                        ...newRelationLead,
-                                        selectedMemberId: person.id,
-                                        name: person.name,
-                                      })
-                                      setPersonSearchQuery("")
-                                      setShowPersonDropdown(false)
-                                    }}
-                                    className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
-                                  >
-                                    {person.name}
-                                  </button>
-                                ))}
-                              {membersLeads.filter((p) => 
-                                p.type === newRelationLead.type && 
-                                p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
-                              ).length === 0 && (
-                                <div className="px-3 py-2 text-sm text-content-faint">No results found</div>
+                              {/* Show members when type is 'member' */}
+                              {newRelationLead.type === "member" && (
+                                <>
+                                  {filteredMembers.length > 0 ? (
+                                    filteredMembers.map((person) => (
+                                      <button
+                                        key={person._id}
+                                        type="button"
+                                        onClick={() => {
+                                          setNewRelationLead({
+                                            ...newRelationLead,
+                                            selectedMemberId: person,
+                                            name: `${person.firstName} ${person.lastName}`,
+                                          })
+                                          setPersonSearchQuery("")
+                                          setShowPersonDropdown(false)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
+                                      >
+                                        {person.firstName} {person.lastName}
+                                      </button>
+                                    ))
+                                  ) : (
+                                    <div className="px-3 py-2 text-sm text-content-faint">No members found</div>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Show leads when type is 'lead' */}
+                              {newRelationLead.type === "lead" && (
+                                <>
+                                  {filteredLeads.length > 0 ? (
+                                    filteredLeads.map((person) => (
+                                      <button
+                                        key={person._id}
+                                        type="button"
+                                        onClick={() => {
+                                          setNewRelationLead({
+                                            ...newRelationLead,
+                                            selectedMemberId: person,
+                                            name: `${person.firstName} ${person.lastName}`,
+                                          })
+                                          setPersonSearchQuery("")
+                                          setShowPersonDropdown(false)
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover transition-colors"
+                                      >
+                                        {person.firstName} {person.lastName}
+                                      </button>
+                                    ))
+                                  ) : (
+                                    <div className="px-3 py-2 text-sm text-content-faint">No leads found</div>
+                                  )}
+                                </>
                               )}
                             </div>
                           )}
@@ -1306,8 +1478,8 @@ const EditLeadModal = ({
                         <CustomSelect
                           name="relationType"
                           value={newRelationLead.relation}
-                          onChange={(e) => setNewRelationLead({ 
-                            ...newRelationLead, 
+                          onChange={(e) => setNewRelationLead({
+                            ...newRelationLead,
                             relation: e.target.value,
                             customRelation: e.target.value === "custom" ? newRelationLead.customRelation : ""
                           })}
@@ -1340,11 +1512,10 @@ const EditLeadModal = ({
                       type="button"
                       onClick={handleAddRelationLead}
                       disabled={!newRelationLead.name || (!newRelationLead.relation || (newRelationLead.relation === "custom" && !newRelationLead.customRelation))}
-                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${
-                        !newRelationLead.name || (!newRelationLead.relation || (newRelationLead.relation === "custom" && !newRelationLead.customRelation))
-                          ? "bg-primary/50 text-white/50 cursor-not-allowed"
-                          : "bg-primary hover:bg-primary-hover text-white"
-                      }`}
+                      className={`w-full py-2 rounded-xl text-sm font-medium transition-colors ${!newRelationLead.name || (!newRelationLead.relation || (newRelationLead.relation === "custom" && !newRelationLead.customRelation))
+                        ? "bg-primary/50 text-white/50 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary-hover text-white"
+                        }`}
                     >
                       Add Relation
                     </button>
@@ -1352,11 +1523,11 @@ const EditLeadModal = ({
                 )}
 
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {leadData && localRelations && 
+                  {leadData && localRelations &&
                     Object.entries(localRelations).map(([category, relations]) =>
                       relations.map((relation) => (
-                        <div 
-                          key={relation.id} 
+                        <div
+                          key={relation.id}
                           className="flex items-center justify-between bg-surface-dark rounded-lg px-3 py-2"
                         >
                           <div className="text-sm flex items-center flex-wrap gap-1.5">
@@ -1381,12 +1552,12 @@ const EditLeadModal = ({
                       )),
                     )}
 
-                  {(!localRelations || 
+                  {(!localRelations ||
                     Object.values(localRelations || {}).every(arr => arr.length === 0)) && (
-                    <div className="text-content-faint text-sm text-center py-4">
-                      No relations added yet
-                    </div>
-                  )}
+                      <div className="text-content-faint text-sm text-center py-4">
+                        No relations added yet
+                      </div>
+                    )}
                 </div>
               </div>
             )}
@@ -1404,11 +1575,10 @@ const EditLeadModal = ({
             <button
               type="submit"
               disabled={!formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)}
-              className={`px-4 py-2 text-sm text-white rounded-xl transition-colors ${
-                !formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)
-                  ? "bg-primary/50 cursor-not-allowed opacity-50"
-                  : "bg-primary hover:bg-primary-hover"
-              }`}
+              className={`px-4 py-2 text-sm text-white rounded-xl transition-colors ${!formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)
+                ? "bg-primary/50 cursor-not-allowed opacity-50"
+                : "bg-primary hover:bg-primary-hover"
+                }`}
             >
               Save Changes
             </button>
