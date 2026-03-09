@@ -287,7 +287,7 @@ function EditStaffModal({
 
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-4 pr-1">
             {activeTab === "details" && (
               <>
                 {/* Avatar Upload */}
