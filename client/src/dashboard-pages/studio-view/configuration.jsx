@@ -3619,7 +3619,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
-                  <div className="flex items-center gap-2">
+                 <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="number"
                       value={defaultAppointmentLimit}
@@ -6189,7 +6189,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
 
           {/* Mobile Content Area */}
-          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto p-4">
+          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4">
             {renderSectionContent()}
           </div>
 
