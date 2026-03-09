@@ -38,17 +38,7 @@ const Dashboardlayout = () => {
   // Scroll main content to top on route change
 useEffect(() => {
   if (mainRef.current) {
-    // Sofort
     mainRef.current.scrollTop = 0
-    // Nach Render
-    requestAnimationFrame(() => {
-      if (mainRef.current) mainRef.current.scrollTop = 0
-    })
-    // iOS Safari Fallback — Momentum-Scroll braucht manchmal länger
-    const t = setTimeout(() => {
-      if (mainRef.current) mainRef.current.scrollTop = 0
-    }, 50)
-    return () => clearTimeout(t)
   }
 }, [location.pathname])
   
