@@ -4,9 +4,9 @@ import { useState, useEffect } from "react"
 import { X, Trash2 } from "lucide-react"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
-import { DEFAULT_CONTRACT_BONUS_TIME_REASONS } from "../../../utils/studio-states/configuration-states"
+import { DEFAULT_ADMIN_CONTRACT_BONUS_TIME_REASONS } from "../../../utils/admin-panel-states/admin-contract-states"
 
-export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
+export function AdminBonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
   const getTodayDate = () => {
     const d = new Date()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -17,7 +17,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
 
   const [bonusAmount, setBonusAmount] = useState(existingBonus?.bonusAmount || 1)
   const [bonusUnit, setBonusUnit] = useState(existingBonus?.bonusUnit || "days")
-  const reasonPresets = DEFAULT_CONTRACT_BONUS_TIME_REASONS.map(r => r.name)
+  const reasonPresets = DEFAULT_ADMIN_CONTRACT_BONUS_TIME_REASONS.map(r => r.name)
   const initReason = existingBonus?.reason || ""
   const isPresetReason = reasonPresets.includes(initReason)
   const [reason, setReason] = useState(isPresetReason ? initReason : (initReason ? "other" : ""))
@@ -130,7 +130,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
       <div className="bg-surface-base rounded-xl w-full max-w-md relative overflow-hidden">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg text-content-primary font-semibold">
+            <h3 className="text-xl text-content-primary font-semibold">
               {isEditMode ? "Edit Bonus Time" : "Add Bonus Time"}
             </h3>
             <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
@@ -145,7 +145,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 options={[
-                  ...DEFAULT_CONTRACT_BONUS_TIME_REASONS.map(r => ({ value: r.name, label: r.name })),
+                  ...DEFAULT_ADMIN_CONTRACT_BONUS_TIME_REASONS.map(r => ({ value: r.name, label: r.name })),
                   { divider: true },
                   { value: "other", label: "Other" },
                 ]}
@@ -157,7 +157,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
                   value={customReason}
                   onChange={(e) => setCustomReason(e.target.value)}
                   placeholder="Please specify..."
-                  className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
+                  className="w-full mt-2 bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
                 />
               )}
             </div>

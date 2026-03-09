@@ -24,7 +24,7 @@ const CreateContractFormModal = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Enter contract form name"
-            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
           />
         </div>
         <div className="flex gap-3 mt-6">

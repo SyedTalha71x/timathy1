@@ -601,7 +601,7 @@ const SendEmailModal = ({
   const canSend = toRecipients.length > 0 && emailData.subject;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-end md:items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/80 flex items-end md:items-center justify-center z-[1000]">
       <div className="bg-surface-base w-full h-[95vh] md:h-auto md:rounded-xl md:max-w-4xl md:mx-4 md:max-h-[90vh] flex flex-col">
         <div className="p-4 md:p-5 flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Header */}

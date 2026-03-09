@@ -3,9 +3,9 @@ import { X } from "lucide-react"
 import { useState } from "react"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
-import { DEFAULT_CONTRACT_PAUSE_REASONS } from "../../../utils/studio-states/configuration-states"
+import { DEFAULT_ADMIN_CONTRACT_PAUSE_REASONS } from "../../../utils/admin-panel-states/admin-contract-states"
 
-export function PauseContractModal({ onClose, onSubmit }) {
+export function AdminPauseContractModal({ onClose, onSubmit }) {
   const getTodayDate = () => {
     const d = new Date()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -86,7 +86,7 @@ export function PauseContractModal({ onClose, onSubmit }) {
                   if (errors.reason) setErrors({ ...errors, reason: null })
                 }}
                 options={[
-                  ...DEFAULT_CONTRACT_PAUSE_REASONS.map(r => ({ value: r.name, label: r.name })),
+                  ...DEFAULT_ADMIN_CONTRACT_PAUSE_REASONS.map(r => ({ value: r.name, label: r.name })),
                   { divider: true },
                   { value: "other", label: "Other" },
                 ]}

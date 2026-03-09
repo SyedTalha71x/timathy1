@@ -11,60 +11,11 @@ import {
 import ImageSourceModal from "../../shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../shared/image-handler/ImageCropModal"
 import MediaLibraryPickerModal from "../../shared/image-handler/MediaLibraryPickerModal"
+import CustomSelect from "../../shared/CustomSelect"
 
 // ============================================
-// Inline helper components (same as in configuration.jsx)
+// Inline helper components
 // ============================================
-
-const SelectField = ({ label, value, onChange, options, placeholder, required }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef(null)
-
-  const selectedOption = options.find((opt) => opt.value === value)
-
-  return (
-    <div className="space-y-1.5">
-      {label && (
-        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-          {label}
-          {required && <span className="text-red-400">*</span>}
-        </label>
-      )}
-      <div className="relative" ref={ref}>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue flex items-center justify-between"
-        >
-          <span className={selectedOption ? "text-content-primary" : "text-content-faint"}>
-            {selectedOption?.label || placeholder || "Select..."}
-          </span>
-        </button>
-        {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg max-h-60 overflow-hidden">
-            <div className="overflow-y-auto max-h-48">
-              {options.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => { onChange(opt.value); setIsOpen(false) }}
-                  className={`w-full px-4 py-2.5 text-sm text-left hover:bg-surface-button transition-colors ${
-                    opt.value === value ? "bg-surface-button text-primary" : "text-content-primary"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-              {options.length === 0 && (
-                <div className="px-4 py-3 text-sm text-content-faint text-center">No results found</div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 const Tooltip = ({ children, content, position = "left" }) => (
   <div className="relative group inline-flex">
@@ -199,7 +150,7 @@ const AppointmentTypeModal = ({
                   value={appointmentTypeForm.name}
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, name: e.target.value })}
                   placeholder="e.g., Personal Training"
-                  className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
               <div className="space-y-1.5">
@@ -209,11 +160,13 @@ const AppointmentTypeModal = ({
                     <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                   </Tooltip>
                 </label>
-                <SelectField
+                <CustomSelect
+                  name="category"
                   value={appointmentTypeForm.category}
-                  onChange={(v) => setAppointmentTypeForm({ ...appointmentTypeForm, category: v })}
+                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, category: e.target.value })}
                   options={appointmentCategories.map(c => ({ value: c, label: c }))}
                   placeholder="Select category"
+                  className="bg-surface-card px-4 py-2.5 border-border"
                 />
               </div>
             </div>
@@ -231,20 +184,17 @@ const AppointmentTypeModal = ({
                 onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, description: e.target.value })}
                 placeholder="Describe what this appointment includes..."
                 rows={3}
-                className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
+                className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
               />
             </div>
 
-            {/* Duration, Slots Required, Max Parallel, Interval */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {/* Duration, Interval, Slots, Max Parallel */}
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                   <Clock className="w-4 h-4 text-content-faint" />
                   Duration
                   <span className="text-red-400">*</span>
-                  <Tooltip content="How long the appointment lasts in minutes">
-                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                  </Tooltip>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -253,7 +203,7 @@ const AppointmentTypeModal = ({
                     onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, duration: Math.floor(Number(e.target.value)) })}
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={5} max={480}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                   <span className="text-sm text-content-muted">min</span>
                 </div>
@@ -264,9 +214,6 @@ const AppointmentTypeModal = ({
                   <Clock className="w-4 h-4 text-content-faint" />
                   Interval
                   <span className="text-red-400">*</span>
-                  <Tooltip content="Time between available booking slots (e.g., 30 = bookings at :00 and :30)">
-                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
-                  </Tooltip>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -275,7 +222,7 @@ const AppointmentTypeModal = ({
                     onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, interval: Math.floor(Number(e.target.value)) })}
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={5} max={120}
-                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                   <span className="text-sm text-content-muted">min</span>
                 </div>
@@ -296,7 +243,7 @@ const AppointmentTypeModal = ({
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, slotsRequired: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                   min={0} max={studioCapacity}
-                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
 
@@ -315,7 +262,7 @@ const AppointmentTypeModal = ({
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, maxParallel: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                   min={1} max={studioCapacity}
-                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
             </div>
@@ -337,7 +284,7 @@ const AppointmentTypeModal = ({
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, contingentUsage: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                   min={0}
-                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-sm text-content-muted">per booking</span>
               </div>

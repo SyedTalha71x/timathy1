@@ -38,14 +38,13 @@ import Tickets from "./dashboard-pages/studio-view/tickets";
 
 
 // Admin Dashboard
-import AdminDashboardLayout from './layouts/admin-view-layout'
-// import AdminMyArea from './dashboard-pages/admin-view/my-area'
+import AdminDashboardLayout from './layouts/admin-view/admin-view-layout'
 import Customers from "./dashboard-pages/admin-view/customers";
 import AdminLeads from './dashboard-pages/admin-view/leads'
 import AdminTodo from './dashboard-pages/admin-view/todo'
 import AdminConfiguration from './dashboard-pages/admin-view/configuration'
 import AdminFinance from './dashboard-pages/admin-view/finance'
-import AdminContracts from './dashboard-pages/admin-view/contract'
+import AdminContracts from './dashboard-pages/admin-view/admin-contract'
 import AdminTrainingManagement from "./dashboard-pages/admin-view/training";
 import AdminTicketsSystem from "./dashboard-pages/admin-view/tickets";
 import AdminAnalytics from './dashboard-pages/admin-view/analytics'

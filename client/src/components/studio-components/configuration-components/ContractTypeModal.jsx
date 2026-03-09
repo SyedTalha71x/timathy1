@@ -3,6 +3,7 @@ import {
   Info,
   Check,
 } from "lucide-react"
+import CustomSelect from "../../shared/CustomSelect"
 
 // ============================================
 // Inline helper components
@@ -86,7 +87,7 @@ const ContractTypeModal = ({
               value={editingContractType.name}
               onChange={(e) => setEditingContractType({ ...editingContractType, name: e.target.value })}
               placeholder="e.g., Premium Membership"
-              className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+              className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
             />
           </div>
           
@@ -106,7 +107,7 @@ const ContractTypeModal = ({
                   value={editingContractType.cost}
                   onChange={(e) => setEditingContractType({ ...editingContractType, cost: Number(e.target.value) })}
                   min={0}
-                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-content-muted flex-shrink-0">{currency}</span>
               </div>
@@ -125,7 +126,7 @@ const ContractTypeModal = ({
                   value={editingContractType.duration}
                   onChange={(e) => setEditingContractType({ ...editingContractType, duration: Number(e.target.value) })}
                   min={1} max={60}
-                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-content-muted flex-shrink-0">months</span>
               </div>
@@ -142,15 +143,17 @@ const ContractTypeModal = ({
                   <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                 </Tooltip>
               </label>
-              <select
+              <CustomSelect
+                name="billingPeriod"
                 value={editingContractType.billingPeriod}
                 onChange={(e) => setEditingContractType({ ...editingContractType, billingPeriod: e.target.value })}
-                className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-              >
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="annually">Annually</option>
-              </select>
+                options={[
+                  { value: "weekly", label: "Weekly" },
+                  { value: "monthly", label: "Monthly" },
+                  { value: "annually", label: "Annually" }
+                ]}
+                className="bg-surface-card px-4 py-2.5 border-border"
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
@@ -167,7 +170,7 @@ const ContractTypeModal = ({
                   onChange={(e) => setEditingContractType({ ...editingContractType, userCapacity: Number(e.target.value) })}
                   min={0}
                   placeholder="0 = Unlimited"
-                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                  className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
                 <span className="text-content-muted flex-shrink-0">credits</span>
               </div>
@@ -189,16 +192,14 @@ const ContractTypeModal = ({
                 <p className="text-xs text-content-faint mt-1">Please create a contract form first in the &quot;Contract Forms&quot; section.</p>
               </div>
             ) : (
-              <select
+              <CustomSelect
+                name="contractFormId"
                 value={editingContractType.contractFormId || ""}
                 onChange={(e) => setEditingContractType({ ...editingContractType, contractFormId: e.target.value ? Number(e.target.value) : null })}
-                className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-              >
-                <option value="">Select a form...</option>
-                {contractForms.map(f => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
+                options={contractForms.map(f => ({ value: f.id, label: f.name }))}
+                placeholder="Select a form..."
+                className="bg-surface-card px-4 py-2.5 border-border"
+              />
             )}
           </div>
           
@@ -216,7 +217,7 @@ const ContractTypeModal = ({
                 value={editingContractType.cancellationPeriod}
                 onChange={(e) => setEditingContractType({ ...editingContractType, cancellationPeriod: Number(e.target.value) })}
                 min={0}
-                className="w-20 sm:w-24 bg-surface-card text-content-primary rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                className="w-20 sm:w-24 bg-surface-card text-content-primary rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
               />
               <span className="text-content-muted text-sm">days before end</span>
             </div>
@@ -242,17 +243,19 @@ const ContractTypeModal = ({
                     </Tooltip>
                   </label>
                   <div className="flex items-center gap-2">
-                    <select
+                    <CustomSelect
+                      name="renewalType"
                       value={editingContractType.renewalIndefinite ? "indefinite" : "fixed"}
                       onChange={(e) => setEditingContractType({ 
                         ...editingContractType, 
                         renewalIndefinite: e.target.value === "indefinite"
                       })}
-                      className={`${editingContractType.renewalIndefinite ? 'flex-1' : ''} bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue`}
-                    >
-                      <option value="fixed">Fixed period</option>
-                      <option value="indefinite">Indefinite</option>
-                    </select>
+                      options={[
+                        { value: "fixed", label: "Fixed period" },
+                        { value: "indefinite", label: "Indefinite" }
+                      ]}
+                      className={`bg-surface-card px-3 py-2.5 border-border ${editingContractType.renewalIndefinite ? 'flex-1' : ''}`}
+                    />
                     {!editingContractType.renewalIndefinite && (
                       <>
                         <input
@@ -260,17 +263,19 @@ const ContractTypeModal = ({
                           value={editingContractType.renewalPeriod}
                           onChange={(e) => setEditingContractType({ ...editingContractType, renewalPeriod: Number(e.target.value) })}
                           min={1}
-                          className="w-20 min-w-0 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                          className="w-20 min-w-0 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                         />
-                        <select
+                        <CustomSelect
+                          name="renewalPeriodUnit"
                           value={editingContractType.renewalPeriodUnit || "months"}
                           onChange={(e) => setEditingContractType({ ...editingContractType, renewalPeriodUnit: e.target.value })}
-                          className="bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
-                        >
-                          <option value="days">Days</option>
-                          <option value="weeks">Weeks</option>
-                          <option value="months">Months</option>
-                        </select>
+                          options={[
+                            { value: "days", label: "Days" },
+                            { value: "weeks", label: "Weeks" },
+                            { value: "months", label: "Months" }
+                          ]}
+                          className="bg-surface-card px-3 py-2.5 border-border"
+                        />
                       </>
                     )}
                   </div>
@@ -290,7 +295,7 @@ const ContractTypeModal = ({
                       value={editingContractType.renewalPrice}
                       onChange={(e) => setEditingContractType({ ...editingContractType, renewalPrice: Number(e.target.value) })}
                       min={0}
-                      className="w-32 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
+                      className="w-32 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                     />
                     <span className="text-content-muted flex-shrink-0">{currency}</span>
                   </div>

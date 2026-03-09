@@ -518,7 +518,31 @@ export default function LeadManagement() {
     })
   }
 
-
+  const handleCreateContract = (lead) => {
+    navigate('/admin-dashboard/contract', {
+      state: {
+        preSelectedLead: {
+          id: lead.id,
+          name: `${lead.firstName || ''} ${lead.surname || ''}`.trim(),
+          firstName: lead.firstName || '',
+          lastName: lead.surname || '',
+          surname: lead.surname || '',
+          email: lead.email || '',
+          phone: lead.phoneNumber || '',
+          phoneNumber: lead.phoneNumber || '',
+          mobile: lead.telephoneNumber || lead.phoneNumber || '',
+          company: lead.studioName || lead.company || '',
+          gender: lead.gender || '',
+          street: lead.street || '',
+          zipCode: lead.zipCode || '',
+          city: lead.city || '',
+          country: lead.country || '',
+          interestedIn: lead.interestedIn || '',
+          birthday: lead.birthday || '',
+        }
+      }
+    })
+  }
 
   const handleEditLead = (lead, tab = "details") => {
     setSelectedLead(lead)
@@ -1059,6 +1083,7 @@ export default function LeadManagement() {
                   leads={columnLeads}
                   onViewDetails={handleViewLeadDetails}
                   onAddTrial={handleAddTrialTraining}
+                  onCreateContract={handleCreateContract}
                   onEditLead={handleEditLead}
                   onDeleteLead={handleDeleteLead}
                   isEditable={!column.isFixed}
@@ -1108,6 +1133,7 @@ export default function LeadManagement() {
               onManageTrialAppointments={() => {}}
               onEditNote={() => {}}
               onOpenDocuments={() => {}}
+              onCreateContract={() => {}}
             />
           ) : null}
         </DragOverlay>

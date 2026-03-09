@@ -11,11 +11,11 @@ const MemberDashboardLayout = () => {
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
 
   // Scroll main content to top on route change
-  useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTo(0, 0);
-    }
-  }, [location.pathname]);
+useEffect(() => {
+  if (mainRef.current) {
+    mainRef.current.scrollTop = 0
+  }
+}, [location.pathname])
 
   const toggleSidebar = useCallback(() => setIsSidebarOpen((prev) => !prev), []);
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
@@ -25,7 +25,7 @@ const MemberDashboardLayout = () => {
   const isCommunicationPage = location.pathname.includes("/communication");
 
   return (
-    <div className="member-root bg-surface-dark min-h-screen">
+    <div className="member-root bg-surface-dark h-dvh overflow-hidden">
       <div className="flex flex-col md:flex-row h-full">
         {/* Sidebar */}
         <Sidebar
@@ -38,11 +38,11 @@ const MemberDashboardLayout = () => {
         {/* Main Content Area */}
         <main
           ref={mainRef}
-          className={`flex-1 md:h-screen h-[calc(100vh-3.5rem)] 
-            lg:pt-0 md:pt-14 sm:pt-14 pt-14
-            p-2
-            transition-all duration-500 ease-in-out
-            ${isCommunicationPage ? "overflow-hidden pb-0" : "overflow-y-auto pb-10"}`}
+         className={`flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] 
+  lg:pt-0 md:pt-14 sm:pt-14 pt-14
+  p-2
+  transition-all duration-500 ease-in-out
+  ${isCommunicationPage ? "overflow-hidden pb-0" : "overflow-y-auto pb-10"}`}
         >
           {/* Header - handles sidebar open/close/collapse */}
           <MemberDashboardHeader

@@ -4606,10 +4606,7 @@ export default function Communications() {
           }}
         />
 
-        {/* EmailManagement removed - Email is now natively integrated */}
-
         {/* SendEmailModal - wrapped for mobile z-index compatibility */}
-        <div className="relative z-[80]">
           <SendEmailModal
             showEmailModal={showEmailModal}
             handleCloseEmailModal={() => {
@@ -4625,7 +4622,7 @@ export default function Communications() {
             editingDraft={editingDraft}
             onSaveAsDraft={handleSaveEmailAsDraft}
           />
-        </div>
+    
 
       {/* Email Reply Modal */}
       <SendEmailReplyModal

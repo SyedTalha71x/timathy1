@@ -650,7 +650,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   // Get search suggestions based on query (exclude already filtered members)
   const getSearchSuggestions = () => {
     if (!searchQuery.trim()) return [];
-    return members.filter((member) => {
+    return safeMembers.filter((member) => {
       const mid = getMemberId(member);
       const isAlreadyFiltered = memberFilters.some(f => f.memberId === mid);
       if (isAlreadyFiltered) return false;
@@ -759,7 +759,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   // 
   const handleArchiveMemberMain = (memberId) => {
-    const member = members.find((m) => getMemberId(m) === memberId)
+    const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (member && member.memberType === "temporary") {
       dispatch(archiveMember(memberId))
       toast.success("Temporary member archived successfully")
@@ -779,7 +779,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   // 
   const handleUnarchiveMemberMain = (memberId) => {
-    const member = members.find((m) => getMemberId(m) === memberId)
+    const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (member && member.memberType === "temporary") {
       dispatch(unarchiveMember(memberId))
       toast.success("Temporary member unarchived successfully")
@@ -1102,7 +1102,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   }
 
   const handleSaveMemberSpecialNote = (memberId, newNote) => {
-    const member = members.find((m) => getMemberId(m) === memberId)
+    const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (!member) return
 
     const existingNotes = member.notes || []
@@ -1418,7 +1418,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     if (!query) return [];
     const q = query.toLowerCase();
 
-    const memberResults = members.filter(m =>
+    const memberResults = safeMembers.filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||

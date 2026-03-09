@@ -36,11 +36,11 @@ const Dashboardlayout = () => {
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false)
 
   // Scroll main content to top on route change
-  useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTo(0, 0)
-    }
-  }, [location.pathname])
+useEffect(() => {
+  if (mainRef.current) {
+    mainRef.current.scrollTop = 0
+  }
+}, [location.pathname])
   
   // External sidebar state for pages with custom sidebars (e.g., Selling)
   const [isExternalSidebarOpen, setIsExternalSidebarOpen] = useState(false)
@@ -140,7 +140,7 @@ const Dashboardlayout = () => {
         `}
       </style>
       
-      <div className="dashboard-root bg-surface-dark min-h-screen">
+      <div className="dashboard-root bg-surface-dark h-dvh overflow-hidden">
         <div className="flex flex-col md:flex-row h-full">
           {/* Sidebar - Navigation only */}
           <Sidebar 
@@ -153,13 +153,13 @@ const Dashboardlayout = () => {
           {/* Main Content Area */}
           <main
             ref={mainRef}
-            className={`
-              flex-1 md:h-screen h-[calc(100vh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
-              lg:pt-0 md:pt-14 sm:pt-14 pt-14
-              pb-10 p-2
-              transition-all duration-500 ease-in-out
-              ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}
-            `}
+      className={`
+  flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
+  lg:pt-0 md:pt-14 sm:pt-14 pt-14
+  pb-10 p-2
+  transition-all duration-500 ease-in-out
+  ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}
+`}
           >
             {/* Header - handles both mobile + desktop views */}
             <DashboardHeader 

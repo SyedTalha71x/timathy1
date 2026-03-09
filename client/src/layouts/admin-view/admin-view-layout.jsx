@@ -2,13 +2,15 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import Sidebar from '../components/admin-dashboard-components/sidebar'
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import Sidebar from './components/sidebar'
 import { Globe, History, X, Menu, Building2 } from "lucide-react";
-import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../public/Orgagym white without text.svg'
 
 const AdminDashboardLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const mainRef = useRef(null);
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -41,6 +43,14 @@ const AdminDashboardLayout = () => {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  // Scroll main content to top on route change
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0
+    }
+  }, [location.pathname])
+
 
   const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
 
@@ -176,7 +186,7 @@ const AdminDashboardLayout = () => {
   }
 
   return (
-    <div className="admin-root bg-[#111111] min-h-screen">
+   <div className="admin-root bg-[#111111] h-dvh overflow-hidden">
       <div className="flex flex-col md:flex-row h-full">
 
         {/* ========== MOBILE HEADER (lg:hidden) ========== */}
@@ -270,7 +280,7 @@ const AdminDashboardLayout = () => {
         />
 
         {/* ========== MAIN CONTENT ========== */}
-        <main className="flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto lg:pt-2 md:pt-16 sm:pt-16 pt-16 pb-10 p-2">
+       <main ref={mainRef} className="flex-1 md:h-dvh h-[calc(100dvh-4rem)] overflow-y-auto lg:pt-2 md:pt-16 sm:pt-16 pt-16 pb-10 p-2">
           
           {/* ========== DESKTOP HEADER BAR (hidden on mobile) ========== */}
           <div className="lg:flex hidden rounded-md bg-[#1f1e1e] z-10 p-2 mb-2 items-center justify-between">

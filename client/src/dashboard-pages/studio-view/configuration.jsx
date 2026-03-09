@@ -50,8 +50,10 @@ import {
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
-import { Modal, QRCode } from "antd"
+import { QRCode } from "antd"
 import toast from "../../components/shared/SharedToast"
+import DeleteModal from "../../components/shared/DeleteModal"
+import AddItemModal from "../../components/shared/AddItemModal"
 import dayjs from "dayjs"
 
 import ContractBuilder from "../../components/studio-components/configuration-components/ContractBuilder"
@@ -65,6 +67,7 @@ import AppointmentTypeModal from "../../components/studio-components/configurati
 import ClassTypeModal from "../../components/studio-components/configuration-components/ClassTypeModal"
 import ContractTypeModal from "../../components/studio-components/configuration-components/ContractTypeModal"
 import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
+import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 // ============================================
@@ -321,92 +324,6 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
     {error && <p className="text-xs text-red-400">{error}</p>}
   </div>
 )
-
-// Select Component
-const SelectField = ({ label, value, onChange, options, placeholder, required, searchable = false }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [search, setSearch] = useState("")
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  const filteredOptions = searchable
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(search.toLowerCase())
-      )
-    : options
-
-  const selectedOption = options.find((opt) => opt.value === value)
-
-  return (
-    <div className="space-y-1.5">
-      {label && (
-        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
-          {label}
-          {required && <span className="text-red-400">*</span>}
-        </label>
-      )}
-      <div className="relative" ref={ref}>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary flex items-center justify-between"
-        >
-          <span className={selectedOption ? "text-content-primary" : "text-content-faint"}>
-            {selectedOption?.label || placeholder || "Select..."}
-          </span>
-          <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
-        </button>
-
-        {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg max-h-60 overflow-hidden">
-            {searchable && (
-              <div className="p-2 border-b border-border">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm outline-none border border-border"
-                  autoFocus
-                />
-              </div>
-            )}
-            <div className="overflow-y-auto max-h-48">
-              {filteredOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(opt.value)
-                    setIsOpen(false)
-                    setSearch("")
-                  }}
-                  className={`w-full px-4 py-2.5 text-sm text-left hover:bg-surface-button transition-colors ${
-                    opt.value === value ? "bg-surface-button text-primary" : "text-content-primary"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-              {filteredOptions.length === 0 && (
-                <div className="px-4 py-3 text-sm text-content-faint text-center">No results found</div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // Toggle/Switch Component
 const Toggle = ({ label, checked, onChange, helpText }) => (
@@ -687,10 +604,50 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [introMaterialEditorVisible, setIntroMaterialEditorVisible] = useState(false)
   const [editingIntroMaterial, setEditingIntroMaterial] = useState(null)
   const [editingIntroMaterialIndex, setEditingIntroMaterialIndex] = useState(null)
-  const [deletingIntroMaterialIndex, setDeletingIntroMaterialIndex] = useState(null)
+
+  // Unified Delete Modal State
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    title: "",
+    itemName: "",
+    description: "",
+    onConfirm: null,
+  })
+
+  const openDeleteModal = (title, itemName, description, onConfirm) => {
+    setDeleteModal({ isOpen: true, title, itemName, description, onConfirm })
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, title: "", itemName: "", description: "", onConfirm: null })
+  }
+
+  // Unified Add Item Modal State
+  const [addItemModal, setAddItemModal] = useState({
+    isOpen: false,
+    title: "",
+    saveText: "Add",
+    fields: [],
+    initialData: null,
+    onSave: null,
+  })
+
+  const openAddItemModal = (title, fields, onSave, opts = {}) => {
+    setAddItemModal({
+      isOpen: true,
+      title,
+      saveText: opts.saveText || "Add",
+      fields,
+      initialData: opts.initialData || null,
+      onSave,
+    })
+  }
+
+  const closeAddItemModal = () => {
+    setAddItemModal({ isOpen: false, title: "", saveText: "Add", fields: [], initialData: null, onSave: null })
+  }
 
   // Contract Form States
-  const [deletingContractFormId, setDeletingContractFormId] = useState(null)
   const [editingContractFormName, setEditingContractFormName] = useState({ id: null, value: "" })
 
   // Contract Type Modal States
@@ -1081,15 +1038,31 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   // Role handlers
   const handleAddRole = () => {
-    setRoles([...roles, {
-      id: Date.now(),
-      name: "",
-      permissions: [],
-      color: "#3B82F6",
-      isAdmin: false,
-      staffCount: 0,
-      assignedStaff: []
-    }])
+    openAddItemModal(
+      "Add Role",
+      [
+        { key: "name", label: "Role Name", type: "text", placeholder: "e.g. Trainer, Manager", required: true },
+        { key: "color", label: "Color", type: "color" },
+      ],
+      (data) => {
+        const duplicate = roles.find(r => r.name.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate name — Role name already exists")
+          return
+        }
+        setRoles([...roles, {
+          id: Date.now(),
+          name: data.name,
+          permissions: [],
+          color: data.color,
+          isAdmin: false,
+          staffCount: 0,
+          assignedStaff: []
+        }])
+        closeAddItemModal()
+        toast.success("Role created")
+      }
+    )
   }
 
   const handleUpdateRole = (index, field, value) => {
@@ -1114,7 +1087,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       toast.error("Reassign staff first")
       return
     }
-    setRoles(roles.filter((_, i) => i !== index))
+    openDeleteModal(
+      "Delete Role",
+      roles[index].name || "this role",
+      "This action cannot be undone.",
+      () => {
+        setRoles(roles.filter((_, i) => i !== index))
+        closeDeleteModal()
+        toast.success("Role deleted")
+      }
+    )
   }
 
   const handleCopyRole = (index) => {
@@ -1246,16 +1228,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }
 
   const handleDeleteAppointmentType = (id) => {
-    Modal.confirm({
-      title: "Delete Appointment Type",
-      content: "Are you sure you want to delete this appointment type? This cannot be undone.",
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => {
+    const type = appointmentTypes.find(t => t.id === id)
+    openDeleteModal(
+      "Delete Appointment Type",
+      type?.name || "this appointment type",
+      "This cannot be undone.",
+      () => {
         setAppointmentTypes(appointmentTypes.filter(t => t.id !== id))
+        closeDeleteModal()
         toast.success("Appointment type deleted")
       }
-    })
+    )
   }
 
   const handleAddAppointmentType = () => {
@@ -1269,19 +1252,37 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }
 
   const handleRemoveAppointmentType = (index) => {
-    Modal.confirm({
-      title: "Remove Appointment Type",
-      content: "Are you sure? This cannot be undone.",
-      okText: "Remove",
-      okType: "danger",
-      onOk: () => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))
-    })
+    const type = appointmentTypes[index]
+    openDeleteModal(
+      "Remove Appointment Type",
+      type?.name || "this appointment type",
+      "This cannot be undone.",
+      () => {
+        setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))
+        closeDeleteModal()
+        toast.success("Appointment type removed")
+      }
+    )
   }
 
   // Category handlers
   const handleAddCategory = () => {
-    setAppointmentCategories([...appointmentCategories, "New Category"])
-    setEditingCategory({ index: appointmentCategories.length, value: "New Category" })
+    openAddItemModal(
+      "Add Category",
+      [
+        { key: "name", label: "Category Name", type: "text", placeholder: "e.g. Strength, Cardio", required: true },
+      ],
+      (data) => {
+        const duplicate = appointmentCategories.find(c => c.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Category already exists")
+          return
+        }
+        setAppointmentCategories([...appointmentCategories, data.name])
+        closeAddItemModal()
+        toast.success("Category created")
+      }
+    )
   }
 
   const handleRemoveCategory = (index) => {
@@ -1290,7 +1291,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       toast.error("Cannot remove — Category is in use")
       return
     }
-    setAppointmentCategories(appointmentCategories.filter((_, i) => i !== index))
+    openDeleteModal(
+      "Delete Category",
+      category,
+      "This cannot be undone.",
+      () => {
+        setAppointmentCategories(appointmentCategories.filter((_, i) => i !== index))
+        closeDeleteModal()
+        toast.success("Category deleted")
+      }
+    )
   }
 
   // ============================================
@@ -1340,20 +1350,36 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }
 
   const handleDeleteClassType = (id) => {
-    Modal.confirm({
-      title: "Delete Class Type",
-      content: "Are you sure you want to delete this class type? This cannot be undone.",
-      okText: "Delete", okType: "danger",
-      onOk: () => {
+    const type = classTypes.find(t => t.id === id)
+    openDeleteModal(
+      "Delete Class Type",
+      type?.name || "this class type",
+      "This cannot be undone.",
+      () => {
         setClassTypes(classTypes.filter(t => t.id !== id))
+        closeDeleteModal()
         toast.success("Class type deleted")
-      },
-    })
+      }
+    )
   }
 
   const handleAddClassCategory = () => {
-    setClassCategories([...classCategories, "New Category"])
-    setEditingClassCategory({ index: classCategories.length, value: "New Category" })
+    openAddItemModal(
+      "Add Category",
+      [
+        { key: "name", label: "Category Name", type: "text", placeholder: "e.g. Yoga, HIIT", required: true },
+      ],
+      (data) => {
+        const duplicate = classCategories.find(c => c.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Category already exists")
+          return
+        }
+        setClassCategories([...classCategories, data.name])
+        closeAddItemModal()
+        toast.success("Category created")
+      }
+    )
   }
 
   const handleRemoveClassCategory = (index) => {
@@ -1362,7 +1388,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       toast.error("Cannot remove — Category is in use by a class type")
       return
     }
-    setClassCategories(classCategories.filter((_, i) => i !== index))
+    openDeleteModal(
+      "Delete Category",
+      category,
+      "This cannot be undone.",
+      () => {
+        setClassCategories(classCategories.filter((_, i) => i !== index))
+        closeDeleteModal()
+        toast.success("Category deleted")
+      }
+    )
   }
 
   // Contract handlers
@@ -1434,16 +1469,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   const handleDeleteContractType = (index) => {
     const type = contractTypes[index]
-    Modal.confirm({
-      title: "Delete Contract Type",
-      content: `Are you sure you want to delete "${type.name || 'this contract type'}"?`,
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => {
+    openDeleteModal(
+      "Delete Contract Type",
+      type.name || "this contract type",
+      "This cannot be undone.",
+      () => {
         setContractTypes(contractTypes.filter((_, i) => i !== index))
+        closeDeleteModal()
         toast.success("Contract type deleted")
       }
-    })
+    )
   }
 
   const handleCreateContractForm = () => {
@@ -1462,11 +1497,23 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setNewContractFormName("")
     setShowCreateFormModal(false)
     setContractBuilderModalVisible(true)
+    toast.success("Contract form created")
   }
 
   // Lead source handlers
   const handleAddLeadSource = () => {
-    setLeadSources([...leadSources, { id: Date.now(), name: "", color: "#3B82F6" }])
+    openAddItemModal(
+      "Add Lead Source",
+      [
+        { key: "name", label: "Source Name", type: "text", placeholder: "e.g. Instagram, Referral", required: true },
+        { key: "color", label: "Color", type: "color" },
+      ],
+      (data) => {
+        setLeadSources([...leadSources, { id: Date.now(), name: data.name, color: data.color }])
+        closeAddItemModal()
+        toast.success("Lead source created")
+      }
+    )
   }
 
   const handleUpdateLeadSource = (id, field, value) => {
@@ -1474,12 +1521,91 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }
 
   const handleRemoveLeadSource = (id) => {
-    setLeadSources(leadSources.filter(s => s.id !== id))
+    const source = leadSources.find(s => s.id === id)
+    openDeleteModal(
+      "Delete Lead Source",
+      source?.name || "this lead source",
+      "This cannot be undone.",
+      () => {
+        setLeadSources(leadSources.filter(s => s.id !== id))
+        closeDeleteModal()
+        toast.success("Lead source deleted")
+      }
+    )
   }
 
   // VAT handlers
   const handleAddVatRate = () => {
-    setVatRates([...vatRates, { name: "", percentage: 0, description: "" }])
+    openAddItemModal(
+      "Add VAT Rate",
+      [
+        { key: "percentage", label: "Rate", type: "number", suffix: "%", min: 0, max: 100, required: true, defaultValue: 19 },
+        { key: "description", label: "Description", type: "text", placeholder: "e.g. Standard Rate, Reduced Rate" },
+      ],
+      (data) => {
+        setVatRates([...vatRates, { name: "", percentage: data.percentage, description: data.description }])
+        closeAddItemModal()
+        toast.success("VAT rate created")
+      }
+    )
+  }
+
+  // Reason handlers (contract pause/change/renew/bonus)
+  const handleAddPauseReason = () => {
+    openAddItemModal(
+      "Add Pause Reason",
+      [
+        { key: "name", label: "Reason", type: "text", placeholder: "e.g. Medical, Vacation", required: true },
+        { key: "maxDays", label: "Max Pause Duration", type: "number", suffix: "days", min: 1, defaultValue: 30 },
+      ],
+      (data) => {
+        setContractPauseReasons([...contractPauseReasons, { name: data.name, maxDays: data.maxDays }])
+        closeAddItemModal()
+        toast.success("Pause reason created")
+      }
+    )
+  }
+
+  const handleAddChangeReason = () => {
+    openAddItemModal(
+      "Add Change Reason",
+      [
+        { key: "name", label: "Reason", type: "text", placeholder: "e.g. Upgrade, Downgrade", required: true },
+      ],
+      (data) => {
+        setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: data.name }])
+        closeAddItemModal()
+        toast.success("Change reason created")
+      }
+    )
+  }
+
+  const handleAddRenewReason = () => {
+    openAddItemModal(
+      "Add Renew Reason",
+      [
+        { key: "name", label: "Reason", type: "text", placeholder: "e.g. Satisfied, New Goals", required: true },
+      ],
+      (data) => {
+        setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: data.name }])
+        closeAddItemModal()
+        toast.success("Renew reason created")
+      }
+    )
+  }
+
+  const handleAddBonusTimeReason = () => {
+    openAddItemModal(
+      "Add Bonus Time Reason",
+      [
+        { key: "name", label: "Reason", type: "text", placeholder: "e.g. Referral, Promotion", required: true },
+      ],
+      (data) => {
+        setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: data.name }])
+        closeAddItemModal()
+        toast.success("Bonus time reason created")
+      }
+    )
   }
 
   // Navigate to section
@@ -1532,13 +1658,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       case "contract-types":
         return handleAddContractType
       case "pause-reasons":
-        return () => setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
+        return handleAddPauseReason
       case "change-reasons":
-        return () => setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: "" }])
+        return handleAddChangeReason
       case "renew-reasons":
-        return () => setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: "" }])
+        return handleAddRenewReason
       case "bonus-time-reasons":
-        return () => setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: "" }])
+        return handleAddBonusTimeReason
       case "vat-rates":
         return handleAddVatRate
       default:
@@ -1733,14 +1859,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onChange={(v) => handleProfileInputChange("city", v)}
                     placeholder="Enter city"
                   />
-                  <SelectField
-                    label="Country"
-                    value={profileData.country}
-                    onChange={(v) => handleProfileInputChange("country", v)}
-                    options={countries.map(c => ({ value: c.code, label: c.name }))}
-                    placeholder="Select country"
-                    searchable
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                      Country
+                    </label>
+                    <CustomSelect
+                      name="country"
+                      value={profileData.country}
+                      onChange={(e) => handleProfileInputChange("country", e.target.value)}
+                      options={countries.map(c => ({ value: c.code, label: c.name }))}
+                      placeholder="Select country"
+                      searchable
+                      className="bg-surface-card px-4 py-2.5 border-border"
+                    />
+                  </div>
                 </div>
               </div>
             </SettingsCard>
@@ -1914,15 +2046,22 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   required
                   maxLength={40}
                 />
-                <SelectField
-                  label="Country"
-                  value={studioCountry}
-                  onChange={setStudioCountry}
-                  options={countries.map(c => ({ value: c.code, label: c.name }))}
-                  placeholder="Select country"
-                  required
-                  searchable
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Country
+                    <span className="text-red-400">*</span>
+                  </label>
+                  <CustomSelect
+                    name="studioCountry"
+                    value={studioCountry}
+                    onChange={(e) => setStudioCountry(e.target.value)}
+                    options={countries.map(c => ({ value: c.code, label: c.name }))}
+                    placeholder="Select country"
+                    required
+                    searchable
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
               </div>
             </SettingsCard>
 
@@ -2138,7 +2277,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="bg-surface-hover text-content-primary rounded-lg px-3 py-2 text-sm border border-border flex-1"
                       />
                       <button
-                        onClick={() => setClosingDays(closingDays.filter((_, i) => i !== index))}
+                        onClick={() => openDeleteModal(
+                          "Delete Closing Day",
+                          day.description || day.date,
+                          "This cannot be undone.",
+                          () => {
+                            setClosingDays(closingDays.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Closing day deleted")
+                          }
+                        )}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors self-end sm:self-center"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3025,23 +3173,35 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   max={365}
                   suffix="days per year"
                 />
-                <SelectField
-                  label="Default Staff Role"
-                  value={defaultStaffRole}
-                  onChange={setDefaultStaffRole}
-                  options={roles.filter(r => !r.isAdmin).map(r => ({ value: r.id, label: r.name }))}
-                  placeholder="Select default role"
-                />
-                <SelectField
-                  label="Default Staff Country"
-                  value={defaultStaffCountry}
-                  onChange={setDefaultStaffCountry}
-                  options={[
-                    { value: "studio", label: "Same as Studio Country" },
-                    ...countries.map(c => ({ value: c.code, label: c.name }))
-                  ]}
-                  searchable
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Staff Role
+                  </label>
+                  <CustomSelect
+                    name="defaultStaffRole"
+                    value={defaultStaffRole}
+                    onChange={(e) => setDefaultStaffRole(e.target.value)}
+                    options={roles.filter(r => !r.isAdmin).map(r => ({ value: r.id, label: r.name }))}
+                    placeholder="Select default role"
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Staff Country
+                  </label>
+                  <CustomSelect
+                    name="defaultStaffCountry"
+                    value={defaultStaffCountry}
+                    onChange={(e) => setDefaultStaffCountry(e.target.value)}
+                    options={[
+                      { value: "studio", label: "Same as Studio Country" },
+                      ...countries.map(c => ({ value: c.code, label: c.name }))
+                    ]}
+                    searchable
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
               </div>
             </SettingsCard>
           </div>
@@ -3305,7 +3465,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             </div>
                           </div>
                           <button
-                            onClick={() => setDeletingIntroMaterialIndex(index)}
+                            onClick={() => openDeleteModal(
+                              "Delete Material",
+                              introductoryMaterials[index]?.name || "Untitled Material",
+                              `This will permanently delete all ${introductoryMaterials[index]?.pages?.length || 0} page(s). This action cannot be undone.`,
+                              () => {
+                                setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== index))
+                                closeDeleteModal()
+                                toast.success("Material deleted successfully")
+                              }
+                            )}
                             className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3373,44 +3542,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
-            {deletingIntroMaterialIndex !== null && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
-                <div className="bg-surface-base rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-border">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-red-500/20 rounded-xl">
-                      <Trash2 className="w-6 h-6 text-red-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-content-primary">Delete Material</h3>
-                  </div>
-                  <p className="text-content-muted mb-2">
-                    Are you sure you want to delete <span className="text-content-primary font-medium">&quot;{introductoryMaterials[deletingIntroMaterialIndex]?.name || "Untitled Material"}&quot;</span>?
-                  </p>
-                  <p className="text-content-faint text-sm mb-6">
-                    This will permanently delete all {introductoryMaterials[deletingIntroMaterialIndex]?.pages?.length || 0} page(s). This action cannot be undone.
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setDeletingIntroMaterialIndex(null)}
-                      className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== deletingIntroMaterialIndex))
-                        setDeletingIntroMaterialIndex(null)
-                        toast.success("Material deleted successfully")
-                      }}
-                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )
 
@@ -3454,16 +3585,22 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <SelectField
-                    label="Default Billing Period"
-                    value={defaultBillingPeriod}
-                    onChange={setDefaultBillingPeriod}
-                    options={[
-                      { value: "weekly", label: "Weekly" },
-                      { value: "monthly", label: "Monthly" },
-                      { value: "annually", label: "Annually" }
-                    ]}
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                      Default Billing Period
+                    </label>
+                    <CustomSelect
+                      name="defaultBillingPeriod"
+                      value={defaultBillingPeriod}
+                      onChange={(e) => setDefaultBillingPeriod(e.target.value)}
+                      options={[
+                        { value: "weekly", label: "Weekly" },
+                        { value: "monthly", label: "Monthly" },
+                        { value: "annually", label: "Annually" }
+                      ]}
+                      className="bg-surface-card px-4 py-2.5 border-border"
+                    />
+                  </div>
                   <NumberInput
                     label="Default Notice Period"
                     value={noticePeriod}
@@ -3482,7 +3619,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
-                  <div className="flex items-center gap-2">
+                 <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="number"
                       value={defaultAppointmentLimit}
@@ -3522,14 +3659,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       </Tooltip>
                     </label>
                     <div className="flex flex-wrap items-center gap-3">
-                      <select
+                      <CustomSelect
+                        name="defaultRenewalType"
                         value={defaultRenewalIndefinite ? "indefinite" : "fixed"}
                         onChange={(e) => setDefaultRenewalIndefinite(e.target.value === "indefinite")}
-                        className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
-                      >
-                        <option value="fixed">Fixed period</option>
-                        <option value="indefinite">Indefinite</option>
-                      </select>
+                        options={[
+                          { value: "fixed", label: "Fixed period" },
+                          { value: "indefinite", label: "Indefinite" }
+                        ]}
+                        className="bg-surface-card px-4 py-2.5 border-border"
+                      />
                       {!defaultRenewalIndefinite && (
                         <div className="flex items-center gap-2">
                           <input
@@ -3666,7 +3805,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               <Copy className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => setDeletingContractFormId(form.id)}
+                              onClick={() => openDeleteModal(
+                                "Delete Contract Form",
+                                form.name || "this form",
+                                "This will permanently delete all pages and content. This action cannot be undone.",
+                                () => {
+                                  setContractForms(contractForms.filter(f => f.id !== form.id))
+                                  closeDeleteModal()
+                                  toast.success("Contract form deleted")
+                                }
+                              )}
                               className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
                               title="Delete"
                             >
@@ -3699,44 +3847,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </div>
             )}
 
-            {/* Delete Contract Form Confirmation */}
-            {deletingContractFormId !== null && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
-                <div className="bg-surface-base rounded-2xl p-6 w-full max-w-md shadow-2xl border border-border">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-red-500/20 rounded-xl">
-                      <Trash2 className="w-6 h-6 text-red-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-content-primary">Delete Contract Form</h3>
-                  </div>
-                  <p className="text-content-muted mb-2">
-                    Are you sure you want to delete <span className="text-content-primary font-medium">&quot;{contractForms.find(f => f.id === deletingContractFormId)?.name || "this form"}&quot;</span>?
-                  </p>
-                  <p className="text-sm text-red-400/80 mb-6">
-                    This will permanently delete all pages and content. This action cannot be undone.
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setDeletingContractFormId(null)}
-                      className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        setContractForms(contractForms.filter(f => f.id !== deletingContractFormId))
-                        setDeletingContractFormId(null)
-                        toast.success("Contract form deleted")
-                      }}
-                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
             </div>
           </div>
         )
@@ -3871,7 +3981,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               description="Define reasons members can pause their contracts"
               action={
                 <button
-                  onClick={() => setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])}
+                  onClick={handleAddPauseReason}
                   className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -3901,7 +4011,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
                       <button
-                        onClick={() => setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))}
+                        onClick={() => openDeleteModal(
+                          "Delete Pause Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Pause reason deleted")
+                          }
+                        )}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3922,7 +4041,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               description="Define reasons for contract changes"
               action={
                 <button
-                  onClick={() => setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: "" }])}
+                  onClick={handleAddChangeReason}
                   className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -3952,7 +4071,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
                       <button
-                        onClick={() => setContractChangeReasons(contractChangeReasons.filter((_, i) => i !== index))}
+                        onClick={() => openDeleteModal(
+                          "Delete Change Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractChangeReasons(contractChangeReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Change reason deleted")
+                          }
+                        )}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3973,7 +4101,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               description="Define reasons for contract renewals"
               action={
                 <button
-                  onClick={() => setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: "" }])}
+                  onClick={handleAddRenewReason}
                   className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -4003,7 +4131,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
                       <button
-                        onClick={() => setContractRenewReasons(contractRenewReasons.filter((_, i) => i !== index))}
+                        onClick={() => openDeleteModal(
+                          "Delete Renew Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractRenewReasons(contractRenewReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Renew reason deleted")
+                          }
+                        )}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -4024,7 +4161,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               description="Define reasons for granting bonus time"
               action={
                 <button
-                  onClick={() => setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: "" }])}
+                  onClick={handleAddBonusTimeReason}
                   className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -4054,7 +4191,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
                       <button
-                        onClick={() => setContractBonusTimeReasons(contractBonusTimeReasons.filter((_, i) => i !== index))}
+                        onClick={() => openDeleteModal(
+                          "Delete Bonus Time Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractBonusTimeReasons(contractBonusTimeReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Bonus time reason deleted")
+                          }
+                        )}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -4904,14 +5050,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </div>
                     <div className="flex-1">
                       <label className="text-sm font-medium text-content-secondary mb-1.5 block">Security</label>
-                      <select
+                      <CustomSelect
+                        name="smtpSecure"
                         value={settings.smtpSecure ? "tls" : "none"}
                         onChange={(e) => setSettings({ ...settings, smtpSecure: e.target.value === "tls" })}
-                        className="w-full bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
-                      >
-                        <option value="tls">TLS/SSL</option>
-                        <option value="none">None</option>
-                      </select>
+                        options={[
+                          { value: "tls", label: "TLS/SSL" },
+                          { value: "none", label: "None" }
+                        ]}
+                        className="bg-surface-card px-4 py-2.5 border-border"
+                      />
                     </div>
                   </div>
                   <InputField
@@ -5482,7 +5630,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                     />
                     <button
-                      onClick={() => setVatRates(vatRates.filter((_, i) => i !== index))}
+                      onClick={() => openDeleteModal(
+                        "Delete VAT Rate",
+                        rate.description || `${rate.percentage}%`,
+                        "This cannot be undone.",
+                        () => {
+                          setVatRates(vatRates.filter((_, i) => i !== index))
+                          closeDeleteModal()
+                          toast.success("VAT rate deleted")
+                        }
+                      )}
                       className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors self-end sm:self-center flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -6032,7 +6189,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
 
           {/* Mobile Content Area */}
-          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto p-4">
+          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4">
             {renderSectionContent()}
           </div>
 
@@ -6167,6 +6324,27 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         }}
         currentColor={colorPickerState.currentColor}
         title={colorPickerState.title}
+      />
+
+      {/* Shared Delete Modal */}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={deleteModal.onConfirm}
+        title={deleteModal.title}
+        itemName={deleteModal.itemName}
+        description={deleteModal.description}
+      />
+
+      {/* Shared Add Item Modal */}
+      <AddItemModal
+        isOpen={addItemModal.isOpen}
+        onClose={closeAddItemModal}
+        onSave={addItemModal.onSave}
+        title={addItemModal.title}
+        saveText={addItemModal.saveText}
+        fields={addItemModal.fields}
+        initialData={addItemModal.initialData}
       />
     </div>
   )
