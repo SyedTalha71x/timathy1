@@ -38,12 +38,17 @@ const Dashboardlayout = () => {
   // Scroll main content to top on route change
 useEffect(() => {
   if (mainRef.current) {
+    // Sofort
     mainRef.current.scrollTop = 0
+    // Nach Render
     requestAnimationFrame(() => {
-      if (mainRef.current) {
-        mainRef.current.scrollTop = 0
-      }
+      if (mainRef.current) mainRef.current.scrollTop = 0
     })
+    // iOS Safari Fallback — Momentum-Scroll braucht manchmal länger
+    const t = setTimeout(() => {
+      if (mainRef.current) mainRef.current.scrollTop = 0
+    }, 50)
+    return () => clearTimeout(t)
   }
 }, [location.pathname])
   
@@ -158,13 +163,13 @@ useEffect(() => {
           {/* Main Content Area */}
           <main
             ref={mainRef}
-            className={`
-              flex-1 md:h-screen h-[calc(100dvh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
-              lg:pt-0 md:pt-14 sm:pt-14 pt-14
-              pb-10 p-2
-              transition-all duration-500 ease-in-out
-              ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}
-            `}
+      className={`
+  flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
+  lg:pt-0 md:pt-14 sm:pt-14 pt-14
+  pb-10 p-2
+  transition-all duration-500 ease-in-out
+  ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}
+`}
           >
             {/* Header - handles both mobile + desktop views */}
             <DashboardHeader 
