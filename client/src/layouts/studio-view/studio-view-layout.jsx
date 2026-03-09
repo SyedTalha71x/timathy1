@@ -140,7 +140,7 @@ useEffect(() => {
         `}
       </style>
       
-      <div className="dashboard-root bg-surface-dark min-h-screen">
+      <div className="dashboard-root bg-surface-dark h-dvh overflow-hidden">
         <div className="flex flex-col md:flex-row h-full">
           {/* Sidebar - Navigation only */}
           <Sidebar 
