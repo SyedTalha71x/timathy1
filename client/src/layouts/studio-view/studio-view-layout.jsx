@@ -38,8 +38,11 @@ const Dashboardlayout = () => {
   // Scroll main content to top on route change
 useEffect(() => {
   if (mainRef.current) {
+    mainRef.current.scrollTop = 0
     requestAnimationFrame(() => {
-      mainRef.current.scrollTop = 0
+      if (mainRef.current) {
+        mainRef.current.scrollTop = 0
+      }
     })
   }
 }, [location.pathname])
@@ -156,7 +159,7 @@ useEffect(() => {
           <main
             ref={mainRef}
             className={`
-              flex-1 md:h-screen h-[calc(100vh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
+              flex-1 md:h-screen h-[calc(100dvh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
               lg:pt-0 md:pt-14 sm:pt-14 pt-14
               pb-10 p-2
               transition-all duration-500 ease-in-out
