@@ -319,7 +319,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
     { icon: BadgeDollarSign, label: "Finances", to: "/admin-dashboard/finances" },
     { icon: CheckSquare, label: "To-Do", to: "/admin-dashboard/to-do" },
     { icon: FaNotesMedical, label: "Notes", to: "/admin-dashboard/notes" },
-    { icon: CgGym, label: "Training", to: "/admin-dashboard/training-management" },
+    { icon: CgGym, label: "Training Exercises", to: "/admin-dashboard/training-exercises" },
     { icon: FaCartPlus, label: "Marketplace", to: "/admin-dashboard/marketplace" },
     { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/admin-dashboard/analytics" },
     { icon: Settings, label: "Configuration", to: "/admin-dashboard/configuration" },

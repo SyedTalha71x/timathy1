@@ -10,7 +10,7 @@ import {
   XIcon
 } from 'lucide-react';
 
-import { ELEMENT_CATEGORIES, SYSTEM_VARIABLES, USER_VARIABLES } from './contract-builder-components/constants/elementConstants.jsx';
+import { ELEMENT_CATEGORIES, SYSTEM_VARIABLES, USER_VARIABLES, ADMIN_VARIABLE_MAP } from './contract-builder-components/constants/elementConstants.jsx';
 import {
   PAGE_WIDTH_PX, PAGE_HEIGHT_PX, CONTENT_WIDTH_PX, CONTENT_HEIGHT_PX,
   MARGIN_PX, clampElementBounds, cleanElements, calculateDynamicContentArea
@@ -71,7 +71,18 @@ const scrollbarStyles = `
   }
 `;
 
-const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
+const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) => {
+  // Remap variable labels for admin context
+  const activeSystemVars = useMemo(() => {
+    if (!isAdmin) return SYSTEM_VARIABLES;
+    return SYSTEM_VARIABLES.map(v => ADMIN_VARIABLE_MAP[v] || v);
+  }, [isAdmin]);
+
+  const activeUserVars = useMemo(() => {
+    if (!isAdmin) return USER_VARIABLES;
+    return USER_VARIABLES.map(v => ADMIN_VARIABLE_MAP[v] || v);
+  }, [isAdmin]);
+
   // Initial State
   const [contractPages, setContractPages] = useState(
     contractForm?.pages || [
@@ -409,7 +420,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
       }
     });
 
-    SYSTEM_VARIABLES.forEach(sysVar => {
+    activeSystemVars.forEach(sysVar => {
       if (!assignedVariables.has(sysVar)) {
         warnings.unassignedVariables.push({
           variable: sysVar,
@@ -418,7 +429,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
       }
     });
 
-    USER_VARIABLES.forEach(userVar => {
+    activeUserVars.forEach(userVar => {
       if (!assignedVariables.has(userVar)) {
         warnings.unassignedVariables.push({
           variable: userVar,
@@ -1043,8 +1054,8 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
           removeElement={removeElement}
           toggleElementVisibility={toggleElementVisibility}
           usedVariables={usedVariables}
-          SYSTEM_VARIABLES={SYSTEM_VARIABLES}
-          USER_VARIABLES={USER_VARIABLES}
+          SYSTEM_VARIABLES={activeSystemVars}
+          USER_VARIABLES={activeUserVars}
           CONTENT_WIDTH_PX={CONTENT_WIDTH_PX}
           CONTENT_HEIGHT_PX={dynamicContentArea.height}
           editingFolderId={editingFolderId}

@@ -38,6 +38,8 @@ import {
   Send,
   Server,
   Calendar,
+  Smartphone,
+  Clock,
 } from "lucide-react"
 import { RiContractLine } from "react-icons/ri"
 import { Modal, notification, ColorPicker } from "antd"
@@ -46,6 +48,9 @@ import dayjs from "dayjs"
 
 import defaultLogoUrl from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
+import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
+import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
+import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
 import LanguageTabs, { emptyTranslations } from "../../components/admin-dashboard-components/shared/LanguageTabs"
 
 // Import configuration defaults from admin-panel-states (Single Source of Truth)
@@ -57,6 +62,8 @@ import {
   DEFAULT_CONTACT_DATA,
   DEFAULT_LEGAL_INFO,
   DEFAULT_CONTRACT_PAUSE_REASONS,
+  DEFAULT_CONTRACT_FORMS,
+  DEFAULT_CONTRACT_TYPES,
   DEFAULT_LEAD_SOURCES,
   CONFIGURATION_NAV_ITEMS,
   DEMO_MENU_ITEMS,
@@ -302,10 +309,29 @@ const InfoTooltip = ({ content, position = "left" }) => (
 // Navigation Items - map iconNames from configuration-states to actual icon components
 // ============================================
 const iconMap = { User, Building2, RiContractLine, UserPlus, Mail, History, Shield }
-const navigationItems = CONFIGURATION_NAV_ITEMS.map(item => ({
-  ...item,
-  icon: iconMap[item.iconName] || Settings,
-}))
+const navigationItems = CONFIGURATION_NAV_ITEMS.map(item => {
+  const mapped = {
+    ...item,
+    icon: iconMap[item.iconName] || Settings,
+  }
+  // Inject "Contract Forms" section into the contracts category
+  if (item.id === "contracts") {
+    const hasContractForms = item.sections.some(s => s.id === "contract-forms")
+    if (!hasContractForms) {
+      mapped.sections = [
+        ...item.sections.filter(s => s.id === "contract-types" || s.id !== "contract-types"),
+      ]
+      // Insert contract-forms right before contract-types (or at the beginning)
+      const typeIndex = mapped.sections.findIndex(s => s.id === "contract-types")
+      if (typeIndex >= 0) {
+        mapped.sections.splice(typeIndex, 0, { id: "contract-forms", label: "Contract Forms" })
+      } else {
+        mapped.sections.unshift({ id: "contract-forms", label: "Contract Forms" })
+      }
+    }
+  }
+  return mapped
+})
 
 // ============================================
 // Main Configuration Page Component
@@ -363,8 +389,17 @@ const ConfigurationPage = () => {
   // ============================================
   // Contracts State (initialized from configuration-states)
   // ============================================
-  const [contractTypes, setContractTypes] = useState([])
+  const [contractTypes, setContractTypes] = useState([...DEFAULT_CONTRACT_TYPES])
+  const [contractTypeModalVisible, setContractTypeModalVisible] = useState(false)
+  const [editingContractType, setEditingContractType] = useState(null)
+  const [editingContractTypeIndex, setEditingContractTypeIndex] = useState(null)
   const [contractPauseReasons, setContractPauseReasons] = useState([...DEFAULT_CONTRACT_PAUSE_REASONS])
+  const [contractForms, setContractForms] = useState([...DEFAULT_CONTRACT_FORMS])
+  const [selectedContractForm, setSelectedContractForm] = useState(null)
+  const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false)
+  const [newContractFormName, setNewContractFormName] = useState("")
+  const [showCreateFormModal, setShowCreateFormModal] = useState(false)
+  const [editingContractFormName, setEditingContractFormName] = useState({ id: null, value: "" })
 
   // ============================================
   // Resources State (initialized from configuration-states)
@@ -598,32 +633,78 @@ const ConfigurationPage = () => {
   }
 
   const handleAddContractType = () => {
-    setContractTypes([
-      ...contractTypes,
-      {
-        id: Date.now(),
-        name: "",
-        duration: 12,
-        cost: 0,
-        billingPeriod: "monthly",
-        maximumMemberCapacity: 0,
-      },
-    ])
+    setEditingContractType({
+      id: Date.now(),
+      name: "",
+      duration: 12,
+      cost: 0,
+      billingPeriod: "monthly",
+      autoRenewal: false,
+      renewalPeriod: 0,
+      renewalPrice: 0,
+      renewalIndefinite: false,
+      cancellationPeriod: 30,
+      contractFormId: null,
+      accessTemplateId: null,
+    })
+    setEditingContractTypeIndex(null)
+    setContractTypeModalVisible(true)
   }
 
-  const handleUpdateContractType = (index, field, value) => {
-    const updated = [...contractTypes]
-    updated[index][field] = value
-    setContractTypes(updated)
+  const handleEditContractType = (type, index) => {
+    setEditingContractType({ ...type })
+    setEditingContractTypeIndex(index)
+    setContractTypeModalVisible(true)
   }
 
-  const handleRemoveContractType = (index) => {
+  const handleSaveContractType = () => {
+    if (!editingContractType.name.trim()) {
+      notification.error({ message: "Please enter a contract name" })
+      return
+    }
+    if (!editingContractType.duration || editingContractType.duration < 1) {
+      notification.error({ message: "Please enter a valid duration" })
+      return
+    }
+    if (!editingContractType.billingPeriod) {
+      notification.error({ message: "Please select a billing period" })
+      return
+    }
+    if (contractForms.length === 0) {
+      notification.error({ message: "Please create a contract form first" })
+      return
+    }
+    if (!editingContractType.contractFormId) {
+      notification.error({ message: "Please select a contract form" })
+      return
+    }
+    
+    if (editingContractTypeIndex !== null) {
+      const updated = [...contractTypes]
+      updated[editingContractTypeIndex] = editingContractType
+      setContractTypes(updated)
+      notification.success({ message: "Contract type updated" })
+    } else {
+      setContractTypes([...contractTypes, editingContractType])
+      notification.success({ message: "Contract type created" })
+    }
+    
+    setContractTypeModalVisible(false)
+    setEditingContractType(null)
+    setEditingContractTypeIndex(null)
+  }
+
+  const handleDeleteContractType = (index) => {
+    const type = contractTypes[index]
     Modal.confirm({
-      title: "Remove Contract Type",
-      content: "Are you sure? This cannot be undone.",
-      okText: "Remove",
+      title: "Delete Contract Type",
+      content: `Are you sure you want to delete "${type.name || "this contract type"}"? This cannot be undone.`,
+      okText: "Delete",
       okType: "danger",
-      onOk: () => setContractTypes(contractTypes.filter((_, i) => i !== index))
+      onOk: () => {
+        setContractTypes(contractTypes.filter((_, i) => i !== index))
+        notification.success({ message: "Contract type deleted" })
+      }
     })
   }
 
@@ -633,6 +714,25 @@ const ConfigurationPage = () => {
 
   const handleRemovePauseReason = (index) => {
     setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
+  }
+
+  const handleCreateContractForm = () => {
+    if (!newContractFormName.trim()) {
+      notification.error({ message: "Please enter a name" })
+      return
+    }
+    const newForm = {
+      id: Date.now(),
+      name: newContractFormName.trim(),
+      pages: [{ id: 1, title: 'Contract Page 1', elements: [] }],
+      createdAt: new Date().toISOString()
+    }
+    setContractForms([...contractForms, newForm])
+    setSelectedContractForm(newForm)
+    setNewContractFormName("")
+    setShowCreateFormModal(false)
+    setContractBuilderModalVisible(true)
+    notification.success({ message: "Contract form created" })
   }
 
   const handleAddLeadSource = () => {
@@ -1299,19 +1399,180 @@ const ConfigurationPage = () => {
       // ========================
       // CONTRACTS SECTIONS
       // ========================
+      case "contract-forms":
+        return (
+          <div className="space-y-6">
+            {/* Mobile: show notice that contract forms require desktop */}
+            <div className="lg:hidden">
+              <SettingsCard>
+                <div className="text-center py-12 text-gray-400">
+                  <Smartphone className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-white mb-2">Desktop Required</h3>
+                  <p className="text-sm">Contract forms can only be created and edited on a desktop device.</p>
+                </div>
+              </SettingsCard>
+            </div>
+
+            {/* Desktop: full contract form management */}
+            <div className="hidden lg:block space-y-6">
+            <SectionHeader
+              title="Contract Forms"
+              description="Create and manage contract form templates"
+              action={
+                <button
+                  onClick={() => setShowCreateFormModal(true)}
+                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Form
+                </button>
+              }
+            />
+            
+            {contractForms.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-12 text-gray-400">
+                  <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-white mb-2">No contract forms yet</h3>
+                  <p className="text-sm mb-6">Create your first contract form template</p>
+                  <button
+                    onClick={() => setShowCreateFormModal(true)}
+                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Contract Form
+                  </button>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {contractForms.map((form) => (
+                  <div key={form.id} className="bg-[#1F1F1F] rounded-xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors group">
+                    <div className="p-4 sm:p-5">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          {editingContractFormName.id === form.id ? (
+                            <div className="flex items-center gap-2 flex-1">
+                              <input
+                                type="text"
+                                value={editingContractFormName.value}
+                                onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    setContractForms(contractForms.map(f => 
+                                      f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                    ))
+                                    setEditingContractFormName({ id: null, value: "" })
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingContractFormName({ id: null, value: "" })
+                                  }
+                                }}
+                                autoFocus
+                                className="flex-1 bg-[#141414] text-white text-sm font-medium outline-none border border-[#3F74FF] focus:border-[#3F74FF] rounded-lg px-2 py-1"
+                              />
+                              <button
+                                onClick={() => {
+                                  setContractForms(contractForms.map(f => 
+                                    f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                  ))
+                                  setEditingContractFormName({ id: null, value: "" })
+                                }}
+                                className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setEditingContractFormName({ id: null, value: "" })}
+                                className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <h3 
+                              className="text-white font-medium text-sm sm:text-base cursor-pointer hover:text-orange-400 transition-colors"
+                              onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
+                              title="Click to edit name"
+                            >
+                              {form.name}
+                            </h3>
+                          )}
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setContractForms([...contractForms, {
+                                ...form,
+                                id: Date.now(),
+                                name: `${form.name} (Copy)`,
+                                createdAt: new Date().toISOString()
+                              }])}
+                              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded transition-colors"
+                              title="Duplicate"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                Modal.confirm({
+                                  title: "Delete Contract Form",
+                                  content: `Are you sure you want to delete "${form.name}"? This will permanently delete all pages and content. This action cannot be undone.`,
+                                  okText: "Delete",
+                                  okType: "danger",
+                                  onOk: () => {
+                                    setContractForms(contractForms.filter(f => f.id !== form.id))
+                                    notification.success({ message: "Contract form deleted" })
+                                  }
+                                })
+                              }}
+                              className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Created: {new Date(form.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-4 py-3 bg-[#141414] border-t border-[#333333]">
+                      <button
+                        onClick={() => {
+                          setSelectedContractForm(form)
+                          setContractBuilderModalVisible(true)
+                        }}
+                        className="w-full px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Open Builder
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            </div>
+          </div>
+        )
+
       case "contract-types":
         return (
           <div className="space-y-6">
             <SectionHeader
               title="Contract Types"
-              description="Define different membership contract types"
+              description="Define different membership contracts for your studio"
               action={
                 <button
                   onClick={handleAddContractType}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Type
+                  <span className="hidden sm:inline">Add</span> Type
                 </button>
               }
             />
@@ -1321,7 +1582,7 @@ const ConfigurationPage = () => {
                 <div className="text-center py-12 text-gray-400">
                   <RiContractLine className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-medium text-white mb-2">No contract types yet</h3>
-                  <p className="text-sm mb-6">Create your first contract type</p>
+                  <p className="text-sm mb-6">Create your first membership contract type</p>
                   <button
                     onClick={handleAddContractType}
                     className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
@@ -1332,79 +1593,95 @@ const ConfigurationPage = () => {
                 </div>
               </SettingsCard>
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
                 {contractTypes.map((type, index) => (
-                  <SettingsCard key={type.id}>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-white font-medium">{type.name || "New Contract Type"}</h3>
-                        <button
-                          onClick={() => handleRemoveContractType(index)}
-                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                  <div
+                    key={index}
+                    className="bg-[#2A2A2A] rounded-xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors group"
+                  >
+                    {/* Header */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <h3 className="text-white font-medium truncate">{type.name || "Untitled"}</h3>
+                        {type.autoRenewal && (
+                          <span className="px-2.5 py-1 bg-orange-500 text-white text-xs font-medium rounded-full flex-shrink-0">
+                            Auto-Renew
+                          </span>
+                        )}
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <InputField
-                          label="Contract Name"
-                          value={type.name}
-                          onChange={(v) => handleUpdateContractType(index, "name", v)}
-                          placeholder="e.g., Premium Membership"
-                        />
-                        <div className="space-y-1.5">
-                          <label className="text-sm font-medium text-gray-300">Duration (months)</label>
-                          <input
-                            type="number"
-                            value={type.duration}
-                            onChange={(e) => handleUpdateContractType(index, "duration", Number(e.target.value))}
-                            min={1}
-                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-sm font-medium text-gray-300">Cost</label>
-                          <input
-                            type="number"
-                            value={type.cost}
-                            onChange={(e) => handleUpdateContractType(index, "cost", Number(e.target.value))}
-                            min={0}
-                            step={0.01}
-                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                          />
-                        </div>
-                        <SelectField
-                          label="Billing Period"
-                          value={type.billingPeriod}
-                          onChange={(v) => handleUpdateContractType(index, "billingPeriod", v)}
-                          options={[
-                            { value: "weekly", label: "Weekly" },
-                            { value: "monthly", label: "Monthly" },
-                            { value: "annually", label: "Annually" },
-                          ]}
-                        />
+                      {/* Price highlight */}
+                      <div className="mb-4">
+                        <span className="text-2xl font-bold text-white">{type.cost}€</span>
+                        <span className="text-gray-500 text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
                       </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                          Maximum Member Capacity
-                          <InfoTooltip content="Maximum number of members that can have this contract type active" />
-                        </label>
-                        <input
-                          type="number"
-                          value={type.maximumMemberCapacity}
-                          onChange={(e) => handleUpdateContractType(index, "maximumMemberCapacity", Number(e.target.value))}
-                          min={0}
-                          placeholder="0 = Unlimited"
-                          className="w-32 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                        />
+                      
+                      {/* Key info */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between text-gray-400">
+                          <span className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Duration
+                          </span>
+                          <span className="text-white">{type.duration} months</span>
+                        </div>
+                        <div className="flex items-center justify-between text-gray-400">
+                          <span className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            Access
+                          </span>
+                          <span className="text-white truncate max-w-[120px]">
+                            {type.accessTemplateId ? demoTemplates.find(t => String(t.id) === String(type.accessTemplateId))?.name || 'Unknown' : 'None'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-gray-400">
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Form
+                          </span>
+                          <span className="text-white truncate max-w-[120px]">
+                            {type.contractFormId ? contractForms.find(f => String(f.id) === String(type.contractFormId))?.name || 'Unknown' : 'None'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </SettingsCard>
+                    
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-[#1F1F1F] border-t border-[#333333] flex gap-2">
+                      <button
+                        onClick={() => handleEditContractType(type, index)}
+                        className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteContractType(index)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
+
+            <AdminContractTypeModal
+              isOpen={contractTypeModalVisible}
+              onClose={() => {
+                setContractTypeModalVisible(false)
+                setEditingContractType(null)
+                setEditingContractTypeIndex(null)
+              }}
+              editingContractType={editingContractType}
+              setEditingContractType={setEditingContractType}
+              editingContractTypeIndex={editingContractTypeIndex}
+              contractForms={contractForms}
+              accessTemplates={demoTemplates}
+              currency="€"
+              onSave={handleSaveContractType}
+            />
           </div>
         )
 
@@ -2438,6 +2715,32 @@ const ConfigurationPage = () => {
           Save
         </button>
       </div>
+
+      {/* Create Contract Form Modal */}
+      <CreateContractFormModal
+        isOpen={showCreateFormModal}
+        onClose={() => {
+          setShowCreateFormModal(false)
+          setNewContractFormName("")
+        }}
+        value={newContractFormName}
+        onChange={setNewContractFormName}
+        onSubmit={handleCreateContractForm}
+      />
+
+      {/* Contract Builder Fullscreen */}
+      {contractBuilderModalVisible && selectedContractForm && (
+        <div className="fixed inset-0 z-50 bg-[#0A0A0A]">
+          <ContractBuilder
+            contractForm={selectedContractForm}
+            onUpdate={(updatedForm) => {
+              setContractForms(contractForms.map(f => f.id === selectedContractForm.id ? updatedForm : f))
+            }}
+            onClose={() => setContractBuilderModalVisible(false)}
+            isAdmin={true}
+          />
+        </div>
+      )}
     </div>
   )
 }

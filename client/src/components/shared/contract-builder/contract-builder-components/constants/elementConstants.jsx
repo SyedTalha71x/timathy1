@@ -66,3 +66,11 @@ export const USER_VARIABLES = [
   'IBAN',
   'BIC'
 ];
+
+// Variable label overrides for admin panel context
+export const ADMIN_VARIABLE_MAP = {
+  'Member ID': 'Customer ID',
+  'Training Start Date': 'Access Start Date',
+  'Member First Name': 'Studio Owner First Name',
+  'Member Last Name': 'Studio Owner Last Name',
+};

@@ -36,32 +36,32 @@ import MedicalHistory from "./dashboard-pages/studio-view/medical-history";
 import HelpCenter from "./dashboard-pages/studio-view/help-center";
 import Tickets from "./dashboard-pages/studio-view/tickets";
 
+// ─── Standalone Public Pages (outside all dashboard layouts) ─────────────────
+import TrialTraining from './dashboard-pages/studio-view/subpage/trial-training'
 
 // Admin Dashboard
 import AdminDashboardLayout from './layouts/admin-view/admin-view-layout'
 import Customers from "./dashboard-pages/admin-view/customers";
-import AdminLeads from './dashboard-pages/admin-view/leads'
-import AdminTodo from './dashboard-pages/admin-view/todo'
-import AdminConfiguration from './dashboard-pages/admin-view/configuration'
-import AdminFinance from './dashboard-pages/admin-view/finance'
+import AdminLeads from './dashboard-pages/admin-view/admin-leads'
+import AdminTodo from './dashboard-pages/admin-view/admin-todo'
+import AdminConfiguration from './dashboard-pages/admin-view/admin-configuration'
+import AdminFinance from './dashboard-pages/admin-view/admin-finances'
 import AdminContracts from './dashboard-pages/admin-view/admin-contract'
-import AdminTrainingManagement from "./dashboard-pages/admin-view/training";
-import AdminTicketsSystem from "./dashboard-pages/admin-view/tickets";
-import AdminAnalytics from './dashboard-pages/admin-view/analytics'
-import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
-import AdminEmailManagement from './dashboard-pages/admin-view/email'
-import AdminNotes from './dashboard-pages/admin-view/notes'
+import AdminTrainingManagement from "./dashboard-pages/admin-view/training-exercises";
+import AdminTicketsSystem from "./dashboard-pages/admin-view/admin-tickets";
+import AdminAnalytics from './dashboard-pages/admin-view/admin-analytics'
+import AdminMarketPlace from './dashboard-pages/admin-view/admin-marketplace'
+import AdminEmailManagement from './dashboard-pages/admin-view/admin-email'
+import AdminNotes from './dashboard-pages/admin-view/admin-notes'
 import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
-import AdminFeedback from './dashboard-pages/admin-view/feedback'
+import AdminFeedback from './dashboard-pages/admin-view/admin-feedback'
+
 import EditStudioMembersPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-members-page'
 import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-staff-page'
 import EditStudioLeadsPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-leads-page'
 import EditStudioContractsPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-contracts-page'
 import EditStudioFinancesPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-finances-page'
 
-
-// ─── Standalone Public Pages (outside all dashboard layouts) ─────────────────
-import TrialTraining from './dashboard-pages/studio-view/subpage/trial-training'
 
 // Member Dashboard  
 import MemberDashboardLayout from "./layouts/member-view/member-view-layout";
@@ -205,7 +205,7 @@ function App() {
           <Route path="leads" element={<AdminLeads />} />
           <Route path="finances" element={<AdminFinance />} />
           <Route path="customers" element={<Customers />} />
-          <Route path="training-management" element={<AdminTrainingManagement />} />
+          <Route path="training-exercises" element={<AdminTrainingManagement />} />
           <Route path="tickets" element={<AdminTicketsSystem />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="marketplace" element={<AdminMarketPlace />} />
