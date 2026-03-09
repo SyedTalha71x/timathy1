@@ -36,11 +36,13 @@ const Dashboardlayout = () => {
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false)
 
   // Scroll main content to top on route change
-  useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTo(0, 0)
-    }
-  }, [location.pathname])
+useEffect(() => {
+  if (mainRef.current) {
+    requestAnimationFrame(() => {
+      mainRef.current.scrollTop = 0
+    })
+  }
+}, [location.pathname])
   
   // External sidebar state for pages with custom sidebars (e.g., Selling)
   const [isExternalSidebarOpen, setIsExternalSidebarOpen] = useState(false)
