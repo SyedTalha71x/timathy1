@@ -227,7 +227,7 @@ const AdminContractTypeModal = ({
               <>
                 <AdminSelect
                   value={editingContractType.accessTemplateId || ""}
-                  onChange={(v) => setEditingContractType({ ...editingContractType, accessTemplateId: v ? Number(v) : null })}
+                  onChange={(v) => setEditingContractType({ ...editingContractType, accessTemplateId: v || null })}
                   options={[
                     { value: "", label: "No template linked" },
                     ...accessTemplates.map(t => ({ value: t.id, label: t.name }))

@@ -4,18 +4,14 @@
 // ============================================
 
 // ============================================
-// CONTRACT TYPES (Admin ↔ Studio contracts)
+// CONTRACT TYPES & FORMS — imported from configuration-states
+// These are managed in the admin Configuration page (Contract Types / Contract Forms)
 // ============================================
-export const DEFAULT_ADMIN_CONTRACT_TYPES = [
-  { name: "Basic License 12 Months", duration: "12", cost: 199, billingPeriod: "monthly", description: "Basic platform access" },
-  { name: "Standard License 12 Months", duration: "12", cost: 349, billingPeriod: "monthly", description: "Standard platform access with analytics" },
-  { name: "Standard License 24 Months", duration: "24", cost: 299, billingPeriod: "monthly", description: "Standard access with 2-year discount" },
-  { name: "Premium License 12 Months", duration: "12", cost: 599, billingPeriod: "monthly", description: "Full platform access with all features" },
-  { name: "Premium License 24 Months", duration: "24", cost: 499, billingPeriod: "monthly", description: "Full access with 2-year discount" },
-  { name: "Enterprise License 36 Months", duration: "36", cost: 899, billingPeriod: "monthly", description: "Enterprise-grade with priority support" },
-  { name: "Trial License 1 Month", duration: "1", cost: 0, billingPeriod: "monthly", description: "Free trial period" },
-  { name: "Trial License 3 Months", duration: "3", cost: 49, billingPeriod: "monthly", description: "Extended trial period" },
-]
+import { DEFAULT_CONTRACT_TYPES, DEFAULT_CONTRACT_FORMS } from "./configuration-states"
+
+// Re-export so all existing imports continue to work
+export const DEFAULT_ADMIN_CONTRACT_TYPES = DEFAULT_CONTRACT_TYPES
+export const DEFAULT_ADMIN_CONTRACT_FORMS = DEFAULT_CONTRACT_FORMS
 
 // ============================================
 // PAUSE REASONS
@@ -96,29 +92,8 @@ export const adminPlatformData = {
 }
 
 // ============================================
-// CONTRACT FORM TEMPLATES (for contract builder)
+// CONTRACT FORM TEMPLATES — now imported via DEFAULT_ADMIN_CONTRACT_FORMS above
 // ============================================
-export const DEFAULT_ADMIN_CONTRACT_FORMS = [
-  {
-    id: "admin-standard",
-    name: "Standard Studio License Agreement",
-    pages: [
-      {
-        elements: [
-          { type: "heading", content: "Studio License Agreement", style: { fontSize: 24, fontWeight: "bold", textAlign: "center" } },
-          { type: "paragraph", content: "This agreement is entered into between FitPlatform GmbH and the Studio identified below." },
-          { type: "variable", variableType: "system", variableName: "Contract Type" },
-          { type: "variable", variableType: "user", variableName: "Studio Name" },
-          { type: "variable", variableType: "user", variableName: "Owner Name" },
-          { type: "variable", variableType: "system", variableName: "Contract Start Date" },
-          { type: "variable", variableType: "system", variableName: "Contract End Date" },
-          { type: "paragraph", content: "The studio agrees to the terms and conditions of the selected license plan." },
-          { type: "signature", label: "Studio Representative Signature" },
-        ]
-      }
-    ]
-  }
-]
 
 // ============================================
 // SYSTEM VARIABLES (for contract forms)
