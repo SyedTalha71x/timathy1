@@ -24,6 +24,7 @@
     BadgeDollarSign,
     FileText,
     Shield,
+    CreditCard,
   } from "lucide-react"
   import { BsPersonWorkspace } from "react-icons/bs";
   import { HiOutlineUsers } from "react-icons/hi2";
@@ -83,6 +84,7 @@
   import { useNavigate } from "react-router-dom";
   import { LeadSpecialNoteIcon } from "../../components/admin-dashboard-components/shared/special-note/shared-special-note-icon";
   import StudioDocumentManagementModal from "../../components/admin-dashboard-components/shared/StudioDocumentManagementModal";
+  import PaymentDetailsModal from "../../components/admin-dashboard-components/studios-modal/PaymentDetailsModal";
 
   // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Reusable StatusTag (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const StatusTag = ({ isActive, isArchived, compact = false }) => {
@@ -196,6 +198,8 @@
 
     const [isFinancesModalOpen, setisFinancesModalOpen] = useState(false)
     const [isStudioDocumentModalOpen, setIsStudioDocumentModalOpen] = useState(false)
+    const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [selectedStudioForPayment, setSelectedStudioForPayment] = useState(null)
 
 
     const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
@@ -394,6 +398,7 @@
 }
 
     const handleViewMemberDetails = (member) => { setSelectedItemForDetails(member); setIsMemberDetailsModalOpen(true) }
+    const handlePaymentClick = (studio) => { setSelectedStudioForPayment(studio); setShowPaymentModal(true) }
     const handleViewContractDetails = (contract) => { setSelectedItemForDetails(contract); setIsContractDetailsModalOpen(true) }
 
     const isContractExpiringSoon = (contractEnd) => { if (!contractEnd) return false; const today = new Date(); const endDate = new Date(contractEnd); const oneMonth = new Date(); oneMonth.setMonth(today.getMonth() + 1); return endDate <= oneMonth && endDate >= today }
@@ -744,6 +749,7 @@
                             </div>
                             <div className="col-span-2 flex items-center justify-end gap-0.5">
                               <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Documents"><FileText size={18} /></button>
+                              <button onClick={() => handlePaymentClick(studio)} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Payment"><CreditCard size={18} /></button>
                               <button onClick={() => { setSelectedStudio(studio); setShowHistory(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="History"><HistoryIcon size={18} /></button>
                               <div className="w-px h-5 bg-gray-700/50 mx-1" />
                               <button onClick={() => handleViewDetails(studio)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors" title="View Details"><Eye size={18} /></button>
@@ -784,9 +790,10 @@
                                     <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><RiContractLine size={18} /><span className="text-[10px]">{studioStats[studio.id]?.contracts || 0} Contracts</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{studioLeads[studio.id]?.length || 0} Leads</span></button>
                                   </div>
-                                  <div className="grid grid-cols-5 gap-1">
+                                  <div className="grid grid-cols-6 gap-1">
                                     <button onClick={(e) => { e.stopPropagation(); navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">Finances</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">Docs</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePaymentClick(studio) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><CreditCard size={18} /><span className="text-[10px]">Payment</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">History</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleViewDetails(studio) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">Details</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleEditStudio(studio) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">Edit</span></button>
@@ -921,6 +928,18 @@
             setStudios(prev => prev.map(s => s.id === studioId ? { ...s, documents } : s))
           }}
         />
+        {showPaymentModal && selectedStudioForPayment && (
+          <PaymentDetailsModal
+            studio={selectedStudioForPayment}
+            onClose={() => {
+              setShowPaymentModal(false)
+              setSelectedStudioForPayment(null)
+            }}
+            onSave={(paymentDetails) => {
+              setStudios(prev => prev.map(s => s.id === selectedStudioForPayment.id ? { ...s, paymentDetails } : s))
+            }}
+          />
+        )}
         <EditStudioOptionsModal isOpen={isEditOptionsModalOpen} onClose={() => setIsEditOptionsModalOpen(false)} studio={selectedStudio} onAdminConfig={handleAdminConfig} onStudioConfig={handleStudioConfig} />
         <EditAdminConfigModal isOpen={isAdminConfigModalOpen} onClose={() => setIsAdminConfigModalOpen(false)} studio={selectedStudio} onSave={handleSaveAdminConfig} initialTab={adminConfigInitialTab} />
       </>
