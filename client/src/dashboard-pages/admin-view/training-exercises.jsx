@@ -386,18 +386,25 @@ export default function AdminTrainingManagement() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex justify-between items-center gap-2 w-full md:w-auto">
             <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training Exercises</h1>
-          </div>
-          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsManageOptionsModalOpen(true)}
-              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+              className="md:hidden p-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white transition-colors"
+              aria-label="Manage Options"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <button
+              onClick={() => setIsManageOptionsModalOpen(true)}
+              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white font-medium transition-colors"
             >
               <Settings size={18} />
               Manage Options
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors"
             >
               <Plus size={18} />
               Upload Exercise
@@ -619,6 +626,15 @@ export default function AdminTrainingManagement() {
         muscleOptions={muscleOptions}
         equipmentOptions={equipmentOptions}
       />
+
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={() => setIsCreateModalOpen(true)}
+        className="md:hidden fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        aria-label="Upload Exercise"
+      >
+        <Plus size={22} />
+      </button>
 
       <DeleteExerciseModal
         isOpen={isDeleteModalOpen}

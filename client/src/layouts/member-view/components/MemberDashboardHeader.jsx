@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
-import { Globe, X, Sun, Moon } from "lucide-react"
+import { Sun, Moon } from "lucide-react"
 import DefaultAvatar from '../../../../public/gray-avatar-fotor-20250912192528.png'
+import LanguageDropdown from '../../LanguageDropdown'
 
 /**
  * MemberDashboardHeader Component
@@ -29,9 +30,7 @@ const MemberDashboardHeader = ({
   const { studio } = useSelector((state) => state.studios)
   const studioName = studio?.studioName || "Studio"
   const studioLogo = studio?.logo?.url || studio?.logo || null
-  // Dropdown state
-  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
-  
+
   // Theme state - defaults to dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme')
@@ -39,20 +38,6 @@ const MemberDashboardHeader = ({
     if (!dark) document.documentElement.classList.add('light')
     return dark
   })
-  
-  // Refs
-  const languageDropdownRef = useRef(null)
-  
-  // Languages
-  const languages = [
-    { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Flag_of_the_United_States.png/1024px-Flag_of_the_United_States.png" },
-    { code: "de", name: "German", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" },
-    { code: "fr", name: "French", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/1280px-Flag_of_France.svg.png" },
-    { code: "es", name: "Spanish", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
-    { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
-  ]
-  
-  const [selectedLanguage, setSelectedLanguage] = useState("English")
 
   // ============================================
   // Theme Toggle Effect
@@ -67,30 +52,10 @@ const MemberDashboardHeader = ({
       localStorage.setItem('theme', 'light')
     }
   }, [isDarkMode])
-  
-  // Close dropdown on scroll (mobile)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerWidth < 1024) {
-        setIsLanguageDropdownOpen(false)
-      }
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   // ============================================
   // Handlers
   // ============================================
-  const toggleLanguageDropdown = () => {
-    setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
-  }
-
-  const handleLanguageSelect = (language) => {
-    setSelectedLanguage(language.name)
-    setIsLanguageDropdownOpen(false)
-  }
-
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode)
   }
@@ -113,53 +78,6 @@ const MemberDashboardHeader = ({
         <Moon size={18} className="text-content-muted" />
       )}
     </button>
-  )
-
-  const LanguageDropdown = ({ isMobile = false }) => (
-    <div className="relative" ref={languageDropdownRef}>
-      <button
-        onClick={toggleLanguageDropdown}
-        className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
-          isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
-        }`}
-        aria-label="Language Selection"
-      >
-        <Globe size={18} />
-      </button>
-      {isLanguageDropdownOpen && (
-        <>
-          <div 
-            className="fixed inset-0 z-[99]" 
-            onClick={() => setIsLanguageDropdownOpen(false)}
-          />
-          <div 
-            className={`absolute ${
-              isMobile 
-                ? "right-0 top-11 w-36" 
-                : "right-0 top-10 w-40"
-            } bg-surface-hover/95 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
-          >
-            <div className="py-2" role="menu">
-              {languages.map((language) => (
-                <button
-                  key={language.code}
-                  onClick={() => handleLanguageSelect(language)}
-                  className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-content-primary hover:bg-surface-button text-left flex items-center gap-2`}
-                >
-                  <img 
-                    draggable="false"
-                    src={language.flag} 
-                    alt={`${language.name} flag`} 
-                    className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`}
-                  />
-                  <span className={isMobile ? "text-xs" : "text-sm"}>{language.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
   )
 
   const StudioBadge = ({ isMobile = false }) => (

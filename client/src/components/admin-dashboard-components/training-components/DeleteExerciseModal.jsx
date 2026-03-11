@@ -13,12 +13,12 @@ export default function DeleteExerciseModal({
   const exerciseName = getTranslation(videoToDelete.name, "en");
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md">
-        <div className="p-6">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center sm:p-4 z-50">
+      <div className="bg-[#1C1C1C] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md sm:mx-auto border-t sm:border border-[#333333] shadow-2xl">
+        <div className="p-5 sm:p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-red-600/20 rounded-full">
-              <Trash2 size={24} className="text-red-400" />
+            <div className="p-3 bg-red-500/15 rounded-xl">
+              <Trash2 size={22} className="text-red-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">

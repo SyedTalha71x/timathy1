@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import Sidebar from "./components/sidebar";
+import Sidebar from "./components/member-sidebar";
 import MemberDashboardHeader from "./components/MemberDashboardHeader";
 
 const MemberDashboardLayout = () => {

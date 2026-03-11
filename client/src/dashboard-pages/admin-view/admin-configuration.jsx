@@ -90,6 +90,26 @@ const SectionHeader = ({ title, description, action }) => (
   </div>
 )
 
+// Collapsible Variables Row — collapsed on mobile, always visible on desktop
+const VariablesRow = ({ children }) => {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-2">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="md:hidden flex items-center gap-1.5 text-xs text-gray-500 mb-1.5 hover:text-gray-400 transition-colors"
+      >
+        <ChevronRight className={`w-3 h-3 transition-transform ${open ? "rotate-90" : ""}`} />
+        Variables
+      </button>
+      <div className={`flex-wrap items-center gap-2 ${open ? "flex" : "hidden"} md:flex`}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 // Card Component
 const SettingsCard = ({ children, className = "" }) => (
   <div className={`bg-[#1F1F1F] rounded-xl p-4 sm:p-6 ${className}`}>
@@ -405,7 +425,6 @@ const ConfigurationPage = () => {
   // Resources State (initialized from configuration-states)
   // ============================================
   const [leadSources, setLeadSources] = useState([...DEFAULT_LEAD_SOURCES])
-  const [newLeadSource, setNewLeadSource] = useState("")
 
   // ============================================
   // Communication State (initialized from configuration-states)
@@ -508,6 +527,24 @@ const ConfigurationPage = () => {
     setExpandedCategories(prev =>
       prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
     )
+  }
+
+  // Mobile floating + button action per section
+  const getMobileAddAction = () => {
+    switch (activeSection) {
+      case "contract-forms":
+        return null // Contract forms require desktop
+      case "contract-types":
+        return handleAddContractType
+      case "pause-reasons":
+        return handleAddPauseReason
+      case "lead-sources":
+        return handleAddLeadSource
+      case "demo-templates":
+        return handleAddDemoTemplate
+      default:
+        return null
+    }
   }
 
   const getCurrentSectionTitle = () => {
@@ -713,7 +750,17 @@ const ConfigurationPage = () => {
   }
 
   const handleRemovePauseReason = (index) => {
-    setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
+    const reason = contractPauseReasons[index]
+    Modal.confirm({
+      title: "Delete Pause Reason",
+      content: `Are you sure you want to delete "${reason?.name || "this reason"}"? This cannot be undone.`,
+      okText: "Delete",
+      okType: "danger",
+      onOk: () => {
+        setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
+        notification.success({ message: "Pause reason deleted" })
+      }
+    })
   }
 
   const handleCreateContractForm = () => {
@@ -736,22 +783,29 @@ const ConfigurationPage = () => {
   }
 
   const handleAddLeadSource = () => {
-    if (!newLeadSource.trim()) return
-    
     setLeadSources([
       ...leadSources,
       {
         id: Date.now(),
-        name: newLeadSource.trim(),
+        name: "",
         color: "#3B82F6",
       },
     ])
-    setNewLeadSource("")
     notification.success({ message: "Lead source added" })
   }
 
   const handleRemoveLeadSource = (id) => {
-    setLeadSources(leadSources.filter(s => s.id !== id))
+    const source = leadSources.find(s => s.id === id)
+    Modal.confirm({
+      title: "Delete Lead Source",
+      content: `Are you sure you want to delete "${source?.name || "this source"}"? This cannot be undone.`,
+      okText: "Delete",
+      okType: "danger",
+      onOk: () => {
+        setLeadSources(leadSources.filter(s => s.id !== id))
+        notification.success({ message: "Lead source deleted" })
+      }
+    })
   }
 
   const handleUpdateLeadSource = (id, field, value) => {
@@ -785,11 +839,17 @@ const ConfigurationPage = () => {
   }
 
   const removeChangelogEntry = (index) => {
-    setChangelog(changelog.filter((_, i) => i !== index))
-  }
-
-  const handleSaveConfiguration = () => {
-    notification.success({ message: "Configuration saved successfully!" })
+    const entry = changelog[index]
+    Modal.confirm({
+      title: "Delete Changelog Entry",
+      content: `Are you sure you want to delete version "${entry?.version || "this entry"}"? This cannot be undone.`,
+      okText: "Delete",
+      okType: "danger",
+      onOk: () => {
+        setChangelog(changelog.filter((_, i) => i !== index))
+        notification.success({ message: "Changelog entry deleted" })
+      }
+    })
   }
 
   // ============================================
@@ -1746,37 +1806,17 @@ const ConfigurationPage = () => {
             <SectionHeader
               title="Lead Sources"
               description="Track where your leads come from"
-            />
-            
-            {/* Add New Lead Source */}
-            <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Add New Lead Source</h3>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={newLeadSource}
-                  onChange={(e) => setNewLeadSource(e.target.value)}
-                  placeholder="Enter lead source name"
-                  onKeyPress={(e) => e.key === "Enter" && handleAddLeadSource()}
-                  className="flex-1 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                />
+              action={
                 <button
                   onClick={handleAddLeadSource}
-                  disabled={!newLeadSource.trim()}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    newLeadSource.trim()
-                      ? "bg-orange-500 text-white hover:bg-orange-600"
-                      : "bg-[#333333] text-gray-500 cursor-not-allowed"
-                  }`}
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
-                  Add Source
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Source
                 </button>
-              </div>
-            </SettingsCard>
-
-            {/* Lead Sources List */}
+              }
+            />
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Current Lead Sources</h3>
               {leadSources.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -1840,7 +1880,7 @@ const ConfigurationPage = () => {
 
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Email Content</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-gray-500">Variables:</span>
                     {["{Access_Link}", "{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Access}", "{Expiry_Date}"].map(v => (
                       <button
@@ -1867,7 +1907,7 @@ const ConfigurationPage = () => {
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
-                  </div>
+                  </VariablesRow>
                   <WysiwygEditor
                     key={`demo-email-${demoEmailLang}`}
                     value={demoEmail.content?.[demoEmailLang] || ""}
@@ -1912,12 +1952,12 @@ const ConfigurationPage = () => {
                   label="Email Subject"
                   value={registrationEmail.subject?.[registrationEmailLang] || ""}
                   onChange={(v) => setRegistrationEmail({ ...registrationEmail, subject: { ...registrationEmail.subject, [registrationEmailLang]: v } })}
-                  placeholder="Welcome â€“ Complete Your Registration"
+                  placeholder="Welcome - Complete Your Registration"
                 />
 
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Email Content</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <VariablesRow>
                     <span className="text-xs text-gray-500">Variables:</span>
                     {["{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Registration}", "{Registration_Link}", "{Expiry_Date}"].map(v => (
                       <button
@@ -1944,7 +1984,7 @@ const ConfigurationPage = () => {
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
-                  </div>
+                  </VariablesRow>
                   <WysiwygEditor
                     key={`reg-email-${registrationEmailLang}`}
                     value={registrationEmail.content?.[registrationEmailLang] || ""}
@@ -2039,7 +2079,7 @@ const ConfigurationPage = () => {
                       type="password"
                       value={smtpConfig.smtpPass}
                       onChange={(e) => setSmtpConfig({ ...smtpConfig, smtpPass: e.target.value })}
-                      placeholder="ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢"
+                      placeholder="Enter SMTP password"
                       className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                     />
                   </div>
@@ -2234,17 +2274,6 @@ const ConfigurationPage = () => {
                 </button>
               }
             />
-
-            {/* Mobile add button */}
-            <div className="md:hidden">
-              <button
-                onClick={handleAddDemoTemplate}
-                className="w-full px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Template
-              </button>
-            </div>
 
             {demoTemplates.length === 0 ? (
               <SettingsCard>
@@ -2585,8 +2614,8 @@ const ConfigurationPage = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation List */}
-      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'hidden' : 'flex'}`}>
+      {/* Mobile Navigation List - fixed fullscreen below dashboard header */}
+      <div className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-[#1C1C1C] z-20 ${mobileShowContent ? 'hidden' : 'flex'}`}>
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
           <h1 className="text-xl font-bold">Configuration</h1>
@@ -2615,7 +2644,7 @@ const ConfigurationPage = () => {
         </div>
 
         {/* Mobile Navigation Items */}
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 min-h-0 overflow-y-auto p-2">
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
             
@@ -2666,54 +2695,49 @@ const ConfigurationPage = () => {
         </div>
       </div>
 
-      {/* Mobile Content View */}
-      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'flex' : 'hidden'}`}>
-        {/* Mobile Content Header with Back Button */}
-        <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
-          <button
-            onClick={() => setMobileShowContent(false)}
-            className="p-2 -ml-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-lg font-semibold">{getCurrentSectionTitle()}</h1>
-        </div>
+      {/* Mobile Content View - fixed fullscreen below dashboard header */}
+      {mobileShowContent && (
+        <div className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-[#1C1C1C] z-30">
+          {/* Mobile Content Header with Back Button - always visible */}
+          <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
+            <button
+              onClick={() => setMobileShowContent(false)}
+              className="p-2 -ml-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-semibold truncate">{getCurrentSectionTitle()}</h1>
+          </div>
 
-        {/* Mobile Content Area */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {renderSectionContent()}
+          {/* Mobile Content Area */}
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4">
+            {renderSectionContent()}
+          </div>
+
+          {/* Floating Action Button - Mobile */}
+          {getMobileAddAction() && (
+            <button
+              onClick={getMobileAddAction()}
+              className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+              aria-label="Add"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Desktop Main Content */}
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
         {/* Desktop Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#333333] flex-shrink-0">
           <h1 className="text-2xl font-bold">Configuration</h1>
-          <button
-            onClick={handleSaveConfiguration}
-            className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
-          >
-            <Check className="w-4 h-4" />
-            Save Configuration
-          </button>
         </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
           {renderSectionContent()}
         </div>
-      </div>
-
-      {/* Mobile Save Button */}
-      <div className={`lg:hidden fixed bottom-4 right-4 ${mobileShowContent ? 'block' : 'hidden'}`}>
-        <button
-          onClick={handleSaveConfiguration}
-          className="px-4 py-3 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors shadow-lg flex items-center gap-2"
-        >
-          <Check className="w-4 h-4" />
-          Save
-        </button>
       </div>
 
       {/* Create Contract Form Modal */}

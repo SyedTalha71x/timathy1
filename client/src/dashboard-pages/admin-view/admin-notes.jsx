@@ -1031,7 +1031,7 @@ export default function NotesApp() {
 
       {/* Mobile Editor Overlay */}
       {selectedNote && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[9999] flex flex-col">
           {/* Mobile Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
             <button

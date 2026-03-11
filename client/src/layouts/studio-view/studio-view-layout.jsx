@@ -1,8 +1,8 @@
 import React, { useState, useCallback, createContext, useRef, useEffect } from "react"
 import { Outlet, useLocation } from "react-router-dom"
-import Sidebar from "./components/sidebar"
-import DashboardHeader from "./components/DashboardHeader"
-import CentralSidebar from "./components/central-sidebar"
+import Sidebar from "./components/studio-sidebar"
+import DashboardHeader from "./components/StudioDashboardHeader"
+import CentralSidebar from "./components/studio-central-sidebar"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { ToastProvider } from "../../components/shared/SharedToast"
 

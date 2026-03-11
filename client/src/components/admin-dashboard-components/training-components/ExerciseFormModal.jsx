@@ -44,15 +44,14 @@ export default function ExerciseFormModal({
     LANGUAGES.find((l) => l.code === formLang)?.fullLabel || "English";
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl max-h-[80vh] custom-scrollbar overflow-y-auto">
-        <div className="p-4 sm:p-6">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center sm:p-4 z-50">
+      <div className="bg-[#1C1C1C] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-5xl sm:mx-auto h-[92vh] sm:h-auto sm:max-h-[80vh] overflow-y-auto custom-scrollbar border-t sm:border border-[#333333] shadow-2xl flex flex-col">
+        <div className="sticky top-0 bg-[#1C1C1C] z-10 px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b border-[#333333] flex-shrink-0 rounded-t-2xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg sm:text-xl font-bold text-white">
               {isCreateModalOpen ? "Upload New Exercise" : "Edit Exercise"}
             </h2>
-
             <button
               onClick={closeModal}
               className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors"
@@ -62,7 +61,7 @@ export default function ExerciseFormModal({
           </div>
 
           {/* Language Tabs */}
-          <div className="mb-6">
+          <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
               Language
             </label>
@@ -77,10 +76,12 @@ export default function ExerciseFormModal({
               </p>
             )}
           </div>
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* LEFT COLUMN */}
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -91,7 +92,7 @@ export default function ExerciseFormModal({
                   type="text"
                   value={formData.name?.[formLang] || ""}
                   onChange={(e) => updateTranslation("name", e.target.value)}
-                  className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none"
+                  className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none"
                   placeholder={
                     formLang === "en"
                       ? "Enter exercise name..."
@@ -118,7 +119,7 @@ export default function ExerciseFormModal({
                   onChange={(e) =>
                     updateTranslation("description", e.target.value)
                   }
-                  className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none resize-none"
+                  className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none resize-none"
                   rows={4}
                   placeholder={
                     formLang === "en"
@@ -135,7 +136,7 @@ export default function ExerciseFormModal({
                 )}
               </div>
 
-              {/* Difficulty – unchanged */}
+              {/* Difficulty */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
                   Difficulty Level
@@ -145,7 +146,7 @@ export default function ExerciseFormModal({
                   onChange={(e) =>
                     setFormData({ ...formData, difficulty: e.target.value })
                   }
-                  className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 focus:border-blue-500 outline-none"
+                  className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none"
                 >
                   {["Beginner", "Intermediate", "Advanced"].map((option) => (
                     <option key={option}>{option}</option>
@@ -153,7 +154,7 @@ export default function ExerciseFormModal({
                 </select>
               </div>
 
-              {/* Uploads – unchanged */}
+              {/* Uploads */}
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -168,7 +169,7 @@ export default function ExerciseFormModal({
                         videoFile: e.target.files[0],
                       })
                     }
-                    className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                 </div>
 
@@ -185,21 +186,20 @@ export default function ExerciseFormModal({
                         thumbnailFile: e.target.files[0],
                       })
                     }
-                    className="w-full bg-[#161616] rounded-xl px-4 py-3 text-white border border-gray-700 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                 </div>
               </div>
             </div>
 
             {/* RIGHT COLUMN */}
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* Target Muscles */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-3">
                   Target Muscles * ({formData.targetMuscles.length} selected)
                 </label>
-
-                <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-gray-700 p-3">
+                <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-[#333333] p-3">
                   <div className="grid grid-cols-2 gap-2">
                     {muscleOptions.map((muscle) => (
                       <label
@@ -226,8 +226,7 @@ export default function ExerciseFormModal({
                 <label className="block text-sm font-medium text-gray-400 mb-3">
                   Equipment Needed ({formData.equipment.length} selected)
                 </label>
-
-                <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-gray-700 p-3">
+                <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-[#333333] p-3">
                   {equipmentOptions.map((equip) => (
                     <label
                       key={equip.id}
@@ -295,16 +294,17 @@ export default function ExerciseFormModal({
               </div>
             </div>
           </div>
+        </div>
 
-          {/* ACTION BUTTONS */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8">
+        {/* ACTION BUTTONS - sticky bottom */}
+        <div className="sticky bottom-0 bg-[#1C1C1C] border-t border-[#333333] px-4 sm:px-6 py-4 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={closeModal}
               className="flex-1 px-4 py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-white"
             >
               Cancel
             </button>
-
             <button
               onClick={isCreateModalOpen ? handleCreate : handleEdit}
               disabled={

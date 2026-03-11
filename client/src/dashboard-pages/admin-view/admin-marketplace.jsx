@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { FaInfoCircle, FaThumbtack, FaPlus } from 'react-icons/fa';
-import { ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink } from 'lucide-react';
+import { ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink, Plus } from 'lucide-react';
 
 import ProductModal from '../../components/admin-dashboard-components/marketplace-components/ProductModal';
 import DeleteConfirmationModal from '../../components/admin-dashboard-components/marketplace-components/DeleteConfirmationModal';
@@ -456,19 +456,13 @@ const Marketplace = () => {
               <div className="sm:hidden"><SortDropdown /></div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <button onClick={openAddModal} className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white px-4 sm:px-6 py-2 cursor-pointer rounded-xl font-medium transition-colors duration-200 flex items-center gap-2 text-sm">
                 <FaPlus size={14} />
-                <span className="hidden sm:inline">Add Product</span>
+                <span>Add Product</span>
               </button>
             </div>
           </div>
-
-          {/* Mobile Add Button */}
-          <button onClick={openAddModal} className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 sm:hidden flex justify-center items-center w-full mb-4 text-sm text-white px-6 py-2 cursor-pointer rounded-xl font-medium transition-colors duration-200 gap-2">
-            <FaPlus size={14} />
-            <span>Add Product</span>
-          </button>
 
           {/* Search Bar */}
           <div className="mb-4">
@@ -569,6 +563,15 @@ const Marketplace = () => {
           )}
         </div>
       </div>
+
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={openAddModal}
+        className="md:hidden fixed bottom-4 right-4 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        aria-label="Add Product"
+      >
+        <Plus size={22} />
+      </button>
 
       {/* Product Modal */}
       <ProductModal
