@@ -18,6 +18,7 @@ import {
   Eye,
   ArrowUp,
   ArrowDown,
+  RefreshCw,
 } from "lucide-react"
 
 import {
@@ -202,6 +203,14 @@ const Feedback = () => {
 
   const activeFilterCount = filterTypes.length + filterStatuses.length
 
+  const handleRefresh = () => {
+    setFeedbackList([...DUMMY_FEEDBACK])
+    setSearchQuery("")
+    setFilterTypes([])
+    setFilterStatuses([])
+    setSortBy("newest")
+  }
+
   // Toggle helpers for multi-select
   const toggleStatus = (key) => {
     setFilterStatuses((prev) =>
@@ -225,37 +234,46 @@ const Feedback = () => {
   return (
     <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Feedback</h1>
-        <p className="text-gray-400 text-sm mt-1">View and manage feedback from all studios</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Feedback</h1>
+          <p className="text-gray-400 text-sm mt-1 hidden sm:block">View and manage feedback from all studios</p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+        >
+          <RefreshCw size={16} />
+          <span className="hidden sm:inline">Refresh</span>
+        </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <div className="bg-[#1C1C1C] rounded-xl p-4">
-          <p className="text-gray-400 text-xs uppercase tracking-wider">Total</p>
-          <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+          <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">Total</p>
+          <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.total}</p>
         </div>
-        <div className="bg-[#1C1C1C] rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-            <p className="text-gray-400 text-xs uppercase tracking-wider">New</p>
+        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500"></div>
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">New</p>
           </div>
-          <p className="text-2xl font-bold text-white mt-1">{stats.new}</p>
+          <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.new}</p>
         </div>
-        <div className="bg-[#1C1C1C] rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-            <p className="text-gray-400 text-xs uppercase tracking-wider">In Review</p>
+        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-yellow-500"></div>
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">Review</p>
           </div>
-          <p className="text-2xl font-bold text-white mt-1">{stats.inReview}</p>
+          <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.inReview}</p>
         </div>
-        <div className="bg-[#1C1C1C] rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <p className="text-gray-400 text-xs uppercase tracking-wider">Resolved</p>
+        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></div>
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">Resolved</p>
           </div>
-          <p className="text-2xl font-bold text-white mt-1">{stats.resolved}</p>
+          <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.resolved}</p>
         </div>
       </div>
 

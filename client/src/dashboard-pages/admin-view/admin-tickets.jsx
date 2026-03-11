@@ -5,7 +5,8 @@ import {
     MessageSquare,
     AlertCircle,
     XCircle,
-    Download,
+    Filter,
+    ChevronDown,
     RefreshCw,
     ArrowUp,
     ArrowDown,
@@ -29,6 +30,15 @@ const AdminTicketsSystem = () => {
     const [sortDirection, setSortDirection] = useState("desc")
     const [showSortDropdown, setShowSortDropdown] = useState(false)
     const sortDropdownRef = useRef(null)
+
+    // Filter collapse state
+    const [filtersExpanded, setFiltersExpanded] = useState(false)
+
+    // Expand filters on desktop, keep collapsed on mobile
+    useEffect(() => {
+        const isDesktop = window.innerWidth >= 768
+        setFiltersExpanded(isDesktop)
+    }, [])
 
     const sortOptions = [
         { value: "date", label: "Date" },
@@ -127,35 +137,6 @@ const AdminTicketsSystem = () => {
         setSelectedTicket(updatedTicket)
     }
 
-    const handleExport = () => {
-        const headers = ['ID', 'Subject', 'Status', 'Priority', 'Studio Name', 'Studio Email', 'Studio ID', 'Created Date', 'Last Updated']
-
-        const csvContent = [
-            headers.join(','),
-            ...filteredTickets.map(ticket => [
-                ticket.id,
-                `"${ticket.subject.replace(/"/g, '""')}"`,
-                ticket.status,
-                ticket.priority,
-                `"${(ticket.studioName || '').replace(/"/g, '""')}"`,
-                ticket.customer.email,
-                ticket.customer.id,
-                ticket.createdDate,
-                ticket.lastUpdated
-            ].join(','))
-        ].join('\n')
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-        const link = document.createElement('a')
-        const url = URL.createObjectURL(blob)
-        link.setAttribute('href', url)
-        link.setAttribute('download', `tickets-export-${new Date().toISOString().split('T')[0]}.csv`)
-        link.style.visibility = 'hidden'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-    }
-
     const handleRefresh = () => {
         setTickets([...adminTickets])
         setSearchTerm("")
@@ -198,6 +179,8 @@ const AdminTicketsSystem = () => {
         return acc
     }, {})
 
+    const activeFilterCount = (statusFilter !== "all" ? 1 : 0) + (priorityFilter !== "all" ? 1 : 0)
+
     // ── Sort Dropdown Component ────────────────────────────────
     const SortDropdown = ({ className = "" }) => (
         <div className={`relative ${className}`} ref={sortDropdownRef}>
@@ -206,7 +189,7 @@ const AdminTicketsSystem = () => {
                 className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
             >
                 {getSortIcon()}
-                <span className="hidden sm:inline">{currentSortLabel}</span>
+                <span>{currentSortLabel}</span>
             </button>
 
             {showSortDropdown && (
@@ -244,19 +227,9 @@ const AdminTicketsSystem = () => {
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                 <div className="flex items-center gap-3">
                     <h1 className="text-white oxanium_font text-xl md:text-2xl">Tickets</h1>
-                    <div className="sm:hidden">
-                        <SortDropdown />
-                    </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleExport}
-                        className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
-                    >
-                        <Download size={16} />
-                        <span className="hidden sm:inline">Export</span>
-                    </button>
                     <button
                         onClick={handleRefresh}
                         className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
@@ -281,66 +254,92 @@ const AdminTicketsSystem = () => {
                 </div>
             </div>
 
-            {/* ── Filter Pills — Status (only 3: Open, Awaiting, Closed) ── */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 mb-3">
-                <button
-                    onClick={() => setStatusFilter("all")}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                        statusFilter === "all"
-                            ? "bg-blue-600 text-white"
-                            : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                    }`}
-                >
-                    All
-                </button>
-                {["Open", "Awaiting your reply", "Closed"].map((status) => (
+            {/* ── Filters Section - Collapsible ── */}
+            <div className="mb-4 sm:mb-6">
+                {/* Filters Header Row - Always visible */}
+                <div className="flex items-center justify-between mb-2">
                     <button
-                        key={status}
-                        onClick={() => setStatusFilter(statusFilter === status ? "all" : status)}
-                        className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                            statusFilter === status
-                                ? "bg-blue-600 text-white"
-                                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                        }`}
+                        onClick={() => setFiltersExpanded(!filtersExpanded)}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
                     >
-                        {status}
-                        {statusCounts[status] ? (
-                            <span className={`text-[11px] ${statusFilter === status ? "text-blue-200" : "text-gray-500"}`}>
-                                ({statusCounts[status]})
+                        <Filter size={14} />
+                        <span className="text-xs sm:text-sm font-medium">Filters</span>
+                        <ChevronDown
+                            size={14}
+                            className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+                        />
+                        {!filtersExpanded && activeFilterCount > 0 && (
+                            <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                {activeFilterCount}
                             </span>
-                        ) : null}
+                        )}
                     </button>
-                ))}
-            </div>
 
-            {/* ── Filter Pills — Priority ── */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
-                {["High", "Medium", "Low"].map((priority) => (
-                    <button
-                        key={priority}
-                        onClick={() => setPriorityFilter(priorityFilter === priority ? "all" : priority)}
-                        className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                            priorityFilter === priority
-                                ? priority === "High"
-                                    ? "bg-red-600 text-white"
-                                    : priority === "Medium"
-                                        ? "bg-yellow-600 text-white"
-                                        : "bg-green-600 text-white"
-                                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                        }`}
-                    >
-                        {priority}
-                        {priorityCounts[priority] ? (
-                            <span className={`text-[11px] ml-1 ${
-                                priorityFilter === priority ? "opacity-80" : "text-gray-500"
-                            }`}>
-                                ({priorityCounts[priority]})
-                            </span>
-                        ) : null}
-                    </button>
-                ))}
-                <div className="hidden sm:block ml-auto">
+                    {/* Sort Controls - Always visible */}
                     <SortDropdown />
+                </div>
+
+                {/* Filter Pills - Collapsible */}
+                <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    {/* Status Pills */}
+                    <div className="flex flex-wrap gap-1.5 sm:gap-3 mb-2">
+                        <button
+                            onClick={() => setStatusFilter("all")}
+                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                                statusFilter === "all"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                            }`}
+                        >
+                            All
+                        </button>
+                        {["Open", "Awaiting your reply", "Closed"].map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => setStatusFilter(statusFilter === status ? "all" : status)}
+                                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                                    statusFilter === status
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                                }`}
+                            >
+                                {status}
+                                {statusCounts[status] ? (
+                                    <span className={`text-[11px] ${statusFilter === status ? "text-blue-200" : "text-gray-500"}`}>
+                                        ({statusCounts[status]})
+                                    </span>
+                                ) : null}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Priority Pills */}
+                    <div className="flex flex-wrap gap-1.5 sm:gap-3">
+                        {["High", "Medium", "Low"].map((priority) => (
+                            <button
+                                key={priority}
+                                onClick={() => setPriorityFilter(priorityFilter === priority ? "all" : priority)}
+                                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                                    priorityFilter === priority
+                                        ? priority === "High"
+                                            ? "bg-red-600 text-white"
+                                            : priority === "Medium"
+                                                ? "bg-yellow-600 text-white"
+                                                : "bg-green-600 text-white"
+                                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                                }`}
+                            >
+                                {priority}
+                                {priorityCounts[priority] ? (
+                                    <span className={`text-[11px] ml-1 ${
+                                        priorityFilter === priority ? "opacity-80" : "text-gray-500"
+                                    }`}>
+                                        ({priorityCounts[priority]})
+                                    </span>
+                                ) : null}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
