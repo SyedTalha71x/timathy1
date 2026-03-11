@@ -4065,7 +4065,7 @@ export default function Communications() {
           )}
 
           {/* Mobile Input Area - Multi-line with auto-resize */}
-          <div className="p-3 bg-surface-base border-t border-border flex-shrink-0 relative">
+          <div className="px-3 pt-3 pb-6 bg-surface-base border-t border-border flex-shrink-0 relative">
             <div className="flex items-end gap-2 bg-surface-dark px-3 py-2 rounded-xl border border-border">
               <button
                 className="p-2 hover:bg-surface-button rounded-full flex-shrink-0"

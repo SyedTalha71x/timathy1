@@ -21,8 +21,10 @@ useEffect(() => {
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
   const toggleLeftSidebarCollapse = useCallback(() => setIsLeftSidebarCollapsed((prev) => !prev), []);
 
-  // Communication page needs no main scroll — chat handles its own scroll
+  // Pages that manage their own internal scrolling
   const isCommunicationPage = location.pathname.includes("/communication");
+  const isSettingsPage = location.pathname.includes("/settings");
+  const hasOwnScroll = isCommunicationPage || isSettingsPage;
 
   return (
     <div className="member-root bg-surface-dark h-dvh overflow-hidden">
@@ -42,7 +44,7 @@ useEffect(() => {
   lg:pt-0 md:pt-14 sm:pt-14 pt-14
   p-2
   transition-all duration-500 ease-in-out
-  ${isCommunicationPage ? "overflow-hidden pb-0" : "overflow-y-auto pb-10"}`}
+  ${hasOwnScroll ? "overflow-hidden pb-0" : "overflow-y-auto pb-10"}`}
         >
           {/* Header - handles sidebar open/close/collapse */}
           <MemberDashboardHeader

@@ -310,13 +310,13 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     <button
       type="button"
       onClick={() => !disabled && onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       } ${checked ? "bg-primary" : "bg-surface-button"}`}
     >
       <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-          checked ? "translate-x-6" : "translate-x-1"
+        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${
+          checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
     </button>
@@ -841,10 +841,14 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       </div>
 
       {/* Mobile Navigation List */}
-      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? "hidden" : "flex"}`}>
+      <div className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}>
         {/* Mobile Header */}
-        <div className="p-4 border-b border-border flex-shrink-0">
-          <h1 className="text-xl font-bold mb-3">Settings</h1>
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+          <h1 className="text-xl font-bold">Settings</h1>
+        </div>
+
+        {/* Mobile Search */}
+        <div className="p-3 border-b border-border">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
             <input
@@ -915,21 +919,26 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
         </div>
       </div>
 
-      {/* Mobile Content View */}
-      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? "flex" : "hidden"}`}>
-        <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
-          <button
-            onClick={() => setMobileShowContent(false)}
-            className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-lg font-semibold">{getCurrentSectionTitle()}</h1>
+      {/* Mobile Content View - fixed fullscreen below dashboard header */}
+      {mobileShowContent && (
+        <div className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-30">
+          {/* Mobile Content Header with Back Button - always visible */}
+          <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
+            <button
+              onClick={() => setMobileShowContent(false)}
+              className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-semibold truncate">{getCurrentSectionTitle()}</h1>
+          </div>
+
+          {/* Mobile Content Area */}
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4">
+            {renderSectionContent()}
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <div>{renderSectionContent()}</div>
-        </div>
-      </div>
+      )}
 
       {/* Desktop Main Content */}
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">

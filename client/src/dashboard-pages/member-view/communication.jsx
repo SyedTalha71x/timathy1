@@ -606,7 +606,7 @@ export default function StudioChat() {
         )}
 
         {/* Mobile Input Area - matching studio */}
-        <div className="p-3 bg-surface-base border-t border-border flex-shrink-0 relative">
+        <div className="px-3 pt-3 pb-6 bg-surface-base border-t border-border flex-shrink-0 relative">
           {/* Emoji Picker - Shared Component */}
           <EmojiPicker
             isOpen={showEmojiPicker}
