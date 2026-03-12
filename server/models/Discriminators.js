@@ -195,7 +195,7 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     }],
     tasks: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Task'
+        ref: 'Todo'
     }],
     relations: [{
         type: mongoose.Schema.Types.ObjectId,
