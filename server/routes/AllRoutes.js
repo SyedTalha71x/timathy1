@@ -23,7 +23,7 @@ const ChatRoutes = require('./ChatRoutes');
 const RelationRoutes = require('./RelationRoutes')
 const SpecialNoteRoutes = require('./SpecialNoteRoutes')
 const LeadRoutes = require('./LeadRoutes')
-
+const TodoRoutes = require('./TodoRoutes')
 
 
 
@@ -79,6 +79,6 @@ router.use('/email', EmailRoutes)
 router.use('/relation', RelationRoutes);
 router.use('/special', SpecialNoteRoutes);
 router.use('/lead', LeadRoutes);
-
+router.use('/todos', TodoRoutes)
 
 module.exports = router
