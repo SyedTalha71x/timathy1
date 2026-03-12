@@ -5,7 +5,7 @@ import { useState } from "react"
 import { X, Check, Users, UserCheck } from "lucide-react"
 
 const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
-  const [selectedAssignees, setSelectedAssignees] = useState([...(task.assignees || [])])
+  const [selectedAssignees, setSelectedAssignees] = useState([])
 
   const toggleAssignee = (assigneeName) => {
     setSelectedAssignees((prev) =>

@@ -18,7 +18,17 @@ import DeleteModal from "../../components/studio-components/todo-components/dele
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { OptimizedTextarea } from "../../components/studio-components/todo-components/optimized-text-area"
 import TagManagerModal from "../../components/shared/TagManagerModal"
-
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  createTaskThunk,
+  getTaskThunk,
+  createTagsThunk,
+  getTagsThunk,
+  updateTaskThunk,
+  deleteTaskThunk,
+  deleteTagThunk
+} from '../../features/todos/todosSlice'
+import { fetchAllStaffThunk } from '../../features/staff/staffSlice'
 // @dnd-kit imports
 import {
   DndContext,
@@ -100,9 +110,9 @@ const MobileCreateTaskModal = ({
     let display = ""
     if (newTaskData.dueDate) {
       const date = new Date(newTaskData.dueDate)
-      display = date.toLocaleDateString("en-US", { 
+      display = date.toLocaleDateString("en-US", {
         weekday: 'short',
-        month: "short", 
+        month: "short",
         day: "numeric",
         year: 'numeric'
       })
@@ -133,11 +143,10 @@ const MobileCreateTaskModal = ({
         <button
           onClick={handleCreate}
           disabled={!taskTitle.trim()}
-          className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
-            taskTitle.trim()
-              ? "bg-primary text-white active:scale-95"
-              : "bg-surface-button text-content-faint"
-          }`}
+          className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${taskTitle.trim()
+            ? "bg-primary text-white active:scale-95"
+            : "bg-surface-button text-content-faint"
+            }`}
         >
           Create
         </button>
@@ -206,7 +215,7 @@ const MobileCreateTaskModal = ({
               {newTaskData.assignees && newTaskData.assignees.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newTaskData.assignees.map((assignee, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-sm"
                     >
@@ -236,7 +245,7 @@ const MobileCreateTaskModal = ({
               {newTaskData.tags && newTaskData.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newTaskData.tags.map((tag, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 rounded-lg text-sm text-white"
                       style={{ backgroundColor: getTagColor(tag) }}
@@ -260,12 +269,12 @@ const MobileCreateTaskModal = ({
 // ============================================
 // Mobile Task Detail Component
 // ============================================
-const MobileTaskDetail = ({ 
-  task, 
-  onClose, 
-  onStatusChange, 
-  onUpdate, 
-  onDelete, 
+const MobileTaskDetail = ({
+  task,
+  onClose,
+  onStatusChange,
+  onUpdate,
+  onDelete,
   onDuplicate,
   onPinToggle,
   onRepeat,
@@ -316,9 +325,9 @@ const MobileTaskDetail = ({
     let display = ""
     if (task.dueDate) {
       const date = new Date(task.dueDate)
-      display = date.toLocaleDateString("en-US", { 
+      display = date.toLocaleDateString("en-US", {
         weekday: 'short',
-        month: "short", 
+        month: "short",
         day: "numeric",
         year: 'numeric'
       })
@@ -353,17 +362,16 @@ const MobileTaskDetail = ({
         >
           <ChevronLeft size={24} />
         </button>
-        
+
         <div className="flex items-center gap-2">
           {/* Status Badge */}
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            isCompleted ? 'bg-green-500/20 text-green-400' :
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${isCompleted ? 'bg-green-500/20 text-green-400' :
             isCanceled ? 'bg-red-500/20 text-red-400' :
-            'bg-primary/20 text-primary'
-          }`}>
+              'bg-primary/20 text-primary'
+            }`}>
             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
           </span>
-          
+
           {/* 3-Dot Actions Menu */}
           <div className="relative" ref={actionsMenuRef}>
             <button
@@ -393,7 +401,7 @@ const MobileTaskDetail = ({
                       <span>Mark Complete</span>
                     </button>
                   )}
-                  
+
                   {isCompleted && (
                     <button
                       onClick={() => {
@@ -421,7 +429,7 @@ const MobileTaskDetail = ({
                       <span>Cancel Task</span>
                     </button>
                   )}
-                  
+
                   {isCanceled && (
                     <>
                       <button
@@ -461,7 +469,7 @@ const MobileTaskDetail = ({
                     {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
                     <span>{task.isPinned ? 'Unpin Task' : 'Pin Task'}</span>
                   </button>
-                  
+
                   {/* Duplicate */}
                   <button
                     onClick={() => {
@@ -474,7 +482,7 @@ const MobileTaskDetail = ({
                     <Copy size={16} />
                     <span>Duplicate</span>
                   </button>
-                  
+
                   {/* Repeat */}
                   <button
                     onClick={() => {
@@ -488,7 +496,7 @@ const MobileTaskDetail = ({
                   </button>
 
                   <div className="border-t border-border my-1"></div>
-                  
+
                   {/* Delete */}
                   <button
                     onClick={() => {
@@ -520,11 +528,10 @@ const MobileTaskDetail = ({
             }}
             onBlur={handleSaveTitle}
             placeholder="Task title..."
-            className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-primary transition-all pb-2 resize-none ${
-              isCompleted ? 'text-content-faint' : 
-              isCanceled ? 'text-content-faint line-through italic' : 
-              'text-content-primary'
-            }`}
+            className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-primary transition-all pb-2 resize-none ${isCompleted ? 'text-content-faint' :
+              isCanceled ? 'text-content-faint line-through italic' :
+                'text-content-primary'
+              }`}
             style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }}
             onInput={(e) => {
               e.target.style.height = 'auto'
@@ -551,9 +558,8 @@ const MobileTaskDetail = ({
               onOpenCalendarModal(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat)
             }
           }}
-          className={`w-full p-4 border-b border-border flex items-center justify-between ${
-            !isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
-          }`}
+          className={`w-full p-4 border-b border-border flex items-center justify-between ${!isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
+            }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3">
@@ -597,9 +603,8 @@ const MobileTaskDetail = ({
               onOpenAssignModal(task)
             }
           }}
-          className={`w-full p-4 border-b border-border text-left ${
-            !isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
-          }`}
+          className={`w-full p-4 border-b border-border text-left ${!isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
+            }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -611,7 +616,7 @@ const MobileTaskDetail = ({
               {task.assignees && task.assignees.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {task.assignees.map((assignee, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-sm"
                     >
@@ -636,9 +641,8 @@ const MobileTaskDetail = ({
               onOpenTagsModal(task)
             }
           }}
-          className={`w-full p-4 border-b border-border text-left ${
-            !isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
-          }`}
+          className={`w-full p-4 border-b border-border text-left ${!isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
+            }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -650,7 +654,7 @@ const MobileTaskDetail = ({
               {task.tags && task.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {task.tags.map((tag, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 rounded-lg text-sm text-white"
                       style={{ backgroundColor: getTagColor(tag) }}
@@ -699,11 +703,10 @@ const MobileTaskCard = ({
   return (
     <div
       onClick={onSelect}
-      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${
-        isCompleted ? 'bg-surface-hover/50' :
+      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${isCompleted ? 'bg-surface-hover/50' :
         isCanceled ? 'bg-surface-hover/30' :
-        'bg-surface-hover active:bg-surface-hover'
-      }`}
+          'bg-surface-hover active:bg-surface-hover'
+        }`}
     >
       <div className="flex items-start gap-3">
         {/* Checkbox / X for canceled */}
@@ -724,10 +727,9 @@ const MobileTaskCard = ({
               e.stopPropagation()
               onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
             }}
-            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-              isCompleted ? 'bg-content-faint border-border' :
+            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? 'bg-content-faint border-border' :
               'border-border hover:border-primary'
-            }`}
+              }`}
           >
             {isCompleted && <Check size={12} className="text-white" />}
           </button>
@@ -736,11 +738,10 @@ const MobileTaskCard = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className={`text-sm font-medium ${
-              isCompleted ? 'text-content-faint' :
+            <p className={`text-sm font-medium ${isCompleted ? 'text-content-faint' :
               isCanceled ? 'text-content-faint line-through italic' :
-              'text-content-primary'
-            }`} style={{ wordBreak: 'break-word' }}>
+                'text-content-primary'
+              }`} style={{ wordBreak: 'break-word' }}>
               {task.title}
             </p>
           </div>
@@ -749,19 +750,17 @@ const MobileTaskCard = ({
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {/* Date */}
             {formatDate() && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
-              }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
+                }`}>
                 <Calendar size={10} />
                 {formatDate()}
               </span>
             )}
-            
+
             {/* Assignees Count */}
             {task.assignees && task.assignees.length > 0 && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
-              }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
+                }`}>
                 <Users size={10} />
                 {task.assignees.length}
               </span>
@@ -771,9 +770,8 @@ const MobileTaskCard = ({
             {task.tags && task.tags.slice(0, 2).map((tag, idx) => (
               <span
                 key={idx}
-                className={`text-xs px-2 py-0.5 rounded-md ${
-                  isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
-                }`}
+                className={`text-xs px-2 py-0.5 rounded-md ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
+                  }`}
                 style={{ backgroundColor: isCompleted || isCanceled ? undefined : getTagColor(tag) }}
               >
                 {tag}
@@ -825,7 +823,11 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 }
 
 export default function TodoApp() {
-  
+  // Redux state - using fallback empty arrays to prevent destructuring errors
+  const { tags = [], tasks = [] } = useSelector((state) => state.todos || {})
+  const { staff = [] } = useSelector((state) => state.staff || {})
+  const dispatch = useDispatch()
+
   // ============================================
   // Column Configuration
   // ============================================
@@ -834,7 +836,7 @@ export default function TodoApp() {
     { id: "completed", title: "Completed", color: "#10b981" },
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
-  
+
   const [collapsedColumns, setCollapsedColumns] = useState({
     completed: true,
     canceled: true,
@@ -854,12 +856,14 @@ export default function TodoApp() {
     return initialSettings
   })
 
-  // ============================================
-  // Task State
-  // ============================================
-  const [tasks, setTasks] = useState(todosTaskData)
-  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
-  const [availableAssignees] = useState(availableAssigneesData)
+  // Use Redux data directly
+  const task = tasks
+  const configuredTags = tags
+
+
+
+
+  const [availableAssignees] = useState([])
   const [repeatConfigs, setRepeatConfigs] = useState({})
 
   // ============================================
@@ -996,14 +1000,14 @@ export default function TodoApp() {
         setIsTagDropdownOpen(false)
       }
     }
-    
+
     const handleScroll = (event) => {
       // Don't close dropdowns if scrolling inside them
-      if (event.target?.closest?.(".assign-dropdown") || 
-          event.target?.closest?.(".tag-dropdown") ||
-          event.target?.closest?.(".calendar-dropdown") ||
-          event.target?.closest?.(".mobile-sort-dropdown") ||
-          event.target?.closest?.(".mobile-filter-dropdown")) {
+      if (event.target?.closest?.(".assign-dropdown") ||
+        event.target?.closest?.(".tag-dropdown") ||
+        event.target?.closest?.(".calendar-dropdown") ||
+        event.target?.closest?.(".mobile-sort-dropdown") ||
+        event.target?.closest?.(".mobile-filter-dropdown")) {
         return
       }
       setMobileSortMenuOpen(null)
@@ -1012,7 +1016,7 @@ export default function TodoApp() {
       setIsAssignDropdownOpen(false)
       setIsTagDropdownOpen(false)
     }
-    
+
     document.addEventListener("click", handleClickOutside)
     window.addEventListener("scroll", handleScroll, true) // true for capture phase to catch all scroll events
     return () => {
@@ -1027,9 +1031,9 @@ export default function TodoApp() {
       // Check if user is typing in an input field
       const target = e.target
       const activeEl = document.activeElement
-      
-      const isInEditableArea = 
-        target.tagName === 'INPUT' || 
+
+      const isInEditableArea =
+        target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable === true ||
         activeEl?.tagName === 'INPUT' ||
@@ -1082,7 +1086,7 @@ export default function TodoApp() {
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
       // Check if ANY modal is open - if so, don't trigger other hotkeys
-      const anyModalOpen = 
+      const anyModalOpen =
         isDeleteModalOpen ||
         isRepeatModalOpen ||
         assignModalTask ||
@@ -1094,11 +1098,11 @@ export default function TodoApp() {
         selectedMobileTask ||
         mobileSortMenuOpen ||
         showMobileFilterMenu
-      
+
       // Also check if any modal overlay is visible in the DOM
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
-      
+        document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
+
       if (anyModalOpen || hasVisibleModal) return
 
       // T - Open Tag Manager
@@ -1111,20 +1115,29 @@ export default function TodoApp() {
     document.addEventListener('keydown', handleKeyPress)
     return () => document.removeEventListener('keydown', handleKeyPress)
   }, [
-    isDeleteModalOpen, 
-    isRepeatModalOpen, 
-    assignModalTask, 
-    tagsModalTask, 
-    calendarModal.isOpen, 
-    isTagManagerOpen, 
-    isEditModalOpenTask, 
-    showMobileCreateModal, 
+    isDeleteModalOpen,
+    isRepeatModalOpen,
+    assignModalTask,
+    tagsModalTask,
+    calendarModal.isOpen,
+    isTagManagerOpen,
+    isEditModalOpenTask,
+    showMobileCreateModal,
     selectedMobileTask,
     mobileSortMenuOpen,
     showMobileFilterMenu,
     createModeAssignModal,
     createModeTagsModal
   ])
+
+  // ===================
+  // fetching tags and tasks
+  // ===================
+  useEffect(() => {
+    dispatch(getTagsThunk())
+    dispatch(getTaskThunk())
+    dispatch(fetchAllStaffThunk())
+  }, [dispatch])
 
   // Get column ID from droppable ID
   const getColumnId = (id) => {
@@ -1145,7 +1158,7 @@ export default function TodoApp() {
   }
 
   // Handle drag over
-  const handleDragOver = (event) => {}
+  const handleDragOver = (event) => { }
 
   // Handle drag end
   const handleDragEnd = (event) => {
@@ -1180,15 +1193,21 @@ export default function TodoApp() {
 
       const columnTasks = tasks.filter((t) => t.status === sourceColumnId)
       const oldIndex = columnTasks.findIndex((t) => t.id === activeTaskId)
-      const newIndex = overTask 
+      const newIndex = overTask
         ? columnTasks.findIndex((t) => t.id === overId)
         : columnTasks.length - 1
 
       if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
         const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex)
         const otherTasks = tasks.filter((t) => t.status !== sourceColumnId)
-        setTasks([...otherTasks, ...reorderedColumnTasks])
-        
+
+        // Update the order in Redux
+        reorderedColumnTasks.forEach((task, index) => {
+          dispatch(updateTaskThunk({
+            id: task.id,
+            updates: { order: index }
+          }))
+        })
       }
       return
     }
@@ -1206,19 +1225,14 @@ export default function TodoApp() {
       if (overIndex !== -1) insertIndex = overIndex
     }
 
-    const updatedTask = {
-      ...task,
-      status: targetColumnId,
-      isPinned: false,
-      updatedAt: new Date().toISOString(),
-    }
-
-    const otherTasks = tasks.filter((t) => t.id !== task.id)
-    const beforeTarget = otherTasks.filter((t) => t.status !== targetColumnId)
-    const targetTasks = otherTasks.filter((t) => t.status === targetColumnId)
-    targetTasks.splice(insertIndex, 0, updatedTask)
-
-    setTasks([...beforeTarget, ...targetTasks])
+    dispatch(updateTaskThunk({
+      id: task.id,
+      updates: {
+        status: targetColumnId,
+        isPinned: false,
+        updatedAt: new Date().toISOString(),
+      }
+    }))
   }
 
   // ============================================
@@ -1285,7 +1299,7 @@ export default function TodoApp() {
   // Get filtered and sorted tasks for column
   const getColumnTasks = useCallback((columnId) => {
     let columnTasks = tasks.filter((task) => task.status === columnId)
-    
+
     // Apply staff filter
     if (selectedStaffFilter.length > 0) {
       columnTasks = columnTasks.filter(task => {
@@ -1299,14 +1313,14 @@ export default function TodoApp() {
         })
       })
     }
-    
+
     return sortTasks(columnTasks, columnId)
   }, [tasks, sortTasks, selectedStaffFilter, availableAssignees])
 
   // Get all tasks for mobile view - NOW WITH SORTING
   const getAllFilteredTasks = useCallback(() => {
     let allTasks = [...tasks]
-    
+
     if (selectedStaffFilter.length > 0) {
       allTasks = allTasks.filter(task => {
         if (!task.assignees || task.assignees.length === 0) return false
@@ -1373,23 +1387,28 @@ export default function TodoApp() {
 
     if (calendarModal.taskId) {
       const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId)
-      const updatedTask = {
-        ...taskToUpdate,
-        dueDate: calendarData.date,
-        dueTime: calendarData.time,
-        reminder: calendarData.reminder,
-        repeat: calendarData.repeat,
-        customReminder: calendarData.customReminder,
-        repeatEnd: calendarData.repeatEnd,
-      }
-      handleTaskUpdate(updatedTask)
-      
+      dispatch(updateTaskThunk({
+        id: taskToUpdate.id,
+        updates: {
+          dueDate: calendarData.date,
+          dueTime: calendarData.time,
+          reminder: calendarData.reminder,
+          repeat: calendarData.repeat,
+          customReminder: calendarData.customReminder,
+          repeatEnd: calendarData.repeatEnd,
+        }
+      }))
+
       // Update mobile task if viewing
       if (selectedMobileTask && selectedMobileTask.id === calendarModal.taskId) {
-        setSelectedMobileTask(updatedTask)
+        setSelectedMobileTask({
+          ...selectedMobileTask,
+          dueDate: calendarData.date,
+          dueTime: calendarData.time,
+          reminder: calendarData.reminder,
+          repeat: calendarData.repeat,
+        })
       }
-      
-      
     } else {
       setSelectedDate(calendarData.date)
       setSelectedTime(calendarData.time)
@@ -1408,7 +1427,7 @@ export default function TodoApp() {
   // Modal Handlers
   // ============================================
   const handleOpenAssignModal = (task) => setAssignModalTask(task)
-  const handleOpenTagsModal = (task) => setTagsModalTask(task)
+  const handleOpenTagsModal = (task) => setTagsModalTask(task._id)
 
   // ============================================
   // Create Mode Modal Handlers
@@ -1446,17 +1465,23 @@ export default function TodoApp() {
   }
 
   // ============================================
-  // Task CRUD Operations
+  // Task CRUD Operations with Redux
   // ============================================
   const handleTaskStatusChange = (taskId, newStatus) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId
-          ? { ...task, status: newStatus, isPinned: false, updatedAt: new Date().toISOString() }
-          : task
-      )
-    )
-    const statusMessages = { completed: "Task marked as completed", canceled: "Task cancelled", ongoing: "Task moved to ongoing" }
+    dispatch(updateTaskThunk({
+      id: taskId,
+      updates: {
+        status: newStatus,
+        isPinned: false,
+        updatedAt: new Date().toISOString()
+      }
+    }))
+
+    const statusMessages = {
+      completed: "Task marked as completed",
+      canceled: "Task cancelled",
+      ongoing: "Task moved to ongoing"
+    }
     if (statusMessages[newStatus]) toast.success(statusMessages[newStatus])
   }
 
@@ -1471,7 +1496,7 @@ export default function TodoApp() {
       setAssignModalTask(null)
       return
     }
-    
+
     if (createModeTagsModal && updatedTask.id === 'new-task') {
       setNewTaskData(prev => ({
         ...prev,
@@ -1482,26 +1507,28 @@ export default function TodoApp() {
       return
     }
 
-    setTasks((prevTasks) => prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)))
+    // Update in Redux
+    dispatch(updateTaskThunk(updatedTask))
+
     if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
       setSelectedMobileTask(updatedTask)
     }
-    
   }
 
   const handleTaskRemove = (taskId) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
+    dispatch(deleteTaskThunk(taskId))
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask(null)
     }
-    
   }
 
   const handleTaskPinToggle = (taskId) => {
     const task = tasks.find(t => t.id === taskId)
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === taskId ? { ...task, isPinned: !task.isPinned } : task))
-    )
+    dispatch(updateTaskThunk({
+      id: taskId,
+      updates: { isPinned: !task.isPinned }
+    }))
+
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask({ ...selectedMobileTask, isPinned: !selectedMobileTask.isPinned })
     }
@@ -1528,18 +1555,15 @@ export default function TodoApp() {
   }
 
   const handleDuplicateTask = (taskToDuplicate) => {
-    const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
-    setTasks((prevTasks) => [
-      ...prevTasks,
-      {
-        ...taskToDuplicate,
-        id: newId,
-        title: `${taskToDuplicate.title} (Copy)`,
-        isPinned: false,
-        status: "ongoing",
-        createdAt: new Date().toISOString(),
-      },
-    ])
+    const newTask = {
+      ...taskToDuplicate,
+      id: undefined, // Let the backend generate ID
+      title: `${taskToDuplicate.title} (Copy)`,
+      isPinned: false,
+      status: "ongoing",
+      createdAt: new Date().toISOString(),
+    }
+    dispatch(createTaskThunk(newTask))
     toast.success("Task duplicated")
   }
 
@@ -1558,7 +1582,7 @@ export default function TodoApp() {
         occurrencesCreated: 0,
       },
     }))
-    
+
     setIsRepeatModalOpen(false)
     setSelectedTaskForRepeat(null)
   }
@@ -1567,9 +1591,7 @@ export default function TodoApp() {
   // Mobile Task Creation
   // ============================================
   const handleMobileCreateTask = (taskData) => {
-    const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
     const newTask = {
-      id: newId,
       title: taskData.title,
       assignees: taskData.assignees || [],
       roles: [],
@@ -1583,25 +1605,15 @@ export default function TodoApp() {
       isPinned: false,
       createdAt: new Date().toISOString(),
     }
-    setTasks((prevTasks) => [...prevTasks, newTask])
+    dispatch(createTaskThunk(newTask))
     toast.success("Task created successfully")
   }
 
   // ============================================
-  // Tag Management
+  // Tag Management with Redux
   // ============================================
   const deleteTag = (tagId) => {
-    setConfiguredTags(configuredTags.filter((tag) => tag.id !== tagId))
-    setTasks(
-      tasks.map((task) => ({
-        ...task,
-        tags: task.tags.filter((tag) => {
-          const tagToDelete = configuredTags.find((t) => t.id === tagId)
-          return tag !== tagToDelete?.name
-        }),
-      }))
-    )
-    
+    dispatch(deleteTagThunk(tagId))
   }
 
   // ============================================
@@ -1609,15 +1621,15 @@ export default function TodoApp() {
   // ============================================
   const toggleAssignee = (assignee) => {
     setSelectedAssignees((prev) => {
-      const isSelected = prev.find((a) => a.id === assignee.id)
-      return isSelected ? prev.filter((a) => a.id !== assignee.id) : [...prev, assignee]
+      const isSelected = prev.find((a) => a._id === assignee.id)
+      return isSelected ? prev.filter((a) => a._id !== assignee.id) : [...prev, assignee]
     })
   }
 
   const toggleTag = (tag) => {
     setSelectedTags((prev) => {
-      const isSelected = prev.find((t) => t.id === tag.id)
-      return isSelected ? prev.filter((t) => t.id !== tag.id) : [...prev, tag]
+      const isSelected = prev.find((t) => t._id === tag.id)
+      return isSelected ? prev.filter((t) => t._id !== tag.id) : [...prev, tag]
     })
   }
 
@@ -1632,9 +1644,7 @@ export default function TodoApp() {
   const handleAddTask = useCallback((inputValue) => {
     const titleToUse = inputValue || newTaskInput
     if (titleToUse.trim() !== "") {
-      const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
       const newTask = {
-        id: newId,
         title: titleToUse.trim(),
         assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
         roles: [],
@@ -1646,7 +1656,7 @@ export default function TodoApp() {
         isPinned: false,
         createdAt: new Date().toISOString(),
       }
-      setTasks((prevTasks) => [...prevTasks, newTask])
+      dispatch(createTaskThunk(newTask))
       setNewTaskInput("")
       setSelectedDate("")
       setSelectedTime("")
@@ -1654,7 +1664,7 @@ export default function TodoApp() {
       setSelectedTags([])
       toast.success("Task created successfully")
     }
-  }, [tasks, selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput])
+  }, [selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput, dispatch])
 
   const handleTextareaChange = useCallback((newValue) => {
     setNewTaskInput(newValue)
@@ -1703,7 +1713,7 @@ export default function TodoApp() {
         className="flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-surface-base text-content-primary relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden"
       >
 
-        
+
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* ============================================ */}
           {/* HEADER */}
@@ -1711,19 +1721,18 @@ export default function TodoApp() {
           <div className="flex-shrink-0 p-4 md:p-6 pb-0">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl md:text-2xl font-bold text-content-primary">To-Do</h1>
-              
+
               <div className="flex items-center gap-2">
                 {/* Mobile: Staff Filter - Now in header */}
                 <div className="relative md:hidden" ref={mobileFilterRef}>
                   <button
                     onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
-                    className={`p-2 rounded-lg transition-colors active:scale-95 ${
-                      selectedStaffFilter.length > 0 ? 'bg-primary text-white' : 'bg-surface-button text-content-secondary hover:bg-surface-button-hover'
-                    }`}
+                    className={`p-2 rounded-lg transition-colors active:scale-95 ${selectedStaffFilter.length > 0 ? 'bg-primary text-white' : 'bg-surface-button text-content-secondary hover:bg-surface-button-hover'
+                      }`}
                   >
                     <Users size={18} />
                   </button>
-                  
+
                   {showMobileFilterMenu && (
                     <div className="absolute right-0 top-full mt-2 bg-surface-hover border border-border rounded-xl shadow-lg z-50 min-w-[220px] overflow-hidden">
                       <div className="p-2 border-b border-border">
@@ -1733,9 +1742,8 @@ export default function TodoApp() {
                         onClick={() => {
                           setSelectedStaffFilter([])
                         }}
-                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                          selectedStaffFilter.length === 0 ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
-                        }`}
+                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${selectedStaffFilter.length === 0 ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
+                          }`}
                       >
                         All Tasks
                       </button>
@@ -1745,9 +1753,8 @@ export default function TodoApp() {
                           onClick={() => {
                             toggleStaffFilter(staff.id)
                           }}
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                            selectedStaffFilter.includes(staff.id) ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
-                          }`}
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(staff.id) ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
+                            }`}
                         >
                           <UserCheck size={14} />
                           {staff.firstName} {staff.lastName}
@@ -1779,7 +1786,7 @@ export default function TodoApp() {
                   placeholder="New task… (Press Enter to add)"
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
-                
+
                 {/* Calendar icon */}
                 <div className="relative calendar-dropdown group">
                   <button
@@ -1799,7 +1806,7 @@ export default function TodoApp() {
                   >
                     <Calendar size={18} />
                   </button>
-                  
+
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                     <span className="font-medium">Set due date</span>
@@ -1816,7 +1823,7 @@ export default function TodoApp() {
                   >
                     <ChevronDown size={18} />
                   </button>
-                  
+
                   {/* Tooltip - hidden when dropdown is open */}
                   {!isAssignDropdownOpen && (
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
@@ -1852,7 +1859,7 @@ export default function TodoApp() {
                             })}
                           </div>
                         </div>
-                        
+
                         <div>
                           <h4 className="text-sm font-medium text-content-primary mb-2 flex items-center gap-2">
                             <Tag size={14} />
@@ -1883,7 +1890,7 @@ export default function TodoApp() {
                             })}
                           </div>
                         </div>
-                        
+
                         <button
                           onClick={() => setIsAssignDropdownOpen(false)}
                           className="w-full px-3 py-2 bg-surface-button text-content-secondary rounded-lg text-xs hover:bg-surface-button-hover"
@@ -1895,7 +1902,7 @@ export default function TodoApp() {
                   )}
                 </div>
               </div>
-              
+
               {/* Desktop: Tags Button */}
               <div className="relative group">
                 <button
@@ -1905,7 +1912,7 @@ export default function TodoApp() {
                   <Tag size={16} />
                   <span>Tags</span>
                 </button>
-                
+
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Manage Tags</span>
@@ -1921,9 +1928,8 @@ export default function TodoApp() {
             <div className="hidden md:flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setSelectedStaffFilter([])}
-                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${
-                  selectedStaffFilter.length === 0 ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                }`}
+                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${selectedStaffFilter.length === 0 ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                  }`}
               >
                 All Tasks
               </button>
@@ -1931,9 +1937,8 @@ export default function TodoApp() {
                 <button
                   key={staff.id}
                   onClick={() => toggleStaffFilter(staff.id)}
-                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${
-                    selectedStaffFilter.includes(staff.id) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
+                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(staff.id) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    }`}
                 >
                   <UserCheck size={14} />
                   {staff.firstName} {staff.lastName}
@@ -1994,17 +1999,17 @@ export default function TodoApp() {
                     configuredTags={configuredTags}
                     availableAssignees={availableAssignees}
                     repeatConfigs={repeatConfigs}
-                    onStatusChange={() => {}}
-                    onUpdate={() => {}}
-                    onPinToggle={() => {}}
-                    onRemove={() => {}}
-                    onEditRequest={() => {}}
-                    onDeleteRequest={() => {}}
-                    onDuplicateRequest={() => {}}
-                    onRepeatRequest={() => {}}
-                    onOpenAssignModal={() => {}}
-                    onOpenTagsModal={() => {}}
-                    onOpenCalendarModal={() => {}}
+                    onStatusChange={() => { }}
+                    onUpdate={() => { }}
+                    onPinToggle={() => { }}
+                    onRemove={() => { }}
+                    onEditRequest={() => { }}
+                    onDeleteRequest={() => { }}
+                    onDuplicateRequest={() => { }}
+                    onRepeatRequest={() => { }}
+                    onOpenAssignModal={() => { }}
+                    onOpenTagsModal={() => { }}
+                    onOpenCalendarModal={() => { }}
                   />
                 ) : null}
               </DragOverlay>
@@ -2018,7 +2023,7 @@ export default function TodoApp() {
             <div className="p-4 pt-0 pb-24 space-y-4">
               {/* Ongoing Tasks */}
               <div className="bg-surface-card rounded-2xl overflow-hidden">
-                <div 
+                <div
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(245, 158, 11, 0.125)' }}
                 >
@@ -2026,9 +2031,9 @@ export default function TodoApp() {
                     onClick={() => toggleColumnCollapse('ongoing')}
                     className="flex items-center gap-1.5 flex-1"
                   >
-                    <ChevronDown 
-                      size={14} 
-                      className={`text-content-muted transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
+                    <ChevronDown
+                      size={14}
+                      className={`text-content-muted transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`}
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
                     <span className="font-medium text-content-primary text-xs">Ongoing</span>
@@ -2058,11 +2063,10 @@ export default function TodoApp() {
                         ].map((option) => (
                           <div
                             key={option.value}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                              columnSortSettings.ongoing?.sortBy === option.value 
-                                ? 'bg-surface-hover text-content-primary' 
-                                : 'text-content-secondary hover:bg-surface-hover'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${columnSortSettings.ongoing?.sortBy === option.value
+                              ? 'bg-surface-hover text-content-primary'
+                              : 'text-content-secondary hover:bg-surface-hover'
+                              }`}
                           >
                             <button
                               onClick={(e) => {
@@ -2085,8 +2089,8 @@ export default function TodoApp() {
                                 }}
                                 className="p-1 hover:bg-surface-button rounded text-content-muted"
                               >
-                                {columnSortSettings.ongoing?.sortOrder === 'asc' 
-                                  ? <ArrowUp size={14} /> 
+                                {columnSortSettings.ongoing?.sortOrder === 'asc'
+                                  ? <ArrowUp size={14} />
                                   : <ArrowDown size={14} />
                                 }
                               </button>
@@ -2163,7 +2167,7 @@ export default function TodoApp() {
 
               {/* Completed Tasks */}
               <div className="bg-surface-card rounded-2xl overflow-hidden">
-                <div 
+                <div
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(16, 185, 129, 0.125)' }}
                 >
@@ -2171,9 +2175,9 @@ export default function TodoApp() {
                     onClick={() => toggleColumnCollapse('completed')}
                     className="flex items-center gap-1.5 flex-1"
                   >
-                    <ChevronDown 
-                      size={14} 
-                      className={`text-content-muted transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`} 
+                    <ChevronDown
+                      size={14}
+                      className={`text-content-muted transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`}
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                     <span className="font-medium text-content-primary text-xs">Completed</span>
@@ -2203,11 +2207,10 @@ export default function TodoApp() {
                         ].map((option) => (
                           <div
                             key={option.value}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                              columnSortSettings.completed?.sortBy === option.value 
-                                ? 'bg-surface-hover text-content-primary' 
-                                : 'text-content-secondary hover:bg-surface-hover'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${columnSortSettings.completed?.sortBy === option.value
+                              ? 'bg-surface-hover text-content-primary'
+                              : 'text-content-secondary hover:bg-surface-hover'
+                              }`}
                           >
                             <button
                               onClick={(e) => {
@@ -2230,8 +2233,8 @@ export default function TodoApp() {
                                 }}
                                 className="p-1 hover:bg-surface-button rounded text-content-muted"
                               >
-                                {columnSortSettings.completed?.sortOrder === 'asc' 
-                                  ? <ArrowUp size={14} /> 
+                                {columnSortSettings.completed?.sortOrder === 'asc'
+                                  ? <ArrowUp size={14} />
                                   : <ArrowDown size={14} />
                                 }
                               </button>
@@ -2274,7 +2277,7 @@ export default function TodoApp() {
 
               {/* Canceled Tasks */}
               <div className="bg-surface-card rounded-2xl overflow-hidden">
-                <div 
+                <div
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.125)' }}
                 >
@@ -2282,9 +2285,9 @@ export default function TodoApp() {
                     onClick={() => toggleColumnCollapse('canceled')}
                     className="flex items-center gap-1.5 flex-1"
                   >
-                    <ChevronDown 
-                      size={14} 
-                      className={`text-content-muted transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`} 
+                    <ChevronDown
+                      size={14}
+                      className={`text-content-muted transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`}
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                     <span className="font-medium text-content-primary text-xs">Canceled</span>
@@ -2314,11 +2317,10 @@ export default function TodoApp() {
                         ].map((option) => (
                           <div
                             key={option.value}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                              columnSortSettings.canceled?.sortBy === option.value 
-                                ? 'bg-surface-hover text-content-primary' 
-                                : 'text-content-secondary hover:bg-surface-hover'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${columnSortSettings.canceled?.sortBy === option.value
+                              ? 'bg-surface-hover text-content-primary'
+                              : 'text-content-secondary hover:bg-surface-hover'
+                              }`}
                           >
                             <button
                               onClick={(e) => {
@@ -2341,8 +2343,8 @@ export default function TodoApp() {
                                 }}
                                 className="p-1 hover:bg-surface-button rounded text-content-muted"
                               >
-                                {columnSortSettings.canceled?.sortOrder === 'asc' 
-                                  ? <ArrowUp size={14} /> 
+                                {columnSortSettings.canceled?.sortOrder === 'asc'
+                                  ? <ArrowUp size={14} />
                                   : <ArrowDown size={14} />
                                 }
                               </button>
@@ -2443,21 +2445,17 @@ export default function TodoApp() {
         {/* ============================================ */}
         {/* MODALS */}
         {/* ============================================ */}
-        
+
         {/* Tag Manager Modal */}
         <TagManagerModal
           isOpen={isTagManagerOpen}
           onClose={() => setIsTagManagerOpen(false)}
-          tags={configuredTags}
+          tags={tags}
           onAddTag={(newTag) => {
-            setConfiguredTags([...configuredTags, newTag])
-            
+            dispatch(createTagsThunk(newTag))
           }}
           onDeleteTag={deleteTag}
         />
-
-      
-
 
         {/* Delete Modal */}
         <DeleteModal

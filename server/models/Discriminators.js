@@ -172,7 +172,7 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     },
     staffRole: {
         type: String,
-        enum: ['manager', 'employee'],
+        enum: ['manager', 'employee','admin'],
         // required: true,
     },
 

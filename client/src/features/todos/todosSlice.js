@@ -52,6 +52,15 @@ export const getTaskThunk = createAsyncThunk('/task/all', async (_, { rejectWith
     }
 })
 
+export const deleteTagThunk = createAsyncThunk('/tags/delete', async () => {
+
+})
+export const deleteTaskThunk = createAsyncThunk('/task/delete', async () => {
+
+})
+export const updateTaskThunk = createAsyncThunk('/task/delete', async () => {
+
+})
 
 const taskSlice = createSlice({
     name: 'tasks',
@@ -123,4 +132,4 @@ const taskSlice = createSlice({
 })
 
 
-export default taskSlice.reducers
+export default taskSlice.reducer

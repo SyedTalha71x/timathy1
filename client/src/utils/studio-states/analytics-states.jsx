@@ -3,31 +3,118 @@
 import { FaCalendarAlt, FaDollarSign, FaUserPlus, FaUsers } from "react-icons/fa";
 
 
-export const appointmentsData = {
-  totals: {
-    bookings: 9,
-    checkIns: 3,
-    cancellations: 4,
-    lateCancellations: 0,
-    noShows: 0,
-  },
-  monthlyBreakdown: [
-    { month: "Feb", bookings: 0, checkIns: 0, cancellations: 0, lateCancellations: 0, noShows: 0 },
-    { month: "Apr", bookings: 8, checkIns: 7, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Jun", bookings: 5, checkIns: 4, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Aug", bookings: 3, checkIns: 2, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Oct", bookings: 2, checkIns: 1, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Dec", bookings: 1, checkIns: 0, cancellations: 0, lateCancellations: 0, noShows: 0 },
-  ],
-  popularTimes: [
-    { time: "8:00 AM", count: 1 },
-    { time: "10:00 AM", count: 4 },
-    { time: "12:00 PM", count: 4 },
-    { time: "2:00 PM", count: 3 },
-    { time: "4:00 PM", count: 2 },
-    { time: "6:00 PM", count: 1 },
-  ],
-}
+
+// =========================================
+// Function to process appointments from API
+// =========================================
+export const processAppointmentsData = (appointments) => {
+  // Initialize counters
+  const counts = {
+    totals: {
+      bookings: 0,
+      checkIns: 0,
+      cancellations: 0,
+      lateCancellations: 0,
+      noShows: 0,
+    },
+    monthlyBreakdown: {},
+    popularTimes: {},
+  };
+
+  // Filter out blocked slots first
+  const realBookings = appointments.filter(app => app.status !== 'blocked' && app.view !== 'blocked');
+
+  // Set total bookings (excluding blocked)
+  counts.totals.bookings = realBookings.length;
+
+  // Process each real booking
+  realBookings.forEach(app => {
+    const date = new Date(app.date);
+    const month = date.toLocaleString('default', { month: 'short' });
+    const hour = parseInt(app.timeSlot.start.split(':')[0]);
+    const timeSlot = formatTimeSlot(hour);
+
+    // Initialize month data if not exists
+    if (!counts.monthlyBreakdown[month]) {
+      counts.monthlyBreakdown[month] = {
+        bookings: 0,
+        checkIns: 0,
+        cancellations: 0,
+        lateCancellations: 0,
+        noShows: 0,
+      };
+    }
+
+    // Count bookings per month
+    counts.monthlyBreakdown[month].bookings += 1;
+
+    // Count popular times
+    counts.popularTimes[timeSlot] = (counts.popularTimes[timeSlot] || 0) + 1;
+
+    // Count check-ins
+    if (app.isCheckedIn) {
+      counts.totals.checkIns += 1;
+      counts.monthlyBreakdown[month].checkIns += 1;
+    }
+
+    // Count cancellations
+    if (app.status === 'cancelled' || app.status === 'canceled') {
+      counts.totals.cancellations += 1;
+      counts.monthlyBreakdown[month].cancellations += 1;
+
+      // Check for late cancellations (within 24 hours)
+      const appointmentDate = new Date(app.date);
+      const now = new Date();
+      const hoursUntilAppointment = (appointmentDate - now) / (1000 * 60 * 60);
+
+      if (hoursUntilAppointment < 24 && hoursUntilAppointment > 0) {
+        counts.totals.lateCancellations += 1;
+        counts.monthlyBreakdown[month].lateCancellations += 1;
+      }
+    }
+
+    // Count no-shows (past appointments not checked in)
+    if (app.status === 'confirmed' && new Date(app.date) < new Date() && !app.isCheckedIn) {
+      counts.totals.noShows += 1;
+      counts.monthlyBreakdown[month].noShows += 1;
+    }
+  });
+
+  // Convert monthly breakdown to array
+  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthlyArray = Object.entries(counts.monthlyBreakdown)
+    .map(([month, data]) => ({ month, ...data }))
+    .sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
+
+  // Convert popular times to array
+  const popularTimesArray = Object.entries(counts.popularTimes)
+    .map(([time, count]) => ({ time, count }))
+    .sort((a, b) => {
+      const timeToMinutes = (time) => {
+        const [hours, minutes] = time.split(':')[0].split(' ')[0].split(':');
+        const isPM = time.includes('PM');
+        let hour = parseInt(hours);
+        if (isPM && hour !== 12) hour += 12;
+        if (!isPM && hour === 12) hour = 0;
+        return hour * 60 + (parseInt(minutes) || 0);
+      };
+      return timeToMinutes(a.time) - timeToMinutes(b.time);
+    });
+
+  return {
+    totals: counts.totals,
+    monthlyBreakdown: monthlyArray,
+    popularTimes: popularTimesArray,
+  };
+};
+
+const formatTimeSlot = (hour) => {
+  const period = hour >= 12 ? 'PM' : 'AM';
+  let displayHour = hour;
+  if (hour > 12) displayHour = hour - 12;
+  if (hour === 0) displayHour = 12;
+  return `${displayHour}:00 ${period}`;
+};
 
 export const tabs = [
   { name: "Appointments", icon: FaCalendarAlt },
@@ -36,33 +123,181 @@ export const tabs = [
   { name: "Finances", icon: FaDollarSign },
 ];
 
-export const membersData = {
-  totalMembers: 342,
-  newFullMembers: [12, 15, 18, 22, 19, 25, 28, 30, 27],
-  newTempMembers: [5, 8, 6, 9, 7, 10, 8, 11, 9],
-  inactiveMembers: [3, 2, 4, 3, 5, 2, 4, 3, 2],
-  pausedMembers: [1, 2, 1, 3, 2, 1, 2, 1, 3],
-  membersByType: [
-    { type: "Premium", count: 145 },
-    { type: "Standard", count: 98 },
-    { type: "Basic", count: 67 },
-    { type: "Trial", count: 32 },
-  ],
+// ==============================
+// MEMBERS DATA PROCESSING
+// ==============================
+export const processMembersData = (members) => {
+  // Initialize member stats
+  const stats = {
+    totalMembers: members.length,
+    fullMembers: 0,
+    temporaryMembers: 0,
+    activeMembers: 0,
+    inactiveMembers: 0,
+    pausedMembers: 0,
+    membersByType: [],
+    monthlyNewMembers: {}, // For tracking new members by month
+  };
+
+  // Count by member type and status
+  members.forEach(member => {
+    // Count by member type
+    if (member.memberType === 'full') {
+      stats.fullMembers += 1;
+    } else if (member.memberType === 'temporary') {
+      stats.temporaryMembers += 1;
+    }
+
+    // Count by status
+    if (member.status === 'active') {
+      stats.activeMembers += 1;
+    } else if (member.status === 'inactive') {
+      stats.inactiveMembers += 1;
+    } else if (member.status === 'paused') {
+      stats.pausedMembers += 1;
+    }
+
+    // Track new members by month (using createdAt date)
+    if (member.createdAt) {
+      const date = new Date(member.createdAt);
+      const month = date.toLocaleString('default', { month: 'short' });
+      const year = date.getFullYear();
+      const key = `${month} ${year}`;
+
+      if (!stats.monthlyNewMembers[key]) {
+        stats.monthlyNewMembers[key] = {
+          full: 0,
+          temporary: 0,
+          total: 0
+        };
+      }
+
+      stats.monthlyNewMembers[key].total += 1;
+      if (member.memberType === 'full') {
+        stats.monthlyNewMembers[key].full += 1;
+      } else if (member.memberType === 'temporary') {
+        stats.monthlyNewMembers[key].temporary += 1;
+      }
+    }
+  });
+
+  // Create members by type array for donut chart
+  stats.membersByType = [
+    { type: "Full Members", count: stats.fullMembers },
+    { type: "Temporary", count: stats.temporaryMembers },
+  ];
+
+  // If you have different membership tiers, you'd need to extract that from your data
+  // For now, using the counts we have
+
+  return stats;
 };
 
-export const leadsData = {
-  totalLeads: 89,
-  monthlyData: [
-    { month: "Apr", newLeads: 8, converted: 3, convertedPercent: 37.5 },
-    { month: "May", newLeads: 12, converted: 5, convertedPercent: 41.7 },
-    { month: "Jun", newLeads: 10, converted: 4, convertedPercent: 40.0 },
-    { month: "Jul", newLeads: 15, converted: 7, convertedPercent: 46.7 },
-    { month: "Aug", newLeads: 11, converted: 5, convertedPercent: 45.5 },
-    { month: "Sep", newLeads: 9, converted: 3, convertedPercent: 33.3 },
-    { month: "Oct", newLeads: 13, converted: 6, convertedPercent: 46.2 },
-    { month: "Nov", newLeads: 14, converted: 7, convertedPercent: 50.0 },
-    { month: "Dec", newLeads: 16, converted: 8, convertedPercent: 50.0 },
-  ],
+
+
+
+
+// ==============================
+// LEADS DATA PROCESSING
+// ==============================
+
+export const processLeadsData = (leads) => {
+  // Initialize leads stats
+  const stats = {
+    totalLeads: leads?.length || 0,
+    convertedLeads: 0,
+    activeLeads: 0,
+    passiveLeads: 0,
+    bySource: {},
+    monthlyData: {},
+    conversionRate: 0,
+  };
+
+  // Process each lead
+  leads?.forEach(lead => {
+    // Count by column (status)
+    if (lead.column === 'active') {
+      stats.activeLeads += 1;
+    } else if (lead.column === 'passive') {
+      stats.passiveLeads += 1;
+    }
+
+    // Count by source
+    if (lead.source) {
+      stats.bySource[lead.source] = (stats.bySource[lead.source] || 0) + 1;
+    }
+
+    // Track monthly data (using createdAt)
+    if (lead.createdAt) {
+      const date = new Date(lead.createdAt);
+      const month = date.toLocaleString('default', { month: 'short' });
+      const year = date.getFullYear();
+      const monthKey = `${month} ${year}`;
+
+      if (!stats.monthlyData[monthKey]) {
+        stats.monthlyData[monthKey] = {
+          month: month,
+          year: year,
+          newLeads: 0,
+          converted: 0,
+          convertedPercent: 0
+        };
+      }
+
+      stats.monthlyData[monthKey].newLeads += 1;
+    }
+
+    // Check if lead is converted (based on isConverted field)
+    if (lead.isConverted) {
+      stats.convertedLeads += 1;
+
+      // Also track conversions by month
+      if (lead.updatedAt) {
+        const date = new Date(lead.updatedAt);
+        const month = date.toLocaleString('default', { month: 'short' });
+        const year = date.getFullYear();
+        const monthKey = `${month} ${year}`;
+
+        if (stats.monthlyData[monthKey]) {
+          stats.monthlyData[monthKey].converted += 1;
+        }
+      }
+    }
+  });
+
+  // Calculate conversion rates for each month and overall
+  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Convert monthlyData object to array and sort by date
+  const monthlyArray = Object.values(stats.monthlyData)
+    .map(item => ({
+      month: item.month,
+      newLeads: item.newLeads,
+      converted: item.converted,
+      convertedPercent: item.newLeads > 0
+        ? Math.round((item.converted / item.newLeads) * 100 * 10) / 10
+        : 0
+    }))
+    .sort((a, b) => {
+      const monthA = monthOrder.indexOf(a.month);
+      const monthB = monthOrder.indexOf(b.month);
+      return monthA - monthB;
+    });
+
+  // Calculate overall conversion rate
+  stats.conversionRate = stats.totalLeads > 0
+    ? Math.round((stats.convertedLeads / stats.totalLeads) * 100 * 10) / 10
+    : 0;
+
+  return {
+    totalLeads: stats.totalLeads,
+    convertedLeads: stats.convertedLeads,
+    activeLeads: stats.activeLeads,
+    passiveLeads: stats.passiveLeads,
+    conversionRate: stats.conversionRate,
+    bySource: stats.bySource,
+    monthlyData: monthlyArray,
+  };
 };
 
 export const financesData = {
@@ -84,7 +319,12 @@ export const financesData = {
   ],
 };
 
-export const getMonthlyBreakdownChartConfig = () => ({
+
+
+// =================================================
+// APPOINTMENTS CHARTS - These need data parameters
+// =================================================
+export const getMonthlyBreakdownChartConfig = (appointmentsData) => ({
   options: {
     chart: {
       type: "line",
@@ -99,7 +339,7 @@ export const getMonthlyBreakdownChartConfig = () => ({
       width: 3,
     },
     xaxis: {
-      categories: appointmentsData.monthlyBreakdown.map((item) => item.month),
+      categories: appointmentsData?.monthlyBreakdown?.map((item) => item.month) || [],
       labels: {
         style: {
           colors: "#9CA3AF",
@@ -111,7 +351,15 @@ export const getMonthlyBreakdownChartConfig = () => ({
     },
     yaxis: {
       min: 0,
-      max: 10,
+      max: Math.max(
+        ...(appointmentsData?.monthlyBreakdown?.flatMap(item => [
+          item.bookings,
+          item.checkIns,
+          item.cancellations,
+          item.lateCancellations,
+          item.noShows
+        ]) || [10])
+      ) + 2,
       tickAmount: 5,
       labels: {
         style: {
@@ -150,28 +398,28 @@ export const getMonthlyBreakdownChartConfig = () => ({
   series: [
     {
       name: "Bookings",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.bookings),
+      data: appointmentsData?.monthlyBreakdown?.map((item) => item.bookings) || [],
     },
     {
       name: "Check-ins",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.checkIns),
+      data: appointmentsData?.monthlyBreakdown?.map((item) => item.checkIns) || [],
     },
     {
       name: "All Cancellations",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.cancellations),
+      data: appointmentsData?.monthlyBreakdown?.map((item) => item.cancellations) || [],
     },
     {
       name: "Late Cancellations",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.lateCancellations),
+      data: appointmentsData?.monthlyBreakdown?.map((item) => item.lateCancellations) || [],
     },
     {
       name: "No Shows",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.noShows),
+      data: appointmentsData?.monthlyBreakdown?.map((item) => item.noShows) || [],
     },
   ],
 });
 
-export const getPopularTimesChartConfig = () => ({
+export const getPopularTimesChartConfig = (appointmentsData) => ({
   options: {
     chart: {
       type: "bar",
@@ -192,7 +440,7 @@ export const getPopularTimesChartConfig = () => ({
       enabled: false,
     },
     xaxis: {
-      categories: appointmentsData.popularTimes.map((item) => item.time),
+      categories: appointmentsData?.popularTimes?.map((item) => item.time) || [],
       labels: {
         style: {
           colors: "#9CA3AF",
@@ -205,7 +453,7 @@ export const getPopularTimesChartConfig = () => ({
     },
     yaxis: {
       min: 0,
-      max: 5,
+      max: Math.max(...(appointmentsData?.popularTimes?.map(item => item.count) || [5])) + 1,
       tickAmount: 5,
       labels: {
         style: {
@@ -238,12 +486,18 @@ export const getPopularTimesChartConfig = () => ({
   series: [
     {
       name: "Bookings",
-      data: appointmentsData.popularTimes.map((item) => item.count),
+      data: appointmentsData?.popularTimes?.map((item) => item.count) || [],
     },
   ],
 });
 
-export const getMemberActivityChartConfig = () => ({
+
+
+
+// ==========================================
+// MEMBERS CHARTS - Now using processed data
+// ==========================================
+export const getMemberActivityChartConfig = (membersData) => ({
   options: {
     chart: {
       type: "line",
@@ -258,7 +512,7 @@ export const getMemberActivityChartConfig = () => ({
       width: 3,
     },
     xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       labels: {
         style: {
           colors: "#9CA3AF",
@@ -303,26 +557,25 @@ export const getMemberActivityChartConfig = () => ({
   },
   series: [
     {
-      name: "New Full Members",
-      data: membersData.newFullMembers,
+      name: "Full Members",
+      data: [membersData?.fullMembers || 0], // You'll need to aggregate monthly data
     },
     {
-      name: "New Temp Members",
-      data: membersData.newTempMembers,
+      name: "Temporary Members",
+      data: [membersData?.temporaryMembers || 0],
     },
     {
-      name: "Set Inactive",
-      data: membersData.inactiveMembers,
+      name: "Inactive",
+      data: [membersData?.inactiveMembers || 0],
     },
     {
-      name: "Set Paused",
-      data: membersData.pausedMembers,
+      name: "Paused",
+      data: [membersData?.pausedMembers || 0],
     },
   ],
 });
 
-// Fixed Members by Type Chart Config
-export const getMembersByTypeChartConfig = () => ({
+export const getMembersByTypeChartConfig = (membersData) => ({
   options: {
     chart: {
       type: "donut",
@@ -331,7 +584,7 @@ export const getMembersByTypeChartConfig = () => ({
       background: "transparent",
     },
     colors: ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6"],
-    labels: membersData.membersByType.map((item) => item.type),
+    labels: membersData?.membersByType?.map((item) => item.type) || [],
     legend: {
       labels: { colors: "#9CA3AF" },
       position: "bottom",
@@ -360,7 +613,7 @@ export const getMembersByTypeChartConfig = () => ({
               label: "Total",
               fontSize: '14px',
               color: "#9CA3AF",
-              formatter: () => membersData.totalMembers.toString(),
+              formatter: () => membersData?.totalMembers?.toString() || "0",
             },
           },
         },
@@ -404,10 +657,18 @@ export const getMembersByTypeChartConfig = () => ({
       },
     ],
   },
-  series: membersData.membersByType.map((item) => item.count),
+  series: membersData?.membersByType?.map((item) => item.count) || [],
 });
 
-export const getLeadsChartConfig = () => ({
+
+
+
+
+
+// ========================================
+// LEADS CHARTS - Now with data parameters
+// =======================================
+export const getLeadsChartConfig = (leadsData) => ({
   options: {
     chart: {
       type: "bar",
@@ -427,7 +688,7 @@ export const getLeadsChartConfig = () => ({
       enabled: false,
     },
     xaxis: {
-      categories: leadsData.monthlyData.map((item) => item.month),
+      categories: leadsData?.monthlyData?.map((item) => item.month) || [],
       labels: {
         style: {
           colors: "#9CA3AF",
@@ -473,16 +734,16 @@ export const getLeadsChartConfig = () => ({
   series: [
     {
       name: "New Leads",
-      data: leadsData.monthlyData.map((item) => item.newLeads),
+      data: leadsData?.monthlyData?.map((item) => item.newLeads) || [],
     },
     {
       name: "Converted",
-      data: leadsData.monthlyData.map((item) => item.converted),
+      data: leadsData?.monthlyData?.map((item) => item.converted) || [],
     },
   ],
 });
 
-export const getConversionRateChartConfig = () => ({
+export const getConversionRateChartConfig = (leadsData) => ({
   options: {
     chart: {
       type: "line",
@@ -497,7 +758,7 @@ export const getConversionRateChartConfig = () => ({
       width: 3,
     },
     xaxis: {
-      categories: leadsData.monthlyData.map((item) => item.month),
+      categories: leadsData?.monthlyData?.map((item) => item.month) || [],
       labels: {
         style: {
           colors: "#9CA3AF",
@@ -522,6 +783,12 @@ export const getConversionRateChartConfig = () => ({
       borderColor: "#374151",
       strokeDashArray: 3,
     },
+    legend: {
+      labels: { colors: "#9CA3AF" },
+      position: "top",
+      horizontalAlign: "center",
+      fontSize: '12px',
+    },
     tooltip: {
       theme: "dark",
       y: {
@@ -541,11 +808,64 @@ export const getConversionRateChartConfig = () => ({
   series: [
     {
       name: "Conversion Rate",
-      data: leadsData.monthlyData.map((item) => item.convertedPercent),
+      data: leadsData?.monthlyData?.map((item) => item.convertedPercent) || [],
     },
   ],
 });
 
+// // Source distribution chart (optional - can be added to Leads tab)
+// export const getLeadsBySourceChartConfig = (leadsData) => ({
+//   options: {
+//     chart: {
+//       type: "pie",
+//       height: 350,
+//       toolbar: { show: false },
+//       background: "transparent",
+//     },
+//     colors: ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6", "#EF4444"],
+//     labels: Object.keys(leadsData?.bySource || {}),
+//     legend: {
+//       labels: { colors: "#9CA3AF" },
+//       position: "bottom",
+//       horizontalAlign: "center",
+//     },
+//     dataLabels: {
+//       enabled: true,
+//       formatter: (val, opts) => {
+//         return opts.w.config.series[opts.seriesIndex];
+//       },
+//       style: {
+//         fontSize: '12px',
+//         colors: ["#fff"],
+//       },
+//     },
+//     tooltip: {
+//       theme: "dark",
+//       y: {
+//         formatter: (value) => `${value} leads`,
+//       },
+//     },
+//     responsive: [
+//       {
+//         breakpoint: 480,
+//         options: {
+//           chart: {
+//             width: 300,
+//           },
+//           legend: {
+//             position: "bottom",
+//           },
+//         },
+//       },
+//     ],
+//   },
+//   series: Object.values(leadsData?.bySource || []),
+// });
+
+
+
+
+// FINANCES CHARTS - These use static financesData
 export const getTopServicesByRevenueChartConfig = () => ({
   options: {
     chart: {
@@ -713,5 +1033,3 @@ export const leadOriginMapData = {
   ],
   totalLeads: 485
 };
-
-

@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { 
-  Calendar, 
-  Users, 
-  UserPlus, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  Calendar,
+  Users,
+  UserPlus,
+  DollarSign,
+  TrendingUp,
   TrendingDown,
   ChevronDown,
   ArrowUpRight,
@@ -25,19 +25,12 @@ import {
 } from "lucide-react"
 
 import { trainingVideosData } from "../../utils/studio-states/training-states"
-import { appointmentsData, leadOriginMapData } from "../../utils/studio-states/analytics-states"
 import {
-  tabs,
-  membersData,
-  leadsData,
-  financesData,
-  getMonthlyBreakdownChartConfig,
-  getPopularTimesChartConfig,
-  getMemberActivityChartConfig,
-  getMembersByTypeChartConfig,
-  getLeadsChartConfig,
-  getConversionRateChartConfig,
-  getTopServicesByRevenueChartConfig,
+  processAppointmentsData, leadOriginMapData, tabs, processMembersData,
+  processLeadsData, financesData, getMonthlyBreakdownChartConfig,
+  getPopularTimesChartConfig, getMemberActivityChartConfig,
+  getMembersByTypeChartConfig, getLeadsChartConfig,
+  getConversionRateChartConfig, getTopServicesByRevenueChartConfig,
   getMostFrequentlySoldChartConfig
 } from "../../utils/studio-states/analytics-states"
 import { useDispatch, useSelector } from "react-redux"
@@ -64,13 +57,12 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
               {prefix}{typeof value === "number" ? value.toLocaleString() : value}{suffix}
             </h3>
             {change !== undefined && (
-              <span className={`flex items-center text-xs px-1.5 py-0.5 rounded ${
-                isNeutral 
-                  ? "text-content-muted bg-gray-500/20" 
-                  : isPositive 
-                    ? "text-green-400 bg-green-500/20" 
-                    : "text-red-400 bg-red-500/20"
-              }`}>
+              <span className={`flex items-center text-xs px-1.5 py-0.5 rounded ${isNeutral
+                ? "text-content-muted bg-gray-500/20"
+                : isPositive
+                  ? "text-green-400 bg-green-500/20"
+                  : "text-red-400 bg-red-500/20"
+                }`}>
                 {isNeutral ? "—" : isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                 {!isNeutral && <span>{Math.abs(change)}%</span>}
               </span>
@@ -114,11 +106,12 @@ const getRadius = (count, maxCount) => {
 };
 
 // ==============================
-// LEAD ORIGIN MAP COMPONENT
+// LEAD ORIGIN MAP COMPONENT - FIXED TOOLTIP
 // ==============================
 const LeadOriginMap = ({ data, height = 450 }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const popupRef = useRef(null);
 
   useEffect(() => {
     if (mapInstanceRef.current) return;
@@ -134,6 +127,14 @@ const LeadOriginMap = ({ data, height = 450 }) => {
     });
 
     mapInstanceRef.current = map;
+
+    // Fix for Leaflet icon paths
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
 
     // Detect light/dark mode from CSS theme token
     const surfaceBase = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-base').trim();
@@ -178,16 +179,21 @@ const LeadOriginMap = ({ data, height = 450 }) => {
       `,
       iconSize: [36, 36],
       iconAnchor: [18, 18],
+      popupAnchor: [0, -18],
     });
 
-    L.marker([data.studioLocation.lat, data.studioLocation.lng], { icon: studioIcon })
+    const studioMarker = L.marker([data.studioLocation.lat, data.studioLocation.lng], { icon: studioIcon })
       .addTo(map)
       .bindPopup(`
-        <div style="text-align: center; padding: 8px;">
-          <strong style="font-size: 14px;">${data.studioLocation.name}</strong><br/>
+        <div style="text-align: center; padding: 8px; background: white; border-radius: 8px;">
+          <strong style="font-size: 14px; color: #333;">${data.studioLocation.name}</strong><br/>
           <span style="color: #666; font-size: 12px;">${data.studioLocation.address}</span>
         </div>
-      `);
+      `, {
+        className: 'custom-popup',
+        maxWidth: 300,
+        minWidth: 200,
+      });
 
     // Distance circles (5km, 10km, 15km)
     [5000, 10000, 15000].forEach((radius) => {
@@ -206,7 +212,7 @@ const LeadOriginMap = ({ data, height = 450 }) => {
       const color = getHeatColor(region.leads, maxLeads);
       const radius = getRadius(region.leads, maxLeads);
 
-      L.circle([region.lat, region.lng], {
+      const circle = L.circle([region.lat, region.lng], {
         radius,
         color: color.border,
         weight: 2,
@@ -215,15 +221,46 @@ const LeadOriginMap = ({ data, height = 450 }) => {
       })
         .addTo(map)
         .bindPopup(`
-          <div style="min-width: 120px; padding: 8px;">
-            <strong style="font-size: 14px; color: #333;">${region.name}</strong>
-            <hr style="margin: 8px 0; border-color: #eee;"/>
+          <div style="min-width: 120px; padding: 12px; background: ${isLightMode ? 'white' : '#1e1e1e'}; border-radius: 8px;">
+            <strong style="font-size: 14px; color: ${isLightMode ? '#333' : '#fff'};">${region.name}</strong>
+            <hr style="margin: 8px 0; border-color: ${isLightMode ? '#eee' : '#333'};"/>
             <div style="display: flex; justify-content: space-between; margin: 4px 0;">
-              <span style="color: #666;">Leads:</span>
+              <span style="color: ${isLightMode ? '#666' : '#999'};">Leads:</span>
               <strong style="color: #f97316;">${region.leads}</strong>
             </div>
+            <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+              <span style="color: ${isLightMode ? '#666' : '#999'};">Distance:</span>
+              <strong style="color: ${isLightMode ? '#333' : '#fff'};">${region.distance} km</strong>
+            </div>
           </div>
-        `);
+        `, {
+          className: 'region-popup',
+          maxWidth: 250,
+          minWidth: 150,
+          offset: [0, -radius / 1000], // Dynamic offset based on radius
+        });
+
+      // Add hover effect
+      circle.on('mouseover', function () {
+        this.openPopup();
+        this.setStyle({
+          weight: 3,
+          color: '#f97316',
+        });
+      });
+
+      circle.on('mouseout', function () {
+        this.closePopup();
+        this.setStyle({
+          weight: 2,
+          color: color.border,
+        });
+      });
+    });
+
+    // Add click handler to close popups when clicking on map
+    map.on('click', function () {
+      map.closePopup();
     });
 
     return () => {
@@ -236,33 +273,82 @@ const LeadOriginMap = ({ data, height = 450 }) => {
 
   return (
     <div className="bg-surface-card rounded-xl p-4 sm:p-6 overflow-hidden relative z-0">
+      {/* Add custom CSS for popups */}
       <style>{`
-        .leaflet-pane, .leaflet-top, .leaflet-bottom, .leaflet-control { z-index: 1 !important; }
-        .leaflet-tile-pane { z-index: 1 !important; }
-        .leaflet-overlay-pane { z-index: 2 !important; }
-        .leaflet-marker-pane { z-index: 3 !important; }
-        .leaflet-popup-pane { z-index: 4 !important; }
+        .leaflet-pane,
+        .leaflet-top,
+        .leaflet-bottom,
+        .leaflet-control { 
+          z-index: 1 !important; 
+        }
+        .leaflet-popup-pane { 
+          z-index: 1000 !important; 
+        }
+        .leaflet-popup {
+          z-index: 1000 !important;
+        }
+        .leaflet-popup-content-wrapper {
+          border-radius: 12px !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+          background: transparent !important;
+        }
+        .leaflet-popup-content {
+          margin: 0 !important;
+          padding: 0 !important;
+          min-width: 150px !important;
+        }
+        .leaflet-popup-tip {
+          background: ${getComputedStyle(document.documentElement).getPropertyValue('--color-surface-card')} !important;
+          box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2) !important;
+        }
+        .leaflet-container a.leaflet-popup-close-button {
+          z-index: 1001 !important;
+          color: #666 !important;
+          font-size: 16px !important;
+          font-weight: bold !important;
+          padding: 8px !important;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover {
+          color: #333 !important;
+          background: transparent !important;
+        }
+        .custom-popup .leaflet-popup-content-wrapper,
+        .region-popup .leaflet-popup-content-wrapper {
+          background: transparent !important;
+          box-shadow: none !important;
+        }
       `}</style>
-      
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 className="text-lg font-semibold text-content-primary">Lead Origin</h3>
         <div className="text-sm text-content-muted">
           Total: <span className="font-bold text-primary">{data.totalLeads}</span> leads
         </div>
       </div>
-      
-      <div className="w-full overflow-hidden rounded-xl relative" style={{ zIndex: 1 }}>
-        <div 
-          ref={mapRef} 
-          style={{ height: `${height}px`, width: '100%', minWidth: '280px', position: 'relative', zIndex: 1 }}
+
+      <div className="w-full overflow-hidden rounded-xl relative" style={{
+        zIndex: 1,
+        isolation: 'isolate' // Creates a new stacking context
+      }}>
+        <div
+          ref={mapRef}
+          style={{
+            height: `${height}px`,
+            width: '100%',
+            minWidth: '280px',
+            position: 'relative',
+            zIndex: 1
+          }}
           className="rounded-xl"
         />
       </div>
-      
+
       <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
+            <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
             <span className="text-xs text-content-muted">Studio</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-content-muted">
@@ -281,8 +367,9 @@ const LeadOriginMap = ({ data, height = 450 }) => {
             </div>
           </div>
         </div>
-        <div className="text-xs text-content-faint">
-          Click on areas to see details
+        <div className="text-xs text-content-faint flex items-center gap-2">
+          <span>📍 Hover over areas to see details</span>
+          <span className="px-2 py-1 bg-surface-hover rounded-lg">Click to pin popup</span>
         </div>
       </div>
     </div>
@@ -309,9 +396,44 @@ export default function AnalyticsDashboard() {
   // ==============================
   const dispatch = useDispatch();
   const { appointments = [] } = useSelector((state) => state.appointments || {})
-  const { members = [] } = useSelector((state) => state.members || {})
-  const {leads} = useSelector((state) => state.leads || {})  
+  const { members = [] } = useSelector((state) => state.member || {})
+  const { leads = [] } = useSelector((state) => state.leads || {})
   const { services = [] } = useSelector((state) => state.services || {})
+
+  // ==============================
+  // PROCESSED DATA STATES
+  // ==============================
+  const [processedAppointmentsData, setProcessedAppointmentsData] = useState({
+    totals: {
+      bookings: 0,
+      checkIns: 0,
+      cancellations: 0,
+      lateCancellations: 0,
+      noShows: 0,
+    },
+    monthlyBreakdown: [],
+    popularTimes: []
+  });
+
+  const [processedMembersData, setProcessedMembersData] = useState({
+    totalMembers: 0,
+    fullMembers: 0,
+    temporaryMembers: 0,
+    activeMembers: 0,
+    inactiveMembers: 0,
+    pausedMembers: 0,
+    membersByType: []
+  });
+
+  const [processedLeadsData, setProcessedLeadsData] = useState({
+    totalLeads: 0,
+    convertedLeads: 0,
+    activeLeads: 0,
+    passiveLeads: 0,
+    conversionRate: 0,
+    bySource: {},
+    monthlyData: []
+  });
 
   // ==============================
   // NAVIGATION HOOK
@@ -324,7 +446,7 @@ export default function AnalyticsDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const analyticsFilterRef = useRef(null)
   const [activeTab, setActiveTab] = useState("Appointments")
-  
+
   // New states for enhanced features
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("thisMonth")
   const [isTimePeriodDropdownOpen, setIsTimePeriodDropdownOpen] = useState(false)
@@ -341,6 +463,30 @@ export default function AnalyticsDashboard() {
     dispatch(fetchAllMember());
     dispatch(fetchAllLeadsThunk());
   }, [dispatch])
+
+  // Process appointments when they change
+  useEffect(() => {
+    if (appointments && appointments.length > 0) {
+      const processed = processAppointmentsData(appointments);
+      setProcessedAppointmentsData(processed);
+    }
+  }, [appointments]);
+
+  // Process members when they change
+  useEffect(() => {
+    if (members && members.length > 0) {
+      const processed = processMembersData(members);
+      setProcessedMembersData(processed);
+    }
+  }, [members]);
+
+  // Process leads when they change
+  useEffect(() => {
+    if (leads && leads.length > 0) {
+      const processed = processLeadsData(leads);
+      setProcessedLeadsData(processed);
+    }
+  }, [leads]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -373,14 +519,15 @@ export default function AnalyticsDashboard() {
     return 350
   }
 
-  const monthlyBreakdownChart = getMonthlyBreakdownChartConfig()
-  const popularTimesChart = getPopularTimesChartConfig()
-  const memberActivityChart = getMemberActivityChartConfig()
-  const membersByTypeChart = getMembersByTypeChartConfig()
-  const leadsChart = getLeadsChartConfig()
-  const conversionRateChart = getConversionRateChartConfig()
-  const topServicesByRevenueChart = getTopServicesByRevenueChartConfig()
-  const mostFrequentlySoldChart = getMostFrequentlySoldChartConfig()
+  // Get chart configs with processed data
+  const monthlyBreakdownChart = getMonthlyBreakdownChartConfig(processedAppointmentsData);
+  const popularTimesChart = getPopularTimesChartConfig(processedAppointmentsData);
+  const memberActivityChart = getMemberActivityChartConfig(processedMembersData);
+  const membersByTypeChart = getMembersByTypeChartConfig(processedMembersData);
+  const leadsChart = getLeadsChartConfig(processedLeadsData);
+  const conversionRateChart = getConversionRateChartConfig(processedLeadsData);
+  const topServicesByRevenueChart = getTopServicesByRevenueChartConfig();
+  const mostFrequentlySoldChart = getMostFrequentlySoldChartConfig();
 
   // ==============================
   // TAB ICONS MAPPING
@@ -404,7 +551,7 @@ export default function AnalyticsDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               <StatCard
                 title="Bookings"
-                value={appointmentsCounts.upcoming}
+                value={processedAppointmentsData.totals.bookings}
                 change={12}
                 icon={CalendarDays}
                 iconBg="bg-blue-500/20"
@@ -412,7 +559,7 @@ export default function AnalyticsDashboard() {
               />
               <StatCard
                 title="Check-ins"
-                value={appointmentsData.totals.checkIns}
+                value={processedAppointmentsData.totals.checkIns}
                 change={8}
                 icon={UserCheck}
                 iconBg="bg-green-500/20"
@@ -420,7 +567,7 @@ export default function AnalyticsDashboard() {
               />
               <StatCard
                 title="Cancellations"
-                value={appointmentsData.totals.cancellations}
+                value={processedAppointmentsData.totals.cancellations}
                 change={-15}
                 icon={UserX}
                 iconBg="bg-red-500/20"
@@ -428,7 +575,7 @@ export default function AnalyticsDashboard() {
               />
               <StatCard
                 title="Late Cancellations"
-                value={appointmentsData.totals.lateCancellations}
+                value={processedAppointmentsData.totals.lateCancellations}
                 change={0}
                 icon={Clock}
                 iconBg="bg-yellow-500/20"
@@ -436,7 +583,7 @@ export default function AnalyticsDashboard() {
               />
               <StatCard
                 title="No Shows"
-                value={appointmentsData.totals.noShows}
+                value={processedAppointmentsData.totals.noShows}
                 change={0}
                 icon={AlertCircle}
                 iconBg="bg-primary/20"
@@ -468,7 +615,7 @@ export default function AnalyticsDashboard() {
             <ChartCard title="Most Popular Booking Times">
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[400px] sm:min-w-0">
-                  <Chart 
+                  <Chart
                     options={{
                       ...popularTimesChart.options,
                       chart: {
@@ -477,8 +624,8 @@ export default function AnalyticsDashboard() {
                       },
                       stroke: { show: false, width: 0 }
                     }}
-                    series={popularTimesChart.series} 
-                    type="bar" 
+                    series={popularTimesChart.series}
+                    type="bar"
                     height={getResponsiveChartHeight()}
                   />
                 </div>
@@ -490,15 +637,55 @@ export default function AnalyticsDashboard() {
       case "Members":
         return (
           <div className="space-y-4 sm:space-y-6">
-            {/* Total Members Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {/* Member Stat Cards - Full Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               <StatCard
                 title="Total Members"
-                value={membersData.totalMembers}
+                value={processedMembersData.totalMembers}
                 change={18}
                 icon={Users}
                 iconBg="bg-blue-500/20"
                 iconColor="text-blue-400"
+              />
+              <StatCard
+                title="Full Members"
+                value={processedMembersData.fullMembers}
+                change={12}
+                icon={UserCheck}
+                iconBg="bg-green-500/20"
+                iconColor="text-green-400"
+              />
+              <StatCard
+                title="Temporary Members"
+                value={processedMembersData.temporaryMembers}
+                change={-5}
+                icon={UserPlus}
+                iconBg="bg-yellow-500/20"
+                iconColor="text-yellow-400"
+              />
+              <StatCard
+                title="Active Members"
+                value={processedMembersData.activeMembers}
+                change={15}
+                icon={TrendingUp}
+                iconBg="bg-emerald-500/20"
+                iconColor="text-emerald-400"
+              />
+              <StatCard
+                title="Inactive Members"
+                value={processedMembersData.inactiveMembers}
+                change={-8}
+                icon={UserX}
+                iconBg="bg-red-500/20"
+                iconColor="text-red-400"
+              />
+              <StatCard
+                title="Paused Members"
+                value={processedMembersData.pausedMembers}
+                change={0}
+                icon={Clock}
+                iconBg="bg-orange-500/20"
+                iconColor="text-orange-400"
               />
             </div>
 
@@ -548,7 +735,7 @@ export default function AnalyticsDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <StatCard
                 title="Total Leads"
-                value={leadsData.totalLeads}
+                value={processedLeadsData.totalLeads}
                 change={24}
                 icon={UserPlus}
                 iconBg="bg-blue-500/20"
@@ -556,14 +743,14 @@ export default function AnalyticsDashboard() {
               />
             </div>
 
-            {/* Lead Origin Map */}
+            {/* Lead Origin Map - Still using static data for now */}
             <LeadOriginMap data={leadOriginMapData} height={350} />
 
             {/* New Leads & Converted Chart */}
             <ChartCard title="New Leads & Converted">
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[500px] sm:min-w-0">
-                  <Chart 
+                  <Chart
                     options={{
                       ...leadsChart.options,
                       chart: {
@@ -572,8 +759,8 @@ export default function AnalyticsDashboard() {
                       },
                       stroke: { show: false, width: 0 }
                     }}
-                    series={leadsChart.series} 
-                    type="bar" 
+                    series={leadsChart.series}
+                    type="bar"
                     height={getResponsiveChartHeight()}
                   />
                 </div>
@@ -744,7 +931,7 @@ export default function AnalyticsDashboard() {
           <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
-              
+
               {/* Time Period Filter - inline with title */}
               <div className="relative" ref={timePeriodRef}>
                 <button
@@ -757,7 +944,7 @@ export default function AnalyticsDashboard() {
                   </span>
                   <ChevronDown size={16} className={`text-content-muted transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-                
+
                 {isTimePeriodDropdownOpen && (
                   <div className="absolute left-0 mt-2 w-48 bg-surface-card rounded-xl shadow-lg border border-border-subtle z-50 overflow-hidden">
                     {timePeriodOptions.map((option) => (
@@ -767,11 +954,10 @@ export default function AnalyticsDashboard() {
                           setSelectedTimePeriod(option.value)
                           setIsTimePeriodDropdownOpen(false)
                         }}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${
-                          selectedTimePeriod === option.value 
-                            ? 'bg-primary/20 text-primary' 
-                            : 'text-content-primary'
-                        }`}
+                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${selectedTimePeriod === option.value
+                          ? 'bg-primary/20 text-primary'
+                          : 'text-content-primary'
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -792,11 +978,10 @@ export default function AnalyticsDashboard() {
                 <button
                   key={tab.name}
                   onClick={() => setActiveTab(tab.name)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === tab.name
-                      ? "bg-primary text-white shadow-lg shadow-primary/25"
-                      : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
-                  }`}
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.name
+                    ? "bg-primary text-white shadow-lg shadow-primary/25"
+                    : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
+                    }`}
                 >
                   <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
                   {tab.name}
