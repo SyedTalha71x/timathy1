@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import { Tag, Calendar, X, Pin, PinOff, Copy, Repeat, Edit, Check, Users, GripVertical, Trash2 } from "lucide-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { canceledTaskThunk, completedTaskThunk } from "../../../features/todos/todosSlice"
+import { useDispatch } from "react-redux"
 
 export default function SortableTaskCard({
   task,
@@ -30,7 +32,7 @@ export default function SortableTaskCard({
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editedTitle, setEditedTitle] = useState(task.title || "")
   const [showDropdown, setShowDropdown] = useState(false)
-
+  const dispatch = useDispatch()
   const dropdownRef = useRef(null)
   const titleInputRef = useRef(null)
 
@@ -58,6 +60,43 @@ export default function SortableTaskCard({
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 1000 : "auto",
   }
+
+  // Helper functions to extract display values (NO UI CHANGES)
+  const getTagDisplay = (tag) => {
+    if (typeof tag === 'string') return tag;
+    if (tag && typeof tag === 'object') {
+      return tag.name || '';
+    }
+    return '';
+  };
+
+  const getAssigneeDisplay = (assignee) => {
+    if (typeof assignee === 'string') return assignee;
+
+    if (assignee && typeof assignee === 'object') {
+      if (assignee.firstName && assignee.lastName) {
+        return `${assignee.firstName} ${assignee.lastName}`;
+      }
+      if (assignee.firstName) return assignee.firstName;
+      if (assignee.email) return assignee.email;
+      if (assignee.name) return assignee.name;
+    }
+
+    return '';
+  };
+
+  const getTagColor = (tag) => {
+    if (typeof tag === 'string') {
+      const foundTag = configuredTags.find((t) => t.name === tag || t._id === tag);
+      return foundTag ? foundTag.color : "var(--color-primary, #f97316)";
+    }
+
+    if (tag && typeof tag === 'object') {
+      return tag.color || "var(--color-primary, #f97316)";
+    }
+
+    return "var(--color-primary, #f97316)";
+  };
 
   // Focus input when editing title
   useEffect(() => {
@@ -144,13 +183,13 @@ export default function SortableTaskCard({
   const openDeleteConfirmation = (e) => {
     e.stopPropagation()
     setShowDropdown(false)
-    onDeleteRequest(task.id)
+    onDeleteRequest(task._id)
   }
 
   const handlePinToggle = (e) => {
     e.stopPropagation()
     setShowDropdown(false)
-    onPinToggle(task.id)
+    onPinToggle(task._id)
   }
 
   const handleDuplicate = (e) => {
@@ -220,11 +259,6 @@ export default function SortableTaskCard({
     return tooltip
   }
 
-  const getTagColor = (tagName) => {
-    const tag = configuredTags.find((t) => t.name === tagName)
-    return tag ? tag.color : "var(--color-primary, #f97316)"
-  }
-
   const handleAssignClick = (e) => {
     e.stopPropagation()
     setShowDropdown(false)
@@ -247,17 +281,15 @@ export default function SortableTaskCard({
 
   const isCompleted = task.status === "completed"
   const isCanceled = task.status === "canceled"
-  const hasRepeat = (task.repeatSettings && task.repeatSettings.frequency) || repeatConfigs[task.id] || task.repeat
-
+  const hasRepeat = (task.repeatSettings && task.repeatSettings.frequency) || repeatConfigs[task._id] || task.repeat
   // For drag overlay
   if (isDraggingOverlay) {
     return (
       <div
-        className={`rounded-xl px-3 py-3 transition-all duration-300 ease-in-out relative shadow-2xl scale-105 select-none ${
-          isCompleted ? "bg-surface-base text-content-faint" :
+        className={`rounded-xl px-3 py-3 transition-all duration-300 ease-in-out relative shadow-2xl scale-105 select-none ${isCompleted ? "bg-surface-base text-content-faint" :
           isCanceled ? "bg-surface-hover text-content-faint italic line-through" :
-          "bg-surface-hover text-content-primary"
-        }`}
+            "bg-surface-hover text-content-primary"
+          }`}
         style={{ touchAction: "none", userSelect: "none" }}
       >
         <div className="flex items-center gap-3">
@@ -271,19 +303,17 @@ export default function SortableTaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-xl px-3 py-3 transition-all duration-300 ease-in-out relative select-none ${
-        isDragging ? "opacity-50 shadow-2xl scale-[1.02]" : "opacity-100"
-      } ${
-        isCompleted ? "bg-surface-base text-content-faint" :
-        isCanceled ? "bg-surface-hover text-content-faint italic" :
-        "bg-surface-hover text-content-primary"
-      } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
+      className={`rounded-xl px-3 py-3 transition-all duration-300 ease-in-out relative select-none ${isDragging ? "opacity-50 shadow-2xl scale-[1.02]" : "opacity-100"
+        } ${isCompleted ? "bg-surface-base text-content-faint" :
+          isCanceled ? "bg-surface-hover text-content-faint italic" :
+            "bg-surface-hover text-content-primary"
+        } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
     >
       {/* Main Row */}
       <div className="flex items-start gap-2">
         {/* Drag Handle - Larger touch area */}
-        <div 
-          {...attributes} 
+        <div
+          {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-primary p-2 -ml-1 -mt-1 rounded-xl active:bg-primary/30 flex-shrink-0 touch-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -307,16 +337,15 @@ export default function SortableTaskCard({
           <div className="relative flex-shrink-0 mt-1">
             <button
               onClick={(e) => {
+                dispatch(completedTaskThunk(task._id))
                 e.stopPropagation()
                 handleStatusChange(isCompleted ? "ongoing" : "completed")
               }}
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 active:scale-90 ${
-                isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
-              } ${
-                isCompleted 
-                  ? "bg-content-faint border-border" 
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 active:scale-90 ${isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
+                } ${isCompleted
+                  ? "bg-content-faint border-border"
                   : "border-border hover:border-primary"
-              }`}
+                }`}
             >
               {isCompleted && <Check size={12} className="text-content-primary" />}
             </button>
@@ -350,13 +379,11 @@ export default function SortableTaskCard({
             />
           ) : (
             <div
-              className={`font-medium text-sm ${
-                isCanceled ? "line-through" : ""
-              } ${
-                !isCompleted && !isCanceled 
-                  ? "cursor-text hover:bg-surface-hover rounded px-1 -mx-1 transition-colors" 
+              className={`font-medium text-sm ${isCanceled ? "line-through" : ""
+                } ${!isCompleted && !isCanceled
+                  ? "cursor-text hover:bg-surface-hover rounded px-1 -mx-1 transition-colors"
                   : ""
-              }`}
+                }`}
               onClick={handleTitleClick}
               title={!isCompleted && !isCanceled ? "Click to edit" : task.title}
               style={{
@@ -385,13 +412,12 @@ export default function SortableTaskCard({
                       tag && (
                         <span
                           key={idx}
-                          className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 hover:brightness-110 whitespace-nowrap ${
-                            isCompleted || isCanceled ? "bg-surface-button text-content-faint" : "text-white"
-                          }`}
+                          className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 hover:brightness-110 whitespace-nowrap ${isCompleted || isCanceled ? "bg-surface-button text-content-faint" : "text-white"
+                            }`}
                           style={{ backgroundColor: isCompleted || isCanceled ? undefined : getTagColor(tag) }}
                           onClick={handleTagsClick}
                         >
-                          {tag}
+                          {getTagDisplay(tag)}
                         </span>
                       )
                     )}
@@ -407,13 +433,12 @@ export default function SortableTaskCard({
                       tag && (
                         <span
                           key={idx}
-                          className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-105 whitespace-nowrap ${
-                            isCompleted || isCanceled ? "bg-surface-button text-content-faint" : "text-white"
-                          }`}
+                          className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-105 whitespace-nowrap ${isCompleted || isCanceled ? "bg-surface-button text-content-faint" : "text-white"
+                            }`}
                           style={{ backgroundColor: isCompleted || isCanceled ? undefined : getTagColor(tag) }}
                           onClick={handleTagsClick}
                         >
-                          {tag}
+                          {getTagDisplay(tag)}
                         </span>
                       )
                     )}
@@ -432,13 +457,12 @@ export default function SortableTaskCard({
                   {task.assignees.map((assignee, idx) => (
                     <span
                       key={idx}
-                      className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer whitespace-nowrap transition-transform duration-200 md:hover:scale-105 ${
-                        isCompleted || isCanceled ? "bg-surface-button text-content-faint" : "bg-surface-button text-content-secondary"
-                      }`}
+                      className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer whitespace-nowrap transition-transform duration-200 md:hover:scale-105 ${isCompleted || isCanceled ? "bg-surface-button text-content-faint" : "bg-surface-button text-content-secondary"
+                        }`}
                       onClick={handleAssignClick}
                     >
                       <Users size={10} />
-                      {assignee}
+                      {getAssigneeDisplay(assignee)}
                     </span>
                   ))}
                 </div>
@@ -450,17 +474,16 @@ export default function SortableTaskCard({
             {/* Right side: Date/Time - pushed to right on desktop */}
             {(task.dueDate || task.dueTime) && (
               <span
-                className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer group relative transition-transform duration-200 md:hover:scale-105 md:ml-auto flex-shrink-0 ${
-                  isCompleted || isCanceled 
-                    ? "bg-surface-button text-content-faint" 
-                    : "bg-primary/20 text-primary border border-primary/30"
-                }`}
+                className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer group relative transition-transform duration-200 md:hover:scale-105 md:ml-auto flex-shrink-0 ${isCompleted || isCanceled
+                  ? "bg-surface-button text-content-faint"
+                  : "bg-primary/20 text-primary border border-primary/30"
+                  }`}
                 onClick={handleCalendarClick}
               >
                 <Calendar size={10} />
                 <span className="whitespace-nowrap">{formatDateTime()}</span>
                 {hasRepeat && <Repeat size={10} className={isCompleted || isCanceled ? 'text-content-faint' : 'text-primary'} />}
-                
+
                 {/* Tooltip - Desktop only */}
                 <div className="hidden md:block absolute bottom-full mb-2 right-0 invisible group-hover:visible z-50 min-w-[180px]">
                   <div className="bg-black text-white text-xs rounded-lg py-2 px-3 whitespace-pre-line shadow-xl border border-border">
@@ -547,6 +570,8 @@ export default function SortableTaskCard({
                     onClick={(e) => {
                       e.stopPropagation()
                       setShowDropdown(false)
+                      dispatch(canceledTaskThunk(task._id))
+                      console.log('task id canceled', task._id)
                       handleStatusChange("canceled")
                     }}
                     className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2.5 transition-colors"

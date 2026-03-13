@@ -43,3 +43,22 @@ export const canceledTask = async (todoId) => {
     const res = await api.patch(`/todos/${todoId}/canceled`, { withCredentials: true })
     return res.data
 }
+
+
+// ===========
+// update Task
+// ===========
+
+export const updateTask = async (todoId, updateData) => {
+    const res = await api.put(`/todos/${todoId}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+// ==========
+// Delete Task
+// ==========
+
+export const deleteTask = async (todoId) => {
+    const res = await api.delete(`/todos/${todoId}`, { withCredentials: true })
+    return res.data;
+}

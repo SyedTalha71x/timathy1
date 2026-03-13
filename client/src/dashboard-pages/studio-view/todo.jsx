@@ -26,7 +26,7 @@ import {
   getTagsThunk,
   updateTaskThunk,
   deleteTaskThunk,
-  deleteTagThunk
+  // deleteTagThunk
 } from '../../features/todos/todosSlice'
 import { fetchAllStaffThunk } from '../../features/staff/staffSlice'
 // @dnd-kit imports
@@ -46,6 +46,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 // New sortable components
 import SortableTaskColumn from "../../components/studio-components/todo-components/sortable-task-column"
 import SortableTaskCard from "../../components/studio-components/todo-components/sortable-task-card"
+import { updateTask } from "../../features/todos/todosApi"
 
 // ============================================
 // Mobile Create Task Modal Component (Redesigned)
@@ -718,11 +719,10 @@ const MobileTaskCard = ({
   return (
     <div
       onClick={onSelect}
-      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${
-        isCompleted ? 'bg-surface-hover/50' :
+      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${isCompleted ? 'bg-surface-hover/50' :
         isCanceled ? 'bg-surface-hover/30' :
-        'bg-surface-hover active:bg-surface-hover'
-      }`}
+          'bg-surface-hover active:bg-surface-hover'
+        }`}
     >
       <div className="flex items-start gap-3">
         {/* Checkbox / X for canceled */}
@@ -743,10 +743,9 @@ const MobileTaskCard = ({
               e.stopPropagation()
               onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
             }}
-            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-              isCompleted ? 'bg-content-faint border-border' :
+            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? 'bg-content-faint border-border' :
               'border-border hover:border-primary'
-            }`}
+              }`}
           >
             {isCompleted && <Check size={12} className="text-white" />}
           </button>
@@ -755,11 +754,10 @@ const MobileTaskCard = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className={`text-sm font-medium ${
-              isCompleted ? 'text-content-faint' :
+            <p className={`text-sm font-medium ${isCompleted ? 'text-content-faint' :
               isCanceled ? 'text-content-faint line-through italic' :
-              'text-content-primary'
-            }`} style={{ wordBreak: 'break-word' }}>
+                'text-content-primary'
+              }`} style={{ wordBreak: 'break-word' }}>
               {task.title}
             </p>
           </div>
@@ -768,9 +766,8 @@ const MobileTaskCard = ({
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {/* Date */}
             {formatDate() && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
-              }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
+                }`}>
                 <Calendar size={10} />
                 {formatDate()}
               </span>
@@ -778,9 +775,8 @@ const MobileTaskCard = ({
 
             {/* Assignees Count */}
             {task.assignees && task.assignees.length > 0 && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
-              }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
+                }`}>
                 <Users size={10} />
                 {task.assignees.length}
               </span>
@@ -790,13 +786,12 @@ const MobileTaskCard = ({
             {task.tags && task.tags.slice(0, 2).map((tag, idx) => {
               const tagName = getTagName(tag);
               const tagColor = getTagColorFromTag(tag);
-              
+
               return tagName ? (
                 <span
                   key={tag._id || idx}
-                  className={`text-xs px-2 py-0.5 rounded-md ${
-                    isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
-                  }`}
+                  className={`text-xs px-2 py-0.5 rounded-md ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
+                    }`}
                   style={{ backgroundColor: isCompleted || isCanceled ? undefined : tagColor }}
                 >
                   {tagName}
@@ -856,6 +851,7 @@ export default function TodoApp() {
     return Array.isArray(todos.tasks) ? todos.tasks : [];
   });
 
+
   const tags = useSelector((state) => {
     const todos = state.todos || {};
     return Array.isArray(todos.tags) ? todos.tags : [];
@@ -907,7 +903,7 @@ export default function TodoApp() {
   })
 
   // Use Redux data directly
-  const task = tasks
+
   const configuredTags = tags
 
 
@@ -1445,6 +1441,8 @@ export default function TodoApp() {
   }
 
   const handleCalendarSave = (calendarData) => {
+    console.log('Calendar data received:', calendarData);
+
     // Check if this is for create mode
     if (createModeCalendarModal) {
       setNewTaskData(prev => ({
@@ -1453,44 +1451,66 @@ export default function TodoApp() {
         dueTime: calendarData.time,
         reminder: calendarData.reminder,
         repeat: calendarData.repeat,
-      }))
-      setCreateModeCalendarModal(false)
-      setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
-      return
+        // Add these new fields
+        customReminder: calendarData.customReminder,
+        repeatSettings: calendarData.repeatSettings,
+        repeatEndDate: calendarData.repeatEndDate,
+        repeatOccurrences: calendarData.repeatOccurrences,
+      }));
+      setCreateModeCalendarModal(false);
+      setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" });
+      return;
     }
 
     if (calendarModal.taskId) {
-      const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId)
+      const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId || t._id === calendarModal.taskId);
+
+      // Prepare update data with all repeat/reminder fields
+      const updateData = {
+        dueDate: calendarData.date,
+        dueTime: calendarData.time,
+        reminder: calendarData.reminder,
+        repeat: calendarData.repeat,
+      };
+
+      // Add custom reminder if it exists
+      if (calendarData.customReminder) {
+        updateData.customReminder = calendarData.customReminder;
+      }
+
+      // Add repeat settings if repeat is set
+      if (calendarData.repeat && calendarData.repeat !== 'None') {
+        updateData.repeatSettings = calendarData.repeatSettings || {
+          frequency: calendarData.repeat.toLowerCase(),
+          interval: 1,
+          daysOfWeek: calendarData.repeat === 'Weekdays' ? [1, 2, 3, 4, 5] : [],
+          endDate: calendarData.repeatEndDate,
+          occurrences: calendarData.repeatOccurrences
+        };
+      }
+
+      console.log('Updating task with repeat data:', updateData);
+
       dispatch(updateTaskThunk({
-        id: taskToUpdate.id,
-        updates: {
-          dueDate: calendarData.date,
-          dueTime: calendarData.time,
-          reminder: calendarData.reminder,
-          repeat: calendarData.repeat,
-          customReminder: calendarData.customReminder,
-          repeatEnd: calendarData.repeatEnd,
-        }
-      }))
+        todoId: taskToUpdate._id || taskToUpdate.id,
+        updateData: updateData
+      }));
 
       // Update mobile task if viewing
-      if (selectedMobileTask && selectedMobileTask.id === calendarModal.taskId) {
+      if (selectedMobileTask && (selectedMobileTask.id === calendarModal.taskId || selectedMobileTask._id === calendarModal.taskId)) {
         setSelectedMobileTask({
           ...selectedMobileTask,
-          dueDate: calendarData.date,
-          dueTime: calendarData.time,
-          reminder: calendarData.reminder,
-          repeat: calendarData.repeat,
-        })
+          ...updateData
+        });
       }
     } else {
-      setSelectedDate(calendarData.date)
-      setSelectedTime(calendarData.time)
-      setSelectedReminder(calendarData.reminder)
-      setSelectedRepeat(calendarData.repeat)
+      setSelectedDate(calendarData.date);
+      setSelectedTime(calendarData.time);
+      setSelectedReminder(calendarData.reminder);
+      setSelectedRepeat(calendarData.repeat);
     }
-    setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
-  }
+    setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" });
+  };
 
   const handleCalendarClose = () => {
     setCreateModeCalendarModal(false)
@@ -1558,14 +1578,15 @@ export default function TodoApp() {
     }
     if (statusMessages[newStatus]) toast.success(statusMessages[newStatus])
   }
-
   const handleTaskUpdate = (updatedTask) => {
     // Check if this is for create mode
     if (createModeAssignModal && updatedTask.id === 'new-task') {
       setNewTaskData(prev => ({
         ...prev,
         assignees: updatedTask.assignees || [],
+        tags: updatedTask.tags || [],
       }))
+
       setCreateModeAssignModal(false)
       setAssignModalTask(null)
       return
@@ -1581,61 +1602,130 @@ export default function TodoApp() {
       return
     }
 
-    // For existing tasks - use correct field names for API
-    const taskForApi = {
-      ...updatedTask,
-      assigneesId: updatedTask.assignees?.map(a => a._id) || [],  // Changed
-      tagsId: updatedTask.tags?.map(t => t._id) || [],  // Changed
+    // For existing tasks - prepare data for API
+    // Extract just the IDs for assignees and tags
+    const assigneeIds = updatedTask.assignees?.map(a => {
+      if (typeof a === 'string') return a;
+      return a._id || a.id;
+    }).filter(id => id) || [];
+
+    const tagIds = updatedTask.tags?.map(t => {
+      if (typeof t === 'string') return t;
+      return t._id || t.id;
+    }).filter(id => id) || [];
+
+    // Create update data with ALL fields
+    const updateData = {
+      title: updatedTask.title,
+      status: updatedTask.status,
+      dueDate: updatedTask.dueDate,
+      dueTime: updatedTask.dueTime,
+      reminder: updatedTask.reminder,
+      repeat: updatedTask.repeat,
+      isPinned: updatedTask.isPinned,
+      assignees: assigneeIds,
+      tags: tagIds,
+    };
+
+    // Add custom reminder if it exists
+    if (updatedTask.customReminder) {
+      updateData.customReminder = updatedTask.customReminder;
     }
 
-    // Remove the old field names if they exist
-    delete taskForApi.assignees
-    delete taskForApi.tags
+    // Add repeat settings if they exist
+    if (updatedTask.repeatSettings) {
+      updateData.repeatSettings = updatedTask.repeatSettings;
+    }
+
+    // Add repeat end date if it exists
+    if (updatedTask.repeatEndDate) {
+      updateData.repeatEndDate = updatedTask.repeatEndDate;
+    }
+
+    console.log('Sending update data with repeat/reminder:', updateData);
+    console.log('Task ID:', updatedTask._id || updatedTask.id);
 
     // Update in Redux
     dispatch(updateTaskThunk({
-      id: updatedTask.id,
-      updates: taskForApi
-    }))
+      todoId: updatedTask._id || updatedTask.id,
+      updateData: updateData
+    }));
 
-    if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
-      setSelectedMobileTask(updatedTask)
+    if (selectedMobileTask && (selectedMobileTask.id === updatedTask.id || selectedMobileTask._id === updatedTask._id)) {
+      setSelectedMobileTask(updatedTask);
     }
-  }
+  };
 
   const handleTaskRemove = (taskId) => {
-    dispatch(deleteTaskThunk(taskId))
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask(null)
     }
   }
 
   const handleTaskPinToggle = (taskId) => {
-    const task = tasks.find(t => t.id === taskId)
-    dispatch(updateTaskThunk({
-      id: taskId,
-      updates: { isPinned: !task.isPinned }
-    }))
+    // Find the task to get current pinned state
+    const task = tasks.find(t => t.id === taskId || t._id === taskId);
 
-    if (selectedMobileTask && selectedMobileTask.id === taskId) {
-      setSelectedMobileTask({ ...selectedMobileTask, isPinned: !selectedMobileTask.isPinned })
+    if (!task) {
+      console.error('Task not found for pin toggle:', taskId);
+      return;
     }
-    toast.success(task?.isPinned ? "Task unpinned" : "Task pinned")
-  }
+
+    // Toggle the current pinned state
+    const newPinnedState = !task.isPinned;
+
+    console.log('Toggling pin:', { taskId, wasPinned: task.isPinned, newPinnedState });
+
+    // Dispatch with the toggled state
+    dispatch(updateTaskThunk({
+      todoId: taskId,
+      updateData: { isPinned: newPinnedState }
+    }));
+
+    // Update mobile task if viewing
+    if (selectedMobileTask && (selectedMobileTask.id === taskId || selectedMobileTask._id === taskId)) {
+      setSelectedMobileTask({
+        ...selectedMobileTask,
+        isPinned: newPinnedState
+      });
+    }
+
+    toast.success(newPinnedState ? "Task pinned" : "Task unpinned");
+  };
 
   const handleEditRequest = (task) => {
     setSelectedTask(task)
     setIsEditModalOpenTask(true)
   }
 
-  const handleDeleteRequest = (taskId) => {
-    setSelectedTask(tasks.find((t) => t.id === taskId))
-    setIsDeleteModalOpen(true)
-  }
+  const handleDeleteRequest = (todoId) => {
+    console.log('Deleting task with ID:', todoId);  // Log the ID being passed
+
+    if (!todoId) {
+      console.error('Invalid task id:', todoId);
+      return;
+    }
+
+    // Make sure the ID matches correctly and is found
+    const taskToDelete = tasks.find((t) => t._id.toString() === todoId.toString());  // Ensure IDs are strings
+
+    if (!taskToDelete) {
+      console.error('Task not found for id:', todoId);
+      return;
+    }
+
+    setSelectedTask(taskToDelete);  // Set the selected task for modal
+    setIsDeleteModalOpen(true);      // Open delete confirmation modal
+  };
 
   const confirmDeleteTask = () => {
     if (selectedTask) {
-      handleTaskRemove(selectedTask.id)
+      const taskId = selectedTask._id; // Get the ID as a string
+      console.log('select task id', taskId);
+
+      // Pass just the string ID, not an object
+      dispatch(deleteTaskThunk(taskId));
+      handleTaskRemove(selectedTask._id)
       setIsDeleteModalOpen(false)
       setSelectedTask(null)
       toast.success("Task deleted successfully")
@@ -1681,13 +1771,15 @@ export default function TodoApp() {
   // Mobile Task Creation
   // ============================================
   const handleMobileCreateTask = async (taskData) => {
+    // Extract just the IDs from assignee objects
+    const assigneeIds = taskData.assignees?.map(a => a._id || a) || [];
+    const tagIds = taskData.tags?.map(t => t._id || t) || [];
+
     const newTask = {
       title: taskData.title,
-      // Extract just the IDs from assignee objects
-      assigneesId: taskData.assignees?.map(a => a._id) || [],
+      assigneesId: assigneeIds,
       roles: [],
-      // Extract just the IDs from tag objects
-      tagsId: taskData.tags?.map(t => t._id) || [],
+      tagsId: tagIds,
       status: "ongoing",
       category: "general",
       dueDate: taskData.dueDate,
@@ -1697,19 +1789,36 @@ export default function TodoApp() {
       isPinned: false,
       createdAt: new Date().toISOString(),
       studioId: user?.studio
-    }
-    dispatch(createTaskThunk(newTask))
-    toast.success("Task created successfully")
+    };
 
+    // Add custom reminder if it exists
+    if (taskData.customReminder) {
+      newTask.customReminder = taskData.customReminder;
+    }
+
+    // Add repeat settings if repeat is set
+    if (taskData.repeat && taskData.repeat !== 'None') {
+      newTask.repeatSettings = taskData.repeatSettings || {
+        frequency: taskData.repeat.toLowerCase(),
+        interval: 1,
+        daysOfWeek: taskData.repeat === 'Weekdays' ? [1, 2, 3, 4, 5] : [],
+        endDate: taskData.repeatEndDate,
+        occurrences: taskData.repeatOccurrences
+      };
+    }
+
+    console.log('Creating mobile task with repeat/reminder:', newTask);
+    dispatch(createTaskThunk(newTask));
+    toast.success("Task created successfully");
     await dispatch(getTaskThunk());
-  }
+  };
 
   // ============================================
   // Tag Management with Redux
   // ============================================
-  const deleteTag = (tagId) => {
-    dispatch(deleteTagThunk(tagId))
-  }
+  // const deleteTag = (tagId) => {
+  //   dispatch(deleteTagThunk(tagId))
+  // }
 
   // ============================================
   // Assignment Helpers
@@ -1737,35 +1846,61 @@ export default function TodoApp() {
   // Add Task Handler (Desktop)
   // ============================================
   const handleAddTask = useCallback(async (inputValue) => {
-    const titleToUse = inputValue || newTaskInput
+    const titleToUse = inputValue || newTaskInput;
     if (titleToUse.trim() !== "") {
+      const assigneeIds = selectedAssignees.map((a) => a._id);
+      const tagIds = selectedTags.map((t) => t._id);
+
       const newTask = {
         title: titleToUse.trim(),
-        // Extract just the IDs from assignee objects
-        assigneesId: selectedAssignees.map((a) => a._id),
+        assigneesId: assigneeIds,
         roles: [],
-        // Extract just the IDs from tag objects
-        tagsId: selectedTags.map((t) => t._id),
+        tagsId: tagIds,
         status: "ongoing",
         category: "general",
         dueDate: selectedDate,
         dueTime: selectedTime,
+        reminder: selectedReminder,
+        repeat: selectedRepeat,
         isPinned: false,
         createdAt: new Date().toISOString(),
-      }
-      dispatch(createTaskThunk(newTask))
-      setNewTaskInput("")
-      setSelectedDate("")
-      setSelectedTime("")
-      setSelectedAssignees([])
-      setSelectedTags([])
-      toast.success("Task created successfully")
+      };
 
+      // Add custom reminder if it exists
+      if (customReminderValue && customReminderUnit) {
+        newTask.customReminder = {
+          value: parseInt(customReminderValue),
+          unit: customReminderUnit
+        };
+      }
+
+      // Add repeat settings if repeat is set
+      if (selectedRepeat && selectedRepeat !== 'None') {
+        newTask.repeatSettings = {
+          frequency: selectedRepeat.toLowerCase(),
+          interval: 1,
+          daysOfWeek: selectedRepeat === 'Weekdays' ? [1, 2, 3, 4, 5] : [],
+        };
+      }
+
+      console.log('Creating desktop task with repeat/reminder:', newTask);
+      dispatch(createTaskThunk(newTask));
+
+      // Reset form states
+      setNewTaskInput("");
+      setSelectedDate("");
+      setSelectedTime("");
+      setSelectedReminder("");
+      setSelectedRepeat("");
+      setCustomReminderValue("");
+      setCustomReminderUnit("Minutes");
+      setSelectedAssignees([]);
+      setSelectedTags([]);
+
+      toast.success("Task created successfully");
       await dispatch(getTaskThunk());
     }
-  }, [selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput, dispatch])
-
-
+  }, [selectedAssignees, selectedTags, selectedDate, selectedTime, selectedReminder, selectedRepeat, customReminderValue, customReminderUnit, newTaskInput, dispatch]);
   const handleTextareaChange = useCallback((newValue) => {
     setNewTaskInput(newValue)
   }, [])
@@ -2554,7 +2689,7 @@ export default function TodoApp() {
           onAddTag={(newTag) => {
             dispatch(createTagsThunk(newTag))
           }}
-          onDeleteTag={deleteTag}
+        // onDeleteTag={deleteTag}
         />
 
         {/* Delete Modal */}

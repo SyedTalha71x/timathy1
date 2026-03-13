@@ -92,8 +92,8 @@ const TaskModal = ({
       const updatedTask = {
         ...task,
         title: taskTitle.trim(),
-        assignees: taskData.assignees,
-        tags: taskData.tags,
+        assignees: taskData.assignees, // Full assignee objects
+        tags: taskData.tags, // Full tag objects
         dueDate: taskData.dueDate,
         dueTime: taskData.dueTime,
         reminder: taskData.reminder,
@@ -101,15 +101,16 @@ const TaskModal = ({
         isPinned: isPinned,
         updatedAt: new Date().toISOString(),
       }
+      console.log('TaskModal saving:', updatedTask)
       onSave(updatedTask)
     } else {
       // Add mode - create new task
       const newTask = {
         id: Date.now(),
         title: taskTitle.trim(),
-        assignees: taskData.assignees,
+        assignees: taskData.assignees, // Full assignee objects
         roles: [],
-        tags: taskData.tags,
+        tags: taskData.tags, // Full tag objects
         dueDate: taskData.dueDate,
         dueTime: taskData.dueTime,
         status: "ongoing",
@@ -119,6 +120,7 @@ const TaskModal = ({
         repeat: taskData.repeat,
         createdAt: new Date().toISOString(),
       }
+      console.log('TaskModal creating:', newTask)
       onSave(newTask)
     }
     
@@ -144,9 +146,22 @@ const TaskModal = ({
     return display
   }
 
-  const getTagColor = (tagName) => {
-    const tag = configuredTags.find((t) => t.name === tagName)
-    return tag ? tag.color : "#3F74FF"
+  const getTagColor = (tag) => {
+    if (typeof tag === 'string') {
+      const found = configuredTags.find(t => t.name === tag || t._id === tag)
+      return found?.color || "#3F74FF"
+    }
+    return tag?.color || "#3F74FF"
+  }
+
+  const getTagName = (tag) => {
+    if (typeof tag === 'string') return tag
+    return tag?.name || ''
+  }
+
+  const getAssigneeName = (assignee) => {
+    if (typeof assignee === 'string') return assignee
+    return `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim() || 'Unknown'
   }
 
   // Handle CalendarModal save
@@ -162,6 +177,7 @@ const TaskModal = ({
 
   // Handle AssignModal update
   const handleAssignUpdate = (updatedTask) => {
+    console.log('AssignModal returned:', updatedTask)
     setTaskData(prev => ({
       ...prev,
       assignees: updatedTask.assignees || [],
@@ -171,6 +187,7 @@ const TaskModal = ({
 
   // Handle TagsModal update
   const handleTagsUpdate = (updatedTask) => {
+    console.log('TagsModal returned:', updatedTask)
     setTaskData(prev => ({
       ...prev,
       tags: updatedTask.tags || [],
@@ -436,7 +453,7 @@ const TaskModal = ({
               </div>
             )}
 
-            {/* Assignees Section */}
+            {/* Assignees Section - FIXED */}
             <button
               onClick={() => !isDisabled && setShowAssignModal(true)}
               className={`w-full p-4 border-b border-border text-left transition-colors ${
@@ -454,10 +471,10 @@ const TaskModal = ({
                     <div className="flex flex-wrap gap-2 mt-2">
                       {taskData.assignees.map((assignee, idx) => (
                         <span
-                          key={idx}
+                          key={assignee._id || idx}
                           className="px-2.5 py-1 bg-surface-button text-content-secondary rounded-lg text-xs"
                         >
-                          {assignee}
+                          {getAssigneeName(assignee)}
                         </span>
                       ))}
                     </div>
@@ -471,7 +488,7 @@ const TaskModal = ({
               </div>
             </button>
 
-            {/* Tags Section */}
+            {/* Tags Section - FIXED */}
             <button
               onClick={() => !isDisabled && setShowTagsModal(true)}
               className={`w-full p-4 border-b border-border text-left transition-colors ${
@@ -489,11 +506,11 @@ const TaskModal = ({
                     <div className="flex flex-wrap gap-2 mt-2">
                       {taskData.tags.map((tag, idx) => (
                         <span
-                          key={idx}
+                          key={tag._id || idx}
                           className="px-2.5 py-1 rounded-lg text-xs"
                           style={{ backgroundColor: getTagColor(tag), color: "#ffffff" }}
                         >
-                          {tag}
+                          {getTagName(tag)}
                         </span>
                       ))}
                     </div>
@@ -546,7 +563,8 @@ const TaskModal = ({
       {showAssignModal && (
         <AssignModal
           task={{ 
-            id: task?.id || 'new-task', 
+            _id: task?._id || task?.id || 'new-task', 
+            id: task?.id || 'new-task',
             title: taskTitle || (isEditMode ? 'Task' : 'New Task'), 
             assignees: taskData.assignees 
           }}
@@ -560,6 +578,7 @@ const TaskModal = ({
       {showTagsModal && (
         <TagsModal
           task={{ 
+            _id: task?._id || task?.id || 'new-task',
             id: task?.id || 'new-task', 
             title: taskTitle || (isEditMode ? 'Task' : 'New Task'), 
             tags: taskData.tags 

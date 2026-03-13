@@ -1,25 +1,46 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Check, Users, UserCheck } from "lucide-react"
 
 const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
+  // Initialize with existing assignees from task
   const [selectedAssignees, setSelectedAssignees] = useState([])
 
-  const toggleAssignee = (assigneeName) => {
-    setSelectedAssignees((prev) =>
-      prev.includes(assigneeName) ? prev.filter((a) => a !== assigneeName) : [...prev, assigneeName],
-    )
+  // Initialize when task changes
+  useEffect(() => {
+    if (task && task.assignees) {
+      // If assignees are objects with _id, use them directly
+      // If they're strings, convert to objects (though unlikely)
+      setSelectedAssignees(task.assignees || [])
+    }
+  }, [task])
+
+  const toggleAssignee = (assignee) => {
+    setSelectedAssignees((prev) => {
+      // Check if this assignee is already selected by ID
+      const exists = prev.find(a => a._id === assignee._id)
+      
+      if (exists) {
+        return prev.filter(a => a._id !== assignee._id)
+      } else {
+        return [...prev, assignee] // Store the whole assignee object
+      }
+    })
   }
 
   const handleSave = () => {
+    // Pass the full assignee objects to onUpdate
     onUpdate({
       ...task,
-      assignees: selectedAssignees._id,
-      roles: [], // Clear any existing roles
+      assignees: selectedAssignees, // This is an array of objects with _id
     })
     onClose()
+  }
+
+  const isSelected = (assigneeId) => {
+    return selectedAssignees.some(a => a._id === assigneeId)
   }
 
   return (
@@ -43,18 +64,19 @@ const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
             <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
               {availableAssignees.map((assignee) => {
                 const fullName = `${assignee.firstName} ${assignee.lastName}`
-                const isSelected = selectedAssignees.includes(fullName)
+                const selected = isSelected(assignee._id)
+                
                 return (
                   <button
                     key={assignee._id}
-                    onClick={() => toggleAssignee(fullName)}
+                    onClick={() => toggleAssignee(assignee)}
                     className={`flex items-center gap-3 w-full text-left p-3 text-sm rounded-lg transition-colors ${
-                      isSelected ? "bg-primary/20 border border-primary" : "bg-surface-base hover:bg-surface-button"
+                      selected ? "bg-primary/20 border border-primary" : "bg-surface-base hover:bg-surface-button"
                     }`}
                   >
-                    <UserCheck size={16} className={isSelected ? "text-primary" : "text-content-muted"} />
+                    <UserCheck size={16} className={selected ? "text-primary" : "text-content-muted"} />
                     <span className="flex-1 text-content-primary">{fullName}</span>
-                    {isSelected && <Check size={16} className="text-primary" />}
+                    {selected && <Check size={16} className="text-primary" />}
                   </button>
                 )
               })}
