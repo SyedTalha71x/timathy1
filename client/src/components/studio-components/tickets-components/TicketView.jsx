@@ -5,7 +5,7 @@ import { ImageIcon, Paperclip } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { X } from "react-feather"
 import { WysiwygEditor } from "../../shared/WysiwygEditor"
-import OrgaGymLogo from '../../../../public/Orgagym white without text.svg'
+import OrgaGymLogo from '../../../../public/OrgaGym Logo.svg'
 
 
 const TicketView = ({ ticket, onClose, onUpdateTicket }) => {

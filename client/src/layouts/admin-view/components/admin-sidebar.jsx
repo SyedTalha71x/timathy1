@@ -28,7 +28,7 @@ import {
   BadgeDollarSign,
 } from "lucide-react"
 
-import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import { DUMMY_FEEDBACK } from "../../../utils/admin-panel-states/feedback-states"
 
 // ============================================
@@ -396,7 +396,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                 </div>
               ) : (
                 <div className="w-full bg-orange-500 flex items-center justify-center p-2.5">
-                  <img src="/Orgagym white.svg" className="h-16 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
+                  <img src="/OrgaGym Logo with Text.svg" className="h-18 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
                 </div>
               )}
             </div>

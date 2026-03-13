@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { Building2, History, ShoppingCart, Sun, Moon } from "lucide-react"
-import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import { useSelector } from 'react-redux'
 import LanguageDropdown from '../../LanguageDropdown'
 import StudioProfileDropdown from './studio-dashboard-header-components/StudioProfileDropdown'

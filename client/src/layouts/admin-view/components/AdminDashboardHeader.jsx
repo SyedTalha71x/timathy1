@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
 import { History, Menu } from "lucide-react"
-import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import ActivityLogModal from './admin-dashboard-header-components/ActivityLogModal'
 import LanguageDropdown from '../../LanguageDropdown'
 import ProfileDropdown from './admin-dashboard-header-components/ProfileDropdown'

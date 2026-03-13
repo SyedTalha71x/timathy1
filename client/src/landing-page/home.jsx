@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 // Import logo
-import OrgaGymLogo from "../../public/Orgagym white without text.svg";
+import OrgaGymLogo from "../../public/OrgaGym Logo.svg";
 import DashboardPng from "../../public/Dashboard.png";
 
 // Animated counter component

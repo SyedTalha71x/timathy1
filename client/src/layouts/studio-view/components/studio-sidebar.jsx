@@ -36,7 +36,7 @@ import { TbBrandGoogleAnalytics } from "react-icons/tb"
 import { BadgeDollarSign } from "lucide-react"
 import { CgGym } from "react-icons/cg"
 
-import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import FeedbackModal from '../../../dashboard-pages/studio-view/FeedbackModal'
 
 /**
@@ -301,7 +301,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
               </div>
             ) : (
               <div className="w-full bg-primary flex items-center justify-center p-2.5">
-                <img src="/Orgagym white.svg" className="h-16 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
+                <img src="/OrgaGym Logo with Text.svg" className="h-18 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
               </div>
             )}
           </div>
