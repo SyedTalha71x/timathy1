@@ -16,7 +16,7 @@ const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
   const handleSave = () => {
     onUpdate({
       ...task,
-      assignees: selectedAssignees,
+      assignees: selectedAssignees._id,
       roles: [], // Clear any existing roles
     })
     onClose()
@@ -46,7 +46,7 @@ const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
                 const isSelected = selectedAssignees.includes(fullName)
                 return (
                   <button
-                    key={assignee.id}
+                    key={assignee._id}
                     onClick={() => toggleAssignee(fullName)}
                     className={`flex items-center gap-3 w-full text-left p-3 text-sm rounded-lg transition-colors ${
                       isSelected ? "bg-primary/20 border border-primary" : "bg-surface-base hover:bg-surface-button"

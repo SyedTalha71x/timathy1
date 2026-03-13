@@ -96,7 +96,7 @@ const createTodos = async (req, res, next) => {
         // Validate all staff members exist
         const staffMembers = await StaffModel.find({
             _id: { $in: assigneesIdArray },
-            studioId: studioId // Ensure staff belongs to this studio
+            studio: studioId // Ensure staff belongs to this studio
         });
 
         if (staffMembers.length !== assigneesIdArray.length) {

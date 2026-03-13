@@ -43,7 +43,7 @@ export default function SortableTaskCard({
     transition,
     isDragging,
   } = useSortable({
-    id: task.id,
+    id: task._id,
     data: {
       type: "task",
       task,

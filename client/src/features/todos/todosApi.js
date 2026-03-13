@@ -28,3 +28,18 @@ export const getTags = async () => {
     const res = await api.get('/todos/tags/all', { withCredentials: true })
     return res.data
 }
+
+
+
+// task Completed
+
+export const completedTask = async (todoId) => {
+    const res = await api.patch(`/todos/${todoId}/completed`, { withCredentials: true })
+    return res.data
+}
+// task canceled
+
+export const canceledTask = async (todoId) => {
+    const res = await api.patch(`/todos/${todoId}/canceled`, { withCredentials: true })
+    return res.data
+}

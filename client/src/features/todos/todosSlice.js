@@ -62,6 +62,32 @@ export const updateTaskThunk = createAsyncThunk('/task/delete', async () => {
 
 })
 
+
+// mark as completed
+export const completedTaskThunk = createAsyncThunk('/todos/completed', async (todoId, { rejectWithValue }) => {
+    try {
+        const res = await todosApi.completedTask(todoId)
+        return res.todo;
+    } catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+// mark as canceled
+export const canceledTaskThunk = createAsyncThunk('/todos/canceled', async (todoId, { rejectWithValue }) => {
+    try {
+        const res = await todosApi.canceledTask(todoId)
+        return res.todo;
+    } catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+
+
+
 const taskSlice = createSlice({
     name: 'tasks',
     initialState: {
@@ -125,6 +151,34 @@ const taskSlice = createSlice({
                     state.tasks = action.payload;
             })
             .addCase(getTaskThunk.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload?.message
+            })
+
+            // completed thunk
+            .addCase(completedTaskThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(completedTaskThunk.fulfilled, (state, action) => {
+                state.loading = false,
+                    state.tasks.push(action.payload);
+            })
+            .addCase(completedTaskThunk.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload?.message
+            })
+
+            // canceled thunk
+            .addCase(canceledTaskThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(canceledTaskThunk.fulfilled, (state, action) => {
+                state.loading = false,
+                    state.tasks.push(action.payload);
+            })
+            .addCase(canceledTaskThunk.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload?.message
             })

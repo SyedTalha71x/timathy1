@@ -680,6 +680,7 @@ const MobileTaskDetail = ({
 // ============================================
 // Mobile Task Card Component (Simplified)
 // ============================================
+
 const MobileTaskCard = ({
   task,
   onSelect,
@@ -689,6 +690,20 @@ const MobileTaskCard = ({
   const getTagColor = (tagName) => {
     const tag = configuredTags.find((t) => t.name === tagName)
     return tag ? tag.color : "var(--color-primary, #f97316)"
+  }
+
+  const getTagName = (tag) => {
+    if (!tag) return '';
+    if (typeof tag === 'string') return tag;
+    if (typeof tag === 'object') return tag.name || '';
+    return '';
+  }
+
+  const getTagColorFromTag = (tag) => {
+    if (!tag) return "var(--color-primary, #f97316)";
+    if (typeof tag === 'string') return getTagColor(tag);
+    if (typeof tag === 'object') return tag.color || getTagColor(tag.name || '');
+    return "var(--color-primary, #f97316)";
   }
 
   const isCompleted = task.status === "completed"
@@ -703,10 +718,11 @@ const MobileTaskCard = ({
   return (
     <div
       onClick={onSelect}
-      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${isCompleted ? 'bg-surface-hover/50' :
+      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${
+        isCompleted ? 'bg-surface-hover/50' :
         isCanceled ? 'bg-surface-hover/30' :
-          'bg-surface-hover active:bg-surface-hover'
-        }`}
+        'bg-surface-hover active:bg-surface-hover'
+      }`}
     >
       <div className="flex items-start gap-3">
         {/* Checkbox / X for canceled */}
@@ -727,9 +743,10 @@ const MobileTaskCard = ({
               e.stopPropagation()
               onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
             }}
-            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? 'bg-content-faint border-border' :
+            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+              isCompleted ? 'bg-content-faint border-border' :
               'border-border hover:border-primary'
-              }`}
+            }`}
           >
             {isCompleted && <Check size={12} className="text-white" />}
           </button>
@@ -738,10 +755,11 @@ const MobileTaskCard = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className={`text-sm font-medium ${isCompleted ? 'text-content-faint' :
+            <p className={`text-sm font-medium ${
+              isCompleted ? 'text-content-faint' :
               isCanceled ? 'text-content-faint line-through italic' :
-                'text-content-primary'
-              }`} style={{ wordBreak: 'break-word' }}>
+              'text-content-primary'
+            }`} style={{ wordBreak: 'break-word' }}>
               {task.title}
             </p>
           </div>
@@ -750,8 +768,9 @@ const MobileTaskCard = ({
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {/* Date */}
             {formatDate() && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
-                }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
+              }`}>
                 <Calendar size={10} />
                 {formatDate()}
               </span>
@@ -759,24 +778,31 @@ const MobileTaskCard = ({
 
             {/* Assignees Count */}
             {task.assignees && task.assignees.length > 0 && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
-                }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
+              }`}>
                 <Users size={10} />
                 {task.assignees.length}
               </span>
             )}
 
-            {/* Tags (max 2) */}
-            {task.tags && task.tags.slice(0, 2).map((tag, idx) => (
-              <span
-                key={idx}
-                className={`text-xs px-2 py-0.5 rounded-md ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
+            {/* Tags (max 2) - FIXED */}
+            {task.tags && task.tags.slice(0, 2).map((tag, idx) => {
+              const tagName = getTagName(tag);
+              const tagColor = getTagColorFromTag(tag);
+              
+              return tagName ? (
+                <span
+                  key={tag._id || idx}
+                  className={`text-xs px-2 py-0.5 rounded-md ${
+                    isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
                   }`}
-                style={{ backgroundColor: isCompleted || isCanceled ? undefined : getTagColor(tag) }}
-              >
-                {tag}
-              </span>
-            ))}
+                  style={{ backgroundColor: isCompleted || isCanceled ? undefined : tagColor }}
+                >
+                  {tagName}
+                </span>
+              ) : null;
+            })}
             {task.tags && task.tags.length > 2 && (
               <span className="text-xs text-content-faint">+{task.tags.length - 2}</span>
             )}
@@ -824,8 +850,32 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 
 export default function TodoApp() {
   // Redux state - using fallback empty arrays to prevent destructuring errors
-  const { tags = [], tasks = [] } = useSelector((state) => state.todos || {})
-  const { staff = [] } = useSelector((state) => state.staff || {})
+  // At the top of your TodoApp component, add this safety check:
+  const tasks = useSelector((state) => {
+    const todos = state.todos || {};
+    return Array.isArray(todos.tasks) ? todos.tasks : [];
+  });
+
+  const tags = useSelector((state) => {
+    const todos = state.todos || {};
+    return Array.isArray(todos.tags) ? todos.tags : [];
+  });
+
+
+  const { user } = useSelector((state) => state.auth)
+  // CORRECT - staff is the nested array
+  // const staff = useSelector((state) => state.staff?.staff || [])
+
+  const staff = useSelector((state) => {
+    const array = state.staff?.staff?.staff || []
+    // console.log('Final staff array:', array)
+    // if (array.length > 0) {
+    //   // console.log('First staff member:', array[0])
+    // }
+    return array
+  })
+
+
   const dispatch = useDispatch()
 
   // ============================================
@@ -863,7 +913,9 @@ export default function TodoApp() {
 
 
 
-  const [availableAssignees] = useState([])
+
+
+
   const [repeatConfigs, setRepeatConfigs] = useState({})
 
   // ============================================
@@ -1239,34 +1291,41 @@ export default function TodoApp() {
   // Sorting Functions
   // ============================================
   const sortTasks = useCallback((tasksToSort, columnId) => {
+    // Ensure we have an array to sort
+    if (!Array.isArray(tasksToSort)) return []
+
     const settings = columnSortSettings[columnId]
     if (!settings || settings.sortBy === 'custom') {
       return [...tasksToSort].sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1
-        if (!a.isPinned && b.isPinned) return 1
+        if (a?.isPinned && !b?.isPinned) return -1
+        if (!a?.isPinned && b?.isPinned) return 1
         return 0
       })
     }
 
     const sorted = [...tasksToSort].sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1
-      if (!a.isPinned && b.isPinned) return 1
+      if (a?.isPinned && !b?.isPinned) return -1
+      if (!a?.isPinned && b?.isPinned) return 1
 
       let comparison = 0
       switch (settings.sortBy) {
         case 'title':
-          comparison = (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
+          comparison = (a?.title || '').toLowerCase().localeCompare((b?.title || '').toLowerCase())
           break
         case 'dueDate':
-          comparison = new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31')
+          comparison = new Date(a?.dueDate || '9999-12-31') - new Date(b?.dueDate || '9999-12-31')
           break
         case 'tag':
-          const tagA = a.tags && a.tags.length > 0 ? a.tags[0].toLowerCase() : 'zzz'
-          const tagB = b.tags && b.tags.length > 0 ? b.tags[0].toLowerCase() : 'zzz'
+          const tagA = a?.tags && a.tags.length > 0 ?
+            (typeof a.tags[0] === 'string' ? a.tags[0].toLowerCase() : a.tags[0]?.name?.toLowerCase() || 'zzz')
+            : 'zzz'
+          const tagB = b?.tags && b.tags.length > 0 ?
+            (typeof b.tags[0] === 'string' ? b.tags[0].toLowerCase() : b.tags[0]?.name?.toLowerCase() || 'zzz')
+            : 'zzz'
           comparison = tagA.localeCompare(tagB)
           break
         case 'recentlyAdded':
-          comparison = new Date(b.createdAt || '1970-01-01') - new Date(a.createdAt || '1970-01-01')
+          comparison = new Date(b?.createdAt || '1970-01-01') - new Date(a?.createdAt || '1970-01-01')
           break
         default:
           return 0
@@ -1297,51 +1356,66 @@ export default function TodoApp() {
   }, [])
 
   // Get filtered and sorted tasks for column
+  // Get filtered and sorted tasks for column
   const getColumnTasks = useCallback((columnId) => {
-    let columnTasks = tasks.filter((task) => task.status === columnId)
+    // Ensure tasks is an array
+    if (!Array.isArray(tasks)) return [];
+
+    let columnTasks = tasks.filter((task) => task?.status === columnId)
 
     // Apply staff filter
-    if (selectedStaffFilter.length > 0) {
+    if (selectedStaffFilter.length > 0 && Array.isArray(columnTasks)) {
       columnTasks = columnTasks.filter(task => {
-        if (!task.assignees || task.assignees.length === 0) return false
+        if (!task?.assignees || !Array.isArray(task.assignees) || task.assignees.length === 0) return false
         return task.assignees.some(assignee => {
           return selectedStaffFilter.some(staffId => {
-            const staff = availableAssignees.find(a => a.id === staffId)
-            if (!staff) return false
-            return assignee === `${staff.firstName} ${staff.lastName}`
+            const staffMember = staff.find(s => s?._id === staffId)
+            if (!staffMember) return false
+            // Handle both string and object assignees
+            const assigneeName = typeof assignee === 'string'
+              ? assignee
+              : `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim()
+            return assigneeName === `${staffMember.firstName} ${staffMember.lastName}`
           })
         })
       })
     }
 
     return sortTasks(columnTasks, columnId)
-  }, [tasks, sortTasks, selectedStaffFilter, availableAssignees])
+  }, [tasks, sortTasks, selectedStaffFilter, staff])
 
-  // Get all tasks for mobile view - NOW WITH SORTING
+  // Get all tasks for mobile view
   const getAllFilteredTasks = useCallback(() => {
+    // Ensure tasks is an array
+    if (!Array.isArray(tasks)) {
+      return { ongoing: [], completed: [], canceled: [], total: 0 }
+    }
+
     let allTasks = [...tasks]
 
-    if (selectedStaffFilter.length > 0) {
+    if (selectedStaffFilter.length > 0 && Array.isArray(allTasks)) {
       allTasks = allTasks.filter(task => {
-        if (!task.assignees || task.assignees.length === 0) return false
+        if (!task?.assignees || !Array.isArray(task.assignees) || task.assignees.length === 0) return false
         return task.assignees.some(assignee => {
           return selectedStaffFilter.some(staffId => {
-            const staff = availableAssignees.find(a => a.id === staffId)
-            if (!staff) return false
-            return assignee === `${staff.firstName} ${staff.lastName}`
+            const staffMember = staff.find(s => s?._id === staffId)
+            if (!staffMember) return false
+            const assigneeName = typeof assignee === 'string'
+              ? assignee
+              : `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim()
+            return assigneeName === `${staffMember.firstName} ${staffMember.lastName}`
           })
         })
       })
     }
 
     // Group by status AND apply sorting for each status
-    const ongoing = sortTasks(allTasks.filter(t => t.status === 'ongoing'), 'ongoing')
-    const completed = sortTasks(allTasks.filter(t => t.status === 'completed'), 'completed')
-    const canceled = sortTasks(allTasks.filter(t => t.status === 'canceled'), 'canceled')
+    const ongoing = sortTasks(allTasks.filter(t => t?.status === 'ongoing'), 'ongoing')
+    const completed = sortTasks(allTasks.filter(t => t?.status === 'completed'), 'completed')
+    const canceled = sortTasks(allTasks.filter(t => t?.status === 'canceled'), 'canceled')
 
     return { ongoing, completed, canceled, total: allTasks.length }
-  }, [tasks, selectedStaffFilter, availableAssignees, sortTasks])
-
+  }, [tasks, selectedStaffFilter, staff, sortTasks])
   // ============================================
   // Column collapse
   // ============================================
@@ -1507,8 +1581,22 @@ export default function TodoApp() {
       return
     }
 
+    // For existing tasks - use correct field names for API
+    const taskForApi = {
+      ...updatedTask,
+      assigneesId: updatedTask.assignees?.map(a => a._id) || [],  // Changed
+      tagsId: updatedTask.tags?.map(t => t._id) || [],  // Changed
+    }
+
+    // Remove the old field names if they exist
+    delete taskForApi.assignees
+    delete taskForApi.tags
+
     // Update in Redux
-    dispatch(updateTaskThunk(updatedTask))
+    dispatch(updateTaskThunk({
+      id: updatedTask.id,
+      updates: taskForApi
+    }))
 
     if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
       setSelectedMobileTask(updatedTask)
@@ -1587,15 +1675,19 @@ export default function TodoApp() {
     setSelectedTaskForRepeat(null)
   }
 
+
+
   // ============================================
   // Mobile Task Creation
   // ============================================
-  const handleMobileCreateTask = (taskData) => {
+  const handleMobileCreateTask = async (taskData) => {
     const newTask = {
       title: taskData.title,
-      assignees: taskData.assignees || [],
+      // Extract just the IDs from assignee objects
+      assigneesId: taskData.assignees?.map(a => a._id) || [],
       roles: [],
-      tags: taskData.tags || [],
+      // Extract just the IDs from tag objects
+      tagsId: taskData.tags?.map(t => t._id) || [],
       status: "ongoing",
       category: "general",
       dueDate: taskData.dueDate,
@@ -1604,9 +1696,12 @@ export default function TodoApp() {
       repeat: taskData.repeat,
       isPinned: false,
       createdAt: new Date().toISOString(),
+      studioId: user?.studio
     }
     dispatch(createTaskThunk(newTask))
     toast.success("Task created successfully")
+
+    await dispatch(getTaskThunk());
   }
 
   // ============================================
@@ -1621,15 +1716,15 @@ export default function TodoApp() {
   // ============================================
   const toggleAssignee = (assignee) => {
     setSelectedAssignees((prev) => {
-      const isSelected = prev.find((a) => a._id === assignee.id)
-      return isSelected ? prev.filter((a) => a._id !== assignee.id) : [...prev, assignee]
+      const isSelected = prev.find((a) => a._id === assignee._id)
+      return isSelected ? prev.filter((a) => a._id !== assignee._id) : [...prev, assignee]
     })
   }
 
   const toggleTag = (tag) => {
     setSelectedTags((prev) => {
-      const isSelected = prev.find((t) => t._id === tag.id)
-      return isSelected ? prev.filter((t) => t._id !== tag.id) : [...prev, tag]
+      const isSelected = prev.find((t) => t._id === tag._id)
+      return isSelected ? prev.filter((t) => t._id !== tag._id) : [...prev, tag]
     })
   }
 
@@ -1641,14 +1736,16 @@ export default function TodoApp() {
   // ============================================
   // Add Task Handler (Desktop)
   // ============================================
-  const handleAddTask = useCallback((inputValue) => {
+  const handleAddTask = useCallback(async (inputValue) => {
     const titleToUse = inputValue || newTaskInput
     if (titleToUse.trim() !== "") {
       const newTask = {
         title: titleToUse.trim(),
-        assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
+        // Extract just the IDs from assignee objects
+        assigneesId: selectedAssignees.map((a) => a._id),
         roles: [],
-        tags: selectedTags.map((t) => t.name),
+        // Extract just the IDs from tag objects
+        tagsId: selectedTags.map((t) => t._id),
         status: "ongoing",
         category: "general",
         dueDate: selectedDate,
@@ -1663,8 +1760,11 @@ export default function TodoApp() {
       setSelectedAssignees([])
       setSelectedTags([])
       toast.success("Task created successfully")
+
+      await dispatch(getTaskThunk());
     }
   }, [selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput, dispatch])
+
 
   const handleTextareaChange = useCallback((newValue) => {
     setNewTaskInput(newValue)
@@ -1747,11 +1847,11 @@ export default function TodoApp() {
                       >
                         All Tasks
                       </button>
-                      {availableAssignees.map((staff) => (
+                      {staff.map((s) => (
                         <button
-                          key={staff.id}
+                          key={s._id}
                           onClick={() => {
-                            toggleStaffFilter(staff.id)
+                            toggleStaffFilter(s._id)
                           }}
                           className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(staff.id) ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
                             }`}
@@ -1840,11 +1940,11 @@ export default function TodoApp() {
                             Assign to Staff
                           </h4>
                           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
-                            {availableAssignees.map((assignee) => {
-                              const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
+                            {staff.map((assignee) => {
+                              const isSelected = selectedAssignees.find((a) => a._id === assignee._id)
                               return (
                                 <button
-                                  key={assignee.id}
+                                  key={assignee._id}
                                   className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-content-primary hover:bg-surface-button-hover rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
@@ -1867,10 +1967,10 @@ export default function TodoApp() {
                           </h4>
                           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
                             {configuredTags.map((tag) => {
-                              const isSelected = selectedTags.find((t) => t.id === tag.id)
+                              const isSelected = selectedTags.find((t) => t._id === tag._id)
                               return (
                                 <button
-                                  key={tag.id}
+                                  key={tag._id}
                                   className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-content-primary hover:bg-surface-button-hover rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
@@ -1933,15 +2033,15 @@ export default function TodoApp() {
               >
                 All Tasks
               </button>
-              {availableAssignees.map((staff) => (
+              {staff.map((s) => (
                 <button
-                  key={staff.id}
-                  onClick={() => toggleStaffFilter(staff.id)}
-                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(staff.id) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                  key={s._id}
+                  onClick={() => toggleStaffFilter(s._id)}
+                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(s._id) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                 >
                   <UserCheck size={14} />
-                  {staff.firstName} {staff.lastName}
+                  {s.firstName} {s.lastName}
                 </button>
               ))}
             </div>
@@ -1975,7 +2075,7 @@ export default function TodoApp() {
                     onDuplicateRequest={handleDuplicateTask}
                     onRepeatRequest={handleRepeatRequest}
                     configuredTags={configuredTags}
-                    availableAssignees={availableAssignees}
+                    availableAssignees={staff}
                     onOpenAssignModal={handleOpenAssignModal}
                     onOpenTagsModal={handleOpenTagsModal}
                     onOpenCalendarModal={handleOpenCalendarModal}
@@ -1997,7 +2097,7 @@ export default function TodoApp() {
                     index={0}
                     isDraggingOverlay={true}
                     configuredTags={configuredTags}
-                    availableAssignees={availableAssignees}
+                    availableAssignees={staff}
                     repeatConfigs={repeatConfigs}
                     onStatusChange={() => { }}
                     onUpdate={() => { }}
@@ -2407,7 +2507,7 @@ export default function TodoApp() {
             onPinToggle={handleTaskPinToggle}
             onRepeat={handleRepeatRequest}
             configuredTags={configuredTags}
-            availableAssignees={availableAssignees}
+            availableAssignees={staff}
             onOpenCalendarModal={handleOpenCalendarModal}
             onOpenAssignModal={handleOpenAssignModal}
             onOpenTagsModal={handleOpenTagsModal}
@@ -2423,7 +2523,7 @@ export default function TodoApp() {
           onClose={() => setShowMobileCreateModal(false)}
           onCreateTask={handleMobileCreateTask}
           configuredTags={configuredTags}
-          availableAssignees={availableAssignees}
+          availableAssignees={staff}
           onOpenCalendarModal={handleOpenCreateCalendarModal}
           onOpenAssignModal={handleOpenCreateAssignModal}
           onOpenTagsModal={handleOpenCreateTagsModal}
@@ -2485,7 +2585,7 @@ export default function TodoApp() {
           <div className="fixed inset-0 z-[80]">
             <AssignModal
               task={assignModalTask}
-              availableAssignees={availableAssignees}
+              availableAssignees={staff}
               availableRoles={[]}
               onClose={() => {
                 if (createModeAssignModal) {

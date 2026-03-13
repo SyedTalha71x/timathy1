@@ -98,7 +98,7 @@ const SortableTaskColumn = ({
   }, [showSortDropdown])
 
   // Get task IDs for SortableContext
-  const taskIds = tasks.map((task) => task.id)
+  const taskIds = tasks.map((task) => task._id)
 
   // Sort options
   const sortOptions = [
@@ -284,7 +284,7 @@ const SortableTaskColumn = ({
                     </div>
                     {pinnedTasks.map((task, index) => (
                       <SortableTaskCard
-                        key={task.id}
+                        key={task._id}
                         task={task}
                         onStatusChange={onTaskStatusChange}
                         onUpdate={onTaskUpdate}
