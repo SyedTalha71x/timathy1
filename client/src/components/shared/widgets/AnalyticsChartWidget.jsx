@@ -2,8 +2,8 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import Chart from "react-apexcharts"
-import { 
-  ChevronLeft, 
+import {
+  ChevronLeft,
   ChevronRight,
   CalendarDays,
   UserCheck,
@@ -20,9 +20,9 @@ import {
 // ✅ Import shared data from analytics-states
 import {
   tabs,
-  appointmentsData,
-  membersData,
-  leadsData,
+  processAppointmentsData,
+  processMembersData,
+  processLeadsData,
   financesData,
   getMonthlyBreakdownChartConfig,
   getPopularTimesChartConfig,
@@ -33,6 +33,10 @@ import {
   getTopServicesByRevenueChartConfig,
   getMostFrequentlySoldChartConfig,
 } from "../../../utils/studio-states/analytics-states"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAllAppointments } from "../../../features/appointments/AppointmentSlice"
+import { fetchAllMember } from "../../../features/member/memberSlice"
+import { fetchAllLeadsThunk } from "../../../features/lead/leadSlice"
 
 // ✅ Extended dropdown options - Full scope like Analytics menu
 const dropdownOptions = {
@@ -75,9 +79,8 @@ const MiniStatCard = ({ title, value, icon: Icon, iconBg, iconColor, change, isM
               {value}
             </span>
             {!isNeutral && (
-              <span className={`flex items-center text-[10px] px-1 py-0.5 rounded ${
-                isPositive ? "text-accent-green bg-accent-green/20" : "text-accent-red bg-accent-red/20"
-              }`}>
+              <span className={`flex items-center text-[10px] px-1 py-0.5 rounded ${isPositive ? "text-accent-green bg-accent-green/20" : "text-accent-red bg-accent-red/20"
+                }`}>
                 {isPositive ? "↑" : "↓"}{Math.abs(change)}%
               </span>
             )}
@@ -115,11 +118,88 @@ const HeroStatCard = ({ title, value, icon: Icon, change, isMobile }) => {
 }
 
 export default function AnalyticsChartWidget({ isEditing, onRemove }) {
+  const { appointments = [] } = useSelector((state) => state.appointments || {})
+  const { members = [] } = useSelector((state) => state.member || {})
+  const { leads = [] } = useSelector((state) => state.leads || {})
+  const dispatch = useDispatch()
   const [activeTab, setActiveTab] = useState("Members")
   const [selectedOption, setSelectedOption] = useState("memberActivity")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const dropdownRef = useRef(null)
+  const [membersData, setMembersData] = useState({
+    totalMembers: 0,
+    fullMembers: 0,
+    temporaryMembers: 0,
+    activeMembers: 0,
+    inactiveMembers: 0,
+    pausedMembers: 0,
+    membersByType: []
+  });
+
+  const [appointmentData, setAppointmentData] = useState({
+    totals: {
+      bookings: 0,
+      checkIns: 0,
+      cancellations: 0,
+      lateCancellations: 0,
+      noShows: 0,
+    },
+    monthlyBreakdown: [],
+    popularTimes: []
+  });
+
+  const [leadsData, setLeadsData] = useState({
+    totalLeads: 0,
+    convertedLeads: 0,
+    activeLeads: 0,
+    passiveLeads: 0,
+    conversionRate: 0,
+    bySource: {},
+    monthlyData: []
+  });
+
+  // ===============================
+  // Fetch All Data From Redux State
+  // ===============================
+
+  useEffect(() => {
+    dispatch(fetchAllAppointments())
+    dispatch(fetchAllMember())
+    dispatch(fetchAllLeadsThunk())
+  }, [dispatch])
+
+  // ========================
+  // Appointment Data
+  // ========================
+  useEffect(() => {
+    if (appointments && appointments.length > 0) {
+      const result = processAppointmentsData(appointments);
+      setAppointmentData(result);
+    }
+  }, [appointments]);
+
+  // ========================
+  // Member Data
+  // ========================
+
+  useEffect(() => {
+    if (members && members.length > 0) {
+      const processed = processMembersData(members);
+      setMembersData(processed);
+    }
+  }, [members]);
+
+  // ========================
+  // Leads Data
+  // ========================
+  useEffect(() => {
+    if (leads && leads.length > 0) {
+      const processed = processLeadsData(leads);
+      setLeadsData(processed);
+    }
+  }, [leads]);
+
 
   // Detect mobile screen
   useEffect(() => {
@@ -147,10 +227,10 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     const options = dropdownOptions[activeTab]
     const currentIndex = options.findIndex(opt => opt.value === selectedOption)
     let newIndex = currentIndex + direction
-    
+
     if (newIndex < 0) newIndex = options.length - 1
     if (newIndex >= options.length) newIndex = 0
-    
+
     setSelectedOption(options[newIndex].value)
   }
 
@@ -177,7 +257,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
       case "Appointments":
         switch (selectedOption) {
           case "monthlyBreakdown": {
-            const config = getMonthlyBreakdownChartConfig()
+            const config = getMonthlyBreakdownChartConfig(appointmentData)
             return {
               options: {
                 ...config.options,
@@ -190,7 +270,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             }
           }
           case "popularTimes": {
-            const config = getPopularTimesChartConfig()
+            const config = getPopularTimesChartConfig(appointmentData)
             return {
               options: {
                 ...config.options,
@@ -209,7 +289,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
       case "Members":
         switch (selectedOption) {
           case "memberActivity": {
-            const config = getMemberActivityChartConfig()
+            const config = getMemberActivityChartConfig(membersData)
             return {
               options: {
                 ...config.options,
@@ -222,12 +302,12 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             }
           }
           case "membersByType": {
-            const config = getMembersByTypeChartConfig()
+            const config = getMembersByTypeChartConfig(membersData)
             return {
               options: {
                 ...config.options,
                 chart: { ...config.options.chart, ...widgetOverrides.chart },
-                legend: { 
+                legend: {
                   ...config.options.legend,
                   position: "bottom",
                   fontSize: isMobile ? "9px" : "10px",
@@ -262,7 +342,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
       case "Leads":
         switch (selectedOption) {
           case "newVsConverted": {
-            const config = getLeadsChartConfig()
+            const config = getLeadsChartConfig(leadsData)
             return {
               options: {
                 ...config.options,
@@ -277,7 +357,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             }
           }
           case "conversionRate": {
-            const config = getConversionRateChartConfig()
+            const config = getConversionRateChartConfig(leadsData)
             return {
               options: {
                 ...config.options,
@@ -335,7 +415,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <MiniStatCard
               title="Bookings"
-              value={appointmentsData.totals.bookings}
+              value={appointmentData.totals.bookings}
               icon={CalendarDays}
               iconBg="bg-primary/20"
               iconColor="text-primary"
@@ -344,7 +424,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             />
             <MiniStatCard
               title="Check-ins"
-              value={appointmentsData.totals.checkIns}
+              value={appointmentData.totals.checkIns}
               icon={UserCheck}
               iconBg="bg-accent-green/20"
               iconColor="text-accent-green"
@@ -353,7 +433,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             />
             <MiniStatCard
               title="Cancellations"
-              value={appointmentsData.totals.cancellations}
+              value={appointmentData.totals.cancellations}
               icon={UserX}
               iconBg="bg-accent-red/20"
               iconColor="text-accent-red"
@@ -362,7 +442,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             />
             <MiniStatCard
               title="Late Cancels"
-              value={appointmentsData.totals.lateCancellations}
+              value={appointmentData.totals.lateCancellations}
               icon={Clock}
               iconBg="bg-accent-yellow/20"
               iconColor="text-accent-yellow"
@@ -370,7 +450,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             />
             <MiniStatCard
               title="No Shows"
-              value={appointmentsData.totals.noShows}
+              value={appointmentData.totals.noShows}
               icon={AlertCircle}
               iconBg="bg-primary/20"
               iconColor="text-primary"
@@ -404,7 +484,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
 
       case "Leads":
         const avgConversion = (
-          leadsData.monthlyData.reduce((sum, m) => sum + m.convertedPercent, 0) / 
+          leadsData.monthlyData.reduce((sum, m) => sum + m.convertedPercent, 0) /
           leadsData.monthlyData.length
         ).toFixed(1)
         const lastMonth = leadsData.monthlyData[leadsData.monthlyData.length - 1]
@@ -496,16 +576,15 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               setActiveTab(tab.name)
               setSelectedOption("overview")
             }}
-            className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-              activeTab === tab.name
-                ? "bg-primary text-white shadow-lg shadow-primary/25"
-                : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
-            }`}
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.name
+              ? "bg-primary text-white shadow-lg shadow-primary/25"
+              : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
+              }`}
           >
             <tab.icon className="text-xs sm:text-sm" />
             <span>
-              {isMobile && tab.name === "Appointments" ? "Appts" : 
-               isMobile && tab.name === "Finances" ? "Finance" : tab.name}
+              {isMobile && tab.name === "Appointments" ? "Appts" :
+                isMobile && tab.name === "Finances" ? "Finance" : tab.name}
             </span>
           </button>
         ))}
@@ -519,7 +598,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         >
           <ChevronLeft size={16} className="text-content-muted" />
         </button>
-        
+
         <div className="relative flex-1" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -542,7 +621,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               </svg>
             </div>
           </button>
-          
+
           {isDropdownOpen && (
             <div className="absolute z-50 mt-1 w-full bg-surface-card rounded-xl shadow-lg border border-border-subtle overflow-hidden">
               {dropdownOptions[activeTab].map((option, index) => (
@@ -552,9 +631,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
                     setSelectedOption(option.value)
                     setIsDropdownOpen(false)
                   }}
-                  className={`flex items-center justify-between w-full text-left px-3 py-2.5 text-xs sm:text-sm hover:bg-surface-hover transition-colors ${
-                    selectedOption === option.value ? "text-primary bg-primary/20" : "text-content-primary"
-                  }`}
+                  className={`flex items-center justify-between w-full text-left px-3 py-2.5 text-xs sm:text-sm hover:bg-surface-hover transition-colors ${selectedOption === option.value ? "text-primary bg-primary/20" : "text-content-primary"
+                    }`}
                 >
                   <span>{option.label}</span>
                   <span className="text-[10px] text-content-faint capitalize">{option.type}</span>
@@ -563,7 +641,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             </div>
           )}
         </div>
-        
+
         <button
           onClick={() => navigateOption(1)}
           className="p-1.5 bg-surface-card hover:bg-surface-hover rounded-lg transition-colors"

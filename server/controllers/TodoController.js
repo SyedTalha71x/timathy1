@@ -68,21 +68,21 @@ const getTags = async (req, res, next) => {
 const createTodos = async (req, res, next) => {
     try {
         const userId = req.user?._id;
-        const studioId = req.user?.studio
+        const studioId = req.user?.studio;
 
-        const { 
-            title, 
-            status, 
-            dueDate, 
-            dueTime, 
-            reminder, 
-            customReminder, 
-            reminderSent, 
-            repeat, 
+        const {
+            title,
+            status,
+            dueDate,
+            dueTime,
+            reminder,
+            customReminder,
+            reminderSent,
+            repeat,
             repeatSettings, // Note: field name changed from repeatSetting to repeatSettings
-            isPinned, 
-            assigneesId, 
-            tagsId 
+            isPinned,
+            assigneesId,
+            tagsId
         } = req.body;
 
         // Handle both single ID and array of IDs for assignees
@@ -96,20 +96,29 @@ const createTodos = async (req, res, next) => {
         // Validate all staff members exist
         const staffMembers = await StaffModel.find({
             _id: { $in: assigneesIdArray },
-            studioId: studioId // Ensure staff belongs to this studio
+            studio: studioId // Ensure staff belongs to this studio
         });
 
         if (staffMembers.length !== assigneesIdArray.length) {
             throw new BadRequestError("One or more staff IDs are invalid or don't belong to this studio");
         }
 
-        // Validate tag if provided
+        // Validate tags if provided
+        let tagsArray = [];
         if (tagsId) {
-            const tagId = await TagsModel.findOne({ 
-                _id: tagsId, 
-                studioId: studioId // Ensure tag belongs to this studio
+            const tagsIdArray = Array.isArray(tagsId) ? tagsId : [tagsId];  // Convert to array if it's a single tag ID
+
+            // Validate all tags exist and belong to this studio
+            const validTags = await TagsModel.find({
+                _id: { $in: tagsIdArray },
+                studioId: studioId // Ensure tags belong to this studio
             });
-            if (!tagId) throw new BadRequestError("Invalid Tag or tag doesn't belong to this studio");
+
+            if (validTags.length !== tagsIdArray.length) {
+                throw new BadRequestError("One or more tag IDs are invalid or don't belong to this studio");
+            }
+
+            tagsArray = validTags.map(tag => tag._id);  // Ensure tags are ObjectId references
         }
 
         // Validate custom reminder structure
@@ -133,14 +142,14 @@ const createTodos = async (req, res, next) => {
             isPinned: isPinned || false,
             assignees: assigneesIdArray,
             studioId: studioId,
-            createdBy: userId
+            createdBy: userId,
+            tags: tagsArray  // Correct tags handling: use tagsArray
         };
 
         // Add optional fields if they exist
         if (customReminder) todoData.customReminder = customReminder;
         if (reminderSent !== undefined) todoData.reminderSent = reminderSent;
         if (repeatSettings) todoData.repeatSettings = repeatSettings;
-        if (tagsId) todoData.tags = [tagsId]; // Tags is an array in schema
 
         // Create the todo task
         const todoTask = await TodoModel.create(todoData);
@@ -171,11 +180,10 @@ const createTodos = async (req, res, next) => {
             assignedTo: assigneesIdArray.length
         });
 
-    }
-    catch (error) {
+    } catch (error) {
         next(error);
     }
-}
+};
 
 // =============================
 // Get Todos List
@@ -194,7 +202,7 @@ const getTodos = async (req, res, next) => {
         if (assigneeId) filter.assignees = assigneeId;
         if (tagId) filter.tags = tagId;
         if (isPinned !== undefined) filter.isPinned = isPinned === 'true';
-        
+
         // Text search on title
         if (search) {
             filter.title = { $regex: search, $options: 'i' };
@@ -228,15 +236,15 @@ const getTodoById = async (req, res, next) => {
         const studioId = req.user?.studio;
         const { todoId } = req.params;
 
-        const todo = await TodoModel.findOne({ 
-            _id: todoId, 
-            studioId: studioId 
+        const todo = await TodoModel.findOne({
+            _id: todoId,
+            studioId: studioId
         })
-        .populate('assignees', 'firstName lastName email profileImage')
-        .populate('tags', 'name color')
-        .populate('createdBy', 'firstName lastName')
-        .populate('completedBy', 'firstName lastName')
-        .populate('canceledBy', 'firstName lastName');
+            .populate('assignees', 'firstName lastName email profileImage')
+            .populate('tags', 'name color')
+            .populate('createdBy', 'firstName lastName')
+            .populate('completedBy', 'firstName lastName')
+            .populate('canceledBy', 'firstName lastName');
 
         if (!todo) throw new NotFoundError("Todo not found");
 
@@ -268,19 +276,19 @@ const updateTodo = async (req, res, next) => {
 
         // Handle assignees update if provided
         if (req.body.assigneesId) {
-            const newAssignees = Array.isArray(req.body.assigneesId) 
-                ? req.body.assigneesId 
+            const newAssignees = Array.isArray(req.body.assigneesId)
+                ? req.body.assigneesId
                 : [req.body.assigneesId];
-            
+
             // Get current todo to find removed assignees
             const currentTodo = await TodoModel.findOne({ _id: todoId, studioId });
-            
+
             if (currentTodo) {
                 // Find removed assignees
                 const removedAssignees = currentTodo.assignees.filter(
                     id => !newAssignees.includes(id.toString())
                 );
-                
+
                 // Remove task from removed assignees
                 if (removedAssignees.length > 0) {
                     const removeBulkOps = removedAssignees.map(staffId => ({
@@ -291,12 +299,12 @@ const updateTodo = async (req, res, next) => {
                     }));
                     await StaffModel.bulkWrite(removeBulkOps);
                 }
-                
+
                 // Add task to new assignees
                 const addedAssignees = newAssignees.filter(
                     id => !currentTodo.assignees.includes(id)
                 );
-                
+
                 if (addedAssignees.length > 0) {
                     const addBulkOps = addedAssignees.map(staffId => ({
                         updateOne: {
@@ -307,7 +315,7 @@ const updateTodo = async (req, res, next) => {
                     await StaffModel.bulkWrite(addBulkOps);
                 }
             }
-            
+
             updateData.assignees = newAssignees;
             delete updateData.assigneesId;
         }
@@ -317,8 +325,8 @@ const updateTodo = async (req, res, next) => {
             updateData,
             { new: true, runValidators: true }
         )
-        .populate('assignees', 'firstName lastName')
-        .populate('tags', 'name color');
+            .populate('assignees', 'firstName lastName')
+            .populate('tags', 'name color');
 
         if (!todo) throw new NotFoundError("Todo not found");
 
@@ -343,8 +351,8 @@ const markAsCompleted = async (req, res, next) => {
         const { todoId } = req.params
 
         const todo = await TodoModel.findOneAndUpdate(
-            { 
-                _id: todoId, 
+            {
+                _id: todoId,
                 studioId: studioId,
                 status: { $ne: 'completed' } // Prevent re-completing
             },
@@ -356,8 +364,8 @@ const markAsCompleted = async (req, res, next) => {
             },
             { new: true }
         )
-        .populate('assignees', 'firstName lastName')
-        .populate('tags', 'name color');
+            .populate('assignees', 'firstName lastName')
+            .populate('tags', 'name color');
 
         if (!todo) throw new NotFoundError("Todo not found or already completed");
 
@@ -382,8 +390,8 @@ const markAsCanceled = async (req, res, next) => {
         const { todoId } = req.params
 
         const todo = await TodoModel.findOneAndUpdate(
-            { 
-                _id: todoId, 
+            {
+                _id: todoId,
                 studioId: studioId,
                 status: { $ne: 'canceled' } // Prevent re-canceling
             },
@@ -395,8 +403,8 @@ const markAsCanceled = async (req, res, next) => {
             },
             { new: true }
         )
-        .populate('assignees', 'firstName lastName')
-        .populate('tags', 'name color');
+            .populate('assignees', 'firstName lastName')
+            .populate('tags', 'name color');
 
         if (!todo) throw new NotFoundError("Todo not found or already canceled");
 
@@ -419,9 +427,9 @@ const deleteTodo = async (req, res, next) => {
         const studioId = req.user?.studio;
         const { todoId } = req.params;
 
-        const todo = await TodoModel.findOneAndDelete({ 
-            _id: todoId, 
-            studioId: studioId 
+        const todo = await TodoModel.findOneAndDelete({
+            _id: todoId,
+            studioId: studioId
         });
 
         if (!todo) throw new NotFoundError("Todo not found");

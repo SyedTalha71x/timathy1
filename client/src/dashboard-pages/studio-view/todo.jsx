@@ -18,7 +18,17 @@ import DeleteModal from "../../components/studio-components/todo-components/dele
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { OptimizedTextarea } from "../../components/studio-components/todo-components/optimized-text-area"
 import TagManagerModal from "../../components/shared/TagManagerModal"
-
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  createTaskThunk,
+  getTaskThunk,
+  createTagsThunk,
+  getTagsThunk,
+  updateTaskThunk,
+  deleteTaskThunk,
+  // deleteTagThunk
+} from '../../features/todos/todosSlice'
+import { fetchAllStaffThunk } from '../../features/staff/staffSlice'
 // @dnd-kit imports
 import {
   DndContext,
@@ -36,6 +46,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 // New sortable components
 import SortableTaskColumn from "../../components/studio-components/todo-components/sortable-task-column"
 import SortableTaskCard from "../../components/studio-components/todo-components/sortable-task-card"
+import { updateTask } from "../../features/todos/todosApi"
 
 // ============================================
 // Mobile Create Task Modal Component (Redesigned)
@@ -100,9 +111,9 @@ const MobileCreateTaskModal = ({
     let display = ""
     if (newTaskData.dueDate) {
       const date = new Date(newTaskData.dueDate)
-      display = date.toLocaleDateString("en-US", { 
+      display = date.toLocaleDateString("en-US", {
         weekday: 'short',
-        month: "short", 
+        month: "short",
         day: "numeric",
         year: 'numeric'
       })
@@ -133,11 +144,10 @@ const MobileCreateTaskModal = ({
         <button
           onClick={handleCreate}
           disabled={!taskTitle.trim()}
-          className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
-            taskTitle.trim()
-              ? "bg-primary text-white active:scale-95"
-              : "bg-surface-button text-content-faint"
-          }`}
+          className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${taskTitle.trim()
+            ? "bg-primary text-white active:scale-95"
+            : "bg-surface-button text-content-faint"
+            }`}
         >
           Create
         </button>
@@ -206,7 +216,7 @@ const MobileCreateTaskModal = ({
               {newTaskData.assignees && newTaskData.assignees.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newTaskData.assignees.map((assignee, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-sm"
                     >
@@ -236,7 +246,7 @@ const MobileCreateTaskModal = ({
               {newTaskData.tags && newTaskData.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newTaskData.tags.map((tag, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 rounded-lg text-sm text-white"
                       style={{ backgroundColor: getTagColor(tag) }}
@@ -260,12 +270,12 @@ const MobileCreateTaskModal = ({
 // ============================================
 // Mobile Task Detail Component
 // ============================================
-const MobileTaskDetail = ({ 
-  task, 
-  onClose, 
-  onStatusChange, 
-  onUpdate, 
-  onDelete, 
+const MobileTaskDetail = ({
+  task,
+  onClose,
+  onStatusChange,
+  onUpdate,
+  onDelete,
   onDuplicate,
   onPinToggle,
   onRepeat,
@@ -316,9 +326,9 @@ const MobileTaskDetail = ({
     let display = ""
     if (task.dueDate) {
       const date = new Date(task.dueDate)
-      display = date.toLocaleDateString("en-US", { 
+      display = date.toLocaleDateString("en-US", {
         weekday: 'short',
-        month: "short", 
+        month: "short",
         day: "numeric",
         year: 'numeric'
       })
@@ -353,17 +363,16 @@ const MobileTaskDetail = ({
         >
           <ChevronLeft size={24} />
         </button>
-        
+
         <div className="flex items-center gap-2">
           {/* Status Badge */}
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            isCompleted ? 'bg-green-500/20 text-green-400' :
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${isCompleted ? 'bg-green-500/20 text-green-400' :
             isCanceled ? 'bg-red-500/20 text-red-400' :
-            'bg-primary/20 text-primary'
-          }`}>
+              'bg-primary/20 text-primary'
+            }`}>
             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
           </span>
-          
+
           {/* 3-Dot Actions Menu */}
           <div className="relative" ref={actionsMenuRef}>
             <button
@@ -393,7 +402,7 @@ const MobileTaskDetail = ({
                       <span>Mark Complete</span>
                     </button>
                   )}
-                  
+
                   {isCompleted && (
                     <button
                       onClick={() => {
@@ -421,7 +430,7 @@ const MobileTaskDetail = ({
                       <span>Cancel Task</span>
                     </button>
                   )}
-                  
+
                   {isCanceled && (
                     <>
                       <button
@@ -461,7 +470,7 @@ const MobileTaskDetail = ({
                     {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
                     <span>{task.isPinned ? 'Unpin Task' : 'Pin Task'}</span>
                   </button>
-                  
+
                   {/* Duplicate */}
                   <button
                     onClick={() => {
@@ -474,7 +483,7 @@ const MobileTaskDetail = ({
                     <Copy size={16} />
                     <span>Duplicate</span>
                   </button>
-                  
+
                   {/* Repeat */}
                   <button
                     onClick={() => {
@@ -488,7 +497,7 @@ const MobileTaskDetail = ({
                   </button>
 
                   <div className="border-t border-border my-1"></div>
-                  
+
                   {/* Delete */}
                   <button
                     onClick={() => {
@@ -520,11 +529,10 @@ const MobileTaskDetail = ({
             }}
             onBlur={handleSaveTitle}
             placeholder="Task title..."
-            className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-primary transition-all pb-2 resize-none ${
-              isCompleted ? 'text-content-faint' : 
-              isCanceled ? 'text-content-faint line-through italic' : 
-              'text-content-primary'
-            }`}
+            className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-primary transition-all pb-2 resize-none ${isCompleted ? 'text-content-faint' :
+              isCanceled ? 'text-content-faint line-through italic' :
+                'text-content-primary'
+              }`}
             style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }}
             onInput={(e) => {
               e.target.style.height = 'auto'
@@ -551,9 +559,8 @@ const MobileTaskDetail = ({
               onOpenCalendarModal(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat)
             }
           }}
-          className={`w-full p-4 border-b border-border flex items-center justify-between ${
-            !isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
-          }`}
+          className={`w-full p-4 border-b border-border flex items-center justify-between ${!isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
+            }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3">
@@ -597,9 +604,8 @@ const MobileTaskDetail = ({
               onOpenAssignModal(task)
             }
           }}
-          className={`w-full p-4 border-b border-border text-left ${
-            !isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
-          }`}
+          className={`w-full p-4 border-b border-border text-left ${!isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
+            }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -611,7 +617,7 @@ const MobileTaskDetail = ({
               {task.assignees && task.assignees.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {task.assignees.map((assignee, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-sm"
                     >
@@ -636,9 +642,8 @@ const MobileTaskDetail = ({
               onOpenTagsModal(task)
             }
           }}
-          className={`w-full p-4 border-b border-border text-left ${
-            !isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
-          }`}
+          className={`w-full p-4 border-b border-border text-left ${!isCompleted && !isCanceled ? 'active:bg-surface-hover/50' : ''
+            }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3 mb-3">
@@ -650,7 +655,7 @@ const MobileTaskDetail = ({
               {task.tags && task.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {task.tags.map((tag, idx) => (
-                    <span 
+                    <span
                       key={idx}
                       className="px-3 py-1.5 rounded-lg text-sm text-white"
                       style={{ backgroundColor: getTagColor(tag) }}
@@ -676,6 +681,7 @@ const MobileTaskDetail = ({
 // ============================================
 // Mobile Task Card Component (Simplified)
 // ============================================
+
 const MobileTaskCard = ({
   task,
   onSelect,
@@ -685,6 +691,20 @@ const MobileTaskCard = ({
   const getTagColor = (tagName) => {
     const tag = configuredTags.find((t) => t.name === tagName)
     return tag ? tag.color : "var(--color-primary, #f97316)"
+  }
+
+  const getTagName = (tag) => {
+    if (!tag) return '';
+    if (typeof tag === 'string') return tag;
+    if (typeof tag === 'object') return tag.name || '';
+    return '';
+  }
+
+  const getTagColorFromTag = (tag) => {
+    if (!tag) return "var(--color-primary, #f97316)";
+    if (typeof tag === 'string') return getTagColor(tag);
+    if (typeof tag === 'object') return tag.color || getTagColor(tag.name || '');
+    return "var(--color-primary, #f97316)";
   }
 
   const isCompleted = task.status === "completed"
@@ -699,11 +719,10 @@ const MobileTaskCard = ({
   return (
     <div
       onClick={onSelect}
-      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${
-        isCompleted ? 'bg-surface-hover/50' :
+      className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${isCompleted ? 'bg-surface-hover/50' :
         isCanceled ? 'bg-surface-hover/30' :
-        'bg-surface-hover active:bg-surface-hover'
-      }`}
+          'bg-surface-hover active:bg-surface-hover'
+        }`}
     >
       <div className="flex items-start gap-3">
         {/* Checkbox / X for canceled */}
@@ -724,10 +743,9 @@ const MobileTaskCard = ({
               e.stopPropagation()
               onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
             }}
-            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-              isCompleted ? 'bg-content-faint border-border' :
+            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? 'bg-content-faint border-border' :
               'border-border hover:border-primary'
-            }`}
+              }`}
           >
             {isCompleted && <Check size={12} className="text-white" />}
           </button>
@@ -736,11 +754,10 @@ const MobileTaskCard = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className={`text-sm font-medium ${
-              isCompleted ? 'text-content-faint' :
+            <p className={`text-sm font-medium ${isCompleted ? 'text-content-faint' :
               isCanceled ? 'text-content-faint line-through italic' :
-              'text-content-primary'
-            }`} style={{ wordBreak: 'break-word' }}>
+                'text-content-primary'
+              }`} style={{ wordBreak: 'break-word' }}>
               {task.title}
             </p>
           </div>
@@ -749,36 +766,38 @@ const MobileTaskCard = ({
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {/* Date */}
             {formatDate() && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
-              }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-primary/20 text-primary'
+                }`}>
                 <Calendar size={10} />
                 {formatDate()}
               </span>
             )}
-            
+
             {/* Assignees Count */}
             {task.assignees && task.assignees.length > 0 && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
-              }`}>
+              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'bg-surface-button text-content-secondary'
+                }`}>
                 <Users size={10} />
                 {task.assignees.length}
               </span>
             )}
 
-            {/* Tags (max 2) */}
-            {task.tags && task.tags.slice(0, 2).map((tag, idx) => (
-              <span
-                key={idx}
-                className={`text-xs px-2 py-0.5 rounded-md ${
-                  isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
-                }`}
-                style={{ backgroundColor: isCompleted || isCanceled ? undefined : getTagColor(tag) }}
-              >
-                {tag}
-              </span>
-            ))}
+            {/* Tags (max 2) - FIXED */}
+            {task.tags && task.tags.slice(0, 2).map((tag, idx) => {
+              const tagName = getTagName(tag);
+              const tagColor = getTagColorFromTag(tag);
+
+              return tagName ? (
+                <span
+                  key={tag._id || idx}
+                  className={`text-xs px-2 py-0.5 rounded-md ${isCompleted || isCanceled ? 'bg-surface-hover text-content-faint' : 'text-white'
+                    }`}
+                  style={{ backgroundColor: isCompleted || isCanceled ? undefined : tagColor }}
+                >
+                  {tagName}
+                </span>
+              ) : null;
+            })}
             {task.tags && task.tags.length > 2 && (
               <span className="text-xs text-content-faint">+{task.tags.length - 2}</span>
             )}
@@ -825,7 +844,36 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 }
 
 export default function TodoApp() {
-  
+  // Redux state - using fallback empty arrays to prevent destructuring errors
+  // At the top of your TodoApp component, add this safety check:
+  const tasks = useSelector((state) => {
+    const todos = state.todos || {};
+    return Array.isArray(todos.tasks) ? todos.tasks : [];
+  });
+
+
+  const tags = useSelector((state) => {
+    const todos = state.todos || {};
+    return Array.isArray(todos.tags) ? todos.tags : [];
+  });
+
+
+  const { user } = useSelector((state) => state.auth)
+  // CORRECT - staff is the nested array
+  // const staff = useSelector((state) => state.staff?.staff || [])
+
+  const staff = useSelector((state) => {
+    const array = state.staff?.staff?.staff || []
+    // console.log('Final staff array:', array)
+    // if (array.length > 0) {
+    //   // console.log('First staff member:', array[0])
+    // }
+    return array
+  })
+
+
+  const dispatch = useDispatch()
+
   // ============================================
   // Column Configuration
   // ============================================
@@ -834,7 +882,7 @@ export default function TodoApp() {
     { id: "completed", title: "Completed", color: "#10b981" },
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
-  
+
   const [collapsedColumns, setCollapsedColumns] = useState({
     completed: true,
     canceled: true,
@@ -854,12 +902,16 @@ export default function TodoApp() {
     return initialSettings
   })
 
-  // ============================================
-  // Task State
-  // ============================================
-  const [tasks, setTasks] = useState(todosTaskData)
-  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
-  const [availableAssignees] = useState(availableAssigneesData)
+  // Use Redux data directly
+
+  const configuredTags = tags
+
+
+
+
+
+
+
   const [repeatConfigs, setRepeatConfigs] = useState({})
 
   // ============================================
@@ -996,14 +1048,14 @@ export default function TodoApp() {
         setIsTagDropdownOpen(false)
       }
     }
-    
+
     const handleScroll = (event) => {
       // Don't close dropdowns if scrolling inside them
-      if (event.target?.closest?.(".assign-dropdown") || 
-          event.target?.closest?.(".tag-dropdown") ||
-          event.target?.closest?.(".calendar-dropdown") ||
-          event.target?.closest?.(".mobile-sort-dropdown") ||
-          event.target?.closest?.(".mobile-filter-dropdown")) {
+      if (event.target?.closest?.(".assign-dropdown") ||
+        event.target?.closest?.(".tag-dropdown") ||
+        event.target?.closest?.(".calendar-dropdown") ||
+        event.target?.closest?.(".mobile-sort-dropdown") ||
+        event.target?.closest?.(".mobile-filter-dropdown")) {
         return
       }
       setMobileSortMenuOpen(null)
@@ -1012,7 +1064,7 @@ export default function TodoApp() {
       setIsAssignDropdownOpen(false)
       setIsTagDropdownOpen(false)
     }
-    
+
     document.addEventListener("click", handleClickOutside)
     window.addEventListener("scroll", handleScroll, true) // true for capture phase to catch all scroll events
     return () => {
@@ -1027,9 +1079,9 @@ export default function TodoApp() {
       // Check if user is typing in an input field
       const target = e.target
       const activeEl = document.activeElement
-      
-      const isInEditableArea = 
-        target.tagName === 'INPUT' || 
+
+      const isInEditableArea =
+        target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable === true ||
         activeEl?.tagName === 'INPUT' ||
@@ -1082,7 +1134,7 @@ export default function TodoApp() {
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
       // Check if ANY modal is open - if so, don't trigger other hotkeys
-      const anyModalOpen = 
+      const anyModalOpen =
         isDeleteModalOpen ||
         isRepeatModalOpen ||
         assignModalTask ||
@@ -1094,11 +1146,11 @@ export default function TodoApp() {
         selectedMobileTask ||
         mobileSortMenuOpen ||
         showMobileFilterMenu
-      
+
       // Also check if any modal overlay is visible in the DOM
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
-      
+        document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
+
       if (anyModalOpen || hasVisibleModal) return
 
       // T - Open Tag Manager
@@ -1111,20 +1163,29 @@ export default function TodoApp() {
     document.addEventListener('keydown', handleKeyPress)
     return () => document.removeEventListener('keydown', handleKeyPress)
   }, [
-    isDeleteModalOpen, 
-    isRepeatModalOpen, 
-    assignModalTask, 
-    tagsModalTask, 
-    calendarModal.isOpen, 
-    isTagManagerOpen, 
-    isEditModalOpenTask, 
-    showMobileCreateModal, 
+    isDeleteModalOpen,
+    isRepeatModalOpen,
+    assignModalTask,
+    tagsModalTask,
+    calendarModal.isOpen,
+    isTagManagerOpen,
+    isEditModalOpenTask,
+    showMobileCreateModal,
     selectedMobileTask,
     mobileSortMenuOpen,
     showMobileFilterMenu,
     createModeAssignModal,
     createModeTagsModal
   ])
+
+  // ===================
+  // fetching tags and tasks
+  // ===================
+  useEffect(() => {
+    dispatch(getTagsThunk())
+    dispatch(getTaskThunk())
+    dispatch(fetchAllStaffThunk())
+  }, [dispatch])
 
   // Get column ID from droppable ID
   const getColumnId = (id) => {
@@ -1145,7 +1206,7 @@ export default function TodoApp() {
   }
 
   // Handle drag over
-  const handleDragOver = (event) => {}
+  const handleDragOver = (event) => { }
 
   // Handle drag end
   const handleDragEnd = (event) => {
@@ -1180,15 +1241,21 @@ export default function TodoApp() {
 
       const columnTasks = tasks.filter((t) => t.status === sourceColumnId)
       const oldIndex = columnTasks.findIndex((t) => t.id === activeTaskId)
-      const newIndex = overTask 
+      const newIndex = overTask
         ? columnTasks.findIndex((t) => t.id === overId)
         : columnTasks.length - 1
 
       if (oldIndex !== newIndex && oldIndex !== -1 && newIndex !== -1) {
         const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex)
         const otherTasks = tasks.filter((t) => t.status !== sourceColumnId)
-        setTasks([...otherTasks, ...reorderedColumnTasks])
-        
+
+        // Update the order in Redux
+        reorderedColumnTasks.forEach((task, index) => {
+          dispatch(updateTaskThunk({
+            id: task.id,
+            updates: { order: index }
+          }))
+        })
       }
       return
     }
@@ -1206,53 +1273,55 @@ export default function TodoApp() {
       if (overIndex !== -1) insertIndex = overIndex
     }
 
-    const updatedTask = {
-      ...task,
-      status: targetColumnId,
-      isPinned: false,
-      updatedAt: new Date().toISOString(),
-    }
-
-    const otherTasks = tasks.filter((t) => t.id !== task.id)
-    const beforeTarget = otherTasks.filter((t) => t.status !== targetColumnId)
-    const targetTasks = otherTasks.filter((t) => t.status === targetColumnId)
-    targetTasks.splice(insertIndex, 0, updatedTask)
-
-    setTasks([...beforeTarget, ...targetTasks])
+    dispatch(updateTaskThunk({
+      id: task.id,
+      updates: {
+        status: targetColumnId,
+        isPinned: false,
+        updatedAt: new Date().toISOString(),
+      }
+    }))
   }
 
   // ============================================
   // Sorting Functions
   // ============================================
   const sortTasks = useCallback((tasksToSort, columnId) => {
+    // Ensure we have an array to sort
+    if (!Array.isArray(tasksToSort)) return []
+
     const settings = columnSortSettings[columnId]
     if (!settings || settings.sortBy === 'custom') {
       return [...tasksToSort].sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1
-        if (!a.isPinned && b.isPinned) return 1
+        if (a?.isPinned && !b?.isPinned) return -1
+        if (!a?.isPinned && b?.isPinned) return 1
         return 0
       })
     }
 
     const sorted = [...tasksToSort].sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1
-      if (!a.isPinned && b.isPinned) return 1
+      if (a?.isPinned && !b?.isPinned) return -1
+      if (!a?.isPinned && b?.isPinned) return 1
 
       let comparison = 0
       switch (settings.sortBy) {
         case 'title':
-          comparison = (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
+          comparison = (a?.title || '').toLowerCase().localeCompare((b?.title || '').toLowerCase())
           break
         case 'dueDate':
-          comparison = new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31')
+          comparison = new Date(a?.dueDate || '9999-12-31') - new Date(b?.dueDate || '9999-12-31')
           break
         case 'tag':
-          const tagA = a.tags && a.tags.length > 0 ? a.tags[0].toLowerCase() : 'zzz'
-          const tagB = b.tags && b.tags.length > 0 ? b.tags[0].toLowerCase() : 'zzz'
+          const tagA = a?.tags && a.tags.length > 0 ?
+            (typeof a.tags[0] === 'string' ? a.tags[0].toLowerCase() : a.tags[0]?.name?.toLowerCase() || 'zzz')
+            : 'zzz'
+          const tagB = b?.tags && b.tags.length > 0 ?
+            (typeof b.tags[0] === 'string' ? b.tags[0].toLowerCase() : b.tags[0]?.name?.toLowerCase() || 'zzz')
+            : 'zzz'
           comparison = tagA.localeCompare(tagB)
           break
         case 'recentlyAdded':
-          comparison = new Date(b.createdAt || '1970-01-01') - new Date(a.createdAt || '1970-01-01')
+          comparison = new Date(b?.createdAt || '1970-01-01') - new Date(a?.createdAt || '1970-01-01')
           break
         default:
           return 0
@@ -1283,51 +1352,66 @@ export default function TodoApp() {
   }, [])
 
   // Get filtered and sorted tasks for column
+  // Get filtered and sorted tasks for column
   const getColumnTasks = useCallback((columnId) => {
-    let columnTasks = tasks.filter((task) => task.status === columnId)
-    
+    // Ensure tasks is an array
+    if (!Array.isArray(tasks)) return [];
+
+    let columnTasks = tasks.filter((task) => task?.status === columnId)
+
     // Apply staff filter
-    if (selectedStaffFilter.length > 0) {
+    if (selectedStaffFilter.length > 0 && Array.isArray(columnTasks)) {
       columnTasks = columnTasks.filter(task => {
-        if (!task.assignees || task.assignees.length === 0) return false
+        if (!task?.assignees || !Array.isArray(task.assignees) || task.assignees.length === 0) return false
         return task.assignees.some(assignee => {
           return selectedStaffFilter.some(staffId => {
-            const staff = availableAssignees.find(a => a.id === staffId)
-            if (!staff) return false
-            return assignee === `${staff.firstName} ${staff.lastName}`
+            const staffMember = staff.find(s => s?._id === staffId)
+            if (!staffMember) return false
+            // Handle both string and object assignees
+            const assigneeName = typeof assignee === 'string'
+              ? assignee
+              : `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim()
+            return assigneeName === `${staffMember.firstName} ${staffMember.lastName}`
           })
         })
       })
     }
-    
-    return sortTasks(columnTasks, columnId)
-  }, [tasks, sortTasks, selectedStaffFilter, availableAssignees])
 
-  // Get all tasks for mobile view - NOW WITH SORTING
+    return sortTasks(columnTasks, columnId)
+  }, [tasks, sortTasks, selectedStaffFilter, staff])
+
+  // Get all tasks for mobile view
   const getAllFilteredTasks = useCallback(() => {
+    // Ensure tasks is an array
+    if (!Array.isArray(tasks)) {
+      return { ongoing: [], completed: [], canceled: [], total: 0 }
+    }
+
     let allTasks = [...tasks]
-    
-    if (selectedStaffFilter.length > 0) {
+
+    if (selectedStaffFilter.length > 0 && Array.isArray(allTasks)) {
       allTasks = allTasks.filter(task => {
-        if (!task.assignees || task.assignees.length === 0) return false
+        if (!task?.assignees || !Array.isArray(task.assignees) || task.assignees.length === 0) return false
         return task.assignees.some(assignee => {
           return selectedStaffFilter.some(staffId => {
-            const staff = availableAssignees.find(a => a.id === staffId)
-            if (!staff) return false
-            return assignee === `${staff.firstName} ${staff.lastName}`
+            const staffMember = staff.find(s => s?._id === staffId)
+            if (!staffMember) return false
+            const assigneeName = typeof assignee === 'string'
+              ? assignee
+              : `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim()
+            return assigneeName === `${staffMember.firstName} ${staffMember.lastName}`
           })
         })
       })
     }
 
     // Group by status AND apply sorting for each status
-    const ongoing = sortTasks(allTasks.filter(t => t.status === 'ongoing'), 'ongoing')
-    const completed = sortTasks(allTasks.filter(t => t.status === 'completed'), 'completed')
-    const canceled = sortTasks(allTasks.filter(t => t.status === 'canceled'), 'canceled')
+    const ongoing = sortTasks(allTasks.filter(t => t?.status === 'ongoing'), 'ongoing')
+    const completed = sortTasks(allTasks.filter(t => t?.status === 'completed'), 'completed')
+    const canceled = sortTasks(allTasks.filter(t => t?.status === 'canceled'), 'canceled')
 
     return { ongoing, completed, canceled, total: allTasks.length }
-  }, [tasks, selectedStaffFilter, availableAssignees, sortTasks])
-
+  }, [tasks, selectedStaffFilter, staff, sortTasks])
   // ============================================
   // Column collapse
   // ============================================
@@ -1357,6 +1441,8 @@ export default function TodoApp() {
   }
 
   const handleCalendarSave = (calendarData) => {
+    console.log('Calendar data received:', calendarData);
+
     // Check if this is for create mode
     if (createModeCalendarModal) {
       setNewTaskData(prev => ({
@@ -1365,39 +1451,66 @@ export default function TodoApp() {
         dueTime: calendarData.time,
         reminder: calendarData.reminder,
         repeat: calendarData.repeat,
-      }))
-      setCreateModeCalendarModal(false)
-      setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
-      return
+        // Add these new fields
+        customReminder: calendarData.customReminder,
+        repeatSettings: calendarData.repeatSettings,
+        repeatEndDate: calendarData.repeatEndDate,
+        repeatOccurrences: calendarData.repeatOccurrences,
+      }));
+      setCreateModeCalendarModal(false);
+      setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" });
+      return;
     }
 
     if (calendarModal.taskId) {
-      const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId)
-      const updatedTask = {
-        ...taskToUpdate,
+      const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId || t._id === calendarModal.taskId);
+
+      // Prepare update data with all repeat/reminder fields
+      const updateData = {
         dueDate: calendarData.date,
         dueTime: calendarData.time,
         reminder: calendarData.reminder,
         repeat: calendarData.repeat,
-        customReminder: calendarData.customReminder,
-        repeatEnd: calendarData.repeatEnd,
+      };
+
+      // Add custom reminder if it exists
+      if (calendarData.customReminder) {
+        updateData.customReminder = calendarData.customReminder;
       }
-      handleTaskUpdate(updatedTask)
-      
+
+      // Add repeat settings if repeat is set
+      if (calendarData.repeat && calendarData.repeat !== 'None') {
+        updateData.repeatSettings = calendarData.repeatSettings || {
+          frequency: calendarData.repeat.toLowerCase(),
+          interval: 1,
+          daysOfWeek: calendarData.repeat === 'Weekdays' ? [1, 2, 3, 4, 5] : [],
+          endDate: calendarData.repeatEndDate,
+          occurrences: calendarData.repeatOccurrences
+        };
+      }
+
+      console.log('Updating task with repeat data:', updateData);
+
+      dispatch(updateTaskThunk({
+        todoId: taskToUpdate._id || taskToUpdate.id,
+        updateData: updateData
+      }));
+
       // Update mobile task if viewing
-      if (selectedMobileTask && selectedMobileTask.id === calendarModal.taskId) {
-        setSelectedMobileTask(updatedTask)
+      if (selectedMobileTask && (selectedMobileTask.id === calendarModal.taskId || selectedMobileTask._id === calendarModal.taskId)) {
+        setSelectedMobileTask({
+          ...selectedMobileTask,
+          ...updateData
+        });
       }
-      
-      
     } else {
-      setSelectedDate(calendarData.date)
-      setSelectedTime(calendarData.time)
-      setSelectedReminder(calendarData.reminder)
-      setSelectedRepeat(calendarData.repeat)
+      setSelectedDate(calendarData.date);
+      setSelectedTime(calendarData.time);
+      setSelectedReminder(calendarData.reminder);
+      setSelectedRepeat(calendarData.repeat);
     }
-    setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
-  }
+    setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" });
+  };
 
   const handleCalendarClose = () => {
     setCreateModeCalendarModal(false)
@@ -1408,7 +1521,7 @@ export default function TodoApp() {
   // Modal Handlers
   // ============================================
   const handleOpenAssignModal = (task) => setAssignModalTask(task)
-  const handleOpenTagsModal = (task) => setTagsModalTask(task)
+  const handleOpenTagsModal = (task) => setTagsModalTask(task._id)
 
   // ============================================
   // Create Mode Modal Handlers
@@ -1446,32 +1559,39 @@ export default function TodoApp() {
   }
 
   // ============================================
-  // Task CRUD Operations
+  // Task CRUD Operations with Redux
   // ============================================
   const handleTaskStatusChange = (taskId, newStatus) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId
-          ? { ...task, status: newStatus, isPinned: false, updatedAt: new Date().toISOString() }
-          : task
-      )
-    )
-    const statusMessages = { completed: "Task marked as completed", canceled: "Task cancelled", ongoing: "Task moved to ongoing" }
+    dispatch(updateTaskThunk({
+      id: taskId,
+      updates: {
+        status: newStatus,
+        isPinned: false,
+        updatedAt: new Date().toISOString()
+      }
+    }))
+
+    const statusMessages = {
+      completed: "Task marked as completed",
+      canceled: "Task cancelled",
+      ongoing: "Task moved to ongoing"
+    }
     if (statusMessages[newStatus]) toast.success(statusMessages[newStatus])
   }
-
   const handleTaskUpdate = (updatedTask) => {
     // Check if this is for create mode
     if (createModeAssignModal && updatedTask.id === 'new-task') {
       setNewTaskData(prev => ({
         ...prev,
         assignees: updatedTask.assignees || [],
+        tags: updatedTask.tags || [],
       }))
+
       setCreateModeAssignModal(false)
       setAssignModalTask(null)
       return
     }
-    
+
     if (createModeTagsModal && updatedTask.id === 'new-task') {
       setNewTaskData(prev => ({
         ...prev,
@@ -1482,45 +1602,130 @@ export default function TodoApp() {
       return
     }
 
-    setTasks((prevTasks) => prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)))
-    if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
-      setSelectedMobileTask(updatedTask)
+    // For existing tasks - prepare data for API
+    // Extract just the IDs for assignees and tags
+    const assigneeIds = updatedTask.assignees?.map(a => {
+      if (typeof a === 'string') return a;
+      return a._id || a.id;
+    }).filter(id => id) || [];
+
+    const tagIds = updatedTask.tags?.map(t => {
+      if (typeof t === 'string') return t;
+      return t._id || t.id;
+    }).filter(id => id) || [];
+
+    // Create update data with ALL fields
+    const updateData = {
+      title: updatedTask.title,
+      status: updatedTask.status,
+      dueDate: updatedTask.dueDate,
+      dueTime: updatedTask.dueTime,
+      reminder: updatedTask.reminder,
+      repeat: updatedTask.repeat,
+      isPinned: updatedTask.isPinned,
+      assignees: assigneeIds,
+      tags: tagIds,
+    };
+
+    // Add custom reminder if it exists
+    if (updatedTask.customReminder) {
+      updateData.customReminder = updatedTask.customReminder;
     }
-    
-  }
+
+    // Add repeat settings if they exist
+    if (updatedTask.repeatSettings) {
+      updateData.repeatSettings = updatedTask.repeatSettings;
+    }
+
+    // Add repeat end date if it exists
+    if (updatedTask.repeatEndDate) {
+      updateData.repeatEndDate = updatedTask.repeatEndDate;
+    }
+
+    console.log('Sending update data with repeat/reminder:', updateData);
+    console.log('Task ID:', updatedTask._id || updatedTask.id);
+
+    // Update in Redux
+    dispatch(updateTaskThunk({
+      todoId: updatedTask._id || updatedTask.id,
+      updateData: updateData
+    }));
+
+    if (selectedMobileTask && (selectedMobileTask.id === updatedTask.id || selectedMobileTask._id === updatedTask._id)) {
+      setSelectedMobileTask(updatedTask);
+    }
+  };
 
   const handleTaskRemove = (taskId) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask(null)
     }
-    
   }
 
   const handleTaskPinToggle = (taskId) => {
-    const task = tasks.find(t => t.id === taskId)
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === taskId ? { ...task, isPinned: !task.isPinned } : task))
-    )
-    if (selectedMobileTask && selectedMobileTask.id === taskId) {
-      setSelectedMobileTask({ ...selectedMobileTask, isPinned: !selectedMobileTask.isPinned })
+    // Find the task to get current pinned state
+    const task = tasks.find(t => t.id === taskId || t._id === taskId);
+
+    if (!task) {
+      console.error('Task not found for pin toggle:', taskId);
+      return;
     }
-    toast.success(task?.isPinned ? "Task unpinned" : "Task pinned")
-  }
+
+    // Toggle the current pinned state
+    const newPinnedState = !task.isPinned;
+
+    console.log('Toggling pin:', { taskId, wasPinned: task.isPinned, newPinnedState });
+
+    // Dispatch with the toggled state
+    dispatch(updateTaskThunk({
+      todoId: taskId,
+      updateData: { isPinned: newPinnedState }
+    }));
+
+    // Update mobile task if viewing
+    if (selectedMobileTask && (selectedMobileTask.id === taskId || selectedMobileTask._id === taskId)) {
+      setSelectedMobileTask({
+        ...selectedMobileTask,
+        isPinned: newPinnedState
+      });
+    }
+
+    toast.success(newPinnedState ? "Task pinned" : "Task unpinned");
+  };
 
   const handleEditRequest = (task) => {
     setSelectedTask(task)
     setIsEditModalOpenTask(true)
   }
 
-  const handleDeleteRequest = (taskId) => {
-    setSelectedTask(tasks.find((t) => t.id === taskId))
-    setIsDeleteModalOpen(true)
-  }
+  const handleDeleteRequest = (todoId) => {
+    console.log('Deleting task with ID:', todoId);  // Log the ID being passed
+
+    if (!todoId) {
+      console.error('Invalid task id:', todoId);
+      return;
+    }
+
+    // Make sure the ID matches correctly and is found
+    const taskToDelete = tasks.find((t) => t._id.toString() === todoId.toString());  // Ensure IDs are strings
+
+    if (!taskToDelete) {
+      console.error('Task not found for id:', todoId);
+      return;
+    }
+
+    setSelectedTask(taskToDelete);  // Set the selected task for modal
+    setIsDeleteModalOpen(true);      // Open delete confirmation modal
+  };
 
   const confirmDeleteTask = () => {
     if (selectedTask) {
-      handleTaskRemove(selectedTask.id)
+      const taskId = selectedTask._id; // Get the ID as a string
+      console.log('select task id', taskId);
+
+      // Pass just the string ID, not an object
+      dispatch(deleteTaskThunk(taskId));
+      handleTaskRemove(selectedTask._id)
       setIsDeleteModalOpen(false)
       setSelectedTask(null)
       toast.success("Task deleted successfully")
@@ -1528,18 +1733,15 @@ export default function TodoApp() {
   }
 
   const handleDuplicateTask = (taskToDuplicate) => {
-    const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
-    setTasks((prevTasks) => [
-      ...prevTasks,
-      {
-        ...taskToDuplicate,
-        id: newId,
-        title: `${taskToDuplicate.title} (Copy)`,
-        isPinned: false,
-        status: "ongoing",
-        createdAt: new Date().toISOString(),
-      },
-    ])
+    const newTask = {
+      ...taskToDuplicate,
+      id: undefined, // Let the backend generate ID
+      title: `${taskToDuplicate.title} (Copy)`,
+      isPinned: false,
+      status: "ongoing",
+      createdAt: new Date().toISOString(),
+    }
+    dispatch(createTaskThunk(newTask))
     toast.success("Task duplicated")
   }
 
@@ -1558,22 +1760,26 @@ export default function TodoApp() {
         occurrencesCreated: 0,
       },
     }))
-    
+
     setIsRepeatModalOpen(false)
     setSelectedTaskForRepeat(null)
   }
 
+
+
   // ============================================
   // Mobile Task Creation
   // ============================================
-  const handleMobileCreateTask = (taskData) => {
-    const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
+  const handleMobileCreateTask = async (taskData) => {
+    // Extract just the IDs from assignee objects
+    const assigneeIds = taskData.assignees?.map(a => a._id || a) || [];
+    const tagIds = taskData.tags?.map(t => t._id || t) || [];
+
     const newTask = {
-      id: newId,
       title: taskData.title,
-      assignees: taskData.assignees || [],
+      assigneesId: assigneeIds,
       roles: [],
-      tags: taskData.tags || [],
+      tagsId: tagIds,
       status: "ongoing",
       category: "general",
       dueDate: taskData.dueDate,
@@ -1582,42 +1788,52 @@ export default function TodoApp() {
       repeat: taskData.repeat,
       isPinned: false,
       createdAt: new Date().toISOString(),
+      studioId: user?.studio
+    };
+
+    // Add custom reminder if it exists
+    if (taskData.customReminder) {
+      newTask.customReminder = taskData.customReminder;
     }
-    setTasks((prevTasks) => [...prevTasks, newTask])
-    toast.success("Task created successfully")
-  }
+
+    // Add repeat settings if repeat is set
+    if (taskData.repeat && taskData.repeat !== 'None') {
+      newTask.repeatSettings = taskData.repeatSettings || {
+        frequency: taskData.repeat.toLowerCase(),
+        interval: 1,
+        daysOfWeek: taskData.repeat === 'Weekdays' ? [1, 2, 3, 4, 5] : [],
+        endDate: taskData.repeatEndDate,
+        occurrences: taskData.repeatOccurrences
+      };
+    }
+
+    console.log('Creating mobile task with repeat/reminder:', newTask);
+    dispatch(createTaskThunk(newTask));
+    toast.success("Task created successfully");
+    await dispatch(getTaskThunk());
+  };
 
   // ============================================
-  // Tag Management
+  // Tag Management with Redux
   // ============================================
-  const deleteTag = (tagId) => {
-    setConfiguredTags(configuredTags.filter((tag) => tag.id !== tagId))
-    setTasks(
-      tasks.map((task) => ({
-        ...task,
-        tags: task.tags.filter((tag) => {
-          const tagToDelete = configuredTags.find((t) => t.id === tagId)
-          return tag !== tagToDelete?.name
-        }),
-      }))
-    )
-    
-  }
+  // const deleteTag = (tagId) => {
+  //   dispatch(deleteTagThunk(tagId))
+  // }
 
   // ============================================
   // Assignment Helpers
   // ============================================
   const toggleAssignee = (assignee) => {
     setSelectedAssignees((prev) => {
-      const isSelected = prev.find((a) => a.id === assignee.id)
-      return isSelected ? prev.filter((a) => a.id !== assignee.id) : [...prev, assignee]
+      const isSelected = prev.find((a) => a._id === assignee._id)
+      return isSelected ? prev.filter((a) => a._id !== assignee._id) : [...prev, assignee]
     })
   }
 
   const toggleTag = (tag) => {
     setSelectedTags((prev) => {
-      const isSelected = prev.find((t) => t.id === tag.id)
-      return isSelected ? prev.filter((t) => t.id !== tag.id) : [...prev, tag]
+      const isSelected = prev.find((t) => t._id === tag._id)
+      return isSelected ? prev.filter((t) => t._id !== tag._id) : [...prev, tag]
     })
   }
 
@@ -1629,33 +1845,62 @@ export default function TodoApp() {
   // ============================================
   // Add Task Handler (Desktop)
   // ============================================
-  const handleAddTask = useCallback((inputValue) => {
-    const titleToUse = inputValue || newTaskInput
+  const handleAddTask = useCallback(async (inputValue) => {
+    const titleToUse = inputValue || newTaskInput;
     if (titleToUse.trim() !== "") {
-      const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
+      const assigneeIds = selectedAssignees.map((a) => a._id);
+      const tagIds = selectedTags.map((t) => t._id);
+
       const newTask = {
-        id: newId,
         title: titleToUse.trim(),
-        assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
+        assigneesId: assigneeIds,
         roles: [],
-        tags: selectedTags.map((t) => t.name),
+        tagsId: tagIds,
         status: "ongoing",
         category: "general",
         dueDate: selectedDate,
         dueTime: selectedTime,
+        reminder: selectedReminder,
+        repeat: selectedRepeat,
         isPinned: false,
         createdAt: new Date().toISOString(),
-      }
-      setTasks((prevTasks) => [...prevTasks, newTask])
-      setNewTaskInput("")
-      setSelectedDate("")
-      setSelectedTime("")
-      setSelectedAssignees([])
-      setSelectedTags([])
-      toast.success("Task created successfully")
-    }
-  }, [tasks, selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput])
+      };
 
+      // Add custom reminder if it exists
+      if (customReminderValue && customReminderUnit) {
+        newTask.customReminder = {
+          value: parseInt(customReminderValue),
+          unit: customReminderUnit
+        };
+      }
+
+      // Add repeat settings if repeat is set
+      if (selectedRepeat && selectedRepeat !== 'None') {
+        newTask.repeatSettings = {
+          frequency: selectedRepeat.toLowerCase(),
+          interval: 1,
+          daysOfWeek: selectedRepeat === 'Weekdays' ? [1, 2, 3, 4, 5] : [],
+        };
+      }
+
+      console.log('Creating desktop task with repeat/reminder:', newTask);
+      dispatch(createTaskThunk(newTask));
+
+      // Reset form states
+      setNewTaskInput("");
+      setSelectedDate("");
+      setSelectedTime("");
+      setSelectedReminder("");
+      setSelectedRepeat("");
+      setCustomReminderValue("");
+      setCustomReminderUnit("Minutes");
+      setSelectedAssignees([]);
+      setSelectedTags([]);
+
+      toast.success("Task created successfully");
+      await dispatch(getTaskThunk());
+    }
+  }, [selectedAssignees, selectedTags, selectedDate, selectedTime, selectedReminder, selectedRepeat, customReminderValue, customReminderUnit, newTaskInput, dispatch]);
   const handleTextareaChange = useCallback((newValue) => {
     setNewTaskInput(newValue)
   }, [])
@@ -1703,7 +1948,7 @@ export default function TodoApp() {
         className="flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-surface-base text-content-primary relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden"
       >
 
-        
+
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* ============================================ */}
           {/* HEADER */}
@@ -1711,19 +1956,18 @@ export default function TodoApp() {
           <div className="flex-shrink-0 p-4 md:p-6 pb-0">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl md:text-2xl font-bold text-content-primary">To-Do</h1>
-              
+
               <div className="flex items-center gap-2">
                 {/* Mobile: Staff Filter - Now in header */}
                 <div className="relative md:hidden" ref={mobileFilterRef}>
                   <button
                     onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
-                    className={`p-2 rounded-lg transition-colors active:scale-95 ${
-                      selectedStaffFilter.length > 0 ? 'bg-primary text-white' : 'bg-surface-button text-content-secondary hover:bg-surface-button-hover'
-                    }`}
+                    className={`p-2 rounded-lg transition-colors active:scale-95 ${selectedStaffFilter.length > 0 ? 'bg-primary text-white' : 'bg-surface-button text-content-secondary hover:bg-surface-button-hover'
+                      }`}
                   >
                     <Users size={18} />
                   </button>
-                  
+
                   {showMobileFilterMenu && (
                     <div className="absolute right-0 top-full mt-2 bg-surface-hover border border-border rounded-xl shadow-lg z-50 min-w-[220px] overflow-hidden">
                       <div className="p-2 border-b border-border">
@@ -1733,21 +1977,19 @@ export default function TodoApp() {
                         onClick={() => {
                           setSelectedStaffFilter([])
                         }}
-                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                          selectedStaffFilter.length === 0 ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
-                        }`}
+                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${selectedStaffFilter.length === 0 ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
+                          }`}
                       >
                         All Tasks
                       </button>
-                      {availableAssignees.map((staff) => (
+                      {staff.map((s) => (
                         <button
-                          key={staff.id}
+                          key={s._id}
                           onClick={() => {
-                            toggleStaffFilter(staff.id)
+                            toggleStaffFilter(s._id)
                           }}
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                            selectedStaffFilter.includes(staff.id) ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
-                          }`}
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(staff.id) ? 'bg-primary text-white' : 'text-content-secondary hover:bg-surface-hover'
+                            }`}
                         >
                           <UserCheck size={14} />
                           {staff.firstName} {staff.lastName}
@@ -1779,7 +2021,7 @@ export default function TodoApp() {
                   placeholder="New task… (Press Enter to add)"
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
-                
+
                 {/* Calendar icon */}
                 <div className="relative calendar-dropdown group">
                   <button
@@ -1799,7 +2041,7 @@ export default function TodoApp() {
                   >
                     <Calendar size={18} />
                   </button>
-                  
+
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                     <span className="font-medium">Set due date</span>
@@ -1816,7 +2058,7 @@ export default function TodoApp() {
                   >
                     <ChevronDown size={18} />
                   </button>
-                  
+
                   {/* Tooltip - hidden when dropdown is open */}
                   {!isAssignDropdownOpen && (
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
@@ -1833,11 +2075,11 @@ export default function TodoApp() {
                             Assign to Staff
                           </h4>
                           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
-                            {availableAssignees.map((assignee) => {
-                              const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
+                            {staff.map((assignee) => {
+                              const isSelected = selectedAssignees.find((a) => a._id === assignee._id)
                               return (
                                 <button
-                                  key={assignee.id}
+                                  key={assignee._id}
                                   className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-content-primary hover:bg-surface-button-hover rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
@@ -1852,7 +2094,7 @@ export default function TodoApp() {
                             })}
                           </div>
                         </div>
-                        
+
                         <div>
                           <h4 className="text-sm font-medium text-content-primary mb-2 flex items-center gap-2">
                             <Tag size={14} />
@@ -1860,10 +2102,10 @@ export default function TodoApp() {
                           </h4>
                           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
                             {configuredTags.map((tag) => {
-                              const isSelected = selectedTags.find((t) => t.id === tag.id)
+                              const isSelected = selectedTags.find((t) => t._id === tag._id)
                               return (
                                 <button
-                                  key={tag.id}
+                                  key={tag._id}
                                   className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-content-primary hover:bg-surface-button-hover rounded"
                                   onClick={(e) => {
                                     e.stopPropagation()
@@ -1883,7 +2125,7 @@ export default function TodoApp() {
                             })}
                           </div>
                         </div>
-                        
+
                         <button
                           onClick={() => setIsAssignDropdownOpen(false)}
                           className="w-full px-3 py-2 bg-surface-button text-content-secondary rounded-lg text-xs hover:bg-surface-button-hover"
@@ -1895,7 +2137,7 @@ export default function TodoApp() {
                   )}
                 </div>
               </div>
-              
+
               {/* Desktop: Tags Button */}
               <div className="relative group">
                 <button
@@ -1905,7 +2147,7 @@ export default function TodoApp() {
                   <Tag size={16} />
                   <span>Tags</span>
                 </button>
-                
+
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Manage Tags</span>
@@ -1921,22 +2163,20 @@ export default function TodoApp() {
             <div className="hidden md:flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setSelectedStaffFilter([])}
-                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${
-                  selectedStaffFilter.length === 0 ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                }`}
+                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${selectedStaffFilter.length === 0 ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                  }`}
               >
                 All Tasks
               </button>
-              {availableAssignees.map((staff) => (
+              {staff.map((s) => (
                 <button
-                  key={staff.id}
-                  onClick={() => toggleStaffFilter(staff.id)}
-                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${
-                    selectedStaffFilter.includes(staff.id) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
+                  key={s._id}
+                  onClick={() => toggleStaffFilter(s._id)}
+                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${selectedStaffFilter.includes(s._id) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    }`}
                 >
                   <UserCheck size={14} />
-                  {staff.firstName} {staff.lastName}
+                  {s.firstName} {s.lastName}
                 </button>
               ))}
             </div>
@@ -1970,7 +2210,7 @@ export default function TodoApp() {
                     onDuplicateRequest={handleDuplicateTask}
                     onRepeatRequest={handleRepeatRequest}
                     configuredTags={configuredTags}
-                    availableAssignees={availableAssignees}
+                    availableAssignees={staff}
                     onOpenAssignModal={handleOpenAssignModal}
                     onOpenTagsModal={handleOpenTagsModal}
                     onOpenCalendarModal={handleOpenCalendarModal}
@@ -1992,19 +2232,19 @@ export default function TodoApp() {
                     index={0}
                     isDraggingOverlay={true}
                     configuredTags={configuredTags}
-                    availableAssignees={availableAssignees}
+                    availableAssignees={staff}
                     repeatConfigs={repeatConfigs}
-                    onStatusChange={() => {}}
-                    onUpdate={() => {}}
-                    onPinToggle={() => {}}
-                    onRemove={() => {}}
-                    onEditRequest={() => {}}
-                    onDeleteRequest={() => {}}
-                    onDuplicateRequest={() => {}}
-                    onRepeatRequest={() => {}}
-                    onOpenAssignModal={() => {}}
-                    onOpenTagsModal={() => {}}
-                    onOpenCalendarModal={() => {}}
+                    onStatusChange={() => { }}
+                    onUpdate={() => { }}
+                    onPinToggle={() => { }}
+                    onRemove={() => { }}
+                    onEditRequest={() => { }}
+                    onDeleteRequest={() => { }}
+                    onDuplicateRequest={() => { }}
+                    onRepeatRequest={() => { }}
+                    onOpenAssignModal={() => { }}
+                    onOpenTagsModal={() => { }}
+                    onOpenCalendarModal={() => { }}
                   />
                 ) : null}
               </DragOverlay>
@@ -2018,7 +2258,7 @@ export default function TodoApp() {
             <div className="p-4 pt-0 pb-24 space-y-4">
               {/* Ongoing Tasks */}
               <div className="bg-surface-card rounded-2xl overflow-hidden">
-                <div 
+                <div
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(245, 158, 11, 0.125)' }}
                 >
@@ -2026,9 +2266,9 @@ export default function TodoApp() {
                     onClick={() => toggleColumnCollapse('ongoing')}
                     className="flex items-center gap-1.5 flex-1"
                   >
-                    <ChevronDown 
-                      size={14} 
-                      className={`text-content-muted transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
+                    <ChevronDown
+                      size={14}
+                      className={`text-content-muted transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`}
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
                     <span className="font-medium text-content-primary text-xs">Ongoing</span>
@@ -2058,11 +2298,10 @@ export default function TodoApp() {
                         ].map((option) => (
                           <div
                             key={option.value}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                              columnSortSettings.ongoing?.sortBy === option.value 
-                                ? 'bg-surface-hover text-content-primary' 
-                                : 'text-content-secondary hover:bg-surface-hover'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${columnSortSettings.ongoing?.sortBy === option.value
+                              ? 'bg-surface-hover text-content-primary'
+                              : 'text-content-secondary hover:bg-surface-hover'
+                              }`}
                           >
                             <button
                               onClick={(e) => {
@@ -2085,8 +2324,8 @@ export default function TodoApp() {
                                 }}
                                 className="p-1 hover:bg-surface-button rounded text-content-muted"
                               >
-                                {columnSortSettings.ongoing?.sortOrder === 'asc' 
-                                  ? <ArrowUp size={14} /> 
+                                {columnSortSettings.ongoing?.sortOrder === 'asc'
+                                  ? <ArrowUp size={14} />
                                   : <ArrowDown size={14} />
                                 }
                               </button>
@@ -2163,7 +2402,7 @@ export default function TodoApp() {
 
               {/* Completed Tasks */}
               <div className="bg-surface-card rounded-2xl overflow-hidden">
-                <div 
+                <div
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(16, 185, 129, 0.125)' }}
                 >
@@ -2171,9 +2410,9 @@ export default function TodoApp() {
                     onClick={() => toggleColumnCollapse('completed')}
                     className="flex items-center gap-1.5 flex-1"
                   >
-                    <ChevronDown 
-                      size={14} 
-                      className={`text-content-muted transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`} 
+                    <ChevronDown
+                      size={14}
+                      className={`text-content-muted transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`}
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                     <span className="font-medium text-content-primary text-xs">Completed</span>
@@ -2203,11 +2442,10 @@ export default function TodoApp() {
                         ].map((option) => (
                           <div
                             key={option.value}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                              columnSortSettings.completed?.sortBy === option.value 
-                                ? 'bg-surface-hover text-content-primary' 
-                                : 'text-content-secondary hover:bg-surface-hover'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${columnSortSettings.completed?.sortBy === option.value
+                              ? 'bg-surface-hover text-content-primary'
+                              : 'text-content-secondary hover:bg-surface-hover'
+                              }`}
                           >
                             <button
                               onClick={(e) => {
@@ -2230,8 +2468,8 @@ export default function TodoApp() {
                                 }}
                                 className="p-1 hover:bg-surface-button rounded text-content-muted"
                               >
-                                {columnSortSettings.completed?.sortOrder === 'asc' 
-                                  ? <ArrowUp size={14} /> 
+                                {columnSortSettings.completed?.sortOrder === 'asc'
+                                  ? <ArrowUp size={14} />
                                   : <ArrowDown size={14} />
                                 }
                               </button>
@@ -2274,7 +2512,7 @@ export default function TodoApp() {
 
               {/* Canceled Tasks */}
               <div className="bg-surface-card rounded-2xl overflow-hidden">
-                <div 
+                <div
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.125)' }}
                 >
@@ -2282,9 +2520,9 @@ export default function TodoApp() {
                     onClick={() => toggleColumnCollapse('canceled')}
                     className="flex items-center gap-1.5 flex-1"
                   >
-                    <ChevronDown 
-                      size={14} 
-                      className={`text-content-muted transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`} 
+                    <ChevronDown
+                      size={14}
+                      className={`text-content-muted transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`}
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                     <span className="font-medium text-content-primary text-xs">Canceled</span>
@@ -2314,11 +2552,10 @@ export default function TodoApp() {
                         ].map((option) => (
                           <div
                             key={option.value}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                              columnSortSettings.canceled?.sortBy === option.value 
-                                ? 'bg-surface-hover text-content-primary' 
-                                : 'text-content-secondary hover:bg-surface-hover'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${columnSortSettings.canceled?.sortBy === option.value
+                              ? 'bg-surface-hover text-content-primary'
+                              : 'text-content-secondary hover:bg-surface-hover'
+                              }`}
                           >
                             <button
                               onClick={(e) => {
@@ -2341,8 +2578,8 @@ export default function TodoApp() {
                                 }}
                                 className="p-1 hover:bg-surface-button rounded text-content-muted"
                               >
-                                {columnSortSettings.canceled?.sortOrder === 'asc' 
-                                  ? <ArrowUp size={14} /> 
+                                {columnSortSettings.canceled?.sortOrder === 'asc'
+                                  ? <ArrowUp size={14} />
                                   : <ArrowDown size={14} />
                                 }
                               </button>
@@ -2405,7 +2642,7 @@ export default function TodoApp() {
             onPinToggle={handleTaskPinToggle}
             onRepeat={handleRepeatRequest}
             configuredTags={configuredTags}
-            availableAssignees={availableAssignees}
+            availableAssignees={staff}
             onOpenCalendarModal={handleOpenCalendarModal}
             onOpenAssignModal={handleOpenAssignModal}
             onOpenTagsModal={handleOpenTagsModal}
@@ -2421,7 +2658,7 @@ export default function TodoApp() {
           onClose={() => setShowMobileCreateModal(false)}
           onCreateTask={handleMobileCreateTask}
           configuredTags={configuredTags}
-          availableAssignees={availableAssignees}
+          availableAssignees={staff}
           onOpenCalendarModal={handleOpenCreateCalendarModal}
           onOpenAssignModal={handleOpenCreateAssignModal}
           onOpenTagsModal={handleOpenCreateTagsModal}
@@ -2443,21 +2680,17 @@ export default function TodoApp() {
         {/* ============================================ */}
         {/* MODALS */}
         {/* ============================================ */}
-        
+
         {/* Tag Manager Modal */}
         <TagManagerModal
           isOpen={isTagManagerOpen}
           onClose={() => setIsTagManagerOpen(false)}
-          tags={configuredTags}
+          tags={tags}
           onAddTag={(newTag) => {
-            setConfiguredTags([...configuredTags, newTag])
-            
+            dispatch(createTagsThunk(newTag))
           }}
-          onDeleteTag={deleteTag}
+        // onDeleteTag={deleteTag}
         />
-
-      
-
 
         {/* Delete Modal */}
         <DeleteModal
@@ -2487,7 +2720,7 @@ export default function TodoApp() {
           <div className="fixed inset-0 z-[80]">
             <AssignModal
               task={assignModalTask}
-              availableAssignees={availableAssignees}
+              availableAssignees={staff}
               availableRoles={[]}
               onClose={() => {
                 if (createModeAssignModal) {
