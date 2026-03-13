@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OrgaGym</string>
+    <string name="title_activity_main">OrgaGym</string>
+    <string name="package_name">com.orgagym.app</string>
+    <string name="custom_url_scheme">com.orgagym.app</string>
+</resources>
