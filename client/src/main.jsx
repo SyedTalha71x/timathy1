@@ -15,11 +15,13 @@ import App from "./App.jsx";
 import { store } from "./app/store.js";
 import { Provider } from 'react-redux'
 import { Capacitor } from '@capacitor/core';
-import { StatusBar } from '@capacitor/status-bar';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 // iOS: WebView unterhalb der Statusleiste starten
 if (Capacitor.isNativePlatform()) {
   StatusBar.setOverlaysWebView({ overlay: false });
+  StatusBar.setStyle({ style: Style.Dark });
+  StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
 }
 
 createRoot(document.getElementById("root")).render(
