@@ -1,0 +1,27 @@
+const express = require('express')
+
+const router = express.Router();
+
+
+const { notesOfStudio, notesOfUser, getNotesOfStudio, getNotesOfStaff, updateNotes, deleteNotes } = require('../controllers/NotesController')
+
+const { verifyAccessToken } = require('../middleware/verifyToken')
+
+
+
+
+
+router.use(verifyAccessToken)
+
+router.post('/studio/create', notesOfStudio)
+router.post('/user/create', notesOfUser)
+router.get('/studio/get', getNotesOfStudio)
+router.get('/user/get', getNotesOfStaff)
+
+
+
+router.put('/:noteId', updateNotes)
+router.delete('/:noteId', deleteNotes)
+
+
+module.exports = router

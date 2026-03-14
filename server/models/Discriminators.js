@@ -172,7 +172,7 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     },
     staffRole: {
         type: String,
-        enum: ['manager', 'employee','admin'],
+        enum: ['manager', 'employee', 'admin'],
         // required: true,
     },
 
@@ -224,7 +224,11 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     img: {
         url: String,
         public_id: String
-    }
+    },
+    notes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Notes'
+    }]
 }))
 
 module.exports = { AdminModel, MemberModel, StaffModel }
