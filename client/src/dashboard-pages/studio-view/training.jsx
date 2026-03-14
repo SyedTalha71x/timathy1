@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import {
   Play,
   Pause,
@@ -33,12 +33,11 @@ import {
   trainingPlansData,
   trainingCategoriesData,
   memberTrainingPlansData,
-  
+
   // Legacy Compatibility
-  staffMembersData,
   membersData,
   categoriesData,
-  
+
   // Helper Functions
   getVideoById,
   getPlanById,
@@ -49,7 +48,7 @@ import {
   getPlanCreatorName,
   canEditPlan as checkCanEditPlan,
   getVideoInstructor,
-  
+
   // APIs (fÃ¼r spÃ¤tere Backend-Integration)
   trainingPlansApi,
   memberTrainingPlansApi,
@@ -64,6 +63,8 @@ import CreatePlanModal from "../../components/studio-components/training-compone
 import EditPlanModal from "../../components/studio-components/training-components/edit-plan-modal"
 import VideoModal from "../../components/shared/training/video-modal"
 import AddToPlanModal from "../../components/studio-components/training-components/add-to-plan-modal"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -77,21 +78,21 @@ const ResponsiveTagList = ({ tags }) => {
 
     const container = containerRef.current;
     const containerWidth = container.offsetWidth;
-    
+
     const getTagWidth = (text) => {
       return text.length * 7 + 16 + 4;
     };
-    
+
     const badgeWidth = 32;
     let totalWidth = 0;
     let count = 0;
-    
+
     for (let i = 0; i < tags.length; i++) {
       const tagWidth = getTagWidth(tags[i]);
       const remainingTags = tags.length - (i + 1);
       const needsBadge = remainingTags > 0;
       const requiredWidth = tagWidth + (needsBadge ? badgeWidth : 0);
-      
+
       if (totalWidth + requiredWidth <= containerWidth) {
         totalWidth += tagWidth;
         count++;
@@ -102,21 +103,21 @@ const ResponsiveTagList = ({ tags }) => {
         break;
       }
     }
-    
+
     setVisibleCount(Math.max(1, count));
   }, [tags]);
 
   useEffect(() => {
     calculateVisibleTags();
-    
+
     const resizeObserver = new ResizeObserver(() => {
       calculateVisibleTags();
     });
-    
+
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
-    
+
     return () => {
       resizeObserver.disconnect();
     };
@@ -149,10 +150,10 @@ export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
   const [selectedCategories, setSelectedCategories] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedStaffMembers, setSelectedStaffMembers] = useState([])
+  const [selectedStaffIds, setSelectedStaffIds] = useState([]) // Renamed for clarity
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false)
-  
+
   // -------------------------------------------------------------------------
   // STATE - Modals
   // -------------------------------------------------------------------------
@@ -167,7 +168,7 @@ export default function Training() {
   const [planToAssign, setPlanToAssign] = useState(null)
   const [videoToAdd, setVideoToAdd] = useState(null)
   const [editingPlan, setEditingPlan] = useState(null)
-  
+
   // -------------------------------------------------------------------------
   // STATE - Video Player
   // -------------------------------------------------------------------------
@@ -176,26 +177,56 @@ export default function Training() {
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  
+
   // -------------------------------------------------------------------------
-  // STATE - Data (wird spÃ¤ter durch API-Calls ersetzt)
+  // REDUX STATE
   // -------------------------------------------------------------------------
-  const [trainingVideos] = useState(trainingVideosData)
+  // -------------------------------------------------------------------------
+  // REDUX STATE - FIXED based on your actual structure
+  // -------------------------------------------------------------------------
+  const { trainings: trainingVideos = [], myPlans } = useSelector((state) => state.trainings || {})
+  const { staff = [] } = useSelector((state) => state.staff)
+  const { user } = useSelector((state) => state.auth)
+  const currentUserId = user?._id
+  // Extract staff array from the nested structure
+  // const staff = staffState?.staff || [] // This gets the array from staff.staff
+
+  // Transform staff data for consistent usage
+  const transformedStaff = useMemo(() => {
+    if (!Array.isArray(staff) || staff.length === 0) return []
+
+    return staff.map(member => ({
+      id: member._id,
+      name: `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      ...member
+    }))
+  }, [staff])
+  // -------------------------------------------------------------------------
+
+  // Update your trainingPlans state initialization
   const [trainingPlans, setTrainingPlans] = useState(
-    trainingPlansData.map(plan => ({
+    (myPlans || []).map(plan => ({
       ...plan,
-      createdBy: getPlanCreatorName(plan), // Legacy-KompatibilitÃ¤t
+      creatorId: plan.createdBy?._id?.toString(),
+      creatorName: plan.createdBy
+        ? `${plan.createdBy.firstName || ''} ${plan.createdBy.lastName || ''}`.trim()
+        : 'Unknown',
+      // Keep original data
+      ...plan
     }))
   )
   const [memberTrainingPlans, setMemberTrainingPlans] = useState(memberTrainingPlansData)
-  
+
   // -------------------------------------------------------------------------
   // STATE - Member Assignment
   // -------------------------------------------------------------------------
   const [assignedMembers, setAssignedMembers] = useState([])
   const [memberSearchQuery, setMemberSearchQuery] = useState("")
   const [selectedMembers, setSelectedMembers] = useState([])
-  
+
   // -------------------------------------------------------------------------
   // STATE - Plan Form
   // -------------------------------------------------------------------------
@@ -209,13 +240,22 @@ export default function Training() {
     exercises: [],
   })
   const [selectedExercises, setSelectedExercises] = useState([])
-  
+
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  // ========
+  // UseEffect
+  // =========
+  useEffect(() => {
+    dispatch(fetchTrainingVideos())
+    dispatch(fetchAllPlans());
+  }, [dispatch])
 
   // -------------------------------------------------------------------------
   // COMPUTED - Filtered Data
   // -------------------------------------------------------------------------
-  
+
   // Filter videos based on categories and search
   const filteredVideos = trainingVideos.filter((video) => {
     const matchesCategory =
@@ -232,20 +272,27 @@ export default function Training() {
 
   // Filter plans based on staff members and search
   const filteredPlans = trainingPlans.filter((plan) => {
-    const matchesSearch = 
-      plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      plan.description.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesStaff = selectedStaffMembers.length === 0 || 
-      selectedStaffMembers.some(staffId => {
+    const matchesSearch =
+      (plan.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (plan.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+
+    // Fix staff filtering based on your actual data structure
+    const matchesStaff = selectedStaffIds.length === 0 ||
+      selectedStaffIds.some(staffId => {
+        // Handle "own" special case - plans created by current user
         if (staffId === "own") {
-          return plan.createdByStaffId === null
+          // Check if createdBy is an object and matches current user
+          // You'll need to get currentUserId from your auth state // Get this from auth state
+          return plan.createdBy?._id === currentUserId
         }
-        const staffMember = staffMembersData.find((s) => s.id === staffId)
-        return plan.createdBy === staffMember?.name || 
-               plan.createdByStaffId?.toString() === staffId
+
+        // Check if plan was created by this staff member
+        // In your API response, createdBy is an object with _id
+        const planCreatorId = plan.createdBy?._id?.toString()
+
+        return planCreatorId === staffId
       })
-    
+
     return matchesSearch && matchesStaff
   })
 
@@ -260,7 +307,7 @@ export default function Training() {
   // -------------------------------------------------------------------------
   // HANDLERS - Member Assignment
   // -------------------------------------------------------------------------
-  
+
   const handleAssignPlan = (memberIds) => {
     if (memberIds.length === 0) return
 
@@ -282,7 +329,7 @@ export default function Training() {
         progress: "Not Started"
       }))
 
-    // Update member training plans (fÃ¼r Backend: API-Call)
+    // Update member training plans (für Backend: API-Call)
     const newAssignments = newMembers.map(memberId => ({
       id: Math.max(...memberTrainingPlans.map(m => m.id), 0) + 1,
       memberId,
@@ -318,7 +365,7 @@ export default function Training() {
   // -------------------------------------------------------------------------
   // HANDLERS - Video Player
   // -------------------------------------------------------------------------
-  
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -365,7 +412,7 @@ export default function Training() {
   // -------------------------------------------------------------------------
   // HANDLERS - Plan CRUD
   // -------------------------------------------------------------------------
-  
+
   const handleCreatePlan = () => {
     const newPlan = {
       id: Math.max(...trainingPlans.map(p => p.id), 0) + 1,
@@ -437,8 +484,8 @@ export default function Training() {
     }
 
     const updatedPlans = trainingPlans.map((plan) =>
-      plan.id === planId 
-        ? { ...plan, exercises: [...plan.exercises, exercise] } 
+      plan.id === planId
+        ? { ...plan, exercises: [...plan.exercises, exercise] }
         : plan,
     )
 
@@ -490,7 +537,7 @@ export default function Training() {
   // -------------------------------------------------------------------------
   // HANDLERS - Helper Functions
   // -------------------------------------------------------------------------
-  
+
   const canEditPlan = (plan) => {
     // Verwende die Helper-Funktion oder Legacy-Check
     return plan.createdBy === "Current User" || plan.createdByStaffId === null
@@ -498,8 +545,24 @@ export default function Training() {
 
   const getStaffDisplayName = (staffId) => {
     if (staffId === "all") return "All Staff Plans"
-    const member = staffMembersData.find((s) => s.id === staffId)
+    const member = transformedStaff.find((s) => s.id === staffId)
     return member?.name || staffId
+  }
+
+  // Toggle staff selection
+  const toggleStaffSelection = (staffId) => {
+    setSelectedStaffIds(prev => {
+      if (prev.includes(staffId)) {
+        return prev.filter(id => id !== staffId)
+      } else {
+        return [...prev, staffId]
+      }
+    })
+  }
+
+  // Clear all staff filters
+  const clearStaffFilters = () => {
+    setSelectedStaffIds([])
   }
 
   // Load assigned members when opening assign modal
@@ -552,22 +615,20 @@ export default function Training() {
           <div className="flex border-b border-border-subtle mb-6">
             <button
               onClick={() => setActiveTab("videos")}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
-                activeTab === "videos"
-                  ? "text-content-primary border-b-2 border-primary"
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
+                ? "text-content-primary border-b-2 border-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               <Play size={16} className="inline mr-1 sm:mr-2" />
               Training Videos
             </button>
             <button
               onClick={() => setActiveTab("plans")}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
-                activeTab === "plans"
-                  ? "text-content-primary border-b-2 border-primary"
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "plans"
+                ? "text-content-primary border-b-2 border-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               <Target size={16} className="inline mr-1 sm:mr-2" />
               Training Plans
@@ -597,11 +658,10 @@ export default function Training() {
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
                 <button
                   onClick={() => setSelectedCategories([])}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                    selectedCategories.length === 0
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
+                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.length === 0
+                    ? "bg-primary text-white"
+                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    }`}
                 >
                   All
                 </button>
@@ -615,11 +675,10 @@ export default function Training() {
                         setSelectedCategories([...selectedCategories, category.id])
                       }
                     }}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                      selectedCategories.includes(category.id)
-                        ? `bg-primary text-white`
-                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                    }`}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes(category.id)
+                      ? `bg-primary text-white`
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                      }`}
                   >
                     {category.name}
                   </button>
@@ -636,7 +695,7 @@ export default function Training() {
                   >
                     <div className="relative">
                       <img
-                        src={video.thumbnail || "/placeholder.svg"}
+                        src={video.thumbnail?.url || "/placeholder.svg"}
                         alt={video.title}
                         className="w-full h-36 sm:h-48 object-cover"
                       />
@@ -679,7 +738,7 @@ export default function Training() {
           {/* =============================================================== */}
           {activeTab === "plans" && (
             <div>
-              {/* Search */}
+              {/* Search and Create Button */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
@@ -703,30 +762,33 @@ export default function Training() {
               {/* Staff Member Pills */}
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
                 <button
-                  onClick={() => setSelectedStaffMembers([])}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                    selectedStaffMembers.length === 0
-                      ? "bg-primary text-white"
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                  }`}
+                  onClick={clearStaffFilters}
+                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.length === 0
+                    ? "bg-primary text-white"
+                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    }`}
                 >
                   All
                 </button>
-                {staffMembersData.filter(member => member.id !== "all").map((member) => (
+                {/* "My Plans" option */}
+                <button
+                  onClick={() => toggleStaffSelection("own")}
+                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.includes("own")
+                    ? "bg-primary text-white"
+                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    }`}
+                >
+                  My Plans
+                </button>
+                {/* Staff members */}
+                {transformedStaff.map((member) => (
                   <button
                     key={member.id}
-                    onClick={() => {
-                      if (selectedStaffMembers.includes(member.id)) {
-                        setSelectedStaffMembers(selectedStaffMembers.filter(id => id !== member.id))
-                      } else {
-                        setSelectedStaffMembers([...selectedStaffMembers, member.id])
-                      }
-                    }}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                      selectedStaffMembers.includes(member.id)
-                        ? "bg-primary text-white"
-                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                    }`}
+                    onClick={() => toggleStaffSelection(member.id)}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.includes(member.id)
+                      ? "bg-primary text-white"
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                      }`}
                   >
                     {member.name}
                   </button>
@@ -766,7 +828,7 @@ export default function Training() {
                       )}
                       <div className="flex items-center gap-2 text-sm text-content-muted">
                         <User size={14} />
-                        <span className="truncate">by {plan.createdBy || getPlanCreatorName(plan)}</span>
+                        <span className="truncate">by {plan.creatorName}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-2">
@@ -817,7 +879,7 @@ export default function Training() {
       {/* =============================================================== */}
       {/* MODALS */}
       {/* =============================================================== */}
-      
+
       {/* Video Modal */}
       <VideoModal
         isVideoModalOpen={isVideoModalOpen}

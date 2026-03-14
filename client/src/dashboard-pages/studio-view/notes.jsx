@@ -13,6 +13,7 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import toast from "../../components/shared/SharedToast"
 import { useDispatch, useSelector } from "react-redux"
 import { getTagsThunk } from "../../features/todos/todosSlice"
+import { createPersonalNotesThunk, createStudioNotesThunk, getPersonalNotesThunk, getStudioNotesThunk, updateNoteThunk } from "../../features/notes/noteSlice"
 
 // Available tags
 const AVAILABLE_TAGS = [
@@ -248,6 +249,8 @@ export default function NotesApp() {
   //  fetch tags
   useEffect(() => {
     dispatch(getTagsThunk())
+    dispatch(getStudioNotesThunk())
+    dispatch(getPersonalNotesThunk())
   }, [dispatch])
 
   // Track the currently loaded note ID to prevent unnecessary resets
@@ -290,7 +293,7 @@ export default function NotesApp() {
 
     // Track pending save data in ref for flush-on-close (with updatedAt)
     pendingSaveRef.current = {
-      noteId: selectedNote.id,
+      noteId: selectedNote._id,
       tabKey: activeTab,
       title: editedTitle,
       content: editedContent,
@@ -320,13 +323,14 @@ export default function NotesApp() {
         setNotes(prev => ({
           ...prev,
           [tabKey]: prev[tabKey].map(note =>
-            note.id === noteId
+            note._id === noteId
               ? { ...note, updatedAt: new Date().toISOString() }
               : note
           ),
         }))
         pendingSaveRef.current = null
       }
+      
       setHasUnsavedChanges(false)
       if (document.activeElement && document.activeElement !== document.body) {
         document.activeElement.blur()
@@ -434,9 +438,9 @@ export default function NotesApp() {
   }
 
   // Tag Management Functions
-  const handleAddTag = (newTag) => {
-    setAvailableTags([...availableTags, newTag])
-  }
+  // const handleAddTag = (newTag) => {
+  //   setAvailableTags([...tags, newTag])
+  // }
 
   const handleDeleteTag = (tagId) => {
     // Remove tag from all notes
@@ -452,14 +456,14 @@ export default function NotesApp() {
     })
 
     // Remove from available tags
-    setAvailableTags(availableTags.filter(tag => tag.id !== tagId))
+    setAvailableTags(tags.filter(tag => tag.id !== tagId))
   }
 
   // Create new note directly
   const handleCreateNote = () => {
     const note = {
-      id: Date.now(),
-      title: '',
+      // id: Date.now(),
+      title: 'untitled',
       content: '',
       tags: [],
       attachments: [],
@@ -472,7 +476,12 @@ export default function NotesApp() {
       ...prev,
       [activeTab]: [note, ...prev[activeTab]],
     }))
+    const thunk = activeTab === 'studio'
+      ? createStudioNotesThunk(note)
+      : createPersonalNotesThunk(note)
 
+
+    dispatch(thunk)
     // Reset editing state BEFORE selecting note so editor mounts with empty content
     setEditedContent('')
     setEditedTitle('')
@@ -953,9 +962,9 @@ export default function NotesApp() {
                       <SortableNoteItem
                         key={note.id}
                         note={note}
-                        isSelected={selectedNote?.id === note.id}
+                        isSelected={selectedNote?._id === note.id}
                         onClick={() => selectNote(note)}
-                        availableTags={availableTags}
+                        availableTags={tags}
                         onPin={togglePin}
                       />
                     ))}
@@ -1028,13 +1037,13 @@ export default function NotesApp() {
                   {/* Tags */}
                   <div>
                     <div className="flex flex-wrap gap-2">
-                      {(showAllTags ? availableTags : availableTags.slice(0, 6)).map(tag => (
+                      {(showAllTags ? tags : tags.slice(0, 6)).map(tag => (
                         <button
-                          key={tag.id}
-                          onClick={() => toggleTag(tag.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                          key={tag._id}
+                          onClick={() => toggleTag(tag._id)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag._id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                             }`}
-                          style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
+                          style={{ backgroundColor: editedTags.includes(tag._id) ? tag.color : undefined }}
                         >
                           <Tag size={10} />
                           {tag.name}
@@ -1488,8 +1497,8 @@ export default function NotesApp() {
       <TagManagerModal
         isOpen={showTagsModal}
         onClose={() => setShowTagsModal(false)}
-        tags={availableTags}
-        onAddTag={handleAddTag}
+        tags={tags}
+        // onAddTag={handleAddTag}
         onDeleteTag={handleDeleteTag}
       />
 

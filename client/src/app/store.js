@@ -16,7 +16,7 @@ import leadReducer from '../features/lead/leadSlice';
 import specialNotesReducer from '../features/specialNotes/specialNoteSlice'
 import staffReducer from '../features/staff/staffSlice'
 import taskReducer from '../features/todos/todosSlice'
-
+import noteReducer from '../features/notes/noteSlice'
 export const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -35,6 +35,7 @@ export const store = configureStore({
         relation: relationReducer,
         leads: leadReducer,
         specials: specialNotesReducer,
-        todos: taskReducer
+        todos: taskReducer,
+        notes: noteReducer
     }
 })

@@ -22,7 +22,7 @@ export default function TagManagerModal({ isOpen, onClose, onAddTag, onDeleteTag
 
   useEffect(() => {
     dispatch(getTagsThunk())
-    console.log('all Tags', tags)
+    // console.log('all Tags', tags)
   }, [dispatch])
 
   // Reset form when modal opens/closes
