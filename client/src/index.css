@@ -144,11 +144,6 @@ textarea::-moz-selection,
 }
 
 /* Browser date/time/color inputs – adapt picker chrome to theme */
-body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
 html {
   color-scheme: dark;
   /* Prevent pull-to-refresh and overscroll bounce */

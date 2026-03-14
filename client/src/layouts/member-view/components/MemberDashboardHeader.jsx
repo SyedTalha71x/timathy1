@@ -111,7 +111,7 @@ const MemberDashboardHeader = ({
       )}
 
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.375rem)' }}>
+      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
         {/* Left - Sidebar Toggle + Studio */}
         <div className="flex items-center gap-2">
           <button

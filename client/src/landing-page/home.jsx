@@ -26,7 +26,6 @@ import {
 // Import logo
 import OrgaGymLogo from "../../public/OrgaGym Logo.svg";
 import DashboardPng from "../../public/Dashboard.png";
-import NavBar from "./navbar";
 
 // Animated counter component
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -201,9 +200,6 @@ export default function Home() {
           backgroundSize: '50px 50px'
         }}
       />
-
-      {/* Navigation */}
-      <NavBar />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 md:pb-32 px-4">

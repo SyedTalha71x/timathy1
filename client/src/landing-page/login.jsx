@@ -267,7 +267,7 @@ export default function SignInPage() {
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8" style={{ paddingTop: `calc(env(safe-area-inset-top) + 1rem)`, paddingBottom: `calc(env(safe-area-inset-bottom) + 1rem)` }}>
+    <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8">
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
         {/* ================================================================= */}

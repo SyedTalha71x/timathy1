@@ -14,6 +14,13 @@ import "./styles/animations.css";   // Wobble, Drag & Drop
 import App from "./App.jsx";
 import { store } from "./app/store.js";
 import { Provider } from 'react-redux'
+import { Capacitor } from '@capacitor/core';
+import { StatusBar } from '@capacitor/status-bar';
+
+// iOS: WebView unterhalb der Statusleiste starten
+if (Capacitor.isNativePlatform()) {
+  StatusBar.setOverlaysWebView({ overlay: false });
+}
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
