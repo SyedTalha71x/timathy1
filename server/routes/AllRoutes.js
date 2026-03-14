@@ -24,7 +24,7 @@ const RelationRoutes = require('./RelationRoutes')
 const SpecialNoteRoutes = require('./SpecialNoteRoutes')
 const LeadRoutes = require('./LeadRoutes')
 const TodoRoutes = require('./TodoRoutes')
-
+const NotesRoutes = require('./NotesRoutes')
 
 
 const router = express.Router();
@@ -80,5 +80,5 @@ router.use('/relation', RelationRoutes);
 router.use('/special', SpecialNoteRoutes);
 router.use('/lead', LeadRoutes);
 router.use('/todos', TodoRoutes)
-
+router.use('/notes', NotesRoutes)
 module.exports = router

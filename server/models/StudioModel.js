@@ -102,6 +102,10 @@ const studioSchema = new mongoose.Schema(
     leads: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'lead'
+    }],
+    notes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'notes'
     }]
   },
   { timestamps: true }

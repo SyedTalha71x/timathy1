@@ -20,6 +20,25 @@ const uploadToCloudinary = (fileBuffer, folder = "Timathy/profiles") => {
   });
 };
 
+// --- Notes Attachments ---
+const uploadAttachment = (fileBuffer, folder = "Timathy/notes/attachments") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
+    bufferStream.pipe(stream);
+  });
+};
+
 // --- Services / Products ---
 const uploadService = (fileBuffer, folder = "Timathy/servicesImg") => {
   return new Promise((resolve, reject) => {
@@ -134,4 +153,5 @@ module.exports = {
   uploadIdlePeriod,
   uploadThumbnail,
   uploadTrainingPlanVideo,
+  uploadAttachment
 };
