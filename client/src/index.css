@@ -144,10 +144,13 @@ textarea::-moz-selection,
 }
 
 /* Browser date/time/color inputs – adapt picker chrome to theme */
-html {
-  color-scheme: dark;
+html, body {
   /* Prevent pull-to-refresh and overscroll bounce */
   overscroll-behavior: none;
+}
+
+html {
+  color-scheme: dark;
 }
 
 /* Ensure date/time input text inherits theme color */
