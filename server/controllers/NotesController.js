@@ -51,7 +51,7 @@ const notesOfStudio = async (req, res, next) => {
 
         await StudioModel.findByIdAndUpdate(studioId, {
             $addToSet: {
-                notes: note._id
+                notes: notes._id
             }
         },
             { new: true })

@@ -58,7 +58,7 @@ export const getTaskThunk = createAsyncThunk('/task/all', async (_, { rejectWith
 //           =========
 export const deleteTaskThunk = createAsyncThunk('/task/delete', async (todoId, { rejectWithValue }) => {
     try {
-        const res = await todosApi.deleteTask(todoId)
+        await todosApi.deleteTask(todoId)
         return todoId
     }
     catch (error) {
