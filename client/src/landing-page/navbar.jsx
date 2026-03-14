@@ -1,149 +1,112 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
-import FitnessLogo from "../../public/FitNess.png";
-
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+import OrgaGymLogo from "../../public/OrgaGym Logo.svg";
 
 export default function NavBar() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isMenuOpen && !event.target.closest(".sidebar")) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+  const handleNavClick = (href) => {
+    setMobileMenuOpen(false);
+    if (href.startsWith('#')) {
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
     }
+  };
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMenuOpen]);
+  const handleLogin = () => {
+    setMobileMenuOpen(false);
+    navigate('/login');
+  };
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-black bg-opacity-80" : "bg-transparent"
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-xl border-b border-white/10"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div
-        className={`${
-          isMenuOpen ? "block" : "hidden"
-        } fixed inset-0 bg-black/40  z-40 transition-opacity`}
-      ></div>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold logo text-white">
-            <h1 className="text-white text-3xl navbar_h1">FitNess</h1>
-          </a>
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white focus:outline-none"
+          <div className="flex items-center gap-2 md:gap-3">
+            <img src={OrgaGymLogo} alt="ORGAGYM" className="h-8 md:h-10 w-auto" />
+            <span className="text-lg md:text-xl font-bold text-white tracking-tight">ORGAGYM</span>
+          </div>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#features" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Features</a>
+            <a href="#overview" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Overview</a>
+            <a href="#demo" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Demo</a>
+          </div>
+          
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <a 
+              href="#demo"
+              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium text-sm transition-all duration-300 hover:scale-105"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="w-8 h-8"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              Request Demo
+            </a>
+            <button 
+              onClick={handleLogin}
+              className="px-5 py-2.5 bg-[#3F74FF] text-white rounded-xl font-medium text-sm transition-all duration-300 hover:bg-[#3F74FF]/90 hover:scale-105"
+            >
+              Login
             </button>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8 nav_links">
-            <a href="/" className="text-white hover:text-gray-300">
-              Home
-            </a>
-            <a href="#pricing" className="text-white hover:text-gray-300">
-              Pricing
-            </a>
-            <a href="#contact" className="text-white hover:text-gray-300">
-              Contact us
-            </a>
-          </div>
-
-          <div className="hidden md:flex items-center space-x-4 button_links">
-            <Link
-              to={"/login"}
-              className="px-8 text-sm py-2 text-white border-2 border-blue-500  rounded-xl  transition-all duration-500 ease-in-out hover:bg-[#3F74FF]"
-            >
-              Login
-            </Link>
-            <Link
-              to={"/register"}
-              className="px-10 text-sm py-2 bg-[#3F74FF] border-2 border-blue-500  text-white rounded-xl  hover:bg-blue-700 transition-all duration-500 ease-in-out"
-            >
-              Register
-            </Link>
-          </div>
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-white"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-      </div>
 
-      <div
-        className={`${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed top-0 left-0 w-64 h-full bg-[#141414] bg-opacity-90 transition-transform duration-500 ease-in-out z-40`}
-      >
-        <button
-          onClick={() => setIsMenuOpen(false)}
-          className="absolute  bottom-3 left-26 text-white cursor-pointer text-4xl focus:outline-none"
-        >
-          &times;
-        </button>
-
-        <div className="flex flex-col items-center space-y-8 mt-20 nav_links">
-          <a href="/" className="text-white hover:text-gray-300">
-            Home
-          </a>
-          <a href="#pricing" className="text-white hover:text-gray-300">
-            Pricing
-          </a>
-          <a href="#contact" className="text-white hover:text-gray-300">
-            Contact us
-          </a>
-
-          <div className="flex flex-col items-center space-y-4 mt-10 button_links">
-            <Link
-              to={"/login"}
-              className="px-8 text-sm py-2 text-white border-2 border-blue-500  rounded-xl  transition-all duration-500 ease-in-out hover:bg-[#3F74FF]"
-            >
-              Login
-            </Link>
-            <Link
-              to={"/register"}
-              className="px-10 text-sm py-2 bg-[#3F74FF]  text-white rounded-xl  hover:bg-blue-700 transition-all duration-500 ease-in-out"
-            >
-              Register
-            </Link>
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-white/10 py-4 px-4">
+            <div className="flex flex-col gap-4">
+              <a 
+                href="#features" 
+                onClick={() => handleNavClick('#features')}
+                className="text-gray-300 hover:text-white transition-colors text-base font-medium py-2"
+              >
+                Features
+              </a>
+              <a 
+                href="#overview" 
+                onClick={() => handleNavClick('#overview')}
+                className="text-gray-300 hover:text-white transition-colors text-base font-medium py-2"
+              >
+                Overview
+              </a>
+              <a 
+                href="#demo" 
+                onClick={() => handleNavClick('#demo')}
+                className="text-gray-300 hover:text-white transition-colors text-base font-medium py-2"
+              >
+                Demo
+              </a>
+              <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+                <a 
+                  href="#demo"
+                  onClick={() => handleNavClick('#demo')}
+                  className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium text-center"
+                >
+                  Request Demo
+                </a>
+                <button 
+                  onClick={handleLogin}
+                  className="w-full py-3 bg-[#3F74FF] text-white rounded-xl font-medium"
+                >
+                  Login
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </nav>
   );

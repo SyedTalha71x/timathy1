@@ -34,7 +34,7 @@ export default function ProfileSetup() {
   };
 
   return (
-    <div className="h-screen bg-[#0E0E0E] overflow-hidden flex justify-center items-center p-8">
+    <div className="h-screen bg-[#0E0E0E] overflow-hidden flex justify-center items-center p-8" style={{ paddingTop: `calc(env(safe-area-inset-top) + 2rem)`, paddingBottom: `calc(env(safe-area-inset-bottom) + 2rem)` }}>
       <div className="flex h-full w-full lg:p-10 md:p-8 sm:p-0 p-0 flex-col lg:flex-row items-center justify-center">
         <div className="flex flex-1 flex-col justify-center lg:p-16 md:p-14 sm:p-6 p-4">
           <div className="mx-auto text-left w-full max-w-sm lg:max-w-md">

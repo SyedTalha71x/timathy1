@@ -38,7 +38,7 @@ const AdminDashboardHeader = ({
       )}
 
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40 select-none">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40 select-none" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.5rem)' }}>
         {/* Left: Logo + Hamburger */}
         <div className="flex items-center gap-2">
           <div className="bg-orange-500 p-2 rounded-md">

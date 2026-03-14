@@ -1,5 +1,8 @@
 {
   "appId": "com.orgagym.app",
   "appName": "OrgaGym",
-  "webDir": "dist"
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "always"
+  }
 }

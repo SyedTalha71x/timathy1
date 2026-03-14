@@ -110,7 +110,7 @@ const DashboardHeader = ({
       )}
 
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
+      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.375rem)' }}>
         <div className="flex items-center gap-2">
           <div className="bg-primary p-2 rounded-md">
             <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
