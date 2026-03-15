@@ -246,9 +246,18 @@ const StudioMenu = () => {
     } catch (error) {
       setIsScanning(false)
 
-      // Detect if permission was denied vs other errors
       if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
-        setCameraError("denied")
+        // Native prompt with Settings button
+        if (Capacitor.isNativePlatform()) {
+          const goToSettings = window.confirm(
+            "Camera access is required for QR check-in.\n\nWould you like to open Settings to enable it?"
+          )
+          if (goToSettings) {
+            window.open("app-settings:", "_self")
+          }
+        } else {
+          setCameraError("denied")
+        }
       } else {
         setCameraError("Camera is not available on this device")
       }
