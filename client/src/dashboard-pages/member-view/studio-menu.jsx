@@ -39,6 +39,7 @@ const StudioMenu = () => {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const scannerRef = useRef(null)
+  const tabBarRef = useRef(null)
 
   const [isEditingPersonal, setIsEditingPersonal] = useState(false)
   const [isEditingAddress, setIsEditingAddress] = useState(false)
@@ -428,29 +429,39 @@ const StudioMenu = () => {
   ]
 
   return (
-    <div className="min-h-screen rounded-3xl bg-surface-base p-2 md:p-6 select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
       <PostPreviewModal />
 
-      {/* ===== TAB NAVIGATION ===== */}
-      <div className="flex border-b border-border overflow-x-auto">
-        <div className="flex min-w-max w-full">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveSection(tab.key)}
-              className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === tab.key
-                  ? "text-content-primary border-b-2 border-primary"
-                  : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      {/* ===== TAB NAVIGATION — sticky ===== */}
+      <div className="flex-shrink-0 px-2 md:px-6 pt-2 md:pt-6">
+        <div ref={tabBarRef} className="flex border-b border-border overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex min-w-max w-full">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                data-tab={tab.key}
+                onClick={() => {
+                  setActiveSection(tab.key)
+                  // Auto-scroll tab into view
+                  requestAnimationFrame(() => {
+                    const btn = tabBarRef.current?.querySelector(`[data-tab="${tab.key}"]`)
+                    btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+                  })
+                }}
+                className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === tab.key
+                    ? "text-content-primary border-b-2 border-primary"
+                    : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ===== TAB CONTENT ===== */}
-      <div className="mt-4 sm:mt-6">
+      {/* ===== TAB CONTENT — scrollable ===== */}
+      <div className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6">
 
         {/* ============================================================
             TAB: STUDIO INFO

@@ -399,19 +399,17 @@ export default function Training() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary p-4 sm:p-4 md:p-6">
-        <div className="w-full mx-auto">
-          <div className="flex  sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-            <div>
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Training</h1>
-            </div>
-
+      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+        {/* Header — stays fixed */}
+        <div className="flex-shrink-0">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+            <h1 className="text-lg sm:text-2xl font-bold">Training</h1>
           </div>
 
-          <div className="flex border-b border-border-subtle mb-6">
+          <div className="flex border-b border-border px-4 sm:px-6">
             <button
               onClick={() => setActiveTab("videos")}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
+              className={`flex-1 px-2 sm:px-4 py-3 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
                   ? "text-content-primary border-b-2 border-primary"
                   : "text-content-muted hover:text-content-primary"
                 }`}
@@ -421,7 +419,7 @@ export default function Training() {
             </button>
             <button
               onClick={() => setActiveTab("plans")}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "plans"
+              className={`flex-1 px-2 sm:px-4 py-3 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "plans"
                   ? "text-content-primary border-b-2 border-primary"
                   : "text-content-muted hover:text-content-primary"
                 }`}
@@ -430,6 +428,10 @@ export default function Training() {
               Training Plans ({myPlans.length})
             </button>
           </div>
+        </div>
+
+        {/* Content — scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
 
           {activeTab === "videos" && (
             <div>
@@ -441,7 +443,7 @@ export default function Training() {
                     placeholder="Search training videos"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-surface-card pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-content-primary border border-border outline-none focus:border-accent-blue transition-colors"
+                    className="w-full bg-surface-card pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-content-primary border border-border outline-none focus:border-primary transition-colors"
                   />
                 </div>
 

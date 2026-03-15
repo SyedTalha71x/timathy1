@@ -607,25 +607,7 @@ export default function StudioChat() {
 
         {/* Mobile Input Area - matching studio */}
         <div className="px-3 pt-3 pb-6 bg-surface-base border-t border-border flex-shrink-0 relative">
-          {/* Emoji Picker - Shared Component */}
-          <EmojiPicker
-            isOpen={showEmojiPicker}
-            onEmojiSelect={handleEmojiSelect}
-            onClose={() => setShowEmojiPicker(false)}
-            className="absolute bottom-full mb-2 left-3 z-[201]"
-            pickerRef={emojiPickerRef}
-            ignoreCloseSelectors={['button[aria-label="emoji-picker-toggle"]']}
-          />
-
           <div className="flex items-end gap-2 bg-surface-dark px-3 py-2 rounded-xl border border-border">
-            <button
-              className="p-2 hover:bg-surface-button rounded-full flex-shrink-0"
-              aria-label="emoji-picker-toggle"
-              onClick={toggleEmojiPicker}
-              type="button"
-            >
-              <Smile className="w-5 h-5 text-content-muted" />
-            </button>
             <textarea
               ref={mobileTextareaRef}
               value={messageText}

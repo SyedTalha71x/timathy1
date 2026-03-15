@@ -169,3 +169,18 @@ input[type="datetime-local"] {
 .light input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1) !important;
 }
+
+/* ============================================
+   MOBILE: Hide all scrollbars
+   Native apps never show scrollbars.
+   Desktop (lg+) keeps them visible.
+   ============================================ */
+@media (max-width: 1023px) {
+  * {
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE/Edge */
+  }
+  *::-webkit-scrollbar {
+    display: none !important; /* Chrome/Safari/iOS */
+  }
+}

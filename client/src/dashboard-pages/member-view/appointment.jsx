@@ -437,7 +437,7 @@ const Appointments = () => {
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
-                            {appointment.timeSlot.start}-{appointment.timeSlot.end}
+                            {appointment.timeSlot?.start}-{appointment.timeSlot?.end}
                           </span>
                         </div>
                       </div>
