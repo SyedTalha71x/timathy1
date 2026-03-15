@@ -9,8 +9,7 @@
   },
   "plugins": {
     "Keyboard": {
-      "resize": "none",
-      "scrollPadding": false
+      "resize": "body"
     }
   }
 }
