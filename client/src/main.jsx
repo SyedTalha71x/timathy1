@@ -25,30 +25,11 @@ if (Capacitor.isNativePlatform()) {
   StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
 }
 
-// iOS: Keyboard Handling — steuert App-Höhe über CSS-Variable
-// scrollEnabled:false + resize:"none" = Leiste weg, aber iOS passt Layout nicht an.
-// Wir setzen --app-height auf #root, damit die gesamte App über der Tastatur bleibt.
+// iOS: Keyboard — Sicherheitsnetz für Viewport-Reset nach Tastatur-Schließen
+// resize:"body" handhabt das Input-Scrolling nativ.
+// Bounce wird nativ in AppDelegate.swift deaktiviert.
 if (Capacitor.getPlatform() === 'ios') {
-  Keyboard.addListener('keyboardWillShow', (info) => {
-    const kbHeight = info.keyboardHeight
-    const root = document.getElementById('root')
-    document.documentElement.style.setProperty('--app-height', `calc(100dvh - ${kbHeight}px)`)
-    if (root) root.style.overflow = 'hidden'
-
-    // Fokussiertes Element in den sichtbaren Bereich scrollen
-    setTimeout(() => {
-      const activeEl = document.activeElement
-      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }, 150)
-  })
-
   Keyboard.addListener('keyboardWillHide', () => {
-    const root = document.getElementById('root')
-    document.documentElement.style.removeProperty('--app-height')
-    if (root) root.style.overflow = ''
-
     setTimeout(() => {
       window.scrollTo(0, 0)
       document.body.scrollTop = 0

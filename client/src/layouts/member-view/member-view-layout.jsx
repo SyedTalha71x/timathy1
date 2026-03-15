@@ -27,7 +27,7 @@ useEffect(() => {
   const hasOwnScroll = isCommunicationPage || isSettingsPage;
 
   return (
-    <div className="member-root bg-surface-dark h-full overflow-hidden">
+    <div className="member-root bg-surface-dark h-dvh overflow-hidden">
       <div className="flex flex-col md:flex-row h-full">
         {/* Sidebar */}
         <Sidebar
@@ -41,7 +41,7 @@ useEffect(() => {
         <main
           ref={mainRef}
           style={{ overscrollBehavior: 'contain' }}
-         className={`flex-1 md:h-full h-[calc(100%-3.5rem)] 
+         className={`flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] 
   lg:pt-0 md:pt-14 sm:pt-14 pt-14
   p-2
   transition-all duration-500 ease-in-out

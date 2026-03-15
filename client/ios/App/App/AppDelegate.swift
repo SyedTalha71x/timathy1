@@ -8,6 +8,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        // Disable WKWebView bounce/rubber-band effect
+        // This prevents the white/dark bar appearing when overscrolling
+        // without affecting keyboard resize behavior or native scrolling
+        DispatchQueue.main.async {
+            if let rootVC = self.window?.rootViewController as? CAPBridgeViewController {
+                rootVC.webView?.scrollView.bounces = false
+                rootVC.webView?.scrollView.alwaysBounceVertical = false
+                rootVC.webView?.scrollView.alwaysBounceHorizontal = false
+            }
+        }
+
         return true
     }
 
