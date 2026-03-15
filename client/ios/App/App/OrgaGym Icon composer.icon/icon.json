@@ -16,13 +16,18 @@
     {
       "layers" : [
         {
+          "blend-mode" : "normal",
+          "fill" : "automatic",
+          "glass" : true,
+          "hidden" : false,
           "image-name" : "OrgaGym Logo.svg",
           "name" : "OrgaGym Logo",
+          "opacity" : 1,
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
               1.1368683772161603e-13,
-              -47.88612257972659
+              -5.831435079726589
             ]
           }
         }
