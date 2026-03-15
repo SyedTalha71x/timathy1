@@ -5,7 +5,8 @@
   "ios": {
     "contentInset": "always",
     "backgroundColor": "#0f0f0f",
-    "scrollEnabled": false
+    "scrollEnabled": false,
+    "allowsInlineMediaPlayback": true
   },
   "plugins": {
     "Keyboard": {
