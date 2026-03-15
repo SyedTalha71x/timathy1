@@ -14,10 +14,10 @@ const router = express.Router();
 
 
 router.get('/all', verifyAccessToken, isStaff || isAdmin, getStaff)
-router.get('/:id', verifyAccessToken, getStaffById)
-router.post('/create', uploadImage.single('img'), verifyAccessToken, isAdmin, createStaff)
+router.get('/:staffId', verifyAccessToken, getStaffById)
+router.post('/create', uploadImage.single('img'), verifyAccessToken, isStaff || isAdmin, createStaff)
 router.post('/login', loginStaff)
-router.put('/:id', uploadImage.single('img'), verifyAccessToken, updateStaffById)
-router.delete('/:id', verifyAccessToken, deleteStaffById)
+router.put('/:staffId', uploadImage.single('img'), verifyAccessToken, updateStaffById)
+router.delete('/:staffId', verifyAccessToken, deleteStaffById)
 
 module.exports = router

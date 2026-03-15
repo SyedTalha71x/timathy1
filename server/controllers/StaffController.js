@@ -14,27 +14,38 @@ const { uploadToCloudinary } = require('../utils/CloudinaryUpload')
 
 // const { Readable } = require('stream');
 const StudioModel = require('../models/StudioModel');
+const { generateStaffId } = require('../utils/GenerateRandomID');
 
 
 
-// create staff/Staff
+
 // create staff/Staff
 const createStaff = async (req, res, next) => {
   try {
+    const userId = req.user?._id;
+    const studioId = req.user?.studio;
+
     const {
       firstName,
       lastName,
       email,
-      username,
-      password,
-      studioId,
       phone,
-      city,
-      street,
-      country,
-      zipCode,
+      telephone,
+      gender,
       dateOfBirth,
-      houseNumber
+      street,
+      zipCode,
+      city,
+      country,
+      staffRole,
+      staffColor,
+      vacationDays,
+      remainingDays,
+      about,
+      username,
+      staffId,
+      password,
+
     } = req.body;
 
 
@@ -43,31 +54,43 @@ const createStaff = async (req, res, next) => {
     if (checkEmail) throw new ConflictError("❗️ Email Conflict");
 
     const studio = await StudioModel.findById(studioId)
-    // // Image required
-    // if (!req.file) throw new NotFoundError("Image Not Uploaded");
+    // Image required
+    if (!req.file) throw new NotFoundError("Image Not Uploaded");
 
-    // // upload image to cloudinary
-    // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+    // upload image to cloudinary
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
     // Password validation
     if (!password || password.length < 8)
       throw new BadRequestError("Invalid Password: Must be at least 8 characters");
 
     const securePassword = await hashedPassword(password);
 
+    const staffNumber = await generateStaffId(staffId);
 
     // Create staff
     const staff = await StaffModel.create({
       firstName,
       lastName,
-      phone,
-      username,
-      city,
-      street,
-      country,
-      zipCode,
-      dateOfBirth,
       email,
-      houseNumber,
+      phone,
+      telephone,
+      gender,
+      dateOfBirth,
+      street,
+      zipCode,
+      city,
+      country,
+      staffRole,
+      staffColor,
+      vacationDays,
+      remainingDays,
+      about,
+      username,
+      staffId: staffNumber,
+      img: {
+        url: cloudinaryResult.secure_url,
+        public_id: cloudinaryResult.public_id
+      },
       studio: studioId,
       password: securePassword,
     });
@@ -81,8 +104,6 @@ const createStaff = async (req, res, next) => {
       email: staff.email,
       role: staff.role,
       studioId: staff.studio
-      // img: staff.img,
-      // staffRole: staff.staffRole,
     });
 
     staff.refreshToken = RefreshToken;
@@ -107,18 +128,10 @@ const createStaff = async (req, res, next) => {
       { $addToSet: { users: staff._id } }
     );
 
+    console.log('staff debug', staff)
     res.status(200).json({
       message: "Successfully Created",
-      staff: {
-        id: staff._id,
-        firstName: staff.firstName,
-        lastName: staff.lastName,
-        username: staff.username,
-        email: staff.email,
-        role: staff.role,
-        // img: staff.img,
-        staffRole: staff.staffRole,
-      },
+      staff: staff,
     });
   } catch (err) {
     next(err);
@@ -198,36 +211,31 @@ const loginStaff = async (req, res, next) => {
 // update staff/Staff
 const updateStaffById = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { staffId } = req.params;
     let updateStaff = { ...req.body };
 
-    // if (!req.file) throw new NotFoundError("Image Not Uploaded");
+    if (req.file) {
+      const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
 
-    // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+      // ✅ Save new image URL + public_id into update object
+      updateStaff.img = {
+        url: cloudinaryResult.secure_url,
+        public_id: cloudinaryResult.public_id,
+      };
+    }
 
-    // // ✅ Save new image URL + public_id into update object
-    // updateStaff.img = {
-    //   url: cloudinaryResult.secure_url,
-    //   public_id: cloudinaryResult.public_id,
-    // };
+    if (req.body.password) {
+      updateStaff.password = await hashedPassword(req.body.password)
+    }
 
     // Update staff in MongoDB
-    const staff = await StaffModel.findByIdAndUpdate(id, updateStaff, { new: true });
+    const staff = await StaffModel.findByIdAndUpdate(staffId, updateStaff, { new: true });
     if (!staff) throw new NotFoundError("staff not found");
 
     res.status(200).json({
+      success: true,
       message: "Successfully Updated",
-      staff: {
-        id: staff._id,
-        firstName: staff.firstName,
-        lastName: staff.lastName,
-        username: staff.username,
-        email: staff.email,
-        studioName: staff.studioName,
-        role: staff.role,
-        // img: staff.img?.url, // ✅ now points to Cloudinary URL
-        staffRole: staff.staffRole,
-      },
+      staff: staff,
     });
   } catch (err) {
     next(err);
@@ -242,8 +250,8 @@ const updateStaffById = async (req, res, next) => {
 // get staff/Staff byID
 const getStaffById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const staff = await StaffModel.findById(id).populate('studio', 'studioName studioOwner logo email phone').select('-password');
+    const { staffId } = req.params;
+    const staff = await StaffModel.findById(staffId).populate('studio', 'studioName studioOwner logo email phone').select('-password');
     if (!staff) throw new NotFoundError("staff not found");
 
     res.status(200).json({ staff });
@@ -258,8 +266,8 @@ const getStaffById = async (req, res, next) => {
 // delete Staff/staff
 const deleteStaffById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const staff = await StaffModel.findByIdAndDelete(id);
+    const { staffId } = req.params;
+    const staff = await StaffModel.findByIdAndDelete(staffId);
     if (!staff) throw new NotFoundError("staff not found");
 
     res.status(200).json({ message: "Successfully Deleted" });

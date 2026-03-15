@@ -8,6 +8,8 @@ import useCountries from "../../../hooks/useCountries";
 import DatePickerField from "../../shared/DatePickerField";
 import ColorPickerModal from "../../shared/ColorPickerModal";
 import CustomSelect from "../../shared/CustomSelect";
+import { useSelector, useDispatch } from 'react-redux'
+import { createStaffThunk, fetchAllStaffThunk } from '../../../features/staff/staffSlice'
 
 // Initials Avatar Component - Blue background with initials (like members)
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -24,7 +26,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   }
 
   return (
-    <div 
+    <div
       className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
@@ -81,8 +83,13 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
       canvas.height = video.videoHeight
       const ctx = canvas.getContext('2d')
       ctx.drawImage(video, 0, 0)
-      const imageData = canvas.toDataURL('image/jpeg', 0.8)
-      onCapture(imageData)
+      
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+        onCapture(file);
+      }, 'image/jpeg', 0.8);
+      
       stopCamera()
       onClose()
     }
@@ -103,12 +110,12 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
               <p className="text-red-400 text-sm mb-4">{error}</p>
-              <button 
+              <button
                 onClick={startCamera}
                 className="px-4 py-2 bg-surface-button text-content-primary rounded-xl text-sm"
               >
@@ -118,16 +125,16 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
           ) : (
             <>
               <div className="relative bg-black rounded-xl overflow-hidden aspect-square mb-4">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
+                <video
+                  ref={videoRef}
+                  autoPlay
                   playsInline
                   muted
                   className="w-full h-full object-cover"
                 />
               </div>
               <canvas ref={canvasRef} className="hidden" />
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={toggleCamera}
@@ -153,7 +160,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
 function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   const { countries, loading } = useCountries();
-
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("details")
   const [showPassword, setShowPassword] = useState(false)
   const [showCameraModal, setShowCameraModal] = useState(false)
@@ -167,9 +174,9 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     role: "",
     about: "",
     gender: "",
-    img: null,
+    img: null, // For the File object
+    imgData: null, // For Cloudinary response { url, public_id }
     username: "",
-    userId: "",
     street: "",
     zipCode: "",
     city: "",
@@ -179,7 +186,9 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     vacationDaysCurrentYear: 30,
     birthday: "",
     color: "#6366f1",
-  })
+  });
+
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Calculate pro-rated vacation days when component mounts or vacationEntitlement changes
   useEffect(() => {
@@ -245,23 +254,42 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   }
 
   const handleImgUpload = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setNewStaff((prev) => ({ ...prev, img: reader.result }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+      setNewStaff({ ...newStaff, img: file });
 
-  const handleCameraCapture = (imageData) => {
-    setNewStaff((prev) => ({ ...prev, img: imageData }))
-  }
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCameraCapture = (file) => {
+    setNewStaff((prev) => ({ ...prev, img: file }));
+    
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleRemoveImage = () => {
-    setNewStaff((prev) => ({ ...prev, img: null }))
-  }
+    setNewStaff({
+      ...newStaff,
+      img: null,
+      imgData: null
+    });
+    setImagePreview(null);
+
+    // Reset file input
+    const fileInput = document.getElementById('avatar-upload');
+    if (fileInput) fileInput.value = '';
+  };
 
   const recalculateProRatedVacation = () => {
     const currentYear = new Date().getFullYear()
@@ -282,20 +310,86 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const newStaffMember = {
-      ...newStaff,
-      id: staffMembers.length + 1,
-      userId: newStaff.username,
-      description: newStaff.about,
-      phone: newStaff.mobileNumber, // Keep backward compatibility
-      hasManualAdjustment: undefined
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Create FormData
+    const formData = new FormData();
+
+    // Append all fields
+    formData.append('firstName', newStaff.firstName);
+    formData.append('lastName', newStaff.lastName);
+    formData.append('email', newStaff.email);
+    formData.append('phone', newStaff.mobileNumber);
+    formData.append('telephone', newStaff.telephoneNumber);
+    formData.append('staffRole', newStaff.role);
+    formData.append('about', newStaff.about);
+    formData.append('gender', newStaff.gender);
+    formData.append('username', newStaff.username);
+    formData.append('street', newStaff.street);
+    formData.append('zipCode', newStaff.zipCode);
+    formData.append('city', newStaff.city);
+    formData.append('country', newStaff.country);
+    formData.append('password', newStaff.password);
+    formData.append('vacationDays', newStaff.vacationEntitlement);
+    formData.append('remainingDays', newStaff.vacationDaysCurrentYear);
+    formData.append('dateOfBirth', newStaff.birthday);
+    formData.append('staffColor', newStaff.color);
+
+    // Append image file if selected
+    if (newStaff.img) {
+      formData.append('img', newStaff.img);
     }
-    setStaffMembers([...staffMembers, newStaffMember])
-    setIsModalOpen(false)
-    toast.success("Staff created successfully")
-  }
+
+    try {
+      const result = await dispatch(createStaffThunk(formData)).unwrap();
+      console.log('Staff created:', result);
+      
+      // Update state with Cloudinary data if needed
+      if (result.staff?.img) {
+        setNewStaff(prev => ({
+          ...prev,
+          imgData: {
+            url: result.staff.img.url,
+            public_id: result.staff.img.public_id
+          }
+        }));
+      }
+      
+      await dispatch(fetchAllStaffThunk());
+      toast.success("Staff created successfully");
+      setIsModalOpen(false);
+      
+      // Reset form
+      setNewStaff({
+        firstName: "",
+        lastName: "",
+        email: "",
+        mobileNumber: "",
+        telephoneNumber: "",
+        role: "",
+        about: "",
+        gender: "",
+        img: null,
+        imgData: null,
+        username: "",
+        street: "",
+        zipCode: "",
+        city: "",
+        country: "",
+        password: "",
+        vacationEntitlement: 30,
+        vacationDaysCurrentYear: 30,
+        birthday: "",
+        color: "#6366f1",
+      });
+      setImagePreview(null);
+      
+    } catch (error) {
+      console.error('Failed to create staff:', error);
+      toast.error(error || "Failed to create staff");
+    }
+  };
 
   const tabs = [
     { id: "details", label: "Details" },
@@ -308,8 +402,8 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
         {/* Header - No + icon */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-content-primary font-bold">Create Staff</h2>
-          <button 
-            onClick={() => setIsModalOpen(false)} 
+          <button
+            onClick={() => setIsModalOpen(false)}
             className="text-content-muted hover:text-content-primary transition-colors"
           >
             <X size={24} />
@@ -322,11 +416,10 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === tab.id 
-                  ? "text-primary border-b-2 border-primary" 
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab.id
+                ? "text-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -335,17 +428,17 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-4 pr-1">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
             {activeTab === "details" && (
               <>
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 relative">
-                    {newStaff.img ? (
+                    {imagePreview ? (
                       <>
                         <img
-                          src={newStaff.img}
-                          alt="Profile"
+                          src={imagePreview}
+                          alt="Profile Preview"
                           className="w-full h-full object-cover"
                         />
                         {/* Remove button on image */}
@@ -358,10 +451,26 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                           <X size={14} />
                         </button>
                       </>
+                    ) : newStaff.imgData?.url ? (
+                      <>
+                        <img
+                          src={newStaff.imgData.url}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-1 right-1 bg-black/70 hover:bg-black/90 text-content-primary p-1.5 rounded-lg transition-colors"
+                          title="Remove image"
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
                     ) : newStaff.firstName || newStaff.lastName ? (
-                      <InitialsAvatar 
-                        firstName={newStaff.firstName} 
-                        lastName={newStaff.lastName} 
+                      <InitialsAvatar
+                        firstName={newStaff.firstName}
+                        lastName={newStaff.lastName}
                         size="lg"
                       />
                     ) : (
@@ -370,15 +479,15 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Image action buttons */}
                   <div className="flex flex-wrap gap-2">
-                    <input 
-                      type="file" 
-                      id="avatar-upload" 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={handleImgUpload} 
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImgUpload}
                     />
                     <label
                       htmlFor="avatar-upload"
@@ -401,7 +510,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">
@@ -480,7 +589,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
                       <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                        <span className={newStaff.birthday ? "text-content-primary" : "text-content-faint"}>{newStaff.birthday ? (() => { const [y,m,d] = newStaff.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <span className={newStaff.birthday ? "text-content-primary" : "text-content-faint"}>{newStaff.birthday ? (() => { const [y, m, d] = newStaff.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                         <DatePickerField value={newStaff.birthday} onChange={(val) => setNewStaff(prev => ({ ...prev, birthday: val }))} />
                       </div>
                     </div>
@@ -504,7 +613,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 {/* Address */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Street</label>
                     <input
@@ -562,7 +671,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 {/* Employment */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Employment</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">
                       Role<span className="text-accent-red ml-1">*</span>
@@ -666,7 +775,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 {/* Additional Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">About</label>
                     <textarea
@@ -684,7 +793,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             {activeTab === "access" && (
               <div className="space-y-4">
                 <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Login Credentials</div>
-                
+
                 <div>
                   <label className="text-sm text-content-secondary block mb-2">
                     Username<span className="text-accent-red ml-1">*</span>

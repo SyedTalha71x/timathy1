@@ -44,11 +44,12 @@ import DocumentManagementModal from "../../components/shared/DocumentManagementM
 import StaffViewDetailsModal from "../../components/studio-components/staff-components/staff-view-details-modal"
 import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
+import { capitalizeWords } from "../../utils/stringUtils";
 
 const StaffContext = createContext(null)
 
 // Role Tag Component
-const RoleTag = ({ role, compact = false }) => {
+const RoleTag = ({ staffRole, compact = false }) => {
   const getDynamicRoleColor = (role) => {
     const roleColors = {
       'Telephone operator': 'bg-purple-600',
@@ -65,13 +66,13 @@ const RoleTag = ({ role, compact = false }) => {
     return roleColors[role] || 'bg-content-faint';
   };
 
-  const bgColor = getDynamicRoleColor(role);
+  const bgColor = getDynamicRoleColor(staffRole);
 
   if (compact) {
     return (
       <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium`}>
         <Briefcase size={12} className="flex-shrink-0" />
-        <span className="truncate max-w-[140px]">{role}</span>
+        <span className="truncate max-w-[140px]">{staffRole}</span>
       </div>
     );
   }
@@ -79,7 +80,7 @@ const RoleTag = ({ role, compact = false }) => {
   return (
     <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium`}>
       <Briefcase size={14} />
-      <span>{role}</span>
+      <span>{staffRole}</span>
     </div>
   );
 };
@@ -266,12 +267,12 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
   // Sort options
   const sortOptions = [
     { value: "name", label: "Name" },
-    { value: "role", label: "Role" },
+    { value: "staffRole", label: "Staff Role" },
   ]
 
   // Get unique roles for filter
   const uniqueRoles = useMemo(() => {
-    return [...new Set(staffMembers.map(s => s.role))].sort()
+    return [...new Set(staffMembers.map(s => s.staffRole))].sort()
   }, [staffMembers])
 
 
@@ -323,15 +324,17 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
       const fullName = `${staff.firstName} ${staff.lastName}`.toLowerCase();
       return fullName.includes(searchQuery.toLowerCase()) ||
-        staff.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staff.staffRole?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         staff.email?.toLowerCase().includes(searchQuery.toLowerCase());
     }).slice(0, 6);
+
   }, [searchQuery, staffMembers, staffFilters]);
+
   // Handle selecting a staff from search suggestions
   const handleSelectStaff = (staff) => {
     setStaffFilters([...staffFilters, {
       staffId: staff.id,
-      staffName: `${staff.firstName} ${staff.lastName}`
+      staffName: `${staff.firstName} ${staff.lastName}`,
     }]);
     setSearchQuery("");
     setShowSearchDropdown(false);
@@ -459,7 +462,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
     // Role filter
     if (filterRole !== "all") {
-      filtered = filtered.filter(staff => staff.role === filterRole)
+      filtered = filtered.filter(staff => staff.staffRole === filterRole)
     }
 
     // Sort
@@ -471,8 +474,8 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
           const nameB = `${b.firstName} ${b.lastName}`.toLowerCase()
           comparison = nameA.localeCompare(nameB)
           break
-        case "role":
-          comparison = (a.role || "").localeCompare(b.role || "")
+        case "staffRole":
+          comparison = (a.staffRole || "").localeCompare(b.staffRole || "")
           break
       }
       return sortDirection === "asc" ? comparison : -comparison
@@ -1124,9 +1127,9 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                     </div>
 
                     {/* Autocomplete Dropdown */}
-                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions.length > 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-                        {getSearchSuggestions().map((staff) => (
+                        {getSearchSuggestions.map((staff) => (
                           <button
                             key={staff.id}
                             onClick={() => handleSelectStaff(staff)}
@@ -1153,7 +1156,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                     )}
 
                     {/* No results message */}
-                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions.length === 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
                         <p className="text-sm text-content-faint text-center">No staff found</p>
                       </div>
@@ -1267,7 +1270,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                       {/* Table Header - Desktop only */}
                       <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border-subtle text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
                         <div className="col-span-3">Staff</div>
-                        <div className="col-span-2">Role</div>
+                        <div className="col-span-2">Staff Role</div>
                         <div className="col-span-2">Username</div>
                         <div className="col-span-2">About</div>
                         <div className="col-span-3 text-right">Actions</div>
@@ -1321,7 +1324,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
                               {/* Role */}
                               <div className="col-span-2">
-                                <RoleTag role={staff.role} compact={isCompactView} />
+                                <RoleTag staffRole={capitalizeWords(staff.staffRole)} compact={isCompactView} />
                               </div>
 
                               {/* Username */}
@@ -1428,7 +1431,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                       <StaffColorIndicator color={staff.color} />
                                     </div>
                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                      <RoleTag role={staff.role} compact={true} />
+                                      <RoleTag staffRole={capitalizeWords(staff.staffRole)} compact={true} />
                                     </div>
                                   </div>
 
@@ -1555,7 +1558,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
                                 {/* Role */}
                                 <div className="flex justify-center mb-2">
-                                  <RoleTag role={staff.role} compact={true} />
+                                  <RoleTag staffRole={capitalizeWords(staff.staffRole)} compact={true} />
                                 </div>
 
                                 {/* Action buttons */}
@@ -1663,7 +1666,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                     </div>
 
                                     <div className="flex items-center gap-2 mt-2">
-                                      <RoleTag role={staff.role} />
+                                      <RoleTag staffRole={capitalizeWords(staff.staffRole)} />
                                     </div>
 
                                     <p className="text-content-muted text-sm mt-2 text-center">
