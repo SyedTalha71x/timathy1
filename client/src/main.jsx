@@ -16,12 +16,34 @@ import { store } from "./app/store.js";
 import { Provider } from 'react-redux'
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard } from '@capacitor/keyboard';
 
 // iOS: WebView unterhalb der Statusleiste starten
 if (Capacitor.isNativePlatform()) {
   StatusBar.setOverlaysWebView({ overlay: false });
   StatusBar.setStyle({ style: Style.Dark });
   StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
+}
+
+// iOS: Keyboard Fix — verhindert weiße Leiste nach Tastatur-Schließen
+if (Capacitor.getPlatform() === 'ios') {
+  Keyboard.addListener('keyboardWillHide', () => {
+    setTimeout(() => {
+      window.scrollTo(0, 0)
+      document.body.scrollTop = 0
+      document.documentElement.scrollTop = 0
+      document.body.style.height = '100%'
+      requestAnimationFrame(() => { document.body.style.height = '' })
+    }, 50)
+  })
+
+  Keyboard.addListener('keyboardWillShow', () => {
+    setTimeout(() => {
+      window.scrollTo(0, 0)
+      document.body.scrollTop = 0
+      document.documentElement.scrollTop = 0
+    }, 50)
+  })
 }
 
 createRoot(document.getElementById("root")).render(

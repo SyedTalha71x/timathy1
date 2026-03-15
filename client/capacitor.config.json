@@ -6,5 +6,11 @@
     "contentInset": "always",
     "backgroundColor": "#0f0f0f",
     "scrollEnabled": false
+  },
+  "plugins": {
+    "Keyboard": {
+      "resize": "none",
+      "scrollPadding": false
+    }
   }
 }
