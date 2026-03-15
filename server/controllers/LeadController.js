@@ -2,7 +2,7 @@ const LeadModel = require('../models/LeadModel');
 const StudioModel = require('../models/StudioModel');
 const { NotFoundError, BadRequestError, ConflictError } = require('../middleware/error/httpErrors');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
-const generateLeadId = require('../utils/GenerateLeadId');
+const {generateLeadId} = require('../utils/GenerateRandomId');
 
 const createLead = async (req, res, next) => {
     try {

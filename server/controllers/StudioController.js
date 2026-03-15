@@ -93,10 +93,10 @@ const updateStudio = async (req, res, next) => {
 const getStudioByMemberId = async (req, res, next) => {
   try {
     const userId = req.user?._id;
-
+    // const studioId = req.user?.studio;
     const studio = await StudioModel
       .findOne({ users: userId })
-      .populate("users", "firstName lastName email phone role gender dateOfBirth street country zipCode username")
+      .populate("users", "-password -refreshToken")
       .populate('services', 'name description duration price')
       .populate('leads', 'firstName lastName email phone img')
 

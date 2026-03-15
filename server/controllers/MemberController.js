@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
 // generate Random Member number like #ORGA-2025-001
-const generateMemberNo = require('../utils/GenerateMemberNo');
+const { generateMemberNo } = require('../utils/GenerateRandomId');
 
 const {
   BadRequestError,

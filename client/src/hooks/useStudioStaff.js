@@ -15,7 +15,7 @@ import {
   studioStaffData,
   studioMembersData,
 } from "../utils/admin-panel-states/customers-states"
-import { fetchAllStaffThunk } from "../features/staff/staffSlice"
+// import { fetchAllStaffThunk } from "../features/staff/staffSlice"
 import { useDispatch } from "react-redux"
 import { fetchMyStudio } from "../features/studio/studioSlice"
 
@@ -64,6 +64,7 @@ function loadStaffFromDefaults({ studioId, mode }) {
 function transformStudioData(studioData) {
   // Add debug logging to see the actual structure
   // console.log("transformStudioData received:", studioData)
+  console.log("transformStudioData received:", studioData)
 
   // Handle case when studioData is undefined or null
   if (!studioData) {
@@ -78,13 +79,16 @@ function transformStudioData(studioData) {
     }
   }
 
-  // Check if the data is nested under a 'studio' property (common in API responses)
-  const data = studioData.studio || studioData
+  // If studioData is already the studio object (not wrapped)
+  // This happens if your thunk returns res.studio directly
+  const data = studioData.studio ? studioData : { studio: studioData }
+
+  const studio = data.studio || data
 
   // Safe access with optional chaining and fallbacks
-  const users = data?.users || []
-  const leads = data?.leads || []
-  const services = data?.services || []
+  const users = studio?.users || []
+  const leads = studio?.leads || []
+  const services = studio?.services || []
 
   // Filter users by role
   const staff = users.filter(user => user?.role === "staff") || []
@@ -99,14 +103,23 @@ function transformStudioData(studioData) {
       name: `${s?.firstName || ""} ${s?.lastName || ""}`.trim() || "Unknown Staff",
       email: s?.email || "",
       phone: s?.phone || "",
-      role: s?.role || "staff",
+      telephone: s?.telephone || "",
+      role: s?.role ,
+      staffRole: s?.staffRole ,
       title: s?.title || `Staff Member`,
       gender: s?.gender,
       dateOfBirth: s?.dateOfBirth,
       street: s?.street,
       country: s?.country,
       zipCode: s?.zipCode,
-      username: s?.username
+      city: s?.city,
+      username: s?.username,
+      staffColor: s?.staffColor,
+      img: s?.img?.url,
+      vacationDays: s?.vacationDays,
+      remainingDays: s?.remainingDays,
+      staffId: s?.staffId,
+      about: s?.about
     })),
     members: members.map(m => ({
       id: m?._id,
@@ -115,11 +128,13 @@ function transformStudioData(studioData) {
       name: `${m?.firstName || ""} ${m?.lastName || ""}`.trim() || "Unknown Member",
       email: m?.email || "",
       phone: m?.phone || "",
+      telephone: m?.telephone || "",
       role: m?.role || "member",
       gender: m?.gender,
       dateOfBirth: m?.dateOfBirth,
       street: m?.street,
       country: m?.country,
+      city: m?.city,
       zipCode: m?.zipCode,
       username: m?.username
     })),

@@ -6,6 +6,8 @@ import useCountries from "../../../hooks/useCountries";
 import DatePickerField from "../../shared/DatePickerField";
 import ColorPickerModal from "../../shared/ColorPickerModal";
 import CustomSelect from "../../shared/CustomSelect";
+import { useDispatch } from "react-redux";
+import { fetchAllStaffThunk, updateStaffThunk } from "../../../features/staff/staffSlice";
 
 // Initials Avatar Component - Blue background with initials (like members)
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -22,7 +24,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   }
 
   return (
-    <div 
+    <div
       className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
@@ -79,8 +81,13 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
       canvas.height = video.videoHeight
       const ctx = canvas.getContext('2d')
       ctx.drawImage(video, 0, 0)
-      const imageData = canvas.toDataURL('image/jpeg', 0.8)
-      onCapture(imageData)
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+        onCapture(file);
+      }, 'image/jpeg', 0.8);
+
       stopCamera()
       onClose()
     }
@@ -101,12 +108,12 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
               <p className="text-red-400 text-sm mb-4">{error}</p>
-              <button 
+              <button
                 onClick={startCamera}
                 className="px-4 py-2 bg-surface-button text-content-primary rounded-xl text-sm"
               >
@@ -116,16 +123,16 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
           ) : (
             <>
               <div className="relative bg-black rounded-xl overflow-hidden aspect-square mb-4">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
+                <video
+                  ref={videoRef}
+                  autoPlay
                   playsInline
                   muted
                   className="w-full h-full object-cover"
                 />
               </div>
               <canvas ref={canvasRef} className="hidden" />
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={toggleCamera}
@@ -157,14 +164,15 @@ function EditStaffModal({
   setStaffMembers,
   handleRemovalStaff,
 }) {
+  const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("details")
   const { countries, loading } = useCountries();
   const [editedStaff, setEditedStaff] = useState({
     ...staff,
     about: staff.description || staff.about || "",
     color: staff.color && !staff.color.startsWith("var(") ? staff.color : "#6366f1",
-    mobileNumber: staff.mobileNumber || staff.phone || "",
-    telephoneNumber: staff.telephoneNumber || "",
+    phone: staff.phone || "",
+    telephone: staff.telephone || "",
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -179,14 +187,17 @@ function EditStaffModal({
         ...staff,
         about: staff.description || staff.about || "",
         color: staff.color && !staff.color.startsWith("var(") ? staff.color : "#6366f1",
-        mobileNumber: staff.mobileNumber || staff.phone || "",
-        telephoneNumber: staff.telephoneNumber || "",
+        phone: staff.phone || "",
+        telephone: staff.telephone || "",
       })
       setActiveTab("details")
       setIsChangingPassword(false)
       setNewPassword("")
     }
   }, [staff])
+
+  const [imagePreview, setImagePreview] = useState(null);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -209,39 +220,98 @@ function EditStaffModal({
   }
 
   const handleImgUpload = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setEditedStaff((prev) => ({ ...prev, img: reader.result }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+      setEditedStaff({ ...editedStaff, img: file });
 
-  const handleCameraCapture = (imageData) => {
-    setEditedStaff((prev) => ({ ...prev, img: imageData }))
-  }
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCameraCapture = (file) => {
+    setEditedStaff((prev) => ({ ...prev, img: file }));
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleRemoveImage = () => {
     setEditedStaff((prev) => ({ ...prev, img: null }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const updatedStaff = {
-      ...editedStaff,
-      description: editedStaff.about,
-      phone: editedStaff.mobileNumber, // Keep backward compatibility
-    }
+
+    // Create FormData for file upload
+    const formData = new FormData()
+
+    // Append all fields individually - DON'T append the whole object
+    formData.append('firstName', editedStaff.firstName || '')
+    formData.append('lastName', editedStaff.lastName || '')
+    formData.append('email', editedStaff.email || '')
+    formData.append('phone', editedStaff.phone || '')
+    formData.append('telephone', editedStaff.telephoneNumber || editedStaff.telephone || '')
+    formData.append('dateOfBirth', editedStaff.dateOfBirth || '')
+    formData.append('gender', editedStaff.gender || '')
+    formData.append('street', editedStaff.street || '')
+    formData.append('zipCode', editedStaff.zipCode || '')
+    formData.append('city', editedStaff.city || '')
+    formData.append('country', editedStaff.country || '')
+    formData.append('staffRole', editedStaff.staffRole || '')
+    formData.append('about', editedStaff.about || '')
+    formData.append('description', editedStaff.about || '') // For backward compatibility
+    formData.append('vacationDays', editedStaff.vacationDays || 30)
+    formData.append('staffColor', editedStaff.color || '#6366f1')
+    formData.append('username', editedStaff.username || '')
+
+    // Handle password if changing
     if (isChangingPassword && newPassword) {
-      updatedStaff.password = newPassword
+      formData.append('password', newPassword)
     }
-    const updatedStaffMembers = staffMembers.map((s) => (s.id === updatedStaff.id ? updatedStaff : s))
-    setStaffMembers(updatedStaffMembers)
-    setIsShowDetails(false)
-    setSelectedStaff(null)
+
+    // Handle image upload - Check if it's a File object
+    if (editedStaff.img instanceof File) {
+      // New image uploaded
+      formData.append('img', editedStaff.img)
+      // console.log('Uploading new image:', editedStaff.img.name)
+    } else if (editedStaff.img === null) {
+      // Image was removed
+      formData.append('removeImage', 'true')
+    } else if (editedStaff.img && typeof editedStaff.img === 'object') {
+      // Existing image object (from database) - send as JSON string
+      formData.append('img', JSON.stringify(editedStaff.img))
+    }
+
+    // // Debug: log FormData contents
+    // console.log('Submitting FormData:')
+    // for (let pair of formData.entries()) {
+    //   console.log(pair[0] + ': ' + (pair[0] === 'img' && pair[1] instanceof File ? '[File]' : pair[1]))
+    // }
+
+    // Get the correct staff ID
+    const staffId = editedStaff._id || editedStaff.id
+    if (!staffId) {
+      toast.error("Staff ID not found")
+      return
+    }
+
+    // Dispatch to Redux thunk
+    dispatch(updateStaffThunk({
+      staffId: staffId,
+      updateData: formData  // Send FormData, not the object
+    }))
+    .unwrap()
     toast.success("Staff updated successfully")
+    await dispatch(fetchAllStaffThunk());
   }
 
   const handleClose = () => {
@@ -253,6 +323,8 @@ function EditStaffModal({
     { id: "details", label: "Details" },
     { id: "access", label: "Access Data" },
   ]
+
+
 
   return (
     <div className="fixed open_sans_font inset-0 bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
@@ -274,11 +346,10 @@ function EditStaffModal({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === tab.id 
-                  ? "text-primary border-b-2 border-primary" 
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab.id
+                ? "text-primary border-b-2 border-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               {tab.label}
             </button>
@@ -287,16 +358,16 @@ function EditStaffModal({
 
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-4 pr-1">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
             {activeTab === "details" && (
               <>
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 relative">
-                    {editedStaff.img ? (
+                    {imagePreview ? (
                       <>
                         <img
-                          src={editedStaff.img}
+                          src={imagePreview}
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
@@ -311,22 +382,22 @@ function EditStaffModal({
                         </button>
                       </>
                     ) : (
-                      <InitialsAvatar 
-                        firstName={editedStaff.firstName} 
-                        lastName={editedStaff.lastName} 
+                      <InitialsAvatar
+                        firstName={editedStaff.firstName}
+                        lastName={editedStaff.lastName}
                         size="lg"
                       />
                     )}
                   </div>
-                  
+
                   {/* Image action buttons */}
                   <div className="flex flex-wrap gap-2">
-                    <input 
-                      type="file" 
-                      id="edit-avatar" 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={handleImgUpload} 
+                    <input
+                      type="file"
+                      id="edit-avatar"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImgUpload}
                     />
                     <label
                       htmlFor="edit-avatar"
@@ -349,7 +420,7 @@ function EditStaffModal({
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">
@@ -400,8 +471,8 @@ function EditStaffModal({
                       </label>
                       <input
                         type="tel"
-                        name="mobileNumber"
-                        value={editedStaff.mobileNumber}
+                        name="phone"
+                        value={editedStaff.phone}
                         onChange={handlePhoneChange}
                         className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                         required
@@ -411,8 +482,8 @@ function EditStaffModal({
                       <label className="text-sm text-content-secondary block mb-2">Telephone Number</label>
                       <input
                         type="tel"
-                        name="telephoneNumber"
-                        value={editedStaff.telephoneNumber}
+                        name="telephone"
+                        value={editedStaff.telephone}
                         onChange={handlePhoneChange}
                         className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                       />
@@ -423,8 +494,12 @@ function EditStaffModal({
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Birthday</label>
                       <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                        <span className={editedStaff.birthday ? "text-content-primary" : "text-content-faint"}>{editedStaff.birthday ? (() => { const [y,m,d] = (editedStaff.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
-                        <DatePickerField value={editedStaff.birthday || ""} onChange={(val) => setEditedStaff(prev => ({ ...prev, birthday: val }))} />
+                        <span className={editedStaff.dateOfBirth ? "text-content-primary" : "text-content-faint"}>
+                          {editedStaff.dateOfBirth
+                            ? new Date(editedStaff.dateOfBirth).toLocaleDateString()
+                            : "Select date"}
+                        </span>
+                        <DatePickerField value={editedStaff.dateOfBirth || ""} onChange={(val) => setEditedStaff(prev => ({ ...prev, dateOfBirth: val }))} />
                       </div>
                     </div>
                     <div>
@@ -447,7 +522,7 @@ function EditStaffModal({
                 {/* Address */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">Street</label>
                     <input
@@ -502,14 +577,14 @@ function EditStaffModal({
                 {/* Employment */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Employment</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">
                       Role<span className="text-accent-red ml-1">*</span>
                     </label>
                     <CustomSelect
-                      name="role"
-                      value={editedStaff.role || ""}
+                      name="staffRole"
+                      value={editedStaff.staffRole || ""}
                       onChange={handleInputChange}
                       placeholder="Select role"
                       required
@@ -546,8 +621,8 @@ function EditStaffModal({
                     </label>
                     <input
                       type="number"
-                      name="vacationEntitlement"
-                      value={editedStaff.vacationEntitlement || 30}
+                      name="vacationDays"
+                      value={editedStaff.vacationDays || 30}
                       onChange={handleInputChange}
                       min="0"
                       className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
@@ -558,7 +633,7 @@ function EditStaffModal({
                 {/* Additional Information */}
                 <div className="space-y-4 pt-4 border-t border-border">
                   <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
-                  
+
                   <div>
                     <label className="text-sm text-content-secondary block mb-2">About</label>
                     <textarea
@@ -576,7 +651,7 @@ function EditStaffModal({
             {activeTab === "access" && (
               <div className="space-y-4">
                 <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Login Credentials</div>
-                
+
                 <div>
                   <label className="text-sm text-content-secondary block mb-2">
                     Username<span className="text-accent-red ml-1">*</span>
