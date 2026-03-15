@@ -248,6 +248,7 @@ const updateUserById = async (req, res, next) => {
       email,
     };
 
+    // if image upload
     if (req.file) {
       const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
       updateData.img = {
@@ -255,7 +256,10 @@ const updateUserById = async (req, res, next) => {
         public_id: cloudinaryResult.public_id,
       };
     }
-
+    // if password
+    if (req.body.password) {
+      updateData.password = await hashedPassword(req.body.password)
+    }
     // Remove undefined fields
     Object.keys(updateData).forEach(key =>
       updateData[key] === undefined && delete updateData[key]

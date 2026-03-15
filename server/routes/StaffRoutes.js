@@ -6,6 +6,7 @@ const {
     getStaffById,
     getStaff,
     deleteStaffById,
+    updateById,
 } = require('../controllers/StaffController');
 const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
 const { isAdmin, isStaff } = require('../middleware/RoleCheck');
@@ -20,4 +21,7 @@ router.post('/login', loginStaff)
 router.put('/:staffId', uploadImage.single('img'), verifyAccessToken, updateStaffById)
 router.delete('/:staffId', verifyAccessToken, deleteStaffById)
 
+// only login staff update himself
+
+router.put('/update', uploadImage.single('img'), verifyAccessToken, updateById)
 module.exports = router

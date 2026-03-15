@@ -30,16 +30,28 @@ export const createStaffThunk = createAsyncThunk('/staff/create/new', async (sta
 
 
 // ==================
-// update Staff Details
+// update Staff Details by Admin/Staff
 // ====================
 
-export const updateStaffThunk = createAsyncThunk('/staff/update', async ({ staffId, updateData }, { rejectWithValue }) => {
+export const updateStaffThunk = createAsyncThunk('/staff/update-by-staff', async ({ staffId, updateData }, { rejectWithValue }) => {
     try {
         const res = await staffApi.updateStaff(staffId, updateData)
         return res.staff;
     }
     catch (error) {
         return rejectWithValue(error.response?.message)
+    }
+})
+// ===============
+// update Login staff himself
+// ======================
+
+export const updateLoggedInStaffThunk = createAsyncThunk('/staff/update', async (updateData, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.updateStaffByUserID(updateData);
+        return res.staff
+    } catch (error) {
+        return rejectWithValue(error.response?.data)
     }
 })
 
@@ -89,7 +101,7 @@ const staffSlice = createSlice({
                 state.error = action.payload?.message
             })
             // ========================
-            // update staff reducer
+            // update staff by Staff/Admin reducer
             // ========================
             .addCase(updateStaffThunk.pending, (state) => {
                 state.loading = true;
@@ -100,6 +112,21 @@ const staffSlice = createSlice({
                 state.staff = action.payload;
             })
             .addCase(updateStaffThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // ========================
+            // update loggedIn staff
+            // ========================
+            .addCase(updateLoggedInStaffThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateLoggedInStaffThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.staff = action.payload;
+            })
+            .addCase(updateLoggedInStaffThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })
