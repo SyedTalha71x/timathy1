@@ -4,11 +4,12 @@
   "webDir": "dist",
   "ios": {
     "contentInset": "always",
-    "backgroundColor": "#0f0f0f"
+    "backgroundColor": "#0f0f0f",
+    "scrollEnabled": false
   },
   "plugins": {
     "Keyboard": {
-      "resize": "body"
+      "resize": "none"
     }
   }
 }

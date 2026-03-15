@@ -148,10 +148,21 @@ html, body {
   /* Prevent pull-to-refresh and overscroll bounce (iOS/Capacitor) */
   overscroll-behavior: none;
   background: var(--color-surface-dark);
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 html {
   color-scheme: dark;
+}
+
+/* Root container — uses CSS variable set by Keyboard listener in main.jsx.
+   When keyboard opens: --app-height = 100dvh - keyboardHeight
+   When keyboard closes: --app-height is removed, falls back to 100dvh
+   overflow is set dynamically by JS only when keyboard is open */
+#root {
+  height: var(--app-height, 100dvh);
 }
 
 /* Ensure date/time input text inherits theme color */

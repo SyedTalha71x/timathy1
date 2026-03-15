@@ -25,18 +25,34 @@ if (Capacitor.isNativePlatform()) {
   StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
 }
 
-// iOS: Keyboard Fix — Sicherheitsnetz für Viewport-Reset nach Tastatur-Schließen
-// Mit resize:"body" handhabt iOS das Input-Scrolling nativ.
-// Dieser Listener verhindert nur den seltenen Fall, dass der Viewport
-// nach dem Schließen nicht sauber zurückgesetzt wird.
+// iOS: Keyboard Handling — steuert App-Höhe über CSS-Variable
+// scrollEnabled:false + resize:"none" = Leiste weg, aber iOS passt Layout nicht an.
+// Wir setzen --app-height auf #root, damit die gesamte App über der Tastatur bleibt.
 if (Capacitor.getPlatform() === 'ios') {
+  Keyboard.addListener('keyboardWillShow', (info) => {
+    const kbHeight = info.keyboardHeight
+    const root = document.getElementById('root')
+    document.documentElement.style.setProperty('--app-height', `calc(100dvh - ${kbHeight}px)`)
+    if (root) root.style.overflow = 'hidden'
+
+    // Fokussiertes Element in den sichtbaren Bereich scrollen
+    setTimeout(() => {
+      const activeEl = document.activeElement
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 150)
+  })
+
   Keyboard.addListener('keyboardWillHide', () => {
+    const root = document.getElementById('root')
+    document.documentElement.style.removeProperty('--app-height')
+    if (root) root.style.overflow = ''
+
     setTimeout(() => {
       window.scrollTo(0, 0)
       document.body.scrollTop = 0
       document.documentElement.scrollTop = 0
-      document.body.style.height = '100%'
-      requestAnimationFrame(() => { document.body.style.height = '' })
     }, 50)
   })
 }
