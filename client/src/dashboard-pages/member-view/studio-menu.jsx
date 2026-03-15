@@ -12,6 +12,7 @@ import DatePickerField from "../../components/shared/DatePickerField"
 import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
+import { haptic } from "../../utils/haptic"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -306,6 +307,7 @@ const StudioMenu = () => {
   }
 
   const handleSuccessfulScan = (qrData) => {
+    haptic.success()
     setScanResult(qrData)
     stopScanning()
 
@@ -464,6 +466,7 @@ const StudioMenu = () => {
                 key={tab.key}
                 data-tab={tab.key}
                 onClick={() => {
+                  haptic.light()
                   setActiveSection(tab.key)
                   // Auto-scroll tab into view
                   requestAnimationFrame(() => {

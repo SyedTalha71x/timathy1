@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { updateUserData, updatedPassword } from "../../features/auth/authSlice"
 import { updateReminders } from "../../features/notification/notificationSlice"
 import { notification } from "antd"
+import { haptic } from "../../utils/haptic"
 import {
   ChevronRight,
   ChevronLeft,
@@ -158,9 +159,11 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     }
     try {
       await dispatch(updateUserData({ email: newEmail, currentPassword })).unwrap()
+      haptic.success()
       notification.success({ message: "Email Change Requested", description: "A confirmation email has been sent to your new email address." })
       setAccountSettings({ ...accountSettings, newEmail: "", currentPassword: "" })
     } catch (err) {
+      haptic.error()
       notification.error({ message: "Email Change Failed", description: err.message || "Something went wrong." })
     }
   }
@@ -178,9 +181,11 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     }
     try {
       await dispatch(updatedPassword({ oldPassword: currentPassword, newPassword })).unwrap()
+      haptic.success()
       notification.success({ message: "Password Changed", description: "Your password has been updated successfully." })
       setAccountSettings({ ...accountSettings, currentPassword: "", newPassword: "", confirmPassword: "" })
     } catch (err) {
+      haptic.error()
       notification.error({ message: "Password Change Failed", description: err.message || "Something went wrong." })
     }
   }
@@ -275,6 +280,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   }
 
   const navigateToSection = (categoryId, sectionId) => {
+    haptic.light()
     setActiveCategory(categoryId)
     setActiveSection(sectionId)
     if (!expandedCategories.includes(categoryId)) {
@@ -309,7 +315,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   const Toggle = ({ checked, onChange, disabled }) => (
     <button
       type="button"
-      onClick={() => !disabled && onChange(!checked)}
+      onClick={() => { if (!disabled) { haptic.light(); onChange(!checked) } }}
       className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       } ${checked ? "bg-primary" : "bg-surface-button"}`}
