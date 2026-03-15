@@ -25,11 +25,50 @@ if (Capacitor.isNativePlatform()) {
   StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
 }
 
-// iOS: Keyboard — Sicherheitsnetz für Viewport-Reset nach Tastatur-Schließen
-// resize:"body" handhabt das Input-Scrolling nativ.
-// Bounce wird nativ in AppDelegate.swift deaktiviert.
+// ============================================================================
+// iOS: Globaler Keyboard Handler
+// ============================================================================
+// Problem: resize:"none" + scrollEnabled:false = keine weiße Leiste,
+//          aber iOS passt das Layout bei Tastatur-Öffnung nicht an.
+// Lösung:  Wir finden automatisch ALLE position:fixed Elemente mit bottom~0
+//          und verschieben sie um die Tastaturhöhe nach oben.
+//          Keine Änderungen an einzelnen Komponenten nötig.
+// ============================================================================
 if (Capacitor.getPlatform() === 'ios') {
+  Keyboard.addListener('keyboardWillShow', (info) => {
+    const kbHeight = info.keyboardHeight
+
+    // Alle fixed-bottom Elemente finden und anpassen
+    requestAnimationFrame(() => {
+      document.querySelectorAll('*').forEach(el => {
+        const cs = getComputedStyle(el)
+        if (cs.position === 'fixed') {
+          const bottom = parseFloat(cs.bottom)
+          if (!isNaN(bottom) && bottom >= 0 && bottom < 20) {
+            el.dataset.kbOrigBottom = `${bottom}px`
+            el.style.bottom = `${bottom + kbHeight}px`
+          }
+        }
+      })
+
+      // Fokussiertes Eingabefeld in sichtbaren Bereich scrollen
+      setTimeout(() => {
+        const activeEl = document.activeElement
+        if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 50)
+    })
+  })
+
   Keyboard.addListener('keyboardWillHide', () => {
+    // Alle angepassten Elemente zurücksetzen
+    document.querySelectorAll('[data-kb-orig-bottom]').forEach(el => {
+      el.style.bottom = el.dataset.kbOrigBottom
+      delete el.dataset.kbOrigBottom
+    })
+
+    // Viewport-Reset
     setTimeout(() => {
       window.scrollTo(0, 0)
       document.body.scrollTop = 0
