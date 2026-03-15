@@ -34,3 +34,11 @@ export const deleteStaff = async (staffId) => {
     const res = await api.delete(`/staff/${staffId}`, { withCredentials: true })
     return res.data
 }
+
+
+//  update login staff
+
+export const updateStaffByUserID = async (updateData) => {
+    const res = await api.put('/staff/update', updateData, { withCredentials: true })
+    return res.data
+}

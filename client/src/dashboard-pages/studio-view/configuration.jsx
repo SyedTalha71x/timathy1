@@ -77,33 +77,33 @@ import {
   // Studio Data
   studioData,
   COUNTRIES,
-  
+
   // Permissions
   PERMISSION_DATA,
-  
+
   // Staff Config
   DEFAULT_STAFF_ROLES,
   DEFAULT_VACATION_DAYS,
   DEFAULT_STAFF_ROLE_ID,
   DEFAULT_STAFF_COUNTRY,
   DEFAULT_STAFF_MEMBERS,
-  
+
   // Appointment Config
   DEFAULT_STUDIO_CAPACITY,
   DEFAULT_APPOINTMENT_CATEGORIES,
   DEFAULT_APPOINTMENT_TYPES,
   DEFAULT_TRIAL_TRAINING,
   DEFAULT_CALENDAR_SETTINGS,
-  
+
   // Classes Config
   DEFAULT_CLASS_CATEGORIES,
   DEFAULT_CLASS_TYPES,
   DEFAULT_CLASS_CALENDAR_SETTINGS,
   DEFAULT_CLASS_NOTIFICATION_TYPES,
-  
+
   // Lead Config
   DEFAULT_LEAD_SOURCES,
-  
+
   // Contract Config
   DEFAULT_CONTRACT_FORMS,
   DEFAULT_CONTRACT_TYPES,
@@ -113,11 +113,11 @@ import {
   DEFAULT_CONTRACT_RENEW_REASONS,
   DEFAULT_CONTRACT_BONUS_TIME_REASONS,
   DEFAULT_VAT_RATES,
-  
+
   // Communication Config
   DEFAULT_COMMUNICATION_SETTINGS,
   DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
-  
+
   // Other Settings
   DEFAULT_APPEARANCE_SETTINGS,
   DEFAULT_INTRODUCTORY_MATERIALS,
@@ -315,9 +315,8 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${
-          error ? "border-red-500" : "border-border focus:border-primary"
-        } ${Icon ? "pl-10" : ""}`}
+        className={`w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${error ? "border-red-500" : "border-border focus:border-primary"
+          } ${Icon ? "pl-10" : ""}`}
       />
     </div>
     {helpText && <p className="text-xs text-content-faint">{helpText}</p>}
@@ -335,14 +334,12 @@ const Toggle = ({ label, checked, onChange, helpText }) => (
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-        checked ? "bg-primary" : "bg-surface-button"
-      }`}
+      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? "bg-primary" : "bg-surface-button"
+        }`}
     >
       <span
-        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${
-          checked ? "translate-x-5" : "translate-x-0"
-        }`}
+        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${checked ? "translate-x-5" : "translate-x-0"
+          }`}
       />
     </button>
   </div>
@@ -449,7 +446,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     if (mode === "admin" && item.adminVisible === false) return false
     return true
   })
-  
+
   // Navigation State - default to first available section
   const defaultCategory = navigationItems[0]?.id || "studio"
   const defaultSection = navigationItems[0]?.sections[0]?.id || "studio-info"
@@ -465,14 +462,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     const sectionParam = searchParams.get("section")
     if (sectionParam) {
       // Find the category that contains this section
-      const category = navigationItems.find(cat => 
+      const category = navigationItems.find(cat =>
         cat.sections.some(sec => sec.id === sectionParam)
       )
       if (category) {
         setActiveCategory(category.id)
         setActiveSection(sectionParam)
         setMobileShowContent(true)
-        setExpandedCategories(prev => 
+        setExpandedCategories(prev =>
           prev.includes(category.id) ? prev : [...prev, category.id]
         )
       }
@@ -495,8 +492,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     birthday: "",
     username: "",
     password: "",
-    profilePicture: null,
+    img: null,
+    imgData: null
   })
+
   const [profilePreviewUrl, setProfilePreviewUrl] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
   const profileFileInputRef = useRef(null)
@@ -508,7 +507,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      setProfileData((prev) => ({ ...prev, profilePicture: file }))
+      setProfileData({ ...profileData, img: file })
       const reader = new FileReader()
       reader.onloadend = () => {
         setProfilePreviewUrl(reader.result)
@@ -520,7 +519,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ============================================
   // All State Variables - initialized empty, populated from hook config
   // ============================================
-  
+
   // Basic studio information
   const [studioName, setStudioName] = useState("")
   const [studioId] = useState("")
@@ -563,10 +562,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [studioCapacity, setStudioCapacity] = useState(10)
   const [trialTraining, setTrialTraining] = useState({})
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
-  
+
   // Calendar Settings
   const [calendarSettings, setCalendarSettings] = useState({})
-  
+
   // Classes
   const [classTypes, setClassTypes] = useState([])
   const [classCategories, setClassCategories] = useState([])
@@ -578,7 +577,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     name: "", description: "", duration: 60, maxParticipants: 12, color: "#3B82F6", category: "", image: null,
   })
 
-  
+
   // Appointment Type Modal States
   const [showAppointmentTypeModal, setShowAppointmentTypeModal] = useState(false)
   const [editingAppointmentType, setEditingAppointmentType] = useState(null)
@@ -593,7 +592,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     image: null,
     contingentUsage: 1,
   })
-  
+
 
 
   // Members
@@ -860,7 +859,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Create branded QR image with studio name
   const createBrandedQRImage = (callback) => {
     if (!qrCodeRef.current) return
-    
+
     const qrCanvas = qrCodeRef.current.querySelector('canvas')
     if (!qrCanvas) return
 
@@ -871,28 +870,28 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     const titleHeight = 60
     const subtitleHeight = 40
     const qrSize = qrCanvas.width
-    
+
     canvas.width = qrSize + (padding * 2)
     canvas.height = qrSize + (padding * 2) + titleHeight + subtitleHeight
-    
+
     // White background
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
+
     // Studio name title
     ctx.fillStyle = '#1C1C1C'
     ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(studioName || 'Studio', canvas.width / 2, padding + 30)
-    
+
     // Draw QR code
     ctx.drawImage(qrCanvas, padding, padding + titleHeight)
-    
+
     // Subtitle
     ctx.fillStyle = '#666666'
     ctx.font = '16px system-ui, -apple-system, sans-serif'
     ctx.fillText('Scan to check in', canvas.width / 2, padding + titleHeight + qrSize + 30)
-    
+
     callback(canvas)
   }
 
@@ -1116,21 +1115,21 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     // Find the admin role
     const adminRole = roles.find(r => r.isAdmin)
     const targetRole = roles.find(r => r.id === roleId)
-    
+
     // If we're assigning to a non-admin role, check if any of the staff are the last admin
     if (adminRole && !targetRole?.isAdmin) {
       const adminStaff = adminRole.assignedStaff || []
       const staffBeingMovedFromAdmin = assignedStaffIds.filter(id => adminStaff.includes(id))
-      
+
       // Check if this would remove all admins
       const remainingAdmins = adminStaff.filter(id => !staffBeingMovedFromAdmin.includes(id))
-      
+
       if (staffBeingMovedFromAdmin.length > 0 && remainingAdmins.length === 0) {
         toast.error("Cannot remove last admin — At least one staff member must remain in the Admin role.")
         return
       }
     }
-    
+
     // Remove assigned staff from all other roles, then add to the target role
     setRoles(roles.map(role => {
       if (role.id === roleId) {
@@ -1205,11 +1204,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       toast.error("Please enter the contingent usage")
       return
     }
-    
+
     if (editingAppointmentType) {
       // Update existing
-      setAppointmentTypes(appointmentTypes.map(t => 
-        t.id === editingAppointmentType.id 
+      setAppointmentTypes(appointmentTypes.map(t =>
+        t.id === editingAppointmentType.id
           ? { ...t, ...appointmentTypeForm }
           : t
       ))
@@ -1222,7 +1221,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       }])
       toast.success("Appointment type created")
     }
-    
+
     setShowAppointmentTypeModal(false)
     setEditingAppointmentType(null)
   }
@@ -1451,7 +1450,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       toast.error("Please select a contract form")
       return
     }
-    
+
     if (editingContractTypeIndex !== null) {
       const updated = [...contractTypes]
       updated[editingContractTypeIndex] = editingContractType
@@ -1461,7 +1460,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       setContractTypes([...contractTypes, editingContractType])
       toast.success("Contract type created")
     }
-    
+
     setContractTypeModalVisible(false)
     setEditingContractType(null)
     setEditingContractTypeIndex(null)
@@ -1682,9 +1681,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Search filter with auto-expand
   const filteredNavItems = searchQuery
     ? navigationItems.filter(cat =>
-        cat.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        cat.sections.some(s => s.label.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
+      cat.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cat.sections.some(s => s.label.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
     : navigationItems
 
   // Auto-expand categories that match search
@@ -1696,7 +1695,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           cat.sections.some(s => s.label.toLowerCase().includes(searchQuery.toLowerCase()))
         )
         .map(cat => cat.id)
-      
+
       setExpandedCategories(prev => {
         const newExpanded = [...new Set([...prev, ...matchingCategories])]
         return newExpanded
@@ -1722,7 +1721,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const escaped = escapeRegex(searchQuery)
       const regex = new RegExp(`(${escaped})`, 'gi')
       const parts = text.split(regex)
-      return parts.map((part, i) => 
+      return parts.map((part, i) =>
         part.toLowerCase() === searchQuery.toLowerCase() ? (
           <span key={i} className="bg-primary/30 text-orange-300 rounded px-0.5">{part}</span>
         ) : part
@@ -1744,7 +1743,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Personal Details" description="Manage your personal information" />
-            
+
             {/* Profile Picture Upload */}
             <SettingsCard>
               <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -1804,7 +1803,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-content-secondary">Birthday</label>
                     <div className="w-full flex items-center justify-between bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm border border-border">
-                      <span className={profileData.birthday ? "text-content-primary" : "text-content-faint"}>{profileData.birthday ? (() => { const [y,m,d] = profileData.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                      <span className={profileData.birthday ? "text-content-primary" : "text-content-faint"}>{profileData.birthday ? (() => { const [y, m, d] = profileData.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                       <DatePickerField value={profileData.birthday} onChange={(val) => handleProfileInputChange("birthday", val)} />
                     </div>
                   </div>
@@ -1883,7 +1882,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Access Data" description="Manage your login credentials" />
-            
+
             <SettingsCard>
               <div className="max-w-md space-y-4">
                 <InputField
@@ -1936,7 +1935,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Studio Information" description="Basic information about your studio" />
-            
+
             {/* Logo Upload */}
             <SettingsCard>
               <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -2116,7 +2115,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   const existingHour = openingHours.find(h => h.day === day)
                   const hour = existingHour || { day, startTime: null, endTime: null, closed: day === 'Sunday' }
                   const isClosed = hour.closed
-                  
+
                   return (
                     <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-surface-card rounded-xl">
                       <div className="flex items-center justify-between sm:w-32">
@@ -2132,26 +2131,24 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 h.day === day ? { ...h, closed: newClosed } : h
                               ))
                             } else {
-                              setOpeningHours([...openingHours, { 
-                                day, 
-                                startTime: newClosed ? null : '09:00', 
-                                endTime: newClosed ? null : '21:00', 
-                                closed: newClosed 
+                              setOpeningHours([...openingHours, {
+                                day,
+                                startTime: newClosed ? null : '09:00',
+                                endTime: newClosed ? null : '21:00',
+                                closed: newClosed
                               }])
                             }
                           }}
-                          className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-                            !isClosed ? "bg-primary" : "bg-surface-button"
-                          }`}
+                          className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${!isClosed ? "bg-primary" : "bg-surface-button"
+                            }`}
                         >
                           <span
-                            className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${
-                              !isClosed ? "translate-x-5" : "translate-x-0"
-                            }`}
+                            className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${!isClosed ? "translate-x-5" : "translate-x-0"
+                              }`}
                           />
                         </button>
                         <span className="text-sm text-content-muted w-12">{isClosed ? "Closed" : "Open"}</span>
-                        
+
                         {!isClosed && (
                           <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
                             <input
@@ -2163,11 +2160,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                     h.day === day ? { ...h, startTime: e.target.value } : h
                                   ))
                                 } else {
-                                  setOpeningHours([...openingHours, { 
-                                    day, 
-                                    startTime: e.target.value, 
-                                    endTime: '21:00', 
-                                    closed: false 
+                                  setOpeningHours([...openingHours, {
+                                    day,
+                                    startTime: e.target.value,
+                                    endTime: '21:00',
+                                    closed: false
                                   }])
                                 }
                               }}
@@ -2183,11 +2180,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                     h.day === day ? { ...h, endTime: e.target.value } : h
                                   ))
                                 } else {
-                                  setOpeningHours([...openingHours, { 
-                                    day, 
-                                    startTime: '09:00', 
-                                    endTime: e.target.value, 
-                                    closed: false 
+                                  setOpeningHours([...openingHours, {
+                                    day,
+                                    startTime: '09:00',
+                                    endTime: e.target.value,
+                                    closed: false
                                   }])
                                 }
                               }}
@@ -2232,7 +2229,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               }
             />
-            
+
             {studioCountry && publicHolidays.length > 0 && (
               <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
                 <p className="text-primary text-sm">
@@ -2254,7 +2251,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-surface-card rounded-xl">
                       <div className="w-full sm:w-44">
                         <div className="w-full flex items-center justify-between bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm border border-border">
-                          <span className={day.date ? "text-content-primary" : "text-content-faint"}>{day.date ? (() => { const [y,m,d] = (day.date || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                          <span className={day.date ? "text-content-primary" : "text-content-faint"}>{day.date ? (() => { const [y, m, d] = (day.date || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                           <DatePickerField
                             value={day.date || ""}
                             onChange={(val) => {
@@ -2306,7 +2303,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Calendar Settings" description="Configure how the calendar displays appointments" />
-            
+
             {/* Hide Closed Days - Above Preview */}
             <SettingsCard>
               <div className="flex items-center justify-between">
@@ -2329,7 +2326,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               {/* Week View Preview */}
               <div className="mt-4 p-4 bg-surface-card rounded-xl overflow-x-auto">
                 <p className="text-xs text-content-faint mb-3">Preview:</p>
@@ -2337,17 +2334,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
                     const isWeekend = day === 'Sat' || day === 'Sun';
                     const isHidden = calendarSettings.hideClosedDays && isWeekend;
-                    
+
                     if (isHidden) return null;
-                    
+
                     return (
-                      <div 
+                      <div
                         key={day}
-                        className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${
-                          isWeekend 
-                            ? 'bg-gray-700/30 text-content-faint' 
+                        className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${isWeekend
+                            ? 'bg-gray-700/30 text-content-faint'
                             : 'bg-surface-hover text-content-primary'
-                        }`}
+                          }`}
                       >
                         <span className="text-xs font-medium">{day}</span>
                       </div>
@@ -2355,7 +2351,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   })}
                 </div>
                 <p className="text-xs text-content-faint mt-3 text-center">
-                  {calendarSettings.hideClosedDays 
+                  {calendarSettings.hideClosedDays
                     ? 'Showing Monday - Friday (closed days hidden)'
                     : 'Showing all days including weekends'
                   }
@@ -2420,14 +2416,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               {/* Preview */}
               <div className="mt-4 p-4 bg-surface-card rounded-xl">
                 <p className="text-xs text-content-faint mb-3">Preview:</p>
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <p className="text-[10px] text-content-faint mb-1.5 text-center">Past</p>
-                    <div 
+                    <div
                       className={`p-3 rounded-lg bg-accent-blue ${calendarSettings.fadePastAppointments ? 'opacity-45' : ''}`}
                     >
                       <span className="text-xs text-white font-medium">EMS Training</span>
@@ -2449,7 +2445,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Capacity Settings" description="Control how many appointments can run simultaneously" />
-            
+
             <SettingsCard>
               <div className="space-y-6">
                 <div>
@@ -2547,7 +2543,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </button>
               }
             />
-            
+
             {appointmentTypes.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
@@ -2585,14 +2581,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       )}
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      
+
                       {/* Category badge - blue like member view */}
                       {type.category && (
                         <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
                           {type.category}
                         </div>
                       )}
-                      
+
                       {/* Info button with popup - shows on hover and click */}
                       {type.description && (
                         <div className="absolute top-3 right-3 group/info">
@@ -2609,7 +2605,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Content */}
                     <div className="p-4">
                       {/* Title with color indicator */}
@@ -2621,7 +2617,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         />
                         <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                       </div>
-                      
+
                       <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
@@ -2641,23 +2637,23 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </span>
                       </div>
                     </div>
-                      
+
                     {/* Actions */}
                     <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
-                        <button
-                          onClick={() => handleOpenAppointmentTypeModal(type)}
-                          className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAppointmentType(type.id)}
-                          className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleOpenAppointmentTypeModal(type)}
+                        className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAppointmentType(type.id)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2842,7 +2838,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Calendar Settings" description="Configure how the calendar displays classes" />
-            
+
             {/* Hide Closed Days */}
             <SettingsCard>
               <div className="flex items-center justify-between">
@@ -2862,7 +2858,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               <div className="mt-4 p-4 bg-surface-card rounded-xl overflow-x-auto">
                 <p className="text-xs text-content-faint mb-3">Preview:</p>
                 <div className="flex gap-1 min-w-[400px]">
@@ -2930,7 +2926,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               <div className="mt-4 p-4 bg-surface-card rounded-xl">
                 <p className="text-xs text-content-faint mb-3">Preview:</p>
                 <div className="flex gap-3">
@@ -3001,13 +2997,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      
+
                       {type.category && (
                         <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
                           {type.category}
                         </div>
                       )}
-                      
+
                       {type.description && (
                         <div className="absolute top-3 right-3 group/info">
                           <button className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors">
@@ -3020,14 +3016,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Content */}
                     <div className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }} title="Calendar color" />
                         <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                       </div>
-                      
+
                       <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
@@ -3039,7 +3035,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </span>
                       </div>
                     </div>
-                      
+
                     {/* Actions */}
                     <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
                       <button
@@ -3150,7 +3146,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Staff Default Settings" description="Default values for new staff members" />
-            
+
             {/* Info Box */}
             <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
               <div className="flex items-start gap-3">
@@ -3234,7 +3230,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       style={{ backgroundColor: role.color || '#3B82F6' }}
                       title="Pick a color"
                     />
-                    
+
                     {/* Role Name */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -3250,7 +3246,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
@@ -3336,14 +3332,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     Scan to check in
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <button 
+                    <button
                       onClick={handleDownloadQRCode}
                       className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
                     >
                       <Download className="w-4 h-4" />
                       Download
                     </button>
-                    <button 
+                    <button
                       onClick={handlePrintQRCode}
                       className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                     >
@@ -3439,7 +3435,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </button>
               }
             />
-            
+
             {introductoryMaterials.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-8 text-content-muted">
@@ -3480,21 +3476,21 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        
+
                         {/* Page previews with content thumbnails */}
                         <div className="flex gap-1.5 overflow-x-auto pb-1">
                           {material.pages.slice(0, 4).map((page, pageIndex) => (
-                            <div 
-                              key={page.id} 
+                            <div
+                              key={page.id}
                               className="w-14 h-[72px] bg-white border border-border rounded-lg flex-shrink-0 overflow-hidden relative"
                             >
                               {/* Scaled content preview */}
-                              <div 
+                              <div
                                 className="w-full h-full overflow-hidden pointer-events-none"
-                                style={{ 
-                                  transform: 'scale(0.12)', 
-                                  transformOrigin: 'top left', 
-                                  width: '833%', 
+                                style={{
+                                  transform: 'scale(0.12)',
+                                  transformOrigin: 'top left',
+                                  width: '833%',
                                   height: '833%',
                                   fontSize: '11px',
                                   padding: '4px',
@@ -3502,8 +3498,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   lineHeight: '1.3',
                                   fontFamily: 'Arial, sans-serif'
                                 }}
-                                dangerouslySetInnerHTML={{ 
-                                  __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` 
+                                dangerouslySetInnerHTML={{
+                                  __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>`
                                 }}
                               />
                               {/* Page number badge */}
@@ -3521,7 +3517,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       </div>
                     </div>
                     <div className="px-4 py-3 bg-surface-card border-t border-border">
-                      <button 
+                      <button
                         onClick={() => {
                           const deepCopy = {
                             ...material,
@@ -3552,7 +3548,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Contract General Settings" description="Default settings for new contracts" />
-            
+
             {/* Member Settings */}
             <SettingsCard>
               <div className="space-y-4">
@@ -3573,7 +3569,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <h3 className="text-content-primary font-medium mb-1">Contract Defaults</h3>
                   <p className="text-xs text-content-faint">Applied when creating new contract types</p>
                 </div>
-                
+
                 {/* Info Box */}
                 <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
                   <div className="flex items-start gap-3">
@@ -3583,7 +3579,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
@@ -3611,7 +3607,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     helpText="Days before contract end to cancel"
                   />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                     Default Contingent
@@ -3619,7 +3615,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
-                 <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="number"
                       value={defaultAppointmentLimit}
@@ -3642,14 +3638,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <h3 className="text-content-primary font-medium mb-1">Renewal Defaults</h3>
                   <p className="text-xs text-content-faint">Settings for contract renewal after minimum duration</p>
                 </div>
-                
+
                 <Toggle
                   label="Enable Automatic Renewal by Default"
                   checked={defaultAutoRenewal}
                   onChange={setDefaultAutoRenewal}
                   helpText="New contracts will have automatic renewal enabled"
                 />
-                
+
                 <div className="pt-4 border-t border-border space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
@@ -3708,144 +3704,144 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             {/* Desktop: full contract form management */}
             <div className="hidden lg:block space-y-6">
-            <SectionHeader
-              title="Contract Forms"
-              description="Create and manage contract form templates"
-              action={
-                <button
-                  onClick={() => setShowCreateFormModal(true)}
-                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Create</span> Form
-                </button>
-              }
-            />
-            
-            {contractForms.length === 0 ? (
-              <SettingsCard>
-                <div className="text-center py-12 text-content-muted">
-                  <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-content-primary mb-2">No contract forms yet</h3>
-                  <p className="text-sm mb-6">Create your first contract form template</p>
+              <SectionHeader
+                title="Contract Forms"
+                description="Create and manage contract form templates"
+                action={
                   <button
                     onClick={() => setShowCreateFormModal(true)}
-                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                    className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
-                    Create Contract Form
+                    <span className="hidden sm:inline">Create</span> Form
                   </button>
-                </div>
-              </SettingsCard>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {contractForms.map((form) => (
-                  <div key={form.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
-                    <div className="p-4 sm:p-5">
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          {editingContractFormName.id === form.id ? (
-                            <div className="flex items-center gap-2 flex-1">
-                              <input
-                                type="text"
-                                value={editingContractFormName.value}
-                                onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    setContractForms(contractForms.map(f => 
+                }
+              />
+
+              {contractForms.length === 0 ? (
+                <SettingsCard>
+                  <div className="text-center py-12 text-content-muted">
+                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium text-content-primary mb-2">No contract forms yet</h3>
+                    <p className="text-sm mb-6">Create your first contract form template</p>
+                    <button
+                      onClick={() => setShowCreateFormModal(true)}
+                      className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create Contract Form
+                    </button>
+                  </div>
+                </SettingsCard>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {contractForms.map((form) => (
+                    <div key={form.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
+                      <div className="p-4 sm:p-5">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            {editingContractFormName.id === form.id ? (
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="text"
+                                  value={editingContractFormName.value}
+                                  onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      setContractForms(contractForms.map(f =>
+                                        f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                      ))
+                                      setEditingContractFormName({ id: null, value: "" })
+                                    }
+                                    if (e.key === 'Escape') {
+                                      setEditingContractFormName({ id: null, value: "" })
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="flex-1 bg-surface-card text-content-primary text-sm font-medium outline-none border border-accent-blue focus:border-primary rounded-lg px-2 py-1"
+                                />
+                                <button
+                                  onClick={() => {
+                                    setContractForms(contractForms.map(f =>
                                       f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
                                     ))
                                     setEditingContractFormName({ id: null, value: "" })
-                                  }
-                                  if (e.key === 'Escape') {
-                                    setEditingContractFormName({ id: null, value: "" })
-                                  }
-                                }}
-                                autoFocus
-                                className="flex-1 bg-surface-card text-content-primary text-sm font-medium outline-none border border-accent-blue focus:border-primary rounded-lg px-2 py-1"
-                              />
-                              <button
-                                onClick={() => {
-                                  setContractForms(contractForms.map(f => 
-                                    f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
-                                  ))
-                                  setEditingContractFormName({ id: null, value: "" })
-                                }}
-                                className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                                  }}
+                                  className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setEditingContractFormName({ id: null, value: "" })}
+                                  className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <h3
+                                className="text-content-primary font-medium text-sm sm:text-base cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
+                                title="Click to edit name"
                               >
-                                <Check className="w-4 h-4" />
+                                {form.name}
+                              </h3>
+                            )}
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => setContractForms([...contractForms, {
+                                  ...form,
+                                  id: Date.now(),
+                                  name: `${form.name} (Copy)`,
+                                  createdAt: new Date().toISOString()
+                                }])}
+                                className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded transition-colors"
+                                title="Duplicate"
+                              >
+                                <Copy className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => setEditingContractFormName({ id: null, value: "" })}
-                                className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                                onClick={() => openDeleteModal(
+                                  "Delete Contract Form",
+                                  form.name || "this form",
+                                  "This will permanently delete all pages and content. This action cannot be undone.",
+                                  () => {
+                                    setContractForms(contractForms.filter(f => f.id !== form.id))
+                                    closeDeleteModal()
+                                    toast.success("Contract form deleted")
+                                  }
+                                )}
+                                className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                title="Delete"
                               >
-                                <X className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
-                          ) : (
-                            <h3 
-                              className="text-content-primary font-medium text-sm sm:text-base cursor-pointer hover:text-primary transition-colors"
-                              onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
-                              title="Click to edit name"
-                            >
-                              {form.name}
-                            </h3>
-                          )}
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => setContractForms([...contractForms, {
-                                ...form,
-                                id: Date.now(),
-                                name: `${form.name} (Copy)`,
-                                createdAt: new Date().toISOString()
-                              }])}
-                              className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded transition-colors"
-                              title="Duplicate"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => openDeleteModal(
-                                "Delete Contract Form",
-                                form.name || "this form",
-                                "This will permanently delete all pages and content. This action cannot be undone.",
-                                () => {
-                                  setContractForms(contractForms.filter(f => f.id !== form.id))
-                                  closeDeleteModal()
-                                  toast.success("Contract form deleted")
-                                }
-                              )}
-                              className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                          </div>
+                          <div className="text-xs text-content-faint">
+                            Created: {new Date(form.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-content-faint">
+                            {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
                           </div>
                         </div>
-                        <div className="text-xs text-content-faint">
-                          Created: {new Date(form.createdAt).toLocaleDateString()}
-                        </div>
-                        <div className="text-xs text-content-faint">
-                          {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
-                        </div>
+                      </div>
+                      <div className="px-4 py-3 bg-surface-card border-t border-border">
+                        <button
+                          onClick={() => {
+                            setSelectedContractForm(form)
+                            setContractBuilderModalVisible(true)
+                          }}
+                          className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Open Builder
+                        </button>
                       </div>
                     </div>
-                    <div className="px-4 py-3 bg-surface-card border-t border-border">
-                      <button
-                        onClick={() => {
-                          setSelectedContractForm(form)
-                          setContractBuilderModalVisible(true)
-                        }}
-                        className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Open Builder
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
             </div>
           </div>
@@ -3867,7 +3863,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </button>
               }
             />
-            
+
             {contractTypes.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
@@ -3900,13 +3896,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           </span>
                         )}
                       </div>
-                      
+
                       {/* Price highlight */}
                       <div className="mb-4">
                         <span className="text-2xl font-bold text-content-primary">{type.cost}{currency}</span>
                         <span className="text-content-faint text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
                       </div>
-                      
+
                       {/* Key info */}
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center justify-between text-content-muted">
@@ -3934,7 +3930,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Actions */}
                     <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
                       <button
@@ -4246,7 +4242,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Email Notifications" description="Configure automated email notifications" />
-            
+
             {/* Birthday Email Notification */}
             <SettingsCard>
               <div className="space-y-4">
@@ -4260,7 +4256,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onChange={(v) => setSettings({ ...settings, birthdayEmailEnabled: v })}
                   />
                 </div>
-                
+
                 {settings.birthdayEmailEnabled && (
                   <div className="space-y-4 pt-4 border-t border-border">
                     {/* Send Time */}
@@ -4273,7 +4269,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                       />
                     </div>
-                    
+
                     {/* Subject */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Subject</label>
@@ -4297,7 +4293,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                       />
                     </div>
-                    
+
                     {/* Message */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Message</label>
@@ -4359,7 +4355,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               const config = appointmentNotificationTypes[type] || {}
               const titles = {
                 confirmation: "Appointment Confirmation",
-                cancellation: "Appointment Cancellation", 
+                cancellation: "Appointment Cancellation",
                 rescheduled: "Appointment Rescheduled",
                 reminder: "Appointment Reminder",
                 registration: "New Member Registration"
@@ -4371,17 +4367,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 reminder: "Email sent before an upcoming appointment",
                 registration: "Email sent when a new member registers"
               }
-              const subjectVariables = type === "registration" 
+              const subjectVariables = type === "registration"
                 ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"]
                 : type === "rescheduled"
                   ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
                   : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Date}", "{Booked_Time}"]
-              const messageVariables = type === "registration" 
+              const messageVariables = type === "registration"
                 ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Registration_Link}"]
                 : type === "rescheduled"
                   ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
                   : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
-              
+
               return (
                 <SettingsCard key={type}>
                   <div className="space-y-4">
@@ -4398,7 +4394,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         })}
                       />
                     </div>
-                    
+
                     {config.emailEnabled && (
                       <div className="space-y-4 pt-4 border-t border-border">
                         {/* Reminder timing */}
@@ -4417,7 +4413,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             <span className="text-sm text-content-secondary">hours before appointment</span>
                           </div>
                         )}
-                        
+
                         {/* Subject */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Subject</label>
@@ -4447,7 +4443,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                         </div>
-                        
+
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Message</label>
@@ -4654,7 +4650,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="App Notifications" description="Configure push notifications for the mobile app" />
-            
+
             {/* Birthday App Notification */}
             <SettingsCard>
               <div className="space-y-4">
@@ -4668,7 +4664,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onChange={(v) => setSettings({ ...settings, birthdayAppEnabled: v })}
                   />
                 </div>
-                
+
                 {settings.birthdayAppEnabled && (
                   <div className="space-y-4 pt-4 border-t border-border">
                     {/* Send Time */}
@@ -4681,7 +4677,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                       />
                     </div>
-                    
+
                     {/* Title */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Title</label>
@@ -4705,7 +4701,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                       />
                     </div>
-                    
+
                     {/* Message */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-content-secondary">Message</label>
@@ -4751,7 +4747,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               const config = appointmentNotificationTypes[type] || {}
               const titles = {
                 confirmation: "Appointment Confirmation",
-                cancellation: "Appointment Cancellation", 
+                cancellation: "Appointment Cancellation",
                 rescheduled: "Appointment Rescheduled",
                 reminder: "Appointment Reminder"
               }
@@ -4761,13 +4757,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 rescheduled: "Push notification when an appointment time is changed",
                 reminder: "Push notification before an upcoming appointment"
               }
-              const titleVariables = type === "rescheduled" 
+              const titleVariables = type === "rescheduled"
                 ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
                 : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
-              const messageVariables = type === "rescheduled" 
+              const messageVariables = type === "rescheduled"
                 ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
                 : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
-              
+
               return (
                 <SettingsCard key={type}>
                   <div className="space-y-4">
@@ -4784,7 +4780,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         })}
                       />
                     </div>
-                    
+
                     {config.appEnabled && (
                       <div className="space-y-4 pt-4 border-t border-border">
                         {/* Reminder timing */}
@@ -4803,7 +4799,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             <span className="text-sm text-content-secondary">hours before appointment</span>
                           </div>
                         )}
-                        
+
                         {/* Title */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Title</label>
@@ -4833,7 +4829,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                           />
                         </div>
-                        
+
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-content-secondary">Message</label>
@@ -5178,7 +5174,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <VariablesRow>
@@ -5250,7 +5246,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <VariablesRow>
@@ -5322,7 +5318,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <VariablesRow>
@@ -5394,7 +5390,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <VariablesRow>
@@ -5466,7 +5462,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <VariablesRow>
@@ -5538,7 +5534,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <VariablesRow>
@@ -5655,7 +5651,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Payment Settings" description="Configure payment and billing information" />
-            
+
             <SettingsCard>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Currency - Disabled/Read-only */}
@@ -5725,7 +5721,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return (
           <div className="space-y-6">
             <SectionHeader title="Theme Settings" description="Customize the look and feel" />
-            
+
             <SettingsCard>
               <div className="space-y-6">
                 <div>
@@ -5733,22 +5729,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="inline-flex p-1 bg-surface-dark rounded-xl border border-border">
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "light" })}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        appearance.theme === "light"
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${appearance.theme === "light"
                           ? "bg-surface-card text-content-primary shadow-sm"
                           : "text-content-muted hover:text-content-primary"
-                      }`}
+                        }`}
                     >
                       <Sun className="w-4 h-4" />
                       Light
                     </button>
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "dark" })}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        appearance.theme === "dark"
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${appearance.theme === "dark"
                           ? "bg-surface-card text-content-primary shadow-sm"
                           : "text-content-muted hover:text-content-primary"
-                      }`}
+                        }`}
                     >
                       <Moon className="w-4 h-4" />
                       Dark
@@ -5877,7 +5871,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             Badge
                           </span>
                         </div>
-                        
+
                         {/* Toggle Preview */}
                         <div className="flex items-center gap-3">
                           <div
@@ -5888,7 +5882,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           </div>
                           <span className="text-sm text-content-muted">Toggle Active</span>
                         </div>
-                        
+
                         {/* Progress / Accent Bar Preview */}
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs text-content-muted">
@@ -6016,7 +6010,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         <div className="flex-1 overflow-y-auto p-2 min-h-0">
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
-            
+
             return (
               <div key={category.id} className="mb-1">
                 <button
@@ -6026,19 +6020,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       navigateToSection(category.id, category.sections[0].id)
                     }
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${
-                    activeCategory === category.id
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${activeCategory === category.id
                       ? "bg-surface-button text-content-primary"
                       : categoryMatches
                         ? "bg-primary/10 text-orange-300 hover:bg-primary/20"
                         : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
-                  }`}
+                    }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
                   <span className="flex-1 font-medium">{highlightText(category.label)}</span>
-                  <ChevronRight className={`w-4 h-4 transition-transform ${
-                    expandedCategories.includes(category.id) ? "rotate-90" : ""
-                  }`} />
+                  <ChevronRight className={`w-4 h-4 transition-transform ${expandedCategories.includes(category.id) ? "rotate-90" : ""
+                    }`} />
                 </button>
 
                 {expandedCategories.includes(category.id) && (
@@ -6047,7 +6039,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       const sectionMatches = matchesSearch(section.label)
                       const prevGroup = idx > 0 ? category.sections[idx - 1].group : null
                       const showGroupHeader = section.group && section.group !== prevGroup
-                      
+
                       return (
                         <div key={section.id}>
                           {showGroupHeader && (
@@ -6057,13 +6049,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           )}
                           <button
                             onClick={() => navigateToSection(category.id, section.id)}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                              activeSection === section.id
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeSection === section.id
                                 ? "text-primary bg-primary/10"
                                 : sectionMatches
                                   ? "text-orange-300 bg-primary/10 hover:bg-primary/20"
                                   : "text-content-faint hover:text-content-primary hover:bg-surface-hover"
-                            }`}
+                              }`}
                           >
                             {highlightText(section.label)}
                           </button>
@@ -6118,24 +6109,22 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         <div className="flex-1 min-h-0 overflow-y-auto p-2">
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
-            
+
             return (
               <div key={category.id} className="mb-1">
                 <button
                   onClick={() => toggleCategory(category.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors ${
-                    activeCategory === category.id
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors ${activeCategory === category.id
                       ? "bg-surface-button text-content-primary"
                       : categoryMatches
                         ? "bg-primary/10 text-orange-300"
                         : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
-                  }`}
+                    }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
                   <span className="flex-1 font-medium">{highlightText(category.label)}</span>
-                  <ChevronRight className={`w-4 h-4 transition-transform ${
-                    expandedCategories.includes(category.id) ? "rotate-90" : ""
-                  }`} />
+                  <ChevronRight className={`w-4 h-4 transition-transform ${expandedCategories.includes(category.id) ? "rotate-90" : ""
+                    }`} />
                 </button>
 
                 {expandedCategories.includes(category.id) && (
@@ -6144,7 +6133,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       const sectionMatches = matchesSearch(section.label)
                       const prevGroup = idx > 0 ? category.sections[idx - 1].group : null
                       const showGroupHeader = section.group && section.group !== prevGroup
-                      
+
                       return (
                         <div key={section.id}>
                           {showGroupHeader && (
@@ -6154,11 +6143,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           )}
                           <button
                             onClick={() => navigateToSection(category.id, section.id)}
-                            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
-                              sectionMatches
+                            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${sectionMatches
                                 ? "text-orange-300 bg-primary/10"
                                 : "text-content-faint hover:text-content-primary hover:bg-surface-hover"
-                            }`}
+                              }`}
                           >
                             <span>{highlightText(section.label)}</span>
                             <ChevronRight className="w-4 h-4" />

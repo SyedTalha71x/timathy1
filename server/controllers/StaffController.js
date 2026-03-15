@@ -243,10 +243,6 @@ const updateStaffById = async (req, res, next) => {
 };
 
 
-
-
-
-
 // get staff/Staff byID
 const getStaffById = async (req, res, next) => {
   try {
@@ -261,8 +257,6 @@ const getStaffById = async (req, res, next) => {
 };
 
 
-
-
 // delete Staff/staff
 const deleteStaffById = async (req, res, next) => {
   try {
@@ -275,8 +269,6 @@ const deleteStaffById = async (req, res, next) => {
     next(err);
   }
 };
-
-
 
 
 // get all staff
@@ -312,6 +304,38 @@ const getStaff = async (req, res, next) => {
 
 
 
+// update login staff
+const updateById = async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+    const updateData = { ...req.body }
+
+    if (req.file) {
+      const imgData = await uploadToCloudinary(req.file.buffer)
+      updateData.img = {
+        url: imgData.secure_url,
+        public_id: imgData.public_id,
+      }
+    }
+
+    if (req.body.password) {
+      updateData.password = await hashedPassword(req.body.password)
+    }
+
+    const updatedStaff = await StaffModel.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true })
+
+    return res.status(200).json({
+      success: true,
+      staff: updatedStaff
+    })
+
+  }
+  catch (error) {
+    next(error)
+  }
+}
+
+
 module.exports = {
   createStaff,
   loginStaff,
@@ -319,5 +343,5 @@ module.exports = {
   deleteStaffById,
   getStaff,
   getStaffById,
-
+  updateById
 };
