@@ -11,6 +11,7 @@ import { updateUserData } from "../../features/auth/authSlice"
 import DatePickerField from "../../components/shared/DatePickerField"
 import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
+import { Capacitor } from "@capacitor/core"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -243,8 +244,21 @@ const StudioMenu = () => {
         scanForQRCode()
       }
     } catch (error) {
-      setCameraError("Camera access denied or not available")
       setIsScanning(false)
+
+      // Detect if permission was denied vs other errors
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+        setCameraError("denied")
+      } else {
+        setCameraError("Camera is not available on this device")
+      }
+    }
+  }
+
+  const openAppSettings = () => {
+    if (Capacitor.isNativePlatform()) {
+      // Opens the iOS/Android app settings page directly
+      window.open("app-settings:", "_self")
     }
   }
 
@@ -663,8 +677,23 @@ const StudioMenu = () => {
                   <p className="text-content-muted text-xs mb-5">Make sure to allow camera access when prompted</p>
 
                   {cameraError && (
-                    <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-3 mb-4">
-                      <p className="text-red-400 text-xs sm:text-sm">{cameraError}</p>
+                    <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-4 mb-4">
+                      {cameraError === "denied" ? (
+                        <div className="text-center">
+                          <p className="text-red-400 text-sm mb-1">Camera access was denied</p>
+                          <p className="text-content-muted text-xs mb-3">Enable camera access in your device settings to use the scanner</p>
+                          {Capacitor.isNativePlatform() && (
+                            <button
+                              onClick={openAppSettings}
+                              className="bg-surface-button hover:bg-surface-button-hover text-content-primary px-4 py-2 rounded-xl text-sm transition-colors"
+                            >
+                              Open Settings
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-red-400 text-xs sm:text-sm text-center">{cameraError}</p>
+                      )}
                     </div>
                   )}
 
