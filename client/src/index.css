@@ -145,12 +145,24 @@ textarea::-moz-selection,
 
 /* Browser date/time/color inputs – adapt picker chrome to theme */
 html, body {
-  /* Prevent pull-to-refresh and overscroll bounce */
+  /* Prevent pull-to-refresh and overscroll bounce (iOS/Capacitor) */
   overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-surface-dark);
 }
 
 html {
   color-scheme: dark;
+}
+
+/* Root container must fill the fixed viewport */
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Ensure date/time input text inherits theme color */

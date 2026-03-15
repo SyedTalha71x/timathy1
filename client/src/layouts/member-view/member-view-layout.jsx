@@ -40,6 +40,7 @@ useEffect(() => {
         {/* Main Content Area */}
         <main
           ref={mainRef}
+          style={{ overscrollBehavior: 'contain' }}
          className={`flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] 
   lg:pt-0 md:pt-14 sm:pt-14 pt-14
   p-2

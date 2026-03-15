@@ -781,7 +781,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto p-2 min-h-0">
+        <div className="flex-1 overflow-y-auto p-2 min-h-0" style={{ overscrollBehavior: 'contain' }}>
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
 
@@ -870,7 +870,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
         </div>
 
         {/* Mobile Navigation Items */}
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto p-2" style={{ overscrollBehavior: 'contain' }}>
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
 
@@ -934,7 +934,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
           </div>
 
           {/* Mobile Content Area */}
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
             {renderSectionContent()}
           </div>
         </div>
@@ -945,7 +945,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6" style={{ overscrollBehavior: 'contain' }}>
           <div>{renderSectionContent()}</div>
         </div>
       </div>
