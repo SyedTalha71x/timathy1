@@ -3,6 +3,7 @@ import { Calendar, Clock, ChevronLeft, X, Filter, Check, Users, MapPin, Search, 
 import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
+import { haptic } from "../../utils/haptic"
 
 // ============================================
 // Reusable Components (matches appointment.jsx)
@@ -255,10 +256,12 @@ const Classes = () => {
   }
 
   const handleSliderDayClick = (day) => {
+    haptic.light()
     setSelectedDate(new Date(day.year, day.month, day.date))
   }
 
   const handleCategoryToggle = (category) => {
+    haptic.light()
     setSelectedCategories((prev) => {
       if (category === "All") return ["All"]
       const newSelection = prev.includes(category)
@@ -274,20 +277,22 @@ const Classes = () => {
     return `${selectedCategories.length} selected`
   }
 
-  const handleEnrollClick = (cls) => { setSelectedClass(cls); setShowEnrollModal(true) }
+  const handleEnrollClick = (cls) => { haptic.light(); setSelectedClass(cls); setShowEnrollModal(true) }
 
   const confirmEnroll = () => {
     if (!selectedClass) return
+    haptic.success()
     // TODO: dispatch(enrollInClass({ classId: selectedClass.id })) when backend is ready
     console.log("Enrolled in class:", selectedClass.id)
     setShowEnrollModal(false)
     setSelectedClass(null)
   }
 
-  const handleCancelEnrollment = (cls) => { setClassToCancel(cls); setShowCancelModal(true) }
+  const handleCancelEnrollment = (cls) => { haptic.light(); setClassToCancel(cls); setShowCancelModal(true) }
 
   const confirmCancel = () => {
     if (!classToCancel) return
+    haptic.warning()
     // TODO: dispatch(unenrollFromClass({ classId: classToCancel.id })) when backend is ready
     console.log("Cancelled enrollment:", classToCancel.id)
     setShowCancelModal(false)
@@ -304,10 +309,12 @@ const Classes = () => {
       const next = new Set(prev)
       if (next.has(cls.id)) {
         next.delete(cls.id)
+        haptic.light()
         // TODO: dispatch remove from watchlist when backend is ready
         console.log("Removed from watchlist:", cls.id)
       } else {
         next.add(cls.id)
+        haptic.success()
         // TODO: dispatch add to watchlist when backend is ready
         console.log("Added to watchlist:", cls.id)
       }
@@ -429,7 +436,7 @@ const Classes = () => {
         {showMyClasses ? (
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowMyClasses(false)}
+              onClick={() => { haptic.light(); setShowMyClasses(false) }}
               className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-xl transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -451,7 +458,7 @@ const Classes = () => {
           <div className="space-y-6">
             {/* My Classes CTA */}
             <button
-              onClick={() => setShowMyClasses(true)}
+              onClick={() => { haptic.light(); setShowMyClasses(true) }}
               className="w-full bg-primary hover:bg-primary-hover rounded-xl p-4 flex items-center gap-4 transition-colors"
             >
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -612,7 +619,7 @@ const Classes = () => {
                     <div
                       key={cls.id}
                       className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-colors group cursor-pointer"
-                      onClick={() => { setInfoModalData(cls); setShowInfoModal(true) }}
+                      onClick={() => { haptic.light(); setInfoModalData(cls); setShowInfoModal(true) }}
                     >
                       {/* Image / Timer placeholder */}
                       <div className="relative aspect-video bg-surface-card">
@@ -733,7 +740,7 @@ const Classes = () => {
               ].map((tab) => (
                 <button
                   key={tab.key}
-                  onClick={() => setMyClassesView(tab.key)}
+                  onClick={() => { haptic.light(); setMyClassesView(tab.key) }}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
                     myClassesView === tab.key
                       ? "bg-primary text-white"

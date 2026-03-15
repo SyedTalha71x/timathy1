@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import EmojiPicker from '../../components/shared/EmojiPicker'
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+import { haptic } from '../../utils/haptic'
 
 // ==========================================
 // HIGHLIGHTED TEXT COMPONENT - for dates/times
@@ -159,6 +160,7 @@ export default function StudioChat() {
   // Handle sending a message
   const handleSendMessage = () => {
     if (!messageText.trim() || !activeChat?._id) return
+    haptic.medium()
 
     const messageData = {
       chatId: activeChat._id,
@@ -308,7 +310,7 @@ export default function StudioChat() {
   const handleTouchStart = (message, e) => {
     if (message.isDeleted) return;
     const timer = setTimeout(() => {
-      if (navigator.vibrate) navigator.vibrate(50);
+      haptic.medium();
       setMobileContextMenu({ messageId: message.id, message });
     }, 500);
     setLongPressTimer(timer);
