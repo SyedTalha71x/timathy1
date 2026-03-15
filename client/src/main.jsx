@@ -23,12 +23,6 @@ if (Capacitor.isNativePlatform()) {
   StatusBar.setOverlaysWebView({ overlay: false });
   StatusBar.setStyle({ style: Style.Dark });
   StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
-
-  // ── HAPTIC TEST — entferne das nach dem Test ──
-  import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-    Haptics.impact({ style: ImpactStyle.Heavy })
-    console.log('✅ HAPTICS FIRED')
-  }).catch(err => console.error('❌ HAPTICS ERROR:', err))
 }
 
 // ============================================================================
