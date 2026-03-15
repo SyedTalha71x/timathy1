@@ -43,6 +43,10 @@ if (Capacitor.getPlatform() === 'ios') {
   Keyboard.addListener('keyboardWillShow', (info) => {
     const kb = info.keyboardHeight
     kbStyle.textContent = `.fixed.bottom-0 { bottom: ${kb}px !important; }`
+    document.documentElement.style.setProperty('--keyboard-height', `${kb}`)
+
+    // Custom Event — Portale/Dropdowns können darauf reagieren
+    window.dispatchEvent(new CustomEvent('capacitor-keyboard', { detail: { height: kb, visible: true } }))
 
     // Fokussiertes Element sichtbar halten
     setTimeout(() => {
@@ -55,6 +59,10 @@ if (Capacitor.getPlatform() === 'ios') {
 
   Keyboard.addListener('keyboardWillHide', () => {
     kbStyle.textContent = ''
+    document.documentElement.style.setProperty('--keyboard-height', '0')
+
+    // Custom Event
+    window.dispatchEvent(new CustomEvent('capacitor-keyboard', { detail: { height: 0, visible: false } }))
 
     setTimeout(() => {
       window.scrollTo(0, 0)

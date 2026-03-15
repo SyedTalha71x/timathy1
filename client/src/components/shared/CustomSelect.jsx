@@ -53,7 +53,10 @@ const CustomSelect = ({
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
-    const spaceBelow = window.innerHeight - rect.bottom
+    // Account for iOS keyboard height (set by Capacitor keyboard handler in main.jsx)
+    const kbHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--keyboard-height')) || 0
+    const viewportBottom = window.innerHeight - kbHeight
+    const spaceBelow = viewportBottom - rect.bottom
     const spaceAbove = rect.top
     const dropdownHeight = Math.min(filteredOptions.length * 36 + (searchable ? 44 : 0) + 8, 240)
     const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
@@ -110,9 +113,12 @@ const CustomSelect = ({
     const handleReposition = () => updatePosition()
     window.addEventListener("scroll", handleReposition, true)
     window.addEventListener("resize", handleReposition)
+    // Reposition when iOS keyboard opens/closes (event from main.jsx)
+    window.addEventListener("capacitor-keyboard", handleReposition)
     return () => {
       window.removeEventListener("scroll", handleReposition, true)
       window.removeEventListener("resize", handleReposition)
+      window.removeEventListener("capacitor-keyboard", handleReposition)
     }
   }, [isOpen, updatePosition])
 
