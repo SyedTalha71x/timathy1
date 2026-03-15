@@ -96,7 +96,7 @@ const getStudioByMemberId = async (req, res, next) => {
     // const studioId = req.user?.studio;
     const studio = await StudioModel
       .findOne({ users: userId })
-      .populate("users", "-password -refreshToken")
+      .populate("users")
       .populate('services', 'name description duration price')
       .populate('leads', 'firstName lastName email phone img')
 
