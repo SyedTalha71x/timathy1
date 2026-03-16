@@ -4,76 +4,34 @@ const { NotFoundError, UnAuthorizedError, ConflictError } = require('../middlewa
 const cloudinary = require('../utils/Cloudinary')
 const { Readable } = require('stream');
 const UserModel = require('../models/UserModel');
+const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
 
 
 
 const updateStudio = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const role = req.user?.role;
-
-    if (role !== "admin") {
-      throw new UnAuthorizedError("You are not authorized to update this studio");
-    }
-
-    const findStudio = await StudioModel.findById(id);
+    const userId = req.user?._id;
+    const studioId = req.user?.studio;
+ 
+    const findStudio = await StudioModel.findById(studioId);
     if (!findStudio) throw new NotFoundError("Studio not found");
 
-    const {
-      studioName,
-      studioOwner,
-      email,
-      phone,
-      street,
-      zipCode,
-      city,
-      country,
-      website,
-      openingHours,
-      closingDays,
-      overallCapacity,
-      userIdz
-    } = req.body;
+    const updateData = { ...req.body };
 
-    const updateData = {
-      studioName,
-      studioOwner,
-      email,
-      phone,
-      street,
-      zipCode,
-      city,
-      country,
-      website,
-      openingHours,
-      closingDays,
-      overallCapacity
-    };
-
-    Object.keys(updateData).forEach(
-      key => updateData[key] === undefined && delete updateData[key]
-    );
-
-    const updateObj = { $set: updateData };
-
-    if (userIdz) {
-      const member = await UserModel.findById(userIdz);
-      if (!member) throw new NotFoundError("Member not found");
-
-      updateObj.$addToSet = { users: member._id };
-
-      await MemberModel.findByIdAndUpdate(
-        userIdz,
-        { $set: { studio: findStudio._id } },
-        { new: true }
-      );
+    if (req.file) {
+      const imageData = await uploadToCloudinary(req.file.buffer)
+      updateData.img = {
+        url: imageData.secure_url,
+        public_id: imageData.public_id
+      }
     }
 
+
     const updatedStudio = await StudioModel.findByIdAndUpdate(
-      id,
-      updateObj,
-      { new: true }
+      studioId,
+      updateData,
+      { new: true, runValidators: true }
     );
 
     return res.status(200).json({

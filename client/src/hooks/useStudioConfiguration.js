@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react"
-import { useDispatch } from "react-redux" // Assuming you're using Redux
-import { fetchMyStudio } from "../features/studio/studioSlice" // Update path as needed
+import { useDispatch } from "react-redux"
+import { fetchMyStudio } from "../features/studio/studioSlice"
 
 // ============================================
 // Import all static defaults (fallback data source)
-// When backend is ready, replace loadConfigFromDefaults()
-// with an API call — nothing else changes.
 // ============================================
 import {
   studioData,
@@ -45,14 +43,27 @@ function transformStudioResponse(backendData) {
   }
 
   const { studio } = backendData
+  console.log('Transforming studio data:', studio) // Debug log
 
   // Helper function to format opening hours
   const formatOpeningHours = (hours) => {
+    if (!hours || !Array.isArray(hours)) return []
     return hours.map(day => ({
-      ...day,
-      // Ensure consistent time format if needed
-      open: day.open,
-      close: day.close
+      day: day.day,
+      open: day.open || "",
+      close: day.close || "",
+      isClosed: day.isClosed || day.closed || false
+    }))
+  }
+
+  // Format closing days
+  const formatClosingDays = (days) => {
+    if (!days || !Array.isArray(days)) return []
+    return days.map(day => ({
+      date: day.date,
+      reason: day.reason || day.description || "",
+      description: day.description || day.reason || "",
+      _id: day._id
     }))
   }
 
@@ -71,14 +82,14 @@ function transformStudioResponse(backendData) {
         isActive: staff.isActive,
         phone: staff.phone,
         telephone: staff.telephone,
-        vacationDays: staff.vacationDays || 30,
+        vacationDays: staff.vacationDays || staff.vacationEntitlement || 30,
         remainingDays: staff.remainingDays,
         about: staff.about,
         notes: staff.notes || [],
         permissions: staff.permission || [],
-        img: staff.img
+        img: staff.img?.url || staff.img
       })),
-      roles: DEFAULT_STAFF_ROLES, // Keep defaults or transform from backend if available
+      roles: DEFAULT_STAFF_ROLES,
       defaultVacationDays: DEFAULT_VACATION_DAYS,
       defaultStaffRole: DEFAULT_STAFF_ROLE_ID,
       defaultStaffCountry: studio.country || DEFAULT_STAFF_COUNTRY,
@@ -109,7 +120,7 @@ function transformStudioResponse(backendData) {
         checkIn: member.checkIn,
         appointments: member.appointments || [],
         relations: member.relations || [],
-        img: member.img,
+        img: member.img?.url || member.img,
         specialsNotes: member.specialsNotes || []
       })),
       leadSources: DEFAULT_LEAD_SOURCES,
@@ -126,23 +137,23 @@ function transformStudioResponse(backendData) {
       studioId: studio._id,
       operator: studio.studioOwner,
       operatorEmail: studio.email,
-      operatorPhone: studio.phone, // Note: This might need to be added to your backend
-      operatorMobile: studio.telephone, // Note: This might need to be added to your backend
+      operatorPhone: studio.phone || "",
+      operatorMobile: studio.telephone || "",
       street: studio.street,
       zipCode: studio.zipCode,
       city: studio.city,
       country: studio.country,
-      phone: studio.phone, // You might need to add this to your backend
-      mobile: studio.mobile, // You might need to add this to your backend
+      phone: studio.phone || "",
+      mobile: studio.mobile || "",
       email: studio.email,
-      website: studio.website,
-      currency: "EUR", // Default or add to backend
-      registrationNumber: studio.registrationNumber,
-      taxId: studio.texId,
-      court: studio.court,
-      overallCapacity: studio.overallCapacity,
-      openingHours: formatOpeningHours(studio.openingHours || []),
-      closingDays: studio.closingDays || [],
+      website: studio.website || "",
+      currency: "EUR",
+      registrationNumber: studio.registrationNumber || "",
+      taxId: studio.texId || "",
+      court: studio.court || "",
+      overallCapacity: studio.overallCapacity || DEFAULT_STUDIO_CAPACITY,
+      openingHours: formatOpeningHours(studio.openingHours),
+      closingDays: formatClosingDays(studio.closingDays),
       createdAt: studio.createdAt,
       updatedAt: studio.updatedAt,
     },
@@ -167,8 +178,7 @@ function transformStudioResponse(backendData) {
     },
     finances: {
       vatRates: DEFAULT_VAT_RATES,
-      vatNumber: studio.texId,
-      // Bank details - you might need to add these to your backend
+      vatNumber: studio.texId || "",
       bankName: "",
       creditorId: "",
       creditorName: "",
@@ -186,31 +196,57 @@ function transformStudioResponse(backendData) {
 
 /**
  * Loads configuration from static default files (fallback).
+ * This function does NOT depend on backend data - it creates a complete
+ * default configuration object using imported defaults.
+ * 
  * @param {Object} options
- * @param {number|null} options.studioId
+ * @param {string|null} options.studioId
  * @param {string} options.mode
- * @returns {Object} Normalized configuration object
+ * @returns {Object} Normalized configuration object with default values
  */
-function loadConfigFromDefaults(/* { studioId, mode } */) {
+function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
+  console.log('Loading default configuration with studioId:', studioId) // Debug log
+
+  // Create default opening hours
+  const defaultOpeningHours = [
+    { day: "Monday", open: "09:00", close: "22:00", isClosed: false },
+    { day: "Tuesday", open: "09:00", close: "22:00", isClosed: false },
+    { day: "Wednesday", open: "09:00", close: "22:00", isClosed: false },
+    { day: "Thursday", open: "09:00", close: "22:00", isClosed: false },
+    { day: "Friday", open: "09:00", close: "22:00", isClosed: false },
+    { day: "Saturday", open: "10:00", close: "18:00", isClosed: false },
+    { day: "Sunday", open: "", close: "", isClosed: true },
+  ]
+
+  // Create default closing days (empty array)
+  const defaultClosingDays = []
+
   return {
     studio: {
-      name: studioData.name,
-      studioId: studioData.studioId,
-      operator: studioData.operator,
-      operatorEmail: studioData.operatorEmail,
-      operatorPhone: studioData.operatorPhone,
-      operatorMobile: studioData.operatorMobile,
-      street: studioData.street,
-      zipCode: studioData.zipCode,
-      city: studioData.city,
-      country: studioData.country,
-      phone: studioData.phone,
-      mobile: studioData.mobile,
-      email: studioData.email,
-      website: studioData.website,
-      currency: studioData.currency,
-      openingHours: studioData.openingHours,
-      closingDays: studioData.closingDays || [],
+      id: studioId || "default-studio-id",
+      name: "My Studio",
+      studioId: studioId || "default-studio-id",
+      operator: "Studio Owner",
+      operatorEmail: "owner@example.com",
+      operatorPhone: "",
+      operatorMobile: "",
+      street: "123 Main Street",
+      zipCode: "12345",
+      city: "Your City",
+      country: "DE",
+      phone: "",
+      mobile: "",
+      email: "studio@example.com",
+      website: "https://your-studio.com",
+      currency: "EUR",
+      registrationNumber: "",
+      taxId: "",
+      court: "",
+      overallCapacity: DEFAULT_STUDIO_CAPACITY,
+      openingHours: defaultOpeningHours,
+      closingDays: defaultClosingDays,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
     staff: {
       roles: DEFAULT_STAFF_ROLES,
@@ -231,6 +267,7 @@ function loadConfigFromDefaults(/* { studioId, mode } */) {
       memberQRCodeUrl: DEFAULT_MEMBER_SETTINGS.memberQRCodeUrl,
       leadSources: DEFAULT_LEAD_SOURCES,
       introductoryMaterials: DEFAULT_INTRODUCTORY_MATERIALS,
+      allMembers: [],
     },
     contracts: {
       settings: DEFAULT_CONTRACT_SETTINGS,
@@ -244,13 +281,16 @@ function loadConfigFromDefaults(/* { studioId, mode } */) {
     },
     finances: {
       vatRates: DEFAULT_VAT_RATES,
-      vatNumber: studioData.taxId,
-      bankName: studioData.bankAccount?.bankName,
-      creditorId: studioData.bankAccount?.creditorId,
-      creditorName: studioData.bankAccount?.creditorName,
-      iban: studioData.bankAccount?.iban,
-      bic: studioData.bankAccount?.bic,
+      vatNumber: "",
+      bankName: "",
+      creditorId: "",
+      creditorName: "",
+      iban: "",
+      bic: "",
     },
+    services: [],
+    leads: [],
+    notes: [],
     appearance: DEFAULT_APPEARANCE_SETTINGS,
     countries: COUNTRIES,
     permissions: PERMISSION_DATA,
@@ -281,31 +321,39 @@ export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}
 
       if (mode === "admin" && studioId) {
         // Admin mode - fetch specific studio
-        // Replace with your admin API endpoint
-        const res = await fetch(`/api/admin/studios/${studioId}/configuration`)
-        if (!res.ok) throw new Error('Failed to fetch studio configuration')
-        const json = await res.json()
-        data = transformStudioResponse(json)
+        try {
+          const res = await fetch(`/api/admin/studios/${studioId}/configuration`)
+          if (!res.ok) throw new Error('Failed to fetch studio configuration')
+          const json = await res.json()
+          data = transformStudioResponse(json)
+        } catch (adminError) {
+          console.error('Admin fetch failed, using defaults:', adminError)
+          data = loadConfigFromDefaults({ studioId, mode })
+        }
       } else {
         // Studio mode - fetch own studio using Redux action
-        const result = await dispatch(fetchMyStudio()).unwrap()
+        try {
+          const result = await dispatch(fetchMyStudio()).unwrap()
+          console.log('fetchMyStudio result:', result) // Debug log
 
-        // Check if the API call was successful
-        if (result && result.success && result.studio) {
-          // Transform the backend data to match our config structure
-          data = transformStudioResponse(result)
-        } else {
-          // Fallback to defaults if API fails or returns unexpected data
-          console.warn('Using default configuration as fallback')
+          if (result && result.success && result.studio) {
+            // Transform the backend data to match our config structure
+            data = transformStudioResponse(result)
+            // console.log('Transformed config:', data) // Debug log
+          } else {
+            console.warn('API returned unexpected data, using defaults')
+            data = loadConfigFromDefaults({ studioId, mode })
+          }
+        } catch (fetchError) {
+          console.error('Error fetching studio:', fetchError)
           data = loadConfigFromDefaults({ studioId, mode })
         }
       }
 
       setConfig(data)
     } catch (err) {
-      console.error('Error loading configuration:', err)
-
-      // Fallback to defaults on error
+      console.error('Error in loadConfig:', err)
+      // Ultimate fallback
       const fallbackData = loadConfigFromDefaults({ studioId, mode })
       setConfig(fallbackData)
       setError(err.message || "Failed to load configuration, using defaults")
@@ -320,7 +368,6 @@ export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}
 
   /**
    * Update a section of the config (optimistic update).
-   * In a real implementation, this would also save to backend.
    */
   const updateConfig = (section, data) => {
     setConfig((prev) => ({
@@ -330,9 +377,6 @@ export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}
         ...data,
       },
     }))
-
-    // Here you would also trigger a save to backend
-    // e.g., dispatch(updateStudioConfiguration({ section, data }))
   }
 
   /**
