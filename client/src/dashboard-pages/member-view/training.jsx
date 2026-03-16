@@ -611,8 +611,10 @@ export default function Training() {
         `}
       </style>
 
-      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
-        <div className="w-full mx-auto">
+      <div className="flex flex-col h-full rounded-3xl bg-surface-base text-content-primary overflow-hidden transition-all duration-500 ease-in-out flex-1">
+
+        {/* Sticky Header + Tabs */}
+        <div className="flex-shrink-0 md:px-6 md:pt-6 px-3 pt-3">
           {/* Header */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
@@ -621,7 +623,7 @@ export default function Training() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-border-subtle mb-6">
+          <div className="flex border-b border-border-subtle" style={{ touchAction: "manipulation" }}>
             <button
               onClick={() => { haptic.light(); setActiveTab("videos") }}
               className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
@@ -643,6 +645,11 @@ export default function Training() {
               Training Plans
             </button>
           </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
+        <div className="w-full mx-auto">
 
           {/* =============================================================== */}
           {/* VIDEOS TAB */}
@@ -886,6 +893,7 @@ export default function Training() {
             </div>
           )}
         </div>
+        </div>
       </div>
 
       {/* =============================================================== */}
@@ -995,7 +1003,7 @@ export default function Training() {
       {activeTab === "plans" && (
         <button
           onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
-          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed bottom-16 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           aria-label="Create Training Plan"
         >
           <Plus size={22} />

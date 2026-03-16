@@ -135,11 +135,11 @@ const MemberDashboardHeader = ({
           <StudioBadge isMobile={true} />
         </div>
 
-        {/* Right - Settings + Theme + Language */}
+        {/* Right - Theme + Language + Settings */}
         <div className="flex gap-1 items-center">
-          <SettingsButton isMobile={true} />
           <ThemeToggle isMobile={true} />
           <LanguageDropdown isMobile={true} />
+          <SettingsButton isMobile={true} />
         </div>
       </div>
 
@@ -162,11 +162,11 @@ const MemberDashboardHeader = ({
           <StudioBadge isMobile={false} />
         </div>
 
-        {/* Right - Settings + Theme + Language */}
+        {/* Right - Theme + Language + Settings */}
         <div className="flex gap-1 items-center">
-          <SettingsButton isMobile={false} />
           <ThemeToggle isMobile={false} />
           <LanguageDropdown isMobile={false} />
+          <SettingsButton isMobile={false} />
         </div>
       </div>
     </>

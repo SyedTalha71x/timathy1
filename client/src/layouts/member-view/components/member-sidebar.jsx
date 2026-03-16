@@ -2,13 +2,13 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  Home,
   Calendar,
   MessageCircle,
   LogOut,
   Timer,
   Apple,
 } from "lucide-react";
-import { SiYoutubestudio } from "react-icons/si";
 import { CgGym } from "react-icons/cg";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../../features/auth/authSlice";
@@ -50,8 +50,8 @@ const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse 
   // Menu Items — Settings removed (now in header)
   // ============================================
   const menuItems = [
-    { icon: SiYoutubestudio, label: "Studio", to: "/member-view/studio-menu" },
-    { icon: MessageCircle, label: "Communication", to: "/member-view/communication", badgeCount: unreadMessagesCount },
+    { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
+    { icon: MessageCircle, label: "Messages", to: "/member-view/communication", badgeCount: unreadMessagesCount },
     { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
     { icon: Timer, label: "Classes", to: "/member-view/classes" },
     { icon: CgGym, label: "Training", to: "/member-view/training" },

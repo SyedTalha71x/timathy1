@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
+  Home,
   Calendar,
   MessageCircle,
   Timer,
@@ -9,7 +10,6 @@ import {
   MoreHorizontal,
   X,
 } from "lucide-react"
-import { SiYoutubestudio } from "react-icons/si"
 import { CgGym } from "react-icons/cg"
 import { haptic } from "../../../utils/haptic"
 
@@ -19,16 +19,16 @@ import { haptic } from "../../../utils/haptic"
 
 // Primary tabs (always visible)
 const BAR_ITEMS = [
-  { icon: SiYoutubestudio, label: "Studio", to: "/member-view/studio-menu" },
+  { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
+  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
   { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
-  { icon: Timer, label: "Classes", to: "/member-view/classes" },
-  { icon: CgGym, label: "Training", to: "/member-view/training" },
+  { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
 ]
 
 // Overflow items (inside "More" sheet)
 const MORE_ITEMS = [
-  { icon: MessageCircle, label: "Communication", to: "/member-view/communication" },
-  { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
+  { icon: Timer, label: "Classes", to: "/member-view/classes" },
+  { icon: CgGym, label: "Training", to: "/member-view/training" },
 ]
 
 const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
@@ -60,7 +60,6 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
 
   const isActive = (to) => location.pathname === to || location.pathname.startsWith(to + "/")
   const isMoreActive = MORE_ITEMS.some((item) => isActive(item.to))
-  const hasMoreBadge = unreadMessagesCount > 0
 
   const handleNavigate = (to) => {
     haptic.light()
@@ -83,7 +82,6 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
           {MORE_ITEMS.map((item) => {
             const active = isActive(item.to)
             const Icon = item.icon
-            const isCommunication = item.to.includes("communication")
             return (
               <button
                 key={item.to}
@@ -104,11 +102,6 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
                 >
                   {item.label}
                 </span>
-                {isCommunication && unreadMessagesCount > 0 && (
-                  <span className="ml-auto bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
-                    {unreadMessagesCount}
-                  </span>
-                )}
               </button>
             )
           })}
@@ -117,7 +110,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
 
       {/* ═══ Tab bar ═══ */}
       <div
-        className="bg-[#111111]/95 backdrop-blur-xl border-t border-white/[0.06] flex items-center justify-around"
+        className="bg-surface-dark/95 backdrop-blur-xl border-t border-border flex items-center justify-around"
         style={{
           paddingBottom: "max(env(safe-area-inset-bottom, 0px), 4px)",
           touchAction: "manipulation",
@@ -126,15 +119,21 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
         {BAR_ITEMS.map((item) => {
           const active = isActive(item.to)
           const Icon = item.icon
+          const isCommunication = item.to.includes("communication")
           return (
             <button
               key={item.to}
               onClick={() => handleNavigate(item.to)}
               className={`flex-1 flex flex-col items-center gap-0.5 pt-2.5 pb-1.5 transition-colors ${
-                active ? "text-primary" : "text-zinc-500 active:text-zinc-300"
+                active ? "text-primary" : "text-content-faint active:text-content-muted"
               }`}
             >
-              <Icon size={22} strokeWidth={active ? 2.2 : 1.8} />
+              <div className="relative">
+                <Icon size={22} strokeWidth={active ? 2.2 : 1.8} />
+                {isCommunication && unreadMessagesCount > 0 && (
+                  <div className="absolute -top-0.5 -right-1.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-transparent" style={{ borderColor: "var(--color-surface-dark, #111)" }} />
+                )}
+              </div>
               <span className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}>
                 {item.label}
               </span>
@@ -152,8 +151,8 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
             isMoreActive
               ? "text-primary"
               : showMore
-              ? "text-zinc-300"
-              : "text-zinc-500 active:text-zinc-300"
+              ? "text-content-muted"
+              : "text-content-faint active:text-content-muted"
           }`}
         >
           <div className="relative">
@@ -161,9 +160,6 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
               <X size={22} strokeWidth={1.8} />
             ) : (
               <MoreHorizontal size={22} strokeWidth={1.8} />
-            )}
-            {hasMoreBadge && !showMore && (
-              <div className="absolute -top-0.5 -right-1.5 w-2 h-2 bg-primary rounded-full ring-2 ring-[#111111]" />
             )}
           </div>
           <span className={`text-[10px] leading-tight ${isMoreActive ? "font-semibold" : "font-medium"}`}>
