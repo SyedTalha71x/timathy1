@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { X, Plus } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { haptic } from '../../../utils/haptic';
 
 const AddToPlanModal = ({
   isOpen,
@@ -19,6 +20,7 @@ const AddToPlanModal = ({
 
 
   const handleCreateNew = () => {
+    haptic.light();
     onClose();
     onCreateNewPlan(videoToAdd);
   };
@@ -46,7 +48,7 @@ const AddToPlanModal = ({
                 <div
                   key={plan._id}
                   className="bg-surface-card rounded-xl p-3 sm:p-4 hover:bg-surface-hover transition-colors cursor-pointer"
-                  onClick={() => onAddToExistingPlan(plan._id)}
+                  onClick={() => { haptic.light(); onAddToExistingPlan(plan._id) }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">

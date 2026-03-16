@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
 import { memberLogin, staffLoginThunk } from '../features/auth/authSlice'
 // Import logo
-import OrgaGymLogo from "../../public/Orgagym white without text.svg"
+import OrgaGymLogo from "../../public/OrgaGym Logo.svg"
 import { useSelector, useDispatch } from "react-redux"
 import { fetchAllAppointments, fetchMyAppointments } from "../features/appointments/AppointmentSlice"
 import { fetchStudioServices } from "../features/services/servicesSlice"

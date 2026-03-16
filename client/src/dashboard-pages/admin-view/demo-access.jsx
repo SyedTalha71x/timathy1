@@ -547,7 +547,7 @@ export default function DemoCreationPage() {
       {/* ======== HEADER ======== */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-white oxanium_font text-xl md:text-2xl">Access Management</h1>
+          <h1 className="text-white oxanium_font text-xl md:text-2xl">Demo Access</h1>
 
           {/* Sort button (mobile) */}
           <div className="lg:hidden relative" ref={sortDropdownRef}>

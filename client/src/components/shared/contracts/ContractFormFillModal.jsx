@@ -24,7 +24,7 @@ import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
 import { pdf } from "@react-pdf/renderer"
 import { DEFAULT_CONTRACT_FORMS, DEFAULT_CONTRACT_TYPES, studioData } from "../../../utils/studio-states/configuration-states"
-import { SYSTEM_VARIABLES, USER_VARIABLES } from "../../studio-components/configuration-components/contract-builder-components/constants/elementConstants"
+import { SYSTEM_VARIABLES, USER_VARIABLES } from "../contract-builder/contract-builder-components/constants/elementConstants"
 import ContractPDFDocument from "../../studio-components/contract-components/ContractPDFDocument"
 
 // =============================================================================

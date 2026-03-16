@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import EmojiPicker from '../../components/shared/EmojiPicker'
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+import { haptic } from '../../utils/haptic'
 
 // ==========================================
 // HIGHLIGHTED TEXT COMPONENT - for dates/times
@@ -159,6 +160,7 @@ export default function StudioChat() {
   // Handle sending a message
   const handleSendMessage = () => {
     if (!messageText.trim() || !activeChat?._id) return
+    haptic.medium()
 
     const messageData = {
       chatId: activeChat._id,
@@ -308,7 +310,7 @@ export default function StudioChat() {
   const handleTouchStart = (message, e) => {
     if (message.isDeleted) return;
     const timer = setTimeout(() => {
-      if (navigator.vibrate) navigator.vibrate(50);
+      haptic.medium();
       setMobileContextMenu({ messageId: message.id, message });
     }, 500);
     setLongPressTimer(timer);
@@ -487,7 +489,7 @@ export default function StudioChat() {
       {/* ==========================================
           MOBILE VIEW - No own header, DashboardHeader handles it
           ========================================== */}
-      <div className="md:hidden fixed top-[3.5rem] inset-x-0 bottom-0 z-[30] flex flex-col bg-surface-base">
+      <div className="md:hidden fixed top-[3.5rem] inset-x-0 bottom-[3.5rem] z-[30] flex flex-col bg-surface-base">
         {/* Mobile Messages Area */}
         <div
           ref={mobileMessagesContainerRef}
@@ -605,52 +607,36 @@ export default function StudioChat() {
           </div>
         )}
 
-        {/* Mobile Input Area - matching studio */}
-        <div className="p-3 bg-surface-base border-t border-border flex-shrink-0 relative">
-          {/* Emoji Picker - Shared Component */}
-          <EmojiPicker
-            isOpen={showEmojiPicker}
-            onEmojiSelect={handleEmojiSelect}
-            onClose={() => setShowEmojiPicker(false)}
-            className="absolute bottom-full mb-2 left-3 z-[201]"
-            pickerRef={emojiPickerRef}
-            ignoreCloseSelectors={['button[aria-label="emoji-picker-toggle"]']}
-          />
-
-          <div className="flex items-end gap-2 bg-surface-dark px-3 py-2 rounded-xl border border-border">
+        {/* Mobile Input Area */}
+        <div className="px-2 pt-1.5 pb-2.5 bg-surface-base border-t border-border flex-shrink-0 relative">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-surface-dark px-3 py-2 rounded-xl border border-border flex items-center">
+              <textarea
+                ref={mobileTextareaRef}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onInput={(e) => {
+                  e.target.style.height = "20px";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                }}
+                onKeyDown={handleKeyPress}
+                placeholder="Type a message..."
+                className="w-full bg-transparent text-content-primary outline-none text-xs resize-none max-h-[120px] leading-5 placeholder:text-content-faint"
+                rows={1}
+                style={{ height: '20px' }}
+              />
+            </div>
             <button
-              className="p-2 hover:bg-surface-button rounded-full flex-shrink-0"
-              aria-label="emoji-picker-toggle"
-              onClick={toggleEmojiPicker}
-              type="button"
-            >
-              <Smile className="w-5 h-5 text-content-muted" />
-            </button>
-            <textarea
-              ref={mobileTextareaRef}
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onInput={(e) => {
-                e.target.style.height = "32px";
-                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-              }}
-              onKeyDown={handleKeyPress}
-              placeholder="Type a message..."
-              className="flex-1 bg-transparent text-content-primary outline-none text-sm min-w-0 resize-none max-h-[120px] leading-5"
-              rows={1}
-              style={{ height: '32px' }}
-            />
-            <button
-              className={`p-2 rounded-lg flex-shrink-0 transition-colors ${messageText.trim()
+              className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${messageText.trim()
                 ? 'bg-primary hover:bg-primary-hover text-white'
-                : 'text-content-faint cursor-not-allowed'
+                : 'bg-surface-button text-content-faint'
                 }`}
               aria-label="Send message"
               onClick={handleSendMessage}
               disabled={!messageText.trim()}
               type="button"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             </button>
           </div>
         </div>

@@ -27,6 +27,7 @@ import EditQuantityModal from "../../components/member-panel-components/nutritio
 import BarcodeScannerModal from "../../components/member-panel-components/nutrition-tracking-components/BarcodeScannerModal"
 import SettingsModal from "../../components/member-panel-components/nutrition-tracking-components/SettingsModal"
 import StreakModal from "../../components/member-panel-components/nutrition-tracking-components/StreakModal"
+import { haptic } from "../../utils/haptic"
 
 // Shared constants & components
 import {
@@ -290,6 +291,7 @@ const NutritionTracker = () => {
     const today = new Date()
     today.setHours(23, 59, 59, 999)
     if (d > today) return
+    haptic.light()
     setSelectedDate(d)
   }
   const handleDatePick = (str) => {
@@ -311,12 +313,13 @@ const NutritionTracker = () => {
   const filteredFoods = allFoods.filter((f) => f.name.toLowerCase().includes(searchQuery.toLowerCase()))
   const favoriteFoods = useMemo(() => allFoods.filter((f) => favorites.includes(f._id || f.id)), [allFoods, favorites])
 
-  const toggleFavorite = (foodId) => setFavorites((prev) => prev.includes(foodId) ? prev.filter((id) => id !== foodId) : [...prev, foodId])
+  const toggleFavorite = (foodId) => { haptic.light(); setFavorites((prev) => prev.includes(foodId) ? prev.filter((id) => id !== foodId) : [...prev, foodId]) }
   const isFavorite = (foodId) => favorites.includes(foodId)
 
   // Add food
   const handleAddFood = () => {
     if (!selectedFood) return
+    haptic.success()
     const foodId = selectedFood._id || selectedFood.id
     if (foodId && !selectedFood.isCustom) {
       dispatch(newFood({ date: selectedDate, mealType: addFoodMeal, foodId, quantity: Number(quantity), unit }))
@@ -337,11 +340,12 @@ const NutritionTracker = () => {
   }
 
   const resetAddFood = () => { setShowAddFood(false); setSearchQuery(""); setSelectedFood(null); setQuantity("1"); setUnit(""); setAddFoodTab("search") }
-  const openAddFood = (meal) => { setAddFoodMeal(meal); setShowAddFood(true); setTimeout(() => searchRef.current?.focus(), 100) }
+  const openAddFood = (meal) => { haptic.light(); setAddFoodMeal(meal); setShowAddFood(true); setTimeout(() => searchRef.current?.focus(), 100) }
 
   // Quick-Add
   const handleQuickAdd = () => {
     if (!quickForm.calories && !quickForm.name) return
+    haptic.success()
     const meal = quickAddMeal
     setMeals((prev) => ({
       ...prev,
@@ -359,6 +363,7 @@ const NutritionTracker = () => {
   // Custom food
   const handleSaveCustomFood = () => {
     if (!customForm.name || !customForm.calories) return
+    haptic.success()
     if (editingCustomId) {
       // Update existing
       setCustomFoods((prev) => prev.map((f) => f.id === editingCustomId ? {
@@ -402,14 +407,16 @@ const NutritionTracker = () => {
   }
 
   const deleteCustomFood = (id) => {
+    haptic.warning()
     setCustomFoods((prev) => prev.filter((f) => f.id !== id))
     setFavorites((prev) => prev.filter((fId) => fId !== id))
   }
 
   // Edit food
-  const openEditFood = (mealType, food) => { setEditingFood({ mealType, food }); setEditQuantity(String(food.quantity || 1)) }
+  const openEditFood = (mealType, food) => { haptic.light(); setEditingFood({ mealType, food }); setEditQuantity(String(food.quantity || 1)) }
   const handleEditFood = () => {
     if (!editingFood) return
+    haptic.success()
     setMeals((prev) => ({
       ...prev,
       [editingFood.mealType]: (prev[editingFood.mealType] || []).map((f) =>
@@ -418,12 +425,13 @@ const NutritionTracker = () => {
     }))
     setEditingFood(null)
   }
-  const removeFood = (mealType, foodId) => setMeals((prev) => ({ ...prev, [mealType]: (prev[mealType] || []).filter((f) => f.id !== foodId) }))
+  const removeFood = (mealType, foodId) => { haptic.warning(); setMeals((prev) => ({ ...prev, [mealType]: (prev[mealType] || []).filter((f) => f.id !== foodId) })) }
 
   // Copy meal
   const copyMealFromYesterday = (mealType) => {
     const items = yesterdayMeals[mealType]
     if (!items?.length) return
+    haptic.success()
     setMeals((prev) => ({ ...prev, [mealType]: [...(prev[mealType] || []), ...items.map((f) => ({ ...f, id: Date.now() + Math.random() }))] }))
   }
 
@@ -433,6 +441,7 @@ const NutritionTracker = () => {
   // TODO [Backend]: Create endpoint PUT /api/daily-summary/water { date, waterMl }
   const updateWater = (newAmount) => {
     const clamped = Math.max(0, newAmount)
+    haptic.light()
     setWaterDrank(clamped)
     // dispatch(updateDailyWater({ date: dateStr, waterMl: clamped }))
   }
@@ -448,6 +457,7 @@ const NutritionTracker = () => {
   }
 
   const handleSaveSettings = () => {
+    haptic.success()
     setProfile({ ...profileForm })
     setGoals({ ...goalForm })
     dispatch(createGoals(goalForm))
@@ -642,7 +652,7 @@ const NutritionTracker = () => {
       <StreakModal show={showStreak} onClose={() => setShowStreak(false)} streak={streak} />
 
       {/* ========== HEADER ========== */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0" style={{ touchAction: "manipulation" }}>
         <div className="flex items-center justify-between p-4 sm:px-6 sm:pt-6 sm:pb-4">
           <div className="flex items-center gap-2">
             <button onClick={() => shiftDate(-1)} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary">
@@ -658,22 +668,23 @@ const NutritionTracker = () => {
           </div>
           <div className="flex items-center gap-1">
             {streak > 0 && (
-              <button onClick={() => setShowStreak(true)} className="flex items-center gap-1 px-2 py-1 bg-primary/10 hover:bg-primary/20 rounded-lg mr-1 transition-colors">
+              <button onClick={() => { haptic.light(); setShowStreak(true) }} className="flex items-center gap-1 px-2 py-1 bg-primary/10 hover:bg-primary/20 rounded-lg mr-1 transition-colors">
                 <Flame className="w-3.5 h-3.5 text-primary" /><span className="text-xs font-semibold text-primary">{streak}</span>
               </button>
             )}
-            <button onClick={() => { setProfileForm({ ...profile }); setGoalForm({ ...goals }); setSettingsTab("profile"); setShowSettings(true) }}
+            <button onClick={() => { haptic.light(); setProfileForm({ ...profile }); setGoalForm({ ...goals }); setSettingsTab("profile"); setShowSettings(true) }}
               className="p-2 hover:bg-surface-button rounded-xl transition-colors text-content-muted hover:text-content-primary">
               <Settings className="w-5 h-5" />
             </button>
           </div>
         </div>
-        <div className="flex border-b border-border">
+        <div className="flex border-b border-border relative z-10">
           {[{ key: "diary", label: "Diary", icon: BookOpen }, { key: "insights", label: "Insights", icon: TrendingUp }].map((tab) => {
             const TabIcon = tab.icon
             return (
-              <button key={tab.key} onClick={() => setActiveView(tab.key)}
-                className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeView === tab.key
+              <button key={tab.key} onClick={() => { haptic.light(); setActiveView(tab.key) }}
+                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap cursor-pointer ${activeView === tab.key
                   ? "text-content-primary border-b-2 border-primary"
                   : "text-content-muted hover:text-content-primary"
                 }`}>
@@ -966,7 +977,7 @@ const NutritionTracker = () => {
                 <h3 className="text-sm font-medium text-content-primary">Micronutrients</h3>
                 <div className="flex gap-1">
                   {[{ key: "all", label: "All" }, { key: "vitamins", label: "Vitamins" }, { key: "minerals", label: "Minerals" }, { key: "critical", label: "Low" }].map((f) => (
-                    <button key={f.key} onClick={() => setNutrientFilter(f.key)}
+                    <button key={f.key} onClick={() => { haptic.light(); setNutrientFilter(f.key) }}
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${nutrientFilter === f.key ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-button"}`}>{f.label}</button>
                   ))}
                 </div>
@@ -997,7 +1008,7 @@ const NutritionTracker = () => {
 
       {/* ========== MOBILE FAB ========== */}
       {activeView === "diary" && (
-        <div className="lg:hidden fixed bottom-4 right-4 z-40">
+        <div className="lg:hidden fixed bottom-16 right-4 z-40" style={{ touchAction: "manipulation" }}>
           {/* FAB Menu */}
           <div className={`absolute bottom-16 right-0 flex flex-col gap-2 transition-all duration-200 ${isFabOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}>
             {["breakfast", "lunch", "dinner", "snacks"].map((m) => {
@@ -1017,7 +1028,7 @@ const NutritionTracker = () => {
             </button>
           </div>
           {/* FAB Button */}
-          <button onClick={(e) => { e.stopPropagation(); setIsFabOpen(!isFabOpen) }}
+          <button onClick={(e) => { e.stopPropagation(); haptic.light(); setIsFabOpen(!isFabOpen) }}
             className={`bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 ${isFabOpen ? "rotate-45" : ""}`}
             aria-label="Add food">
             <Plus size={22} />

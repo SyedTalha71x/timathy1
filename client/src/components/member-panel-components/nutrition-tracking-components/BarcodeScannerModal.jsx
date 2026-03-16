@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { X, ScanBarcode, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
 import BarcodeScannerComponent from "react-qr-barcode-scanner"
 import { SettingsCard, mealIcons, mealLabels } from "./nutritionConstants"
+import { Capacitor } from "@capacitor/core"
 
 // ── Animated scan line ──────────────────────────────────────
 const ScanLine = ({ paused }) => (
@@ -136,12 +137,42 @@ const BarcodeScannerModal = ({
   const [scanStatus, setScanStatus] = useState("idle") // idle | scanning | found | error
   const [selectedMeal, setSelectedMeal] = useState(preselectedMeal || "breakfast")
   const [showMealPicker, setShowMealPicker] = useState(false)
+  const [cameraBlocked, setCameraBlocked] = useState(false)
+
+  // Check camera permission before activating scanner
+  useEffect(() => {
+    if (!show || !barcodeActive) return
+    let cancelled = false
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then((stream) => {
+        // Permission granted — stop the test stream immediately
+        stream.getTracks().forEach(t => t.stop())
+        if (!cancelled) setCameraBlocked(false)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          setCameraBlocked(true)
+          setBarcodeActive(false)
+          if (Capacitor.isNativePlatform()) {
+            const goToSettings = window.confirm(
+              "Camera access is required for barcode scanning.\n\nWould you like to open Settings to enable it?"
+            )
+            if (goToSettings) window.open("app-settings:", "_self")
+          }
+        }
+      })
+
+    return () => { cancelled = true }
+  }, [show, barcodeActive])
 
   // Sync preselectedMeal when modal opens
   useEffect(() => {
     if (show && preselectedMeal) {
       setSelectedMeal(preselectedMeal)
       setShowMealPicker(false)
+      setCameraBlocked(false)
     }
   }, [show, preselectedMeal])
 
@@ -214,6 +245,20 @@ const BarcodeScannerModal = ({
                     }
                   }}
                   onUpdate={(err, result) => {
+                    if (err) {
+                      const name = err?.name || ""
+                      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+                        setCameraBlocked(true)
+                        setBarcodeActive(false)
+                        if (Capacitor.isNativePlatform()) {
+                          const goToSettings = window.confirm(
+                            "Camera access is required for barcode scanning.\n\nWould you like to open Settings to enable it?"
+                          )
+                          if (goToSettings) window.open("app-settings:", "_self")
+                        }
+                        return
+                      }
+                    }
                     if (result?.text) {
                       const code = result.text.trim()
                       if (code !== lastScanned.current) {
@@ -227,11 +272,26 @@ const BarcodeScannerModal = ({
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dark z-20">
                 <ScanBarcode className="w-10 h-10 text-content-faint/30 mb-3" />
-                <p className="text-sm text-content-muted">Scanner paused</p>
-                <button onClick={() => setBarcodeActive(true)}
-                  className="mt-3 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-colors">
-                  Resume Scanner
-                </button>
+                {cameraBlocked ? (
+                  <>
+                    <p className="text-sm text-red-400 mb-1">Camera access denied</p>
+                    <p className="text-xs text-content-muted mb-3">Enable camera in your device settings</p>
+                    {Capacitor.isNativePlatform() && (
+                      <button onClick={() => window.open("app-settings:", "_self")}
+                        className="px-4 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm transition-colors">
+                        Open Settings
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-content-muted">Scanner paused</p>
+                    <button onClick={() => setBarcodeActive(true)}
+                      className="mt-3 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-colors">
+                      Resume Scanner
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

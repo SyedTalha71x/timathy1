@@ -57,7 +57,7 @@ import AddItemModal from "../../components/shared/AddItemModal"
 import dayjs from "dayjs"
 import debounce from "lodash/debounce"
 
-import ContractBuilder from "../../components/studio-components/configuration-components/ContractBuilder"
+import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import { PermissionModal } from "../../components/studio-components/configuration-components/PermissionModal"
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"

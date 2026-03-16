@@ -11,6 +11,8 @@ import { updateUserData } from "../../features/auth/authSlice"
 import DatePickerField from "../../components/shared/DatePickerField"
 import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
+import { Capacitor } from "@capacitor/core"
+import { haptic } from "../../utils/haptic"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -39,6 +41,7 @@ const StudioMenu = () => {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const scannerRef = useRef(null)
+  const tabBarRef = useRef(null)
 
   const [isEditingPersonal, setIsEditingPersonal] = useState(false)
   const [isEditingAddress, setIsEditingAddress] = useState(false)
@@ -242,8 +245,30 @@ const StudioMenu = () => {
         scanForQRCode()
       }
     } catch (error) {
-      setCameraError("Camera access denied or not available")
       setIsScanning(false)
+
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+        // Native prompt with Settings button
+        if (Capacitor.isNativePlatform()) {
+          const goToSettings = window.confirm(
+            "Camera access is required for QR check-in.\n\nWould you like to open Settings to enable it?"
+          )
+          if (goToSettings) {
+            window.open("app-settings:", "_self")
+          }
+        } else {
+          setCameraError("denied")
+        }
+      } else {
+        setCameraError("Camera is not available on this device")
+      }
+    }
+  }
+
+  const openAppSettings = () => {
+    if (Capacitor.isNativePlatform()) {
+      // Opens the iOS/Android app settings page directly
+      window.open("app-settings:", "_self")
     }
   }
 
@@ -282,6 +307,7 @@ const StudioMenu = () => {
   }
 
   const handleSuccessfulScan = (qrData) => {
+    haptic.success()
     setScanResult(qrData)
     stopScanning()
 
@@ -428,29 +454,40 @@ const StudioMenu = () => {
   ]
 
   return (
-    <div className="min-h-screen rounded-3xl bg-surface-base p-2 md:p-6 select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
       <PostPreviewModal />
 
-      {/* ===== TAB NAVIGATION ===== */}
-      <div className="flex border-b border-border overflow-x-auto">
-        <div className="flex min-w-max w-full">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveSection(tab.key)}
-              className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === tab.key
-                  ? "text-content-primary border-b-2 border-primary"
-                  : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      {/* ===== TAB NAVIGATION — sticky ===== */}
+      <div className="flex-shrink-0 px-2 md:px-6 pt-2 md:pt-6">
+        <div ref={tabBarRef} className="flex border-b border-border overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex min-w-max w-full">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                data-tab={tab.key}
+                onClick={() => {
+                  haptic.light()
+                  setActiveSection(tab.key)
+                  // Auto-scroll tab into view
+                  requestAnimationFrame(() => {
+                    const btn = tabBarRef.current?.querySelector(`[data-tab="${tab.key}"]`)
+                    btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+                  })
+                }}
+                className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === tab.key
+                    ? "text-content-primary border-b-2 border-primary"
+                    : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ===== TAB CONTENT ===== */}
-      <div className="mt-4 sm:mt-6">
+      {/* ===== TAB CONTENT — scrollable ===== */}
+      <div className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6">
 
         {/* ============================================================
             TAB: STUDIO INFO
@@ -652,8 +689,23 @@ const StudioMenu = () => {
                   <p className="text-content-muted text-xs mb-5">Make sure to allow camera access when prompted</p>
 
                   {cameraError && (
-                    <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-3 mb-4">
-                      <p className="text-red-400 text-xs sm:text-sm">{cameraError}</p>
+                    <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-4 mb-4">
+                      {cameraError === "denied" ? (
+                        <div className="text-center">
+                          <p className="text-red-400 text-sm mb-1">Camera access was denied</p>
+                          <p className="text-content-muted text-xs mb-3">Enable camera access in your device settings to use the scanner</p>
+                          {Capacitor.isNativePlatform() && (
+                            <button
+                              onClick={openAppSettings}
+                              className="bg-surface-button hover:bg-surface-button-hover text-content-primary px-4 py-2 rounded-xl text-sm transition-colors"
+                            >
+                              Open Settings
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-red-400 text-xs sm:text-sm text-center">{cameraError}</p>
+                      )}
                     </div>
                   )}
 

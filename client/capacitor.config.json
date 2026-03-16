@@ -1,0 +1,16 @@
+{
+  "appId": "com.orgagym.app",
+  "appName": "OrgaGym",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#0f0f0f",
+    "scrollEnabled": false,
+    "allowsInlineMediaPlayback": true
+  },
+  "plugins": {
+    "Keyboard": {
+      "resize": "none"
+    }
+  }
+}

@@ -144,10 +144,14 @@ textarea::-moz-selection,
 }
 
 /* Browser date/time/color inputs – adapt picker chrome to theme */
+html, body {
+  /* Prevent pull-to-refresh and overscroll bounce (iOS/Capacitor) */
+  overscroll-behavior: none;
+  background: var(--color-surface-dark);
+}
+
 html {
   color-scheme: dark;
-  /* Prevent pull-to-refresh and overscroll bounce */
-  overscroll-behavior: none;
 }
 
 /* Ensure date/time input text inherits theme color */
@@ -164,4 +168,19 @@ input[type="datetime-local"] {
 .light input[type="date"]::-webkit-calendar-picker-indicator,
 .light input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1) !important;
+}
+
+/* ============================================
+   MOBILE: Hide all scrollbars
+   Native apps never show scrollbars.
+   Desktop (lg+) keeps them visible.
+   ============================================ */
+@media (max-width: 1023px) {
+  * {
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE/Edge */
+  }
+  *::-webkit-scrollbar {
+    display: none !important; /* Chrome/Safari/iOS */
+  }
 }

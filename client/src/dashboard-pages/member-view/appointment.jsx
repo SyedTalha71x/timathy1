@@ -8,6 +8,7 @@ import { timeSlots } from "../../utils/member-panel-states/appointments-states"
 import { useDispatch, useSelector } from "react-redux"
 import { cancelAppointment, createMyAppointment, fetchMyAppointments } from "../../features/appointments/AppointmentSlice"
 import { useNavigate } from "react-router-dom"
+import { haptic } from "../../utils/haptic"
 
 // ============================================
 // Reusable Components (matches configuration.jsx)
@@ -164,8 +165,8 @@ const Appointments = () => {
     if (!appointmentToCancel?._id) return
     dispatch(cancelAppointment(appointmentToCancel._id))
       .unwrap()
-      .then(() => { setShowCancelModal(false); setAppointmentToCancel(null) })
-      .catch((err) => console.error(err))
+      .then(() => { haptic.warning(); setShowCancelModal(false); setAppointmentToCancel(null) })
+      .catch((err) => { haptic.error(); console.error(err) })
   }
 
   const handleCancelRequest = (appointment) => { setAppointmentToCancel(appointment); setShowCancelModal(true) }
@@ -186,10 +187,11 @@ const Appointments = () => {
     }))
       .unwrap()
       .then(() => {
+        haptic.success()
         setShowBooking(false); setShowBookingModal(false); setSelectedTimeSlot(null)
         dispatch(fetchMyAppointments()); navigate("/member-view/studio-menu")
       })
-      .catch((err) => alert(err))
+      .catch((err) => { haptic.error(); alert(err) })
   }
 
   const confirmRequest = () => {
@@ -200,8 +202,8 @@ const Appointments = () => {
       timeSlotId: { start: selectedTimeSlot.start, end: selectedTimeSlot.end },
     }))
       .unwrap()
-      .then(() => { setShowRequestModal(false); setSelectedTimeSlot(null); alert("Appointment request sent successfully!") })
-      .catch((err) => alert(err))
+      .then(() => { haptic.success(); setShowRequestModal(false); setSelectedTimeSlot(null); alert("Appointment request sent successfully!") })
+      .catch((err) => { haptic.error(); alert(err) })
   }
 
   const appointmentsArray = Array.isArray(appointments) ? appointments : []
@@ -437,7 +439,7 @@ const Appointments = () => {
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
-                            {appointment.timeSlot.start}-{appointment.timeSlot.end}
+                            {appointment.timeSlot?.start}-{appointment.timeSlot?.end}
                           </span>
                         </div>
                       </div>

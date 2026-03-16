@@ -2,13 +2,13 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye } from "lucide-react"
+import { X, FileText, Pencil, ArrowLeft, ChevronDown, ChevronUp, Shield } from "lucide-react"
 import { useState, useEffect } from "react"
 import { DEFAULT_ADMIN_CONTRACT_TYPES, DEFAULT_ADMIN_CONTRACT_FORMS, adminPlatformData } from "../../../utils/admin-panel-states/admin-contract-states"
+import { DEFAULT_DEMO_TEMPLATES } from "../../../utils/admin-panel-states/configuration-states"
 import { studioDataNew } from "../../../utils/admin-panel-states/customers-states"
 import DatePickerField from "../../shared/DatePickerField"
 import CustomSelect from "../../shared/CustomSelect"
-import IntroMaterialEditorModal from "../../shared/IntroMaterialEditorModal"
 import { AdminContractFormFillModal } from "./AdminContractFormFillModal"
 import { toast } from "react-hot-toast"
 
@@ -135,13 +135,17 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
   const [accessStartDate, setAccessStartDate] = useState(todayDate)
   const [contractEndDate, setContractEndDate] = useState("")
 
-  const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
-  const [selectedMaterial, setSelectedMaterial] = useState(null)
-  const [showMaterialPreview, setShowMaterialPreview] = useState(false)
-
   // NEW: Contract Form Fill Modal state
   const [showContractFormFillModal, setShowContractFormFillModal] = useState(false)
   const [filledFormData, setFilledFormData] = useState(null)
+
+  // Access Role state
+  const [selectedAccessTemplateId, setSelectedAccessTemplateId] = useState(() => {
+    // Initialize from contract type's default access template
+    if (isEditMode && contract?.accessTemplateId) return contract.accessTemplateId
+    return null
+  })
+  const [showAccessDropdown, setShowAccessDropdown] = useState(false)
 
   // Initialize with lead data if provided (from leads menu)
   useEffect(() => {
@@ -330,6 +334,10 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
   useEffect(() => {
     const contractType = DEFAULT_ADMIN_CONTRACT_TYPES.find((type) => type.name === contractData.rateType)
     setSelectedContractType(contractType || null)
+    // Auto-set access template from contract type (unless user has manually overridden)
+    if (contractType?.accessTemplateId) {
+      setSelectedAccessTemplateId(contractType.accessTemplateId)
+    }
   }, [contractData.rateType])
 
   const handleInputChange = (e) => {
@@ -518,6 +526,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
       },
       formData: filledFormData,
       isDigital: dataToSave.isDigital,
+      accessTemplateId: selectedAccessTemplateId,
     }
 
     onSave(newContract)
@@ -599,6 +608,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
       dateOfBirth: fv.dateOfBirth || contractData.geburtsdatum,
       bankName: fv.bankName || contractData.kreditinstitut,
       salutation: fv.salutation || contractData.anrede,
+      accessTemplateId: selectedAccessTemplateId,
     }
 
     // Call onSave to pass contract to parent component
@@ -639,115 +649,6 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
         .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
         .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
       `}</style>
-
-      {/* Introductory Materials Selection Modal */}
-      {showIntroductoryMaterials && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
-          <div className="relative bg-surface-base p-6 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-content-primary text-lg font-semibold">Introductory Materials</h3>
-                <p className="text-content-muted text-sm mt-1">Select a material to preview</p>
-              </div>
-              <button
-                onClick={() => setShowIntroductoryMaterials(false)}
-                className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Materials Grid */}
-            {[].length === 0 ? (
-              <div className="bg-surface-dark rounded-xl p-8 text-center">
-                <BookOpen className="w-12 h-12 mx-auto mb-3 text-content-faint" />
-                <p className="text-content-muted">No introductory materials available</p>
-                <p className="text-sm text-content-faint mt-1">Materials can be created in Settings Ã¢â€ â€™ Introductory Materials</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
-                {[].map((material) => (
-                  <div 
-                    key={material.id} 
-                    className="bg-surface-dark rounded-xl p-4 border border-border hover:border-primary transition-colors"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-content-primary font-medium truncate">
-                            {material.name || "Untitled Material"}
-                          </h4>
-                          <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
-                            <BookOpen className="w-4 h-4" />
-                            {material.pages?.length || 0} page{(material.pages?.length || 0) !== 1 ? 's' : ''}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Page previews */}
-                      {material.pages && material.pages.length > 0 && (
-                        <div className="flex gap-1 overflow-x-auto pb-1">
-                          {material.pages.slice(0, 5).map((page) => (
-                            <div 
-                              key={page.id} 
-                              className="w-10 h-14 bg-white border border-border rounded flex-shrink-0 overflow-hidden"
-                            >
-                              <div 
-                                className="w-full h-full overflow-hidden pointer-events-none"
-                                style={{ 
-                                  transform: 'scale(0.1)', 
-                                  transformOrigin: 'top left', 
-                                  width: '1000%', 
-                                  height: '1000%',
-                                  fontSize: '10px',
-                                  padding: '4px',
-                                  color: '#000',
-                                  lineHeight: '1.2',
-                                  fontFamily: 'Arial, sans-serif'
-                                }}
-                                dangerouslySetInnerHTML={{ __html: page.content || '<p style="color:#ccc">Empty</p>' }}
-                              />
-                            </div>
-                          ))}
-                          {material.pages.length > 5 && (
-                            <div className="w-10 h-14 bg-surface-base border border-border rounded flex-shrink-0 flex items-center justify-center text-xs text-content-faint">
-                              +{material.pages.length - 5}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <button 
-                        onClick={() => {
-                          setSelectedMaterial(material)
-                          setShowMaterialPreview(true)
-                          setShowIntroductoryMaterials(false)
-                        }}
-                        className="w-full px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Material Preview Modal */}
-      <IntroMaterialEditorModal
-        visible={showMaterialPreview}
-        onClose={() => {
-          setShowMaterialPreview(false)
-          setSelectedMaterial(null)
-        }}
-        material={selectedMaterial}
-        previewMode={true}
-      />
 
       {/* Signature Options Modal */}
       {showSignatureOptions && (
@@ -811,15 +712,6 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
               <h2 className="text-base font-bold text-content-primary">
                 {isEditMode ? "Edit Contract" : "Add Contract"}
               </h2>
-              {/* Introductory Materials Icon */}
-              <button
-                type="button"
-                onClick={() => setShowIntroductoryMaterials(true)}
-                className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors duration-200 flex items-center justify-center gap-2"
-                title="Open Introductory Materials"
-              >
-                <BookOpen size={16} />
-              </button>
             </div>
             <div className="flex items-center gap-2">
               {!showLeadSelection && !showFormView && (
@@ -966,6 +858,70 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                     searchable
                   />
                 </div>
+
+                {/* Access Role */}
+                {selectedContractType && (
+                  <div className="space-y-1.5 relative">
+                    <label className="text-xs text-content-secondary block pl-1">Access Role</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAccessDropdown(!showAccessDropdown)}
+                      className="w-full flex items-center gap-2 bg-surface-dark rounded-xl px-3 py-2.5 text-left hover:bg-surface-hover transition-colors"
+                    >
+                      {(() => {
+                        const template = (DEFAULT_DEMO_TEMPLATES || []).find(t => String(t.id) === String(selectedAccessTemplateId))
+                        if (template) {
+                          return (
+                            <>
+                              <div
+                                className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: `${template.color || '#f97316'}20` }}
+                              >
+                                <Shield size={12} style={{ color: template.color || '#f97316' }} />
+                              </div>
+                              <span className="text-sm text-content-primary flex-1 truncate">{template.name}</span>
+                            </>
+                          )
+                        }
+                        return <span className="text-sm text-content-muted flex-1">No access role assigned</span>
+                      })()}
+                      <ChevronDown size={14} className={`text-content-faint transition-transform ${showAccessDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {showAccessDropdown && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 overflow-hidden max-h-48 overflow-y-auto">
+                        <button
+                          type="button"
+                          onClick={() => { setSelectedAccessTemplateId(null); setShowAccessDropdown(false) }}
+                          className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                            !selectedAccessTemplateId ? 'bg-orange-500/10 text-orange-400' : 'text-content-muted hover:bg-surface-hover'
+                          }`}
+                        >
+                          No access role
+                        </button>
+                        {(DEFAULT_DEMO_TEMPLATES || []).map(template => (
+                          <button
+                            type="button"
+                            key={template.id}
+                            onClick={() => { setSelectedAccessTemplateId(template.id); setShowAccessDropdown(false) }}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
+                              String(selectedAccessTemplateId) === String(template.id) ? 'bg-orange-500/10 text-orange-400' : 'text-content-primary hover:bg-surface-hover'
+                            }`}
+                          >
+                            <div
+                              className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: `${template.color}20` }}
+                            >
+                              <Shield size={10} style={{ color: template.color }} />
+                            </div>
+                            <span className="truncate flex-1">{template.name}</span>
+                            {template.description && <span className="text-xs text-content-faint truncate max-w-[120px]">{template.description}</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Date Fields - only show when contract type is selected */}
                 {selectedContractType && (

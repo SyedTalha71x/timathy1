@@ -55,12 +55,12 @@ export default function ViewExerciseModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] custom-scrollbar overflow-y-auto">
-        <div className="p-4 sm:p-6">
-          {/* Header */}
+    <div className="fixed inset-0 bg-black/90 flex items-end sm:items-center justify-center sm:p-4 z-50">
+      <div className="bg-[#1C1C1C] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-4xl sm:mx-auto h-[92vh] sm:h-auto sm:max-h-[80vh] overflow-y-auto custom-scrollbar border-t sm:border border-[#333333] shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="sticky top-0 bg-[#1C1C1C] z-10 px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b border-[#333333] flex-shrink-0 rounded-t-2xl">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-white">
+            <h2 className="text-lg sm:text-xl font-bold text-white truncate mr-2">
               {exerciseName}
             </h2>
             <button
@@ -68,21 +68,21 @@ export default function ViewExerciseModal({
                 onClose();
                 setIsPlaying(false);
               }}
-              className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors flex-shrink-0"
             >
               <X size={20} className="text-gray-400" />
             </button>
           </div>
 
           {/* Language Tabs */}
-          <div className="mb-6">
-            <LanguageTabs
-              selectedLang={viewLang}
-              onSelect={setViewLang}
-              translations={selectedVideo.name}
-            />
-          </div>
+          <LanguageTabs
+            selectedLang={viewLang}
+            onSelect={setViewLang}
+            translations={selectedVideo.name}
+          />
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
           {/* Video Player */}
           <div className="relative bg-black rounded-xl overflow-hidden mb-6">
             <video
@@ -115,7 +115,6 @@ export default function ViewExerciseModal({
 
                 <div className="flex-1 flex items-center gap-2 text-xs sm:text-sm">
                   <span>{formatTime(currentTime)}</span>
-
                   <div className="flex-1 bg-white/20 rounded-full h-1">
                     <div
                       className="bg-blue-500 h-1 rounded-full transition-all"
@@ -124,7 +123,6 @@ export default function ViewExerciseModal({
                       }}
                     />
                   </div>
-
                   <span>{formatTime(duration)}</span>
                 </div>
 
@@ -237,7 +235,7 @@ export default function ViewExerciseModal({
                     onClose();
                     openEditModal(selectedVideo);
                   }}
-                  className="flex-1 px-3 py-2 bg-blue-600 text-sm hover:bg-blue-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-3 py-2.5 bg-blue-600 text-sm hover:bg-blue-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Edit size={16} />
                   Edit Exercise
@@ -249,7 +247,7 @@ export default function ViewExerciseModal({
                     setVideoToDelete(selectedVideo);
                     openDeleteModal();
                   }}
-                  className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
+                  className="px-3 py-2.5 bg-red-600 hover:bg-red-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 size={16} />
                 </button>

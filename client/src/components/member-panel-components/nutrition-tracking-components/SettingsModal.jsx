@@ -14,13 +14,13 @@ const SettingsModal = ({
   if (!show) return null
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[90vh] flex flex-col">
+      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[90dvh] sm:max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h3 className="text-base font-semibold text-content-primary">Settings</h3>
           <button onClick={onClose} className="p-1 text-content-muted hover:text-content-primary"><X className="w-5 h-5" /></button>
         </div>
 
-        <div className="flex border-b border-border flex-shrink-0">
+        <div className="flex border-b border-border flex-shrink-0" style={{ touchAction: "manipulation" }}>
           {[{ key: "profile", label: "Profile", icon: User }, { key: "goals", label: "Goals", icon: Target }, { key: "foods", label: "My Foods", icon: ListPlus }].map((t) => {
             const TabIcon = t.icon
             return (
@@ -32,7 +32,7 @@ const SettingsModal = ({
           })}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
           {/* PROFILE TAB */}
           {settingsTab === "profile" && (
             <div className="space-y-4">
@@ -69,12 +69,17 @@ const SettingsModal = ({
               </div>
               <div>
                 <label className="text-xs text-content-muted mb-2 block">Activity Level</label>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {ACTIVITY_LEVELS.map((level) => (
                     <button key={level.value} onClick={() => setProfileForm((p) => ({ ...p, activity: level.value }))}
-                      className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${profileForm.activity === level.value ? "border-primary bg-primary/5" : "border-transparent bg-surface-dark hover:bg-surface-button"}`}>
-                      <p className="text-sm font-medium text-content-primary">{level.label}</p>
-                      <p className="text-xs text-content-faint">{level.desc}</p>
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl border transition-colors ${profileForm.activity === level.value ? "border-primary bg-primary/5" : "border-transparent bg-surface-dark hover:bg-surface-button"}`}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-content-primary">{level.label}</p>
+                        {profileForm.activity === level.value && (
+                          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-content-faint leading-tight mt-0.5">{level.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -94,7 +99,7 @@ const SettingsModal = ({
               {profileForm.weight && profileForm.height && profileForm.age && (
                 <SettingsCard className="!p-4 !bg-primary/5 border border-primary/20">
                   <p className="text-xs text-content-muted mb-2">Calculated Daily Targets</p>
-                  <div className="grid grid-cols-5 gap-2 text-center">
+                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 text-center">
                     {(() => {
                       const bmr = calcBMR(profileForm.weight, profileForm.height, profileForm.age, profileForm.gender)
                       const tdee = calcTDEE(bmr, profileForm.activity)
@@ -110,18 +115,14 @@ const SettingsModal = ({
                         { label: "Water", val: `${(wMl / 1000).toFixed(1)}L` },
                       ].map((item) => (
                         <div key={item.label}>
-                          <p className="text-lg font-bold text-primary">{item.val}</p>
-                          <p className="text-[10px] text-content-faint">{item.label}</p>
+                          <p className="text-base sm:text-lg font-bold text-primary">{item.val}</p>
+                          <p className="text-[9px] sm:text-[10px] text-content-faint">{item.label}</p>
                         </div>
                       ))
                     })()}
                   </div>
                 </SettingsCard>
               )}
-              <button onClick={() => { calculateFromProfile(); setSettingsTab("goals") }}
-                className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-2.5 text-sm font-medium transition-colors">
-                Apply & Set Goals
-              </button>
             </div>
           )}
 
@@ -139,12 +140,6 @@ const SettingsModal = ({
                   )}
                 </div>
               ))}
-              <div className="flex gap-3">
-                <button onClick={() => setGoalForm({ calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 })}
-                  className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary text-sm transition-colors">Reset</button>
-                <button onClick={handleSaveSettings}
-                  className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors">Save Goals</button>
-              </div>
             </div>
           )}
 
@@ -199,6 +194,26 @@ const SettingsModal = ({
             </div>
           )}
         </div>
+
+        {/* Sticky footer buttons — always visible above keyboard */}
+        {settingsTab === "profile" && (
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card">
+            <button onClick={() => { calculateFromProfile(); setSettingsTab("goals") }}
+              className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-2.5 text-sm font-medium transition-colors">
+              Apply & Set Goals
+            </button>
+          </div>
+        )}
+        {settingsTab === "goals" && (
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card">
+            <div className="flex gap-3">
+              <button onClick={() => setGoalForm({ calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 })}
+                className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary text-sm transition-colors">Reset</button>
+              <button onClick={handleSaveSettings}
+                className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors">Save Goals</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -4,7 +4,7 @@
 import { AlertCircle, Calendar, CheckCircle, Clock, Filter, ImageIcon, MessageSquare, X, XCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import ReactQuill from "react-quill"
-import Logo from '../../../../public/Orgagym white without text.svg'
+import Logo from '../../../../public/OrgaGym Logo.svg'
 
 // ── WYSIWYG Editor (same as TicketView) ──────────────────────
 const WysiwygEditor = ({ value, onChange, placeholder }) => {

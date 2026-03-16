@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Play, Pause, Volume2, VolumeX, Maximize, Plus, RotateCcw, RotateCw } from 'lucide-react';
+import { haptic } from '../../../utils/haptic';
 
 const VideoModal = ({
   isOpen,
@@ -48,6 +49,7 @@ const VideoModal = ({
 
   const togglePlay = () => {
     if (videoRef.current) {
+      haptic.light();
       if (isPlaying) {
         videoRef.current.pause();
       } else {
@@ -59,6 +61,7 @@ const VideoModal = ({
 
   const toggleMute = () => {
     if (videoRef.current) {
+      haptic.light();
       if (isMuted) {
         videoRef.current.muted = false;
         videoRef.current.volume = volume;
@@ -81,6 +84,7 @@ const VideoModal = ({
 
   const skip = (seconds) => {
     if (videoRef.current) {
+      haptic.light();
       videoRef.current.currentTime = Math.min(
         Math.max(videoRef.current.currentTime + seconds, 0),
         duration
@@ -405,7 +409,7 @@ const VideoModal = ({
                 </div>
               </div>
               <button
-                onClick={() => onAddToPlan(video)}
+                onClick={() => { haptic.light(); onAddToPlan(video) }}
                 className="w-full mt-4 sm:mt-6 px-4 py-3 bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <Plus size={16} />
