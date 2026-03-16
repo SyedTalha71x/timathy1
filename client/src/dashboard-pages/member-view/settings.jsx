@@ -569,15 +569,22 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                   <div className="flex items-center gap-3 ml-7">
                     <span className="text-xs text-content-muted">Remind</span>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       value={notificationSettings.appointmentReminders.emailReminder.timeBeforeHours}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value) || 1
+                        const raw = e.target.value.replace(/[^0-9]/g, "")
+                        const val = raw === "" ? "" : parseInt(raw)
                         handleUpdateReminderSettings("emailReminder", "timeBeforeHours", val)
                         handleUpdateReminderSettings("pushReminder", "timeBeforeHours", val)
                       }}
-                      min={1}
-                      max={168}
+                      onBlur={(e) => {
+                        const num = parseInt(e.target.value)
+                        const val = !num || num < 1 ? 1 : num > 168 ? 168 : num
+                        handleUpdateReminderSettings("emailReminder", "timeBeforeHours", val)
+                        handleUpdateReminderSettings("pushReminder", "timeBeforeHours", val)
+                      }}
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
                     />
                     <span className="text-xs text-content-muted">hours before appointment</span>
@@ -656,15 +663,22 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                   <div className="flex items-center gap-3 ml-7">
                     <span className="text-xs text-content-muted">Remind</span>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       value={notificationSettings.classReminders.emailReminder.timeBeforeHours}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value) || 1
+                        const raw = e.target.value.replace(/[^0-9]/g, "")
+                        const val = raw === "" ? "" : parseInt(raw)
                         handleUpdateClassReminderSettings("emailReminder", "timeBeforeHours", val)
                         handleUpdateClassReminderSettings("pushReminder", "timeBeforeHours", val)
                       }}
-                      min={1}
-                      max={168}
+                      onBlur={(e) => {
+                        const num = parseInt(e.target.value)
+                        const val = !num || num < 1 ? 1 : num > 168 ? 168 : num
+                        handleUpdateClassReminderSettings("emailReminder", "timeBeforeHours", val)
+                        handleUpdateClassReminderSettings("pushReminder", "timeBeforeHours", val)
+                      }}
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
                     />
                     <span className="text-xs text-content-muted">hours before class</span>
@@ -939,7 +953,10 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       </div>
 
       {/* Mobile Navigation List */}
-      <div className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}>
+      <div
+        className={`lg:hidden fixed inset-x-0 top-14 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
+        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+      >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h1 className="text-xl font-bold">Settings</h1>
@@ -1019,7 +1036,10 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
 
       {/* Mobile Content View - fixed fullscreen below dashboard header */}
       {mobileShowContent && (
-        <div className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-30">
+        <div
+          className="lg:hidden fixed inset-x-0 top-14 flex flex-col bg-surface-base z-30"
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
             <button
