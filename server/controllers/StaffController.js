@@ -150,7 +150,7 @@ const loginStaff = async (req, res, next) => {
 
     const staff = await UserModel.findOne({ email, studio: studio._id })
       .select("+password")
-      .populate("studio", "studioName");
+      .populate("studio");
 
     if (!staff) throw new NotFoundError("Invalid Email && studioName");
 
@@ -166,7 +166,7 @@ const loginStaff = async (req, res, next) => {
       studioId: staff.studio,
       role: staff.role,
       // img: staff.img, // full object
-      // staffRole: staff.staffRole,
+      staffRole: staff.staffRole,
     });
 
     staff.refreshToken = RefreshToken;
@@ -310,6 +310,7 @@ const updateById = async (req, res, next) => {
     const userId = req.user?._id;
     const updateData = { ...req.body }
 
+    console.log('Body', req.body)
     if (req.file) {
       const imgData = await uploadToCloudinary(req.file.buffer)
       updateData.img = {

@@ -3,7 +3,7 @@ import * as StudioApi from "./studioApi";
 
 export const fetchMyStudio = createAsyncThunk('studio/myStudio', async (_, { rejectWithValue }) => {
     try {
-      const res =  await StudioApi.myStudio();
+        const res = await StudioApi.myStudio();
         return res.studio;
     }
     catch (error) {
@@ -11,13 +11,21 @@ export const fetchMyStudio = createAsyncThunk('studio/myStudio', async (_, { rej
     }
 })
 
-
+export const updateStudioThunk = createAsyncThunk('studio/update', async (updateData, { rejectWithValue }) => {
+    try {
+        const res = await StudioApi.updateStudio(updateData)
+        return res.studio;
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
 
 const studioSlice = createSlice({
     name: 'studio',
     initialState: {
         // studios: [],
-        studio:null,
+        studio: null,
         loading: false,
         error: null,
     },
@@ -33,6 +41,18 @@ const studioSlice = createSlice({
                 state.studio = action.payload;
             })
             .addCase(fetchMyStudio.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+            })
+            .addCase(updateStudioThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateStudioThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.studio = action.payload;
+            })
+            .addCase(updateStudioThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
             })

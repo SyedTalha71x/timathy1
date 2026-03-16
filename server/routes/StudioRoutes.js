@@ -6,8 +6,8 @@ const { isAdmin } = require("../middleware/RoleCheck");
 const router = express.Router();
 
 // Update studio details
-router.post('/create', verifyAccessToken, isAdmin, uploadImage.single('logo'), createStudio);
-router.put("/:id", verifyAccessToken, isAdmin, uploadImage.single('logo'), updateStudio);
+router.post('/create', verifyAccessToken, isAdmin, uploadImage.single('img'), createStudio);
+router.put("/update", verifyAccessToken, uploadImage.single('img'), updateStudio);
 router.get("/my-studio", verifyAccessToken, getStudioByMemberId);
 router.delete('/:studioId', verifyAccessToken, deleteStudioById)
 

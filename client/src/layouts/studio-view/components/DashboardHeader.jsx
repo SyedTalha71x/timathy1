@@ -5,7 +5,8 @@ import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Globe, X, Building2, History, Menu, ShoppingCart, Sun, Moon } from "lucide-react"
 import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { me } from '../../../features/auth/authSlice'
 /**
  * DashboardHeader Component
  * 
@@ -36,7 +37,12 @@ const DashboardHeader = ({
 }) => {
   const navigate = useNavigate()
   const { user, loading } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
 
+
+  useEffect(() => {
+    dispatch(me())
+  }, [dispatch])
 
   // Dropdown states
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
@@ -65,7 +71,9 @@ const DashboardHeader = ({
   // User data (spÃ¤ter aus Context/API)
   const studioName = user?.studio?.studioName || "";
   const fullName = `${user?.firstName || ""} ${user?.lastName || ""} `;
+  const img = user?.img?.url
   const role = "Trainer"
+
 
   // Languages configuration
   const languages = [
@@ -269,7 +277,7 @@ const DashboardHeader = ({
         className={`flex items-center cursor-pointer ${isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"
           }`}
       >
-        <img draggable="false" src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
+        <img draggable="false" src={img} alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
         {!isMobile && <h2 className="font-semibold text-content-primary text-sm leading-tight">{fullName}</h2>}
       </div>
 

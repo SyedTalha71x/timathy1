@@ -51,7 +51,10 @@ const studioSchema = new mongoose.Schema(
     city: String,
     country: String,
     website: String,
-
+    img: {
+      url: String,
+      public_id: String,
+    },
     // NEW: overall studio capacity
     overallCapacity: {
       type: Number,
