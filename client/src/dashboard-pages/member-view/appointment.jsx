@@ -28,7 +28,7 @@ const SettingsCard = ({ children, className = "" }) => (
 )
 
 const Appointments = () => {
-  const { services } = useSelector((state) => state.services)
+  const { services = [] } = useSelector((state) => state.services || {})
   const { appointments = [] } = useSelector((state) => state.appointments || {})
   const [selectedDate, setSelectedDate] = useState(new Date().getDate())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())

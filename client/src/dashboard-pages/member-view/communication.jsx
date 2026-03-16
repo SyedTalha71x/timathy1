@@ -514,7 +514,10 @@ export default function StudioChat() {
       {/* ==========================================
           MOBILE VIEW - No own header, DashboardHeader handles it
           ========================================== */}
-      <div className={`md:hidden fixed top-[3.5rem] inset-x-0 z-[30] flex flex-col bg-surface-base ${keyboardOpen ? "bottom-0" : "bottom-[3.5rem]"}`}>
+      <div
+        className={`md:hidden fixed top-[3.5rem] inset-x-0 z-[30] flex flex-col bg-surface-base`}
+        style={{ bottom: keyboardOpen ? 0 : "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+      >
         {/* Mobile Messages Area */}
         <div
           ref={mobileMessagesContainerRef}

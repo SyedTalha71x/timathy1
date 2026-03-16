@@ -1003,7 +1003,8 @@ export default function Training() {
       {activeTab === "plans" && (
         <button
           onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
-          className="md:hidden fixed bottom-16 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
           aria-label="Create Training Plan"
         >
           <Plus size={22} />
