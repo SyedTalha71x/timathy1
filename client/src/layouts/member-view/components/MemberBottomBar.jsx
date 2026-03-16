@@ -35,7 +35,20 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const [showMore, setShowMore] = useState(false)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
   const moreRef = useRef(null)
+
+  // Detect keyboard open/close via visualViewport
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const threshold = 100
+    const onResize = () => {
+      setKeyboardOpen(window.innerHeight - vv.height > threshold)
+    }
+    vv.addEventListener("resize", onResize)
+    return () => vv.removeEventListener("resize", onResize)
+  }, [])
 
   // Close More menu on route change
   useEffect(() => {
@@ -66,6 +79,8 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
     navigate(to)
     setShowMore(false)
   }
+
+  if (keyboardOpen) return null
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50" ref={moreRef}>
@@ -124,12 +139,12 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
             <button
               key={item.to}
               onClick={() => handleNavigate(item.to)}
-              className={`flex-1 flex flex-col items-center gap-0.5 pt-2.5 pb-1.5 transition-colors ${
+              className={`flex-1 flex flex-col items-center gap-0 pt-1.5 pb-1 transition-colors ${
                 active ? "text-primary" : "text-content-faint active:text-content-muted"
               }`}
             >
               <div className="relative">
-                <Icon size={22} strokeWidth={active ? 2.2 : 1.8} />
+                <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
                 {isCommunication && unreadMessagesCount > 0 && (
                   <div className="absolute -top-0.5 -right-1.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-transparent" style={{ borderColor: "var(--color-surface-dark, #111)" }} />
                 )}
@@ -147,7 +162,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
             haptic.light()
             setShowMore((prev) => !prev)
           }}
-          className={`flex-1 flex flex-col items-center gap-0.5 pt-2.5 pb-1.5 transition-colors relative ${
+          className={`flex-1 flex flex-col items-center gap-0 pt-1.5 pb-1 transition-colors relative ${
             isMoreActive
               ? "text-primary"
               : showMore
@@ -157,9 +172,9 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
         >
           <div className="relative">
             {showMore ? (
-              <X size={22} strokeWidth={1.8} />
+              <X size={20} strokeWidth={1.8} />
             ) : (
-              <MoreHorizontal size={22} strokeWidth={1.8} />
+              <MoreHorizontal size={20} strokeWidth={1.8} />
             )}
           </div>
           <span className={`text-[10px] leading-tight ${isMoreActive ? "font-semibold" : "font-medium"}`}>
