@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { Building2, History, ShoppingCart, Sun, Moon } from "lucide-react"
 import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { me } from '../../../features/auth/authSlice'
 import LanguageDropdown from '../../LanguageDropdown'
 import StudioProfileDropdown from './studio-dashboard-header-components/StudioProfileDropdown'
 import StudioActivityLogModal from './studio-dashboard-header-components/StudioActivityLogModal'
@@ -29,6 +30,12 @@ const DashboardHeader = ({
   cartItemCount = 0
 }) => {
   const { user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
+
+  // Fetch user data on mount
+  useEffect(() => {
+    dispatch(me())
+  }, [dispatch])
 
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(() => {
