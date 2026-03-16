@@ -212,7 +212,11 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       },
     }
     setNotificationSettings(updated)
-    dispatch(updateReminders({ reminderData: updated.appointmentReminders }))
+  }
+
+  const saveAppointmentReminders = (reminderData) => {
+    const data = reminderData || notificationSettings.appointmentReminders
+    dispatch(updateReminders({ reminderData: data }))
       .unwrap()
       .catch((err) => notification.error({ message: "Update Failed", description: err.message || "Could not save settings." }))
   }
@@ -576,16 +580,31 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                       onChange={(e) => {
                         const raw = e.target.value.replace(/[^0-9]/g, "")
                         const val = raw === "" ? "" : parseInt(raw)
-                        handleUpdateReminderSettings("emailReminder", "timeBeforeHours", val)
-                        handleUpdateReminderSettings("pushReminder", "timeBeforeHours", val)
+                        setNotificationSettings(prev => ({
+                          ...prev,
+                          appointmentReminders: {
+                            ...prev.appointmentReminders,
+                            emailReminder: { ...prev.appointmentReminders.emailReminder, timeBeforeHours: val },
+                            pushReminder: { ...prev.appointmentReminders.pushReminder, timeBeforeHours: val },
+                          },
+                        }))
                       }}
                       onBlur={(e) => {
                         const num = parseInt(e.target.value)
                         const val = !num || num < 1 ? 1 : num > 168 ? 168 : num
-                        handleUpdateReminderSettings("emailReminder", "timeBeforeHours", val)
-                        handleUpdateReminderSettings("pushReminder", "timeBeforeHours", val)
+                        const updatedReminders = {
+                          ...notificationSettings.appointmentReminders,
+                          emailReminder: { ...notificationSettings.appointmentReminders.emailReminder, timeBeforeHours: val },
+                          pushReminder: { ...notificationSettings.appointmentReminders.pushReminder, timeBeforeHours: val },
+                        }
+                        setNotificationSettings(prev => ({
+                          ...prev,
+                          appointmentReminders: updatedReminders,
+                        }))
+                        saveAppointmentReminders(updatedReminders)
                       }}
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
+                      onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                     />
                     <span className="text-xs text-content-muted">hours before appointment</span>
                   </div>
@@ -670,16 +689,30 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                       onChange={(e) => {
                         const raw = e.target.value.replace(/[^0-9]/g, "")
                         const val = raw === "" ? "" : parseInt(raw)
-                        handleUpdateClassReminderSettings("emailReminder", "timeBeforeHours", val)
-                        handleUpdateClassReminderSettings("pushReminder", "timeBeforeHours", val)
+                        setNotificationSettings(prev => ({
+                          ...prev,
+                          classReminders: {
+                            ...prev.classReminders,
+                            emailReminder: { ...prev.classReminders.emailReminder, timeBeforeHours: val },
+                            pushReminder: { ...prev.classReminders.pushReminder, timeBeforeHours: val },
+                          },
+                        }))
                       }}
                       onBlur={(e) => {
                         const num = parseInt(e.target.value)
                         const val = !num || num < 1 ? 1 : num > 168 ? 168 : num
-                        handleUpdateClassReminderSettings("emailReminder", "timeBeforeHours", val)
-                        handleUpdateClassReminderSettings("pushReminder", "timeBeforeHours", val)
+                        setNotificationSettings(prev => ({
+                          ...prev,
+                          classReminders: {
+                            ...prev.classReminders,
+                            emailReminder: { ...prev.classReminders.emailReminder, timeBeforeHours: val },
+                            pushReminder: { ...prev.classReminders.pushReminder, timeBeforeHours: val },
+                          },
+                        }))
+                        // TODO: dispatch class reminders save when endpoint is ready
                       }}
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
+                      onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                     />
                     <span className="text-xs text-content-muted">hours before class</span>
                   </div>
@@ -867,7 +900,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   // Main Render — matches configuration.jsx layout
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
       {/* Sidebar Navigation - Desktop */}
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-border bg-surface-card flex-col min-h-0">
         {/* Search */}
