@@ -104,6 +104,7 @@ export default function StudioChat() {
   // Mobile context menu
   const [mobileContextMenu, setMobileContextMenu] = useState(null)
   const [longPressTimer, setLongPressTimer] = useState(null)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   // Refs
   const messagesEndRef = useRef(null)
@@ -114,6 +115,30 @@ export default function StudioChat() {
   const emojiPickerRef = useRef(null)
   const messageMenuRef = useRef(null)
   const reactionPickerRef = useRef(null)
+
+  // Detect keyboard to expand mobile container to bottom-0 when keyboard opens
+  useEffect(() => {
+    const onFocusIn = (e) => {
+      const tag = e.target?.tagName?.toLowerCase()
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) {
+        setKeyboardOpen(true)
+      }
+    }
+    const onFocusOut = () => {
+      setTimeout(() => {
+        const tag = document.activeElement?.tagName?.toLowerCase()
+        if (tag !== "input" && tag !== "textarea" && !document.activeElement?.isContentEditable) {
+          setKeyboardOpen(false)
+        }
+      }, 100)
+    }
+    document.addEventListener("focusin", onFocusIn)
+    document.addEventListener("focusout", onFocusOut)
+    return () => {
+      document.removeEventListener("focusin", onFocusIn)
+      document.removeEventListener("focusout", onFocusOut)
+    }
+  }, [])
 
   // Auto-scroll to bottom when messages change (matching studio standard)
   useEffect(() => {
@@ -489,7 +514,7 @@ export default function StudioChat() {
       {/* ==========================================
           MOBILE VIEW - No own header, DashboardHeader handles it
           ========================================== */}
-      <div className="md:hidden fixed top-[3.5rem] inset-x-0 bottom-[3.5rem] z-[30] flex flex-col bg-surface-base">
+      <div className={`md:hidden fixed top-[3.5rem] inset-x-0 z-[30] flex flex-col bg-surface-base ${keyboardOpen ? "bottom-0" : "bottom-[3.5rem]"}`}>
         {/* Mobile Messages Area */}
         <div
           ref={mobileMessagesContainerRef}
