@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { updateUserData, updatedPassword, logout } from "../../features/auth/authSlice"
 import { updateReminders } from "../../features/notification/notificationSlice"
@@ -78,6 +78,31 @@ const SettingsPage = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
+
+  // Detect keyboard for mobile content view
+  useEffect(() => {
+    const onFocusIn = (e) => {
+      const tag = e.target?.tagName?.toLowerCase()
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) {
+        setKeyboardOpen(true)
+      }
+    }
+    const onFocusOut = () => {
+      setTimeout(() => {
+        const tag = document.activeElement?.tagName?.toLowerCase()
+        if (tag !== "input" && tag !== "textarea" && !document.activeElement?.isContentEditable) {
+          setKeyboardOpen(false)
+        }
+      }, 100)
+    }
+    document.addEventListener("focusin", onFocusIn)
+    document.addEventListener("focusout", onFocusOut)
+    return () => {
+      document.removeEventListener("focusin", onFocusIn)
+      document.removeEventListener("focusout", onFocusOut)
+    }
+  }, [])
 
   // Account state
   const [accountSettings, setAccountSettings] = useState({
@@ -900,7 +925,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   // Main Render — matches configuration.jsx layout
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
+    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden select-none">
       {/* Sidebar Navigation - Desktop */}
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-border bg-surface-card flex-col min-h-0">
         {/* Search */}
@@ -987,8 +1012,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
 
       {/* Mobile Navigation List */}
       <div
-        className={`lg:hidden fixed inset-x-0 top-14 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
-        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+        className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
       >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
@@ -1065,13 +1089,15 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
             )
           })}
         </div>
+
+        {/* Spacer for bottom bar */}
+        <div className="flex-shrink-0 bg-surface-base" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
       </div>
 
       {/* Mobile Content View - fixed fullscreen below dashboard header */}
       {mobileShowContent && (
         <div
-          className="lg:hidden fixed inset-x-0 top-14 flex flex-col bg-surface-base z-30"
-          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+          className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-30"
         >
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
@@ -1088,6 +1114,11 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
             {renderSectionContent()}
           </div>
+
+          {/* Spacer for bottom bar — collapses when keyboard opens */}
+          {!keyboardOpen && (
+            <div className="flex-shrink-0 bg-surface-base" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
+          )}
         </div>
       )}
 
