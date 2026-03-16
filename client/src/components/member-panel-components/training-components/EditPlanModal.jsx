@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
 import { Plus, Save, Target, Trash2, X } from "lucide-react";
+import { haptic } from '../../../utils/haptic';
 
 export const EditPlanModal = ({
   isOpen,
@@ -128,7 +129,7 @@ export const EditPlanModal = ({
               </div>
             </div>
             <button
-              onClick={() => onAddExercise(video)}
+              onClick={() => { haptic.light(); onAddExercise(video) }}
               className="p-1.5 bg-primary hover:bg-primary-hover rounded-lg transition-colors flex-shrink-0"
             >
               <Plus size={14} className="text-white" />
@@ -178,7 +179,7 @@ export const EditPlanModal = ({
                   </div>
                 </div>
                 <button
-                  onClick={() => onRemoveExercise(index)}
+                  onClick={() => { haptic.warning(); onRemoveExercise(index) }}
                   className="p-1.5 text-content-muted hover:text-red-400 transition-colors flex-shrink-0"
                 >
                   <Trash2 size={14} />
@@ -235,7 +236,7 @@ export const EditPlanModal = ({
           {mobileTabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setMobileTab(tab.key)}
+              onClick={() => { haptic.light(); setMobileTab(tab.key) }}
               className={`flex-1 py-2.5 text-xs font-medium text-center transition-colors whitespace-nowrap ${
                 mobileTab === tab.key
                   ? 'text-content-primary border-b-2 border-primary'

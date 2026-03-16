@@ -273,6 +273,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   // Navigation Helpers
   // ============================================
   const toggleCategory = (categoryId) => {
+    haptic.light()
     setExpandedCategories((prev) =>
       prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
     )
@@ -931,7 +932,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
             <button
-              onClick={() => setMobileShowContent(false)}
+              onClick={() => { haptic.light(); setMobileShowContent(false) }}
               className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />

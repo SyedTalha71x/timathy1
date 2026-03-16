@@ -405,6 +405,7 @@ export default function Training() {
   }
 
   const handleVideoClick = (video) => {
+    haptic.light()
     setSelectedVideo(video)
     setIsVideoModalOpen(true)
     setIsPlaying(false)
@@ -525,6 +526,7 @@ export default function Training() {
   }
 
   const openEditPlan = (plan) => {
+    haptic.light()
     setEditingPlan(plan)
     setPlanForm({
       name: plan.name,
@@ -556,6 +558,7 @@ export default function Training() {
 
   // Toggle staff selection
   const toggleStaffSelection = (staffId) => {
+    haptic.light()
     setSelectedStaffIds(prev => {
       if (prev.includes(staffId)) {
         return prev.filter(id => id !== staffId)
@@ -567,6 +570,7 @@ export default function Training() {
 
   // Clear all staff filters
   const clearStaffFilters = () => {
+    haptic.light()
     setSelectedStaffIds([])
   }
 
@@ -662,7 +666,7 @@ export default function Training() {
               {/* Category Pills */}
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
                 <button
-                  onClick={() => setSelectedCategories([])}
+                  onClick={() => { haptic.light(); setSelectedCategories([]) }}
                   className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.length === 0
                     ? "bg-primary text-white"
                     : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
@@ -674,6 +678,7 @@ export default function Training() {
                   <button
                     key={category.id}
                     onClick={() => {
+                      haptic.light()
                       if (selectedCategories.includes(category.id)) {
                         setSelectedCategories(selectedCategories.filter(cat => cat !== category.id))
                       } else {
@@ -756,7 +761,7 @@ export default function Training() {
                   />
                 </div>
                 <button
-                  onClick={() => setIsCreatePlanModalOpen(true)}
+                  onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
                   className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                 >
                   <Plus size={18} />
@@ -839,6 +844,7 @@ export default function Training() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => {
+                          haptic.light()
                           setSelectedPlan(plan)
                           setIsViewPlanModalOpen(true)
                         }}
@@ -848,6 +854,7 @@ export default function Training() {
                       </button>
                       <button
                         onClick={() => {
+                          haptic.light()
                           setPlanToAssign(plan)
                           setIsAssignPlanModalOpen(true)
                         }}
@@ -987,7 +994,7 @@ export default function Training() {
       {/* Floating Action Button - Mobile Only (Plans Tab) */}
       {activeTab === "plans" && (
         <button
-          onClick={() => setIsCreatePlanModalOpen(true)}
+          onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
           className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           aria-label="Create Training Plan"
         >

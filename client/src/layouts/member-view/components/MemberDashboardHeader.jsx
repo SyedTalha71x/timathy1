@@ -2,34 +2,36 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
-import { Sun, Moon } from "lucide-react"
+import { useNavigate, useLocation } from "react-router-dom"
+import { Sun, Moon, Settings } from "lucide-react"
 import DefaultAvatar from '../../../../public/gray-avatar-fotor-20250912192528.png'
 import LanguageDropdown from '../../LanguageDropdown'
+import { haptic } from "../../../utils/haptic"
 
 /**
  * MemberDashboardHeader Component
- * 
- * Header for member view — handles sidebar open/close exactly like studio DashboardHeader.
- * Contains: Sidebar toggle (mobile + desktop), Studio logo & name (from Redux), Language dropdown, Theme toggle.
- * 
- * Studio data (name, logo) is pulled directly from Redux (state.studios.studio) — no props needed.
- * 
+ *
+ * Header for member view.
+ * - Mobile: Studio badge (left), Settings + Theme + Language (right). No hamburger — bottom bar handles nav.
+ * - Desktop: Sidebar collapse toggle (left), Studio badge, Settings + Theme + Language (right).
+ *
  * Props:
- * - onToggleSidebar: Function to toggle mobile sidebar
- * - isSidebarOpen: Boolean for sidebar state (mobile) — controls overlay + icon
  * - isLeftSidebarCollapsed: Boolean for left sidebar collapsed state (desktop)
  * - toggleLeftSidebarCollapse: Function to toggle left sidebar collapse (desktop)
  */
-const MemberDashboardHeader = ({ 
-  onToggleSidebar,
-  isSidebarOpen,
+const MemberDashboardHeader = ({
   isLeftSidebarCollapsed,
   toggleLeftSidebarCollapse,
 }) => {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   // Redux — studio data from backend
   const { studio } = useSelector((state) => state.studios)
   const studioName = studio?.studioName || "Studio"
   const studioLogo = studio?.logo?.url || studio?.logo || null
+
+  const isSettingsActive = location.pathname.includes("/settings")
 
   // Theme state - defaults to dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -57,12 +59,33 @@ const MemberDashboardHeader = ({
   // Handlers
   // ============================================
   const toggleTheme = () => {
+    haptic.light()
     setIsDarkMode(!isDarkMode)
+  }
+
+  const goToSettings = () => {
+    haptic.light()
+    navigate("/member-view/settings")
   }
 
   // ============================================
   // Sub-Components
   // ============================================
+  const SettingsButton = ({ isMobile = false }) => (
+    <button
+      onClick={goToSettings}
+      className={`rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${
+        isSettingsActive
+          ? "bg-primary/15 text-primary"
+          : "bg-surface-card text-content-muted hover:bg-surface-button-hover"
+      } ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"}`}
+      aria-label="Settings"
+      title="Settings"
+    >
+      <Settings size={18} />
+    </button>
+  )
+
   const ThemeToggle = ({ isMobile = false }) => (
     <button
       onClick={toggleTheme}
@@ -82,11 +105,11 @@ const MemberDashboardHeader = ({
 
   const StudioBadge = ({ isMobile = false }) => (
     <div className={`flex items-center gap-2 ${isMobile ? "bg-surface-dark px-2 py-1.5 rounded-xl" : "bg-surface-dark gap-1 p-1.5 px-2.5 rounded-xl"}`}>
-      <img 
+      <img
         draggable="false"
-        src={studioLogo || DefaultAvatar} 
+        src={studioLogo || DefaultAvatar}
         alt={studioName}
-        className={`${isMobile ? "w-6 h-6" : "w-6 h-6"} rounded-lg object-cover`}
+        className="w-6 h-6 rounded-lg object-cover"
         onError={(e) => {
           e.target.src = DefaultAvatar
         }}
@@ -102,46 +125,31 @@ const MemberDashboardHeader = ({
   // ============================================
   return (
     <>
-      {/* ===== MOBILE OVERLAY - MUST be outside header for proper z-index stacking ===== */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={onToggleSidebar} 
-        />
-      )}
-
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
-        {/* Left - Sidebar Toggle + Studio */}
+      <div
+        className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none"
+        style={{ touchAction: "manipulation" }}
+      >
+        {/* Left - Studio badge */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={onToggleSidebar}
-            className="p-2 px-3 rounded-xl bg-surface-card text-content-primary"
-            aria-label="Toggle Sidebar"
-          >
-            {isSidebarOpen ? (
-              <img draggable="false" key="open" src="/icon.svg" className="theme-icon h-[18px] w-[18px]" alt="Close sidebar" />
-            ) : (
-              <img draggable="false" key="closed" src="/expand-sidebar mirrored.svg" className="theme-icon h-[18px] w-[18px]" alt="Open sidebar" />
-            )}
-          </button>
           <StudioBadge isMobile={true} />
         </div>
-        
-        {/* Right - Controls */}
+
+        {/* Right - Settings + Theme + Language */}
         <div className="flex gap-1 items-center">
+          <SettingsButton isMobile={true} />
           <ThemeToggle isMobile={true} />
           <LanguageDropdown isMobile={true} />
         </div>
       </div>
-      
+
       {/* ===== DESKTOP HEADER (hidden lg:flex) ===== */}
       <div className="lg:flex hidden rounded-md justify-between bg-surface-hover z-20 py-1 px-2 mb-2 items-center gap-2 select-none sticky top-0">
         {/* Left - Collapse Toggle + Studio Info */}
         <div className="flex items-center gap-2">
           {toggleLeftSidebarCollapse && (
             <div
-              onClick={toggleLeftSidebarCollapse}
+              onClick={() => { haptic.light(); toggleLeftSidebarCollapse() }}
               className="p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer"
             >
               {isLeftSidebarCollapsed ? (
@@ -154,8 +162,9 @@ const MemberDashboardHeader = ({
           <StudioBadge isMobile={false} />
         </div>
 
-        {/* Right - Controls */}
+        {/* Right - Settings + Theme + Language */}
         <div className="flex gap-1 items-center">
+          <SettingsButton isMobile={false} />
           <ThemeToggle isMobile={false} />
           <LanguageDropdown isMobile={false} />
         </div>

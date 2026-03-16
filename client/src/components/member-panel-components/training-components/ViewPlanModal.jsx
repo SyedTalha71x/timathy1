@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Play, X } from "lucide-react";
+import { haptic } from '../../../utils/haptic';
 
 export const ViewPlanModal = ({
   isOpen,
@@ -108,7 +109,7 @@ export const ViewPlanModal = ({
                           </div>
                         </div>
                         <button
-                          onClick={() => onVideoClick(video)}
+                          onClick={() => { haptic.light(); onVideoClick(video) }}
                           className="p-1.5 sm:p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors flex-shrink-0"
                         >
                           <Play size={14} className="text-content-muted" />

@@ -652,7 +652,7 @@ const NutritionTracker = () => {
       <StreakModal show={showStreak} onClose={() => setShowStreak(false)} streak={streak} />
 
       {/* ========== HEADER ========== */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0" style={{ touchAction: "manipulation" }}>
         <div className="flex items-center justify-between p-4 sm:px-6 sm:pt-6 sm:pb-4">
           <div className="flex items-center gap-2">
             <button onClick={() => shiftDate(-1)} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary">
@@ -678,12 +678,13 @@ const NutritionTracker = () => {
             </button>
           </div>
         </div>
-        <div className="flex border-b border-border">
+        <div className="flex border-b border-border relative z-10">
           {[{ key: "diary", label: "Diary", icon: BookOpen }, { key: "insights", label: "Insights", icon: TrendingUp }].map((tab) => {
             const TabIcon = tab.icon
             return (
               <button key={tab.key} onClick={() => { haptic.light(); setActiveView(tab.key) }}
-                className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeView === tab.key
+                style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap cursor-pointer ${activeView === tab.key
                   ? "text-content-primary border-b-2 border-primary"
                   : "text-content-muted hover:text-content-primary"
                 }`}>
@@ -1007,7 +1008,7 @@ const NutritionTracker = () => {
 
       {/* ========== MOBILE FAB ========== */}
       {activeView === "diary" && (
-        <div className="lg:hidden fixed bottom-4 right-4 z-40">
+        <div className="lg:hidden fixed bottom-4 right-4 z-40" style={{ touchAction: "manipulation" }}>
           {/* FAB Menu */}
           <div className={`absolute bottom-16 right-0 flex flex-col gap-2 transition-all duration-200 ${isFabOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}>
             {["breakfast", "lunch", "dinner", "snacks"].map((m) => {
