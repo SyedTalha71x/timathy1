@@ -325,8 +325,8 @@ const Classes = () => {
     })
   }
 
-  // ─── Add to Calendar (Share API → fallback to blob download) ───
-  const addToCalendar = async (cls) => {
+  // ─── Add to Calendar (data URI → iOS opens native calendar dialog) ───
+  const addToCalendar = (cls) => {
     haptic.success()
     const pad = (n) => String(n).padStart(2, "0")
     const dateObj = new Date(cls.date)
@@ -338,7 +338,6 @@ const Classes = () => {
     const dtStart = `${y}${m}${d}T${pad(sh)}${pad(sm)}00`
     const dtEnd = `${y}${m}${d}T${pad(eh)}${pad(em)}00`
     const uid = `class-${cls.id}-${Date.now()}@app`
-    const filename = `${(cls.typeName || "class").replace(/\s+/g, "-").toLowerCase()}.ics`
 
     const ics = [
       "BEGIN:VCALENDAR",
@@ -355,30 +354,9 @@ const Classes = () => {
       "END:VCALENDAR",
     ].join("\r\n")
 
-    const file = new File([ics], filename, { type: "text/calendar" })
-
-    // Try Share API first (works natively in Capacitor iOS/Android)
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: cls.typeName || "Class" })
-        setActionSheetClass(null)
-        return
-      } catch (err) {
-        // User cancelled share or share failed — fall through to download
-        if (err.name === "AbortError") { setActionSheetClass(null); return }
-      }
-    }
-
-    // Fallback: direct blob download
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    // Data URI with text/calendar — iOS recognizes this and opens
+    // the native "Add to Calendar" dialog directly
+    window.location.href = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`
     setActionSheetClass(null)
   }
 
@@ -926,6 +904,28 @@ const Classes = () => {
             className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
             style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) {
+                e.currentTarget.style.transform = `translateY(${dy}px)`
+              }
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setActionSheetClass(null), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
           >
             {/* Handle bar */}
             <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
