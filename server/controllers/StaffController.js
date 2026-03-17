@@ -14,7 +14,7 @@ const { uploadToCloudinary } = require('../utils/CloudinaryUpload')
 
 // const { Readable } = require('stream');
 const StudioModel = require('../models/StudioModel');
-
+const { generateStaffId } = require('../utils/GenerateRandomID')
 
 
 
