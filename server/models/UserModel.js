@@ -12,16 +12,19 @@ const UserSchema = new mongoose.Schema({
         type: String,
         // required: true,
         minlength: 2,
-        maxlength: 20
+        maxlength: 20,
+        trim: true
     },
     lastName: {
         type: String,
         // required: true,
         minlength: 2,
-        maxlength: 20
+        maxlength: 20,
+        trim: true
     },
     username: {
-        type: String
+        type: String,
+        trim: true
     },
 
     email: {
@@ -67,22 +70,27 @@ const UserSchema = new mongoose.Schema({
     dateOfBirth: {
         type: Date,
         // required: true,
+        trim: true
     },
     city: {
         type: String,
         // required: true,
+        trim: true
     },
     street: {
         type: String,
         // required: true,
+        trim: true
     },
     country: {
         type: String,
-        // required: true,  
+        // required: true,
+        trim: true
     },
     houseNumber: {
         type: String,
         // required: true,
+        trim: true
     },
     phone: {
         type: String,
