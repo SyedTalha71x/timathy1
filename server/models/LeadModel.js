@@ -3,11 +3,14 @@ const mongoose = require('mongoose')
 const leadSchema = new mongoose.Schema({
     firstName: {
         type: String,
-        required: true
+        required: true,
+        trim: true
+
     },
     lastName: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     email: {
         type: String
@@ -31,14 +34,17 @@ const leadSchema = new mongoose.Schema({
     city: {
         type: String,
         required: true,
+        trim: true
     },
     street: {
         type: String,
         required: true,
+        trim: true
     },
     zipCode: {
         type: Number,
-        required: true
+        required: true,
+        trim: true
     },
     country: {
         type: String,
@@ -64,7 +70,8 @@ const leadSchema = new mongoose.Schema({
         },
         name: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         leadId: {
             type: mongoose.Schema.Types.ObjectId,
