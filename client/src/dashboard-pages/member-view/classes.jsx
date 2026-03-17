@@ -343,8 +343,17 @@ const Classes = () => {
       try {
         const { CapacitorCalendar } = await import("@ebarooni/capacitor-calendar")
 
+        // Request write access (needed on iOS < 17)
+        try {
+          await CapacitorCalendar.requestWriteOnlyCalendarAccess()
+        } catch (permErr) {
+          // User denied — show hint
+          alert("Calendar access is required to add events. Please enable it in Settings > OrgaGym > Calendar.")
+          setActionSheetClass(null)
+          return
+        }
+
         // Opens native iOS "New Event" dialog with pre-filled data
-        // No read permission needed for createEventWithPrompt
         await CapacitorCalendar.createEventWithPrompt({
           title: cls.typeName || "Class",
           location: cls.room || "",
