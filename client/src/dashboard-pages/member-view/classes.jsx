@@ -5,6 +5,7 @@ import ClassEnrollModal from "../../components/member-panel-components/classes-c
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
 import { haptic } from "../../utils/haptic"
 import { Capacitor } from "@capacitor/core"
+import toast from "../../components/shared/SharedToast"
 
 // ============================================
 // Reusable Components (matches appointment.jsx)
@@ -361,6 +362,8 @@ const Classes = () => {
           startDate: startDate.getTime(),
           endDate: endDate.getTime(),
         })
+
+        toast.success("Added to calendar")
       } catch (err) {
         // User cancelled the dialog — not an error
         if (!err.message?.includes("cancel")) {
