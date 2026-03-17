@@ -356,24 +356,43 @@ const Classes = () => {
       "END:VCALENDAR",
     ].join("\r\n")
 
-    // Native: Write file → share via native share sheet (shows "Add to Calendar")
+    // Native: write .ics file → open directly with system (Calendar app)
     if (Capacitor.isNativePlatform()) {
       try {
-        const { Filesystem, Directory } = await import("@capacitor/filesystem")
-        const { Share } = await import("@capacitor/share")
+        const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem")
+        const { FileOpener } = await import("@capacitor-community/file-opener")
 
         const result = await Filesystem.writeFile({
           path: filename,
-          data: btoa(ics),
+          data: ics,
           directory: Directory.Cache,
+          encoding: Encoding.UTF8,
         })
 
-        await Share.share({
-          title: cls.typeName || "Class",
-          url: result.uri,
+        // Opens directly in iOS Calendar — no share sheet
+        await FileOpener.open({
+          filePath: result.uri,
+          contentType: "text/calendar",
         })
       } catch (err) {
-        console.error("Calendar share failed:", err)
+        // FileOpener not installed — fallback to share sheet
+        if (err.message?.includes("FileOpener") || err.code === "MODULE_NOT_FOUND") {
+          try {
+            const { Share } = await import("@capacitor/share")
+            const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem")
+            const result = await Filesystem.writeFile({
+              path: filename,
+              data: ics,
+              directory: Directory.Cache,
+              encoding: Encoding.UTF8,
+            })
+            await Share.share({ url: result.uri, title: cls.typeName || "Class" })
+          } catch (shareErr) {
+            console.error("Calendar fallback failed:", shareErr)
+          }
+        } else {
+          console.error("Calendar add failed:", err)
+        }
       }
       setActionSheetClass(null)
       return
