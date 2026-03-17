@@ -361,6 +361,10 @@ const Classes = () => {
           endDate: endDate.getTime(),
         })
 
+        // Debug — remove after testing
+        console.log("[Calendar] Result:", JSON.stringify(result))
+        alert("Result: " + JSON.stringify(result))
+
         // id is a string when added, null when user cancelled
         if (result?.id) {
           haptic.success()
