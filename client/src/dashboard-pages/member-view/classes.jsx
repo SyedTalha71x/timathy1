@@ -329,8 +329,6 @@ const Classes = () => {
 
   // ─── Add to Calendar ───
   const addToCalendar = async (cls) => {
-    haptic.success()
-
     const dateObj = new Date(cls.date)
     const [sh, sm] = (cls.startTime || "09:00").split(":")
     const [eh, em] = (cls.endTime || "10:00").split(":")
@@ -355,7 +353,7 @@ const Classes = () => {
         }
 
         // Opens native iOS "New Event" dialog with pre-filled data
-        await CapacitorCalendar.createEventWithPrompt({
+        const result = await CapacitorCalendar.createEventWithPrompt({
           title: cls.typeName || "Class",
           location: cls.room || "",
           notes: `Trainer: ${cls.trainerName || "TBA"}`,
@@ -363,7 +361,11 @@ const Classes = () => {
           endDate: endDate.getTime(),
         })
 
-        toast.success("Added to calendar")
+        // id is a string when added, null when user cancelled
+        if (result?.id) {
+          haptic.success()
+          toast.success("Added to calendar")
+        }
       } catch (err) {
         // User cancelled the dialog — not an error
         if (!err.message?.includes("cancel")) {
