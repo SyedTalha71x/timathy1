@@ -329,69 +329,56 @@ const Classes = () => {
   // ─── Add to Calendar ───
   const addToCalendar = async (cls) => {
     haptic.success()
-    const pad = (n) => String(n).padStart(2, "0")
+
     const dateObj = new Date(cls.date)
-    const y = dateObj.getFullYear()
-    const m = pad(dateObj.getMonth() + 1)
-    const d = pad(dateObj.getDate())
     const [sh, sm] = (cls.startTime || "09:00").split(":")
     const [eh, em] = (cls.endTime || "10:00").split(":")
-    const dtStart = `${y}${m}${d}T${pad(sh)}${pad(sm)}00`
-    const dtEnd = `${y}${m}${d}T${pad(eh)}${pad(em)}00`
-    const uid = `class-${cls.id}-${Date.now()}@app`
-    const filename = `${(cls.typeName || "class").replace(/\s+/g, "-").toLowerCase()}.ics`
 
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Studio App//Classes//EN",
-      "BEGIN:VEVENT",
-      `UID:${uid}`,
-      `DTSTART:${dtStart}`,
-      `DTEND:${dtEnd}`,
-      `SUMMARY:${cls.typeName || "Class"}`,
-      `DESCRIPTION:Trainer: ${cls.trainerName || "TBA"}`,
-      `LOCATION:${cls.room || ""}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n")
+    const startDate = new Date(dateObj)
+    startDate.setHours(parseInt(sh), parseInt(sm), 0, 0)
+    const endDate = new Date(dateObj)
+    endDate.setHours(parseInt(eh), parseInt(em), 0, 0)
 
     if (Capacitor.isNativePlatform()) {
       try {
-        const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem")
-        const { FileOpener } = await import("@capacitor-community/file-opener")
+        const { CapacitorCalendar } = await import("@ebarooni/capacitor-calendar")
 
-        // Write .ics file
-        await Filesystem.writeFile({
-          path: filename,
-          data: ics,
-          directory: Directory.Cache,
-          encoding: Encoding.UTF8,
-        })
-
-        // Get the native file:// URI (not capacitor:// URI)
-        const uriResult = await Filesystem.getUri({
-          path: filename,
-          directory: Directory.Cache,
-        })
-
-        console.log("[Calendar] Opening file:", uriResult.uri)
-
-        // Open with system — iOS will show "Add to Calendar" dialog for .ics
-        await FileOpener.open({
-          filePath: uriResult.uri,
-          contentType: "text/calendar",
-          openWithDefault: true,
+        // Opens native iOS "New Event" dialog with pre-filled data
+        // No read permission needed for createEventWithPrompt
+        await CapacitorCalendar.createEventWithPrompt({
+          title: cls.typeName || "Class",
+          location: cls.room || "",
+          notes: `Trainer: ${cls.trainerName || "TBA"}`,
+          startDate: startDate.getTime(),
+          endDate: endDate.getTime(),
         })
       } catch (err) {
-        console.error("[Calendar] Error:", err)
-        alert("Could not open calendar. Error: " + (err.message || err))
+        // User cancelled the dialog — not an error
+        if (!err.message?.includes("cancel")) {
+          console.error("[Calendar] Error:", err)
+        }
       }
       setActionSheetClass(null)
       return
     }
 
-    // Web fallback
+    // Web fallback: .ics blob download
+    const pad = (n) => String(n).padStart(2, "0")
+    const y = dateObj.getFullYear()
+    const m = pad(dateObj.getMonth() + 1)
+    const d = pad(dateObj.getDate())
+    const dtStart = `${y}${m}${d}T${pad(sh)}${pad(sm)}00`
+    const dtEnd = `${y}${m}${d}T${pad(eh)}${pad(em)}00`
+    const filename = `${(cls.typeName || "class").replace(/\s+/g, "-").toLowerCase()}.ics`
+    const ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Studio App//Classes//EN",
+      "BEGIN:VEVENT", `UID:class-${cls.id}-${Date.now()}@app`,
+      `DTSTART:${dtStart}`, `DTEND:${dtEnd}`,
+      `SUMMARY:${cls.typeName || "Class"}`,
+      `DESCRIPTION:Trainer: ${cls.trainerName || "TBA"}`,
+      `LOCATION:${cls.room || ""}`,
+      "END:VEVENT", "END:VCALENDAR",
+    ].join("\r\n")
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
