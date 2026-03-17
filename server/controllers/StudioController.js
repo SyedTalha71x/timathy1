@@ -1,9 +1,9 @@
 const StudioModel = require('../models/StudioModel');
 const { MemberModel, AdminModel, StaffModel } = require('../models/Discriminators');
 const { NotFoundError, UnAuthorizedError, ConflictError } = require('../middleware/error/httpErrors')
-const cloudinary = require('../utils/Cloudinary')
-const { Readable } = require('stream');
-const UserModel = require('../models/UserModel');
+
+
+
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
 
@@ -13,7 +13,7 @@ const updateStudio = async (req, res, next) => {
   try {
     const userId = req.user?._id;
     const studioId = req.user?.studio;
- 
+
     const findStudio = await StudioModel.findById(studioId);
     if (!findStudio) throw new NotFoundError("Studio not found");
 
@@ -51,9 +51,9 @@ const updateStudio = async (req, res, next) => {
 const getStudioByMemberId = async (req, res, next) => {
   try {
     const userId = req.user?._id;
-    // const studioId = req.user?.studio;
+    const studioId = req.user?.studio;
     const studio = await StudioModel
-      .findOne({ users: userId })
+      .findOne(studioId)
       .populate("users")
       .populate('services', 'name description duration price')
       .populate('leads', 'firstName lastName email phone img')
@@ -73,7 +73,11 @@ const getStudioByMemberId = async (req, res, next) => {
 
 const createStudio = async (req, res, next) => {
   try {
-    if (req.user.role !== "admin") {
+
+    const userId = req.user?._id
+    const role = req.user?.role
+
+    if (role !== "admin") {
       throw new UnAuthorizedError("Not authorized");
     }
 
