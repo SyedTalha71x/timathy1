@@ -356,49 +356,42 @@ const Classes = () => {
       "END:VCALENDAR",
     ].join("\r\n")
 
-    // Native: write .ics file → open directly with system (Calendar app)
     if (Capacitor.isNativePlatform()) {
       try {
         const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem")
         const { FileOpener } = await import("@capacitor-community/file-opener")
 
-        const result = await Filesystem.writeFile({
+        // Write .ics file
+        await Filesystem.writeFile({
           path: filename,
           data: ics,
           directory: Directory.Cache,
           encoding: Encoding.UTF8,
         })
 
-        // Opens directly in iOS Calendar — no share sheet
+        // Get the native file:// URI (not capacitor:// URI)
+        const uriResult = await Filesystem.getUri({
+          path: filename,
+          directory: Directory.Cache,
+        })
+
+        console.log("[Calendar] Opening file:", uriResult.uri)
+
+        // Open with system — iOS will show "Add to Calendar" dialog for .ics
         await FileOpener.open({
-          filePath: result.uri,
+          filePath: uriResult.uri,
           contentType: "text/calendar",
+          openWithDefault: true,
         })
       } catch (err) {
-        // FileOpener not installed — fallback to share sheet
-        if (err.message?.includes("FileOpener") || err.code === "MODULE_NOT_FOUND") {
-          try {
-            const { Share } = await import("@capacitor/share")
-            const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem")
-            const result = await Filesystem.writeFile({
-              path: filename,
-              data: ics,
-              directory: Directory.Cache,
-              encoding: Encoding.UTF8,
-            })
-            await Share.share({ url: result.uri, title: cls.typeName || "Class" })
-          } catch (shareErr) {
-            console.error("Calendar fallback failed:", shareErr)
-          }
-        } else {
-          console.error("Calendar add failed:", err)
-        }
+        console.error("[Calendar] Error:", err)
+        alert("Could not open calendar. Error: " + (err.message || err))
       }
       setActionSheetClass(null)
       return
     }
 
-    // Web fallback: blob download
+    // Web fallback
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
