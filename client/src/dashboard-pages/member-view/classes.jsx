@@ -4,6 +4,7 @@ import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
 import { haptic } from "../../utils/haptic"
+import { Capacitor } from "@capacitor/core"
 
 // ============================================
 // Reusable Components (matches appointment.jsx)
@@ -325,8 +326,8 @@ const Classes = () => {
     })
   }
 
-  // ─── Add to Calendar (data URI → iOS opens native calendar dialog) ───
-  const addToCalendar = (cls) => {
+  // ─── Add to Calendar ───
+  const addToCalendar = async (cls) => {
     haptic.success()
     const pad = (n) => String(n).padStart(2, "0")
     const dateObj = new Date(cls.date)
@@ -338,6 +339,7 @@ const Classes = () => {
     const dtStart = `${y}${m}${d}T${pad(sh)}${pad(sm)}00`
     const dtEnd = `${y}${m}${d}T${pad(eh)}${pad(em)}00`
     const uid = `class-${cls.id}-${Date.now()}@app`
+    const filename = `${(cls.typeName || "class").replace(/\s+/g, "-").toLowerCase()}.ics`
 
     const ics = [
       "BEGIN:VCALENDAR",
@@ -354,9 +356,39 @@ const Classes = () => {
       "END:VCALENDAR",
     ].join("\r\n")
 
-    // Data URI with text/calendar — iOS recognizes this and opens
-    // the native "Add to Calendar" dialog directly
-    window.location.href = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`
+    // Native: Write file → share via native share sheet (shows "Add to Calendar")
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Filesystem, Directory } = await import("@capacitor/filesystem")
+        const { Share } = await import("@capacitor/share")
+
+        const result = await Filesystem.writeFile({
+          path: filename,
+          data: btoa(ics),
+          directory: Directory.Cache,
+        })
+
+        await Share.share({
+          title: cls.typeName || "Class",
+          url: result.uri,
+        })
+      } catch (err) {
+        console.error("Calendar share failed:", err)
+      }
+      setActionSheetClass(null)
+      return
+    }
+
+    // Web fallback: blob download
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
     setActionSheetClass(null)
   }
 
@@ -902,7 +934,7 @@ const Classes = () => {
           <div className="absolute inset-0 bg-black/50" />
           <div
             className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
-            style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}
+            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => {
               e.currentTarget._startY = e.touches[0].clientY
@@ -947,7 +979,7 @@ const Classes = () => {
             </div>
 
             {/* Actions */}
-            <div className="p-3 space-y-1">
+            <div className="p-3 pb-4 space-y-1">
               <button
                 onClick={() => addToCalendar(actionSheetClass)}
                 className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
@@ -971,16 +1003,6 @@ const Classes = () => {
                   <p className="text-sm font-medium">Cancel Enrollment</p>
                   <p className="text-xs text-red-400/60">Free up your spot for others</p>
                 </div>
-              </button>
-            </div>
-
-            {/* Cancel button */}
-            <div className="px-3 pb-1">
-              <button
-                onClick={() => setActionSheetClass(null)}
-                className="w-full px-4 py-3 bg-surface-hover hover:bg-surface-button rounded-xl text-content-primary text-sm font-medium transition-colors"
-              >
-                Close
               </button>
             </div>
           </div>
