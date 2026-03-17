@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react"
-import { Calendar, Clock, ChevronLeft, X, Filter, Check, Users, MapPin, Search, Timer, BellRing } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, X, Filter, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
@@ -18,8 +18,8 @@ const SectionHeader = ({ title, description, action }) => (
   </div>
 )
 
-const SettingsCard = ({ children, className = "" }) => (
-  <div className={`bg-surface-hover rounded-xl p-4 sm:p-6 ${className}`}>{children}</div>
+const SettingsCard = ({ children, className = "", onClick }) => (
+  <div className={`bg-surface-hover rounded-xl p-4 sm:p-6 ${className}`} onClick={onClick}>{children}</div>
 )
 
 // ============================================
@@ -71,6 +71,9 @@ const Classes = () => {
 
   // Watchlist — notify when a spot opens in a full class
   const [watchlist, setWatchlist] = useState(new Set())
+
+  // My Classes action sheet
+  const [actionSheetClass, setActionSheetClass] = useState(null)
 
   const filterRef = useRef(null)
   const daySliderRef = useRef(null)
@@ -320,6 +323,68 @@ const Classes = () => {
       }
       return next
     })
+  }
+
+  // ─── Add to Calendar (Share API → fallback to blob download) ───
+  const addToCalendar = async (cls) => {
+    haptic.success()
+    const pad = (n) => String(n).padStart(2, "0")
+    const dateObj = new Date(cls.date)
+    const y = dateObj.getFullYear()
+    const m = pad(dateObj.getMonth() + 1)
+    const d = pad(dateObj.getDate())
+    const [sh, sm] = (cls.startTime || "09:00").split(":")
+    const [eh, em] = (cls.endTime || "10:00").split(":")
+    const dtStart = `${y}${m}${d}T${pad(sh)}${pad(sm)}00`
+    const dtEnd = `${y}${m}${d}T${pad(eh)}${pad(em)}00`
+    const uid = `class-${cls.id}-${Date.now()}@app`
+    const filename = `${(cls.typeName || "class").replace(/\s+/g, "-").toLowerCase()}.ics`
+
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Studio App//Classes//EN",
+      "BEGIN:VEVENT",
+      `UID:${uid}`,
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${cls.typeName || "Class"}`,
+      `DESCRIPTION:Trainer: ${cls.trainerName || "TBA"}`,
+      `LOCATION:${cls.room || ""}`,
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n")
+
+    const file = new File([ics], filename, { type: "text/calendar" })
+
+    // Try Share API first (works natively in Capacitor iOS/Android)
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: cls.typeName || "Class" })
+        setActionSheetClass(null)
+        return
+      } catch (err) {
+        // User cancelled share or share failed — fall through to download
+        if (err.name === "AbortError") { setActionSheetClass(null); return }
+      }
+    }
+
+    // Fallback: direct blob download
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    setActionSheetClass(null)
+  }
+
+  const openActionSheet = (cls) => {
+    haptic.light()
+    setActionSheetClass(cls)
   }
 
   // ============================================
@@ -779,15 +844,18 @@ const Classes = () => {
                     return myClassesView === "upcoming" ? da.localeCompare(db) : db.localeCompare(da)
                   })
                   .map((cls) => (
-                    <SettingsCard key={cls.id} className="!p-4">
+                    <SettingsCard
+                      key={cls.id}
+                      className={`!p-4 ${myClassesView === "upcoming" && !cls.isCancelled ? "cursor-pointer active:bg-surface-card/50 transition-colors" : ""}`}
+                      onClick={() => { if (myClassesView === "upcoming" && !cls.isCancelled) openActionSheet(cls) }}
+                    >
                       <div className="flex items-start gap-3">
                         <div
                           className="w-1 self-stretch rounded-full flex-shrink-0"
                           style={{ backgroundColor: cls.color || "#6c5ce7" }}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1.5">
                                 <h3 className="text-sm font-medium text-content-primary truncate">{cls.typeName}</h3>
                                 {cls.isCancelled && (
@@ -821,15 +889,6 @@ const Classes = () => {
                                 <span className="text-xs text-content-secondary">{cls.trainerName}</span>
                               </div>
                             </div>
-                            {myClassesView === "upcoming" && !cls.isCancelled && (
-                              <button
-                                onClick={() => handleCancelEnrollment(cls)}
-                                className="self-start sm:self-center px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors whitespace-nowrap"
-                              >
-                                Cancel enrollment
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </div>
                     </SettingsCard>
@@ -853,6 +912,80 @@ const Classes = () => {
         onConfirm={confirmCancel}
         classData={classToCancel}
       />
+
+      {/* ============================================ */}
+      {/* MY CLASS ACTION SHEET                        */}
+      {/* ============================================ */}
+      {actionSheetClass && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setActionSheetClass(null)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+
+            {/* Class info header */}
+            <div className="px-4 pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-1 h-10 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: actionSheetClass.color || "#6c5ce7" }}
+                />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-content-primary truncate">{actionSheetClass.typeName}</h4>
+                  <p className="text-xs text-content-faint">
+                    {fmtDateDisplay(actionSheetClass.date)} · {actionSheetClass.startTime} – {actionSheetClass.endTime}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-3 space-y-1">
+              <button
+                onClick={() => addToCalendar(actionSheetClass)}
+                className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+              >
+                <CalendarPlus className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Add to Calendar</p>
+                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActionSheetClass(null)
+                  handleCancelEnrollment(actionSheetClass)
+                }}
+                className="w-full text-left px-4 py-3.5 hover:bg-red-500/10 active:bg-red-500/10 rounded-xl text-red-400 flex items-center gap-3 transition-colors"
+              >
+                <X className="w-5 h-5" />
+                <div>
+                  <p className="text-sm font-medium">Cancel Enrollment</p>
+                  <p className="text-xs text-red-400/60">Free up your spot for others</p>
+                </div>
+              </button>
+            </div>
+
+            {/* Cancel button */}
+            <div className="px-3 pb-1">
+              <button
+                onClick={() => setActionSheetClass(null)}
+                className="w-full px-4 py-3 bg-surface-hover hover:bg-surface-button rounded-xl text-content-primary text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
