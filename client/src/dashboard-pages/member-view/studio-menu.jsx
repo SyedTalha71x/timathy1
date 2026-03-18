@@ -454,7 +454,7 @@ const StudioMenu = () => {
   ]
 
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
       <PostPreviewModal />
 
       {/* ===== TAB NAVIGATION — sticky ===== */}
@@ -487,7 +487,7 @@ const StudioMenu = () => {
       </div>
 
       {/* ===== TAB CONTENT — scrollable ===== */}
-      <div className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6">
+      <div className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
 
         {/* ============================================================
             TAB: STUDIO INFO

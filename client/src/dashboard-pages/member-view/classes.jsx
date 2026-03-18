@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react"
-import { Calendar, Clock, ChevronLeft, X, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, X, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus, Filter } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
-import CustomSelect from "../../components/shared/CustomSelect"
 import { haptic } from "../../utils/haptic"
 import { Capacitor } from "@capacitor/core"
 import toast from "../../components/shared/SharedToast"
@@ -107,7 +106,7 @@ const fmtDateLong = (ds) => {
   if (!ds) return ""
   const d = typeof ds === "string" ? new Date(ds) : ds
   if (isNaN(d.getTime())) return ds
-  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
 }
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -125,6 +124,8 @@ const Classes = () => {
   const [myClassesView, setMyClassesView] = useState("upcoming")
   const [selectedCategories, setSelectedCategories] = useState(["All"])
   const [searchQuery, setSearchQuery] = useState("")
+  const [showSearch, setShowSearch] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const [showEnrollModal, setShowEnrollModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedClass, setSelectedClass] = useState(null)
@@ -144,6 +145,17 @@ const Classes = () => {
   const [calendarSheetClass, setCalendarSheetClass] = useState(null)
 
   const daySliderRef = useRef(null)
+  const filterBtnRef = useRef(null)
+
+  // Close filter dropdown on outside click
+  useEffect(() => {
+    if (!showFilterDropdown) return
+    const handleClickOutside = (e) => {
+      if (filterBtnRef.current && !filterBtnRef.current.contains(e.target)) setShowFilterDropdown(false)
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [showFilterDropdown])
 
   // Desktop: convert vertical scroll to horizontal on the day slider
   useEffect(() => {
@@ -577,7 +589,7 @@ const Classes = () => {
   // RENDER
   // ============================================
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
 
       {/* ═══ Info Modal (matches appointment.jsx info modal) ═══ */}
       {showInfoModal && infoModalData && (
@@ -700,65 +712,110 @@ const Classes = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
 
         {/* ============================================ */}
         {/* MAIN VIEW                                    */}
         {/* ============================================ */}
         {!showMyClasses && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* My Classes CTA */}
             <button
               onClick={() => { haptic.light(); setShowMyClasses(true) }}
-              className="w-full bg-primary hover:bg-primary-hover rounded-xl p-4 flex items-center gap-4 transition-colors"
+              className="w-full bg-primary hover:bg-primary-hover rounded-xl px-4 py-2.5 flex items-center gap-3 transition-colors"
             >
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Timer className="w-4 h-4 text-white" />
               </div>
-              <span className="text-left flex-1 text-white font-semibold text-sm sm:text-base">My Classes</span>
-              <div className="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full min-w-[1.75rem] flex items-center justify-center">
+              <span className="text-left flex-1 text-white font-semibold text-sm">My Classes</span>
+              <div className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full min-w-[1.5rem] flex items-center justify-center">
                 {myUpcomingClasses.length}
               </div>
             </button>
 
-            {/* Section Header + Filter */}
-            <SectionHeader
-              title="Available Classes"
-              description="Browse and enroll in upcoming classes"
-              action={
-                <div className="w-48">
-                  <CustomSelect
-                    name="categoryFilter"
-                    value={selectedCategories}
-                    onChange={(e) => setSelectedCategories(e.target.value)}
-                    options={categories.map(cat => ({ value: cat, label: cat }))}
-                    placeholder="All classes"
-                    multi
-                    className="bg-surface-button px-4 py-2 border-transparent hover:bg-surface-button-hover"
-                  />
+            {/* Date + Filter + Search */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm font-medium text-content-primary truncate">
+                  {fmtDateLong(selectedDate)}
+                </span>
+                <DatePickerField
+                  value={dateValue}
+                  onChange={handleDateChange}
+                  minDate={todayStr}
+                  iconSize={16}
+                />
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="relative" ref={filterBtnRef}>
+                  <button
+                    onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
+                    className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
+                      showFilterDropdown || (!selectedCategories.includes("All") && selectedCategories.length > 0)
+                        ? "bg-primary/15 text-primary"
+                        : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
+                    }`}
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    {!selectedCategories.includes("All") && selectedCategories.length > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
+                        {selectedCategories.length}
+                      </span>
+                    )}
+                  </button>
+                  {showFilterDropdown && (
+                    <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
+                      <div className="max-h-[200px] overflow-y-auto py-1">
+                        {categories.map((cat) => {
+                          const isActive = selectedCategories.includes(cat)
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => {
+                                haptic.light()
+                                setSelectedCategories(prev => {
+                                  if (cat === "All") return ["All"]
+                                  const current = prev.filter(v => v !== "All")
+                                  if (current.includes(cat)) {
+                                    const next = current.filter(v => v !== cat)
+                                    return next.length === 0 ? ["All"] : next
+                                  }
+                                  return [...current, cat]
+                                })
+                              }}
+                              className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
+                                isActive ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
+                              }`}
+                            >
+                              <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
+                                isActive ? "bg-primary border-primary" : "border-content-faint"
+                              }`}>
+                                {isActive && <Check size={8} className="text-white" />}
+                              </div>
+                              {cat}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              }
-            />
+                <button
+                  onClick={() => { haptic.light(); setShowSearch(prev => !prev) }}
+                  className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showSearch ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted hover:bg-surface-button-hover"}`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
 
             {/* ── Day Slider ── */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-content-primary">
-                    {MONTHS[selectedDate.getMonth()]} {selectedDate.getFullYear()}
-                  </span>
-                  <DatePickerField
-                    value={dateValue}
-                    onChange={handleDateChange}
-                    minDate={todayStr}
-                    iconSize={16}
-                  />
-                </div>
-              </div>
-
               <div
                 ref={daySliderRef}
-                className="flex gap-2 overflow-x-auto pt-3 pb-2"
+                className="flex gap-1.5 overflow-x-auto pt-2 pb-1.5"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
               >
                 {sliderDays.map((day) => {
@@ -768,17 +825,17 @@ const Classes = () => {
                       key={day.dateStr}
                       data-date={day.dateStr}
                       onClick={() => handleSliderDayClick(day)}
-                      className={`flex flex-col items-center min-w-[3.5rem] px-3 py-2.5 rounded-xl transition-colors flex-shrink-0 relative ${
+                      className={`flex flex-col items-center min-w-[3rem] px-2 py-1.5 rounded-xl transition-colors flex-shrink-0 relative ${
                         isSelected
                           ? "bg-primary text-white"
                           : "bg-surface-hover text-content-primary hover:bg-surface-button border border-border"
                       }`}
                     >
-                      <span className={`text-[10px] uppercase font-medium ${isSelected ? "text-white/70" : "text-content-faint"}`}>
+                      <span className={`text-[9px] uppercase font-medium ${isSelected ? "text-white/70" : "text-content-faint"}`}>
                         {day.dayName}
                       </span>
-                      <span className="text-lg font-semibold leading-tight">{day.date}</span>
-                      <span className={`text-[10px] ${isSelected ? "text-white/70" : "text-content-faint"}`}>
+                      <span className="text-base font-semibold leading-tight">{day.date}</span>
+                      <span className={`text-[9px] ${isSelected ? "text-white/70" : "text-content-faint"}`}>
                         {day.monthShort}
                       </span>
                       {day.classCount > 0 && (
@@ -796,35 +853,30 @@ const Classes = () => {
               </div>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
-              <input
-                type="text"
-                placeholder="Search classes, trainers, rooms..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-surface-hover border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+            {/* Search (collapsible) */}
+            {showSearch && (
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
+                <input
+                  type="text"
+                  placeholder="Search classes, trainers, rooms..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="w-full bg-surface-hover border border-border rounded-xl pl-10 pr-4 py-2 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
 
-            {/* Date heading */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-content-secondary">{fmtDateLong(selectedDate)}</h3>
-              <span className="text-xs text-content-faint">
-                {classesForDate.length} class{classesForDate.length !== 1 ? "es" : ""}
-              </span>
-            </div>
-
-            {/* ── Class Cards (config-style with Timer placeholder + appointment-style layout) ── */}
+            {/* ── Class Cards ── */}
             {classesForDate.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
@@ -843,7 +895,7 @@ const Classes = () => {
                   return (
                     <div
                       key={cls.id}
-                      className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-colors group cursor-pointer"
+                      className="bg-surface-hover rounded-xl overflow-hidden border border-border transition-colors group cursor-pointer"
                       onClick={() => { haptic.light(); setInfoModalData(cls); setShowInfoModal(true) }}
                     >
                       {/* Image / Timer placeholder */}

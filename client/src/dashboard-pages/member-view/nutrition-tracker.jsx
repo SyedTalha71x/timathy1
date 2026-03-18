@@ -582,7 +582,7 @@ const NutritionTracker = () => {
   // RENDER
   // ============================================
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
 
       <AddFoodModal
         show={showAddFood} onClose={resetAddFood}
@@ -697,7 +697,7 @@ const NutritionTracker = () => {
       </div>
 
       {/* ========== CONTENT ========== */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
 
         {/* ===== DIARY ===== */}
         {activeView === "diary" && (

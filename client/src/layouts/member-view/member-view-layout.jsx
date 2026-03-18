@@ -23,11 +23,6 @@ const MemberDashboardLayout = () => {
     []
   );
 
-  // Pages that manage their own internal scrolling
-  const isCommunicationPage = location.pathname.includes("/communication");
-  const isSettingsPage = location.pathname.includes("/settings");
-  const hasOwnScroll = isCommunicationPage || isSettingsPage;
-
   return (
     <ToastProvider>
     <div className="member-root bg-surface-dark h-dvh overflow-hidden">
@@ -42,11 +37,10 @@ const MemberDashboardLayout = () => {
         <main
           ref={mainRef}
           style={{ overscrollBehavior: "contain" }}
-          className={`flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] 
+          className="flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] 
             lg:pt-0 md:pt-14 sm:pt-14 pt-14
-            p-2
-            transition-all duration-500 ease-in-out
-            ${hasOwnScroll ? "overflow-hidden pb-0" : "overflow-y-auto pb-20 lg:pb-10"}`}
+            p-2 overflow-hidden pb-0
+            transition-all duration-500 ease-in-out"
         >
           {/* Header */}
           <MemberDashboardHeader

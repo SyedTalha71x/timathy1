@@ -20,8 +20,8 @@ import { haptic } from "../../../utils/haptic"
 // Primary tabs (always visible)
 const BAR_ITEMS = [
   { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
   { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
+  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
   { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
 ]
 

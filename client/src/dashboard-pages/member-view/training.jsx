@@ -611,7 +611,7 @@ export default function Training() {
         `}
       </style>
 
-      <div className="flex flex-col h-full rounded-3xl bg-surface-base text-content-primary overflow-hidden transition-all duration-500 ease-in-out flex-1">
+      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl transition-all duration-500 ease-in-out flex-1">
 
         {/* Sticky Header + Tabs */}
         <div className="flex-shrink-0 md:px-6 md:pt-6 px-3 pt-3">
@@ -648,7 +648,7 @@ export default function Training() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
+        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-20 lg:pb-16 pt-6">
         <div className="w-full mx-auto">
 
           {/* =============================================================== */}
