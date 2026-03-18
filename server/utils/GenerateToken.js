@@ -6,8 +6,8 @@ const accessExpiry = process.env.JWT_ACCESS_EXPIRY;
 const refreshSecret = process.env.JWT_REFRESH_TOKEN;
 const refreshExpiry = process.env.JWT_REFRESH_EXPIRY;
 
-const GenerateToken = ({ firstName, lastName, _id, email, role, studioId, staffRole }) => {
-  if (!_id || !email || !role || !staffRole) {
+const GenerateToken = ({ firstName, lastName, _id, email, role, studioId }) => {
+  if (!_id || !email || !role) {
     throw new Error("Missing required fields for token generation");
   }
 
@@ -24,7 +24,7 @@ const GenerateToken = ({ firstName, lastName, _id, email, role, studioId, staffR
     //   public_id: img?.public_id || "",
     //   url: img?.url || ""
     // },
-    staffRole
+    // staffRole
   };
 
   // Access token (short-lived)
@@ -34,7 +34,7 @@ const GenerateToken = ({ firstName, lastName, _id, email, role, studioId, staffR
   const refreshPayload = {
     _id,
     email,
-    role, staffRole
+    role,
   };
   const RefreshToken = jwt.sign(refreshPayload, refreshSecret, { expiresIn: refreshExpiry });
 

@@ -163,8 +163,8 @@ const loginMember = async (req, res, next) => {
       lastName: member.lastName,
       email: member.email,
       role: member.role,
-      gender: member.gender,
-      studioId: member.studio
+      // gender: member.gender,
+      studioId: member.studio._id
     });
 
     member.refreshToken = RefreshToken;

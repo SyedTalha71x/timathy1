@@ -742,31 +742,31 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const mobileContentRef = useRef(null)
   const desktopContentRef = useRef(null)
 
+
   // ============================================
   // Debounced Save Function
   // ============================================
   const debouncedSave = useCallback(
     debounce(async (field, value) => {
-      if (!config?.studio?.id) return;
+      if (!config?.studio?._id) {
+        console.error('No studio ID found');
+        return;
+      }
 
       setIsSaving(true);
       try {
-        // Create update object based on field
-        const updateData = {};
-
-        // Map frontend field names to backend field names
         const fieldMapping = {
           studioName: 'studioName',
           studioOperator: 'studioOwner',
-          studioOperatorEmail: 'operatorEmail',
-          studioOperatorPhone: 'operatorPhone',
-          studioOperatorMobile: 'operatorMobile',
+          studioOperatorEmail: 'ownerEmail',
+          studioOperatorPhone: 'ownerPhone',
+          studioOperatorMobile: 'operatorTelephone',
           studioStreet: 'street',
           studioZipCode: 'zipCode',
           studioCity: 'city',
           studioCountry: 'country',
           studioPhoneNo: 'phone',
-          studioMobileNo: 'mobile',
+          studioMobileNo: 'telephone',
           studioEmail: 'email',
           studioWebsite: 'website',
           openingHours: 'openingHours',
@@ -774,15 +774,38 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           overallCapacity: 'overallCapacity',
         };
 
-        const backendField = fieldMapping[field] || field;
-        updateData[backendField] = value;
+        const backendField = fieldMapping[field];
+        if (!backendField) {
+          console.warn(`No mapping found for field: ${field}`);
+          return;
+        }
 
-        await dispatch(updateStudioThunk({
-          studioId: config.studio.id,
-          data: updateData
+        // Create FormData
+        const formData = new FormData();
+
+        // Handle different value types
+        if (backendField === 'ownerPhone' && value) {
+          const numValue = Number(value);
+          if (!isNaN(numValue)) {
+            formData.append(backendField, numValue.toString());
+          }
+        } else if (typeof value === 'object') {
+          // For arrays/objects, stringify them
+          formData.append(backendField, JSON.stringify(value));
+        } else {
+          formData.append(backendField, value?.toString() || '');
+        }
+
+        console.log('Saving field with FormData:', backendField, value);
+
+        const result = await dispatch(updateStudioThunk({
+          studioId: config.studio._id,
+          data: formData
         })).unwrap();
 
+        console.log('Save successful:', result);
         toast.success(`${field} updated`, { autoClose: 2000 });
+
       } catch (error) {
         console.error('Save error:', error);
         toast.error(`Failed to update ${field}`);
@@ -790,7 +813,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         setIsSaving(false);
       }
     }, 1000),
-    [config?.studio?.id, dispatch]
+    [config?.studio?._id, dispatch]
   );
 
   // Cleanup debounce on unmount
@@ -800,20 +823,46 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     };
   }, [debouncedSave]);
 
+
   // ============================================
   // Save multiple fields at once
   // ============================================
+
   const saveStudioChanges = async (updateData) => {
-    if (!config?.studio?.id) return;
+    if (!config?.studio?._id) {
+      console.error('No studio ID found');
+      return;
+    }
 
     setIsSaving(true);
     try {
-      await dispatch(updateStudioThunk({
-        studioId: config.studio.id,
-        data: updateData
+      const formData = new FormData();
+
+      // Append all fields to FormData
+      Object.keys(updateData).forEach(key => {
+        const value = updateData[key];
+
+        if (value !== undefined && value !== null) {
+          if (key === 'ownerPhone' && value) {
+            formData.append(key, Number(value).toString());
+          } else if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+
+      console.log('Saving multiple fields with FormData');
+
+      const result = await dispatch(updateStudioThunk({
+        studioId: config.studio._id,
+        data: formData
       })).unwrap();
 
+      console.log('Bulk save successful:', result);
       toast.success('Studio updated successfully');
+
     } catch (error) {
       toast.error('Failed to save changes');
       console.error('Update error:', error);
@@ -825,28 +874,55 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ============================================
   // Studio field change handlers
   // ============================================
+  useEffect(() => {
+    console.log('Config state changed:', {
+      hasConfig: !!config,
+      hasStudio: !!config?.studio,
+      studioId: config?.studio?._id,
+      isLoading: isLoading,
+      error: error
+    });
 
+    if (config?.studio) {
+      console.log('Studio config loaded:', {
+        id: config.studio._id,
+        studioName: config.studio.studioName,
+        studioOwner: config.studio.studioOwner,
+        ownerPhone: config.studio.ownerPhone,
+        ownerEmail: config.studio.ownerEmail,
+        operatorTelephone: config.studio.operatorTelephone,
+        phone: config.studio.phone,
+        telephone: config.studio.telephone,
+        email: config.studio.email,
+      });
+    }
+  }, [config, isLoading, error]);
 
   const handleLogoUpload = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+    const file = e.target.files[0];
+    if (!file) return;
 
     // Update local state for preview
-    setLogo(prev => ({ ...prev, logo: file }))
+    setLogo(prev => ({ ...prev, logo: file }));
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onloadend = () => {
-      setLogoUrl(reader.result)
-    }
-    reader.readAsDataURL(file)
+      setLogoUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
 
-    // Prepare FormData to send to backend
-    const formData = new FormData()
-    formData.append("img", file)
+    // Prepare FormData
+    const formData = new FormData();
+    formData.append("img", file);
 
-    // Dispatch thunk to update staff
-    dispatch(updateStudioThunk(formData))
-  }
+    dispatch(updateStudioThunk({
+      studioId: config?.studio?._id,
+      data: formData
+    }))
+      .unwrap()
+      .then(res => console.log('Logo updated:', res))
+      .catch(err => console.error('Logo update failed:', err));
+  };
   const handleStudioNameChange = (value) => {
     setStudioName(value);
     debouncedSave('studioName', value);
@@ -861,15 +937,25 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setStudioOperatorEmail(value);
     debouncedSave('studioOperatorEmail', value);
   };
-
+  // Make sure your handlers are using the correct field names
   const handleStudioOperatorPhoneChange = (value) => {
     setStudioOperatorPhone(value);
-    debouncedSave('studioOperatorPhone', value);
+    debouncedSave('studioOperatorPhone', value);  // Maps to OwnerPhone
   };
 
   const handleStudioOperatorMobileChange = (value) => {
     setStudioOperatorMobile(value);
-    debouncedSave('studioOperatorMobile', value);
+    debouncedSave('studioOperatorMobile', value);  // Maps to operatorTelephone
+  };
+
+  const handleStudioPhoneChange = (value) => {
+    setStudioPhoneNo(value);
+    debouncedSave('studioPhoneNo', value);  // Maps to phone
+  };
+
+  const handleStudioMobileChange = (value) => {
+    setStudioMobileNo(value);
+    debouncedSave('studioMobileNo', value);  // Maps to telephone
   };
 
   const handleStudioStreetChange = (value) => {
@@ -892,15 +978,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     debouncedSave('studioCountry', value);
   };
 
-  const handleStudioPhoneChange = (value) => {
-    setStudioPhoneNo(value);
-    debouncedSave('studioPhoneNo', value);
-  };
 
-  const handleStudioMobileChange = (value) => {
-    setStudioMobileNo(value);
-    debouncedSave('studioMobileNo', value);
-  };
 
   const handleStudioEmailChange = (value) => {
     setStudioEmail(value);
@@ -924,9 +1002,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     const updatedHours = openingHours.some(h => h.day === day)
       ? openingHours.map(h => {
         if (h.day !== day) return h;
-
         if (field === 'closed') {
-          // Toggle isClosed
           return {
             ...h,
             isClosed: value,
@@ -934,7 +1010,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             close: value ? null : (h.close || '22:00')
           };
         } else {
-          // Update time
           return {
             ...h,
             [field]: value,
@@ -954,18 +1029,18 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
     setOpeningHours(updatedHours);
 
-    // Update backend
+    // Create FormData for the update
+    const formData = new FormData();
+    formData.append('openingHours', JSON.stringify(updatedHours));
+
     dispatch(updateStudioThunk({
-      updateData: { openingHours: updatedHours }
+      studioId: config.studio._id,
+      data: formData
     }))
       .unwrap()
-      .then(res => console.log('Backend updated:', res.studio.openingHours))
+      .then(res => console.log('Opening hours updated:', res))
       .catch(err => console.error('Update failed:', err));
-
-    // Optional debounced save
-    debouncedSave('openingHours', updatedHours);
   };
-
   // ============================================
   // Closing days handlers
   // ============================================
@@ -1284,20 +1359,78 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ============================================
 
   const fetchPublicHolidays = async (countryCode) => {
-    if (!countryCode) return
-    setIsLoadingHolidays(true)
+    if (!countryCode) return;
+
+    setIsLoadingHolidays(true);
+
     try {
-      const currentYear = new Date().getFullYear()
-      const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${countryCode}`)
-      if (!response.ok) throw new Error("Failed to fetch holidays")
-      const data = await response.json()
-      setPublicHolidays(data.map(h => ({ date: h.date, name: h.name, countryCode: h.countryCode })))
+      // Map common country names to ISO codes
+      const countryCodeMap = {
+        'germany': 'DE',
+        'de': 'DE',
+        'deu': 'DE',
+        'usa': 'US',
+        'us': 'US',
+        'united states': 'US',
+        'uk': 'GB',
+        'gb': 'GB',
+        'united kingdom': 'GB',
+        'france': 'FR',
+        'fr': 'FR',
+        'spain': 'ES',
+        'es': 'ES',
+        'italy': 'IT',
+        'it': 'IT',
+        'netherlands': 'NL',
+        'nl': 'NL',
+        'belgium': 'BE',
+        'be': 'BE',
+        'austria': 'AT',
+        'at': 'AT',
+        'switzerland': 'CH',
+        'ch': 'CH',
+        'poland': 'PL',
+        'pl': 'PL',
+        'czech republic': 'CZ',
+        'cz': 'CZ',
+      };
+
+      // Convert to lowercase and clean the input
+      const cleanCountry = countryCode.toString().toLowerCase().trim();
+
+      // Get the ISO code from map, or use the original if it's already a valid code
+      const isoCountryCode = countryCodeMap[cleanCountry] || cleanCountry.toUpperCase();
+
+      console.log('Original country:', countryCode);
+      console.log('Mapped to ISO code:', isoCountryCode);
+
+      const currentYear = new Date().getFullYear();
+      const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${isoCountryCode}`);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`Country code "${isoCountryCode}" not recognized. Please check your country setting.`);
+        }
+        throw new Error("Failed to fetch holidays");
+      }
+
+      const data = await response.json();
+
+      setPublicHolidays(data.map(h => ({
+        date: h.date,
+        name: h.name,
+        countryCode: h.countryCode
+      })));
+
+      toast.success(`Loaded ${data.length} public holidays`);
+
     } catch (error) {
-      toast.error("Error — Could not load public holidays")
+      console.error('Holiday fetch error:', error);
+      toast.error(error.message || "Error — Could not load public holidays");
     } finally {
-      setIsLoadingHolidays(false)
+      setIsLoadingHolidays(false);
     }
-  }
+  };
 
   const addPublicHolidaysToClosingDays = () => {
     if (publicHolidays.length === 0) {

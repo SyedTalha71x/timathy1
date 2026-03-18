@@ -42,8 +42,18 @@ const studioSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    ownerPhone: {
+      type: Number,
+    },
+    ownerEmail: {
+      type: String,
+      lowercase: true,
+      trim: true
+    },
 
     phone: String,
+    telephone: String,
+    operatorTelephone: String,
     email: { type: String, lowercase: true, trim: true },
 
     street: String,
@@ -110,9 +120,9 @@ const studioSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'notes'
     }],
-    post:[{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:'post'
+    post: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'post'
     }]
   },
   { timestamps: true }

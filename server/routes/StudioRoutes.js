@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Update studio details
 router.post('/create', verifyAccessToken, isAdmin, uploadImage.single('img'), createStudio);
-router.put("/update", verifyAccessToken, uploadImage.single('img'), updateStudio);
+router.put("/update/:studioId", verifyAccessToken, uploadImage.single('img'), updateStudio);
 router.get("/my-studio", verifyAccessToken, getStudioByMemberId);
 router.delete('/:studioId', verifyAccessToken, deleteStudioById)
 

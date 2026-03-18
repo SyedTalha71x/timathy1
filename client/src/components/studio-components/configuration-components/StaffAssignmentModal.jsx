@@ -42,7 +42,8 @@ export const StaffAssignmentModal = ({
 
   // Filter staff based on search
   const filteredStaff = allStaff.filter(staff =>
-    staff.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    staff.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
+    staff.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
     staff.email.toLowerCase().includes(searchText.toLowerCase())
   )
 

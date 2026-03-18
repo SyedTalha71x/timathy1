@@ -38,12 +38,21 @@ import {
  * @returns {Object} Normalized configuration object
  */
 function transformStudioResponse(backendData) {
-  if (!backendData || !backendData.studio) {
+  if (!backendData) return null
+  
+  // Handle different response formats
+  let studio;
+  
+  if (backendData?.studio) {
+    // Format: { studio: {...} }
+    studio = backendData.studio
+  } else if (backendData?._id) {
+    // Format: direct studio object
+    studio = backendData
+  } else {
+    console.warn('No studio data found')
     return null
   }
-
-  const { studio } = backendData
-  console.log('Transforming studio data:', studio) // Debug log
 
   // Helper function to format opening hours
   const formatOpeningHours = (hours) => {
@@ -52,7 +61,7 @@ function transformStudioResponse(backendData) {
       day: day.day,
       open: day.open || "",
       close: day.close || "",
-      isClosed: day.isClosed || day.closed || false
+      isClosed: day.isClosed || false
     }))
   }
 
@@ -61,8 +70,8 @@ function transformStudioResponse(backendData) {
     if (!days || !Array.isArray(days)) return []
     return days.map(day => ({
       date: day.date,
-      reason: day.reason || day.description || "",
-      description: day.description || day.reason || "",
+      reason: day.reason || "",
+      description: day.reason || "",
       _id: day._id
     }))
   }
@@ -70,7 +79,6 @@ function transformStudioResponse(backendData) {
   // Transform staff data
   const transformStaff = (users) => {
     const staffMembers = users?.filter(user => user.role === 'staff') || []
-
     return {
       allStaff: staffMembers.map(staff => ({
         id: staff._id,
@@ -99,7 +107,6 @@ function transformStudioResponse(backendData) {
   // Transform members data
   const transformMembers = (users) => {
     const members = users?.filter(user => user.role === 'member') || []
-
     return {
       allMembers: members.map(member => ({
         id: member._id,
@@ -132,30 +139,51 @@ function transformStudioResponse(backendData) {
 
   return {
     studio: {
+      // Core fields
+      _id: studio._id,
       id: studio._id,
-      name: studio.studioName,
-      studioId: studio._id,
-      operator: studio.studioOwner,
-      operatorEmail: studio.email,
-      operatorPhone: studio.phone || "",
-      operatorMobile: studio.telephone || "",
-      street: studio.street,
-      zipCode: studio.zipCode,
-      city: studio.city,
-      country: studio.country,
+      studioName: studio.studioName || "",
+      studioOwner: studio.studioOwner || "",
+      email: studio.email || "",
+      
+      // Address
+      street: studio.street || "",
+      zipCode: studio.zipCode || "",
+      city: studio.city || "",
+      country: studio.country || "",
+      
+      // Contact
       phone: studio.phone || "",
-      mobile: studio.mobile || "",
-      email: studio.email,
+      telephone: studio.telephone || "",
+      
+      // Owner fields
+      OwnerPhone: studio.OwnerPhone || "",
+      ownerEmail: studio.ownerEmail || "",
+      operatorTelephone: studio.operatorTelephone || "",
+      
+      // Other
       website: studio.website || "",
-      currency: "EUR",
-      registrationNumber: studio.registrationNumber || "",
-      taxId: studio.texId || "",
-      court: studio.court || "",
       overallCapacity: studio.overallCapacity || DEFAULT_STUDIO_CAPACITY,
+      registrationNumber: studio.registrationNumber || "",
+      texId: studio.texId || "",
+      court: studio.court || "",
+      
+      // Arrays
       openingHours: formatOpeningHours(studio.openingHours),
       closingDays: formatClosingDays(studio.closingDays),
+      
+      // Metadata
       createdAt: studio.createdAt,
       updatedAt: studio.updatedAt,
+      
+      // Legacy/compatibility fields
+      name: studio.studioName || "",
+      operator: studio.studioOwner || "",
+      operatorEmail: studio.ownerEmail || studio.email || "",
+      operatorPhone: studio.OwnerPhone || studio.phone || "",
+      operatorMobile: studio.operatorTelephone || studio.telephone || studio.phone || "",
+      mobile: studio.telephone || studio.phone || "",
+      currency: "EUR",
     },
     staff: transformStaff(studio.users),
     members: transformMembers(studio.users),
@@ -195,18 +223,9 @@ function transformStudioResponse(backendData) {
 }
 
 /**
- * Loads configuration from static default files (fallback).
- * This function does NOT depend on backend data - it creates a complete
- * default configuration object using imported defaults.
- * 
- * @param {Object} options
- * @param {string|null} options.studioId
- * @param {string} options.mode
- * @returns {Object} Normalized configuration object with default values
+ * Loads configuration from static default files (fallback)
  */
 function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
-  console.log('Loading default configuration with studioId:', studioId) // Debug log
-
   // Create default opening hours
   const defaultOpeningHours = [
     { day: "Monday", open: "09:00", close: "22:00", isClosed: false },
@@ -218,35 +237,42 @@ function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
     { day: "Sunday", open: "", close: "", isClosed: true },
   ]
 
-  // Create default closing days (empty array)
-  const defaultClosingDays = []
-
   return {
     studio: {
       id: studioId || "default-studio-id",
+      _id: studioId || "default-studio-id",
       name: "My Studio",
-      studioId: studioId || "default-studio-id",
+      studioName: "My Studio",
       operator: "Studio Owner",
+      studioOwner: "Studio Owner",
       operatorEmail: "owner@example.com",
+      ownerEmail: "owner@example.com",
       operatorPhone: "",
+      OwnerPhone: "",
       operatorMobile: "",
+      operatorTelephone: "",
       street: "123 Main Street",
       zipCode: "12345",
       city: "Your City",
       country: "DE",
       phone: "",
-      mobile: "",
+      telephone: "",
       email: "studio@example.com",
       website: "https://your-studio.com",
       currency: "EUR",
       registrationNumber: "",
       taxId: "",
+      texId: "",
       court: "",
       overallCapacity: DEFAULT_STUDIO_CAPACITY,
       openingHours: defaultOpeningHours,
-      closingDays: defaultClosingDays,
+      closingDays: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      mobile: "",
+      operatorPhone: "",
+      operatorEmail: "",
+      operatorMobile: "",
     },
     staff: {
       roles: DEFAULT_STAFF_ROLES,
@@ -298,13 +324,7 @@ function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
 }
 
 /**
- * Shared hook for loading studio configuration.
- * Used by both the Studio Panel and Admin Panel.
- *
- * @param {Object} options
- * @param {string|null} options.studioId - null = own studio, string = specific studio (admin mode)
- * @param {string} options.mode - "studio" or "admin"
- * @returns {{ config, updateConfig, isLoading, error, mode, studioId, refetch }}
+ * Shared hook for loading studio configuration
  */
 export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}) {
   const [config, setConfig] = useState(null)
@@ -331,17 +351,19 @@ export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}
           data = loadConfigFromDefaults({ studioId, mode })
         }
       } else {
-        // Studio mode - fetch own studio using Redux action
+        // Studio mode - fetch own studio
         try {
           const result = await dispatch(fetchMyStudio()).unwrap()
-          console.log('fetchMyStudio result:', result) // Debug log
 
-          if (result && result.success && result.studio) {
-            // Transform the backend data to match our config structure
+          // Handle different response formats
+          if (result && result._id) {
+            // Direct studio object
             data = transformStudioResponse(result)
-            // console.log('Transformed config:', data) // Debug log
+          } else if (result && result.success && result.studio) {
+            // Wrapped studio object
+            data = transformStudioResponse(result)
           } else {
-            console.warn('API returned unexpected data, using defaults')
+            console.warn('Unexpected API response format')
             data = loadConfigFromDefaults({ studioId, mode })
           }
         } catch (fetchError) {
@@ -353,7 +375,6 @@ export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}
       setConfig(data)
     } catch (err) {
       console.error('Error in loadConfig:', err)
-      // Ultimate fallback
       const fallbackData = loadConfigFromDefaults({ studioId, mode })
       setConfig(fallbackData)
       setError(err.message || "Failed to load configuration, using defaults")
@@ -367,7 +388,7 @@ export function useStudioConfiguration({ studioId = null, mode = "studio" } = {}
   }, [studioId, mode, dispatch])
 
   /**
-   * Update a section of the config (optimistic update).
+   * Update a section of the config
    */
   const updateConfig = (section, data) => {
     setConfig((prev) => ({

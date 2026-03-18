@@ -7,7 +7,7 @@ export const myStudio = async () => {
     return res.data;
 }
 
-export const updateStudio = async (updateData) => {
-    const res = await api.put('/studio/update', updateData, { withCredentials: true })
+export const updateStudio = async (studioId,updateData) => {
+    const res = await api.put(`/studio/update/${studioId}`, updateData, { withCredentials: true })
     return res.data
 }

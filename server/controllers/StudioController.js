@@ -11,22 +11,85 @@ const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
 const updateStudio = async (req, res, next) => {
   try {
-    const userId = req.user?._id;
-    const studioId = req.user?.studio;
+    const { studioId } = req.params;
+
+    // IMPORTANT: Check if req.body exists
+    if (!req.body) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body is missing"
+      });
+    }
+
+    console.log('Raw req.body:', req.body);
+    console.log('Raw req.file:', req.file);
 
     const findStudio = await StudioModel.findById(studioId);
     if (!findStudio) throw new NotFoundError("Studio not found");
 
-    const updateData = { ...req.body };
+    // Define allowed fields
+    const allowedFields = [
+      'studioName', 'studioOwner', 'ownerPhone', 'ownerEmail',
+      'phone', 'telephone', 'operatorTelephone', 'email',
+      'street', 'zipCode', 'city', 'country', 'website',
+      'overallCapacity', 'registrationNumber', 'texId', 'court',
+      'openingHours', 'closingDays'
+    ];
 
+    // Process each field - parse JSON strings if needed
+    const processedBody = {};
+
+    Object.keys(req.body).forEach(key => {
+      let value = req.body[key];
+
+      // Try to parse if it looks like a JSON array or object
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if ((trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+          (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+          try {
+            value = JSON.parse(trimmed);
+            console.log(`Parsed ${key} as JSON:`, value);
+          } catch (e) {
+            console.log(`Failed to parse ${key} as JSON:`, e.message);
+          }
+        }
+      }
+
+      processedBody[key] = value;
+    });
+
+    // Safely build update object with only allowed fields
+    const updateData = allowedFields.reduce((acc, field) => {
+      if (processedBody[field] !== undefined) {
+        acc[field] = processedBody[field];
+      }
+      return acc;
+    }, {});
+
+    // Handle file upload only if file exists
     if (req.file) {
-      const imageData = await uploadToCloudinary(req.file.buffer)
-      updateData.img = {
-        url: imageData.secure_url,
-        public_id: imageData.public_id
+      try {
+        const imageData = await uploadToCloudinary(req.file.buffer);
+        updateData.img = {
+          url: imageData.secure_url,
+          public_id: imageData.public_id
+        };
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        // Continue with update even if image fails
       }
     }
 
+    // Check if there's anything to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields to update"
+      });
+    }
+
+    console.log('Updating studio with:', updateData);
 
     const updatedStudio = await StudioModel.findByIdAndUpdate(
       studioId,
@@ -41,6 +104,7 @@ const updateStudio = async (req, res, next) => {
     });
 
   } catch (error) {
+    console.error('Update error:', error);
     next(error);
   }
 };

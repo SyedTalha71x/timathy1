@@ -64,7 +64,7 @@ import EditPlanModal from "../../components/studio-components/training-component
 import VideoModal from "../../components/shared/training/video-modal"
 import AddToPlanModal from "../../components/studio-components/training-components/add-to-plan-modal"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+import { createPlan, fetchAllPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -300,10 +300,14 @@ export default function Training() {
   // COMPUTED - Available Videos for Plan
   // -------------------------------------------------------------------------
   const getAvailableVideos = () => {
+    // Use _id consistently
     const selectedVideoIds = selectedExercises.map((exercise) => exercise.videoId)
-    return trainingVideos.filter((video) => !selectedVideoIds.includes(video.id))
+    return trainingVideos.filter((video) => !selectedVideoIds.includes(video._id))
   }
 
+  const getVideoById = (videoId) => {
+    return trainingVideos.find(v => v._id === videoId) || null;
+  };
   // -------------------------------------------------------------------------
   // HANDLERS - Member Assignment
   // -------------------------------------------------------------------------
@@ -413,25 +417,62 @@ export default function Training() {
   // HANDLERS - Plan CRUD
   // -------------------------------------------------------------------------
 
-  const handleCreatePlan = () => {
-    const newPlan = {
-      id: Math.max(...trainingPlans.map(p => p.id), 0) + 1,
-      ...planForm,
-      createdByStaffId: null, // Current user
-      createdByName: "Current User",
-      createdBy: "Current User", // Legacy
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-      isPublic: true,
-      isActive: true,
-      likes: 0,
-      uses: 0,
+  const handleCreatePlan = async () => {
+    try {
+      // Prepare data for backend API
+      const apiPlanData = {
+        name: planForm.name,
+        description: planForm.description,
+        duration: planForm.duration,
+        difficulty: planForm.difficulty,
+        category: planForm.category,
+        workoutsPerWeek: planForm.workoutsPerWeek,
+        exercises: selectedExercises.map((ex, index) => ({
+          video: ex.videoId, // Use videoId as 'video' field for backend
+          sets: ex.sets || 3,
+          reps: ex.reps || "10-12",
+          rest: ex.rest || "60s",
+          order: index + 1
+        }))
+      };
+
+      // console.log('Sending to backend:', apiPlanData);
+
+      // Dispatch to backend
+      const result = await dispatch(createPlan(apiPlanData)).unwrap();
+
+      // Create local version with the ID from backend
+      const newLocalPlan = {
+        ...apiPlanData,
+        _id: result.plan._id, // Use the MongoDB _id from response
+        id: result.plan._id,   // Also set id for local compatibility
+        createdByStaffId: null,
+        createdByName: "Current User",
+        createdBy: "Current User",
+        createdAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
+        isPublic: true,
+        isActive: true,
+        likes: 0,
+        uses: 0,
+        creatorName: "Current User", // Add this for display
+        exercises: selectedExercises // Keep the original format for local display
+      };
+
+      // Update local state with the new plan
+      setTrainingPlans(prev => [...prev, newLocalPlan]);
+
+      // Close modal and reset form
+      setIsCreatePlanModalOpen(false);
+      resetPlanForm();
+
+      toast.success("Training plan created successfully!");
+
+    } catch (error) {
+      console.error('Create plan error:', error);
+      toast.error(error.message || "Failed to create training plan");
     }
-    setTrainingPlans([...trainingPlans, newPlan])
-    setIsCreatePlanModalOpen(false)
-    resetPlanForm()
-    toast.success("Training plan created successfully!")
-  }
+  };
 
   const handleEditPlan = () => {
     const updatedPlans = trainingPlans.map((plan) =>
@@ -468,9 +509,9 @@ export default function Training() {
       category: "Full Body",
       workoutsPerWeek: "",
       exercises: [],
-    })
-    setSelectedExercises([])
-  }
+    });
+    setSelectedExercises([]); // Make sure to clear selected exercises
+  };
 
   const handleAddToExistingPlan = (planId) => {
     if (!videoToAdd) return
@@ -497,7 +538,7 @@ export default function Training() {
 
   const handleAddExercise = (video) => {
     const exercise = {
-      videoId: video.id,
+      videoId: video._id,
       sets: 3,
       reps: "10-12",
       rest: "60s",
@@ -799,7 +840,7 @@ export default function Training() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredPlans.map((plan) => (
                   <div
-                    key={plan.id}
+                    key={plan._id}
                     className="bg-surface-card rounded-xl p-4 sm:p-6 hover:bg-surface-hover transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
