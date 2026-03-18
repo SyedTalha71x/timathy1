@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const bulletinSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema({
     img: {
         url: String,
         public_id: String
@@ -46,9 +46,9 @@ const bulletinSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 
-bulletinSchema.index({ title: 1, content: 1, status: 1, tags: 1 })
+postSchema.index({ title: 1, content: 1, status: 1, tags: 1 })
 
 
-const bulletinModel = mongoose.model('bulletin', bulletinSchema)
+const PostModel = mongoose.model('post', postSchema)
 
-module.exports = bulletinModel
+module.exports = PostModel

@@ -437,7 +437,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ============================================
   // Load configuration via shared hook
   // ============================================
-  const { config, updateConfig, isLoading, error } = useStudioConfiguration({
+  const { config, updateConfig, isLoading, error, } = useStudioConfiguration({
     studioId: studioIdProp,
     mode,
   })
@@ -921,44 +921,48 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Opening hours handlers
   // ============================================
   const handleOpeningHoursChange = (day, field, value) => {
-    let updatedHours;
+    const updatedHours = openingHours.some(h => h.day === day)
+      ? openingHours.map(h => {
+        if (h.day !== day) return h;
 
-    if (field === 'closed') {
-      // Handle toggle
-      if (openingHours.some(h => h.day === day)) {
-        updatedHours = openingHours.map(h =>
-          h.day === day ? {
+        if (field === 'closed') {
+          // Toggle isClosed
+          return {
             ...h,
             isClosed: value,
-            open: value ? undefined : h.open || '09:00',
-            close: value ? undefined : h.close || '22:00'
-          } : h
-        );
-      } else {
-        updatedHours = [...openingHours, {
+            open: value ? null : (h.open || '09:00'),
+            close: value ? null : (h.close || '22:00')
+          };
+        } else {
+          // Update time
+          return {
+            ...h,
+            [field]: value,
+            isClosed: false
+          };
+        }
+      })
+      : [
+        ...openingHours,
+        {
           day,
-          open: value ? undefined : '09:00',
-          close: value ? undefined : '22:00',
-          isClosed: value
-        }];
-      }
-    } else {
-      // Handle time change
-      if (openingHours.some(h => h.day === day)) {
-        updatedHours = openingHours.map(h =>
-          h.day === day ? { ...h, [field]: value, isClosed: false } : h
-        );
-      } else {
-        updatedHours = [...openingHours, {
-          day,
-          open: field === 'open' ? value : '09:00',
-          close: field === 'close' ? value : '22:00',
-          isClosed: false
-        }];
-      }
-    }
+          isClosed: field === 'closed' ? value : false,
+          open: field === 'open' ? value : (field === 'closed' && value ? null : '09:00'),
+          close: field === 'close' ? value : (field === 'closed' && value ? null : '22:00')
+        }
+      ];
 
     setOpeningHours(updatedHours);
+
+    // Update backend
+    dispatch(updateStudioThunk({
+      updateData: { openingHours: updatedHours }
+    }))
+      .unwrap()
+      .then(res => console.log('Backend updated:', res.studio.openingHours))
+      .catch(err => console.error('Update failed:', err));
+
+    // Optional debounced save
     debouncedSave('openingHours', updatedHours);
   };
 
@@ -1012,12 +1016,21 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setStudioWebsite(config.studio.website || "")
     setCurrency(config.studio.currency || "EUR")
 
-    // Format opening hours if needed
-    const formattedHours = config.studio.openingHours?.map(hour => ({
-      ...hour,
-      isClosed: hour.isClosed || hour.closed || false
-    })) || [];
-    setOpeningHours(formattedHours)
+    // Map backend openingHours to your frontend state
+    const formattedHours = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
+      const backendHour = config.studio.openingHours.find(h => h.day === day);
+
+      return {
+        day,
+        open: backendHour?.open?.replace('-', ':') || '09:00',
+        close: backendHour?.close?.replace('-', ':') || '22:00',
+        isClosed: backendHour?.isClosed ?? false
+      };
+    });
+
+    setOpeningHours(formattedHours);
+
+
 
     // Format closing days if needed
     const formattedDays = config.studio.closingDays?.map(day => ({
@@ -1303,7 +1316,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     toast.success(`Added — Added ${newHolidays.length} holidays`)
   }
 
- 
+
 
   // Role handlers
   const handleAddRole = () => {
@@ -2000,7 +2013,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return text
     }
   }
-
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   // ============================================
   // Render Section Content
   // ============================================
@@ -2427,48 +2440,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SectionHeader title="Opening Hours" description="Set your studio's weekly schedule" />
             <SettingsCard>
               <div className="space-y-3">
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
-                  const existingHour = openingHours.find(h => h.day === day)
-                  const hour = existingHour || {
-                    day,
-                    open: '09:00',
-                    close: '22:00',
-                    isClosed: day === 'Sunday'
-                  }
-                  const isClosed = hour.isClosed || false
+                {openingHours.map(h => {
+                  // Always get hour from state or fallback
+
+
+                  // Ensure we always have a boolean
+
 
                   return (
-                    <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-surface-card rounded-xl">
+                    <div key={h.day} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-surface-card rounded-xl">
                       <div className="flex items-center justify-between sm:w-32">
-                        <span className="text-content-primary font-medium text-sm sm:text-base">{day}</span>
+                        <span className="text-content-primary font-medium text-sm sm:text-base">{h.day}</span>
                       </div>
+
                       <div className="flex items-center gap-3 flex-1 flex-wrap sm:flex-nowrap">
                         <button
                           type="button"
-                          onClick={() => handleOpeningHoursChange(day, 'closed', !isClosed)}
-                          className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${!isClosed ? "bg-primary" : "bg-surface-button"
-                            }`}
+                          onClick={() => handleOpeningHoursChange(h.day, 'closed', !h.isClosed)}
+                          className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${!h.isClosed ? "bg-primary" : "bg-surface-button"}`}
                         >
-                          <span
-                            className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${!isClosed ? "translate-x-5" : "translate-x-0"
-                              }`}
-                          />
+                          <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${!h.isClosed ? "translate-x-5" : "translate-x-0"}`} />
                         </button>
-                        <span className="text-sm text-content-muted w-12">{isClosed ? "Closed" : "Open"}</span>
-
-                        {!isClosed && (
+                        <span className="text-sm text-content-muted w-12">{h.isClosed ? "Closed" : "Open"}</span>
+                        {!h.isClosed && (
                           <>
                             <input
                               type="time"
-                              value={hour.open || '09:00'}
-                              onChange={(e) => handleOpeningHoursChange(day, 'open', e.target.value)}
+                              value={h.open?.replace('-', ':') || '09:00'}
+                              onChange={e => handleOpeningHoursChange(h.day, 'open', e.target.value)}
                               className="bg-surface-hover text-content-primary rounded-lg px-2 sm:px-3 py-2 text-sm border border-border flex-1 sm:flex-none"
                             />
                             <span className="text-content-muted text-sm">to</span>
                             <input
                               type="time"
-                              value={hour.close || '22:00'}
-                              onChange={(e) => handleOpeningHoursChange(day, 'close', e.target.value)}
+                              value={h.close?.replace('-', ':') || '22:00'}
+                              onChange={e => handleOpeningHoursChange(h.day, 'close', e.target.value)}
                               className="bg-surface-hover text-content-primary rounded-lg px-2 sm:px-3 py-2 text-sm border border-border flex-1 sm:flex-none"
                             />
                           </>

@@ -109,6 +109,10 @@ const studioSchema = new mongoose.Schema(
     notes: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'notes'
+    }],
+    post:[{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'post'
     }]
   },
   { timestamps: true }
