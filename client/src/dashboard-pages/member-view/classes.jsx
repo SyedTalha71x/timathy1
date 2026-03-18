@@ -461,6 +461,8 @@ const Classes = () => {
     const enrolledClass = selectedClass
     setShowEnrollModal(false)
     setSelectedClass(null)
+    setShowMyClasses(true)
+    setMyClassesView("upcoming")
     setCalendarSheetClass(enrolledClass)
   }
 
