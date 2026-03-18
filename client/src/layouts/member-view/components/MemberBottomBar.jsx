@@ -20,8 +20,8 @@ import { haptic } from "../../../utils/haptic"
 // Primary tabs (always visible)
 const BAR_ITEMS = [
   { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
   { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
+  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
   { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
 ]
 
@@ -38,16 +38,31 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
   const [keyboardOpen, setKeyboardOpen] = useState(false)
   const moreRef = useRef(null)
 
-  // Detect keyboard open/close via visualViewport
+  // Detect keyboard open/close via focus/blur on inputs
   useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const threshold = 100
-    const onResize = () => {
-      setKeyboardOpen(window.innerHeight - vv.height > threshold)
+    const onFocusIn = (e) => {
+      const tag = e.target?.tagName?.toLowerCase()
+      const isEditable = (tag === "input" && !e.target.readOnly) || tag === "textarea" || e.target?.isContentEditable
+      if (isEditable) {
+        setKeyboardOpen(true)
+      }
     }
-    vv.addEventListener("resize", onResize)
-    return () => vv.removeEventListener("resize", onResize)
+    const onFocusOut = () => {
+      setTimeout(() => {
+        const el = document.activeElement
+        const tag = el?.tagName?.toLowerCase()
+        const isEditable = (tag === "input" && !el?.readOnly) || tag === "textarea" || el?.isContentEditable
+        if (!isEditable) {
+          setKeyboardOpen(false)
+        }
+      }, 100)
+    }
+    document.addEventListener("focusin", onFocusIn)
+    document.addEventListener("focusout", onFocusOut)
+    return () => {
+      document.removeEventListener("focusin", onFocusIn)
+      document.removeEventListener("focusout", onFocusOut)
+    }
   }, [])
 
   // Close More menu on route change

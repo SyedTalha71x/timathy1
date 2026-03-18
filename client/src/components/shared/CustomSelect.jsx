@@ -34,6 +34,7 @@ const CustomSelect = ({
   required = false,
   className = "bg-surface-dark px-4 py-2 border-transparent hover:border-border",
   searchable = false,
+  multi = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -43,7 +44,18 @@ const CustomSelect = ({
   const searchRef = useRef(null)
   const [dropdownStyle, setDropdownStyle] = useState({})
 
-  const selectedOption = options.find(opt => String(opt.value) === String(value))
+  // Multi: value is an array; Single: value is a string
+  const multiValue = multi ? (Array.isArray(value) ? value : []) : null
+  const selectedOption = multi ? null : options.find(opt => String(opt.value) === String(value))
+
+  // Display text
+  const displayText = multi
+    ? multiValue.length === 0 || multiValue.includes("All")
+      ? placeholder
+      : multiValue.length === 1
+        ? options.find(opt => opt.value === multiValue[0])?.label || multiValue[0]
+        : `${multiValue.length} selected`
+    : selectedOption ? selectedOption.label : ""
 
   const filteredOptions = searchable && search
     ? options.filter(opt => opt.divider || opt.label.toLowerCase().includes(search.toLowerCase()))
@@ -87,7 +99,25 @@ const CustomSelect = ({
   }
 
   const handleSelect = (optionValue) => {
-    // Mimic native select onChange: { target: { name, value } }
+    if (multi) {
+      let newValue
+      // "All" resets selection
+      if (optionValue === "All") {
+        newValue = ["All"]
+      } else {
+        const current = multiValue.filter(v => v !== "All")
+        if (current.includes(optionValue)) {
+          newValue = current.filter(v => v !== optionValue)
+          if (newValue.length === 0) newValue = ["All"]
+        } else {
+          newValue = [...current, optionValue]
+        }
+      }
+      onChange({ target: { name, value: newValue } })
+      // Don't close dropdown for multi-select
+      return
+    }
+    // Single select
     onChange({ target: { name, value: optionValue } })
     closeDropdown()
     triggerRef.current?.focus()
@@ -189,7 +219,7 @@ const CustomSelect = ({
           ref={triggerRef}
           type="text"
           readOnly
-          value={selectedOption ? selectedOption.label : ""}
+          value={displayText}
           placeholder={placeholder}
           onClick={() => (isOpen ? closeDropdown() : openDropdown())}
           onKeyDown={handleKeyDown}
@@ -262,7 +292,9 @@ const CustomSelect = ({
                 if (opt.divider) {
                   return <div key={`divider-${index}`} className="my-1 border-t border-border mx-2" />
                 }
-                const isSelected = String(opt.value) === String(value)
+                const isSelected = multi
+                  ? multiValue.includes(opt.value)
+                  : String(opt.value) === String(value)
                 const isHighlighted = index === highlightedIndex
                 return (
                   <button
@@ -271,7 +303,7 @@ const CustomSelect = ({
                     data-index={index}
                     onClick={() => handleSelect(opt.value)}
                     onMouseEnter={() => setHighlightedIndex(index)}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between gap-2 transition-colors ${
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
                       isHighlighted
                         ? "bg-surface-hover text-content-primary"
                         : isSelected
@@ -279,8 +311,15 @@ const CustomSelect = ({
                           : "text-content-secondary hover:bg-surface-hover"
                     }`}
                   >
-                    <span className="truncate">{opt.label}</span>
-                    {isSelected && (
+                    {multi && (
+                      <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
+                        isSelected ? "bg-primary border-primary" : "border-content-faint"
+                      }`}>
+                        {isSelected && <Check size={10} className="text-white" />}
+                      </div>
+                    )}
+                    <span className="truncate flex-1">{opt.label}</span>
+                    {!multi && isSelected && (
                       <Check size={14} className="text-primary flex-shrink-0" />
                     )}
                   </button>

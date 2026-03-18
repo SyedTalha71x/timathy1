@@ -28,7 +28,7 @@ const SettingsCard = ({ children, className = "" }) => (
 )
 
 const Appointments = () => {
-  const { services } = useSelector((state) => state.services)
+  const { services = [] } = useSelector((state) => state.services || {})
   const { appointments = [] } = useSelector((state) => state.appointments || {})
   const [selectedDate, setSelectedDate] = useState(new Date().getDate())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
@@ -218,7 +218,7 @@ const Appointments = () => {
   // RENDER
   // ============================================
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
 
       {/* Info Modal */}
       {showInfoModal && (
@@ -268,7 +268,7 @@ const Appointments = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
 
         {/* ============================================ */}
         {/* MAIN VIEW — CTA + Service Grid              */}

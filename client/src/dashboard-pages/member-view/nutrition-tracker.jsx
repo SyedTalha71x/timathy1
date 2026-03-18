@@ -582,7 +582,7 @@ const NutritionTracker = () => {
   // RENDER
   // ============================================
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
 
       <AddFoodModal
         show={showAddFood} onClose={resetAddFood}
@@ -697,7 +697,7 @@ const NutritionTracker = () => {
       </div>
 
       {/* ========== CONTENT ========== */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
 
         {/* ===== DIARY ===== */}
         {activeView === "diary" && (
@@ -1008,7 +1008,7 @@ const NutritionTracker = () => {
 
       {/* ========== MOBILE FAB ========== */}
       {activeView === "diary" && (
-        <div className="lg:hidden fixed bottom-16 right-4 z-40" style={{ touchAction: "manipulation" }}>
+        <div className="lg:hidden fixed right-4 z-40" style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.5rem)", touchAction: "manipulation" }}>
           {/* FAB Menu */}
           <div className={`absolute bottom-16 right-0 flex flex-col gap-2 transition-all duration-200 ${isFabOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}>
             {["breakfast", "lunch", "dinner", "snacks"].map((m) => {

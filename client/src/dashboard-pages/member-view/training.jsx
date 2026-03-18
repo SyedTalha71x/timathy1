@@ -648,7 +648,7 @@ export default function Training() {
         `}
       </style>
 
-      <div className="flex flex-col h-full rounded-3xl bg-surface-base text-content-primary overflow-hidden transition-all duration-500 ease-in-out flex-1">
+      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl transition-all duration-500 ease-in-out flex-1">
 
         {/* Sticky Header + Tabs */}
         <div className="flex-shrink-0 md:px-6 md:pt-6 px-3 pt-3">
@@ -1040,7 +1040,8 @@ export default function Training() {
       {activeTab === "plans" && (
         <button
           onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
-          className="md:hidden fixed bottom-16 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
           aria-label="Create Training Plan"
         >
           <Plus size={22} />

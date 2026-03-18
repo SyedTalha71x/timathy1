@@ -53,5 +53,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>OrgaGym requires access to your camera</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Add class schedules to your calendar</string>
 </dict>
 </plist>

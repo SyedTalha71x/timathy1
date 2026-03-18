@@ -1,9 +1,74 @@
 import { useState, useRef, useEffect, useMemo } from "react"
-import { Calendar, Clock, ChevronLeft, X, Filter, Check, Users, MapPin, Search, Timer, BellRing } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, X, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus, Filter } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
 import { haptic } from "../../utils/haptic"
+import { Capacitor } from "@capacitor/core"
+import toast from "../../components/shared/SharedToast"
+
+// ============================================
+// Local Notification Helpers
+// ============================================
+const scheduleClassReminder = async (cls) => {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications")
+
+    // Request permission (iOS shows dialog once, then remembers)
+    const perm = await LocalNotifications.requestPermissions()
+    if (perm.display !== "granted") return
+
+    // Read reminder timing — default 24 hours before (matches Settings)
+    const reminderHours = (() => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("class_reminder_hours"))
+        return stored && stored > 0 ? stored : 24
+      } catch { return 24 }
+    })()
+
+    const dateObj = new Date(cls.date)
+    const [sh, sm] = (cls.startTime || "09:00").split(":")
+    dateObj.setHours(parseInt(sh), parseInt(sm), 0, 0)
+
+    // Schedule notification X hours before
+    const notifyAt = new Date(dateObj.getTime() - reminderHours * 60 * 60 * 1000)
+
+    // If reminder time already passed but class hasn't started yet → notify in 30s (for testing)
+    const now = new Date()
+    if (notifyAt <= now && dateObj > now) {
+      notifyAt.setTime(now.getTime() + 30 * 1000)
+    }
+
+    // Don't schedule if the class has already started
+    if (dateObj <= now) return
+
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: cls.id,
+        title: cls.typeName || "Class Reminder",
+        body: `Starts in ${reminderHours}h — ${cls.startTime} at ${cls.room || "Studio"}`,
+        schedule: { at: notifyAt },
+        sound: "default",
+        extra: { classId: cls.id },
+      }],
+    })
+    console.log("[Notification] Scheduled for:", notifyAt.toLocaleString())
+  } catch (err) {
+    console.error("[Notification] Schedule failed:", err)
+  }
+}
+
+const cancelClassReminder = async (cls) => {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications")
+    await LocalNotifications.cancel({ notifications: [{ id: cls.id }] })
+    console.log("[Notification] Cancelled for class:", cls.id)
+  } catch (err) {
+    console.error("[Notification] Cancel failed:", err)
+  }
+}
 
 // ============================================
 // Reusable Components (matches appointment.jsx)
@@ -18,8 +83,8 @@ const SectionHeader = ({ title, description, action }) => (
   </div>
 )
 
-const SettingsCard = ({ children, className = "" }) => (
-  <div className={`bg-surface-hover rounded-xl p-4 sm:p-6 ${className}`}>{children}</div>
+const SettingsCard = ({ children, className = "", onClick }) => (
+  <div className={`bg-surface-hover rounded-xl p-4 sm:p-6 ${className}`} onClick={onClick}>{children}</div>
 )
 
 // ============================================
@@ -41,7 +106,7 @@ const fmtDateLong = (ds) => {
   if (!ds) return ""
   const d = typeof ds === "string" ? new Date(ds) : ds
   if (isNaN(d.getTime())) return ds
-  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
 }
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -57,9 +122,10 @@ const Classes = () => {
   })
   const [showMyClasses, setShowMyClasses] = useState(false)
   const [myClassesView, setMyClassesView] = useState("upcoming")
-  const [showFilter, setShowFilter] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState(["All"])
   const [searchQuery, setSearchQuery] = useState("")
+  const [showSearch, setShowSearch] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const [showEnrollModal, setShowEnrollModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedClass, setSelectedClass] = useState(null)
@@ -72,17 +138,24 @@ const Classes = () => {
   // Watchlist — notify when a spot opens in a full class
   const [watchlist, setWatchlist] = useState(new Set())
 
-  const filterRef = useRef(null)
+  // My Classes action sheet
+  const [actionSheetClass, setActionSheetClass] = useState(null)
+
+  // Calendar sheet after enrollment
+  const [calendarSheetClass, setCalendarSheetClass] = useState(null)
+
   const daySliderRef = useRef(null)
+  const filterBtnRef = useRef(null)
 
   // Close filter dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterRef.current && !filterRef.current.contains(event.target)) setShowFilter(false)
+    if (!showFilterDropdown) return
+    const handleClickOutside = (e) => {
+      if (filterBtnRef.current && !filterBtnRef.current.contains(e.target)) setShowFilterDropdown(false)
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [showFilterDropdown])
 
   // Desktop: convert vertical scroll to horizontal on the day slider
   useEffect(() => {
@@ -99,12 +172,30 @@ const Classes = () => {
   })
 
   // ─── Demo data (replace with API data when backend is ready) ───
-  const [availableClasses] = useState([
+  // Test class starting in 5 minutes (for notification testing)
+  const testStart = new Date(Date.now() + 5 * 60 * 1000)
+  const testEnd = new Date(Date.now() + 65 * 60 * 1000)
+  const testStartTime = `${String(testStart.getHours()).padStart(2,"0")}:${String(testStart.getMinutes()).padStart(2,"0")}`
+  const testEndTime = `${String(testEnd.getHours()).padStart(2,"0")}:${String(testEnd.getMinutes()).padStart(2,"0")}`
+
+  const [availableClasses, setAvailableClasses] = useState([
+    // ── TEST CLASS — starts in 5 min (set reminder to 0.05h / ~3 min in Settings to test) ──
+    {
+      id: 99, typeId: "ct99", typeName: "Quick Test Class", color: "#e84393",
+      date: fmtDate(new Date()), startTime: testStartTime, endTime: testEndTime, duration: 60,
+      trainerName: "Test Trainer", trainerImg: null, trainerColor: "#e84393",
+      room: "Studio 1", maxParticipants: 20, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: false,
+      category: "Group Class",
+      description: "Test class for notification testing. Set reminder to a low number (e.g. 0.05 hours = 3 min) in Settings to see the notification quickly.",
+      image: null,
+    },
+    // ── TODAY ──
     {
       id: 1, typeId: "ct1", typeName: "Yoga Flow", color: "#6c5ce7",
       date: fmtDate(new Date()), startTime: "09:00", endTime: "10:00", duration: 60,
       trainerName: "Sarah Miller", trainerImg: null, trainerColor: "#6c5ce7",
-      room: "Studio 1", maxParticipants: 15, enrolledMembers: ["m1", "m2", "m3"],
+      room: "Studio 1", maxParticipants: 15, enrolledMembers: ["m2", "m3"],
       isCancelled: false, isPast: false, isRecurring: true,
       category: "Wellness",
       description: "A flowing yoga session that builds strength and flexibility through connected poses.",
@@ -114,7 +205,7 @@ const Classes = () => {
       id: 2, typeId: "ct2", typeName: "HIIT Training", color: "#e17055",
       date: fmtDate(new Date()), startTime: "10:30", endTime: "11:15", duration: 45,
       trainerName: "Mike Johnson", trainerImg: null, trainerColor: "#e17055",
-      room: "Studio 2", maxParticipants: 20, enrolledMembers: ["m1", "m4", "m5", "m6", "m7"],
+      room: "Studio 2", maxParticipants: 20, enrolledMembers: ["m4", "m5", "m6"],
       isCancelled: false, isPast: false, isRecurring: true,
       category: "Group Class",
       description: "High-intensity interval training to maximize calorie burn and boost endurance.",
@@ -124,17 +215,38 @@ const Classes = () => {
       id: 3, typeId: "ct3", typeName: "Pilates", color: "#00b894",
       date: fmtDate(new Date()), startTime: "14:00", endTime: "15:00", duration: 60,
       trainerName: "Lisa Chen", trainerImg: null, trainerColor: "#00b894",
-      room: "Studio 1", maxParticipants: 12, enrolledMembers: Array.from({ length: 12 }, (_, i) => `mx${i}`),
+      room: "Studio 1", maxParticipants: 12, enrolledMembers: ["m2", "m3", "m4"],
       isCancelled: false, isPast: false, isRecurring: false,
       category: "Wellness",
       description: "Core-focused Pilates session improving posture, balance and body awareness.",
       image: null,
     },
     {
+      id: 7, typeId: "ct5", typeName: "Boxing Basics", color: "#d63031",
+      date: fmtDate(new Date()), startTime: "16:00", endTime: "17:00", duration: 60,
+      trainerName: "Jake Rivera", trainerImg: null, trainerColor: "#d63031",
+      room: "Studio 2", maxParticipants: 16, enrolledMembers: ["m5"],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Group Class",
+      description: "Learn the fundamentals of boxing — footwork, jabs, hooks and defensive moves.",
+      image: null,
+    },
+    {
+      id: 8, typeId: "ct6", typeName: "Stretch & Recover", color: "#00cec9",
+      date: fmtDate(new Date()), startTime: "18:00", endTime: "18:45", duration: 45,
+      trainerName: "Sarah Miller", trainerImg: null, trainerColor: "#6c5ce7",
+      room: "Studio 1", maxParticipants: 20, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Wellness",
+      description: "Guided stretching and foam rolling to help your muscles recover and prevent injury.",
+      image: null,
+    },
+    // ── TOMORROW ──
+    {
       id: 4, typeId: "ct1", typeName: "Yoga Flow", color: "#6c5ce7",
       date: fmtDate(new Date(Date.now() + 86400000)), startTime: "09:00", endTime: "10:00", duration: 60,
       trainerName: "Sarah Miller", trainerImg: null, trainerColor: "#6c5ce7",
-      room: "Studio 1", maxParticipants: 15, enrolledMembers: ["m1"],
+      room: "Studio 1", maxParticipants: 15, enrolledMembers: [],
       isCancelled: false, isPast: false, isRecurring: true,
       category: "Wellness",
       description: "A flowing yoga session that builds strength and flexibility through connected poses.",
@@ -142,7 +254,7 @@ const Classes = () => {
     },
     {
       id: 5, typeId: "ct4", typeName: "Spinning", color: "#fdcb6e",
-      date: fmtDate(new Date(Date.now() + 86400000)), startTime: "17:00", endTime: "17:45", duration: 45,
+      date: fmtDate(new Date(Date.now() + 86400000)), startTime: "11:00", endTime: "11:45", duration: 45,
       trainerName: "Tom Becker", trainerImg: null, trainerColor: "#fdcb6e",
       room: "Cycling Room", maxParticipants: 25, enrolledMembers: ["m2", "m3"],
       isCancelled: false, isPast: false, isRecurring: true,
@@ -151,6 +263,27 @@ const Classes = () => {
       image: null,
     },
     {
+      id: 9, typeId: "ct7", typeName: "Functional Training", color: "#0984e3",
+      date: fmtDate(new Date(Date.now() + 86400000)), startTime: "13:00", endTime: "14:00", duration: 60,
+      trainerName: "Mike Johnson", trainerImg: null, trainerColor: "#e17055",
+      room: "Studio 2", maxParticipants: 18, enrolledMembers: ["m4"],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Group Class",
+      description: "Full-body workout using kettlebells, bands, and bodyweight for real-world strength.",
+      image: null,
+    },
+    {
+      id: 10, typeId: "ct5", typeName: "Boxing Basics", color: "#d63031",
+      date: fmtDate(new Date(Date.now() + 86400000)), startTime: "17:00", endTime: "18:00", duration: 60,
+      trainerName: "Jake Rivera", trainerImg: null, trainerColor: "#d63031",
+      room: "Studio 2", maxParticipants: 16, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Group Class",
+      description: "Learn the fundamentals of boxing — footwork, jabs, hooks and defensive moves.",
+      image: null,
+    },
+    // ── DAY AFTER TOMORROW ──
+    {
       id: 6, typeId: "ct2", typeName: "HIIT Training", color: "#e17055",
       date: fmtDate(new Date(Date.now() + 172800000)), startTime: "10:30", endTime: "11:15", duration: 45,
       trainerName: "Mike Johnson", trainerImg: null, trainerColor: "#e17055",
@@ -158,6 +291,47 @@ const Classes = () => {
       isCancelled: false, isPast: false, isRecurring: true,
       category: "Group Class",
       description: "High-intensity interval training to maximize calorie burn and boost endurance.",
+      image: null,
+    },
+    {
+      id: 11, typeId: "ct3", typeName: "Pilates", color: "#00b894",
+      date: fmtDate(new Date(Date.now() + 172800000)), startTime: "09:00", endTime: "10:00", duration: 60,
+      trainerName: "Lisa Chen", trainerImg: null, trainerColor: "#00b894",
+      room: "Studio 1", maxParticipants: 12, enrolledMembers: ["m5", "m6"],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Wellness",
+      description: "Core-focused Pilates session improving posture, balance and body awareness.",
+      image: null,
+    },
+    {
+      id: 12, typeId: "ct6", typeName: "Stretch & Recover", color: "#00cec9",
+      date: fmtDate(new Date(Date.now() + 172800000)), startTime: "18:00", endTime: "18:45", duration: 45,
+      trainerName: "Sarah Miller", trainerImg: null, trainerColor: "#6c5ce7",
+      room: "Studio 1", maxParticipants: 20, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Wellness",
+      description: "Guided stretching and foam rolling to help your muscles recover and prevent injury.",
+      image: null,
+    },
+    // ── 3 DAYS FROM NOW ──
+    {
+      id: 13, typeId: "ct4", typeName: "Spinning", color: "#fdcb6e",
+      date: fmtDate(new Date(Date.now() + 259200000)), startTime: "10:00", endTime: "10:45", duration: 45,
+      trainerName: "Tom Becker", trainerImg: null, trainerColor: "#fdcb6e",
+      room: "Cycling Room", maxParticipants: 25, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Group Class",
+      description: "Indoor cycling with energizing music and motivating intervals.",
+      image: null,
+    },
+    {
+      id: 14, typeId: "ct7", typeName: "Functional Training", color: "#0984e3",
+      date: fmtDate(new Date(Date.now() + 259200000)), startTime: "15:00", endTime: "16:00", duration: 60,
+      trainerName: "Mike Johnson", trainerImg: null, trainerColor: "#e17055",
+      room: "Studio 2", maxParticipants: 18, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: true,
+      category: "Group Class",
+      description: "Full-body workout using kettlebells, bands, and bodyweight for real-world strength.",
       image: null,
     },
   ])
@@ -260,23 +434,6 @@ const Classes = () => {
     setSelectedDate(new Date(day.year, day.month, day.date))
   }
 
-  const handleCategoryToggle = (category) => {
-    haptic.light()
-    setSelectedCategories((prev) => {
-      if (category === "All") return ["All"]
-      const newSelection = prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev.filter((c) => c !== "All"), category]
-      return newSelection.length === 0 ? ["All"] : newSelection
-    })
-  }
-
-  const getFilterButtonText = () => {
-    if (selectedCategories.includes("All") || selectedCategories.length === 0) return "All classes"
-    if (selectedCategories.length === 1) return selectedCategories[0]
-    return `${selectedCategories.length} selected`
-  }
-
   const handleEnrollClick = (cls) => { haptic.light(); setSelectedClass(cls); setShowEnrollModal(true) }
 
   const confirmEnroll = () => {
@@ -284,8 +441,22 @@ const Classes = () => {
     haptic.success()
     // TODO: dispatch(enrollInClass({ classId: selectedClass.id })) when backend is ready
     console.log("Enrolled in class:", selectedClass.id)
+
+    // Update local state — add current member to enrolledMembers
+    setAvailableClasses(prev => prev.map(cls =>
+      cls.id === selectedClass.id
+        ? { ...cls, enrolledMembers: [...(cls.enrolledMembers || []), currentMemberId] }
+        : cls
+    ))
+
+    scheduleClassReminder(selectedClass)
+    toast.success("Enrolled successfully")
+    const enrolledClass = selectedClass
     setShowEnrollModal(false)
     setSelectedClass(null)
+    setShowMyClasses(true)
+    setMyClassesView("upcoming")
+    setCalendarSheetClass(enrolledClass)
   }
 
   const handleCancelEnrollment = (cls) => { haptic.light(); setClassToCancel(cls); setShowCancelModal(true) }
@@ -295,6 +466,16 @@ const Classes = () => {
     haptic.warning()
     // TODO: dispatch(unenrollFromClass({ classId: classToCancel.id })) when backend is ready
     console.log("Cancelled enrollment:", classToCancel.id)
+
+    // Update local state — remove current member from enrolledMembers
+    setAvailableClasses(prev => prev.map(cls =>
+      cls.id === classToCancel.id
+        ? { ...cls, enrolledMembers: (cls.enrolledMembers || []).filter(id => id !== currentMemberId) }
+        : cls
+    ))
+
+    cancelClassReminder(classToCancel)
+    toast.info("Enrollment cancelled")
     setShowCancelModal(false)
     setClassToCancel(null)
   }
@@ -322,11 +503,93 @@ const Classes = () => {
     })
   }
 
+  // ─── Add to Calendar ───
+  const addToCalendar = async (cls) => {
+    const dateObj = new Date(cls.date)
+    const [sh, sm] = (cls.startTime || "09:00").split(":")
+    const [eh, em] = (cls.endTime || "10:00").split(":")
+
+    const startDate = new Date(dateObj)
+    startDate.setHours(parseInt(sh), parseInt(sm), 0, 0)
+    const endDate = new Date(dateObj)
+    endDate.setHours(parseInt(eh), parseInt(em), 0, 0)
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { CapacitorCalendar } = await import("@ebarooni/capacitor-calendar")
+
+        // Request write access (needed on iOS < 17)
+        try {
+          await CapacitorCalendar.requestWriteOnlyCalendarAccess()
+        } catch (permErr) {
+          // User denied — show hint
+          alert("Calendar access is required to add events. Please enable it in Settings > OrgaGym > Calendar.")
+          setActionSheetClass(null)
+          return
+        }
+
+        // Opens native iOS "New Event" dialog with pre-filled data
+        const result = await CapacitorCalendar.createEventWithPrompt({
+          title: cls.typeName || "Class",
+          location: cls.room || "",
+          notes: `Trainer: ${cls.trainerName || "TBA"}`,
+          startDate: startDate.getTime(),
+          endDate: endDate.getTime(),
+        })
+
+        if (result?.id) {
+          haptic.success()
+          toast.success("Added to calendar")
+        }
+      } catch (err) {
+        // User cancelled the dialog — not an error
+        if (!err.message?.includes("cancel")) {
+          console.error("[Calendar] Error:", err)
+        }
+      }
+      setActionSheetClass(null)
+      return
+    }
+
+    // Web fallback: .ics blob download
+    const pad = (n) => String(n).padStart(2, "0")
+    const y = dateObj.getFullYear()
+    const m = pad(dateObj.getMonth() + 1)
+    const d = pad(dateObj.getDate())
+    const dtStart = `${y}${m}${d}T${pad(sh)}${pad(sm)}00`
+    const dtEnd = `${y}${m}${d}T${pad(eh)}${pad(em)}00`
+    const filename = `${(cls.typeName || "class").replace(/\s+/g, "-").toLowerCase()}.ics`
+    const ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Studio App//Classes//EN",
+      "BEGIN:VEVENT", `UID:class-${cls.id}-${Date.now()}@app`,
+      `DTSTART:${dtStart}`, `DTEND:${dtEnd}`,
+      `SUMMARY:${cls.typeName || "Class"}`,
+      `DESCRIPTION:Trainer: ${cls.trainerName || "TBA"}`,
+      `LOCATION:${cls.room || ""}`,
+      "END:VEVENT", "END:VCALENDAR",
+    ].join("\r\n")
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    setActionSheetClass(null)
+  }
+
+  const openActionSheet = (cls) => {
+    haptic.light()
+    setActionSheetClass(cls)
+  }
+
   // ============================================
   // RENDER
   // ============================================
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
 
       {/* ═══ Info Modal (matches appointment.jsx info modal) ═══ */}
       {showInfoModal && infoModalData && (
@@ -449,91 +712,110 @@ const Classes = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
 
         {/* ============================================ */}
         {/* MAIN VIEW                                    */}
         {/* ============================================ */}
         {!showMyClasses && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* My Classes CTA */}
             <button
               onClick={() => { haptic.light(); setShowMyClasses(true) }}
-              className="w-full bg-primary hover:bg-primary-hover rounded-xl p-4 flex items-center gap-4 transition-colors"
+              className="w-full bg-primary hover:bg-primary-hover rounded-xl px-4 py-2.5 flex items-center gap-3 transition-colors"
             >
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Timer className="w-4 h-4 text-white" />
               </div>
-              <span className="text-left flex-1 text-white font-semibold text-sm sm:text-base">My Classes</span>
-              <div className="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full min-w-[1.75rem] flex items-center justify-center">
+              <span className="text-left flex-1 text-white font-semibold text-sm">My Classes</span>
+              <div className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full min-w-[1.5rem] flex items-center justify-center">
                 {myUpcomingClasses.length}
               </div>
             </button>
 
-            {/* Section Header + Filter */}
-            <SectionHeader
-              title="Available Classes"
-              description="Browse and enroll in upcoming classes"
-              action={
-                <div className="flex gap-2 relative" ref={filterRef}>
+            {/* Date + Filter + Search */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm font-medium text-content-primary truncate">
+                  {fmtDateLong(selectedDate)}
+                </span>
+                <DatePickerField
+                  value={dateValue}
+                  onChange={handleDateChange}
+                  minDate={todayStr}
+                  iconSize={16}
+                />
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="relative" ref={filterBtnRef}>
                   <button
-                    onClick={() => setShowFilter(!showFilter)}
-                    className="px-4 py-2 bg-surface-button hover:bg-surface-button-hover rounded-xl text-sm transition-colors flex items-center gap-2 text-content-primary"
+                    onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
+                    className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
+                      showFilterDropdown || (!selectedCategories.includes("All") && selectedCategories.length > 0)
+                        ? "bg-primary/15 text-primary"
+                        : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
+                    }`}
                   >
-                    <Filter className="w-4 h-4" />
-                    <span>{getFilterButtonText()}</span>
-                    {selectedCategories.length > 1 && !selectedCategories.includes("All") && (
-                      <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    <Filter className="w-3.5 h-3.5" />
+                    {!selectedCategories.includes("All") && selectedCategories.length > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
                         {selectedCategories.length}
                       </span>
                     )}
                   </button>
-
-                  {showFilter && (
-                    <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-20 min-w-[200px] max-h-60 overflow-hidden">
-                      <div className="overflow-y-auto max-h-48">
-                        {categories.map((cat) => (
-                          <button
-                            key={cat}
-                            onClick={() => handleCategoryToggle(cat)}
-                            className={`w-full text-left px-4 py-2.5 hover:bg-surface-button text-sm transition-colors flex items-center gap-3 ${
-                              selectedCategories.includes(cat) ? "bg-surface-button text-primary" : "text-content-primary"
-                            }`}
-                          >
-                            <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
-                              selectedCategories.includes(cat) ? "bg-primary border-primary" : "border-content-faint"
-                            }`}>
-                              {selectedCategories.includes(cat) && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            {cat}
-                          </button>
-                        ))}
+                  {showFilterDropdown && (
+                    <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
+                      <div className="max-h-[200px] overflow-y-auto py-1">
+                        {categories.map((cat) => {
+                          const isActive = selectedCategories.includes(cat)
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => {
+                                haptic.light()
+                                setSelectedCategories(prev => {
+                                  if (cat === "All") return ["All"]
+                                  const current = prev.filter(v => v !== "All")
+                                  if (current.includes(cat)) {
+                                    const next = current.filter(v => v !== cat)
+                                    return next.length === 0 ? ["All"] : next
+                                  }
+                                  return [...current, cat]
+                                })
+                              }}
+                              className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
+                                isActive ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
+                              }`}
+                            >
+                              <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
+                                isActive ? "bg-primary border-primary" : "border-content-faint"
+                              }`}>
+                                {isActive && <Check size={8} className="text-white" />}
+                              </div>
+                              {cat}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
                 </div>
-              }
-            />
+                <button
+                  onClick={() => { haptic.light(); setShowSearch(prev => !prev) }}
+                  className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showSearch ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted hover:bg-surface-button-hover"}`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
 
             {/* ── Day Slider ── */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-content-primary">
-                    {MONTHS[selectedDate.getMonth()]} {selectedDate.getFullYear()}
-                  </span>
-                  <DatePickerField
-                    value={dateValue}
-                    onChange={handleDateChange}
-                    minDate={todayStr}
-                    iconSize={16}
-                  />
-                </div>
-              </div>
-
               <div
                 ref={daySliderRef}
-                className="flex gap-2 overflow-x-auto pt-3 pb-2"
+                className="flex gap-1.5 overflow-x-auto pt-2 pb-1.5"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
               >
                 {sliderDays.map((day) => {
@@ -543,17 +825,17 @@ const Classes = () => {
                       key={day.dateStr}
                       data-date={day.dateStr}
                       onClick={() => handleSliderDayClick(day)}
-                      className={`flex flex-col items-center min-w-[3.5rem] px-3 py-2.5 rounded-xl transition-colors flex-shrink-0 relative ${
+                      className={`flex flex-col items-center min-w-[3rem] px-2 py-1.5 rounded-xl transition-colors flex-shrink-0 relative ${
                         isSelected
                           ? "bg-primary text-white"
                           : "bg-surface-hover text-content-primary hover:bg-surface-button border border-border"
                       }`}
                     >
-                      <span className={`text-[10px] uppercase font-medium ${isSelected ? "text-white/70" : "text-content-faint"}`}>
+                      <span className={`text-[9px] uppercase font-medium ${isSelected ? "text-white/70" : "text-content-faint"}`}>
                         {day.dayName}
                       </span>
-                      <span className="text-lg font-semibold leading-tight">{day.date}</span>
-                      <span className={`text-[10px] ${isSelected ? "text-white/70" : "text-content-faint"}`}>
+                      <span className="text-base font-semibold leading-tight">{day.date}</span>
+                      <span className={`text-[9px] ${isSelected ? "text-white/70" : "text-content-faint"}`}>
                         {day.monthShort}
                       </span>
                       {day.classCount > 0 && (
@@ -571,35 +853,30 @@ const Classes = () => {
               </div>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
-              <input
-                type="text"
-                placeholder="Search classes, trainers, rooms..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-surface-hover border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+            {/* Search (collapsible) */}
+            {showSearch && (
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
+                <input
+                  type="text"
+                  placeholder="Search classes, trainers, rooms..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="w-full bg-surface-hover border border-border rounded-xl pl-10 pr-4 py-2 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
 
-            {/* Date heading */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-content-secondary">{fmtDateLong(selectedDate)}</h3>
-              <span className="text-xs text-content-faint">
-                {classesForDate.length} class{classesForDate.length !== 1 ? "es" : ""}
-              </span>
-            </div>
-
-            {/* ── Class Cards (config-style with Timer placeholder + appointment-style layout) ── */}
+            {/* ── Class Cards ── */}
             {classesForDate.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
@@ -618,7 +895,7 @@ const Classes = () => {
                   return (
                     <div
                       key={cls.id}
-                      className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-colors group cursor-pointer"
+                      className="bg-surface-hover rounded-xl overflow-hidden border border-border transition-colors group cursor-pointer"
                       onClick={() => { haptic.light(); setInfoModalData(cls); setShowInfoModal(true) }}
                     >
                       {/* Image / Timer placeholder */}
@@ -779,15 +1056,18 @@ const Classes = () => {
                     return myClassesView === "upcoming" ? da.localeCompare(db) : db.localeCompare(da)
                   })
                   .map((cls) => (
-                    <SettingsCard key={cls.id} className="!p-4">
+                    <SettingsCard
+                      key={cls.id}
+                      className={`!p-4 ${myClassesView === "upcoming" && !cls.isCancelled ? "cursor-pointer active:bg-surface-card/50 transition-colors" : ""}`}
+                      onClick={() => { if (myClassesView === "upcoming" && !cls.isCancelled) openActionSheet(cls) }}
+                    >
                       <div className="flex items-start gap-3">
                         <div
                           className="w-1 self-stretch rounded-full flex-shrink-0"
                           style={{ backgroundColor: cls.color || "#6c5ce7" }}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1.5">
                                 <h3 className="text-sm font-medium text-content-primary truncate">{cls.typeName}</h3>
                                 {cls.isCancelled && (
@@ -821,15 +1101,6 @@ const Classes = () => {
                                 <span className="text-xs text-content-secondary">{cls.trainerName}</span>
                               </div>
                             </div>
-                            {myClassesView === "upcoming" && !cls.isCancelled && (
-                              <button
-                                onClick={() => handleCancelEnrollment(cls)}
-                                className="self-start sm:self-center px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors whitespace-nowrap"
-                              >
-                                Cancel enrollment
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </div>
                     </SettingsCard>
@@ -853,6 +1124,165 @@ const Classes = () => {
         onConfirm={confirmCancel}
         classData={classToCancel}
       />
+
+      {/* ============================================ */}
+      {/* MY CLASS ACTION SHEET                        */}
+      {/* ============================================ */}
+      {actionSheetClass && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setActionSheetClass(null)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
+            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) {
+                e.currentTarget.style.transform = `translateY(${dy}px)`
+              }
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setActionSheetClass(null), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
+          >
+            {/* Handle bar */}
+            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+
+            {/* Class info header */}
+            <div className="px-4 pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-1 h-10 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: actionSheetClass.color || "#6c5ce7" }}
+                />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-content-primary truncate">{actionSheetClass.typeName}</h4>
+                  <p className="text-xs text-content-faint">
+                    {fmtDateDisplay(actionSheetClass.date)} · {actionSheetClass.startTime} – {actionSheetClass.endTime}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-3 pb-4 space-y-1">
+              <button
+                onClick={() => addToCalendar(actionSheetClass)}
+                className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+              >
+                <CalendarPlus className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Add to Calendar</p>
+                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActionSheetClass(null)
+                  handleCancelEnrollment(actionSheetClass)
+                }}
+                className="w-full text-left px-4 py-3.5 hover:bg-red-500/10 active:bg-red-500/10 rounded-xl text-red-400 flex items-center gap-3 transition-colors"
+              >
+                <X className="w-5 h-5" />
+                <div>
+                  <p className="text-sm font-medium">Cancel Enrollment</p>
+                  <p className="text-xs text-red-400/60">Free up your spot for others</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* CALENDAR SHEET (after enrollment)            */}
+      {/* ============================================ */}
+      {calendarSheetClass && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setCalendarSheetClass(null)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
+            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) {
+                e.currentTarget.style.transform = `translateY(${dy}px)`
+              }
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setCalendarSheetClass(null), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
+          >
+            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+
+            <div className="px-4 pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-1 h-10 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: calendarSheetClass.color || "#6c5ce7" }}
+                />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-content-primary truncate">{calendarSheetClass.typeName}</h4>
+                  <p className="text-xs text-content-faint">
+                    {fmtDateDisplay(calendarSheetClass.date)} · {calendarSheetClass.startTime} – {calendarSheetClass.endTime}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 pb-4">
+              <button
+                onClick={() => {
+                  const cls = calendarSheetClass
+                  setCalendarSheetClass(null)
+                  addToCalendar(cls)
+                }}
+                className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+              >
+                <CalendarPlus className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Add to Calendar</p>
+                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
