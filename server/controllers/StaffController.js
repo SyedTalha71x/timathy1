@@ -161,12 +161,12 @@ const loginStaff = async (req, res, next) => {
       _id: staff._id,
       firstName: staff.firstName,
       lastName: staff.lastName,
-      username: staff.username,
+      // username: staff.username,
       email: staff.email,
-      studioId: staff.studio,
+      studioId: staff.studio._id,
       role: staff.role,
-      // img: staff.img, // full object
-      staffRole: staff.staffRole,
+      // // img: staff.img, // full object
+      // staffRole: staff.staffRole,
     });
 
     staff.refreshToken = RefreshToken;

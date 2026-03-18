@@ -20,6 +20,12 @@ const CreatePlanModal = ({
 }) => {
   if (!isOpen) return null;
 
+  // Helper function to safely get video difficulty
+  const getSafeDifficultyColor = (video) => {
+    if (!video || !video.difficulty) return 'bg-gray-500'; // Default color
+    return getDifficultyColor(video.difficulty);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4">
       <div className="bg-surface-base rounded-xl w-full max-w-7xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
@@ -48,7 +54,7 @@ const CreatePlanModal = ({
                 <label className="block text-sm font-medium text-content-muted mb-2">Plan Name</label>
                 <input
                   type="text"
-                  value={planForm.name}
+                  value={planForm.name || ''}
                   onChange={(e) => onPlanFormChange({ ...planForm, name: e.target.value })}
                   className="w-full bg-surface-dark rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm sm:text-base"
                   placeholder="Enter plan name..."
@@ -57,7 +63,7 @@ const CreatePlanModal = ({
               <div>
                 <label className="block text-sm font-medium text-content-muted mb-2">Description</label>
                 <textarea
-                  value={planForm.description}
+                  value={planForm.description || ''}
                   onChange={(e) => onPlanFormChange({ ...planForm, description: e.target.value })}
                   className="w-full bg-surface-dark rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none resize-none text-sm sm:text-base"
                   rows={3}
@@ -68,7 +74,7 @@ const CreatePlanModal = ({
                 <label className="block text-sm font-medium text-content-muted mb-2">Duration (optional)</label>
                 <input
                   type="text"
-                  value={planForm.duration}
+                  value={planForm.duration || ''}
                   onChange={(e) => onPlanFormChange({ ...planForm, duration: e.target.value })}
                   className="w-full bg-surface-dark rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm sm:text-base"
                   placeholder="e.g., 4 weeks"
@@ -77,7 +83,7 @@ const CreatePlanModal = ({
               <div>
                 <label className="block text-sm font-medium text-content-muted mb-2">Workouts/Week (optional)</label>
                 <select
-                  value={planForm.workoutsPerWeek}
+                  value={planForm.workoutsPerWeek || ''}
                   onChange={(e) =>
                     onPlanFormChange({
                       ...planForm,
@@ -100,7 +106,7 @@ const CreatePlanModal = ({
                 <div>
                   <label className="block text-sm font-medium text-content-muted mb-2">Difficulty</label>
                   <select
-                    value={planForm.difficulty}
+                    value={planForm.difficulty || 'Beginner'}
                     onChange={(e) => onPlanFormChange({ ...planForm, difficulty: e.target.value })}
                     className="w-full bg-surface-dark rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm sm:text-base"
                   >
@@ -112,7 +118,7 @@ const CreatePlanModal = ({
                 <div>
                   <label className="block text-sm font-medium text-content-muted mb-2">Category</label>
                   <select
-                    value={planForm.category}
+                    value={planForm.category || 'Full Body'}
                     onChange={(e) => onPlanFormChange({ ...planForm, category: e.target.value })}
                     className="w-full bg-surface-dark rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm sm:text-base"
                   >
@@ -130,31 +136,34 @@ const CreatePlanModal = ({
             {/* Exercise Library */}
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">
-                Exercise Library ({availableVideosCount})
+                Exercise Library ({availableVideosCount || 0})
               </h3>
               <div className="space-y-3 max-h-64 sm:max-h-96 overflow-y-auto">
-                {availableVideos.map((video) => (
-                  <div key={video.id} className="bg-surface-dark rounded-xl p-3">
+                {availableVideos?.map((video) => (
+                  <div key={video?._id || Math.random()} className="bg-surface-dark rounded-xl p-3">
                     <div className="flex items-start gap-3">
                       <img
-                        src={video.thumbnail || "/placeholder.svg"}
-                        alt={video.title}
+                        src={video?.thumbnail?.url || "/placeholder.svg"}
+                        alt={video?.title || "Exercise thumbnail"}
                         className="w-10 sm:w-12 h-8 sm:h-9 object-cover rounded flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-content-primary text-sm truncate">{video.title}</h4>
+                        <h4 className="font-medium text-content-primary text-sm truncate">{video?.title || "Untitled Exercise"}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <span
-                            className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                            className={`px-1 py-0.5 rounded text-xs text-white ${
+                              video ? getSafeDifficultyColor(video) : 'bg-gray-500'
+                            }`}
                           >
-                            {video.difficulty}
+                            {video?.difficulty || "Unknown"}
                           </span>
-                          <span className="text-content-faint text-xs">{video.duration}</span>
+                          <span className="text-content-faint text-xs">{video?.duration || "0:00"}</span>
                         </div>
                       </div>
                       <button
-                        onClick={() => onAddExercise(video)}
-                        className="p-1 bg-primary hover:bg-primary-hover rounded transition-colors flex-shrink-0"
+                        onClick={() => video && onAddExercise(video)}
+                        disabled={!video}
+                        className="p-1 bg-primary hover:bg-primary-hover disabled:bg-surface-button rounded transition-colors flex-shrink-0"
                       >
                         <Plus size={14} className="text-white" />
                       </button>
@@ -167,9 +176,9 @@ const CreatePlanModal = ({
             {/* Selected Exercises */}
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">
-                Selected Exercises ({selectedExercises.length})
+                Selected Exercises ({selectedExercises?.length || 0})
               </h3>
-              {selectedExercises.length === 0 ? (
+              {!selectedExercises?.length ? (
                 <div className="text-center py-8 text-content-muted">
                   <Target size={48} className="mx-auto mb-4" />
                   <p>No exercises selected yet</p>
@@ -178,25 +187,32 @@ const CreatePlanModal = ({
               ) : (
                 <div className="space-y-4 max-h-64 sm:max-h-96 overflow-y-auto">
                   {selectedExercises.map((exercise, index) => {
-                    const video = getVideoById(exercise.videoId);
+                    const video = getVideoById(exercise?.videoId);
+                    // console.log(video)
                     return (
                       <div key={index} className="bg-surface-dark rounded-xl p-3 sm:p-4">
                         <div className="flex items-start gap-3 sm:gap-4">
                           <img
-                            src={video?.thumbnail || "/placeholder.svg"}
-                            alt={video?.title}
+                            src={video?.thumbnail?.url || "/placeholder.svg"}
+                            alt={video?.title || "Exercise thumbnail"}
                             className="w-12 sm:w-16 h-9 sm:h-12 object-cover rounded flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-content-primary mb-1 text-sm truncate">{video?.title}</h4>
-                            <p className="text-content-muted text-xs sm:text-sm mb-2 truncate">{video?.instructor}</p>
+                            <h4 className="font-medium text-content-primary mb-1 text-sm truncate">
+                              {video?.title || "Untitled Exercise"}
+                            </h4>
+                            <p className="text-content-muted text-xs sm:text-sm mb-2 truncate">
+                              {video?.createdBy?.firstName || "Unknown Instructor"}
+                            </p>
                             <div className="flex items-center gap-2 mt-1">
                               <span
-                                className={`px-1 py-0.5 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                                className={`px-1 py-0.5 rounded text-xs text-white ${
+                                  video ? getSafeDifficultyColor(video) : 'bg-gray-500'
+                                }`}
                               >
-                                {video.difficulty}
+                                {video?.difficulty || "Unknown"}
                               </span>
-                              <span className="text-content-faint text-xs">{video.duration}</span>
+                              <span className="text-content-faint text-xs">{video?.duration || "0:00"}</span>
                             </div>
                           </div>
                           <button
@@ -229,7 +245,7 @@ const CreatePlanModal = ({
             </button>
             <button
               onClick={onSubmit}
-              disabled={!planForm.name || selectedExercises.length === 0}
+              disabled={!planForm?.name || !selectedExercises?.length}
               className="flex-1 px-4 py-3 bg-primary hover:bg-primary-hover disabled:bg-surface-button disabled:cursor-not-allowed rounded-xl text-white transition-colors flex items-center justify-center gap-2"
             >
               <Save size={16} />

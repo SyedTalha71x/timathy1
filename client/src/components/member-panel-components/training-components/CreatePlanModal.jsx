@@ -159,7 +159,7 @@ const CreatePlanModal = ({
       ) : (
         <div className="space-y-2 lg:max-h-96 lg:overflow-y-auto">
           {selectedExercises.map((exercise, index) => {
-            const video = typeof exercise.video === "string" ? getVideoById(exercise.video) : exercise.video;
+            const video = typeof exercise.video === "string" ? getVideoById(exercise.videoId) : exercise.video;
             return (
               <div key={index} className="bg-surface-card rounded-xl p-3 flex items-center gap-3">
                 <img

@@ -11,15 +11,49 @@ export const fetchMyStudio = createAsyncThunk('studio/myStudio', async (_, { rej
     }
 })
 
-export const updateStudioThunk = createAsyncThunk('studio/update', async (updateData, { rejectWithValue }) => {
-    try {
-        const res = await StudioApi.updateStudio(updateData)
-        return res.studio;
+// In your studioSlice.js or studioApi.js
+export const updateStudioThunk = createAsyncThunk(
+    'studio/update',
+    async ({ studioId, data }, { rejectWithValue }) => {
+        try {
+            let formData;
+
+            // If data is already FormData, use it
+            if (data instanceof FormData) {
+                formData = data;
+            } else {
+                // Convert plain object to FormData
+                formData = new FormData();
+                Object.keys(data).forEach(key => {
+                    const value = data[key];
+
+                    // Handle different value types
+                    if (value !== null && value !== undefined) {
+                        if (typeof value === 'object') {
+                            // For arrays/objects like openingHours, stringify them
+                            formData.append(key, JSON.stringify(value));
+                        } else {
+                            formData.append(key, value.toString());
+                        }
+                    }
+                });
+            }
+
+            // Always ensure studioId is included
+            formData.append('studioId', studioId);
+
+            const response = await StudioApi.updateStudio(studioId, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
     }
-    catch (error) {
-        return rejectWithValue(error.response?.data)
-    }
-})
+);
 
 const studioSlice = createSlice({
     name: 'studio',

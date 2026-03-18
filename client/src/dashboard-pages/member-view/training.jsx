@@ -416,26 +416,63 @@ export default function Training() {
   // HANDLERS - Plan CRUD
   // -------------------------------------------------------------------------
 
-  const handleCreatePlan = () => {
-    const newPlan = {
-      id: Math.max(...trainingPlans.map(p => p.id), 0) + 1,
-      ...planForm,
-      createdByStaffId: null, // Current user
-      createdByName: "Current User",
-      createdBy: "Current User", // Legacy
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-      isPublic: true,
-      isActive: true,
-      likes: 0,
-      uses: 0,
+  const handleCreatePlan = async () => {
+    try {
+      // Prepare data for backend API
+      const apiPlanData = {
+        name: planForm.name,
+        description: planForm.description,
+        duration: planForm.duration,
+        difficulty: planForm.difficulty,
+        category: planForm.category,
+        workoutsPerWeek: planForm.workoutsPerWeek,
+        exercises: selectedExercises.map((ex, index) => ({
+          video: ex.videoId, // Use videoId as 'video' field for backend
+          sets: ex.sets || 3,
+          reps: ex.reps || "10-12",
+          rest: ex.rest || "60s",
+          order: index + 1
+        }))
+      };
+
+      // console.log('Sending to backend:', apiPlanData);
+
+      // Dispatch to backend
+      const result = await dispatch(createPlan(apiPlanData)).unwrap();
+
+      // Create local version with the ID from backend
+      const newLocalPlan = {
+        ...apiPlanData,
+        _id: result.plan._id, // Use the MongoDB _id from response
+        id: result.plan._id,   // Also set id for local compatibility
+        createdByStaffId: null,
+        createdByName: "Current User",
+        createdBy: "Current User",
+        createdAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
+        isPublic: true,
+        isActive: true,
+        likes: 0,
+        uses: 0,
+        creatorName: "Current User", // Add this for display
+        exercises: selectedExercises // Keep the original format for local display
+      };
+
+      // Update local state with the new plan
+      setTrainingPlans(prev => [...prev, newLocalPlan]);
+
+      // Close modal and reset form
+      setIsCreatePlanModalOpen(false);
+      resetPlanForm();
+
+      toast.success("Training plan created successfully!");
+
+    } catch (error) {
+      console.error('Create plan error:', error);
+      toast.error(error.message || "Failed to create training plan");
     }
-    setTrainingPlans([...trainingPlans, newPlan])
-    setIsCreatePlanModalOpen(false)
-    resetPlanForm()
-    toast.success("Training plan created successfully!")
-    haptic.success()
-  }
+  };
+
 
   const handleEditPlan = () => {
     const updatedPlans = trainingPlans.map((plan) =>
@@ -648,251 +685,251 @@ export default function Training() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-20 lg:pb-16 pt-6">
-        <div className="w-full mx-auto">
+        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
+          <div className="w-full mx-auto">
 
-          {/* =============================================================== */}
-          {/* VIDEOS TAB */}
-          {/* =============================================================== */}
-          {activeTab === "videos" && (
-            <div>
-              {/* Search */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search training videos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
-                  />
-                </div>
-              </div>
-
-              {/* Category Pills */}
-              <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
-                <button
-                  onClick={() => { haptic.light(); setSelectedCategories([]) }}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.length === 0
-                    ? "bg-primary text-white"
-                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                    }`}
-                >
-                  All
-                </button>
-                {categoriesData.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => {
-                      haptic.light()
-                      if (selectedCategories.includes(category.id)) {
-                        setSelectedCategories(selectedCategories.filter(cat => cat !== category.id))
-                      } else {
-                        setSelectedCategories([...selectedCategories, category.id])
-                      }
-                    }}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes(category.id)
-                      ? `bg-primary text-white`
-                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                      }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-
-              {/* Videos Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {filteredVideos.map((video) => (
-                  <div
-                    key={video.id}
-                    className="bg-surface-card rounded-xl overflow-hidden hover:bg-surface-hover transition-colors cursor-pointer group"
-                    onClick={() => handleVideoClick(video)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={video.thumbnail?.url || "/placeholder.svg"}
-                        alt={video.title}
-                        className="w-full h-36 sm:h-48 object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="bg-primary rounded-full p-2 sm:p-3">
-                          <Play className="text-white" size={20} />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs text-white">
-                        {video.duration}
-                      </div>
-                      <div
-                        className={`absolute top-2 left-2 px-2 py-1 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
-                      >
-                        {video.difficulty}
-                      </div>
-                    </div>
-                    <div className="p-3 sm:p-4">
-                      <h3 className="font-semibold text-content-primary mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
-                      <p className="text-content-muted text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
-                      <ResponsiveTagList tags={video.targetMuscles} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {filteredVideos.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-content-muted mb-4">
-                    <Search size={48} className="mx-auto mb-4" />
-                    <p>No videos found matching your criteria</p>
+            {/* =============================================================== */}
+            {/* VIDEOS TAB */}
+            {/* =============================================================== */}
+            {activeTab === "videos" && (
+              <div>
+                {/* Search */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search training videos..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                    />
                   </div>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* =============================================================== */}
-          {/* PLANS TAB */}
-          {/* =============================================================== */}
-          {activeTab === "plans" && (
-            <div>
-              {/* Search and Create Button */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search training plans..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
-                  />
-                </div>
-                <button
-                  onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
-                  className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
-                >
-                  <Plus size={18} />
-                  Create Plan
-                </button>
-              </div>
-
-              {/* Staff Member Pills */}
-              <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
-                <button
-                  onClick={clearStaffFilters}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.length === 0
-                    ? "bg-primary text-white"
-                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                    }`}
-                >
-                  All
-                </button>
-                {/* "My Plans" option */}
-                <button
-                  onClick={() => toggleStaffSelection("own")}
-                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.includes("own")
-                    ? "bg-primary text-white"
-                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-                    }`}
-                >
-                  My Plans
-                </button>
-                {/* Staff members */}
-                {transformedStaff.map((member) => (
+                {/* Category Pills */}
+                <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
                   <button
-                    key={member.id}
-                    onClick={() => toggleStaffSelection(member.id)}
-                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.includes(member.id)
+                    onClick={() => { haptic.light(); setSelectedCategories([]) }}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.length === 0
                       ? "bg-primary text-white"
                       : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                   >
-                    {member.name}
+                    All
                   </button>
-                ))}
-              </div>
+                  {categoriesData.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        haptic.light()
+                        if (selectedCategories.includes(category.id)) {
+                          setSelectedCategories(selectedCategories.filter(cat => cat !== category.id))
+                        } else {
+                          setSelectedCategories([...selectedCategories, category.id])
+                        }
+                      }}
+                      className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedCategories.includes(category.id)
+                        ? `bg-primary text-white`
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
 
-              {/* Plans Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {filteredPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="bg-surface-card rounded-xl p-4 sm:p-6 hover:bg-surface-hover transition-colors"
+                {/* Videos Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {filteredVideos.map((video) => (
+                    <div
+                      key={video.id}
+                      className="bg-surface-card rounded-xl overflow-hidden hover:bg-surface-hover transition-colors cursor-pointer group"
+                      onClick={() => handleVideoClick(video)}
+                    >
+                      <div className="relative">
+                        <img
+                          src={video.thumbnail?.url || "/placeholder.svg"}
+                          alt={video.title}
+                          className="w-full h-36 sm:h-48 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="bg-primary rounded-full p-2 sm:p-3">
+                            <Play className="text-white" size={20} />
+                          </div>
+                        </div>
+                        <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs text-white">
+                          {video.duration}
+                        </div>
+                        <div
+                          className={`absolute top-2 left-2 px-2 py-1 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
+                        >
+                          {video.difficulty}
+                        </div>
+                      </div>
+                      <div className="p-3 sm:p-4">
+                        <h3 className="font-semibold text-content-primary mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
+                        <p className="text-content-muted text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
+                        <ResponsiveTagList tags={video.targetMuscles} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredVideos.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="text-content-muted mb-4">
+                      <Search size={48} className="mx-auto mb-4" />
+                      <p>No videos found matching your criteria</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* =============================================================== */}
+            {/* PLANS TAB */}
+            {/* =============================================================== */}
+            {activeTab === "plans" && (
+              <div>
+                {/* Search and Create Button */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search training plans..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                    />
+                  </div>
+                  <button
+                    onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
+                    className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-content-primary mb-2 truncate">{plan.name}</h3>
-                        <p className="text-content-muted text-sm mb-3 line-clamp-2">{plan.description}</p>
-                      </div>
-                      <div
-                        className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan.difficulty)}`}
-                      >
-                        {plan.difficulty}
-                      </div>
-                    </div>
-                    <div className="space-y-2 mb-4">
-                      {plan.duration && (
-                        <div className="flex items-center gap-2 text-sm text-content-muted">
-                          <Clock size={14} />
-                          <span>{plan.duration}</span>
+                    <Plus size={18} />
+                    Create Plan
+                  </button>
+                </div>
+
+                {/* Staff Member Pills */}
+                <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
+                  <button
+                    onClick={clearStaffFilters}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.length === 0
+                      ? "bg-primary text-white"
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                      }`}
+                  >
+                    All
+                  </button>
+                  {/* "My Plans" option */}
+                  <button
+                    onClick={() => toggleStaffSelection("own")}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.includes("own")
+                      ? "bg-primary text-white"
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                      }`}
+                  >
+                    My Plans
+                  </button>
+                  {/* Staff members */}
+                  {transformedStaff.map((member) => (
+                    <button
+                      key={member.id}
+                      onClick={() => toggleStaffSelection(member.id)}
+                      className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffIds.includes(member.id)
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                        }`}
+                    >
+                      {member.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Plans Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {filteredPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="bg-surface-card rounded-xl p-4 sm:p-6 hover:bg-surface-hover transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-content-primary mb-2 truncate">{plan.name}</h3>
+                          <p className="text-content-muted text-sm mb-3 line-clamp-2">{plan.description}</p>
                         </div>
-                      )}
-                      {plan.workoutsPerWeek && (
-                        <div className="flex items-center gap-2 text-sm text-content-muted">
-                          <Calendar size={14} />
-                          <span>{plan.workoutsPerWeek}x per week</span>
+                        <div
+                          className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan.difficulty)}`}
+                        >
+                          {plan.difficulty}
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 text-sm text-content-muted">
-                        <User size={14} />
-                        <span className="truncate">by {plan.creatorName}</span>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => {
-                          haptic.light()
-                          setSelectedPlan(plan)
-                          setIsViewPlanModalOpen(true)
-                        }}
-                        className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
-                      >
-                        <Eye size={16} className="text-content-muted" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          haptic.light()
-                          setPlanToAssign(plan)
-                          setIsAssignPlanModalOpen(true)
-                        }}
-                        className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
-                      >
-                        <Users size={16} className="text-content-muted" />
-                      </button>
-                      {canEditPlan(plan) && (
+                      <div className="space-y-2 mb-4">
+                        {plan.duration && (
+                          <div className="flex items-center gap-2 text-sm text-content-muted">
+                            <Clock size={14} />
+                            <span>{plan.duration}</span>
+                          </div>
+                        )}
+                        {plan.workoutsPerWeek && (
+                          <div className="flex items-center gap-2 text-sm text-content-muted">
+                            <Calendar size={14} />
+                            <span>{plan.workoutsPerWeek}x per week</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-sm text-content-muted">
+                          <User size={14} />
+                          <span className="truncate">by {plan.creatorName}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => openEditPlan(plan)}
+                          onClick={() => {
+                            haptic.light()
+                            setSelectedPlan(plan)
+                            setIsViewPlanModalOpen(true)
+                          }}
                           className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                         >
-                          <Edit size={16} className="text-content-muted" />
+                          <Eye size={16} className="text-content-muted" />
                         </button>
-                      )}
+                        <button
+                          onClick={() => {
+                            haptic.light()
+                            setPlanToAssign(plan)
+                            setIsAssignPlanModalOpen(true)
+                          }}
+                          className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
+                        >
+                          <Users size={16} className="text-content-muted" />
+                        </button>
+                        {canEditPlan(plan) && (
+                          <button
+                            onClick={() => openEditPlan(plan)}
+                            className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
+                          >
+                            <Edit size={16} className="text-content-muted" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredPlans.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="text-content-muted mb-4">
+                      <Target size={48} className="mx-auto mb-4" />
+                      <p>No training plans found</p>
                     </div>
                   </div>
-                ))}
+                )}
               </div>
-
-              {filteredPlans.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-content-muted mb-4">
-                    <Target size={48} className="mx-auto mb-4" />
-                    <p>No training plans found</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </div>
       </div>
 

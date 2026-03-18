@@ -442,7 +442,7 @@ export const memberTrainingPlansData = [
  * Get video by ID
  */
 export const getVideoById = (videoId) => {
-  return trainingVideosData.find(v => v.id === videoId) || null;
+  return trainingVideosData.find(v => v._id === videoId) || null;
 };
 
 /**
