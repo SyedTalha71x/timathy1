@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./components/member-sidebar";
 import MemberDashboardHeader from "./components/MemberDashboardHeader";
 import MemberBottomBar from "./components/MemberBottomBar";
+import { ToastProvider } from "../../components/shared/SharedToast";
 
 const MemberDashboardLayout = () => {
   const location = useLocation();
@@ -28,6 +29,7 @@ const MemberDashboardLayout = () => {
   const hasOwnScroll = isCommunicationPage || isSettingsPage;
 
   return (
+    <ToastProvider>
     <div className="member-root bg-surface-dark h-dvh overflow-hidden">
       <div className="flex flex-col md:flex-row h-full">
         {/* Desktop Sidebar — hidden on mobile, bottom bar takes over */}
@@ -60,6 +62,7 @@ const MemberDashboardLayout = () => {
       {/* Mobile Bottom Tab Bar */}
       <MemberBottomBar unreadMessagesCount={3} />
     </div>
+    </ToastProvider>
   );
 };
 
