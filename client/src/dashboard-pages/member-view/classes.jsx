@@ -176,7 +176,7 @@ const Classes = () => {
   const testStartTime = `${String(testStart.getHours()).padStart(2,"0")}:${String(testStart.getMinutes()).padStart(2,"0")}`
   const testEndTime = `${String(testEnd.getHours()).padStart(2,"0")}:${String(testEnd.getMinutes()).padStart(2,"0")}`
 
-  const [availableClasses] = useState([
+  const [availableClasses, setAvailableClasses] = useState([
     // ── TEST CLASS — starts in 5 min (set reminder to 0.05h / ~3 min in Settings to test) ──
     {
       id: 99, typeId: "ct99", typeName: "Quick Test Class", color: "#e84393",
@@ -456,6 +456,14 @@ const Classes = () => {
     haptic.success()
     // TODO: dispatch(enrollInClass({ classId: selectedClass.id })) when backend is ready
     console.log("Enrolled in class:", selectedClass.id)
+
+    // Update local state — add current member to enrolledMembers
+    setAvailableClasses(prev => prev.map(cls =>
+      cls.id === selectedClass.id
+        ? { ...cls, enrolledMembers: [...(cls.enrolledMembers || []), currentMemberId] }
+        : cls
+    ))
+
     scheduleClassReminder(selectedClass)
     toast.success("Enrolled successfully")
     const enrolledClass = selectedClass
@@ -473,6 +481,14 @@ const Classes = () => {
     haptic.warning()
     // TODO: dispatch(unenrollFromClass({ classId: classToCancel.id })) when backend is ready
     console.log("Cancelled enrollment:", classToCancel.id)
+
+    // Update local state — remove current member from enrolledMembers
+    setAvailableClasses(prev => prev.map(cls =>
+      cls.id === classToCancel.id
+        ? { ...cls, enrolledMembers: (cls.enrolledMembers || []).filter(id => id !== currentMemberId) }
+        : cls
+    ))
+
     cancelClassReminder(classToCancel)
     toast.info("Enrollment cancelled")
     setShowCancelModal(false)
