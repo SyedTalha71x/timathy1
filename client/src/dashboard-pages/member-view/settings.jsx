@@ -118,25 +118,34 @@ const SettingsPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Notification state
-  const [notificationSettings, setNotificationSettings] = useState({
-    appointmentReminders: {
-      enabled: true,
-      emailReminder: { enabled: true, timeBeforeHours: 24 },
-      smsReminder: { enabled: true, timeBeforeHours: 2 },
-      pushReminder: { enabled: true, timeBeforeHours: 1 },
-    },
-    classReminders: {
-      enabled: true,
-      emailReminder: { enabled: true, timeBeforeHours: 24 },
-      pushReminder: { enabled: true, timeBeforeHours: 1 },
-      spotAvailable: { enabled: true, email: true, push: true },
-    },
-    bulletinBoard: {
-      enabled: true,
-    },
-    studioMessages: {
-      enabled: true,
-    },
+  const [notificationSettings, setNotificationSettings] = useState(() => {
+    const defaults = {
+      appointmentReminders: {
+        enabled: true,
+        emailReminder: { enabled: true, timeBeforeHours: 24 },
+        smsReminder: { enabled: true, timeBeforeHours: 2 },
+        pushReminder: { enabled: true, timeBeforeHours: 1 },
+      },
+      classReminders: {
+        enabled: true,
+        emailReminder: { enabled: true, timeBeforeHours: 24 },
+        pushReminder: { enabled: true, timeBeforeHours: 24 },
+        spotAvailable: { enabled: true, email: true, push: true },
+      },
+      bulletinBoard: {
+        enabled: true,
+      },
+      studioMessages: {
+        enabled: true,
+      },
+    }
+    // Persist initial class reminder hours so classes.jsx can read it
+    try {
+      if (!localStorage.getItem("class_reminder_hours")) {
+        localStorage.setItem("class_reminder_hours", JSON.stringify(defaults.classReminders.pushReminder.timeBeforeHours))
+      }
+    } catch {}
+    return defaults
   })
 
   // General state

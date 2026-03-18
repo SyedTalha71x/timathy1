@@ -19,12 +19,12 @@ const scheduleClassReminder = async (cls) => {
     const perm = await LocalNotifications.requestPermissions()
     if (perm.display !== "granted") return
 
-    // Read reminder timing — default 1 hour before
+    // Read reminder timing — default 24 hours before (matches Settings)
     const reminderHours = (() => {
       try {
         const stored = JSON.parse(localStorage.getItem("class_reminder_hours"))
-        return stored && stored > 0 ? stored : 1
-      } catch { return 1 }
+        return stored && stored > 0 ? stored : 24
+      } catch { return 24 }
     })()
 
     const dateObj = new Date(cls.date)
@@ -34,8 +34,14 @@ const scheduleClassReminder = async (cls) => {
     // Schedule notification X hours before
     const notifyAt = new Date(dateObj.getTime() - reminderHours * 60 * 60 * 1000)
 
-    // Don't schedule if the time has already passed
-    if (notifyAt <= new Date()) return
+    // If reminder time already passed but class hasn't started yet → notify in 30s (for testing)
+    const now = new Date()
+    if (notifyAt <= now && dateObj > now) {
+      notifyAt.setTime(now.getTime() + 30 * 1000)
+    }
+
+    // Don't schedule if the class has already started
+    if (dateObj <= now) return
 
     await LocalNotifications.schedule({
       notifications: [{
@@ -161,7 +167,24 @@ const Classes = () => {
   })
 
   // ─── Demo data (replace with API data when backend is ready) ───
+  // Test class starting in 5 minutes (for notification testing)
+  const testStart = new Date(Date.now() + 5 * 60 * 1000)
+  const testEnd = new Date(Date.now() + 65 * 60 * 1000)
+  const testStartTime = `${String(testStart.getHours()).padStart(2,"0")}:${String(testStart.getMinutes()).padStart(2,"0")}`
+  const testEndTime = `${String(testEnd.getHours()).padStart(2,"0")}:${String(testEnd.getMinutes()).padStart(2,"0")}`
+
   const [availableClasses] = useState([
+    // ── TEST CLASS — starts in 5 min (set reminder to 0.05h / ~3 min in Settings to test) ──
+    {
+      id: 99, typeId: "ct99", typeName: "Quick Test Class", color: "#e84393",
+      date: fmtDate(new Date()), startTime: testStartTime, endTime: testEndTime, duration: 60,
+      trainerName: "Test Trainer", trainerImg: null, trainerColor: "#e84393",
+      room: "Studio 1", maxParticipants: 20, enrolledMembers: [],
+      isCancelled: false, isPast: false, isRecurring: false,
+      category: "Group Class",
+      description: "Test class for notification testing. Set reminder to a low number (e.g. 0.05 hours = 3 min) in Settings to see the notification quickly.",
+      image: null,
+    },
     // ── TODAY ──
     {
       id: 1, typeId: "ct1", typeName: "Yoga Flow", color: "#6c5ce7",
