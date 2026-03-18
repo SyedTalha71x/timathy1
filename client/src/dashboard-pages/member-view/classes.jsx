@@ -140,6 +140,9 @@ const Classes = () => {
   // My Classes action sheet
   const [actionSheetClass, setActionSheetClass] = useState(null)
 
+  // Calendar prompt after enrollment
+  const [calendarPromptClass, setCalendarPromptClass] = useState(null)
+
   const filterRef = useRef(null)
   const daySliderRef = useRef(null)
 
@@ -455,8 +458,11 @@ const Classes = () => {
     console.log("Enrolled in class:", selectedClass.id)
     scheduleClassReminder(selectedClass)
     toast.success("Enrolled successfully")
+    const enrolledClass = selectedClass
     setShowEnrollModal(false)
     setSelectedClass(null)
+    // Show calendar prompt after short delay so enroll modal closes first
+    setTimeout(() => setCalendarPromptClass(enrolledClass), 300)
   }
 
   const handleCancelEnrollment = (cls) => { haptic.light(); setClassToCancel(cls); setShowCancelModal(true) }
@@ -1102,6 +1108,62 @@ const Classes = () => {
         onConfirm={confirmCancel}
         classData={classToCancel}
       />
+
+      {/* ============================================ */}
+      {/* CALENDAR PROMPT AFTER ENROLLMENT             */}
+      {/* ============================================ */}
+      {calendarPromptClass && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setCalendarPromptClass(null)}
+        >
+          <div
+            className="bg-surface-card rounded-xl p-5 w-full max-w-sm shadow-xl border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                <CalendarPlus className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h4 className="text-content-primary font-semibold">Add to Calendar?</h4>
+                <p className="text-xs text-content-faint">Save it so you don't forget</p>
+              </div>
+            </div>
+            <div className="bg-surface-hover rounded-xl p-3 mb-5 flex items-center gap-3">
+              <div
+                className="w-1 h-10 rounded-full flex-shrink-0"
+                style={{ backgroundColor: calendarPromptClass.color || "#6c5ce7" }}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-content-primary truncate">{calendarPromptClass.typeName}</p>
+                <p className="text-xs text-content-faint">
+                  {fmtDateDisplay(calendarPromptClass.date)} · {calendarPromptClass.startTime} – {calendarPromptClass.endTime}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { haptic.light(); setCalendarPromptClass(null) }}
+                className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm rounded-xl transition-colors"
+              >
+                Not Now
+              </button>
+              <button
+                onClick={() => {
+                  const cls = calendarPromptClass
+                  setCalendarPromptClass(null)
+                  addToCalendar(cls)
+                }}
+                className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ============================================ */}
       {/* MY CLASS ACTION SHEET                        */}
