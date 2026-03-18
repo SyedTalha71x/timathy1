@@ -42,14 +42,17 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
   useEffect(() => {
     const onFocusIn = (e) => {
       const tag = e.target?.tagName?.toLowerCase()
-      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) {
+      const isEditable = (tag === "input" && !e.target.readOnly) || tag === "textarea" || e.target?.isContentEditable
+      if (isEditable) {
         setKeyboardOpen(true)
       }
     }
     const onFocusOut = () => {
       setTimeout(() => {
-        const tag = document.activeElement?.tagName?.toLowerCase()
-        if (tag !== "input" && tag !== "textarea" && !document.activeElement?.isContentEditable) {
+        const el = document.activeElement
+        const tag = el?.tagName?.toLowerCase()
+        const isEditable = (tag === "input" && !el?.readOnly) || tag === "textarea" || el?.isContentEditable
+        if (!isEditable) {
           setKeyboardOpen(false)
         }
       }, 100)
