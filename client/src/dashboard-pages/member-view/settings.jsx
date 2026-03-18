@@ -734,6 +734,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                             pushReminder: { ...prev.classReminders.pushReminder, timeBeforeHours: val },
                           },
                         }))
+                        try { localStorage.setItem("class_reminder_hours", JSON.stringify(val)) } catch {}
                         // TODO: dispatch class reminders save when endpoint is ready
                       }}
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"

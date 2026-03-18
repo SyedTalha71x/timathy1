@@ -8,6 +8,63 @@ import { Capacitor } from "@capacitor/core"
 import toast from "../../components/shared/SharedToast"
 
 // ============================================
+// Local Notification Helpers
+// ============================================
+const scheduleClassReminder = async (cls) => {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications")
+
+    // Request permission (iOS shows dialog once, then remembers)
+    const perm = await LocalNotifications.requestPermissions()
+    if (perm.display !== "granted") return
+
+    // Read reminder timing — default 1 hour before
+    const reminderHours = (() => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("class_reminder_hours"))
+        return stored && stored > 0 ? stored : 1
+      } catch { return 1 }
+    })()
+
+    const dateObj = new Date(cls.date)
+    const [sh, sm] = (cls.startTime || "09:00").split(":")
+    dateObj.setHours(parseInt(sh), parseInt(sm), 0, 0)
+
+    // Schedule notification X hours before
+    const notifyAt = new Date(dateObj.getTime() - reminderHours * 60 * 60 * 1000)
+
+    // Don't schedule if the time has already passed
+    if (notifyAt <= new Date()) return
+
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: cls.id,
+        title: cls.typeName || "Class Reminder",
+        body: `Starts in ${reminderHours}h — ${cls.startTime} at ${cls.room || "Studio"}`,
+        schedule: { at: notifyAt },
+        sound: "default",
+        extra: { classId: cls.id },
+      }],
+    })
+    console.log("[Notification] Scheduled for:", notifyAt.toLocaleString())
+  } catch (err) {
+    console.error("[Notification] Schedule failed:", err)
+  }
+}
+
+const cancelClassReminder = async (cls) => {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications")
+    await LocalNotifications.cancel({ notifications: [{ id: cls.id }] })
+    console.log("[Notification] Cancelled for class:", cls.id)
+  } catch (err) {
+    console.error("[Notification] Cancel failed:", err)
+  }
+}
+
+// ============================================
 // Reusable Components (matches appointment.jsx)
 // ============================================
 const SectionHeader = ({ title, description, action }) => (
@@ -289,6 +346,8 @@ const Classes = () => {
     haptic.success()
     // TODO: dispatch(enrollInClass({ classId: selectedClass.id })) when backend is ready
     console.log("Enrolled in class:", selectedClass.id)
+    scheduleClassReminder(selectedClass)
+    toast.success("Enrolled successfully")
     setShowEnrollModal(false)
     setSelectedClass(null)
   }
@@ -300,6 +359,8 @@ const Classes = () => {
     haptic.warning()
     // TODO: dispatch(unenrollFromClass({ classId: classToCancel.id })) when backend is ready
     console.log("Cancelled enrollment:", classToCancel.id)
+    cancelClassReminder(classToCancel)
+    toast.info("Enrollment cancelled")
     setShowCancelModal(false)
     setClassToCancel(null)
   }
