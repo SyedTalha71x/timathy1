@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from "react"
-import { Calendar, Clock, ChevronLeft, X, Filter, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, X, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
+import CustomSelect from "../../components/shared/CustomSelect"
 import { haptic } from "../../utils/haptic"
 import { Capacitor } from "@capacitor/core"
 import toast from "../../components/shared/SharedToast"
@@ -122,7 +123,6 @@ const Classes = () => {
   })
   const [showMyClasses, setShowMyClasses] = useState(false)
   const [myClassesView, setMyClassesView] = useState("upcoming")
-  const [showFilter, setShowFilter] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState(["All"])
   const [searchQuery, setSearchQuery] = useState("")
   const [showEnrollModal, setShowEnrollModal] = useState(false)
@@ -143,17 +143,7 @@ const Classes = () => {
   // Calendar sheet after enrollment
   const [calendarSheetClass, setCalendarSheetClass] = useState(null)
 
-  const filterRef = useRef(null)
   const daySliderRef = useRef(null)
-
-  // Close filter dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterRef.current && !filterRef.current.contains(event.target)) setShowFilter(false)
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
 
   // Desktop: convert vertical scroll to horizontal on the day slider
   useEffect(() => {
@@ -430,23 +420,6 @@ const Classes = () => {
   const handleSliderDayClick = (day) => {
     haptic.light()
     setSelectedDate(new Date(day.year, day.month, day.date))
-  }
-
-  const handleCategoryToggle = (category) => {
-    haptic.light()
-    setSelectedCategories((prev) => {
-      if (category === "All") return ["All"]
-      const newSelection = prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev.filter((c) => c !== "All"), category]
-      return newSelection.length === 0 ? ["All"] : newSelection
-    })
-  }
-
-  const getFilterButtonText = () => {
-    if (selectedCategories.includes("All") || selectedCategories.length === 0) return "All classes"
-    if (selectedCategories.length === 1) return selectedCategories[0]
-    return `${selectedCategories.length} selected`
   }
 
   const handleEnrollClick = (cls) => { haptic.light(); setSelectedClass(cls); setShowEnrollModal(true) }
@@ -753,42 +726,16 @@ const Classes = () => {
               title="Available Classes"
               description="Browse and enroll in upcoming classes"
               action={
-                <div className="flex gap-2 relative" ref={filterRef}>
-                  <button
-                    onClick={() => setShowFilter(!showFilter)}
-                    className="px-4 py-2 bg-surface-button hover:bg-surface-button-hover rounded-xl text-sm transition-colors flex items-center gap-2 text-content-primary"
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span>{getFilterButtonText()}</span>
-                    {selectedCategories.length > 1 && !selectedCategories.includes("All") && (
-                      <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {selectedCategories.length}
-                      </span>
-                    )}
-                  </button>
-
-                  {showFilter && (
-                    <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-20 min-w-[200px] max-h-60 overflow-hidden">
-                      <div className="overflow-y-auto max-h-48">
-                        {categories.map((cat) => (
-                          <button
-                            key={cat}
-                            onClick={() => handleCategoryToggle(cat)}
-                            className={`w-full text-left px-4 py-2.5 hover:bg-surface-button text-sm transition-colors flex items-center gap-3 ${
-                              selectedCategories.includes(cat) ? "bg-surface-button text-primary" : "text-content-primary"
-                            }`}
-                          >
-                            <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
-                              selectedCategories.includes(cat) ? "bg-primary border-primary" : "border-content-faint"
-                            }`}>
-                              {selectedCategories.includes(cat) && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div className="w-48">
+                  <CustomSelect
+                    name="categoryFilter"
+                    value={selectedCategories}
+                    onChange={(e) => setSelectedCategories(e.target.value)}
+                    options={categories.map(cat => ({ value: cat, label: cat }))}
+                    placeholder="All classes"
+                    multi
+                    className="bg-surface-button px-4 py-2 border-transparent hover:bg-surface-button-hover"
+                  />
                 </div>
               }
             />
