@@ -66,6 +66,7 @@ import AddToPlanModal from "../../components/studio-components/training-componen
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -685,7 +686,10 @@ export default function Training() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
+        <PullToRefresh
+          onRefresh={async () => { await Promise.all([dispatch(fetchTrainingVideos()), dispatch(fetchAllPlans())]).catch(() => {}) }}
+          className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6"
+        >
           <div className="w-full mx-auto">
 
             {/* =============================================================== */}
@@ -930,7 +934,7 @@ export default function Training() {
               </div>
             )}
           </div>
-        </div>
+        </PullToRefresh>
       </div>
 
       {/* =============================================================== */}

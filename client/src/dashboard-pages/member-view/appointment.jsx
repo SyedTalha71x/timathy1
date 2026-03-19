@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { cancelAppointment, createMyAppointment, fetchMyAppointments } from "../../features/appointments/AppointmentSlice"
 import { useNavigate } from "react-router-dom"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import { Capacitor } from "@capacitor/core"
 import toast from "../../components/shared/SharedToast"
 
@@ -310,7 +311,10 @@ const Appointments = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
+      <PullToRefresh
+        onRefresh={async () => { await dispatch(fetchMyAppointments()).unwrap().catch(() => {}) }}
+        className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+      >
 
         {/* ============================================ */}
         {/* MAIN VIEW — CTA + Service Grid              */}
@@ -698,7 +702,7 @@ const Appointments = () => {
             </div>
           </div>
         )}
-      </div>
+      </PullToRefresh>
 
       {/* Modals */}
       <BookingModal

@@ -13,6 +13,7 @@ import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -487,7 +488,10 @@ const StudioMenu = () => {
       </div>
 
       {/* ===== TAB CONTENT — scrollable ===== */}
-      <div className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
+      <PullToRefresh
+        onRefresh={async () => { /* TODO: dispatch(fetchMyStudio()) when backend is ready */ await new Promise(r => setTimeout(r, 600)) }}
+        className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16"
+      >
 
         {/* ============================================================
             TAB: STUDIO INFO
@@ -1155,7 +1159,7 @@ const StudioMenu = () => {
             </Card>
           </div>
         )}
-      </div>
+      </PullToRefresh>
 
       {/* ===== POPUPS ===== */}
       {showImprintPopup && <ImprintPopup onClose={() => setShowImprintPopup(false)} studio={studio} />}

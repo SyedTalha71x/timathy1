@@ -4,6 +4,7 @@ import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
 import ClassCancelModal from "../../components/member-panel-components/classes-components/ClassCancelModal"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import { Capacitor } from "@capacitor/core"
 import toast from "../../components/shared/SharedToast"
 
@@ -712,7 +713,9 @@ const Classes = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+      <PullToRefresh
+        onRefresh={async () => { /* TODO: dispatch(fetchClasses()) when backend is ready */ await new Promise(r => setTimeout(r, 600)) }}
+        className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
 
@@ -1109,7 +1112,7 @@ const Classes = () => {
             )}
           </div>
         )}
-      </div>
+      </PullToRefresh>
 
       {/* Modals */}
       <ClassEnrollModal

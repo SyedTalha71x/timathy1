@@ -28,6 +28,7 @@ import BarcodeScannerModal from "../../components/member-panel-components/nutrit
 import SettingsModal from "../../components/member-panel-components/nutrition-tracking-components/SettingsModal"
 import StreakModal from "../../components/member-panel-components/nutrition-tracking-components/StreakModal"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // Shared constants & components
 import {
@@ -697,7 +698,10 @@ const NutritionTracker = () => {
       </div>
 
       {/* ========== CONTENT ========== */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
+      <PullToRefresh
+        onRefresh={async () => { await Promise.all([dispatch(fetchDailySummery(dateStr)), dispatch(fetchFood())]).catch(() => {}) }}
+        className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+      >
 
         {/* ===== DIARY ===== */}
         {activeView === "diary" && (
@@ -1004,7 +1008,7 @@ const NutritionTracker = () => {
             </SettingsCard>
           </div>
         )}
-      </div>
+      </PullToRefresh>
 
       {/* ========== MOBILE FAB ========== */}
       {activeView === "diary" && (

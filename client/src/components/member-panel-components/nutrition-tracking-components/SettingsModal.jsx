@@ -197,7 +197,7 @@ const SettingsModal = ({
 
         {/* Sticky footer buttons — always visible above keyboard */}
         {settingsTab === "profile" && (
-          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card">
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}>
             <button onClick={() => { calculateFromProfile(); setSettingsTab("goals") }}
               className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-2.5 text-sm font-medium transition-colors">
               Apply & Set Goals
@@ -205,7 +205,7 @@ const SettingsModal = ({
           </div>
         )}
         {settingsTab === "goals" && (
-          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card">
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}>
             <div className="flex gap-3">
               <button onClick={() => setGoalForm({ calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 })}
                 className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary text-sm transition-colors">Reset</button>
