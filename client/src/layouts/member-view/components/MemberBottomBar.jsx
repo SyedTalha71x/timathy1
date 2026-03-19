@@ -93,7 +93,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
     haptic.light()
     // Re-tap active tab → scroll to top (iOS pattern)
     if (isActive(to)) {
-      const scrollable = document.querySelector(".flex-1.overflow-y-auto, [class*='overflow-y-auto']")
+      const scrollable = document.querySelector("[data-scroll-container]")
       if (scrollable) scrollable.scrollTo({ top: 0, behavior: "smooth" })
       return
     }

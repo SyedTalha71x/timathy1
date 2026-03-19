@@ -364,6 +364,7 @@ export default function StudioChat() {
         {/* Messages Area */}
         <div
           ref={messagesContainerRef}
+          data-scroll-container
           className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
           style={{ minHeight: 0 }}
         >
@@ -518,6 +519,7 @@ export default function StudioChat() {
         {/* Mobile Messages Area */}
         <div
           ref={mobileMessagesContainerRef}
+          data-scroll-container
           className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3"
           style={{ minHeight: 0 }}
         >

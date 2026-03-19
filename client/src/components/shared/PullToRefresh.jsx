@@ -75,6 +75,7 @@ const PullToRefresh = ({ onRefresh, className = "", style = {}, threshold = THRE
   return (
     <div
       ref={containerRef}
+      data-scroll-container
       className={`relative ${className}`}
       style={{ ...style, overscrollBehavior: "contain" }}
       onTouchStart={onTouchStart}
