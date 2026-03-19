@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
-import Chart from "react-apexcharts"
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -37,6 +37,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { fetchAllAppointments } from "../../../features/appointments/AppointmentSlice"
 import { fetchAllMember } from "../../../features/member/memberSlice"
 import { fetchAllLeadsThunk } from "../../../features/lead/leadSlice"
+import ReactApexChart from "react-apexcharts"
 
 // ✅ Extended dropdown options - Full scope like Analytics menu
 const dropdownOptions = {
@@ -662,7 +663,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             <div className="overflow-x-auto">
               <div className="min-w-[280px]">
                 {chartConfig && chartConfig.options && chartConfig.series && (
-                  <Chart
+                  <ReactApexChart
                     options={chartConfig.options}
                     series={chartConfig.series}
                     type={chartConfig.type}

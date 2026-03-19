@@ -230,7 +230,11 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     notes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Notes'
-    }]
+    }],
+    // shifts: [{
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'shifts'
+    // }]
 }))
 
 module.exports = { AdminModel, MemberModel, StaffModel }

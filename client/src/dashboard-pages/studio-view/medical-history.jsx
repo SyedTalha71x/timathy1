@@ -7,9 +7,10 @@ import { CSS } from '@dnd-kit/utilities';
 import CreateFormModal from '../../components/studio-components/medical-history-components/CreateFormModal';
 import PreviewModal from '../../components/studio-components/medical-history-components/PreviewModal';
 import DeleteModal from '../../components/studio-components/medical-history-components/DeleteModal';
-
+import { useSelector, useDispatch } from 'react-redux'
 // Imports
 import toast from "../../components/shared/SharedToast";
+import { createFormThunk, getAllFormThunk } from '../../features/medicalHistory/medicalHistorySlice';
 
 // Sortable Form Card Component
 const SortableFormCard = ({ form, children, isDragDisabled }) => {
@@ -20,9 +21,9 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: form.id,
-    disabled: isDragDisabled 
+    disabled: isDragDisabled
   });
 
   const style = {
@@ -37,8 +38,8 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
   return (
     <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-2 ring-primary/50' : ''}`}>
       {!isDragDisabled && (
-        <div 
-          {...attributes} 
+        <div
+          {...attributes}
           {...listeners}
           className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-primary p-2 -m-1 md:p-1 md:-m-0 rounded-lg active:bg-primary/30 z-10 touch-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -53,19 +54,22 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
 
 
 const Assessment = () => {
+  const { medical = [] } = useSelector((state) => state.medical)
+  const dispatch = useDispatch();
+
   // State for all forms
   const [forms, setForms] = useState([]);
-  
+
   // Modal visibility states
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  
+
   // Form editing states
   const [editingForm, setEditingForm] = useState(null);
   const [formToDelete, setFormToDelete] = useState(null);
   const [previewForm, setPreviewForm] = useState(null);
-  
+
   // Current form states
   const [formTitle, setFormTitle] = useState('');
   const [sections, setSections] = useState([]);
@@ -74,7 +78,7 @@ const Assessment = () => {
     showLocation: true,
     defaultLocation: ''
   });
-  
+
   // UI states
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,6 +88,11 @@ const Assessment = () => {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const sortDropdownRef = useRef(null);
+
+
+  useEffect(() => {
+    dispatch(getAllFormThunk())
+  }, [dispatch])
 
 
   // DnD sensors - optimized for responsive mobile dragging
@@ -199,20 +208,20 @@ const Assessment = () => {
     const handleKeyPress = (e) => {
       // Ignore if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
+
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
-      
+
       // Check if ANY modal is open
-      const anyModalOpen = 
+      const anyModalOpen =
         showModal ||
         showDeleteModal ||
         showPreviewModal;
-      
+
       // Also check if any modal overlay is visible in the DOM
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
-                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
-      
+        document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+
       // ESC key - Close modals (should work even when modals are open)
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -221,22 +230,22 @@ const Assessment = () => {
         else if (showModal) setShowModal(false);
         return;
       }
-      
+
       if (anyModalOpen || hasVisibleModal) return;
-      
+
       // C key - Create Medical History
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         handleCreateForm();
       }
-      
+
       // V key - Toggle view mode
       if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [showModal, showDeleteModal, showPreviewModal]);
@@ -287,7 +296,7 @@ const Assessment = () => {
   };
 
   // Form save handler
-  const handleSaveForm = () => {
+  const handleSaveForm = async() => {
     if (!formTitle.trim()) return;
 
     const newForm = {
@@ -306,6 +315,9 @@ const Assessment = () => {
       setForms([...forms, newForm]);
     }
 
+    dispatch(createFormThunk(newForm));
+    await dispatch(getAllFormThunk());
+    console.log('new Form created');
     setShowModal(false);
   };
 
@@ -353,7 +365,7 @@ const Assessment = () => {
   // Toggle form active state
   const toggleFormActive = (formId, e) => {
     if (e) e.stopPropagation();
-    setForms(forms.map(f => 
+    setForms(forms.map(f =>
       f.id === formId ? { ...f, active: !f.active, updatedAt: Date.now() } : f
     ));
   };
@@ -372,21 +384,21 @@ const Assessment = () => {
   // Handle drag end for reordering
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    
+
     if (active.id !== over?.id) {
       // If currently sorted by something other than custom, 
       // we need to first apply that sort order to the forms array
       if (sortBy !== 'custom') {
         // Get the currently displayed order (filtered and sorted)
         const currentOrder = getFilteredAndSortedForms();
-        
+
         // Find indices in the current displayed order
         const oldIndex = currentOrder.findIndex((item) => item.id === active.id);
         const newIndex = currentOrder.findIndex((item) => item.id === over.id);
-        
+
         // Create new order based on displayed order with the drag applied
         const newOrder = arrayMove(currentOrder, oldIndex, newIndex);
-        
+
         // Update forms to match this new order (keeping any filtered-out items at the end)
         const filteredOutForms = forms.filter(f => !currentOrder.find(cf => cf.id === f.id));
         setForms([...newOrder, ...filteredOutForms]);
@@ -432,23 +444,24 @@ const Assessment = () => {
     if (sortBy === 'custom') {
       return <ArrowUpDown size={14} className="text-content-muted" />;
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />;
   };
 
   // Filter and sort forms
   const getFilteredAndSortedForms = () => {
-    let filtered = forms.filter(form => {
+    let filtered = medical.filter(form => {
       // Filter by search query
       const matchesSearch = form.title.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       // Filter by status
-      const matchesStatus = filterStatus === 'all' || 
-                           (filterStatus === 'active' && form.active) ||
-                           (filterStatus === 'inactive' && !form.active);
-      
+      const matchesStatus = filterStatus === 'all' ||
+        (filterStatus === 'active' && form.active) ||
+        (filterStatus === 'inactive' && !form.active);
+
       return matchesSearch && matchesStatus;
+      
     });
 
     // Helper function to count questions (including variable fields)
@@ -464,7 +477,7 @@ const Assessment = () => {
     if (sortBy !== 'custom') {
       filtered.sort((a, b) => {
         let comparison = 0;
-        
+
         switch (sortBy) {
           case 'date':
             // Sort by updatedAt if it exists and differs from createdAt, otherwise use createdAt
@@ -484,7 +497,7 @@ const Assessment = () => {
           default:
             comparison = 0;
         }
-        
+
         // Apply sort direction
         return sortDirection === 'asc' ? comparison : -comparison;
       });
@@ -520,7 +533,7 @@ const Assessment = () => {
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex items-center gap-3">
             <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Medical History</h1>
-            
+
             {/* Sort Button - Mobile: next to title */}
             <div className="md:hidden relative" ref={sortDropdownRef}>
               <button
@@ -548,17 +561,16 @@ const Assessment = () => {
                           e.stopPropagation();
                           handleSortOptionClick(option.value);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                          sortBy === option.value 
-                            ? 'text-content-primary bg-surface-hover/50' 
-                            : 'text-content-secondary'
-                        }`}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value
+                          ? 'text-content-primary bg-surface-hover/50'
+                          : 'text-content-secondary'
+                          }`}
                       >
                         <span>{option.label}</span>
                         {sortBy === option.value && option.value !== 'custom' && (
                           <span className="text-content-muted">
-                            {sortDirection === 'asc' 
-                              ? <ArrowUp size={14} /> 
+                            {sortDirection === 'asc'
+                              ? <ArrowUp size={14} />
                               : <ArrowDown size={14} />
                             }
                           </span>
@@ -569,21 +581,20 @@ const Assessment = () => {
                 </div>
               )}
             </div>
-            
+
             {/* View Toggle - Desktop only */}
             <div className="hidden md:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
               <div className="relative group">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'grid'
-                      ? 'bg-primary text-white'
-                      : 'text-content-muted hover:text-content-primary'
-                  }`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
+                    ? 'bg-primary text-white'
+                    : 'text-content-muted hover:text-content-primary'
+                    }`}
                 >
                   <Grid3x3 size={16} />
                 </button>
-                
+
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Grid View</span>
@@ -593,19 +604,18 @@ const Assessment = () => {
                   <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark/90" />
                 </div>
               </div>
-              
+
               <div className="relative group">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'list'
-                      ? 'bg-primary text-white'
-                      : 'text-content-muted hover:text-content-primary'
-                  }`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
+                    ? 'bg-primary text-white'
+                    : 'text-content-muted hover:text-content-primary'
+                    }`}
                 >
                   <List size={16} />
                 </button>
-                
+
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">List View</span>
@@ -627,7 +637,7 @@ const Assessment = () => {
                 <Plus size={14} className="sm:w-4 sm:h-4" />
                 <span className='hidden sm:inline'>Create Medical History</span>
               </button>
-              
+
               {/* Tooltip - YouTube Style like Contract Builder */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Create Medical History</span>
@@ -641,251 +651,119 @@ const Assessment = () => {
           </div>
         </div>
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
-          <input
-            type="text"
-            placeholder="Search forms..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
-          />
+        {/* Search Bar */}
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
+            <input
+              type="text"
+              placeholder="Search forms..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Category Pills for Filters */}
-      <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
-        <button
-          onClick={() => setFilterStatus('all')}
-          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-            filterStatus === 'all'
-              ? "bg-primary text-white"
-              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setFilterStatus('active')}
-          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-            filterStatus === 'active'
-              ? "bg-primary text-white"
-              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-          }`}
-        >
-          Active
-        </button>
-        <button
-          onClick={() => setFilterStatus('inactive')}
-          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-            filterStatus === 'inactive'
-              ? "bg-primary text-white"
-              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-          }`}
-        >
-          Inactive
-        </button>
-        
-        {/* Sort Controls - Desktop only, moved to filter pills area */}
-        <div className="hidden md:block ml-auto relative" ref={sortDropdownRef}>
+        {/* Category Pills for Filters */}
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowSortDropdown(!showSortDropdown);
-            }}
-            className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+            onClick={() => setFilterStatus('all')}
+            className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all'
+              ? "bg-primary text-white"
+              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+              }`}
           >
-            {getSortIcon()}
-            <span>{currentSortLabel}</span>
+            All
+          </button>
+          <button
+            onClick={() => setFilterStatus('active')}
+            className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'active'
+              ? "bg-primary text-white"
+              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+              }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setFilterStatus('inactive')}
+            className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'inactive'
+              ? "bg-primary text-white"
+              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+              }`}
+          >
+            Inactive
           </button>
 
-          {/* Sort Dropdown */}
-          {showSortDropdown && (
-            <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
-              <div className="py-1">
-                <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
-                  Sort by
-                </div>
-                {sortOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSortOptionClick(option.value);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                      sortBy === option.value 
-                        ? 'text-content-primary bg-surface-hover/50' 
-                        : 'text-content-secondary'
-                    }`}
-                  >
-                    <span>{option.label}</span>
-                    {sortBy === option.value && option.value !== 'custom' && (
-                      <span className="text-content-muted">
-                        {sortDirection === 'asc' 
-                          ? <ArrowUp size={14} /> 
-                          : <ArrowDown size={14} />
-                        }
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+          {/* Sort Controls - Desktop only, moved to filter pills area */}
+          <div className="hidden md:block ml-auto relative" ref={sortDropdownRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSortDropdown(!showSortDropdown);
+              }}
+              className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+            >
+              {getSortIcon()}
+              <span>{currentSortLabel}</span>
+            </button>
 
-      {/* Forms Grid */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={formIds} strategy={rectSortingStrategy}>
-          <div className={viewMode === 'grid' 
-            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr' 
-            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:!grid-cols-1 md:!gap-3'
-          }>
-            {filteredForms.map((form) => (
-              <SortableFormCard key={form.id} form={form} isDragDisabled={isDragDisabled}>
-                {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none h-full`}>
-                  <div
-                    className={`bg-surface-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border-subtle hover:border-border-subtle p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
-                  >
-                  {/* Three dots dropdown */}
-                  <div className="absolute top-3 right-3 md:top-4 md:right-4">
+            {/* Sort Dropdown */}
+            {showSortDropdown && (
+              <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
+                <div className="py-1">
+                  <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
+                    Sort by
+                  </div>
+                  {sortOptions.map((option) => (
                     <button
-                      onClick={(e) => toggleDropdown(form.id, e)}
-                      className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                      </svg>
-                    </button>
-
-                    {dropdownOpen === form.id && (
-                      <div className="absolute right-0 top-8 bg-surface-base border border-border-subtle rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
-                        <button
-                          onClick={() => handleEditForm(form)}
-                          className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
-                        >
-                          <Edit size={14} /> Edit
-                        </button>
-                        <button
-                          onClick={() => handleDuplicateForm(form)}
-                          className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
-                        >
-                          <Copy size={14} /> Duplicate
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(form)}
-                          className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Eye icon for quick preview */}
-                  <button
-                    onClick={() => handlePreviewForm(form)}
-                    className="absolute top-3 right-10 md:top-4 md:right-12 text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
-                    title="Preview Form"
-                  >
-                    <Eye size={18} />
-                  </button>
-
-                  <div className="flex justify-between items-start mb-3 pr-16">
-                    <h3 className="text-base md:text-lg font-semibold text-content-primary line-clamp-2 leading-snug" title={form.title}>{form.title}</h3>
-                  </div>
-
-                  <div className="text-xs md:text-sm text-content-muted mb-2">
-                    {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
-                      const items = section.items || section.questions || [];
-                      const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
-                      return acc + questionCount;
-                    }, 0)} Questions
-                  </div>
-
-                  {/* Dates */}
-                  <div className="flex flex-col gap-0.5 mb-4 flex-grow">
-                    <p className="text-[11px] text-content-faint">
-                      Created: {formatDateTime(form.createdAt)}
-                    </p>
-                    {form.updatedAt && form.updatedAt !== form.createdAt && (
-                      <p className="text-[11px] text-content-faint">
-                        Updated: {formatDateTime(form.updatedAt)}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Toggle switch for active/inactive - bulletin board style */}
-                  <div className="flex items-center justify-between pt-3 border-t border-border-subtle mt-auto">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-content-muted">Status:</span>
-                      <button
-                        onClick={(e) => toggleFormActive(form.id, e)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          form.active ? 'bg-primary' : 'bg-surface-button'
+                      key={option.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSortOptionClick(option.value);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value
+                        ? 'text-content-primary bg-surface-hover/50'
+                        : 'text-content-secondary'
                         }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            form.active ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                      <span className="text-xs font-medium text-content-secondary min-w-[50px]">
-                        {form.active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                </div>
-                
-                {/* List Card - Desktop only, hidden on mobile */}
-                <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start select-none`}>
-                  <div
-                    className={`bg-surface-card rounded-xl border border-border-subtle hover:border-border-subtle transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
-                  >
-                    {/* Icons Container - Right side, vertically centered */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                      {/* Status Toggle */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-content-muted">Status:</span>
-                        <button
-                          onClick={(e) => toggleFormActive(form.id, e)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            form.active ? 'bg-primary' : 'bg-surface-button'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              form.active ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                        <span className="text-xs font-medium text-content-secondary min-w-[50px]">
-                          {form.active ? 'Active' : 'Inactive'}
+                    >
+                      <span>{option.label}</span>
+                      {sortBy === option.value && option.value !== 'custom' && (
+                        <span className="text-content-muted">
+                          {sortDirection === 'asc'
+                            ? <ArrowUp size={14} />
+                            : <ArrowDown size={14} />
+                          }
                         </span>
-                      </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-                      {/* Eye icon */}
-                      <button
-                        onClick={() => handlePreviewForm(form)}
-                        className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
-                        title="Preview Form"
-                      >
-                        <Eye size={18} />
-                      </button>
-
+        {/* Forms Grid */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={formIds} strategy={rectSortingStrategy}>
+            <div className={viewMode === 'grid'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr'
+              : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:!grid-cols-1 md:!gap-3'
+            }>
+              {filteredForms.map((form) => (
+                <SortableFormCard key={form._id} form={form} isDragDisabled={isDragDisabled}>
+                  {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
+                  <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none h-full`}>
+                    <div
+                      className={`bg-surface-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border-subtle hover:border-border-subtle p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    >
                       {/* Three dots dropdown */}
-                      <div className="relative">
+                      <div className="absolute top-3 right-3 md:top-4 md:right-4">
                         <button
                           onClick={(e) => toggleDropdown(form.id, e)}
                           className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
@@ -918,19 +796,30 @@ const Assessment = () => {
                           </div>
                         )}
                       </div>
-                    </div>
 
-                    {/* Content - Left side */}
-                    <div className="pr-96">
-                      <h3 className="text-base font-semibold text-content-primary mb-1 line-clamp-1">{form.title}</h3>
-                      <div className="text-xs text-content-muted mb-2">
+                      {/* Eye icon for quick preview */}
+                      <button
+                        onClick={() => handlePreviewForm(form)}
+                        className="absolute top-3 right-10 md:top-4 md:right-12 text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
+                        title="Preview Form"
+                      >
+                        <Eye size={18} />
+                      </button>
+
+                      <div className="flex justify-between items-start mb-3 pr-16">
+                        <h3 className="text-base md:text-lg font-semibold text-content-primary line-clamp-2 leading-snug" title={form.title}>{form.title}</h3>
+                      </div>
+
+                      <div className="text-xs md:text-sm text-content-muted mb-2">
                         {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
                           const items = section.items || section.questions || [];
                           const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
                           return acc + questionCount;
                         }, 0)} Questions
                       </div>
-                      <div className="flex flex-col gap-0.5">
+
+                      {/* Dates */}
+                      <div className="flex flex-col gap-0.5 mb-4 flex-grow">
                         <p className="text-[11px] text-content-faint">
                           Created: {formatDateTime(form.createdAt)}
                         </p>
@@ -940,64 +829,177 @@ const Assessment = () => {
                           </p>
                         )}
                       </div>
+
+                      {/* Toggle switch for active/inactive - bulletin board style */}
+                      <div className="flex items-center justify-between pt-3 border-t border-border-subtle mt-auto">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-content-muted">Status:</span>
+                          <button
+                            onClick={(e) => toggleFormActive(form.id, e)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.active ? 'bg-primary' : 'bg-surface-button'
+                              }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                          </button>
+                          <span className="text-xs font-medium text-content-secondary min-w-[50px]">
+                            {form.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  {/* List Card - Desktop only, hidden on mobile */}
+                  <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start select-none`}>
+                    <div
+                      className={`bg-surface-card rounded-xl border border-border-subtle hover:border-border-subtle transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    >
+                      {/* Icons Container - Right side, vertically centered */}
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        {/* Status Toggle */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-content-muted">Status:</span>
+                          <button
+                            onClick={(e) => toggleFormActive(form.id, e)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.active ? 'bg-primary' : 'bg-surface-button'
+                              }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                          </button>
+                          <span className="text-xs font-medium text-content-secondary min-w-[50px]">
+                            {form.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+
+                        {/* Eye icon */}
+                        <button
+                          onClick={() => handlePreviewForm(form)}
+                          className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
+                          title="Preview Form"
+                        >
+                          <Eye size={18} />
+                        </button>
+
+                        {/* Three dots dropdown */}
+                        <div className="relative">
+                          <button
+                            onClick={(e) => toggleDropdown(form.id, e)}
+                            className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
+                          >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                            </svg>
+                          </button>
+
+                          {dropdownOpen === form.id && (
+                            <div className="absolute right-0 top-8 bg-surface-base border border-border-subtle rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                              <button
+                                onClick={() => handleEditForm(form)}
+                                className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
+                              >
+                                <Edit size={14} /> Edit
+                              </button>
+                              <button
+                                onClick={() => handleDuplicateForm(form)}
+                                className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
+                              >
+                                <Copy size={14} /> Duplicate
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClick(form)}
+                                className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
+                              >
+                                <Trash2 size={14} /> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content - Left side */}
+                      <div className="pr-96">
+                        <h3 className="text-base font-semibold text-content-primary mb-1 line-clamp-1">{form.title}</h3>
+                        <div className="text-xs text-content-muted mb-2">
+                          {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
+                            const items = section.items || section.questions || [];
+                            const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
+                            return acc + questionCount;
+                          }, 0)} Questions
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-[11px] text-content-faint">
+                            Created: {formatDateTime(form.createdAt)}
+                          </p>
+                          {form.updatedAt && form.updatedAt !== form.createdAt && (
+                            <p className="text-[11px] text-content-faint">
+                              Updated: {formatDateTime(form.updatedAt)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </SortableFormCard>
+              ))}
+
+              {filteredForms.length === 0 && (
+                <div className="col-span-full text-center py-12 text-content-muted">
+                  {forms.length === 0 ? (
+                    <>No forms created yet. Click on "Create Medical History" to get started.</>
+                  ) : (
+                    <>No forms match your search criteria. Try adjusting your filters.</>
+                  )}
                 </div>
-              </SortableFormCard>
-            ))}
+              )}
+            </div>
+          </SortableContext>
+        </DndContext>
 
-            {filteredForms.length === 0 && (
-              <div className="col-span-full text-center py-12 text-content-muted">
-                {forms.length === 0 ? (
-                  <>No forms created yet. Click on "Create Medical History" to get started.</>
-                ) : (
-                  <>No forms match your search criteria. Try adjusting your filters.</>
-                )}
-              </div>
-            )}
-          </div>
-        </SortableContext>
-      </DndContext>
+        {/* Modal Components */}
+        <CreateFormModal
+          showModal={showModal}
+          setShowModal={setShowModal}
+          editingForm={editingForm}
+          formTitle={formTitle}
+          setFormTitle={setFormTitle}
+          sections={sections}
+          setSections={setSections}
+          signatureSettings={signatureSettings}
+          setSignatureSettings={setSignatureSettings}
+          handleSaveForm={handleSaveForm}
+        />
 
-      {/* Modal Components */}
-      <CreateFormModal
-        showModal={showModal}
-        setShowModal={setShowModal}
-        editingForm={editingForm}
-        formTitle={formTitle}
-        setFormTitle={setFormTitle}
-        sections={sections}
-        setSections={setSections}
-        signatureSettings={signatureSettings}
-        setSignatureSettings={setSignatureSettings}
-        handleSaveForm={handleSaveForm}
-      />
+        <PreviewModal
+          showPreviewModal={showPreviewModal}
+          setShowPreviewModal={setShowPreviewModal}
+          previewForm={previewForm}
+        />
 
-      <PreviewModal
-        showPreviewModal={showPreviewModal}
-        setShowPreviewModal={setShowPreviewModal}
-        previewForm={previewForm}
-      />
+        <DeleteModal
+          showDeleteModal={showDeleteModal}
+          setShowDeleteModal={setShowDeleteModal}
+          formToDelete={formToDelete}
+          handleDeleteConfirm={handleDeleteConfirm}
+          handleDeleteCancel={handleDeleteCancel}
+        />
+      </div>
 
-      <DeleteModal
-        showDeleteModal={showDeleteModal}
-        setShowDeleteModal={setShowDeleteModal}
-        formToDelete={formToDelete}
-        handleDeleteConfirm={handleDeleteConfirm}
-        handleDeleteCancel={handleDeleteCancel}
-      />
-    </div>
 
-    
-    {/* Floating Action Button - Mobile Only */}
-    <button
-      onClick={handleCreateForm}
-      className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-      aria-label="Create Medical History"
-    >
-      <Plus size={22} />
-    </button>
-  </>
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={handleCreateForm}
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        aria-label="Create Medical History"
+      >
+        <Plus size={22} />
+      </button>
+    </>
   );
 };
 

@@ -24,8 +24,9 @@ const AssignPlanModal = ({
 
   // Filter members based on search query
   const filteredMembers = members.filter(member =>
-    member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
-    member.email.toLowerCase().includes(memberSearchQuery.toLowerCase())
+    member.firstName?.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+    member.lastName?.toLowerCase().includes(memberSearchQuery.toLowerCase())
+    // member.email.toLowerCase().includes(memberSearchQuery.toLowerCase())
   );
 
   const handleMemberSelect = (memberId) => {
@@ -34,6 +35,7 @@ const AssignPlanModal = ({
     // Clear the search query after assignment
     onMemberSearchChange('');
   };
+  
 
   const handleRemoveClick = (memberId) => {
     setMemberToRemove(memberId);
@@ -102,12 +104,12 @@ const AssignPlanModal = ({
                   ) : (
                     filteredMembers.map((member) => (
                       <div
-                        key={member.id}
+                        key={member._id}
                         className="flex items-center gap-3 p-3 bg-surface-dark rounded-xl hover:bg-surface-hover transition-colors cursor-pointer"
-                        onClick={() => handleMemberSelect(member.id)}
+                        onClick={() => handleMemberSelect(member._id)}
                       >
                         <div className="flex-1">
-                          <h4 className="font-medium text-content-primary">{member.name}</h4>
+                          <h4 className="font-medium text-content-primary">{member.firstName} {member.lastName}</h4>
                           <p className="text-content-muted text-sm">{member.email}</p>
                         </div>
                       </div>
@@ -129,7 +131,7 @@ const AssignPlanModal = ({
                   <ChevronDown size={16} />
                 </span>
               </button>
-              
+
               {!isAssignedMembersCollapsed && (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {assignedMembers.length === 0 ? (
@@ -153,11 +155,10 @@ const AssignPlanModal = ({
                               {/* Only show progress tags for "In Progress" and "Completed" */}
                               {member.progress !== "Not Started" && (
                                 <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    member.progress === "Completed" ? "bg-green-600 text-white" :
-                                    member.progress === "In Progress" ? "bg-yellow-600 text-white" :
-                                    "bg-surface-button text-content-secondary"
-                                  }`}
+                                  className={`px-2 py-1 rounded text-xs ${member.progress === "Completed" ? "bg-green-600 text-white" :
+                                      member.progress === "In Progress" ? "bg-yellow-600 text-white" :
+                                        "bg-surface-button text-content-secondary"
+                                    }`}
                                 >
                                   {member.progress}
                                 </span>
@@ -233,7 +234,7 @@ const ChevronDown = ({ size = 16, className = '' }) => (
     strokeLinejoin="round"
     className={className}
   >
-    <path d="m6 9 6 6 6-6"/>
+    <path d="m6 9 6 6 6-6" />
   </svg>
 );
 

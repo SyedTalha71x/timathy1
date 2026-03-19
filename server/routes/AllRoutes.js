@@ -25,7 +25,7 @@ const SpecialNoteRoutes = require('./SpecialNoteRoutes')
 const LeadRoutes = require('./LeadRoutes')
 const TodoRoutes = require('./TodoRoutes')
 const NotesRoutes = require('./NotesRoutes')
-
+const MedicalHistoryRoutes = require('./MedicalHistoryRoutes')
 
 const router = express.Router();
 
@@ -81,4 +81,9 @@ router.use('/special', SpecialNoteRoutes);
 router.use('/lead', LeadRoutes);
 router.use('/todos', TodoRoutes)
 router.use('/notes', NotesRoutes)
+router.use('/medical', MedicalHistoryRoutes)
+
+
+
+
 module.exports = router
