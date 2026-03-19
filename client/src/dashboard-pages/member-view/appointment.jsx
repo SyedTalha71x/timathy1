@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Calendar, Clock, ChevronLeft, X, Filter, Check, Info } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, X, Filter, Check, Info, Search, CalendarPlus } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import BookingModal from "../../components/member-panel-components/appointments-components/BookingModal"
 import RequestModal from "../../components/member-panel-components/appointments-components/RequestModal"
@@ -9,20 +9,12 @@ import { useDispatch, useSelector } from "react-redux"
 import { cancelAppointment, createMyAppointment, fetchMyAppointments } from "../../features/appointments/AppointmentSlice"
 import { useNavigate } from "react-router-dom"
 import { haptic } from "../../utils/haptic"
+import { Capacitor } from "@capacitor/core"
+import toast from "../../components/shared/SharedToast"
 
 // ============================================
 // Reusable Components (matches configuration.jsx)
 // ============================================
-const SectionHeader = ({ title, description, action }) => (
-  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-    <div>
-      <h2 className="text-lg sm:text-xl font-semibold text-content-primary">{title}</h2>
-      {description && <p className="text-xs sm:text-sm text-content-muted mt-1">{description}</p>}
-    </div>
-    {action}
-  </div>
-)
-
 const SettingsCard = ({ children, className = "" }) => (
   <div className={`bg-surface-hover rounded-xl p-4 sm:p-6 ${className}`}>{children}</div>
 )
@@ -37,7 +29,7 @@ const Appointments = () => {
   const [selectedService, setSelectedService] = useState(null)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showMyAppointments, setShowMyAppointments] = useState(false)
-  const [showFilter, setShowFilter] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState(["All courses"])
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [appointmentToCancel, setAppointmentToCancel] = useState(null)
@@ -47,18 +39,22 @@ const Appointments = () => {
   const [showRequestModal, setShowRequestModal] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [infoModalData, setInfoModalData] = useState(null)
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [calendarSheetData, setCalendarSheetData] = useState(null)
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const filterRef = useRef(null)
+  const filterBtnRef = useRef(null)
   const daySliderRef = useRef(null)
 
   useEffect(() => {
+    if (!showFilterDropdown) return
     const handleClickOutside = (event) => {
-      if (filterRef.current && !filterRef.current.contains(event.target)) setShowFilter(false)
+      if (filterBtnRef.current && !filterBtnRef.current.contains(event.target)) setShowFilterDropdown(false)
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [showFilterDropdown])
 
   useEffect(() => { dispatch(fetchMyAppointments()) }, [dispatch])
 
@@ -139,25 +135,16 @@ const Appointments = () => {
     return acc
   }, {})
 
-  const filteredServices = selectedCategories.includes("All courses")
-    ? services
-    : services.filter((service) => selectedCategories.includes(service.category))
-
-  const handleCategoryToggle = (category) => {
-    setSelectedCategories((prev) => {
-      if (category === "All courses") return ["All courses"]
-      const newSelection = prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev.filter((c) => c !== "All courses"), category]
-      return newSelection.length === 0 ? ["All courses"] : newSelection
-    })
-  }
-
-  const getFilterButtonText = () => {
-    if (selectedCategories.includes("All courses") || selectedCategories.length === 0) return "All courses"
-    if (selectedCategories.length === 1) return selectedCategories[0]
-    return `${selectedCategories.length} selected`
-  }
+  const filteredServices = (() => {
+    let list = selectedCategories.includes("All courses")
+      ? services
+      : services.filter((service) => selectedCategories.includes(service.category))
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      list = list.filter(s => s.name?.toLowerCase().includes(q) || s.category?.toLowerCase().includes(q))
+    }
+    return list
+  })()
 
   const handleCancelBooking = (appointment) => { setAppointmentToCancel(appointment); setShowCancelModal(true) }
 
@@ -180,16 +167,29 @@ const Appointments = () => {
 
   const confirmBooking = () => {
     if (!selectedService || !selectedTimeSlot) return
+    const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`
     dispatch(createMyAppointment({
       service: selectedService._id,
-      date: `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`,
+      date: dateStr,
       timeSlotId: { start: selectedTimeSlot.start, end: selectedTimeSlot.end },
     }))
       .unwrap()
       .then(() => {
         haptic.success()
-        setShowBooking(false); setShowBookingModal(false); setSelectedTimeSlot(null)
-        dispatch(fetchMyAppointments()); navigate("/member-view/studio-menu")
+        toast.success("Appointment booked")
+        setShowBookingModal(false)
+        setCalendarSheetData({
+          title: selectedService.name,
+          date: dateStr,
+          startTime: selectedTimeSlot.start,
+          endTime: selectedTimeSlot.end,
+          location: selectedService.category || "",
+        })
+        setShowBooking(false)
+        setSelectedTimeSlot(null)
+        setShowMyAppointments(true)
+        setAppointmentView("upcoming")
+        dispatch(fetchMyAppointments())
       })
       .catch((err) => { haptic.error(); alert(err) })
   }
@@ -213,6 +213,48 @@ const Appointments = () => {
     if (appointmentView === "past") return ["completed", "canceled"].includes(appointment.status)
     return true
   })
+
+  // ─── Add to Calendar ───
+  const addToCalendar = async (data) => {
+    haptic.success()
+    const dateObj = new Date(data.date)
+    const [sh, sm] = (data.startTime || "09:00").split(":")
+    const [eh, em] = (data.endTime || "10:00").split(":")
+    const startDate = new Date(dateObj); startDate.setHours(parseInt(sh), parseInt(sm), 0, 0)
+    const endDate = new Date(dateObj); endDate.setHours(parseInt(eh), parseInt(em), 0, 0)
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { CapacitorCalendar } = await import("@ebarooni/capacitor-calendar")
+        try { await CapacitorCalendar.requestWriteOnlyCalendarAccess() } catch {
+          alert("Calendar access is required. Please enable it in Settings > OrgaGym > Calendar.")
+          setCalendarSheetData(null); return
+        }
+        const result = await CapacitorCalendar.createEventWithPrompt({
+          title: data.title || "Appointment",
+          location: data.location || "",
+          startDate: startDate.getTime(),
+          endDate: endDate.getTime(),
+        })
+        if (result?.id) toast.success("Added to calendar")
+      } catch (err) {
+        if (!err.message?.includes("cancel")) console.error("[Calendar]", err)
+      }
+      setCalendarSheetData(null); return
+    }
+    // Web fallback
+    const pad = (n) => String(n).padStart(2, "0")
+    const y = dateObj.getFullYear(), m = pad(dateObj.getMonth() + 1), d = pad(dateObj.getDate())
+    const ics = ["BEGIN:VCALENDAR","VERSION:2.0","BEGIN:VEVENT",
+      `UID:apt-${Date.now()}@app`,`DTSTART:${y}${m}${d}T${pad(sh)}${pad(sm)}00`,
+      `DTEND:${y}${m}${d}T${pad(eh)}${pad(em)}00`,`SUMMARY:${data.title || "Appointment"}`,
+      `LOCATION:${data.location || ""}`,"END:VEVENT","END:VCALENDAR"].join("\r\n")
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a"); a.href = url; a.download = "appointment.ics"
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+    setCalendarSheetData(null)
+  }
 
   // ============================================
   // RENDER
@@ -274,63 +316,106 @@ const Appointments = () => {
         {/* MAIN VIEW — CTA + Service Grid              */}
         {/* ============================================ */}
         {!showBooking && !showMyAppointments && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* My Appointments CTA */}
             <button
               onClick={() => setShowMyAppointments(true)}
-              className="w-full bg-primary hover:bg-primary-hover rounded-xl p-4 flex items-center gap-4 transition-colors"
+              className="w-full bg-primary hover:bg-primary-hover rounded-xl px-4 py-2.5 flex items-center gap-3 transition-colors"
             >
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-white" />
               </div>
-              <span className="text-left flex-1 text-white font-semibold text-sm sm:text-base">My Appointments</span>
-              <div className="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full min-w-[1.75rem] flex items-center justify-center">
+              <span className="text-left flex-1 text-white font-semibold text-sm">My Appointments</span>
+              <div className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full min-w-[1.5rem] flex items-center justify-center">
                 {appointmentsArray.filter((a) => a.status === "confirmed" || a.status === "pending").length}
               </div>
             </button>
 
-            {/* Services — SectionHeader + Filter */}
-            <SectionHeader
-              title="Available Services"
-              description="Choose a service to book an appointment"
-              action={
-                <div className="flex gap-2 relative" ref={filterRef}>
-                  <button
-                    onClick={() => setShowFilter(!showFilter)}
-                    className="px-4 py-2 bg-surface-button hover:bg-surface-button-hover rounded-xl text-sm transition-colors flex items-center gap-2 text-content-primary"
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span>{getFilterButtonText()}</span>
-                    {selectedCategories.length > 1 && (
-                      <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{selectedCategories.length}</span>
-                    )}
-                  </button>
-
-                  {showFilter && (
-                    <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-20 min-w-[200px] max-h-60 overflow-hidden">
-                      <div className="overflow-y-auto max-h-48">
-                        {categories.map((cat) => (
+            {/* Filter + Search Toggle */}
+            <div className="flex items-center justify-end gap-1.5">
+              <div className="relative" ref={filterBtnRef}>
+                <button
+                  onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
+                  className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
+                    showFilterDropdown || (!selectedCategories.includes("All courses") && selectedCategories.length > 0)
+                      ? "bg-primary/15 text-primary"
+                      : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
+                  }`}
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                  {!selectedCategories.includes("All courses") && selectedCategories.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
+                      {selectedCategories.length}
+                    </span>
+                  )}
+                </button>
+                {showFilterDropdown && (
+                  <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
+                    <div className="max-h-[200px] overflow-y-auto py-1">
+                      {categories.map((cat) => {
+                        const isActive = selectedCategories.includes(cat)
+                        return (
                           <button
                             key={cat}
-                            onClick={() => handleCategoryToggle(cat)}
-                            className={`w-full text-left px-4 py-2.5 hover:bg-surface-button text-sm transition-colors flex items-center gap-3 ${
-                              selectedCategories.includes(cat) ? "bg-surface-button text-primary" : "text-content-primary"
+                            onClick={() => {
+                              haptic.light()
+                              setSelectedCategories(prev => {
+                                if (cat === "All courses") return ["All courses"]
+                                const current = prev.filter(v => v !== "All courses")
+                                if (current.includes(cat)) {
+                                  const next = current.filter(v => v !== cat)
+                                  return next.length === 0 ? ["All courses"] : next
+                                }
+                                return [...current, cat]
+                              })
+                            }}
+                            className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
+                              isActive ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
                             }`}
                           >
-                            <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
-                              selectedCategories.includes(cat) ? "bg-primary border-primary" : "border-content-faint"
+                            <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
+                              isActive ? "bg-primary border-primary" : "border-content-faint"
                             }`}>
-                              {selectedCategories.includes(cat) && <Check className="w-3 h-3 text-white" />}
+                              {isActive && <Check size={8} className="text-white" />}
                             </div>
                             {cat}
                           </button>
-                        ))}
-                      </div>
+                        )
+                      })}
                     </div>
-                  )}
-                </div>
-              }
-            />
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => { haptic.light(); setShowSearch(prev => !prev) }}
+                className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showSearch ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted hover:bg-surface-button-hover"}`}
+              >
+                <Search className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Search (collapsible) */}
+            {showSearch && (
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
+                <input
+                  type="text"
+                  placeholder="Search services..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="w-full bg-surface-hover border border-border rounded-xl pl-10 pr-4 py-2 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Service Cards — matches configuration appointment-types */}
             <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
@@ -645,6 +730,68 @@ const Appointments = () => {
         onClose={() => { setShowCancelModal(false); setAppointmentToCancel(null) }}
         onConfirm={confirmCancelBooking}
       />
+
+      {/* ============================================ */}
+      {/* CALENDAR SHEET (after booking)               */}
+      {/* ============================================ */}
+      {calendarSheetData && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setCalendarSheetData(null)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
+            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) e.currentTarget.style.transform = `translateY(${dy}px)`
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setCalendarSheetData(null), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
+          >
+            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+            <div className="px-4 pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-10 rounded-full flex-shrink-0 bg-primary" />
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-content-primary truncate">{calendarSheetData.title}</h4>
+                  <p className="text-xs text-content-faint">
+                    {new Date(calendarSheetData.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {calendarSheetData.startTime} – {calendarSheetData.endTime}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 pb-4">
+              <button
+                onClick={() => addToCalendar(calendarSheetData)}
+                className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+              >
+                <CalendarPlus className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Add to Calendar</p>
+                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
