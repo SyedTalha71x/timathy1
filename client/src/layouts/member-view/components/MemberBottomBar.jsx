@@ -20,8 +20,8 @@ import { haptic } from "../../../utils/haptic"
 // Primary tabs (always visible)
 const BAR_ITEMS = [
   { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-  { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
   { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
+  { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
   { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
 ]
 
@@ -91,6 +91,12 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
 
   const handleNavigate = (to) => {
     haptic.light()
+    // Re-tap active tab → scroll to top (iOS pattern)
+    if (isActive(to)) {
+      const scrollable = document.querySelector(".flex-1.overflow-y-auto, [class*='overflow-y-auto']")
+      if (scrollable) scrollable.scrollTo({ top: 0, behavior: "smooth" })
+      return
+    }
     navigate(to)
     setShowMore(false)
   }

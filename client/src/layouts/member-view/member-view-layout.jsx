@@ -25,6 +25,13 @@ const MemberDashboardLayout = () => {
 
   return (
     <ToastProvider>
+    <style>{`
+      @keyframes page-fade-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .page-transition { animation: page-fade-in 0.25s ease-out both; }
+    `}</style>
     <div className="member-root bg-surface-dark h-dvh overflow-hidden">
       <div className="flex flex-col md:flex-row h-full">
         {/* Desktop Sidebar — hidden on mobile, bottom bar takes over */}
@@ -48,8 +55,10 @@ const MemberDashboardLayout = () => {
             toggleLeftSidebarCollapse={toggleLeftSidebarCollapse}
           />
 
-          {/* Page Content */}
-          <Outlet />
+          {/* Page Content — fades in on route change */}
+          <div key={location.pathname} className="page-transition h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
 
