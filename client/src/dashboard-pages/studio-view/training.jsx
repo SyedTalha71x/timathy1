@@ -64,7 +64,8 @@ import EditPlanModal from "../../components/studio-components/training-component
 import VideoModal from "../../components/shared/training/video-modal"
 import AddToPlanModal from "../../components/studio-components/training-components/add-to-plan-modal"
 import { useDispatch, useSelector } from "react-redux"
-import { createPlan, fetchAllPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+import { createPlan, fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+import { fetchAllMember } from "../../features/member/memberSlice"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -184,8 +185,9 @@ export default function Training() {
   // -------------------------------------------------------------------------
   // REDUX STATE - FIXED based on your actual structure
   // -------------------------------------------------------------------------
-  const { trainings: trainingVideos = [], myPlans } = useSelector((state) => state.trainings || {})
+  const { trainings: trainingVideos = [], myPlans = [] } = useSelector((state) => state.trainings || {})
   const { staff = [] } = useSelector((state) => state.staff)
+  const { members = [] } = useSelector((state) => state.member)
   const { user } = useSelector((state) => state.auth)
   const currentUserId = user?._id
   // Extract staff array from the nested structure
@@ -250,6 +252,8 @@ export default function Training() {
   useEffect(() => {
     dispatch(fetchTrainingVideos())
     dispatch(fetchAllPlans());
+    dispatch(fetchMyPlans());
+    dispatch(fetchAllMember())
   }, [dispatch])
 
   // -------------------------------------------------------------------------
@@ -1001,7 +1005,7 @@ export default function Training() {
         memberSearchQuery={memberSearchQuery}
         selectedMembers={selectedMembers}
         assignedMembers={assignedMembers}
-        members={membersData}
+        members={members}
         onClose={() => { setIsAssignPlanModalOpen(false) }}
         onMemberSearchChange={setMemberSearchQuery}
         onSelectedMembersChange={setSelectedMembers}
