@@ -2714,8 +2714,3636 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             </SettingsCard>
           </div>
         )
+      // ========================
+      // APPOINTMENT SECTIONS
+      // ========================
+      case "calendar-settings":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Calendar Settings" description="Configure how the calendar displays appointments" />
 
-      // ... rest of your sections remain the same ...
+            {/* Hide Closed Days - Above Preview */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-content-primary block">Hide Closed Days</label>
+                  <p className="text-xs text-content-faint mt-1">
+                    When enabled, days marked as closed in opening hours (e.g., weekends) will not appear as columns in week/day view
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={calendarSettings.hideClosedDays}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      hideClosedDays: e.target.checked
+                    })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              {/* Week View Preview */}
+              <div className="mt-4 p-4 bg-surface-card rounded-xl overflow-x-auto">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
+                <div className="flex gap-1 min-w-[400px]">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                    const isWeekend = day === 'Sat' || day === 'Sun';
+                    const isHidden = calendarSettings.hideClosedDays && isWeekend;
+
+                    if (isHidden) return null;
+
+                    return (
+                      <div
+                        key={day}
+                        className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${isWeekend
+                          ? 'bg-gray-700/30 text-content-faint'
+                          : 'bg-surface-hover text-content-primary'
+                          }`}
+                      >
+                        <span className="text-xs font-medium">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-content-faint mt-3 text-center">
+                  {calendarSettings.hideClosedDays
+                    ? 'Showing Monday - Friday (closed days hidden)'
+                    : 'Showing all days including weekends'
+                  }
+                </p>
+              </div>
+            </SettingsCard>
+
+            {/* Calendar Time Range */}
+            <SettingsCard>
+              <h4 className="text-content-primary font-medium mb-4">Calendar Time Range</h4>
+              <p className="text-xs text-content-faint mb-4">
+                Set the visible time range for the calendar. Times outside this range will not be displayed.
+              </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-content-muted w-16">Start</label>
+                  <input
+                    type="time"
+                    value={calendarSettings.calendarStartTime}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      calendarStartTime: e.target.value
+                    })}
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+                <span className="text-content-faint hidden sm:block">—</span>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-content-muted w-16">End</label>
+                  <input
+                    type="time"
+                    value={calendarSettings.calendarEndTime}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      calendarEndTime: e.target.value
+                    })}
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+
+            {/* Fade Past Appointments */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-content-primary block">Fade Past Appointments</label>
+                  <p className="text-xs text-content-faint mt-1">
+                    When enabled, past appointments will be displayed with reduced opacity to distinguish them from upcoming ones
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={calendarSettings.fadePastAppointments}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      fadePastAppointments: e.target.checked
+                    })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              {/* Preview */}
+              <div className="mt-4 p-4 bg-surface-card rounded-xl">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Past</p>
+                    <div
+                      className={`p-3 rounded-lg bg-accent-blue ${calendarSettings.fadePastAppointments ? 'opacity-45' : ''}`}
+                    >
+                      <span className="text-xs text-white font-medium">EMS Training</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Upcoming</p>
+                    <div className="p-3 rounded-lg bg-accent-blue">
+                      <span className="text-xs text-white font-medium">EMS Training</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "capacity":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Capacity Settings" description="Control how many appointments can run simultaneously" />
+
+            <SettingsCard>
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Total Studio Capacity</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      value={studioCapacity}
+                      onChange={(e) => setStudioCapacity(Math.max(1, Math.floor(parseInt(e.target.value) || 1)))}
+                      onKeyDown={(e) => {
+                        if (e.key === '.' || e.key === ',') e.preventDefault()
+                      }}
+                      min={1}
+                      max={100}
+                      step={1}
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                    />
+                    <span className="text-sm text-content-muted">slots</span>
+                  </div>
+                  <p className="text-xs text-content-faint mt-2">
+                    The maximum number of slots that can be used at the same time across all appointments.
+                  </p>
+                </div>
+              </div>
+            </SettingsCard>
+
+            <SettingsCard className="bg-surface-card">
+              <h4 className="text-content-primary font-medium mb-3">How Capacity Works</h4>
+              <div className="space-y-3 text-sm text-content-muted">
+                <div className="flex gap-3">
+                  <span className="text-primary font-medium w-32 flex-shrink-0">Slots Required</span>
+                  <span>How many capacity slots each appointment uses. Set to 0 if the appointment doesn't block any capacity.</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-primary font-medium w-32 flex-shrink-0">Max Parallel</span>
+                  <span>The maximum number of this appointment type that can run at the same time.</span>
+                </div>
+              </div>
+              <div className="mt-4 p-4 bg-surface-card rounded-xl">
+                <p className="text-sm text-content-secondary font-medium mb-2">Example with 3 total slots:</p>
+                <div className="space-y-1.5 text-xs text-content-faint">
+                  <p>• <span className="text-content-secondary">EMS Strength</span> (1 slot, max 2×) – Can run twice in parallel, uses 2 slots total</p>
+                  <p>• <span className="text-content-secondary">Body Check</span> (2 slots, max 1×) – Uses 2 slots, only 1 slot left for other appointments</p>
+                  <p>• <span className="text-content-secondary">Trial Training</span> (3 slots, max 1×) – Uses all capacity, blocks all other bookings</p>
+                  <p>• <span className="text-content-secondary">EMP Chair</span> (0 slots, max 1×) – Doesn't use any capacity, runs independently</p>
+                </div>
+              </div>
+            </SettingsCard>
+
+            {appointmentTypes.length > 0 && (
+              <SettingsCard>
+                <h4 className="text-content-primary font-medium mb-4">Current Configuration</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-3 py-2 text-xs text-content-faint border-b border-border">
+                    <span>Appointment Type</span>
+                    <div className="flex items-center gap-8">
+                      <span className="w-20 text-center">Slots</span>
+                      <span className="w-20 text-center">Max Parallel</span>
+                    </div>
+                  </div>
+                  {appointmentTypes.map((type) => (
+                    <div key={type.id} className="flex items-center justify-between p-3 bg-surface-card rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: type.color }}
+                        />
+                        <span className="text-content-primary">{type.name}</span>
+                      </div>
+                      <div className="flex items-center gap-8 text-sm">
+                        <span className="w-20 text-center text-content-muted">{type.slotsRequired ?? 1}</span>
+                        <span className="w-20 text-center text-content-muted">{type.maxParallel || 1}×</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SettingsCard>
+            )}
+          </div>
+        )
+
+      case "appointment-types":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Appointment Types"
+              description="Configure the types of appointments members can book"
+              action={
+                <button
+                  onClick={() => handleOpenAppointmentTypeModal(null)}
+                  className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Type
+                </button>
+              }
+            />
+
+            {appointmentTypes.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-12 text-content-muted">
+                  <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No appointment types yet</h3>
+                  <p className="text-sm mb-6">Create your first appointment type that members can book</p>
+                  <button
+                    onClick={() => handleOpenAppointmentTypeModal(null)}
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Appointment Type
+                  </button>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {appointmentTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-video bg-surface-card">
+                      {type.image ? (
+                        <img
+                          src={type.image}
+                          alt={type.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Calendar className="w-12 h-12 text-content-faint" />
+                        </div>
+                      )}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                      {/* Category badge - blue like member view */}
+                      {type.category && (
+                        <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                          {type.category}
+                        </div>
+                      )}
+
+                      {/* Info button with popup - shows on hover and click */}
+                      {type.description && (
+                        <div className="absolute top-3 right-3 group/info">
+                          <button
+                            className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors"
+                          >
+                            <Info className="w-4 h-4 text-white" />
+                          </button>
+                          {/* Popup - shows on hover or focus */}
+                          <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-hover border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
+                            <p className="text-content-secondary text-sm">{type.description}</p>
+                            <div className="absolute -top-2 right-3 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4">
+                      {/* Title with color indicator */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: type.color }}
+                          title="Calendar color"
+                        />
+                        <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
+                      </div>
+
+                      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {type.duration} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Settings className="w-3.5 h-3.5" />
+                          {type.slotsRequired ?? 1} {(type.slotsRequired ?? 1) === 1 ? 'slot' : 'slots'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5" />
+                          {type.maxParallel || 1}× parallel
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <BadgeDollarSign className="w-3.5 h-3.5" />
+                          {type.contingentUsage ?? 1} credit{(type.contingentUsage ?? 1) !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
+                      <button
+                        onClick={() => handleOpenAppointmentTypeModal(type)}
+                        className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAppointmentType(type.id)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+
+      case "appointment-categories":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Appointment Categories"
+              description="Organize appointment types into categories"
+              action={
+                <button
+                  onClick={handleAddCategory}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Category
+                </button>
+              }
+            />
+            <SettingsCard>
+              <div className="flex flex-wrap gap-2">
+                {appointmentCategories.map((category, index) => (
+                  <div key={index} className="group relative">
+                    {editingCategory.index === index ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={editingCategory.value}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const updated = [...appointmentCategories]
+                              updated[index] = editingCategory.value.trim() || category
+                              setAppointmentCategories(updated)
+                              setEditingCategory({ index: null, value: "" })
+                            }
+                            if (e.key === 'Escape') {
+                              setEditingCategory({ index: null, value: "" })
+                            }
+                          }}
+                          autoFocus
+                          className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
+                        />
+                        <button
+                          onClick={() => {
+                            const updated = [...appointmentCategories]
+                            updated[index] = editingCategory.value.trim() || category
+                            setAppointmentCategories(updated)
+                            setEditingCategory({ index: null, value: "" })
+                          }}
+                          className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingCategory({ index: null, value: "" })}
+                          className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
+                        onClick={() => setEditingCategory({ index, value: category })}
+                      >
+                        {category}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveCategory(index)
+                          }}
+                          className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-content-faint mt-4">
+                Click a category to edit. Categories in use cannot be deleted.
+              </p>
+            </SettingsCard>
+          </div>
+        )
+
+      case "trial-training":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Trial Training" description="Configure trial training settings for new members" />
+            <SettingsCard>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-content-faint" />
+                    Duration
+                    <Tooltip content="How long the trial training session lasts in minutes">
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={trialTraining.duration}
+                      onChange={(e) => setTrialTraining({ ...trialTraining, duration: Math.floor(Number(e.target.value)) })}
+                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                      min={15}
+                      max={180}
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                    />
+                    <span className="text-sm text-content-muted">min</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-content-faint" />
+                    Slots
+                    <Tooltip content="How many capacity slots the trial training uses. Set to max to block all other bookings.">
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="number"
+                    value={trialTraining.slotsRequired}
+                    onChange={(e) => setTrialTraining({ ...trialTraining, slotsRequired: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={0}
+                    max={studioCapacity}
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Users className="w-4 h-4 text-content-faint" />
+                    Max Parallel
+                    <Tooltip content="Maximum number of trial trainings that can run at the same time">
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="number"
+                    value={trialTraining.maxParallel}
+                    onChange={(e) => setTrialTraining({ ...trialTraining, maxParallel: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={1}
+                    max={studioCapacity}
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Calendar Color
+                    <Tooltip content="The color used to display trial trainings in the calendar" position="right">
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <button
+                    onClick={() => openColorPicker(trialTraining.color || '#3B82F6', 'Calendar Color', (color) => setTrialTraining({ ...trialTraining, color }))}
+                    className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                    style={{ backgroundColor: trialTraining.color }}
+                    title="Pick a color"
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // CLASSES SECTIONS
+      // ========================
+      case "classes-calendar-settings":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Calendar Settings" description="Configure how the calendar displays classes" />
+
+            {/* Hide Closed Days */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-content-primary block">Hide Closed Days</label>
+                  <p className="text-xs text-content-faint mt-1">
+                    When enabled, days marked as closed will not appear as columns in the classes calendar
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={classCalendarSettings.hideClosedDays}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, hideClosedDays: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              <div className="mt-4 p-4 bg-surface-card rounded-xl overflow-x-auto">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
+                <div className="flex gap-1 min-w-[400px]">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                    const isWeekend = day === 'Sat' || day === 'Sun';
+                    if (classCalendarSettings.hideClosedDays && isWeekend) return null;
+                    return (
+                      <div key={day} className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${isWeekend ? 'bg-gray-700/30 text-content-faint' : 'bg-surface-hover text-content-primary'}`}>
+                        <span className="text-xs font-medium">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-content-faint mt-3 text-center">
+                  {classCalendarSettings.hideClosedDays ? 'Showing Monday - Friday (closed days hidden)' : 'Showing all days including weekends'}
+                </p>
+              </div>
+            </SettingsCard>
+
+            {/* Calendar Time Range */}
+            <SettingsCard>
+              <h4 className="text-content-primary font-medium mb-4">Calendar Time Range</h4>
+              <p className="text-xs text-content-faint mb-4">
+                Set the visible time range for the classes calendar. Times outside this range will not be displayed.
+              </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-content-muted w-16">Start</label>
+                  <input
+                    type="time"
+                    value={classCalendarSettings.calendarStartTime}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, calendarStartTime: e.target.value })}
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+                <span className="text-content-faint hidden sm:block">—</span>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-content-muted w-16">End</label>
+                  <input
+                    type="time"
+                    value={classCalendarSettings.calendarEndTime}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, calendarEndTime: e.target.value })}
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+
+            {/* Fade Past Classes */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-content-primary block">Fade Past Classes</label>
+                  <p className="text-xs text-content-faint mt-1">
+                    When enabled, past classes will be displayed with reduced opacity to distinguish them from upcoming ones
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={classCalendarSettings.fadePastClasses}
+                    onChange={(e) => setClassCalendarSettings({ ...classCalendarSettings, fadePastClasses: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              <div className="mt-4 p-4 bg-surface-card rounded-xl">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Past</p>
+                    <div className={`p-3 rounded-lg bg-emerald-600 ${classCalendarSettings.fadePastClasses ? 'opacity-45' : ''}`}>
+                      <span className="text-xs text-white font-medium">Yoga Class</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Upcoming</p>
+                    <div className="p-3 rounded-lg bg-emerald-600">
+                      <span className="text-xs text-white font-medium">Yoga Class</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "class-types":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Class Types"
+              description="Configure the types of classes available in your studio"
+              action={
+                <button
+                  onClick={() => handleOpenClassTypeModal(null)}
+                  className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Type
+                </button>
+              }
+            />
+
+            {classTypes.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-12 text-content-muted">
+                  <Timer className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No class types yet</h3>
+                  <p className="text-sm mb-6">Create your first class type</p>
+                  <button
+                    onClick={() => handleOpenClassTypeModal(null)}
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Class Type
+                  </button>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {classTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-video bg-surface-card">
+                      {type.image ? (
+                        <img src={type.image} alt={type.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Timer className="w-12 h-12 text-content-faint" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                      {type.category && (
+                        <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                          {type.category}
+                        </div>
+                      )}
+
+                      {type.description && (
+                        <div className="absolute top-3 right-3 group/info">
+                          <button className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors">
+                            <Info className="w-4 h-4 text-white" />
+                          </button>
+                          <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-hover border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
+                            <p className="text-content-secondary text-sm">{type.description}</p>
+                            <div className="absolute -top-2 right-3 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }} title="Calendar color" />
+                        <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
+                      </div>
+
+                      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {type.duration} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5" />
+                          max. {type.maxParticipants} participants
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
+                      <button
+                        onClick={() => handleOpenClassTypeModal(type)}
+                        className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClassType(type.id)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+
+      case "class-categories":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Class Categories"
+              description="Organize class types into categories"
+              action={
+                <button
+                  onClick={handleAddClassCategory}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Category
+                </button>
+              }
+            />
+            <SettingsCard>
+              <div className="flex flex-wrap gap-2">
+                {classCategories.map((category, index) => (
+                  <div key={index} className="group relative">
+                    {editingClassCategory.index === index ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={editingClassCategory.value}
+                          onChange={(e) => setEditingClassCategory({ ...editingClassCategory, value: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const updated = [...classCategories]
+                              updated[index] = editingClassCategory.value.trim() || category
+                              setClassCategories(updated)
+                              setEditingClassCategory({ index: null, value: "" })
+                            }
+                            if (e.key === 'Escape') setEditingClassCategory({ index: null, value: "" })
+                          }}
+                          autoFocus
+                          className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
+                        />
+                        <button
+                          onClick={() => {
+                            const updated = [...classCategories]
+                            updated[index] = editingClassCategory.value.trim() || category
+                            setClassCategories(updated)
+                            setEditingClassCategory({ index: null, value: "" })
+                          }}
+                          className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingClassCategory({ index: null, value: "" })}
+                          className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
+                        onClick={() => setEditingClassCategory({ index, value: category })}
+                      >
+                        {category}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemoveClassCategory(index) }}
+                          className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-content-faint mt-4">
+                Click a category to edit. Categories in use cannot be deleted.
+              </p>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // STAFF SECTIONS
+      // ========================
+      case "staff-defaults":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Staff Default Settings" description="Default values for new staff members" />
+
+            {/* Info Box */}
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-primary">
+                    These settings are automatically applied when creating new staff members. You can always adjust them individually for each staff member later.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <SettingsCard>
+              <div className="space-y-6">
+                <NumberInput
+                  label="Default Vacation Days"
+                  value={defaultVacationDays}
+                  onChange={setDefaultVacationDays}
+                  min={0}
+                  max={365}
+                  suffix="days per year"
+                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Staff Role
+                  </label>
+                  <CustomSelect
+                    name="defaultStaffRole"
+                    value={defaultStaffRole}
+                    onChange={(e) => setDefaultStaffRole(e.target.value)}
+                    options={roles.filter(r => !r.isAdmin).map(r => ({ value: r.id, label: r.name }))}
+                    placeholder="Select default role"
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Staff Country
+                  </label>
+                  <CustomSelect
+                    name="defaultStaffCountry"
+                    value={defaultStaffCountry}
+                    onChange={(e) => setDefaultStaffCountry(e.target.value)}
+                    options={[
+                      { value: "studio", label: "Same as Studio Country" },
+                      ...countries.map(c => ({ value: c.code, label: c.name }))
+                    ]}
+                    searchable
+                    className="bg-surface-card px-4 py-2.5 border-border"
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "staff-roles":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Staff Roles & Permissions"
+              description="Define roles and their permissions"
+              action={
+                <button
+                  onClick={handleAddRole}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Role
+                </button>
+              }
+            />
+            <div className="space-y-3">
+              {roles.map((role, index) => (
+                <SettingsCard key={role.id}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    {/* Color Picker */}
+                    <button
+                      onClick={() => openColorPicker(role.color || '#3B82F6', 'Role Color', (color) => handleUpdateRole(index, 'color', color))}
+                      className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                      style={{ backgroundColor: role.color || '#3B82F6' }}
+                      title="Pick a color"
+                    />
+
+                    {/* Role Name */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={role.name}
+                          onChange={(e) => handleUpdateRole(index, "name", e.target.value)}
+                          placeholder="Enter role name"
+                          className="w-full bg-transparent text-content-primary text-lg font-medium outline-none border-b border-transparent hover:border-border focus:border-primary transition-colors pb-1"
+                        />
+                        {role.isAdmin && (
+                          <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded flex-shrink-0">Admin</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setSelectedRoleIndex(index)
+                          setPermissionModalVisible(true)
+                        }}
+                        className="px-3 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+                      >
+                        <Shield className="w-4 h-4" />
+                        <span className="hidden sm:inline">Permissions</span>
+                        <span className="bg-surface-button-hover px-1.5 py-0.5 rounded text-xs">{role.permissions?.length || 0}</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedRoleForAssignment(index)
+                          setStaffAssignmentModalVisible(true)
+                        }}
+                        className="px-3 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+                      >
+                        <Users className="w-4 h-4" />
+                        <span className="hidden sm:inline">Staff</span>
+                        <span className="bg-surface-button-hover px-1.5 py-0.5 rounded text-xs">{role.staffCount || 0}</span>
+                      </button>
+                      <button
+                        onClick={() => handleCopyRole(index)}
+                        className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
+                        title="Duplicate role"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      {/* Delete button - invisible placeholder for admin to keep alignment */}
+                      {role.isAdmin ? (
+                        <div className="w-9 h-9" />
+                      ) : (
+                        <button
+                          onClick={() => handleDeleteRole(index)}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Delete role"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </SettingsCard>
+              ))}
+            </div>
+          </div>
+        )
+
+      // ========================
+      // MEMBER SECTIONS
+      // ========================
+      case "qr-checkin":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="QR Code Check-In" description="Allow members to check in using a QR code" />
+            <SettingsCard>
+              <Toggle
+                label="Enable QR Code Check-In"
+                checked={allowMemberQRCheckIn}
+                onChange={setAllowMemberQRCheckIn}
+                helpText="Members can scan a QR code to check in at your studio"
+              />
+            </SettingsCard>
+
+            {allowMemberQRCheckIn && (
+              <SettingsCard>
+                <div className="flex flex-col items-center gap-6">
+                  <h3 className="text-content-primary font-medium">{studioName || "Studio"}</h3>
+                  <div ref={qrCodeRef} className="p-6 bg-white rounded-2xl shadow-lg">
+                    <QRCode
+                      value={memberQRCodeUrl || "https://your-studio-app.com/member-checkin"}
+                      size={220}
+                      icon={logoUrl || DefaultAvatar}
+                      iconSize={55}
+                      errorLevel="H"
+                      color="#1a1a2e"
+                    />
+                  </div>
+                  <p className="text-sm text-content-muted text-center">
+                    Scan to check in
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <button
+                      onClick={handleDownloadQRCode}
+                      className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download
+                    </button>
+                    <button
+                      onClick={handlePrintQRCode}
+                      className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print
+                    </button>
+                  </div>
+                  <p className="text-xs text-content-faint text-center mt-2">
+                    The downloaded and printed QR code will include your studio name and branding.
+                  </p>
+                </div>
+              </SettingsCard>
+            )}
+          </div>
+        )
+
+      case "lead-sources":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Lead Sources"
+              description="Track where your leads come from"
+              action={
+                <button
+                  onClick={handleAddLeadSource}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Source
+                </button>
+              }
+            />
+            <SettingsCard>
+              {leadSources.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No lead sources configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {leadSources.map((source) => (
+                    <div key={source.id} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <button
+                        onClick={() => openColorPicker(source.color || '#3B82F6', 'Source Color', (color) => handleUpdateLeadSource(source.id, 'color', color))}
+                        className="w-8 h-8 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                        style={{ backgroundColor: source.color }}
+                        title="Pick a color"
+                      />
+                      <input
+                        type="text"
+                        value={source.name}
+                        onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
+                        placeholder="Source name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => handleRemoveLeadSource(source.id)}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "intro-materials":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Introductory Materials"
+              description="Create welcome guides and onboarding content for new members"
+              action={
+                <button
+                  onClick={() => {
+                    const newMaterial = {
+                      id: Date.now(),
+                      name: "",
+                      pages: [{ id: Date.now(), title: "Page 1", content: "" }]
+                    }
+                    // Don't add to list yet - only add when saved
+                    setEditingIntroMaterial(newMaterial)
+                    setEditingIntroMaterialIndex(null) // null = new material
+                    setIntroMaterialEditorVisible(true)
+                  }}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Material
+                </button>
+              }
+            />
+
+            {introductoryMaterials.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-8 text-content-muted">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No introductory materials created</p>
+                  <p className="text-sm mt-1">Create welcome guides for new members</p>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {introductoryMaterials.map((material, index) => (
+                  <div key={material.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
+                    <div className="p-4 sm:p-5">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-content-primary font-medium truncate">
+                              {material.name || "Untitled Material"}
+                            </h3>
+                            <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
+                              <BookOpen className="w-4 h-4" />
+                              {material.pages.length} page{material.pages.length !== 1 ? "s" : ""}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => openDeleteModal(
+                              "Delete Material",
+                              introductoryMaterials[index]?.name || "Untitled Material",
+                              `This will permanently delete all ${introductoryMaterials[index]?.pages?.length || 0} page(s). This action cannot be undone.`,
+                              () => {
+                                setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== index))
+                                closeDeleteModal()
+                                toast.success("Material deleted successfully")
+                              }
+                            )}
+                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Page previews with content thumbnails */}
+                        <div className="flex gap-1.5 overflow-x-auto pb-1">
+                          {material.pages.slice(0, 4).map((page, pageIndex) => (
+                            <div
+                              key={page.id}
+                              className="w-14 h-[72px] bg-white border border-border rounded-lg flex-shrink-0 overflow-hidden relative"
+                            >
+                              {/* Scaled content preview */}
+                              <div
+                                className="w-full h-full overflow-hidden pointer-events-none"
+                                style={{
+                                  transform: 'scale(0.12)',
+                                  transformOrigin: 'top left',
+                                  width: '833%',
+                                  height: '833%',
+                                  fontSize: '11px',
+                                  padding: '4px',
+                                  color: '#000',
+                                  lineHeight: '1.3',
+                                  fontFamily: 'Arial, sans-serif'
+                                }}
+                                dangerouslySetInnerHTML={{
+                                  __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>`
+                                }}
+                              />
+                              {/* Page number badge */}
+                              <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
+                                {pageIndex + 1}
+                              </div>
+                            </div>
+                          ))}
+                          {material.pages.length > 4 && (
+                            <div className="w-14 h-[72px] bg-surface-card border border-border rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-content-muted font-medium">
+                              +{material.pages.length - 4}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-4 py-3 bg-surface-card border-t border-border">
+                      <button
+                        onClick={() => {
+                          const deepCopy = {
+                            ...material,
+                            pages: material.pages.map(p => ({ ...p }))
+                          }
+                          setEditingIntroMaterial(deepCopy)
+                          setEditingIntroMaterialIndex(index)
+                          setIntroMaterialEditorVisible(true)
+                        }}
+                        className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit Content
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+        )
+
+      // ========================
+      // CONTRACT SECTIONS
+      // ========================
+      case "contract-general":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract General Settings" description="Default settings for new contracts" />
+
+            {/* Member Settings */}
+            <SettingsCard>
+              <div className="space-y-4">
+                <h3 className="text-content-primary font-medium">Member Permissions</h3>
+                <Toggle
+                  label="Allow Member Self-Cancellation"
+                  checked={allowMemberSelfCancellation}
+                  onChange={setAllowMemberSelfCancellation}
+                  helpText="Members can cancel their contracts without staff assistance"
+                />
+              </div>
+            </SettingsCard>
+
+            {/* Contract Defaults */}
+            <SettingsCard>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-content-primary font-medium mb-1">Contract Defaults</h3>
+                  <p className="text-xs text-content-faint">Applied when creating new contract types</p>
+                </div>
+
+                {/* Info Box */}
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-primary">
+                      These settings are automatically applied when creating new contract types. You can always adjust them individually for each contract type.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                      Default Billing Period
+                    </label>
+                    <CustomSelect
+                      name="defaultBillingPeriod"
+                      value={defaultBillingPeriod}
+                      onChange={(e) => setDefaultBillingPeriod(e.target.value)}
+                      options={[
+                        { value: "weekly", label: "Weekly" },
+                        { value: "monthly", label: "Monthly" },
+                        { value: "annually", label: "Annually" }
+                      ]}
+                      className="bg-surface-card px-4 py-2.5 border-border"
+                    />
+                  </div>
+                  <NumberInput
+                    label="Default Notice Period"
+                    value={noticePeriod}
+                    onChange={setNoticePeriod}
+                    min={0}
+                    max={365}
+                    suffix="days"
+                    helpText="Days before contract end to cancel"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    Default Contingent
+                    <Tooltip content="The number of appointment credits members receive per billing period. Each appointment type can deduct a different amount from this contingent. Set to 0 for unlimited.">
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="number"
+                      value={defaultAppointmentLimit}
+                      onChange={(e) => setDefaultAppointmentLimit(Number(e.target.value))}
+                      min={0}
+                      placeholder="0 = Unlimited"
+                      className="w-32 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                    />
+                    <span className="text-content-muted text-sm">credits per billing period</span>
+                  </div>
+                  <p className="text-xs text-content-faint">0 = Unlimited contingent</p>
+                </div>
+              </div>
+            </SettingsCard>
+
+            {/* Renewal Defaults */}
+            <SettingsCard>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-content-primary font-medium mb-1">Renewal Defaults</h3>
+                  <p className="text-xs text-content-faint">Settings for contract renewal after minimum duration</p>
+                </div>
+
+                <Toggle
+                  label="Enable Automatic Renewal by Default"
+                  checked={defaultAutoRenewal}
+                  onChange={setDefaultAutoRenewal}
+                  helpText="New contracts will have automatic renewal enabled"
+                />
+
+                <div className="pt-4 border-t border-border space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                      Default Renewal Duration
+                      <Tooltip content="How long contracts continue after the minimum duration. Choose 'Indefinite' for open-ended contracts that run until cancelled.">
+                        <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
+                      </Tooltip>
+                    </label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <CustomSelect
+                        name="defaultRenewalType"
+                        value={defaultRenewalIndefinite ? "indefinite" : "fixed"}
+                        onChange={(e) => setDefaultRenewalIndefinite(e.target.value === "indefinite")}
+                        options={[
+                          { value: "fixed", label: "Fixed period" },
+                          { value: "indefinite", label: "Indefinite" }
+                        ]}
+                        className="bg-surface-card px-4 py-2.5 border-border"
+                      />
+                      {!defaultRenewalIndefinite && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={defaultRenewalPeriod}
+                            onChange={(e) => setDefaultRenewalPeriod(Number(e.target.value))}
+                            min={1}
+                            className="w-20 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                          />
+                          <span className="text-content-muted">months</span>
+                        </div>
+                      )}
+                    </div>
+                    {defaultRenewalIndefinite && (
+                      <p className="text-xs text-content-faint mt-1">Contracts will run indefinitely until cancelled</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-forms":
+        return (
+          <div className="space-y-6">
+            {/* Mobile: show notice that contract forms require desktop */}
+            <div className="lg:hidden">
+              <SettingsCard>
+                <div className="text-center py-12 text-content-muted">
+                  <Smartphone className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-content-primary mb-2">Desktop Required</h3>
+                  <p className="text-sm">Contract forms can only be created and edited on a desktop device.</p>
+                </div>
+              </SettingsCard>
+            </div>
+
+            {/* Desktop: full contract form management */}
+            <div className="hidden lg:block space-y-6">
+              <SectionHeader
+                title="Contract Forms"
+                description="Create and manage contract form templates"
+                action={
+                  <button
+                    onClick={() => setShowCreateFormModal(true)}
+                    className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Create</span> Form
+                  </button>
+                }
+              />
+
+              {contractForms.length === 0 ? (
+                <SettingsCard>
+                  <div className="text-center py-12 text-content-muted">
+                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium text-content-primary mb-2">No contract forms yet</h3>
+                    <p className="text-sm mb-6">Create your first contract form template</p>
+                    <button
+                      onClick={() => setShowCreateFormModal(true)}
+                      className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create Contract Form
+                    </button>
+                  </div>
+                </SettingsCard>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {contractForms.map((form) => (
+                    <div key={form.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
+                      <div className="p-4 sm:p-5">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            {editingContractFormName.id === form.id ? (
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="text"
+                                  value={editingContractFormName.value}
+                                  onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      setContractForms(contractForms.map(f =>
+                                        f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                      ))
+                                      setEditingContractFormName({ id: null, value: "" })
+                                    }
+                                    if (e.key === 'Escape') {
+                                      setEditingContractFormName({ id: null, value: "" })
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="flex-1 bg-surface-card text-content-primary text-sm font-medium outline-none border border-accent-blue focus:border-primary rounded-lg px-2 py-1"
+                                />
+                                <button
+                                  onClick={() => {
+                                    setContractForms(contractForms.map(f =>
+                                      f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                    ))
+                                    setEditingContractFormName({ id: null, value: "" })
+                                  }}
+                                  className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setEditingContractFormName({ id: null, value: "" })}
+                                  className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <h3
+                                className="text-content-primary font-medium text-sm sm:text-base cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
+                                title="Click to edit name"
+                              >
+                                {form.name}
+                              </h3>
+                            )}
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => setContractForms([...contractForms, {
+                                  ...form,
+                                  id: Date.now(),
+                                  name: `${form.name} (Copy)`,
+                                  createdAt: new Date().toISOString()
+                                }])}
+                                className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded transition-colors"
+                                title="Duplicate"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => openDeleteModal(
+                                  "Delete Contract Form",
+                                  form.name || "this form",
+                                  "This will permanently delete all pages and content. This action cannot be undone.",
+                                  () => {
+                                    setContractForms(contractForms.filter(f => f.id !== form.id))
+                                    closeDeleteModal()
+                                    toast.success("Contract form deleted")
+                                  }
+                                )}
+                                className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="text-xs text-content-faint">
+                            Created: {new Date(form.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-content-faint">
+                            {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-4 py-3 bg-surface-card border-t border-border">
+                        <button
+                          onClick={() => {
+                            setSelectedContractForm(form)
+                            setContractBuilderModalVisible(true)
+                          }}
+                          className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Open Builder
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )
+
+      case "contract-types":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Types"
+              description="Define different membership contracts for your studio"
+              action={
+                <button
+                  onClick={handleAddContractType}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Type
+                </button>
+              }
+            />
+
+            {contractTypes.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-12 text-content-muted">
+                  <RiContractLine className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No contract types yet</h3>
+                  <p className="text-sm mb-6">Create your first membership contract type</p>
+                  <button
+                    onClick={handleAddContractType}
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Contract Type
+                  </button>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {contractTypes.map((type, index) => (
+                  <div
+                    key={index}
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
+                  >
+                    {/* Header */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
+                        {type.autoRenewal && (
+                          <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full flex-shrink-0">
+                            Auto-Renew
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Price highlight */}
+                      <div className="mb-4">
+                        <span className="text-2xl font-bold text-content-primary">{type.cost}{currency}</span>
+                        <span className="text-content-faint text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                      </div>
+
+                      {/* Key info */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between text-content-muted">
+                          <span className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Duration
+                          </span>
+                          <span className="text-content-primary">{type.duration} months</span>
+                        </div>
+                        <div className="flex items-center justify-between text-content-muted">
+                          <span className="flex items-center gap-2">
+                            <BadgeDollarSign className="w-4 h-4" />
+                            Contingent
+                          </span>
+                          <span className="text-content-primary">{type.userCapacity || '∞'} credits / {type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-content-muted">
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Form
+                          </span>
+                          <span className="text-content-primary truncate max-w-[120px]">
+                            {type.contractFormId ? contractForms.find(f => String(f.id) === String(type.contractFormId))?.name || 'Unknown' : 'None'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
+                      <button
+                        onClick={() => handleEditContractType(type, index)}
+                        className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteContractType(index)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <ContractTypeModal
+              isOpen={contractTypeModalVisible}
+              onClose={() => {
+                setContractTypeModalVisible(false)
+                setEditingContractType(null)
+                setEditingContractTypeIndex(null)
+              }}
+              editingContractType={editingContractType}
+              setEditingContractType={setEditingContractType}
+              editingContractTypeIndex={editingContractTypeIndex}
+              contractForms={contractForms}
+              currency={currency}
+              onSave={handleSaveContractType}
+            />
+          </div>
+        )
+
+      case "pause-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Pause Reasons"
+              description="Define reasons members can pause their contracts"
+              action={
+                <button
+                  onClick={handleAddPauseReason}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractPauseReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <PauseCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No pause reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractPauseReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractPauseReasons]
+                          updated[index].name = e.target.value
+                          setContractPauseReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => openDeleteModal(
+                          "Delete Pause Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Pause reason deleted")
+                          }
+                        )}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "change-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Change Reasons"
+              description="Define reasons for contract changes"
+              action={
+                <button
+                  onClick={handleAddChangeReason}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractChangeReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <ArrowRightLeft className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No change reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractChangeReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractChangeReasons]
+                          updated[index].name = e.target.value
+                          setContractChangeReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => openDeleteModal(
+                          "Delete Change Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractChangeReasons(contractChangeReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Change reason deleted")
+                          }
+                        )}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "renew-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Contract Renew Reasons"
+              description="Define reasons for contract renewals"
+              action={
+                <button
+                  onClick={handleAddRenewReason}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractRenewReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <RefreshCw className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No renew reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractRenewReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractRenewReasons]
+                          updated[index].name = e.target.value
+                          setContractRenewReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => openDeleteModal(
+                          "Delete Renew Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractRenewReasons(contractRenewReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Renew reason deleted")
+                          }
+                        )}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      case "bonus-time-reasons":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Bonus Time Reasons"
+              description="Define reasons for granting bonus time"
+              action={
+                <button
+                  onClick={handleAddBonusTimeReason}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Reason
+                </button>
+              }
+            />
+            <SettingsCard>
+              {contractBonusTimeReasons.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <Gift className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No bonus time reasons configured</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contractBonusTimeReasons.map((reason, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                      <input
+                        type="text"
+                        value={reason.name}
+                        onChange={(e) => {
+                          const updated = [...contractBonusTimeReasons]
+                          updated[index].name = e.target.value
+                          setContractBonusTimeReasons(updated)
+                        }}
+                        placeholder="Reason name"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                      />
+                      <button
+                        onClick={() => openDeleteModal(
+                          "Delete Bonus Time Reason",
+                          reason.name || "this reason",
+                          "This cannot be undone.",
+                          () => {
+                            setContractBonusTimeReasons(contractBonusTimeReasons.filter((_, i) => i !== index))
+                            closeDeleteModal()
+                            toast.success("Bonus time reason deleted")
+                          }
+                        )}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // COMMUNICATION SECTIONS
+      // ========================
+      case "comm-general":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Communication Settings" description="General communication preferences" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl">
+                  <p className="text-primary text-sm flex items-start gap-2">
+                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted – they remain accessible and can be retrieved at any time.</span>
+                  </p>
+                </div>
+                <NumberInput
+                  label="Auto-Archive Duration"
+                  value={settings.autoArchiveDuration}
+                  onChange={(v) => setSettings({ ...settings, autoArchiveDuration: v })}
+                  min={1}
+                  max={365}
+                  suffix="days"
+                  helpText="Chats are archived after this period of inactivity"
+                />
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "email-notifications":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Email Notifications" description="Configure automated email notifications" />
+
+            {/* Birthday Email Notification */}
+            <SettingsCard>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-content-primary font-medium">Birthday Email</h3>
+                    <p className="text-sm text-content-muted">Automatically sends birthday greetings via email when enabled</p>
+                  </div>
+                  <Toggle
+                    checked={settings.birthdayEmailEnabled}
+                    onChange={(v) => setSettings({ ...settings, birthdayEmailEnabled: v })}
+                  />
+                </div>
+
+                {settings.birthdayEmailEnabled && (
+                  <div className="space-y-4 pt-4 border-t border-border">
+                    {/* Send Time */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm text-content-secondary">Send time:</span>
+                      <input
+                        type="time"
+                        value={settings.birthdaySendTime || "09:00"}
+                        onChange={(e) => setSettings({ ...settings, birthdaySendTime: e.target.value })}
+                        className="bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                      />
+                    </div>
+
+                    {/* Subject */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-content-secondary">Subject</label>
+                      <VariablesRow>
+                        <span className="text-xs text-content-faint mr-2">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayEmailSubject: (settings.birthdayEmailSubject || "") + " " + v })}
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </VariablesRow>
+                      <input
+                        type="text"
+                        value={settings.birthdayEmailSubject || ""}
+                        onChange={(e) => setSettings({ ...settings, birthdayEmailSubject: e.target.value })}
+                        placeholder="🎂 Happy Birthday, {Member_First_Name}!"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                      />
+                    </div>
+
+                    {/* Message */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-content-secondary">Message</label>
+                      <VariablesRow>
+                        <span className="text-xs text-content-faint mr-1">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => birthdayEditorRef.current?.insertText(v)}
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                        <span className="text-xs text-content-faint mx-2">|</span>
+                        <span className="text-xs text-content-faint mr-1">Insert:</span>
+                        <button
+                          onClick={() => {
+                            if (settings.emailSignature) {
+                              birthdayEditorRef.current?.insertHTML(settings.emailSignature)
+                            } else {
+                              toast.error("No email signature configured — Please set up your email signature first.")
+                            }
+                          }}
+                          className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                        >
+                          <FileText className="w-3 h-3" />
+                          Email Signature
+                        </button>
+                      </VariablesRow>
+                      <WysiwygEditor
+                        ref={birthdayEditorRef}
+                        value={settings.birthdayEmailTemplate || ""}
+                        onChange={(v) => setSettings({ ...settings, birthdayEmailTemplate: v })}
+                        placeholder="Happy Birthday, {Member_First_Name}! We hope you have a wonderful day..."
+                        minHeight={120}
+                        showImages={true}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </SettingsCard>
+
+            {/* Appointment Email Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, emailAppointments: !prev.emailAppointments }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Appointment Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.emailAppointments ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Automated emails for appointment bookings, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.emailAppointments && ["confirmation", "cancellation", "rescheduled", "reminder", "registration"].map(type => {
+              const config = appointmentNotificationTypes[type] || {}
+              const titles = {
+                confirmation: "Appointment Confirmation",
+                cancellation: "Appointment Cancellation",
+                rescheduled: "Appointment Rescheduled",
+                reminder: "Appointment Reminder",
+                registration: "New Member Registration"
+              }
+              const descriptions = {
+                confirmation: "Email sent when an appointment is booked",
+                cancellation: "Email sent when an appointment is cancelled",
+                rescheduled: "Email sent when an appointment time is changed",
+                reminder: "Email sent before an upcoming appointment",
+                registration: "Email sent when a new member registers"
+              }
+              const subjectVariables = type === "registration"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"]
+                : type === "rescheduled"
+                  ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                  : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Date}", "{Booked_Time}"]
+              const messageVariables = type === "registration"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Registration_Link}"]
+                : type === "rescheduled"
+                  ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                  : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+
+              return (
+                <SettingsCard key={type}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Email</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.emailEnabled || false}
+                        onChange={(v) => setAppointmentNotificationTypes({
+                          ...appointmentNotificationTypes,
+                          [type]: { ...config, emailEnabled: v }
+                        })}
+                      />
+                    </div>
+
+                    {config.emailEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-content-secondary">Send</span>
+                            <input
+                              type="number"
+                              value={config.hoursBefore || 24}
+                              onChange={(e) => setAppointmentNotificationTypes({
+                                ...appointmentNotificationTypes,
+                                [type]: { ...config, hoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            />
+                            <span className="text-sm text-content-secondary">hours before appointment</span>
+                          </div>
+                        )}
+
+                        {/* Subject */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Subject</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {subjectVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
+                                  ...appointmentNotificationTypes,
+                                  [type]: { ...config, emailSubject: (config.emailSubject || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </VariablesRow>
+                          <input
+                            type="text"
+                            value={config.emailSubject || ""}
+                            onChange={(e) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, emailSubject: e.target.value }
+                            })}
+                            placeholder={`${titles[type]} - {Appointment_Type}`}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-1">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => appointmentEditorRefs.current[type]?.insertText(v)}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                            <span className="text-xs text-content-faint mx-2">|</span>
+                            <span className="text-xs text-content-faint mr-1">Insert:</span>
+                            <button
+                              onClick={() => {
+                                if (settings.emailSignature) {
+                                  appointmentEditorRefs.current[type]?.insertHTML(settings.emailSignature)
+                                } else {
+                                  toast.error("No email signature configured — Please set up your email signature first.")
+                                }
+                              }}
+                              className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Email Signature
+                            </button>
+                          </VariablesRow>
+                          <WysiwygEditor
+                            ref={(el) => { appointmentEditorRefs.current[type] = el }}
+                            value={config.emailTemplate || ""}
+                            onChange={(v) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, emailTemplate: v }
+                            })}
+                            placeholder={`Enter ${type} email message...`}
+                            minHeight={120}
+                            showImages={true}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
+
+            {/* Class Email Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, emailClasses: !prev.emailClasses }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Class Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.emailClasses ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Automated emails for class enrollments, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.emailClasses && ["enrollment", "cancellation", "rescheduled", "reminder", "waitlist"].map(type => {
+              const config = classNotificationTypes[type] || {}
+              const titles = {
+                enrollment: "Class Enrollment Confirmation",
+                cancellation: "Class Cancellation",
+                rescheduled: "Class Rescheduled",
+                reminder: "Class Reminder",
+                waitlist: "Waitlist Spot Available"
+              }
+              const descriptions = {
+                enrollment: "Email sent when a member enrolls in a class",
+                cancellation: "Email sent when a class enrollment is cancelled",
+                rescheduled: "Email sent when a class time or date is changed",
+                reminder: "Email sent before an upcoming class",
+                waitlist: "Email sent when a waitlisted spot opens up"
+              }
+              const subjectVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}"]
+              const messageVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+
+              return (
+                <SettingsCard key={`class-${type}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Email</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.emailEnabled || false}
+                        onChange={(v) => setClassNotificationTypes({
+                          ...classNotificationTypes,
+                          [type]: { ...config, emailEnabled: v }
+                        })}
+                      />
+                    </div>
+
+                    {config.emailEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-content-secondary">Send</span>
+                            <input
+                              type="number"
+                              value={config.hoursBefore || 24}
+                              onChange={(e) => setClassNotificationTypes({
+                                ...classNotificationTypes,
+                                [type]: { ...config, hoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            />
+                            <span className="text-sm text-content-secondary">hours before class</span>
+                          </div>
+                        )}
+
+                        {/* Subject */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Subject</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {subjectVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setClassNotificationTypes({
+                                  ...classNotificationTypes,
+                                  [type]: { ...config, emailSubject: (config.emailSubject || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </VariablesRow>
+                          <input
+                            type="text"
+                            value={config.emailSubject || ""}
+                            onChange={(e) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, emailSubject: e.target.value }
+                            })}
+                            placeholder={`${titles[type]} - {Class_Name}`}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-1">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => classEditorRefs.current[type]?.insertText(v)}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                            <span className="text-xs text-content-faint mx-2">|</span>
+                            <span className="text-xs text-content-faint mr-1">Insert:</span>
+                            <button
+                              onClick={() => {
+                                if (settings.emailSignature) {
+                                  classEditorRefs.current[type]?.insertHTML(settings.emailSignature)
+                                } else {
+                                  toast.error("No email signature configured — Please set up your email signature first.")
+                                }
+                              }}
+                              className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Email Signature
+                            </button>
+                          </VariablesRow>
+                          <WysiwygEditor
+                            ref={(el) => { classEditorRefs.current[type] = el }}
+                            value={config.emailTemplate || ""}
+                            onChange={(v) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, emailTemplate: v }
+                            })}
+                            placeholder={`Enter ${type} email message...`}
+                            minHeight={120}
+                            showImages={true}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
+          </div>
+        )
+
+      case "app-notifications":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="App Notifications" description="Configure push notifications for the mobile app" />
+
+            {/* Birthday App Notification */}
+            <SettingsCard>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-content-primary font-medium">Birthday Push Notification</h3>
+                    <p className="text-sm text-content-muted">Automatically sends birthday greetings via app push notification when enabled</p>
+                  </div>
+                  <Toggle
+                    checked={settings.birthdayAppEnabled}
+                    onChange={(v) => setSettings({ ...settings, birthdayAppEnabled: v })}
+                  />
+                </div>
+
+                {settings.birthdayAppEnabled && (
+                  <div className="space-y-4 pt-4 border-t border-border">
+                    {/* Send Time */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm text-content-secondary">Send time:</span>
+                      <input
+                        type="time"
+                        value={settings.birthdayAppSendTime || "09:00"}
+                        onChange={(e) => setSettings({ ...settings, birthdayAppSendTime: e.target.value })}
+                        className="bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                      />
+                    </div>
+
+                    {/* Title */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-content-secondary">Title</label>
+                      <VariablesRow>
+                        <span className="text-xs text-content-faint mr-2">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayAppTitle: (settings.birthdayAppTitle || "") + " " + v })}
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </VariablesRow>
+                      <input
+                        type="text"
+                        value={settings.birthdayAppTitle || ""}
+                        onChange={(e) => setSettings({ ...settings, birthdayAppTitle: e.target.value })}
+                        placeholder="🎂 Happy Birthday!"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                      />
+                    </div>
+
+                    {/* Message */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-content-secondary">Message</label>
+                      <VariablesRow>
+                        <span className="text-xs text-content-faint mr-2">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayAppMessage: (settings.birthdayAppMessage || "") + v })}
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </VariablesRow>
+                      <textarea
+                        value={settings.birthdayAppMessage || ""}
+                        onChange={(e) => setSettings({ ...settings, birthdayAppMessage: e.target.value })}
+                        placeholder="Happy Birthday, {Member_First_Name}! We wish you a wonderful day."
+                        rows={3}
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </SettingsCard>
+
+            {/* Appointment App Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, appAppointments: !prev.appAppointments }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Appointment Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.appAppointments ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Push notifications for appointment bookings, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.appAppointments && ["confirmation", "cancellation", "rescheduled", "reminder"].map(type => {
+              const config = appointmentNotificationTypes[type] || {}
+              const titles = {
+                confirmation: "Appointment Confirmation",
+                cancellation: "Appointment Cancellation",
+                rescheduled: "Appointment Rescheduled",
+                reminder: "Appointment Reminder"
+              }
+              const descriptions = {
+                confirmation: "Push notification when an appointment is booked",
+                cancellation: "Push notification when an appointment is cancelled",
+                rescheduled: "Push notification when an appointment time is changed",
+                reminder: "Push notification before an upcoming appointment"
+              }
+              const titleVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+              const messageVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+
+              return (
+                <SettingsCard key={type}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Push</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.appEnabled || false}
+                        onChange={(v) => setAppointmentNotificationTypes({
+                          ...appointmentNotificationTypes,
+                          [type]: { ...config, appEnabled: v }
+                        })}
+                      />
+                    </div>
+
+                    {config.appEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-content-secondary">Send</span>
+                            <input
+                              type="number"
+                              value={config.appHoursBefore || 24}
+                              onChange={(e) => setAppointmentNotificationTypes({
+                                ...appointmentNotificationTypes,
+                                [type]: { ...config, appHoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            />
+                            <span className="text-sm text-content-secondary">hours before appointment</span>
+                          </div>
+                        )}
+
+                        {/* Title */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Title</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {titleVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
+                                  ...appointmentNotificationTypes,
+                                  [type]: { ...config, appTitle: (config.appTitle || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </VariablesRow>
+                          <input
+                            type="text"
+                            value={config.appTitle || ""}
+                            onChange={(e) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, appTitle: e.target.value }
+                            })}
+                            placeholder={`${titles[type]}`}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
+                                  ...appointmentNotificationTypes,
+                                  [type]: { ...config, appMessage: (config.appMessage || "") + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </VariablesRow>
+                          <textarea
+                            value={config.appMessage || ""}
+                            onChange={(e) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, appMessage: e.target.value }
+                            })}
+                            placeholder={`Enter ${type} push notification message...`}
+                            rows={3}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
+
+            {/* Class App Notifications */}
+            <button
+              onClick={() => setCollapsedNotifSections(prev => ({ ...prev, appClasses: !prev.appClasses }))}
+              className="w-full mt-6 mb-2 flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-content-muted" />
+                <h3 className="text-base font-semibold text-content-primary">Class Notifications</h3>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${collapsedNotifSections.appClasses ? "-rotate-90" : ""}`} />
+            </button>
+            <p className="text-xs text-content-muted mb-3 -mt-1">Push notifications for class enrollments, cancellations, and reminders</p>
+
+            {!collapsedNotifSections.appClasses && ["enrollment", "cancellation", "rescheduled", "reminder", "waitlist"].map(type => {
+              const config = classNotificationTypes[type] || {}
+              const titles = {
+                enrollment: "Class Enrollment Confirmation",
+                cancellation: "Class Cancellation",
+                rescheduled: "Class Rescheduled",
+                reminder: "Class Reminder",
+                waitlist: "Waitlist Spot Available"
+              }
+              const descriptions = {
+                enrollment: "Push notification when a member enrolls in a class",
+                cancellation: "Push notification when a class enrollment is cancelled",
+                rescheduled: "Push notification when a class time or date is changed",
+                reminder: "Push notification before an upcoming class",
+                waitlist: "Push notification when a waitlisted spot opens up"
+              }
+              const titleVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}", "{Instructor_Name}"]
+              const messageVariables = type === "rescheduled"
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Old_Class_Date}", "{Old_Class_Time}", "{New_Class_Date}", "{New_Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Class_Name}", "{Class_Date}", "{Class_Time}", "{Instructor_Name}", "{Class_Duration}"]
+
+              return (
+                <SettingsCard key={`class-app-${type}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Push</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.appEnabled || false}
+                        onChange={(v) => setClassNotificationTypes({
+                          ...classNotificationTypes,
+                          [type]: { ...config, appEnabled: v }
+                        })}
+                      />
+                    </div>
+
+                    {config.appEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-border">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-content-secondary">Send</span>
+                            <input
+                              type="number"
+                              value={config.appHoursBefore || 24}
+                              onChange={(e) => setClassNotificationTypes({
+                                ...classNotificationTypes,
+                                [type]: { ...config, appHoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            />
+                            <span className="text-sm text-content-secondary">hours before class</span>
+                          </div>
+                        )}
+
+                        {/* Title */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Title</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {titleVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setClassNotificationTypes({
+                                  ...classNotificationTypes,
+                                  [type]: { ...config, appTitle: (config.appTitle || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </VariablesRow>
+                          <input
+                            type="text"
+                            value={config.appTitle || ""}
+                            onChange={(e) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, appTitle: e.target.value }
+                            })}
+                            placeholder={`${titles[type]}`}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                          />
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
+                          <VariablesRow>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setClassNotificationTypes({
+                                  ...classNotificationTypes,
+                                  [type]: { ...config, appMessage: (config.appMessage || "") + v }
+                                })}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </VariablesRow>
+                          <textarea
+                            value={config.appMessage || ""}
+                            onChange={(e) => setClassNotificationTypes({
+                              ...classNotificationTypes,
+                              [type]: { ...config, appMessage: e.target.value }
+                            })}
+                            placeholder={`Enter ${type} push notification message...`}
+                            rows={3}
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-primary resize-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
+          </div>
+        )
+
+      case "smtp-setup":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="SMTP Setup" description="Configure your email server for sending notifications" />
+            <SettingsCard>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InputField
+                    label="Display Name"
+                    value={settings.senderName}
+                    onChange={(v) => setSettings({ ...settings, senderName: v })}
+                    placeholder="Your Studio Name"
+                    helpText="Name shown as sender"
+                  />
+                  <InputField
+                    label="From Email"
+                    value={settings.smtpFromEmail}
+                    onChange={(v) => setSettings({ ...settings, smtpFromEmail: v })}
+                    placeholder="noreply@yourstudio.com"
+                    type="email"
+                    helpText="Email address shown as sender"
+                  />
+                  <InputField
+                    label="SMTP Host"
+                    value={settings.smtpHost}
+                    onChange={(v) => setSettings({ ...settings, smtpHost: v })}
+                    placeholder="smtp.example.com"
+                  />
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <NumberInput
+                        label="Port"
+                        value={settings.smtpPort}
+                        onChange={(v) => setSettings({ ...settings, smtpPort: v })}
+                        min={1}
+                        max={65535}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-content-secondary mb-1.5 block">Security</label>
+                      <CustomSelect
+                        name="smtpSecure"
+                        value={settings.smtpSecure ? "tls" : "none"}
+                        onChange={(e) => setSettings({ ...settings, smtpSecure: e.target.value === "tls" })}
+                        options={[
+                          { value: "tls", label: "TLS/SSL" },
+                          { value: "none", label: "None" }
+                        ]}
+                        className="bg-surface-card px-4 py-2.5 border-border"
+                      />
+                    </div>
+                  </div>
+                  <InputField
+                    label="Username"
+                    value={settings.smtpUser}
+                    onChange={(v) => setSettings({ ...settings, smtpUser: v })}
+                    placeholder="your-email@example.com"
+                    helpText="Email/account for SMTP authentication"
+                  />
+                  <InputField
+                    label="Password"
+                    value={settings.smtpPass}
+                    onChange={(v) => setSettings({ ...settings, smtpPass: v })}
+                    type="password"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      if (!settings.smtpHost || !settings.smtpUser) {
+                        toast.error("Missing SMTP Settings — Please fill in SMTP Host and Username")
+                        return
+                      }
+                      toast.loading("Testing connection...", { id: "smtp-test" })
+                      setTimeout(() => {
+                        toast.success(`Connection successful! — Connected to ${settings.smtpHost}:${settings.smtpPort}`, { id: "smtp-test" })
+                      }, 1500)
+                    }}
+                    className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Test Connection
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!settings.smtpHost || !settings.smtpUser || !settings.smtpFromEmail) {
+                        toast.error("Missing SMTP Settings — Please fill in all SMTP fields")
+                        return
+                      }
+                      toast.loading("Sending test email...", { id: "smtp-send" })
+                      setTimeout(() => {
+                        toast.success(`Test email sent! — From: ${settings.senderName} <${settings.smtpFromEmail}>`, { id: "smtp-send" })
+                      }, 2000)
+                    }}
+                    className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Send Test Email
+                  </button>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "email-signature":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails" />
+            <SettingsCard>
+              <div className="space-y-3">
+                <p className="text-sm text-content-muted">
+                  This signature can be inserted into your email notification templates using the orange "Email Signature" button.
+                </p>
+                <VariablesRow>
+                  <span className="text-xs text-content-faint mr-1">Variables:</span>
+                  {["{Studio_Name}", "{Studio_Operator}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
+                    <button
+                      key={v}
+                      onClick={() => signatureEditorRef.current?.insertText(v)}
+                      className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                    >
+                      {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                    </button>
+                  ))}
+                </VariablesRow>
+                <WysiwygEditor
+                  ref={signatureEditorRef}
+                  value={settings.emailSignature || ""}
+                  onChange={(v) => setSettings({ ...settings, emailSignature: v })}
+                  placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
+                  minHeight={120}
+                  showImages={true}
+                />
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "e-invoice-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="E-Invoice Template" description="Email template for sending invoices to members" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, einvoiceSubject: (settings.einvoiceSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.einvoiceSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, einvoiceSubject: e.target.value })}
+                    placeholder="e.g. Invoice {Invoice_Number}"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => einvoiceEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          einvoiceEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={einvoiceEditorRef}
+                    value={settings.einvoiceTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, einvoiceTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, please find your invoice attached..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-cancellation-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Cancellation Template" description="Email template sent to members when their contract is cancelled" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractCancellationSubject: (settings.contractCancellationSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractCancellationSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
+                    placeholder="e.g. Contract Cancellation Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => cancellationEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          cancellationEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={cancellationEditorRef}
+                    value={settings.contractCancellationTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractCancellationTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, we confirm the cancellation of your contract..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-conclusion-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Conclusion of Contract Template" description="Email template sent to members when a new contract is concluded" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractConclusionSubject: (settings.contractConclusionSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractConclusionSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
+                    placeholder="e.g. Welcome to {Studio_Name}"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => conclusionEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          conclusionEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={conclusionEditorRef}
+                    value={settings.contractConclusionTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractConclusionTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, welcome to {Studio_Name}! Your contract starts on {Contract_Start_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-renewal-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Renewal Template" description="Email template sent to members when their contract is renewed" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractRenewalSubject: (settings.contractRenewalSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractRenewalSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractRenewalSubject: e.target.value })}
+                    placeholder="e.g. Contract Renewal Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => renewalEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          renewalEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={renewalEditorRef}
+                    value={settings.contractRenewalTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractRenewalTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, your contract has been successfully renewed..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-change-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Change Template" description="Email template sent to members when their contract is changed" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Old_Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractChangeSubject: (settings.contractChangeSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.contractChangeSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractChangeSubject: e.target.value })}
+                    placeholder="e.g. Contract Change Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Old_Contract_Type}", "{New_Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => changeEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          changeEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={changeEditorRef}
+                    value={settings.contractChangeTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractChangeTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, your contract has been changed..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "sepa-mandate-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="SEPA Mandate Template" description="Email template sent to members when a new SEPA mandate is issued" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Account_Holder}", "{IBAN}", "{BIC}", "{Bank_Name}", "{Mandate_Reference}", "{Mandate_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, sepaMandateSubject: (settings.sepaMandateSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </VariablesRow>
+                  <input
+                    type="text"
+                    value={settings.sepaMandateSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, sepaMandateSubject: e.target.value })}
+                    placeholder="e.g. SEPA Direct Debit Mandate Confirmation"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
+                  <VariablesRow>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Account_Holder}", "{IBAN}", "{BIC}", "{Bank_Name}", "{Mandate_Reference}", "{Mandate_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => sepaMandateEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          sepaMandateEditorRef.current?.insertHTML(settings.emailSignature)
+                        } else {
+                          toast.error("No email signature configured — Please set up your email signature first.")
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </VariablesRow>
+                  <WysiwygEditor
+                    ref={sepaMandateEditorRef}
+                    value={settings.sepaMandateTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, sepaMandateTemplate: v })}
+                    placeholder="e.g. Dear {Member_First_Name}, we hereby confirm your SEPA direct debit mandate..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // FINANCE SECTIONS
+      // ========================
+      case "vat-rates":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="VAT Rates"
+              description="Configure tax rates for your region"
+              action={
+                <button
+                  onClick={handleAddVatRate}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Rate
+                </button>
+              }
+            />
+            <SettingsCard>
+              <div className="space-y-3">
+                {vatRates.map((rate, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-surface-card rounded-xl">
+                    <div className="flex items-center gap-2 sm:w-24">
+                      <input
+                        type="number"
+                        value={rate.percentage}
+                        onChange={(e) => {
+                          const updated = [...vatRates]
+                          updated[index].percentage = Number(e.target.value)
+                          setVatRates(updated)
+                        }}
+                        className="w-16 bg-surface-hover text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                      />
+                      <span className="text-content-muted">%</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={rate.description}
+                      onChange={(e) => {
+                        const updated = [...vatRates]
+                        updated[index].description = e.target.value
+                        setVatRates(updated)
+                      }}
+                      placeholder="Description"
+                      className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                    />
+                    <button
+                      onClick={() => openDeleteModal(
+                        "Delete VAT Rate",
+                        rate.description || `${rate.percentage}%`,
+                        "This cannot be undone.",
+                        () => {
+                          setVatRates(vatRates.filter((_, i) => i !== index))
+                          closeDeleteModal()
+                          toast.success("VAT rate deleted")
+                        }
+                      )}
+                      className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors self-end sm:self-center flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "payment-settings":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Payment Settings" description="Configure payment and billing information" />
+
+            <SettingsCard>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Currency - Disabled/Read-only */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-content-secondary">Currency</label>
+                  <input
+                    type="text"
+                    value={currency}
+                    disabled
+                    className="w-full bg-surface-card text-content-muted rounded-xl px-4 py-2.5 text-sm outline-none border border-border cursor-not-allowed"
+                  />
+                </div>
+                <InputField
+                  label="Creditor Name"
+                  value={creditorName}
+                  onChange={setCreditorName}
+                  placeholder="Company name for invoices"
+                  maxLength={100}
+                />
+                <InputField
+                  label="Creditor ID"
+                  value={creditorId}
+                  onChange={setCreditorId}
+                  placeholder="e.g., DE98ZZZ09999999999"
+                  maxLength={50}
+                  helpText="SEPA Creditor Identifier"
+                />
+                <InputField
+                  label="VAT Number"
+                  value={vatNumber}
+                  onChange={setVatNumber}
+                  placeholder="e.g., DE123456789"
+                  maxLength={30}
+                />
+                <InputField
+                  label="Bank Name"
+                  value={bankName}
+                  onChange={setBankName}
+                  placeholder="Enter bank name"
+                  maxLength={50}
+                />
+                <InputField
+                  label="IBAN"
+                  value={iban}
+                  onChange={setIban}
+                  placeholder="e.g., DE89 3704 0044 0532 0130 00"
+                  maxLength={34}
+                  helpText="International Bank Account Number"
+                />
+                <InputField
+                  label="BIC"
+                  value={bic}
+                  onChange={setBic}
+                  placeholder="e.g., COBADEFFXXX"
+                  maxLength={11}
+                  helpText="Bank Identifier Code"
+                />
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // APPEARANCE SECTION
+      // ========================
+      case "theme":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Theme Settings" description="Customize the look and feel" />
+
+            <SettingsCard>
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-content-secondary mb-3 block">Default Theme</label>
+                  <div className="inline-flex p-1 bg-surface-dark rounded-xl border border-border">
+                    <button
+                      onClick={() => setAppearance({ ...appearance, theme: "light" })}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${appearance.theme === "light"
+                        ? "bg-surface-card text-content-primary shadow-sm"
+                        : "text-content-muted hover:text-content-primary"
+                        }`}
+                    >
+                      <Sun className="w-4 h-4" />
+                      Light
+                    </button>
+                    <button
+                      onClick={() => setAppearance({ ...appearance, theme: "dark" })}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${appearance.theme === "dark"
+                        ? "bg-surface-card text-content-primary shadow-sm"
+                        : "text-content-muted hover:text-content-primary"
+                        }`}
+                    >
+                      <Moon className="w-4 h-4" />
+                      Dark
+                    </button>
+                  </div>
+                </div>
+
+                {/* Automatic Theme Schedule */}
+                <div className="pt-4 border-t border-border space-y-4">
+                  <Toggle
+                    label="Automatic Theme Schedule"
+                    helpText="Automatically switch between light and dark mode at set times"
+                    checked={appearance.autoThemeSchedule?.enabled || false}
+                    onChange={(v) => setAppearance({
+                      ...appearance,
+                      autoThemeSchedule: {
+                        ...(appearance.autoThemeSchedule || { lightModeStart: "07:00", darkModeStart: "20:00" }),
+                        enabled: v,
+                      },
+                    })}
+                  />
+                  {appearance.autoThemeSchedule?.enabled && (
+                    <div className="flex flex-col sm:flex-row gap-4 p-4 bg-surface-dark rounded-xl border border-border">
+                      <div className="flex-1 space-y-1.5">
+                        <label className="text-xs font-medium text-content-muted flex items-center gap-1.5">
+                          <Sun className="w-3.5 h-3.5" />
+                          Switch to Light Mode
+                        </label>
+                        <input
+                          type="time"
+                          value={appearance.autoThemeSchedule?.lightModeStart || "07:00"}
+                          onChange={(e) => setAppearance({
+                            ...appearance,
+                            autoThemeSchedule: {
+                              ...appearance.autoThemeSchedule,
+                              lightModeStart: e.target.value,
+                            },
+                          })}
+                          className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary outline-none transition-colors"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <label className="text-xs font-medium text-content-muted flex items-center gap-1.5">
+                          <Moon className="w-3.5 h-3.5" />
+                          Switch to Dark Mode
+                        </label>
+                        <input
+                          type="time"
+                          value={appearance.autoThemeSchedule?.darkModeStart || "20:00"}
+                          onChange={(e) => setAppearance({
+                            ...appearance,
+                            autoThemeSchedule: {
+                              ...appearance.autoThemeSchedule,
+                              darkModeStart: e.target.value,
+                            },
+                          })}
+                          className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-border">
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Color Scheme */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-content-secondary">Color Scheme</label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openColorPicker(appearance.primaryColor || '#FF843E', 'Choose Primary Color', (color) => setAppearance({ ...appearance, primaryColor: color }))}
+                          className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                          style={{ backgroundColor: appearance.primaryColor }}
+                          title="Pick a color"
+                        />
+                        <input
+                          type="text"
+                          value={appearance.primaryColor}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
+                              setAppearance({ ...appearance, primaryColor: val })
+                            }
+                          }}
+                          className="flex-1 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm font-mono border border-border uppercase"
+                          maxLength={7}
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(appearance.primaryColor)
+                            toast.success("Copied!")
+                          }}
+                          className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
+                          title="Copy color code"
+                        >
+                          <Clipboard className="w-4 h-4 text-content-muted" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Color Scheme Preview */}
+                    <div className="space-y-2 pt-3 mt-1 border-t border-border">
+                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Preview
+                      </label>
+                      <div className="p-4 bg-surface-dark rounded-xl border border-border space-y-4">
+                        {/* Buttons Preview */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            className="px-4 py-2 text-white text-sm rounded-xl transition-colors"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            Primary Button
+                          </button>
+                          <button
+                            className="px-4 py-2 text-sm rounded-xl border transition-colors"
+                            style={{ borderColor: appearance.primaryColor, color: appearance.primaryColor }}
+                          >
+                            Outlined
+                          </button>
+                          <span
+                            className="px-2.5 py-1 text-white text-xs rounded-full font-medium"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            Badge
+                          </span>
+                        </div>
+
+                        {/* Toggle Preview */}
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="relative w-11 h-6 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full translate-x-5" />
+                          </div>
+                          <span className="text-sm text-content-muted">Toggle Active</span>
+                        </div>
+
+                        {/* Progress / Accent Bar Preview */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-content-muted">
+                            <span>Progress</span>
+                            <span style={{ color: appearance.primaryColor }}>68%</span>
+                          </div>
+                          <div className="w-full h-2 bg-surface-button rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{ backgroundColor: appearance.primaryColor, width: "68%" }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Checkbox Preview */}
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: appearance.primaryColor }}
+                          >
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="text-sm text-content-muted">Checkbox Checked</span>
+                        </div>
+
+                        {/* Link / Accent Text Preview */}
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-content-muted">Accent color on</span>
+                          <span className="font-medium" style={{ color: appearance.primaryColor }}>links & highlights</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // IMPORT SECTION
+      // ========================
       default:
         return (
           <div className="text-center py-12 text-content-muted">

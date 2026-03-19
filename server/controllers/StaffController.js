@@ -212,7 +212,47 @@ const loginStaff = async (req, res, next) => {
 const updateStaffById = async (req, res, next) => {
   try {
     const { staffId } = req.params;
-    let updateStaff = { ...req.body };
+    let {
+      firstName,
+      lastName,
+      email,
+      phone,
+      telephone,
+      gender,
+      dateOfBirth,
+      street,
+      zipCode,
+      city,
+      country,
+      staffRole,
+      staffColor,
+      vacationDays,
+      remainingDays,
+      about,
+      username,
+
+      password,
+    } = req.body;
+    const updateStaff = {
+      firstName,
+      lastName,
+      email,
+      phone,
+      telephone,
+      gender,
+      dateOfBirth,
+      street,
+      zipCode,
+      city,
+      country,
+      staffRole,
+      staffColor,
+      vacationDays,
+      remainingDays,
+      about,
+      username,
+      password,
+    }
 
     if (req.file) {
       const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
@@ -232,6 +272,7 @@ const updateStaffById = async (req, res, next) => {
     const staff = await StaffModel.findByIdAndUpdate(staffId, updateStaff, { new: true });
     if (!staff) throw new NotFoundError("staff not found");
 
+    // console.log('updated Staff', updateStaff.staffColor)
     res.status(200).json({
       success: true,
       message: "Successfully Updated",
