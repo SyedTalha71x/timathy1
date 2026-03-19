@@ -21,8 +21,6 @@ const updateStudio = async (req, res, next) => {
       });
     }
 
-    console.log('Raw req.body:', req.body);
-    console.log('Raw req.file:', req.file);
 
     const findStudio = await StudioModel.findById(studioId);
     if (!findStudio) throw new NotFoundError("Studio not found");

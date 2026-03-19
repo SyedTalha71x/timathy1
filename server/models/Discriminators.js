@@ -175,7 +175,9 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
         enum: ['manager', 'employee', 'admin'],
         // required: true,
     },
-
+    staffColor: {
+        type: String
+    },
     vacationEntitlement: {
         type: Number,
         min: 30,
