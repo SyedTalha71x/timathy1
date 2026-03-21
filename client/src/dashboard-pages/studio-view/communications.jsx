@@ -402,6 +402,7 @@ export default function Communications() {
   const [newBillingPeriod, setNewBillingPeriod] = useState("")
   const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
   const [notifyAction, setNotifyAction] = useState("")
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   // Refs
   const dropdownRef = useRef(null)
@@ -468,6 +469,30 @@ export default function Communications() {
       }
     };
   }, []);
+
+  // Detect keyboard open/close for mobile input bar positioning
+  useEffect(() => {
+    const onFocusIn = (e) => {
+      const tag = e.target?.tagName?.toLowerCase()
+      if (tag === "input" || tag === "textarea" || e.target?.isContentEditable) {
+        setKeyboardOpen(true)
+      }
+    }
+    const onFocusOut = () => {
+      setTimeout(() => {
+        const tag = document.activeElement?.tagName?.toLowerCase()
+        if (tag !== "input" && tag !== "textarea" && !document.activeElement?.isContentEditable) {
+          setKeyboardOpen(false)
+        }
+      }, 100)
+    }
+    document.addEventListener("focusin", onFocusIn)
+    document.addEventListener("focusout", onFocusOut)
+    return () => {
+      document.removeEventListener("focusin", onFocusIn)
+      document.removeEventListener("focusout", onFocusOut)
+    }
+  }, [])
 
   // Helper function to check if today is someone's birthday
   const checkIfBirthday = (dateOfBirth) => {
@@ -4065,61 +4090,61 @@ export default function Communications() {
           )}
 
           {/* Mobile Input Area - Multi-line with auto-resize */}
-          <div className="px-3 pt-3 pb-6 bg-surface-base border-t border-border flex-shrink-0 relative">
-            <div className="flex items-end gap-2 bg-surface-dark px-3 py-2 rounded-xl border border-border">
-              <button
-                className="p-2 hover:bg-surface-button rounded-full flex-shrink-0"
-                aria-label="Add emoji"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                type="button"
+          <div className="px-2 pt-1.5 pb-2.5 bg-surface-base border-t border-border flex-shrink-0 relative" style={{ paddingBottom: keyboardOpen ? '0.625rem' : 'calc(0.625rem + env(safe-area-inset-bottom, 0px))' }}>
+            {showEmojiPicker && (
+              <div 
+                ref={emojiPickerRef}
+                className="absolute bottom-full mb-2 left-3 z-[201]"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
-                <Smile className="w-5 h-5 text-content-muted" />
-              </button>
-              {showEmojiPicker && (
-                <div 
-                  ref={emojiPickerRef}
-                  className="absolute bottom-full mb-2 left-3 z-[201]"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
-                  <Picker 
-                    data={data} 
-                    onEmojiSelect={(emoji) => {
-                      setMessageText(prev => prev + emoji.native);
-                    }}
-                    theme="dark"
-                    previewPosition="none"
-                    skinTonePosition="none"
-                    perLine={8}
-                    maxFrequentRows={2}
-                  />
-                </div>
-              )}
-              <textarea
-                ref={mobileTextareaRef}
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onInput={(e) => {
-                  e.target.style.height = "32px";
-                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                }}
-                placeholder="Type a message..."
-                className="flex-1 bg-transparent text-content-primary outline-none text-sm min-w-0 resize-none max-h-[120px] leading-5"
-                rows={1}
-                style={{ height: '32px' }}
-              />
+                <Picker 
+                  data={data} 
+                  onEmojiSelect={(emoji) => {
+                    setMessageText(prev => prev + emoji.native);
+                  }}
+                  theme="dark"
+                  previewPosition="none"
+                  skinTonePosition="none"
+                  perLine={8}
+                  maxFrequentRows={2}
+                />
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-surface-dark px-3 py-2 rounded-xl border border-border flex items-center">
+                <textarea
+                  ref={mobileTextareaRef}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onInput={(e) => {
+                    e.target.style.height = "20px";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Type a message..."
+                  className="w-full bg-transparent text-content-primary outline-none text-xs resize-none max-h-[120px] leading-5 placeholder:text-content-faint"
+                  rows={1}
+                  style={{ height: '20px' }}
+                />
+              </div>
               <button
-                className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
                   messageText.trim() 
                     ? 'bg-primary hover:bg-primary-hover text-white' 
-                    : 'text-content-faint cursor-not-allowed'
+                    : 'bg-surface-button text-content-faint'
                 }`}
                 aria-label="Send message"
                 onClick={handleSendMessage}
                 disabled={!messageText.trim()}
                 type="button"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </button>
             </div>
           </div>
