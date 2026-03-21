@@ -3887,7 +3887,7 @@ export default function Communications() {
 
       {/* Mobile Fullscreen Chat Overlay - same as notes.jsx */}
       {selectedChat && activeScreen === "chat" && (
-        <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
+        <div className="md:hidden fixed inset-x-0 top-0 h-dvh bg-surface-base z-[60] flex flex-col">
           {/* Mobile Chat Header with Back Button */}
           <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-4">
