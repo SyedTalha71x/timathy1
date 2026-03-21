@@ -157,46 +157,45 @@ export default function SignInPage() {
   }
 
   // Login Submit Handler
+  // TEMPORARY: Auth auskommentiert für alle Login-Typen
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     const config = LOGIN_TYPES[activeLoginType]
-    const currentFormData = formData[activeLoginType]
+    // const currentFormData = formData[activeLoginType]
 
-    // MEMBER LOGIN (REAL AUTH)
-    if (activeLoginType === "studio") {
-      try {
-        const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
+    // // STUDIO LOGIN (REAL AUTH - temporarily disabled)
+    // if (activeLoginType === "studio") {
+    //   try {
+    //     const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
+    //     dispatch(fetchAllAppointments())
+    //     dispatch(fetchAllMember());
+    //     dispatch(fetchStudioServices())
+    //     dispatch(fetchMyStudio())
+    //     navigate(config.redirectPath)
+    //   } catch (err) {
+    //     console.error(err)
+    //     alert(err?.message || "Invalid email or password")
+    //   }
+    //   return
+    // }
 
-        dispatch(fetchAllAppointments())
-        dispatch(fetchAllMember());
-        dispatch(fetchStudioServices())
-        dispatch(fetchMyStudio())
-        // success → redirect
-        navigate(config.redirectPath)
-      } catch (err) {
-        console.error(err)
-        alert(err?.message || "Invalid email or password")
-      }
-      return
-    }
-    if (activeLoginType === "member") {
-      try {
-        const res = await dispatch(memberLogin(currentFormData)).unwrap()
+    // // MEMBER LOGIN (REAL AUTH - temporarily disabled)
+    // if (activeLoginType === "member") {
+    //   try {
+    //     const res = await dispatch(memberLogin(currentFormData)).unwrap()
+    //     dispatch(fetchMyAppointments())
+    //     dispatch(fetchStudioServices())
+    //     dispatch(fetchMyStudio())
+    //     navigate(config.redirectPath)
+    //   } catch (err) {
+    //     console.error(err)
+    //     alert(err?.message || "Invalid email or password")
+    //   }
+    //   return
+    // }
 
-        dispatch(fetchMyAppointments())
-        dispatch(fetchStudioServices())
-        dispatch(fetchMyStudio())
-        // success → redirect
-        navigate(config.redirectPath)
-      } catch (err) {
-        console.error(err)
-        alert(err?.message || "Invalid email or password")
-      }
-      return
-    }
-
-    // STUDIO / ADMIN (TEMPORARY)
+    // TEMPORARY: Direkt weiterleiten für alle Typen
     navigate(config.redirectPath)
   }
 
