@@ -137,6 +137,13 @@ useEffect(() => {
           .drag-over {
             border: 2px dashed #888;
           }
+          @keyframes page-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          .page-transition {
+            animation: page-fade-in 0.2s ease-out;
+          }
         `}
       </style>
       
@@ -172,8 +179,10 @@ useEffect(() => {
               hideRightSidebarToggle={hasNoRightSidebar}
             />
 
-            {/* Page Content */}
-            <Outlet />
+            {/* Page Content — fades in on route change */}
+            <div key={location.pathname} className="page-transition">
+              <Outlet />
+            </div>
           </main>
 
           {/* Central Sidebar (Right) - Always available, toggle hidden on desktop for Selling/Leads/MyArea */}
