@@ -180,7 +180,7 @@ useEffect(() => {
             />
 
             {/* Page Content — fades in on route change */}
-            <div key={location.pathname} className="page-transition">
+            <div key={location.pathname} className="page-transition h-full">
               <Outlet />
             </div>
           </main>

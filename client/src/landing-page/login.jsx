@@ -266,7 +266,24 @@ export default function SignInPage() {
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8">
+    <>
+    <style>{`
+      .login-root {
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .login-root input {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+      .login-root img,
+      .login-root svg {
+        -webkit-user-drag: none;
+        user-drag: none;
+        pointer-events: none;
+      }
+    `}</style>
+    <div className="login-root min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8">
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
         {/* ================================================================= */}
@@ -346,5 +363,6 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

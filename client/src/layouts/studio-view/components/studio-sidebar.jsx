@@ -2,6 +2,8 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
+import { logout } from "../../../features/auth/authSlice"
 import { MdOutlineHelpCenter, MdOutlineSupportAgent, MdOutlineLocalActivity } from "react-icons/md"
 import { FaNotesMedical } from "react-icons/fa6"
 import { FaPersonRays } from "react-icons/fa6"
@@ -10,6 +12,7 @@ import { BsPersonWorkspace } from "react-icons/bs"
 import { FaTasks } from "react-icons/fa"
 import { TbMessage } from "react-icons/tb"
 import { BsFillClipboard2HeartFill } from "react-icons/bs"
+
 
 import {
   Calendar,
@@ -111,6 +114,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
 
   const location = useLocation()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const toggleCollapse = onToggleCollapse || (() => setInternalIsCollapsed(!internalIsCollapsed))
 
@@ -134,7 +138,10 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
     if (onClose) onClose()
   }
 
-  const redirectToHome = () => (window.location.href = "/")
+const handleLogout = () => {
+  dispatch(logout())
+  window.location.href = "/login"
+}
 
   // ============================================
   // Menu Items Configuration
@@ -487,7 +494,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
         {/* Logout */}
         <div className="p-4 mt-auto">
           <button
-            onClick={redirectToHome}
+           onClick={handleLogout}
             className={`flex items-center gap-3 px-4 py-2 open_sans_font text-zinc-400 hover:text-white w-full ${
               isCollapsed ? "justify-center hover:border-l-2 hover:border-white hover:pl-[14px]" : "text-left hover:border-l-2 hover:border-white hover:pl-3"
             } transition-all duration-300`}
