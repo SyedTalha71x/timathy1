@@ -6,6 +6,7 @@ import { updateUserData, updatedPassword, logout } from "../../features/auth/aut
 import { updateReminders } from "../../features/notification/notificationSlice"
 import { notification } from "antd"
 import { haptic } from "../../utils/haptic"
+import { useNavigate } from "react-router-dom"
 import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 import {
   ChevronRight,
@@ -66,6 +67,7 @@ const NAVIGATION_ITEMS = [
 
 const SettingsPage = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { studio, loading } = useSelector((state) => state.studios)
 
   // Navigation state
@@ -325,7 +327,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     try {
       haptic.warning()
       await dispatch(logout()).unwrap()
-      window.location.href = "/login"
+      navigate("/login", { replace: true })
     } catch (err) {
       haptic.error()
       notification.error({ message: "Logout Failed", description: err.message || "Something went wrong." })
@@ -340,7 +342,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       notification.success({ message: "Account Deleted", description: "Your account has been permanently deleted." })
       setShowDeleteConfirm(false)
       setDeleteConfirmText("")
-      window.location.href = "/login"
+      navigate("/login", { replace: true })
     } catch (err) {
       haptic.error()
       notification.error({ message: "Deletion Failed", description: err.message || "Could not delete account." })

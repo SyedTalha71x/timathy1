@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate, Navigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
@@ -93,12 +93,7 @@ function App() {
   const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth)
 
-  // Native app: always start at login
-  useEffect(() => {
-    if (Capacitor.isNativePlatform() && location.pathname === "/") {
-      navigate("/login", { replace: true })
-    }
-  }, [])
+  const isNative = Capacitor.isNativePlatform()
 
   const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training");
 
@@ -153,7 +148,7 @@ function App() {
     <>
       {!isAuthOrDashboardPage && <Header />}
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={isNative ? <Navigate to="/login" replace /> : <Home />} />
         <Route path="login" element={<Login />} />
 
         {/* ═══════════════════════════════════════════════════════════════════
