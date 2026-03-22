@@ -10,7 +10,7 @@ import DeleteModal from '../../components/studio-components/medical-history-comp
 import { useSelector, useDispatch } from 'react-redux'
 // Imports
 import toast from "../../components/shared/SharedToast";
-import { createFormThunk, getAllFormThunk } from '../../features/medicalHistory/medicalHistorySlice';
+import { createFormThunk, deleteFormThunk, getAllFormThunk, toggleActiveThunk, updateFormThunk } from '../../features/medicalHistory/medicalHistorySlice';
 
 // Sortable Form Card Component
 const SortableFormCard = ({ form, children, isDragDisabled }) => {
@@ -54,9 +54,10 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
 
 
 const Assessment = () => {
-  const { medical = [] } = useSelector((state) => state.medical)
+  const { medical = [] } = useSelector((state) => state.medical) || {}
   const dispatch = useDispatch();
 
+  // console.log("medical forms", medical)
   // State for all forms
   const [forms, setForms] = useState([]);
 
@@ -95,6 +96,28 @@ const Assessment = () => {
   }, [dispatch])
 
 
+  useEffect(() => {
+    if (medical && medical.length > 0) {
+      // Transform the backend data to match your component's expected structure
+      const transformedForms = medical.map(form => ({
+        id: form._id, // Map _id to id for your component
+        _id: form._id,
+        title: form.title,
+        active: form.active,
+        createdAt: form.createdAt,
+        updatedAt: form.updatedAt,
+        signatureSettings: form.signatureSettings,
+        sections: form.sections.map(section => ({
+          ...section,
+          // Ensure items/questions are properly structured
+          items: section.items || section.questions || [],
+          questions: section.items || section.questions || []
+        }))
+      }));
+      setForms(transformedForms);
+    }
+  }, [medical]);
+
   // DnD sensors - optimized for responsive mobile dragging
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -114,81 +137,81 @@ const Assessment = () => {
   );
 
   // Sample initial data
-  const initialForms = [
-    {
-      id: 1,
-      title: "Consultation Protocol - Prospects",
-      active: true,
-      createdAt: Date.now() - 86400000,
-      updatedAt: Date.now() - 86400000,
-      signatureSettings: {
-        showDate: true,
-        showLocation: true,
-        defaultLocation: ''
-      },
-      sections: [
-        {
-          id: 1,
-          name: "Questions before trial training",
-          questions: [
-            { id: 1, text: "How did you hear about us?", type: "text" },
-            { id: 2, text: "Are you ready for your EMS training today?", type: "yesno" },
-            { id: 3, text: "Are you 'sport healthy'?", type: "yesno" },
-            { id: 4, text: "What goals are you pursuing?", type: "text" }
-          ]
-        },
-        {
-          id: 2,
-          name: "Contraindications: Checklist for...",
-          questions: [
-            { id: 5, text: "Arteriosclerosis, arterial circulation disorders", type: "yesno" },
-            { id: 6, text: "Abdominal wall and inguinal hernias", type: "yesno" },
-            { id: 7, text: "Cancer diseases", type: "yesno" },
-            { id: 8, text: "Stents and bypasses that have been active for less than 6 months", type: "yesno" },
-            { id: 9, text: "Acute influence of alcohol, drugs, intoxicants", type: "yesno" },
-            { id: 10, text: "Neuronal diseases, epilepsy, severe sensitivity disorders", type: "yesno" },
-            { id: 11, text: "Pregnancy", type: "yesno" },
-            { id: 12, text: "Heart rhythm disorders", type: "yesno" }
-          ]
-        },
-        {
-          id: 3,
-          name: "Conditional Contraindications: Check...",
-          questions: [
-            { id: 13, text: "Acute back problems without diagnosis, implants older than 6 months", type: "yesno" },
-            { id: 14, text: "Motion sickness", type: "yesno" },
-            { id: 15, text: "Diseases of internal organs, particularly kidney diseases", type: "yesno" },
-            { id: 16, text: "Cardiovascular diseases", type: "yesno" },
-            { id: 17, text: "Major fluid accumulations in the body, edema", type: "yesno" },
-            { id: 18, text: "Open skin injuries, wounds, eczema, burns", type: "yesno" },
-            { id: 19, text: "Taking painkillers or similar medications", type: "yesno" }
-          ]
-        }
-      ]
-    }
-  ];
+  // const initialForms = [
+  //   {
+  //     id: 1,
+  //     title: "Consultation Protocol - Prospects",
+  //     active: true,
+  //     createdAt: Date.now() - 86400000,
+  //     updatedAt: Date.now() - 86400000,
+  //     signatureSettings: {
+  //       showDate: true,
+  //       showLocation: true,
+  //       defaultLocation: ''
+  //     },
+  //     sections: [
+  //       {
+  //         id: 1,
+  //         name: "Questions before trial training",
+  //         questions: [
+  //           { id: 1, text: "How did you hear about us?", type: "text" },
+  //           { id: 2, text: "Are you ready for your EMS training today?", type: "yesno" },
+  //           { id: 3, text: "Are you 'sport healthy'?", type: "yesno" },
+  //           { id: 4, text: "What goals are you pursuing?", type: "text" }
+  //         ]
+  //       },
+  //       {
+  //         id: 2,
+  //         name: "Contraindications: Checklist for...",
+  //         questions: [
+  //           { id: 5, text: "Arteriosclerosis, arterial circulation disorders", type: "yesno" },
+  //           { id: 6, text: "Abdominal wall and inguinal hernias", type: "yesno" },
+  //           { id: 7, text: "Cancer diseases", type: "yesno" },
+  //           { id: 8, text: "Stents and bypasses that have been active for less than 6 months", type: "yesno" },
+  //           { id: 9, text: "Acute influence of alcohol, drugs, intoxicants", type: "yesno" },
+  //           { id: 10, text: "Neuronal diseases, epilepsy, severe sensitivity disorders", type: "yesno" },
+  //           { id: 11, text: "Pregnancy", type: "yesno" },
+  //           { id: 12, text: "Heart rhythm disorders", type: "yesno" }
+  //         ]
+  //       },
+  //       {
+  //         id: 3,
+  //         name: "Conditional Contraindications: Check...",
+  //         questions: [
+  //           { id: 13, text: "Acute back problems without diagnosis, implants older than 6 months", type: "yesno" },
+  //           { id: 14, text: "Motion sickness", type: "yesno" },
+  //           { id: 15, text: "Diseases of internal organs, particularly kidney diseases", type: "yesno" },
+  //           { id: 16, text: "Cardiovascular diseases", type: "yesno" },
+  //           { id: 17, text: "Major fluid accumulations in the body, edema", type: "yesno" },
+  //           { id: 18, text: "Open skin injuries, wounds, eczema, burns", type: "yesno" },
+  //           { id: 19, text: "Taking painkillers or similar medications", type: "yesno" }
+  //         ]
+  //       }
+  //     ]
+  //   }
+  // ];
 
   // Add numbering to questions
-  const addNumberingToQuestions = (formsData) => {
-    return formsData.map(form => ({
-      ...form,
-      sections: form.sections.map(section => ({
-        ...section,
-        questions: section.questions?.map((question, index) => ({
-          ...question,
-          number: question.number || index + 1
-        })) || []
-      }))
-    }));
-  };
+  // const addNumberingToQuestions = (formsData) => {
+  //   return formsData.map(form => ({
+  //     ...form,
+  //     sections: form.sections.map(section => ({
+  //       ...section,
+  //       questions: section.questions?.map((question, index) => ({
+  //         ...question,
+  //         number: question.number || index + 1
+  //       })) || []
+  //     }))
+  //   }));
+  // };
 
   // Initialize with sample data if empty
-  useEffect(() => {
-    if (forms.length === 0) {
-      const formsWithNumbering = addNumberingToQuestions(initialForms);
-      setForms(formsWithNumbering);
-    }
-  }, [forms.length]);
+  // useEffect(() => {
+  //   if (forms.length === 0) {
+  //     const formsWithNumbering = addNumberingToQuestions(forms);
+  //     setForms(formsWithNumbering);
+  //   }
+  // }, );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -296,29 +319,57 @@ const Assessment = () => {
   };
 
   // Form save handler
-  const handleSaveForm = async() => {
-    if (!formTitle.trim()) return;
-
-    const newForm = {
-      id: editingForm ? editingForm.id : Date.now(),
-      title: formTitle,
-      active: editingForm ? editingForm.active : true,
-      createdAt: editingForm ? editingForm.createdAt : Date.now(),
-      updatedAt: Date.now(),
-      signatureSettings: signatureSettings,
-      sections: sections
-    };
-
-    if (editingForm) {
-      setForms(forms.map(f => f.id === editingForm.id ? newForm : f));
-    } else {
-      setForms([...forms, newForm]);
+  // Form save handler
+  const handleSaveForm = async () => {
+    if (!formTitle.trim()) {
+      toast.error('Form title is required');
+      return;
     }
 
-    dispatch(createFormThunk(newForm));
-    await dispatch(getAllFormThunk());
-    console.log('new Form created');
-    setShowModal(false);
+    const newForm = {
+      title: formTitle,
+      active: editingForm ? editingForm.active : true,
+      signatureSettings: signatureSettings,
+      sections: sections.map(section => ({
+        ...section,
+        items: (section.items || []).map(item => ({
+          ...item,
+          // Remove _id for new items if they don't have one
+          ...(item._id ? { _id: item._id } : {})
+        }))
+      }))
+    };
+
+    try {
+      if (editingForm) {
+        // Update existing form
+        await dispatch(updateFormThunk({
+          id: editingForm._id,
+          updateData: newForm
+        })).unwrap();
+
+        toast.success('Form updated successfully');
+      } else {
+        // Create new form
+        await dispatch(createFormThunk(newForm)).unwrap();
+        toast.success('Form created successfully');
+      }
+
+      // Refresh forms list
+      await dispatch(getAllFormThunk());
+      setShowModal(false);
+      setEditingForm(null);
+      setFormTitle('');
+      setSections([]);
+      setSignatureSettings({
+        showDate: true,
+        showLocation: true,
+        defaultLocation: ''
+      });
+    } catch (error) {
+      console.error('Error saving form:', error);
+      toast.error(error.message || 'Failed to save form');
+    }
   };
 
   // Delete form handler
@@ -328,9 +379,12 @@ const Assessment = () => {
     setDropdownOpen(null);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (formToDelete) {
-      setForms(forms.filter(f => f.id !== formToDelete.id));
+      setForms(forms.filter(f => f._id !== formToDelete.id));
+      dispatch(deleteFormThunk(formToDelete.id))
+      toast.success('Form Deleted Successfully')
+      await dispatch(getAllFormThunk());
       setShowDeleteModal(false);
       setFormToDelete(null);
     }
@@ -365,9 +419,14 @@ const Assessment = () => {
   // Toggle form active state
   const toggleFormActive = (formId, e) => {
     if (e) e.stopPropagation();
+
+    // Update local state immediately for better UX
     setForms(forms.map(f =>
-      f.id === formId ? { ...f, active: !f.active, updatedAt: Date.now() } : f
+      f._id === formId ? { ...f, active: !f.active, updatedAt: new Date().toISOString() } : f
     ));
+
+    // Dispatch API call to update on server
+    dispatch(toggleActiveThunk(formId));
   };
 
   // Toggle dropdown menu
@@ -451,7 +510,7 @@ const Assessment = () => {
 
   // Filter and sort forms
   const getFilteredAndSortedForms = () => {
-    let filtered = medical.filter(form => {
+    let filtered = forms.filter(form => {
       // Filter by search query
       const matchesSearch = form.title.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -461,10 +520,9 @@ const Assessment = () => {
         (filterStatus === 'inactive' && !form.active);
 
       return matchesSearch && matchesStatus;
-      
     });
 
-    // Helper function to count questions (including variable fields)
+    // Helper function to count questions
     const getQuestionCount = (form) => {
       return form.sections.reduce((acc, section) => {
         const items = section.items || section.questions || [];
@@ -480,10 +538,9 @@ const Assessment = () => {
 
         switch (sortBy) {
           case 'date':
-            // Sort by updatedAt if it exists and differs from createdAt, otherwise use createdAt
             const aDate = (a.updatedAt && a.updatedAt !== a.createdAt) ? a.updatedAt : a.createdAt;
             const bDate = (b.updatedAt && b.updatedAt !== b.createdAt) ? b.updatedAt : b.createdAt;
-            comparison = (aDate || 0) - (bDate || 0);
+            comparison = new Date(aDate) - new Date(bDate);
             break;
           case 'name':
             comparison = a.title.localeCompare(b.title);
@@ -498,7 +555,6 @@ const Assessment = () => {
             comparison = 0;
         }
 
-        // Apply sort direction
         return sortDirection === 'asc' ? comparison : -comparison;
       });
     }
@@ -511,12 +567,6 @@ const Assessment = () => {
   const isDragDisabled = searchQuery !== '' || filterStatus !== 'all';
 
   // Format date helper
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
   const formatDateTime = (timestamp) => {
     if (!timestamp) return 'N/A';
     const date = new Date(timestamp);
@@ -835,7 +885,7 @@ const Assessment = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-content-muted">Status:</span>
                           <button
-                            onClick={(e) => toggleFormActive(form.id, e)}
+                            onClick={(e) => toggleFormActive(form._id, e)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.active ? 'bg-primary' : 'bg-surface-button'
                               }`}
                           >
@@ -863,7 +913,7 @@ const Assessment = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-content-muted">Status:</span>
                           <button
-                            onClick={(e) => toggleFormActive(form.id, e)}
+                            onClick={(e) => toggleFormActive(form._id, e)}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.active ? 'bg-primary' : 'bg-surface-button'
                               }`}
                           >

@@ -17,3 +17,13 @@ export const toggleActive = async (id) => {
     const res = await api.patch(`/medical/${id}/toggle`, { withCredentials: true })
     return res.data
 }
+
+
+export const updateForm = async (id, updateData) => {
+    const res = await api.put(`/medical/${id}`, updateData, { withCredentials: true })
+    return res.data;
+}
+export const deleteForm = async (id) => {
+    const res = await api.delete(`/medical/${id}`, { withCredentials: true })
+    return res.data;
+}

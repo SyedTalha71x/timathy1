@@ -35,7 +35,7 @@ const AssignPlanModal = ({
     // Clear the search query after assignment
     onMemberSearchChange('');
   };
-  
+
 
   const handleRemoveClick = (memberId) => {
     setMemberToRemove(memberId);
@@ -142,12 +142,12 @@ const AssignPlanModal = ({
                   ) : (
                     assignedMembers.map((member) => (
                       <div
-                        key={member.id}
+                        key={member._id}
                         className="bg-surface-dark rounded-xl p-4 hover:bg-surface-hover transition-colors"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-content-primary">{member.name}</h4>
+                            <h4 className="font-medium text-content-primary">{member.firstName} {member.lastName}</h4>
                             <p className="text-content-muted text-sm">{member.email}</p>
                             <div className="flex items-center gap-4 mt-2">
                               <span className="text-primary text-xs">{member.assignedPlan}</span>
@@ -156,8 +156,8 @@ const AssignPlanModal = ({
                               {member.progress !== "Not Started" && (
                                 <span
                                   className={`px-2 py-1 rounded text-xs ${member.progress === "Completed" ? "bg-green-600 text-white" :
-                                      member.progress === "In Progress" ? "bg-yellow-600 text-white" :
-                                        "bg-surface-button text-content-secondary"
+                                    member.progress === "In Progress" ? "bg-yellow-600 text-white" :
+                                      "bg-surface-button text-content-secondary"
                                     }`}
                                 >
                                   {member.progress}
@@ -166,7 +166,7 @@ const AssignPlanModal = ({
                             </div>
                           </div>
                           <button
-                            onClick={() => handleRemoveClick(member.id)}
+                            onClick={() => handleRemoveClick(member._id)}
                             className="p-2 text-content-muted hover:text-red-400 transition-colors ml-4"
                             title="Remove plan from member"
                           >

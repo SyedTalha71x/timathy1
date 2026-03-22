@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import toast from "../../components/shared/SharedToast"
 import {
   Play,
   Pause,
@@ -21,7 +22,6 @@ import {
   Edit,
   Users,
 } from "lucide-react"
-import toast from "../../components/shared/SharedToast"
 import { useNavigate } from "react-router-dom"
 
 // ============================================================================
@@ -64,7 +64,7 @@ import EditPlanModal from "../../components/studio-components/training-component
 import VideoModal from "../../components/shared/training/video-modal"
 import AddToPlanModal from "../../components/studio-components/training-components/add-to-plan-modal"
 import { useDispatch, useSelector } from "react-redux"
-import { createPlan, fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
+import { assignPlanThunk, createPlan, fetchAllPlans, fetchMyPlans, fetchTrainingVideos, removePlanThunk } from "../../features/training/TrainingSlice"
 import { fetchAllMember } from "../../features/member/memberSlice"
 
 // ============================================================================
@@ -169,7 +169,7 @@ export default function Training() {
   const [planToAssign, setPlanToAssign] = useState(null)
   const [videoToAdd, setVideoToAdd] = useState(null)
   const [editingPlan, setEditingPlan] = useState(null)
-
+  const [isAssigning, setIsAssigning] = useState(false);
   // -------------------------------------------------------------------------
   // STATE - Video Player
   // -------------------------------------------------------------------------
@@ -220,7 +220,7 @@ export default function Training() {
       ...plan
     }))
   )
-  const [memberTrainingPlans, setMemberTrainingPlans] = useState(memberTrainingPlansData)
+  const [memberTrainingPlans, setMemberTrainingPlans] = useState([])
 
   // -------------------------------------------------------------------------
   // STATE - Member Assignment
@@ -316,59 +316,107 @@ export default function Training() {
   // HANDLERS - Member Assignment
   // -------------------------------------------------------------------------
 
-  const handleAssignPlan = (memberIds) => {
-    if (memberIds.length === 0) return
+  // HANDLERS - Member Assignment
+  const handleAssignPlan = async (memberIds) => {
+    if (memberIds.length === 0) return;
 
-    const newMembers = memberIds.filter(id =>
-      !assignedMembers.some(assigned => assigned.id === id)
-    )
+    setIsAssigning(true);
 
-    if (newMembers.length === 0) {
-      toast.error("Selected members already have this plan assigned!")
-      return
+    try {
+      // Filter out members that already have this plan assigned
+      const newMembers = memberIds.filter(id => {
+        // Check if member already has this plan
+        const existingAssignments = memberTrainingPlans.filter(
+          mtp => mtp.memberId === id && mtp.planId === planToAssign?._id
+        );
+        return existingAssignments.length === 0;
+      });
+
+      if (newMembers.length === 0) {
+        toast.error("Selected members already have this plan assigned!");
+        return;
+      }
+
+      // Show info toast (instead of loading)
+      toast.info(`Assigning plan to ${newMembers.length} member${newMembers.length !== 1 ? 's' : ''}...`);
+
+      // Assign plan to each member using the Redux thunk
+      const assignPromises = newMembers.map(memberId =>
+        dispatch(assignPlanThunk({
+          memberId: memberId,
+          planId: planToAssign?._id
+        })).unwrap()
+      );
+
+      // Wait for all assignments to complete
+      const results = await Promise.all(assignPromises);
+      console.log('Assignment results:', results);
+
+      // Get the members to assign for local state update
+      const membersToAssign = members
+        .filter(member => newMembers.includes(member._id))
+        .map(member => ({
+          ...member,
+          assignedPlan: planToAssign?.name || "Training Plan",
+          assignedDate: new Date().toISOString().split('T')[0],
+          progress: "Not Started",
+          assignedAt: new Date().toISOString()
+        }));
+
+      // Create new assignments for local state
+      const newAssignments = newMembers.map(memberId => ({
+        id: Date.now() + Math.random(),
+        memberId,
+        planId: planToAssign?._id,
+        assignedByStaffId: currentUserId,
+        assignedAt: new Date().toISOString(),
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: null,
+        status: 'not_started',
+        progress: 0,
+        completedWorkouts: 0,
+        totalWorkouts: planToAssign?.exercises?.length * (planToAssign?.workoutsPerWeek || 1) || 0,
+        notes: null,
+        lastWorkoutDate: null,
+      }));
+
+      // Update local state
+      setMemberTrainingPlans(prev => [...prev, ...newAssignments]);
+      setAssignedMembers(prev => [...prev, ...membersToAssign]);
+      setSelectedMembers([]);
+      setMemberSearchQuery("");
+
+      // Show success toast
+      toast.success(`Training plan assigned to ${newMembers.length} member${newMembers.length !== 1 ? 's' : ''}!`);
+
+    } catch (error) {
+      console.error('Error assigning plan:', error);
+      toast.error(error.message || "Failed to assign training plan");
+    } finally {
+      setIsAssigning(false);
     }
+  };
 
-    const membersToAssign = membersData
-      .filter(member => newMembers.includes(member.id))
-      .map(member => ({
-        ...member,
-        assignedPlan: planToAssign?.name || "Training Plan",
-        assignedDate: new Date().toISOString().split('T')[0],
-        progress: "Not Started"
-      }))
+  const handleRemovePlanFromMember = async (memberId) => {
+    try {
+      // Dispatch the remove thunk
+      await dispatch(removePlanThunk({
+        memberId: memberId,
+        planId: planToAssign?._id
+      })).unwrap();
 
-    // Update member training plans (für Backend: API-Call)
-    const newAssignments = newMembers.map(memberId => ({
-      id: Math.max(...memberTrainingPlans.map(m => m.id), 0) + 1,
-      memberId,
-      planId: planToAssign?.id,
-      assignedByStaffId: null, // Current user
-      assignedAt: new Date().toISOString().split('T')[0],
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: null,
-      status: 'not_started',
-      progress: 0,
-      completedWorkouts: 0,
-      totalWorkouts: planToAssign?.exercises?.length * (planToAssign?.workoutsPerWeek || 1) || 0,
-      notes: null,
-      lastWorkoutDate: null,
-    }))
+      // Update local state (optional - Redux will handle the state update)
+      setAssignedMembers(prev => prev.filter(member => member._id !== memberId));
+      setMemberTrainingPlans(prev => prev.filter(
+        mtp => !(mtp.memberId === memberId && mtp.planId === planToAssign?._id)
+      ));
 
-    setMemberTrainingPlans([...memberTrainingPlans, ...newAssignments])
-    setAssignedMembers([...assignedMembers, ...membersToAssign])
-    setSelectedMembers([])
-    setMemberSearchQuery("")
-
-    toast.success(`Training plan assigned to ${newMembers.length} member${newMembers.length !== 1 ? 's' : ''}!`)
-  }
-
-  const handleRemovePlanFromMember = (memberId) => {
-    setAssignedMembers(assignedMembers.filter(member => member.id !== memberId))
-    setMemberTrainingPlans(memberTrainingPlans.filter(
-      mtp => !(mtp.memberId === memberId && mtp.planId === planToAssign?.id)
-    ))
-    toast.success("Training plan removed from member!")
-  }
+      toast.success("Training plan removed from member!");
+    } catch (error) {
+      console.error('Error removing plan:', error);
+      toast.error(error.message || "Failed to remove training plan");
+    }
+  };
 
   // -------------------------------------------------------------------------
   // HANDLERS - Video Player
@@ -613,10 +661,27 @@ export default function Training() {
   // Load assigned members when opening assign modal
   useEffect(() => {
     if (isAssignPlanModalOpen && planToAssign) {
-      const members = getMembersWithPlan(planToAssign.id)
-      setAssignedMembers(members)
+      // Get members that have this plan assigned from memberTrainingPlans
+      const assignedMemberIds = memberTrainingPlans
+        .filter(mtp => mtp.planId === planToAssign._id)
+        .map(mtp => mtp.memberId);
+
+      const membersWithPlan = members
+        .filter(member => assignedMemberIds.includes(member._id))
+        .map(member => ({
+          ...member,
+          assignedPlan: planToAssign.name,
+          assignedDate: memberTrainingPlans.find(
+            mtp => mtp.memberId === member._id && mtp.planId === planToAssign._id
+          )?.assignedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+          progress: memberTrainingPlans.find(
+            mtp => mtp.memberId === member._id && mtp.planId === planToAssign._id
+          )?.status || "Not Started"
+        }));
+
+      setAssignedMembers(membersWithPlan);
     }
-  }, [isAssignPlanModalOpen, planToAssign])
+  }, [isAssignPlanModalOpen, planToAssign, members, memberTrainingPlans]);
 
   // -------------------------------------------------------------------------
   // RENDER
@@ -1012,6 +1077,7 @@ export default function Training() {
         onRemovePlanFromMember={handleRemovePlanFromMember}
         onAssignPlan={handleAssignPlan}
         getDifficultyColor={getDifficultyColor}
+        isLoading={isAssigning}
       />
 
       {/* View Plan Modal */}

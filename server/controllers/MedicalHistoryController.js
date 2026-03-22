@@ -4,7 +4,7 @@ const MedicalHistoryModel = require("../models/MedicalHistoryModel");
 const createForm = async (req, res) => {
     try {
         const form = await MedicalHistoryModel.create(req.body);
-        res.status(201).json({ success: true, form });
+        res.status(201).json({ success: true, form: form });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -14,7 +14,7 @@ const createForm = async (req, res) => {
 const getAllForms = async (req, res) => {
     try {
         const forms = await MedicalHistoryModel.find().sort({ createdAt: -1 });
-        res.json({ success: true, forms });
+        res.json({ success: true, forms: forms });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -54,7 +54,7 @@ const updateForm = async (req, res) => {
             });
         }
 
-        res.json({ success: true, form });
+        res.json({ success: true, form: form });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -81,6 +81,7 @@ const deleteForm = async (req, res) => {
 // Toggle Active
 const toggleFormActive = async (req, res) => {
     try {
+        const userId = req.user?._id
         const form = await MedicalHistoryModel.findById(req.params.id);
 
         if (!form) {
@@ -93,7 +94,7 @@ const toggleFormActive = async (req, res) => {
         form.active = !form.active;
         await form.save();
 
-        res.json({ success: true, form });
+        res.json({ success: true, form: form });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

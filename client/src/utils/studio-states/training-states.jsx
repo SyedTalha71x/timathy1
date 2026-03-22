@@ -888,7 +888,7 @@ export const staffMembersData = [
 
 // Legacy members data (für Assign-Modal)
 export const membersData = appMembersData.map(member => ({
-  id: member.id,
+  id: member._id,
   name: `${member.firstName} ${member.lastName}`,
   email: member.email,
   firstName: member.firstName,

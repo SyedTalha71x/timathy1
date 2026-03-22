@@ -64,11 +64,11 @@ function loadStaffFromDefaults({ studioId, mode }) {
 function transformStudioData(studioData) {
   // Add debug logging to see the actual structure
   // console.log("transformStudioData received:", studioData)
-  console.log("transformStudioData received:", studioData)
+  // console.log("transformStudioData received:", studioData)
 
   // Handle case when studioData is undefined or null
   if (!studioData) {
-    console.warn("studioData is undefined or null")
+    // console.warn("studioData is undefined or null")
     return {
       studio: null,
       staff: [],
