@@ -4,9 +4,31 @@ import React from "react";
 import { haptic } from "../../../utils/haptic";
 
 const scrollInputIntoView = (e) => {
-  setTimeout(() => {
-    e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, 300);
+  const el = e.target;
+  const scroll = () => {
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
+  // Wait for keyboard to finish opening via visualViewport resize
+  if (window.visualViewport) {
+    let fired = false;
+    const onResize = () => {
+      fired = true;
+      window.visualViewport.removeEventListener("resize", onResize);
+      scroll();
+    };
+    window.visualViewport.addEventListener("resize", onResize);
+    // Fallback if resize never fires (e.g. keyboard already open)
+    setTimeout(() => {
+      if (!fired) {
+        window.visualViewport.removeEventListener("resize", onResize);
+        scroll();
+      }
+    }, 600);
+  } else {
+    setTimeout(scroll, 400);
+  }
 };
 
 const PaymentMethodPopup = ({ show, onClose }) => {

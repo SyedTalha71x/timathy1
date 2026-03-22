@@ -4,9 +4,29 @@ import React from "react";
 import { haptic } from "../../../utils/haptic";
 
 const scrollInputIntoView = (e) => {
-  setTimeout(() => {
-    e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, 300);
+  const el = e.target;
+  const scroll = () => {
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
+  if (window.visualViewport) {
+    let fired = false;
+    const onResize = () => {
+      fired = true;
+      window.visualViewport.removeEventListener("resize", onResize);
+      scroll();
+    };
+    window.visualViewport.addEventListener("resize", onResize);
+    setTimeout(() => {
+      if (!fired) {
+        window.visualViewport.removeEventListener("resize", onResize);
+        scroll();
+      }
+    }, 600);
+  } else {
+    setTimeout(scroll, 400);
+  }
 };
 
 const IdlePeriodFormPopup = ({ show, onClose }) => {

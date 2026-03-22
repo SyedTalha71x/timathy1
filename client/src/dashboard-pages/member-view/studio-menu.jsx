@@ -536,6 +536,32 @@ const StudioMenu = () => {
   // ============================================
 
   /** Form field — matches EditMemberModal input style */
+  const scrollInputIntoView = useCallback((e) => {
+    const el = e.target;
+    const scroll = () => {
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    };
+    if (window.visualViewport) {
+      let fired = false;
+      const onResize = () => {
+        fired = true;
+        window.visualViewport.removeEventListener("resize", onResize);
+        scroll();
+      };
+      window.visualViewport.addEventListener("resize", onResize);
+      setTimeout(() => {
+        if (!fired) {
+          window.visualViewport.removeEventListener("resize", onResize);
+          scroll();
+        }
+      }, 600);
+    } else {
+      setTimeout(scroll, 400);
+    }
+  }, [])
+
   const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
     <div>
       <label className="text-sm text-content-secondary block mb-2">{label}{required && <span className="text-accent-red ml-1">*</span>}</label>
@@ -544,7 +570,7 @@ const StudioMenu = () => {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
+        onFocus={scrollInputIntoView}
         className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
       />
     </div>
