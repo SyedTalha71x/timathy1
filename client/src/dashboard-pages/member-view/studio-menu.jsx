@@ -13,7 +13,6 @@ import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
-import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -52,11 +51,9 @@ const StudioMenu = () => {
   const [expandedSection, setExpandedSection] = useState(null)
   const [showMailConfirm, setShowMailConfirm] = useState(false)
   const [showMapConfirm, setShowMapConfirm] = useState(false)
-  const swipeRef = useRef(null) // container for native touch listeners
-  const touchStartRef = useRef({ x: 0, y: 0, t: 0 })
-  const touchDeltaRef = useRef({ x: 0, y: 0 })
-  const isSwiping = useRef(false)
-  const directionLocked = useRef(false) // once locked, don't re-evaluate
+  const swipeRef = useRef(null)
+  const activeSectionRef = useRef(activeSection)
+  activeSectionRef.current = activeSection
 
   const [personalData, setPersonalData] = useState({
     firstName: "",
@@ -409,197 +406,97 @@ const StudioMenu = () => {
   }
 
   // ============================================
-  // Tab slide + swipe logic (native non-passive)
+  // Tab navigation — panel-based swipe (all tabs rendered side by side)
   // ============================================
   const tabKeys = ["info", "checkin", "bulletin", "data"]
   const activeTabIndex = tabKeys.indexOf(activeSection)
-  const isAnimating = useRef(false) // prevent double-triggers during animation
 
-  // Animate content: slide out → swap tab → slide in (used by both click and swipe)
-  const animateToTab = useCallback((key, direction) => {
+  // Tab click handler — smooth CSS transition to target panel
+  const animateToTab = useCallback((key) => {
     const el = swipeRef.current
-    if (!el || isAnimating.current) return
-    if (key === activeSection) return
-    isAnimating.current = true
+    if (!el) return
+    const targetIdx = tabKeys.indexOf(key)
+    el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+    el.style.transform = `translateX(-${targetIdx * 25}%)`
     haptic.light()
-
-    const slideOut = direction === "left" ? -35 : 35
-    const slideIn = direction === "left" ? 35 : -35
-
-    // Phase 1: slide current content out
-    el.style.transition = 'transform 0.15s ease-in, opacity 0.15s ease-in'
-    el.style.transform = `translateX(${slideOut}px)`
-    el.style.opacity = '0.3'
-
-    setTimeout(() => {
-      // Phase 2: swap content (instant, invisible)
-      setActiveSection(key)
-      el.style.transition = 'none'
-      el.style.transform = `translateX(${slideIn}px)`
-      el.style.opacity = '0.3'
-
-      // Phase 3: slide new content in (next frame so browser picks up new position)
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out'
-          el.style.transform = 'translateX(0)'
-          el.style.opacity = '1'
-
-          setTimeout(() => {
-            if (el) {
-              el.style.transition = ''
-              el.style.transform = ''
-              el.style.opacity = ''
-            }
-            isAnimating.current = false
-          }, 220)
-        })
-      })
-    }, 160)
-
-    // Scroll tab pill into view
+    setActiveSection(key)
     requestAnimationFrame(() => {
-      const btn = tabBarRef.current?.querySelector(`[data-tab="${key}"]`)
-      btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+      tabBarRef.current?.querySelector(`[data-tab="${key}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
     })
-  }, [activeSection])
+  }, [])
 
-  // Native touch listeners — attached as { passive: false } so preventDefault works on iOS
+  // Native touch listeners — mounted once, uses ref for current tab
   useEffect(() => {
     const el = swipeRef.current
     if (!el) return
 
-    const SWIPE_THRESHOLD = 40
-    const VELOCITY_THRESHOLD = 0.3
-    const MAX_TRANSLATE = 100
-    const LOCK_ANGLE_RATIO = 1.2
+    let startX, startY, startT, dx, locked, isH
 
-    const onTouchStart = (e) => {
-      if (isAnimating.current) return
-      const touch = e.touches[0]
-      touchStartRef.current = { x: touch.clientX, y: touch.clientY, t: Date.now() }
-      touchDeltaRef.current = { x: 0, y: 0 }
-      isSwiping.current = false
-      directionLocked.current = false
+    const onStart = (e) => {
+      const t = e.touches[0]
+      startX = t.clientX; startY = t.clientY; startT = Date.now()
+      dx = 0; locked = false; isH = false
       el.style.transition = 'none'
     }
 
-    const onTouchMove = (e) => {
-      if (isAnimating.current) return
-      const touch = e.touches[0]
-      const dx = touch.clientX - touchStartRef.current.x
-      const dy = touch.clientY - touchStartRef.current.y
-      touchDeltaRef.current = { x: dx, y: dy }
+    const onMove = (e) => {
+      const t = e.touches[0]
+      const rawDx = t.clientX - startX
+      const dy = t.clientY - startY
 
-      if (!directionLocked.current && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
-        directionLocked.current = true
-        isSwiping.current = Math.abs(dx) > Math.abs(dy) * LOCK_ANGLE_RATIO
+      if (!locked && (Math.abs(rawDx) > 8 || Math.abs(dy) > 8)) {
+        locked = true
+        isH = Math.abs(rawDx) > Math.abs(dy) * 1.3
       }
-
-      if (!isSwiping.current) return
+      if (!isH) return
       e.preventDefault()
 
-      const currentIdx = tabKeys.indexOf(activeSection)
-      const atStart = currentIdx === 0 && dx > 0
-      const atEnd = currentIdx === tabKeys.length - 1 && dx < 0
-
-      let translate = dx
-      if (atStart || atEnd) translate = dx * 0.2
-      translate = Math.max(-MAX_TRANSLATE, Math.min(MAX_TRANSLATE, translate))
-
-      el.style.transform = `translateX(${translate}px)`
-      el.style.opacity = `${1 - Math.abs(translate) / (MAX_TRANSLATE * 2.5)}`
+      const i = tabKeys.indexOf(activeSectionRef.current)
+      dx = rawDx
+      // Rubber-band at edges
+      if ((i === 0 && dx > 0) || (i === tabKeys.length - 1 && dx < 0)) {
+        dx = rawDx * 0.15
+      }
+      el.style.transform = `translateX(calc(-${i * 25}% + ${dx}px))`
     }
 
-    const onTouchEnd = () => {
-      if (!isSwiping.current || isAnimating.current) {
-        el.style.transition = ''
-        el.style.transform = ''
-        el.style.opacity = ''
-        return
+    const onEnd = () => {
+      if (!isH) return
+      const i = tabKeys.indexOf(activeSectionRef.current)
+      const velocity = Math.abs(dx) / Math.max(Date.now() - startT, 1)
+      const panelW = el.parentElement?.offsetWidth || window.innerWidth
+      const threshold = panelW * 0.15
+
+      let target = i
+      if (dx < -threshold || (dx < -20 && velocity > 0.25)) {
+        target = Math.min(i + 1, tabKeys.length - 1)
+      } else if (dx > threshold || (dx > 20 && velocity > 0.25)) {
+        target = Math.max(i - 1, 0)
       }
 
-      const { x: dx } = touchDeltaRef.current
-      const dt = Date.now() - touchStartRef.current.t
-      const velocity = Math.abs(dx) / Math.max(dt, 1)
-      const currentIdx = tabKeys.indexOf(activeSection)
-      const triggered = Math.abs(dx) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD
+      el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+      el.style.transform = `translateX(-${target * 25}%)`
 
-      if (triggered && dx < 0 && currentIdx < tabKeys.length - 1) {
-        // Already partially slid — just complete the exit and swap
-        isAnimating.current = true
-        el.style.transition = 'transform 0.12s ease-in, opacity 0.12s ease-in'
-        el.style.transform = 'translateX(-35px)'
-        el.style.opacity = '0.3'
-
-        const nextKey = tabKeys[currentIdx + 1]
-        setTimeout(() => {
-          setActiveSection(nextKey)
-          haptic.light()
-          el.style.transition = 'none'
-          el.style.transform = 'translateX(35px)'
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              el.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out'
-              el.style.transform = 'translateX(0)'
-              el.style.opacity = '1'
-              setTimeout(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; isAnimating.current = false }, 220)
-            })
-          })
-          requestAnimationFrame(() => {
-            const btn = tabBarRef.current?.querySelector(`[data-tab="${nextKey}"]`)
-            btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-          })
-        }, 130)
-
-      } else if (triggered && dx > 0 && currentIdx > 0) {
-        isAnimating.current = true
-        el.style.transition = 'transform 0.12s ease-in, opacity 0.12s ease-in'
-        el.style.transform = 'translateX(35px)'
-        el.style.opacity = '0.3'
-
-        const prevKey = tabKeys[currentIdx - 1]
-        setTimeout(() => {
-          setActiveSection(prevKey)
-          haptic.light()
-          el.style.transition = 'none'
-          el.style.transform = 'translateX(-35px)'
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              el.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out'
-              el.style.transform = 'translateX(0)'
-              el.style.opacity = '1'
-              setTimeout(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; isAnimating.current = false }, 220)
-            })
-          })
-          requestAnimationFrame(() => {
-            const btn = tabBarRef.current?.querySelector(`[data-tab="${prevKey}"]`)
-            btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-          })
-        }, 130)
-
-      } else {
-        // Snap back
-        el.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out'
-        el.style.transform = 'translateX(0)'
-        el.style.opacity = '1'
-        setTimeout(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = '' }, 220)
+      if (target !== i) {
+        haptic.light()
+        setActiveSection(tabKeys[target])
+        requestAnimationFrame(() => {
+          tabBarRef.current?.querySelector(`[data-tab="${tabKeys[target]}"]`)
+            ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+        })
       }
-
-      isSwiping.current = false
-      directionLocked.current = false
     }
 
-    el.addEventListener('touchstart', onTouchStart, { passive: true })
-    el.addEventListener('touchmove', onTouchMove, { passive: false })
-    el.addEventListener('touchend', onTouchEnd, { passive: true })
-
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd, { passive: true })
     return () => {
-      el.removeEventListener('touchstart', onTouchStart)
-      el.removeEventListener('touchmove', onTouchMove)
-      el.removeEventListener('touchend', onTouchEnd)
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
     }
-  }, [activeSection])
+  }, []) // mount once — uses activeSectionRef
 
   const handleEmailClick = (e) => {
     e.preventDefault()
@@ -703,10 +600,8 @@ const StudioMenu = () => {
                 key={tab.key}
                 data-tab={tab.key}
                 onClick={() => {
-                  const fromIdx = tabKeys.indexOf(activeSection)
-                  const toIdx = tabKeys.indexOf(tab.key)
-                  if (fromIdx === toIdx) return
-                  animateToTab(tab.key, toIdx > fromIdx ? "left" : "right")
+                  if (tab.key === activeSection) return
+                  animateToTab(tab.key)
                 }}
                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                 className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base whitespace-nowrap transition-colors duration-150 ${activeSection === tab.key
@@ -721,21 +616,16 @@ const StudioMenu = () => {
         </div>
       </div>
 
-      <PullToRefresh
-        onRefresh={async () => { /* TODO: dispatch(fetchMyStudio()) when backend is ready */ await new Promise(r => setTimeout(r, 600)) }}
-        className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16"
-      >
+      {/* ===== TAB PANELS — all rendered side by side, translateX to navigate ===== */}
+      <div className="flex-1 overflow-hidden">
         <div
           ref={swipeRef}
-          style={{ willChange: 'transform', touchAction: 'pan-y pinch-zoom' }}
+          className="flex h-full"
+          style={{ width: '400%', willChange: 'transform', touchAction: 'pan-y pinch-zoom' }}
         >
 
-        {/* ============================================================
-            TAB: STUDIO INFO
-            Desktop: Map full → 2-col (Hours | Contact) → Legal row
-            Mobile: Map → Hours → Contact → Legal
-        ============================================================ */}
-        {activeSection === "info" && (
+        {/* ---- Panel 1: STUDIO INFO ---- */}
+        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
             {/* Map */}
@@ -905,13 +795,10 @@ const StudioMenu = () => {
               </div>
             </Card>
           </div>
-        )}
+        </div>
 
-        {/* ============================================================
-            TAB: CHECK-IN
-            QR Scanner + Check-in History
-        ============================================================ */}
-        {activeSection === "checkin" && (
+        {/* ---- Panel 2: CHECK-IN ---- */}
+        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="grid gap-4 md:grid-cols-2">
             {/* QR Scanner */}
             <Card>
@@ -1028,13 +915,10 @@ const StudioMenu = () => {
               )}
             </Card>
           </div>
-        )}
+        </div>
 
-        {/* ============================================================
-            TAB: BULLETIN BOARD
-            Matches studio bulletin-board.jsx card design exactly
-        ============================================================ */}
-        {activeSection === "bulletin" && (
+        {/* ---- Panel 3: BULLETIN BOARD ---- */}
+        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div>
             {messages.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 auto-rows-fr">
@@ -1106,13 +990,10 @@ const StudioMenu = () => {
               </Card>
             )}
           </div>
-        )}
+        </div>
 
-        {/* ============================================================
-            TAB: Self-Service
-            Summary → 2-col (Contract | Membership) → Personal Data
-        ============================================================ */}
-        {activeSection === "data" && (
+        {/* ---- Panel 4: SELF-SERVICE ---- */}
+        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
             {/* Member summary strip */}
@@ -1400,9 +1281,10 @@ const StudioMenu = () => {
               </div>
             </Card>
           </div>
-        )}
         </div>
-      </PullToRefresh>
+
+        </div>
+      </div>
 
       {/* ===== POPUPS ===== */}
       {showImprintPopup && <ImprintPopup onClose={() => setShowImprintPopup(false)} studio={studio} />}
