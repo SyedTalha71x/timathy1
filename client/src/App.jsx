@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
@@ -84,14 +84,21 @@ import MemberClasses from './dashboard-pages/member-view/classes'
 // chat setup
 import { connectSocket, disconnectSocket } from "./services/socket";
 import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 
 
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth)
-  // const dispatch = useDispatch();
-  // const navigate = useNavigate();
+
+  // Native app: always start at login
+  useEffect(() => {
+    if (Capacitor.isNativePlatform() && location.pathname === "/") {
+      navigate("/login", { replace: true })
+    }
+  }, [])
 
   const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training");
 
