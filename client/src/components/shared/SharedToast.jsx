@@ -135,7 +135,10 @@ const ToastContainer = ({ toasts, onDismiss }) => {
           }
         }
       `}</style>
-      <div className="fixed top-4 right-4 z-[100000] flex flex-col gap-2 pointer-events-none">
+      <div
+        className="fixed right-4 z-[100000] flex flex-col gap-2 pointer-events-none"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+      >
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">
             <ToastItem toast={t} onDismiss={onDismiss} />
