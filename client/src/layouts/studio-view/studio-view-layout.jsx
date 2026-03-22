@@ -138,8 +138,8 @@ useEffect(() => {
             border: 2px dashed #888;
           }
           @keyframes page-fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { transform: translateY(4px); }
+            to { transform: translateY(0); }
           }
           .page-transition {
             animation: page-fade-in 0.2s ease-out;

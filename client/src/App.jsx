@@ -95,7 +95,7 @@ function App() {
 
   const isNative = Capacitor.isNativePlatform()
 
-  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training");
+  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training") || (isNative && location.pathname === "/");
 
 
 
