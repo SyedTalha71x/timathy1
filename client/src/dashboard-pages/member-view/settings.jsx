@@ -6,6 +6,7 @@ import { updateUserData, updatedPassword, logout } from "../../features/auth/aut
 import { updateReminders } from "../../features/notification/notificationSlice"
 import { notification } from "antd"
 import { haptic } from "../../utils/haptic"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 import {
   ChevronRight,
   ChevronLeft,
@@ -1119,6 +1120,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
           {/* Mobile Content Area */}
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
             {renderSectionContent()}
+            <KeyboardSpacer />
           </div>
 
           {/* Spacer for bottom bar — collapses when keyboard opens */}
@@ -1142,7 +1144,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Logout Confirmation                          */}
       {/* ============================================ */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
           <div className="bg-surface-card rounded-xl p-5 w-full max-w-sm shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-surface-hover flex items-center justify-center flex-shrink-0">
@@ -1179,7 +1181,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Delete Account Confirmation                  */}
       {/* ============================================ */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
           <div className="bg-surface-card rounded-xl p-5 w-full max-w-sm shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
