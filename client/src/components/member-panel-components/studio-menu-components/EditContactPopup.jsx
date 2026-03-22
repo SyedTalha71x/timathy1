@@ -24,11 +24,8 @@ const EditContactPopup = ({ show, data, onChange, onSave, onClose }) => {
           <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
 
           <FormField label="Email" type="email" value={data.email} onChange={(e) => onChange("email", e.target.value)} required />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Mobile Number" type="tel" value={data.phone} onChange={(e) => onChange("phone", e.target.value)} placeholder="+49 123 456789" />
-            <FormField label="Telephone Number" type="tel" value={data.telephoneNumber} onChange={(e) => onChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
-          </div>
+          <FormField label="Mobile Number" type="tel" value={data.phone} onChange={(e) => onChange("phone", e.target.value)} placeholder="+49 123 456789" />
+          <FormField label="Telephone Number" type="tel" value={data.telephoneNumber} onChange={(e) => onChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
           <KeyboardSpacer />
         </div>
 

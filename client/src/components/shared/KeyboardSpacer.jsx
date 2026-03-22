@@ -3,8 +3,9 @@ import { useEffect, useRef } from "react";
 /**
  * Drop at the bottom of any scrollable popup container.
  * Only expands when an INPUT or TEXTAREA in the lower portion of the
- * screen is focused — so fields already visible above the keyboard
- * are left alone. SELECT elements are ignored (native picker, no keyboard).
+ * screen is focused. Ignores SELECT elements and anything inside
+ * a [data-no-spacer] wrapper (e.g. CustomSelect components).
+ * Uses a smaller spacer for number/tel keyboards.
  */
 export default function KeyboardSpacer() {
   const spacerRef = useRef(null);
@@ -15,19 +16,26 @@ export default function KeyboardSpacer() {
     if (!container) return;
 
     const onFocusIn = (e) => {
-      const tag = e.target.tagName;
-      // Only text inputs and textareas — selects use native picker, no keyboard
+      const el = e.target;
+      const tag = el.tagName;
+
+      // Only text inputs and textareas — selects use native picker
       if (tag !== "INPUT" && tag !== "TEXTAREA") return;
 
-      // Only expand if the field is in the lower 45% of the viewport
-      // (upper fields are already visible above the keyboard)
-      const rect = e.target.getBoundingClientRect();
-      const threshold = window.innerHeight * 0.55;
-      if (rect.top < threshold) return;
+      // Ignore inputs inside [data-no-spacer] wrappers (e.g. CustomSelect)
+      if (el.closest("[data-no-spacer]")) return;
 
-      spacer.style.height = "50vh";
+      // Only expand if the field is in the lower 50% of the viewport
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.5) return;
+
+      // Number/tel keyboards are shorter — use less space
+      const inputType = el.getAttribute("type") || "text";
+      const isCompactKeyboard = inputType === "tel" || inputType === "number";
+      spacer.style.height = isCompactKeyboard ? "30vh" : "50vh";
+
       setTimeout(() => {
-        e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 60);
     };
 

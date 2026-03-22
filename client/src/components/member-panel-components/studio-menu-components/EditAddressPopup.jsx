@@ -34,7 +34,7 @@ const EditAddressPopup = ({ show, data, onChange, onSave, onClose, countries, co
             <FormField label="City" value={data.city} onChange={(e) => onChange("city", e.target.value)} placeholder="Berlin" />
           </div>
 
-          <div>
+          <div data-no-spacer>
             <label className="text-sm text-content-secondary block mb-2">Country</label>
             <CustomSelect
               name="country"

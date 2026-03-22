@@ -31,7 +31,7 @@ const EditPersonalPopup = ({ show, data, onChange, onSave, onClose }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div data-no-spacer>
               <label className="text-sm text-content-secondary block mb-2">Gender</label>
               <CustomSelect
                 name="gender"
