@@ -440,6 +440,10 @@ const StudioMenu = () => {
     if (!isSwiping.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
       isSwiping.current = true
     }
+    // Once locked to horizontal, prevent vertical scroll / pull-to-refresh
+    if (isSwiping.current) {
+      try { e.preventDefault() } catch (_) { /* passive listener fallback */ }
+    }
   }, [])
 
   const handleTouchEnd = useCallback(() => {
@@ -589,10 +593,13 @@ const StudioMenu = () => {
       <PullToRefresh
         onRefresh={async () => { /* TODO: dispatch(fetchMyStudio()) when backend is ready */ await new Promise(r => setTimeout(r, 600)) }}
         className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: "pan-y" }}
+        >
         <div
           key={activeSection}
           style={slideDirection ? {
@@ -1271,6 +1278,7 @@ const StudioMenu = () => {
             </Card>
           </div>
         )}
+        </div>
         </div>
       </PullToRefresh>
 
