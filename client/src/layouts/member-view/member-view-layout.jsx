@@ -30,7 +30,12 @@ const MemberDashboardLayout = () => {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      @keyframes page-slide-in {
+        from { transform: translateY(4px); }
+        to { transform: translateY(0); }
+      }
       .page-transition { animation: page-fade-in 0.25s ease-out both; }
+      .page-transition-no-fade { animation: page-slide-in 0.2s ease-out both; }
     `}</style>
     <div className="member-root bg-surface-dark h-dvh overflow-hidden">
       <div className="flex flex-col md:flex-row h-full">
@@ -58,8 +63,8 @@ const MemberDashboardLayout = () => {
             toggleLeftSidebarCollapse={toggleLeftSidebarCollapse}
           />
 
-          {/* Page Content — fades in on route change */}
-          <div key={location.pathname} className="page-transition h-full">
+          {/* Page Content — fades in on route change (settings uses no-fade to avoid black corner flash) */}
+          <div key={location.pathname} className={`${location.pathname.includes('/settings') ? 'page-transition-no-fade' : 'page-transition'} h-full`}>
             <Outlet />
           </div>
         </main>

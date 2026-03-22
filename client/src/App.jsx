@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
@@ -148,7 +148,7 @@ function App() {
     <>
       {!isAuthOrDashboardPage && <Header />}
       <Routes>
-        <Route path="/" element={isNative ? <Navigate to="/login" replace /> : <Home />} />
+        <Route path="/" element={isNative ? <Login /> : <Home />} />
         <Route path="login" element={<Login />} />
 
         {/* ═══════════════════════════════════════════════════════════════════
