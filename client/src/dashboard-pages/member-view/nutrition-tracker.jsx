@@ -146,6 +146,12 @@ const NutritionTracker = () => {
   const { scanning: barcodeLoading, foodData: barcodeFood, error: barcodeError } = useSelector((state) => state.barCode || {})
 
   const [activeView, setActiveView] = useState("diary")
+  const [hasVisitedInsights, setHasVisitedInsights] = useState(false)
+
+  // Mark insights as visited when tab changes — keeps charts mounted after first visit
+  useEffect(() => {
+    if (activeView === "insights") setHasVisitedInsights(true)
+  }, [activeView])
 
   // Date
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -969,12 +975,13 @@ const NutritionTracker = () => {
           </PullToRefresh>
         </div>
 
-        {/* ---- Panel 2: INSIGHTS ---- */}
+        {/* ---- Panel 2: INSIGHTS (lazy-mounted to avoid Recharts blocking main thread) ---- */}
         <div className="w-1/2 h-full">
           <PullToRefresh
             onRefresh={async () => { await Promise.all([dispatch(fetchDailySummery(dateStr)), dispatch(fetchFood())]).catch(() => {}) }}
             className="h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
           >
+          {hasVisitedInsights ? (
           <div className="max-w-3xl mx-auto space-y-6">
 
             {/* Daily Score */}
@@ -1140,6 +1147,7 @@ const NutritionTracker = () => {
               </div>
             </SettingsCard>
           </div>
+          ) : null}
           </PullToRefresh>
         </div>
 
