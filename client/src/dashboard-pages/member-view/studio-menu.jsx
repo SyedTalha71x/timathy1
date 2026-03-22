@@ -169,12 +169,12 @@ const StudioMenu = () => {
     if (!viewingPost) return null
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="bg-surface-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[85dvh] overflow-hidden flex flex-col">
           {/* Header — close button */}
-          <div className="flex items-center justify-end p-4 border-b border-border">
+          <div className="flex items-center justify-end p-4 border-b border-border flex-shrink-0">
             <button
-              onClick={() => setViewingPost(null)}
+              onClick={() => { haptic.light(); setViewingPost(null) }}
               className="text-content-muted hover:text-content-primary transition-colors p-1 flex-shrink-0"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,9 +220,9 @@ const StudioMenu = () => {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end p-4 border-t border-border">
+          <div className="flex justify-end p-4 border-t border-border flex-shrink-0">
             <button
-              onClick={() => setViewingPost(null)}
+              onClick={() => { haptic.light(); setViewingPost(null) }}
               className="px-5 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
             >
               Close
@@ -544,6 +544,7 @@ const StudioMenu = () => {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
         className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
       />
     </div>
@@ -552,10 +553,10 @@ const StudioMenu = () => {
   /** Form action buttons — matches EditMemberModal footer */
   const FormActions = ({ onSave, onCancel }) => (
     <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
-      <button type="button" onClick={onCancel} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
+      <button type="button" onClick={() => { haptic.light(); onCancel(); }} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
         Cancel
       </button>
-      <button type="button" onClick={onSave} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
+      <button type="button" onClick={() => { haptic.success(); onSave(); }} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
         Request Change
       </button>
     </div>
@@ -587,7 +588,7 @@ const StudioMenu = () => {
   ]
 
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none relative">
       <PostPreviewModal />
 
       {/* ===== TAB NAVIGATION — sticky ===== */}
@@ -1301,7 +1302,7 @@ const StudioMenu = () => {
       {/* Mail provider action sheet */}
       {showMailConfirm && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="absolute inset-0 z-50 flex items-end justify-center"
           onClick={() => setShowMailConfirm(false)}
         >
           <div className="absolute inset-0 bg-black/50" />
@@ -1359,7 +1360,7 @@ const StudioMenu = () => {
       {/* Map provider action sheet */}
       {showMapConfirm && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="absolute inset-0 z-50 flex items-end justify-center"
           onClick={() => setShowMapConfirm(false)}
         >
           <div className="absolute inset-0 bg-black/50" />
@@ -1420,8 +1421,8 @@ const StudioMenu = () => {
 
       {/* Edit Personal Data Popup — matches EditMemberModal */}
       {isEditingPersonal && (
-        <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Personal Data</h2>
               <button onClick={() => setIsEditingPersonal(false)} className="text-content-muted hover:text-content-primary transition-colors">
@@ -1478,8 +1479,8 @@ const StudioMenu = () => {
 
       {/* Edit Address Popup — matches EditMemberModal */}
       {isEditingAddress && (
-        <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Address</h2>
               <button onClick={() => setIsEditingAddress(false)} className="text-content-muted hover:text-content-primary transition-colors">
@@ -1526,8 +1527,8 @@ const StudioMenu = () => {
 
       {/* Edit Contact Popup — matches EditMemberModal */}
       {isEditingContact && (
-        <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Contact Details</h2>
               <button onClick={() => setIsEditingContact(false)} className="text-content-muted hover:text-content-primary transition-colors">
