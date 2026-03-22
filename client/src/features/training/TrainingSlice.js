@@ -66,9 +66,20 @@ export const updatePlan = createAsyncThunk('training/updateTrainingPlan', async 
 
 
 //  *** assign plan to member ***
-export const assignPlan = createAsyncThunk('training/assignPlanToMember', async ({ memberId, planId }, { rejectWithValue }) => {
+export const assignPlanThunk = createAsyncThunk('training/assignPlanToMember', async ({ memberId, planId }, { rejectWithValue }) => {
     try {
         const res = await trainingApi.assignPlanToMember(memberId, planId);
+        return { memberId, plan: res.plan };
+    }
+    catch (error) {
+        return rejectWithValue(error?.message)
+    }
+})
+
+// ====Remove member from plan======
+export const removePlanThunk = createAsyncThunk('training/remove-plan', async ({ memberId, planId }, { rejectWithValue }) => {
+    try {
+        const res = await trainingApi.removePlanToMember(memberId, planId);
         return { memberId, plan: res.plan };
     }
     catch (error) {
@@ -183,11 +194,11 @@ const trainingSlice = createSlice({
             })
 
             // assign plan to a specific member
-            .addCase(assignPlan.pending, (state) => {
+            .addCase(assignPlanThunk.pending, (state) => {
                 state.loading = true;
                 state.error = null
             })
-            .addCase(assignPlan.fulfilled, (state, action) => {
+            .addCase(assignPlanThunk.fulfilled, (state, action) => {
                 state.loading = false;
                 const { memberId, plan } = action.payload;
                 if (!state.plansByMember[memberId]) state.plansByMember[memberId] = [];
@@ -196,39 +207,71 @@ const trainingSlice = createSlice({
                 const exists = state.plansByMember[memberId].some(p => p._id === plan._id);
                 if (!exists) state.plansByMember[memberId].push(plan);
             })
-            .addCase(assignPlan.rejected, (state, action) => {
+            .addCase(assignPlanThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message;
+            })
+            // Remove plan of a specific member
+            .addCase(removePlanThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(removePlanThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                const { memberId, planId } = action.payload;
+
+                // Remove from plansByMember object
+                if (state.plansByMember && state.plansByMember[memberId]) {
+                    state.plansByMember[memberId] = state.plansByMember[memberId].filter(
+                        plan => plan._id !== planId
+                    );
+
+                    // Clean up empty arrays
+                    if (state.plansByMember[memberId].length === 0) {
+                        delete state.plansByMember[memberId];
+                    }
+                }
+
+                // Also update memberTrainingPlans if you have it in state
+                if (state.memberTrainingPlans) {
+                    state.memberTrainingPlans = state.memberTrainingPlans.filter(
+                        mtp => !(mtp.memberId === memberId && mtp.planId === planId)
+                    );
+                }
+            })
+            .addCase(removePlanThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message;
             })
 
-        // fetch All Plans
-        .addCase(fetchAllPlans.pending, (state) => {
-            state.loading = true;
-            state.error = null;
-        })
-        .addCase(fetchAllPlans.fulfilled, (state, action) => {
-            state.loading = false;
-            state.myPlans = action.payload;
-        })
-        .addCase(fetchAllPlans.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload?.message
-        })
-        // fetch Plans Assigned to Member
-        .addCase(fetchShowAssignedPlans.pending, (state) => {
-            state.loading = true;
-            state.error = null;
-        })
-        .addCase(fetchShowAssignedPlans.fulfilled, (state, action) => {
-            state.loading = false;
-            const memberId = action.meta.arg;       // the member ID you dispatched with
-            state.plansByMember[memberId] = action.payload;  // store per member
-        })
-        .addCase(fetchShowAssignedPlans.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload?.message;
-        })
+            // fetch All Plans
+            .addCase(fetchAllPlans.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAllPlans.fulfilled, (state, action) => {
+                state.loading = false;
+                state.myPlans = action.payload;
+            })
+            .addCase(fetchAllPlans.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // fetch Plans Assigned to Member
+            .addCase(fetchShowAssignedPlans.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchShowAssignedPlans.fulfilled, (state, action) => {
+                state.loading = false;
+                const memberId = action.meta.arg;       // the member ID you dispatched with
+                state.plansByMember[memberId] = action.payload;  // store per member
+            })
+            .addCase(fetchShowAssignedPlans.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message;
+            })
 
-}
+    }
 })
 export default trainingSlice.reducer;

@@ -56,6 +56,11 @@ export const assignPlanToMember = async (memberId, planId) => {
     const res = await api.post(`/plan/assign/${memberId}`, { planId }, { withCredentials: true })
     return res.data
 }
+//  remove member from plan
+export const removePlanToMember = async (memberId, planId) => {
+    const res = await api.post(`/plan/remove/${memberId}`, { planId }, { withCredentials: true })
+    return res.data
+}
 
 
 // all assigned plans of members

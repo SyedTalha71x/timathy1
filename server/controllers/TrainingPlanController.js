@@ -128,6 +128,7 @@ const fetchAllPlans = async (req, res, next) => {
     try {
         const userId = req.user?._id
         const allPlans = await TrainingPlanModel.find()
+            .populate('member','firstName lastName')
             .populate('exercises', 'video reps sets rest')
             .populate('exercises.video', 'title description videoUrl thumbnail duration difficulty')
             .populate('createdBy', 'firstName lastName');
@@ -138,7 +139,7 @@ const fetchAllPlans = async (req, res, next) => {
     }
 }
 
-const createPlanForMember = async (req, res, next) => {
+const assignPlanToMember = async (req, res, next) => {
     try {
         // const userId = req.user?._id;
         const { memberId } = req.params;
@@ -188,11 +189,35 @@ const showAssignedPlans = async (req, res, next) => {
     }
 }
 
+const removeAssignMember = async (req, res, next) => {
+    try {
+        const { memberId } = req.params;
+
+        const { planId } = req.body
+
+        const plan = await TrainingPlanModel.findById(planId);
+        if (!plan) throw new NotFoundError("Training plan not found")
+
+        const member = await MemberModel.findById(memberId);
+        if (!member) throw new NotFoundError("Member not found")
+
+        await MemberModel.findByIdAndUpdate(memberId, { $pull: { createdPlans: planId } }, { new: true });
+        await TrainingPlanModel.findByIdAndUpdate(planId, { $pull: { member: memberId } }, { new: true });
+        await member.save();
+
+        res.status(200).json({ success: true, plan: plan });
+    } catch (error) {
+        next(error)
+    }
+}
+
+
 module.exports = {
     createPlan,
     showMyPlan,
     updateTrainingPlan,
     fetchAllPlans,
-    createPlanForMember,
-    showAssignedPlans
+    assignPlanToMember,
+    showAssignedPlans,
+    removeAssignMember
 }

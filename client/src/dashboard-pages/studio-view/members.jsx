@@ -80,7 +80,7 @@ import {
 } from "../../features/member/memberSlice"
 import { createAppointmentByStaff } from "../../features/appointments/AppointmentApi"
 import { fetchStudioServices } from "../../features/services/servicesSlice"
-import { assignPlan, fetchAllPlans } from "../../features/training/TrainingSlice"
+import { assignPlanThunk, fetchAllPlans } from "../../features/training/TrainingSlice"
 import { updateAppointmentThunk } from "../../features/appointments/AppointmentSlice"
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
@@ -1195,7 +1195,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   const handleAssignTrainingPlanMain = (memberId, planId) => {
     const plan = myPlans.find((p) => p._id === planId);
     if (plan) {
-      dispatch(assignPlan({ memberId, planId })); // pass as object
+      dispatch(assignPlanThunk({ memberId, planId })); // pass as object
       toast.success(`Training plan "${plan.name}" assigned successfully!`);
     }
   };
