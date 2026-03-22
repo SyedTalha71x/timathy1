@@ -51,8 +51,8 @@ const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse 
   // ============================================
   const menuItems = [
     { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-    { icon: MessageCircle, label: "Messages", to: "/member-view/communication", badgeCount: unreadMessagesCount },
     { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
+    { icon: MessageCircle, label: "Messages", to: "/member-view/communication", badgeCount: unreadMessagesCount },
     { icon: Timer, label: "Classes", to: "/member-view/classes" },
     { icon: CgGym, label: "Training", to: "/member-view/training" },
     { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import ImprintPopup from "../../components/member-panel-components/studio-menu-components/ImprintPopup"
 import TermsPopup from "../../components/member-panel-components/studio-menu-components/TermsPopup"
 import PrivacyPopup from "../../components/member-panel-components/studio-menu-components/PrivacyPopup"
@@ -50,6 +50,12 @@ const StudioMenu = () => {
   const [copiedPhone, setCopiedPhone] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [expandedSection, setExpandedSection] = useState(null)
+  const [slideDirection, setSlideDirection] = useState(null)
+  const [showMailConfirm, setShowMailConfirm] = useState(false)
+  const [showMapConfirm, setShowMapConfirm] = useState(false)
+  const touchStartRef = useRef({ x: 0, y: 0 })
+  const touchDeltaRef = useRef({ x: 0, y: 0 })
+  const isSwiping = useRef(false)
 
   const [personalData, setPersonalData] = useState({
     firstName: "",
@@ -386,6 +392,7 @@ const StudioMenu = () => {
   const handleCopyPhone = async () => {
     try {
       await navigator.clipboard.writeText(studio?.phone || "")
+      haptic.light()
       setCopiedPhone(true)
       setTimeout(() => setCopiedPhone(false), 2000)
     } catch (err) { console.error('Copy failed:', err) }
@@ -394,9 +401,93 @@ const StudioMenu = () => {
   const handleCopyEmail = async () => {
     try {
       await navigator.clipboard.writeText(studio?.email || "")
+      haptic.light()
       setCopiedEmail(true)
       setTimeout(() => setCopiedEmail(false), 2000)
     } catch (err) { console.error('Copy failed:', err) }
+  }
+
+  // ============================================
+  // Tab slide + swipe logic
+  // ============================================
+  const tabKeys = ["info", "checkin", "bulletin", "data"]
+  const activeTabIndex = tabKeys.indexOf(activeSection)
+
+  const goToTab = useCallback((key, direction) => {
+    setSlideDirection(direction)
+    haptic.light()
+    setActiveSection(key)
+    // Auto-scroll tab into view
+    requestAnimationFrame(() => {
+      const btn = tabBarRef.current?.querySelector(`[data-tab="${key}"]`)
+      btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    })
+    // Clear animation class after it plays
+    setTimeout(() => setSlideDirection(null), 350)
+  }, [])
+
+  const handleTouchStart = useCallback((e) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    touchDeltaRef.current = { x: 0, y: 0 }
+    isSwiping.current = false
+  }, [])
+
+  const handleTouchMove = useCallback((e) => {
+    const dx = e.touches[0].clientX - touchStartRef.current.x
+    const dy = e.touches[0].clientY - touchStartRef.current.y
+    touchDeltaRef.current = { x: dx, y: dy }
+    // Lock to horizontal swipe if mostly horizontal
+    if (!isSwiping.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      isSwiping.current = true
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isSwiping.current) return
+    const { x: dx } = touchDeltaRef.current
+    const threshold = 60
+    const currentIdx = tabKeys.indexOf(activeSection)
+
+    if (dx < -threshold && currentIdx < tabKeys.length - 1) {
+      goToTab(tabKeys[currentIdx + 1], "left")
+    } else if (dx > threshold && currentIdx > 0) {
+      goToTab(tabKeys[currentIdx - 1], "right")
+    }
+    isSwiping.current = false
+  }, [activeSection, goToTab])
+
+  const handleEmailClick = (e) => {
+    e.preventDefault()
+    setShowMailConfirm(true)
+  }
+
+  const studioEmail = studio?.email || "info@fitzonestudio.de"
+
+  const mailProviders = [
+    { label: "Apple Mail", getUrl: (email) => `mailto:${email}` },
+    { label: "Gmail", getUrl: (email) => `googlegmail:///co?to=${email}` },
+    { label: "Outlook", getUrl: (email) => `ms-outlook://compose?to=${email}` },
+    { label: "Yahoo Mail", getUrl: (email) => `ymail://mail/compose?to=${email}` },
+  ]
+
+  const openMailWith = (provider) => {
+    setShowMailConfirm(false)
+    window.location.href = provider.getUrl(studioEmail)
+  }
+
+  const mapProviders = [
+    { label: "Apple Maps", getUrl: (addr) => `maps://maps.apple.com/?q=${encodeURIComponent(addr)}` },
+    { label: "Google Maps", getUrl: (addr) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}` },
+  ]
+
+  const handleAddressClick = (e) => {
+    e.preventDefault()
+    setShowMapConfirm(true)
+  }
+
+  const openMapWith = (provider) => {
+    setShowMapConfirm(false)
+    window.location.href = provider.getUrl(studioAddress)
   }
 
   // ============================================
@@ -455,7 +546,7 @@ const StudioMenu = () => {
   ]
 
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
       <PostPreviewModal />
 
       {/* ===== TAB NAVIGATION — sticky ===== */}
@@ -467,13 +558,10 @@ const StudioMenu = () => {
                 key={tab.key}
                 data-tab={tab.key}
                 onClick={() => {
-                  haptic.light()
-                  setActiveSection(tab.key)
-                  // Auto-scroll tab into view
-                  requestAnimationFrame(() => {
-                    const btn = tabBarRef.current?.querySelector(`[data-tab="${tab.key}"]`)
-                    btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-                  })
+                  const fromIdx = tabKeys.indexOf(activeSection)
+                  const toIdx = tabKeys.indexOf(tab.key)
+                  if (fromIdx === toIdx) return
+                  goToTab(tab.key, toIdx > fromIdx ? "left" : "right")
                 }}
                 className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === tab.key
                     ? "text-content-primary border-b-2 border-primary"
@@ -487,11 +575,30 @@ const StudioMenu = () => {
         </div>
       </div>
 
-      {/* ===== TAB CONTENT — scrollable ===== */}
+      {/* ===== TAB CONTENT — scrollable with swipe ===== */}
+      <style>{`
+        @keyframes slide-in-left {
+          from { transform: translateX(40px); opacity: 0.3; }
+          to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slide-in-right {
+          from { transform: translateX(-40px); opacity: 0.3; }
+          to   { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
       <PullToRefresh
         onRefresh={async () => { /* TODO: dispatch(fetchMyStudio()) when backend is ready */ await new Promise(r => setTimeout(r, 600)) }}
         className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
+        <div
+          key={activeSection}
+          style={slideDirection ? {
+            animation: `slide-in-${slideDirection} 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both`,
+          } : undefined}
+        >
 
         {/* ============================================================
             TAB: STUDIO INFO
@@ -587,7 +694,7 @@ const StudioMenu = () => {
                       <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                       </svg>
-                      <a href={`tel:${studio?.phone || "+493012345678"}`} className="text-content-primary text-sm break-all hover:text-primary transition-colors">{studio?.phone || "+49 30 1234 5678"}</a>
+                      <a href={`tel:${studio?.phone || "+493012345678"}`} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors">{studio?.phone || "+49 30 1234 5678"}</a>
                     </div>
                     <button
                       onClick={handleCopyPhone}
@@ -611,7 +718,7 @@ const StudioMenu = () => {
                       <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                       </svg>
-                      <a href={`mailto:${studio?.email || "info@fitzonestudio.de"}`} className="text-content-primary text-sm break-all hover:text-primary transition-colors">{studio?.email || "info@fitzonestudio.de"}</a>
+                      <a href={`mailto:${studio?.email || "info@fitzonestudio.de"}`} onClick={handleEmailClick} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors cursor-pointer">{studio?.email || "info@fitzonestudio.de"}</a>
                     </div>
                     <button
                       onClick={handleCopyEmail}
@@ -634,7 +741,12 @@ const StudioMenu = () => {
                     <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                     </svg>
-                    <span className="text-content-primary text-sm">{studio?.street}, {studio?.zipCode} {studio?.city}</span>
+                    <button
+                      onClick={handleAddressClick}
+                      className="text-sm text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors text-left"
+                    >
+                      {studio?.street}, {studio?.zipCode} {studio?.city}
+                    </button>
                   </div>
                 </div>
               </Card>
@@ -1159,12 +1271,129 @@ const StudioMenu = () => {
             </Card>
           </div>
         )}
+        </div>
       </PullToRefresh>
 
       {/* ===== POPUPS ===== */}
       {showImprintPopup && <ImprintPopup onClose={() => setShowImprintPopup(false)} studio={studio} />}
       {showTermsPopup && <TermsPopup onClose={() => setShowTermsPopup(false)} studio={studio} />}
       {showPrivacyPopup && <PrivacyPopup onClose={() => setShowPrivacyPopup(false)} studio={studio} />}
+
+      {/* Mail provider action sheet */}
+      {showMailConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setShowMailConfirm(false)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
+            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) {
+                e.currentTarget.style.transform = `translateY(${dy}px)`
+              }
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setShowMailConfirm(false), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
+          >
+            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+
+            <div className="px-4 pb-3 border-b border-border">
+              <h4 className="text-sm font-semibold text-content-primary">Send Email</h4>
+              <p className="text-xs text-content-faint">{studioEmail}</p>
+            </div>
+
+            <div className="p-3 pb-4 space-y-1">
+              {mailProviders.map((provider) => (
+                <button
+                  key={provider.label}
+                  onClick={() => openMailWith(provider)}
+                  className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{provider.label}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Map provider action sheet */}
+      {showMapConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          onClick={() => setShowMapConfirm(false)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
+            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) {
+                e.currentTarget.style.transform = `translateY(${dy}px)`
+              }
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setShowMapConfirm(false), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
+          >
+            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+
+            <div className="px-4 pb-3 border-b border-border">
+              <h4 className="text-sm font-semibold text-content-primary">Open in Maps</h4>
+              <p className="text-xs text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}</p>
+            </div>
+
+            <div className="p-3 pb-4 space-y-1">
+              {mapProviders.map((provider) => (
+                <button
+                  key={provider.label}
+                  onClick={() => openMapWith(provider)}
+                  className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{provider.label}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <PaymentMethodPopup show={showPaymentMethodPopup} onClose={() => setShowPaymentMethodPopup(false)} />
       <CancelMembershipPopup show={showCancelMembershipPopup} onClose={() => setShowCancelMembershipPopup(false)} />

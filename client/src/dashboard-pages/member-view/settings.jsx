@@ -33,7 +33,7 @@ import { IoIosMegaphone } from "react-icons/io"
 const NAVIGATION_ITEMS = [
   {
     id: "account",
-    label: "Account",
+    label: "OrgaGym Account",
     icon: User,
     sections: [
       { id: "change-email", label: "Change Email" },
@@ -415,7 +415,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "change-email":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-content-primary mb-1">Change Email Address</h3>
               <p className="text-sm text-content-faint">A confirmation email will be sent to your new email address to complete the change.</p>
             </div>
@@ -465,7 +465,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "change-password":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-content-primary mb-1">Change Password</h3>
               <p className="text-sm text-content-faint">A confirmation email will be sent to complete the password change.</p>
             </div>
@@ -543,7 +543,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "appointment-notifications":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-content-primary mb-1">Appointment Notifications</h3>
               <p className="text-sm text-content-faint">Configure notifications for confirmations, changes, and reminders.</p>
             </div>
@@ -652,7 +652,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "classes-notifications":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-content-primary mb-1">Class Notifications</h3>
               <p className="text-sm text-content-faint">Configure notifications for class enrollments, cancellations, and reminders.</p>
             </div>
@@ -803,7 +803,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "general-notifications":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-content-primary mb-1">General Notifications</h3>
               <p className="text-sm text-content-faint">Manage push notifications for bulletin board posts and studio broadcasts.</p>
             </div>
@@ -851,11 +851,9 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       // ---- IMPRINT ----
       case "imprint":
         return (
-          <div className="space-y-6 max-w-2xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Imprint</h3>
-            </div>
-            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none max-h-72 overflow-y-auto whitespace-pre-wrap">
+          <div className="max-w-2xl">
+            <h3 className="text-lg font-semibold text-content-primary mb-3 hidden lg:block">Imprint</h3>
+            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none overflow-y-auto whitespace-pre-wrap min-h-[calc(100vh-14rem)]">
               {generalSettings.imprint}
             </div>
           </div>
@@ -864,11 +862,9 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       // ---- PRIVACY POLICY ----
       case "privacy-policy":
         return (
-          <div className="space-y-6 max-w-2xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Privacy Policy</h3>
-            </div>
-            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none max-h-96 overflow-y-auto whitespace-pre-wrap">
+          <div className="max-w-2xl">
+            <h3 className="text-lg font-semibold text-content-primary mb-3 hidden lg:block">Privacy Policy</h3>
+            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none overflow-y-auto whitespace-pre-wrap min-h-[calc(100vh-14rem)]">
               {generalSettings.privacyPolicy}
             </div>
           </div>
@@ -878,7 +874,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "logout":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-content-primary mb-1">Logout</h3>
               <p className="text-sm text-content-faint">Sign out of your account on this device.</p>
             </div>
@@ -901,7 +897,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "delete-account":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
+            <div className="hidden lg:block">
               <h3 className="text-lg font-semibold text-red-400 mb-1">Delete Account</h3>
               <p className="text-sm text-content-faint">Permanently delete your account and all associated data.</p>
             </div>
@@ -935,7 +931,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   // Main Render — matches configuration.jsx layout
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden select-none">
+    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none relative">
       {/* Sidebar Navigation - Desktop */}
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-border bg-surface-card flex-col min-h-0">
         {/* Search */}
@@ -1022,7 +1018,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
 
       {/* Mobile Navigation List */}
       <div
-        className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
+        className={`lg:hidden absolute inset-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
       >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
@@ -1107,7 +1103,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Mobile Content View - fixed fullscreen below dashboard header */}
       {mobileShowContent && (
         <div
-          className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-30"
+          className="lg:hidden absolute inset-0 flex flex-col bg-surface-base z-30"
         >
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">

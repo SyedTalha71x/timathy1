@@ -356,7 +356,7 @@ export default function StudioChat() {
   };
 
   return (
-    <div className="flex flex-col h-[92vh] bg-surface-base text-content-primary overflow-hidden select-none">
+    <div className="flex flex-col h-[92vh] bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
       {/* ==========================================
           DESKTOP VIEW - Hidden on mobile
           ========================================== */}

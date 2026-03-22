@@ -590,7 +590,7 @@ const Classes = () => {
   // RENDER
   // ============================================
   return (
-    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl select-none">
+    <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
 
       {/* ═══ Info Modal (matches appointment.jsx info modal) ═══ */}
       {showInfoModal && infoModalData && (
@@ -708,7 +708,70 @@ const Classes = () => {
             <h1 className="text-lg sm:text-2xl font-bold">My Classes</h1>
           </div>
         ) : (
-          <h1 className="text-lg sm:text-2xl font-bold">Classes</h1>
+          <>
+            <h1 className="text-lg sm:text-2xl font-bold">Classes</h1>
+            <div className="flex items-center gap-1.5">
+              <div className="relative" ref={filterBtnRef}>
+                <button
+                  onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
+                  className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
+                    showFilterDropdown || (!selectedCategories.includes("All") && selectedCategories.length > 0)
+                      ? "bg-primary/15 text-primary"
+                      : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
+                  }`}
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                  {!selectedCategories.includes("All") && selectedCategories.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
+                      {selectedCategories.length}
+                    </span>
+                  )}
+                </button>
+                {showFilterDropdown && (
+                  <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
+                    <div className="max-h-[200px] overflow-y-auto py-1">
+                      {categories.map((cat) => {
+                        const isActive = selectedCategories.includes(cat)
+                        return (
+                          <button
+                            key={cat}
+                            onClick={() => {
+                              haptic.light()
+                              setSelectedCategories(prev => {
+                                if (cat === "All") return ["All"]
+                                const current = prev.filter(v => v !== "All")
+                                if (current.includes(cat)) {
+                                  const next = current.filter(v => v !== cat)
+                                  return next.length === 0 ? ["All"] : next
+                                }
+                                return [...current, cat]
+                              })
+                            }}
+                            className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
+                              isActive ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
+                            }`}
+                          >
+                            <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
+                              isActive ? "bg-primary border-primary" : "border-content-faint"
+                            }`}>
+                              {isActive && <Check size={8} className="text-white" />}
+                            </div>
+                            {cat}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => { haptic.light(); setShowSearch(prev => !prev) }}
+                className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showSearch ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted hover:bg-surface-button-hover"}`}
+              >
+                <Search className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </>
         )}
       </div>
 
@@ -738,80 +801,17 @@ const Classes = () => {
               </div>
             </button>
 
-            {/* Date + Filter + Search */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm font-medium text-content-primary truncate">
-                  {fmtDateLong(selectedDate)}
-                </span>
-                <DatePickerField
-                  value={dateValue}
-                  onChange={handleDateChange}
-                  minDate={todayStr}
-                  iconSize={16}
-                />
-              </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <div className="relative" ref={filterBtnRef}>
-                  <button
-                    onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
-                    className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
-                      showFilterDropdown || (!selectedCategories.includes("All") && selectedCategories.length > 0)
-                        ? "bg-primary/15 text-primary"
-                        : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
-                    }`}
-                  >
-                    <Filter className="w-3.5 h-3.5" />
-                    {!selectedCategories.includes("All") && selectedCategories.length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
-                        {selectedCategories.length}
-                      </span>
-                    )}
-                  </button>
-                  {showFilterDropdown && (
-                    <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
-                      <div className="max-h-[200px] overflow-y-auto py-1">
-                        {categories.map((cat) => {
-                          const isActive = selectedCategories.includes(cat)
-                          return (
-                            <button
-                              key={cat}
-                              onClick={() => {
-                                haptic.light()
-                                setSelectedCategories(prev => {
-                                  if (cat === "All") return ["All"]
-                                  const current = prev.filter(v => v !== "All")
-                                  if (current.includes(cat)) {
-                                    const next = current.filter(v => v !== cat)
-                                    return next.length === 0 ? ["All"] : next
-                                  }
-                                  return [...current, cat]
-                                })
-                              }}
-                              className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
-                                isActive ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
-                              }`}
-                            >
-                              <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
-                                isActive ? "bg-primary border-primary" : "border-content-faint"
-                              }`}>
-                                {isActive && <Check size={8} className="text-white" />}
-                              </div>
-                              {cat}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => { haptic.light(); setShowSearch(prev => !prev) }}
-                  className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showSearch ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted hover:bg-surface-button-hover"}`}
-                >
-                  <Search className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            {/* Date */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-content-primary truncate">
+                {fmtDateLong(selectedDate)}
+              </span>
+              <DatePickerField
+                value={dateValue}
+                onChange={handleDateChange}
+                minDate={todayStr}
+                iconSize={16}
+              />
             </div>
 
             {/* ── Day Slider ── */}

@@ -649,7 +649,7 @@ export default function Training() {
         `}
       </style>
 
-      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl transition-all duration-500 ease-in-out flex-1">
+      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl transition-all duration-500 ease-in-out flex-1">
 
         {/* Sticky Header + Tabs */}
         <div className="flex-shrink-0 md:px-6 md:pt-6 px-3 pt-3">
