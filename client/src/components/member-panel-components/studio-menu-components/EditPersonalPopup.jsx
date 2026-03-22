@@ -37,7 +37,7 @@ const EditPersonalPopup = ({ show, data, onChange, onSave, onClose }) => {
                 name="gender"
                 value={data.gender || ""}
                 onChange={(e) => onChange("gender", e.target.value)}
-                placeholder="Select gender"
+                placeholder="Select"
                 options={[
                   { value: "Male", label: "Male" },
                   { value: "Female", label: "Female" },

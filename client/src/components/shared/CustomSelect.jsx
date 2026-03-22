@@ -65,11 +65,11 @@ const CustomSelect = ({
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
-    // Account for iOS keyboard height (set by Capacitor keyboard handler in main.jsx)
-    const kbHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--keyboard-height')) || 0
-    const viewportBottom = window.innerHeight - kbHeight
-    const spaceBelow = viewportBottom - rect.bottom
-    const spaceAbove = rect.top
+    // Use visualViewport for accurate visible area (accounts for iOS keyboard)
+    const viewportHeight = window.visualViewport?.height || window.innerHeight
+    const viewportOffset = window.visualViewport?.offsetTop || 0
+    const spaceBelow = viewportHeight + viewportOffset - rect.bottom
+    const spaceAbove = rect.top - viewportOffset
     const dropdownHeight = Math.min(filteredOptions.length * 36 + (searchable ? 44 : 0) + 8, 240)
     const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
 
@@ -143,12 +143,15 @@ const CustomSelect = ({
     const handleReposition = () => updatePosition()
     window.addEventListener("scroll", handleReposition, true)
     window.addEventListener("resize", handleReposition)
-    // Reposition when iOS keyboard opens/closes (event from main.jsx)
     window.addEventListener("capacitor-keyboard", handleReposition)
+    // Reposition when iOS keyboard opens/closes
+    const vv = window.visualViewport
+    if (vv) vv.addEventListener("resize", handleReposition)
     return () => {
       window.removeEventListener("scroll", handleReposition, true)
       window.removeEventListener("resize", handleReposition)
       window.removeEventListener("capacitor-keyboard", handleReposition)
+      if (vv) vv.removeEventListener("resize", handleReposition)
     }
   }, [isOpen, updatePosition])
 
@@ -274,6 +277,11 @@ const CustomSelect = ({
                   setHighlightedIndex(0)
                 }}
                 onKeyDown={handleKeyDown}
+                onFocus={() => {
+                  // Reposition after keyboard finishes animating
+                  setTimeout(updatePosition, 350)
+                  setTimeout(updatePosition, 600)
+                }}
                 placeholder="Search..."
                 className="w-full bg-surface-dark text-sm text-content-primary rounded-lg px-3 py-1.5 outline-none border border-transparent focus:border-primary transition-colors"
               />

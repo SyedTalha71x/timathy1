@@ -8,7 +8,7 @@ const PaymentMethodPopup = ({ show, onClose }) => {
   if (!show) return null;
 
   return (
-    <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
+    <div className="absolute inset-0 bg-black/50 flex p-2 pt-8 sm:pt-12 justify-center items-start z-50">
       <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h2 className="text-xl text-content-primary font-bold">Payment Method</h2>
