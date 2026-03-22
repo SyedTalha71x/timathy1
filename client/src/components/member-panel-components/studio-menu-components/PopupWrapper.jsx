@@ -7,8 +7,8 @@ import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 const PopupWrapper = ({ title, onClose, children }) => {
   return (
     <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-      <div className="bg-surface-card rounded-xl p-4 sm:p-5 md:p-6 max-w-md w-full max-h-[85dvh] sm:max-h-[80dvh] overflow-y-auto border border-border shadow-2xl">
-        <div className="flex justify-between items-center mb-3 sm:mb-4">
+      <div className="bg-surface-card rounded-xl max-w-md w-full max-h-[85dvh] sm:max-h-[80dvh] border border-border shadow-2xl flex flex-col">
+        <div className="flex justify-between items-center p-4 sm:p-5 md:p-6 pb-3 sm:pb-4 flex-shrink-0">
           <h3 className="text-lg sm:text-xl font-bold text-content-primary">{title}</h3>
           <button
             onClick={() => { haptic.light(); onClose(); }}
@@ -19,8 +19,10 @@ const PopupWrapper = ({ title, onClose, children }) => {
             </svg>
           </button>
         </div>
-        <div className="text-content-secondary space-y-2 text-sm sm:text-base">{children}</div>
-        <KeyboardSpacer />
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6">
+          <div className="text-content-secondary space-y-2 text-sm sm:text-base">{children}</div>
+          <KeyboardSpacer />
+        </div>
       </div>
     </div>
   );

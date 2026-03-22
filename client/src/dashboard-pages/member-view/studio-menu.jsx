@@ -17,6 +17,33 @@ import PullToRefresh from "../../components/shared/PullToRefresh"
 import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
+
+/** Form field — defined outside component to prevent remount on parent re-render */
+const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
+  <div>
+    <label className="text-sm text-content-secondary block mb-2">{label}{required && <span className="text-accent-red ml-1">*</span>}</label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
+    />
+  </div>
+)
+
+/** Form action buttons — defined outside component to prevent remount */
+const FormActions = ({ onSave, onCancel }) => (
+  <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
+    <button type="button" onClick={() => { haptic.light(); onCancel(); }} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
+      Cancel
+    </button>
+    <button type="button" onClick={() => { haptic.success(); onSave(); }} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
+      Request Change
+    </button>
+  </div>
+)
+
 const StudioMenu = () => {
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
@@ -535,32 +562,6 @@ const StudioMenu = () => {
   // ============================================
   // Reusable sub-components
   // ============================================
-
-  /** Form field — matches EditMemberModal input style */
-  const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
-    <div>
-      <label className="text-sm text-content-secondary block mb-2">{label}{required && <span className="text-accent-red ml-1">*</span>}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
-      />
-    </div>
-  )
-
-  /** Form action buttons — matches EditMemberModal footer */
-  const FormActions = ({ onSave, onCancel }) => (
-    <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
-      <button type="button" onClick={() => { haptic.light(); onCancel(); }} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
-        Cancel
-      </button>
-      <button type="button" onClick={() => { haptic.success(); onSave(); }} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
-        Request Change
-      </button>
-    </div>
-  )
 
   /** Section card wrapper */
   const Card = ({ children, className = "" }) => (
