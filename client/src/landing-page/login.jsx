@@ -284,7 +284,7 @@ export default function SignInPage() {
         pointer-events: none;
       }
     `}</style>
-    <div className="login-root h-dvh bg-[#0E0E0E] overflow-y-auto">
+    <div className="login-root fixed inset-0 bg-[#0E0E0E] overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
       <div className="min-h-full flex items-center justify-center p-4 md:p-8" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
