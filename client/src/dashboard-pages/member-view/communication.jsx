@@ -199,12 +199,20 @@ export default function StudioChat() {
     setMessageText("")
     setReplyingTo(null)
     setShowEmojiPicker(false)
+
+    // Reset textarea heights
+    if (textareaRef.current) textareaRef.current.style.height = "32px"
+    if (mobileTextareaRef.current) mobileTextareaRef.current.style.height = "20px"
   }
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
-      e.preventDefault()
-      handleSendMessage()
+      // Desktop: Enter sends — Mobile: Enter inserts newline
+      const isMobile = window.innerWidth < 1024
+      if (!isMobile) {
+        e.preventDefault()
+        handleSendMessage()
+      }
     }
   }
 
@@ -491,9 +499,14 @@ export default function StudioChat() {
               ref={textareaRef}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage() } }}
+              onInput={(e) => {
+                e.target.style.height = "32px";
+                e.target.style.height = Math.min(e.target.scrollHeight, 150) + "px";
+              }}
+              onKeyDown={handleKeyPress}
               placeholder="Type your message here..."
               className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-content-secondary placeholder-content-faint max-h-[150px]"
+              rows={1}
               style={{ height: '32px' }}
             />
 
