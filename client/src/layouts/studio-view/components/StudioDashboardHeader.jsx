@@ -6,6 +6,8 @@ import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import { useSelector, useDispatch } from 'react-redux'
 import { me } from '../../../features/auth/authSlice'
 import LanguageDropdown from '../../LanguageDropdown'
+import { Capacitor } from "@capacitor/core"
+import { StatusBar, Style } from "@capacitor/status-bar"
 import StudioProfileDropdown from './studio-dashboard-header-components/StudioProfileDropdown'
 import StudioActivityLogModal from './studio-dashboard-header-components/StudioActivityLogModal'
 import TermsModal from './studio-dashboard-header-components/TermsModal'
@@ -67,6 +69,9 @@ const DashboardHeader = ({
       root.classList.add('light')
       localStorage.setItem('theme', 'light')
     }
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => {})
+    }
   }, [isDarkMode])
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode)
@@ -117,7 +122,10 @@ const DashboardHeader = ({
       )}
 
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
+      <div
+        className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border pb-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none"
+        style={{ touchAction: "manipulation", paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
+      >
         <div className="flex items-center gap-2">
           <div className="bg-primary p-2 rounded-md">
             <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
