@@ -10,6 +10,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // import { me } from "./features/auth/authSlice";
 
+// Login Layout
+import LoginLayout from './layouts/login/LoginLayout';
+
 // Studio-View Dashboard
 import Dashboardlayout from "./layouts/studio-view/studio-view-layout";
 import MyArea from './dashboard-pages/studio-view/my-area'
@@ -148,8 +151,22 @@ function App() {
     <>
       {!isAuthOrDashboardPage && <Header />}
       <Routes>
-        <Route path="/" element={isNative ? <Login /> : <Home />} />
-        <Route path="login" element={<Login />} />
+        {/* ═══════════════════════════════════════════════════════════════════
+            LOGIN / LANDING — with LoginLayout (header: theme + language)
+            Native: "/" → LoginLayout + Login
+            Web: "/" → Home (landing page), "/login" → LoginLayout + Login
+        ═══════════════════════════════════════════════════════════════════ */}
+        {isNative ? (
+          <Route path="/" element={<LoginLayout />}>
+            <Route index element={<Login />} />
+          </Route>
+        ) : (
+          <Route path="/" element={<Home />} />
+        )}
+
+        <Route path="/login" element={<LoginLayout />}>
+          <Route index element={<Login />} />
+        </Route>
 
         {/* ═══════════════════════════════════════════════════════════════════
             STANDALONE PUBLIC PAGE — Trial Training Booking

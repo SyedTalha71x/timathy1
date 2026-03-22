@@ -12,13 +12,13 @@ import { fetchAllAppointments, fetchMyAppointments } from "../features/appointme
 import { fetchStudioServices } from "../features/services/servicesSlice"
 import { fetchMyStudio } from "../features/studio/studioSlice"
 import { fetchAllMember } from "../features/member/memberSlice"
-import KeyboardSpacer from "../components/shared/KeyboardSpacer"
 
 // ============================================================================
 // LOGIN PAGE COMPONENT
 // ============================================================================
 // Drei Login-Typen: Studio (Gym-Betreiber), Admin, Member
 // Jeder Typ hat eigene Formularfelder und Ziel-Route
+// Layout (header, safe-areas, theme/language) handled by LoginLayout
 // ============================================================================
 
 // Login-Typ Konfiguration
@@ -267,26 +267,7 @@ export default function SignInPage() {
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <>
-    <style>{`
-      .login-root {
-        -webkit-user-select: none;
-        user-select: none;
-      }
-      .login-root input {
-        -webkit-user-select: text;
-        user-select: text;
-      }
-      .login-root img,
-      .login-root svg {
-        -webkit-user-drag: none;
-        user-drag: none;
-        pointer-events: none;
-      }
-    `}</style>
-    <div className="login-root h-dvh bg-[#0E0E0E] overflow-hidden">
-      <div className="h-full overflow-y-auto" style={{ overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}>
-      <div className="min-h-full flex items-center justify-center p-4 md:p-8" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}>
+    <div className="min-h-full flex items-center justify-center p-4 md:p-8">
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
         {/* ================================================================= */}
@@ -365,10 +346,6 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
-      </div>
-      <KeyboardSpacer />
-      </div>
     </div>
-    </>
   )
 }
