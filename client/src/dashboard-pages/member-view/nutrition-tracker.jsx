@@ -28,7 +28,6 @@ import BarcodeScannerModal from "../../components/member-panel-components/nutrit
 import SettingsModal from "../../components/member-panel-components/nutrition-tracking-components/SettingsModal"
 import StreakModal from "../../components/member-panel-components/nutrition-tracking-components/StreakModal"
 import { haptic } from "../../utils/haptic"
-import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // Shared constants & components
 import {
@@ -233,6 +232,11 @@ const NutritionTracker = () => {
   const [weeklyLoading, setWeeklyLoading] = useState(false)
 
   const searchRef = useRef(null)
+
+  // Panel swipe refs
+  const swipeRef = useRef(null)
+  const activeViewRef = useRef(activeView)
+  activeViewRef.current = activeView
 
   // FIX #3: mealRefs as a stable ref object — not recreated every render
   const mealRefs = useRef({
@@ -643,11 +647,69 @@ const NutritionTracker = () => {
 
   const handleOpenStreak = useCallback(() => { haptic.light(); setShowStreak(true) }, [])
 
-  const handleTabChange = useCallback((key) => { haptic.light(); setActiveView(key) }, [])
+  // -------------------------------------------------------------------------
+  // PANEL SWIPE — both tabs rendered side by side, translateX to navigate
+  // -------------------------------------------------------------------------
+  const viewKeys = ["diary", "insights"]
 
-  const handleRefresh = useCallback(async () => {
-    await Promise.all([dispatch(fetchDailySummery(dateStr)), dispatch(fetchFood())]).catch(() => {})
-  }, [dispatch, dateStr])
+  const animateToTab = useCallback((key) => {
+    const el = swipeRef.current
+    if (!el) return
+    const idx = viewKeys.indexOf(key)
+    el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+    el.style.transform = `translateX(-${idx * 50}%)`
+    setActiveView(key)
+  }, [])
+
+  useEffect(() => {
+    const el = swipeRef.current
+    if (!el) return
+    let startX, startY, startT, dx, locked, isH
+
+    const onStart = (e) => {
+      const t = e.touches[0]
+      startX = t.clientX; startY = t.clientY; startT = Date.now()
+      dx = 0; locked = false; isH = false
+      el.style.transition = 'none'
+    }
+    const onMove = (e) => {
+      const t = e.touches[0]
+      const rawDx = t.clientX - startX
+      const dy = t.clientY - startY
+      if (!locked && (Math.abs(rawDx) > 8 || Math.abs(dy) > 8)) {
+        locked = true
+        isH = Math.abs(rawDx) > Math.abs(dy) * 1.3
+      }
+      if (!isH) return
+      e.preventDefault()
+      const i = viewKeys.indexOf(activeViewRef.current)
+      dx = rawDx
+      if ((i === 0 && dx > 0) || (i === viewKeys.length - 1 && dx < 0)) dx = rawDx * 0.15
+      el.style.transform = `translateX(calc(-${i * 50}% + ${dx}px))`
+    }
+    const onEnd = () => {
+      if (!isH) return
+      const i = viewKeys.indexOf(activeViewRef.current)
+      const velocity = Math.abs(dx) / Math.max(Date.now() - startT, 1)
+      const panelW = el.parentElement?.offsetWidth || window.innerWidth
+      const threshold = panelW * 0.15
+      let target = i
+      if (dx < -threshold || (dx < -20 && velocity > 0.25)) target = Math.min(i + 1, viewKeys.length - 1)
+      else if (dx > threshold || (dx > 20 && velocity > 0.25)) target = Math.max(i - 1, 0)
+      el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+      el.style.transform = `translateX(-${target * 50}%)`
+      if (target !== i) setActiveView(viewKeys[target])
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+    }
+  }, [])
 
   const handleFabToggle = useCallback((e) => {
     e.stopPropagation(); haptic.light(); setIsFabOpen(prev => !prev)
@@ -745,9 +807,9 @@ const NutritionTracker = () => {
           {TABS.map((tab) => {
             const TabIcon = tab.icon
             return (
-              <button key={tab.key} onClick={() => handleTabChange(tab.key)}
+              <button key={tab.key} onClick={() => animateToTab(tab.key)}
                 style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
-                className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap cursor-pointer ${activeView === tab.key
+                className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors duration-150 whitespace-nowrap cursor-pointer ${activeView === tab.key
                   ? "text-content-primary border-b-2 border-primary"
                   : "text-content-muted hover:text-content-primary"
                 }`}>
@@ -759,14 +821,16 @@ const NutritionTracker = () => {
         </div>
       </div>
 
-      {/* ========== CONTENT ========== */}
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
-      >
+      {/* ========== CONTENT — panels side by side ========== */}
+      <div className="flex-1 overflow-hidden">
+        <div
+          ref={swipeRef}
+          className="flex h-full"
+          style={{ width: '200%', willChange: 'transform', touchAction: 'pan-y pinch-zoom' }}
+        >
 
-        {/* ===== DIARY ===== */}
-        {activeView === "diary" && (
+        {/* ---- Panel 1: DIARY ---- */}
+        <div className="w-1/2 h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
           <div className="max-w-3xl mx-auto space-y-6">
             {diaryLoading && (
               <div className="flex items-center justify-center py-12">
@@ -897,10 +961,10 @@ const NutritionTracker = () => {
             </SettingsCard>
           </>)}
           </div>
-        )}
+        </div>
 
-        {/* ===== INSIGHTS ===== */}
-        {activeView === "insights" && (
+        {/* ---- Panel 2: INSIGHTS ---- */}
+        <div className="w-1/2 h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
           <div className="max-w-3xl mx-auto space-y-6">
 
             {/* Daily Score */}
@@ -1066,8 +1130,10 @@ const NutritionTracker = () => {
               </div>
             </SettingsCard>
           </div>
-        )}
-      </PullToRefresh>
+        </div>
+
+        </div>
+      </div>
 
       {/* ========== MOBILE FAB ========== */}
       {activeView === "diary" && (

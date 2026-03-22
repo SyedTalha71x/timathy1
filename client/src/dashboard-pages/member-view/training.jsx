@@ -66,7 +66,6 @@ import AddToPlanModal from "../../components/studio-components/training-componen
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 import { haptic } from "../../utils/haptic"
-import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -176,6 +175,11 @@ export default function Training() {
   // -------------------------------------------------------------------------
   const videoRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
+
+  // Panel swipe refs
+  const swipeRef = useRef(null)
+  const activeTabRef = useRef(activeTab)
+  activeTabRef.current = activeTab
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -621,6 +625,70 @@ export default function Training() {
   }, [isAssignPlanModalOpen, planToAssign])
 
   // -------------------------------------------------------------------------
+  // PANEL SWIPE — both tabs rendered side by side, translateX to navigate
+  // -------------------------------------------------------------------------
+  const tabKeys = ["videos", "plans"]
+
+  const animateToTab = useCallback((key) => {
+    const el = swipeRef.current
+    if (!el) return
+    const idx = tabKeys.indexOf(key)
+    el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+    el.style.transform = `translateX(-${idx * 50}%)`
+    setActiveTab(key)
+  }, [])
+
+  useEffect(() => {
+    const el = swipeRef.current
+    if (!el) return
+    let startX, startY, startT, dx, locked, isH
+
+    const onStart = (e) => {
+      const t = e.touches[0]
+      startX = t.clientX; startY = t.clientY; startT = Date.now()
+      dx = 0; locked = false; isH = false
+      el.style.transition = 'none'
+    }
+    const onMove = (e) => {
+      const t = e.touches[0]
+      const rawDx = t.clientX - startX
+      const dy = t.clientY - startY
+      if (!locked && (Math.abs(rawDx) > 8 || Math.abs(dy) > 8)) {
+        locked = true
+        isH = Math.abs(rawDx) > Math.abs(dy) * 1.3
+      }
+      if (!isH) return
+      e.preventDefault()
+      const i = tabKeys.indexOf(activeTabRef.current)
+      dx = rawDx
+      if ((i === 0 && dx > 0) || (i === tabKeys.length - 1 && dx < 0)) dx = rawDx * 0.15
+      el.style.transform = `translateX(calc(-${i * 50}% + ${dx}px))`
+    }
+    const onEnd = () => {
+      if (!isH) return
+      const i = tabKeys.indexOf(activeTabRef.current)
+      const velocity = Math.abs(dx) / Math.max(Date.now() - startT, 1)
+      const panelW = el.parentElement?.offsetWidth || window.innerWidth
+      const threshold = panelW * 0.15
+      let target = i
+      if (dx < -threshold || (dx < -20 && velocity > 0.25)) target = Math.min(i + 1, tabKeys.length - 1)
+      else if (dx > threshold || (dx > 20 && velocity > 0.25)) target = Math.max(i - 1, 0)
+      el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+      el.style.transform = `translateX(-${target * 50}%)`
+      if (target !== i) setActiveTab(tabKeys[target])
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+    }
+  }, [])
+
+  // -------------------------------------------------------------------------
   // RENDER
   // -------------------------------------------------------------------------
   return (
@@ -661,10 +729,11 @@ export default function Training() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-border-subtle" style={{ touchAction: "manipulation" }}>
+          <div className="flex border-b border-border-subtle">
             <button
-              onClick={() => { haptic.light(); setActiveTab("videos") }}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
+              onClick={() => animateToTab("videos")}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors duration-150 whitespace-nowrap ${activeTab === "videos"
                 ? "text-content-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
                 }`}
@@ -673,8 +742,9 @@ export default function Training() {
               Training Videos
             </button>
             <button
-              onClick={() => { haptic.light(); setActiveTab("plans") }}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "plans"
+              onClick={() => animateToTab("plans")}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors duration-150 whitespace-nowrap ${activeTab === "plans"
                 ? "text-content-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
                 }`}
@@ -685,17 +755,16 @@ export default function Training() {
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <PullToRefresh
-          onRefresh={async () => { await Promise.all([dispatch(fetchTrainingVideos()), dispatch(fetchAllPlans())]).catch(() => {}) }}
-          className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6"
-        >
-          <div className="w-full mx-auto">
+        {/* Panel container — both tabs side by side */}
+        <div className="flex-1 overflow-hidden">
+          <div
+            ref={swipeRef}
+            className="flex h-full"
+            style={{ width: '200%', willChange: 'transform', touchAction: 'pan-y pinch-zoom' }}
+          >
 
-            {/* =============================================================== */}
-            {/* VIDEOS TAB */}
-            {/* =============================================================== */}
-            {activeTab === "videos" && (
+            {/* ---- Panel 1: VIDEOS ---- */}
+            <div className="w-1/2 h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
               <div>
                 {/* Search */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -789,12 +858,10 @@ export default function Training() {
                   </div>
                 )}
               </div>
-            )}
+            </div>
 
-            {/* =============================================================== */}
-            {/* PLANS TAB */}
-            {/* =============================================================== */}
-            {activeTab === "plans" && (
+            {/* ---- Panel 2: PLANS ---- */}
+            <div className="w-1/2 h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
               <div>
                 {/* Search and Create Button */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -932,9 +999,10 @@ export default function Training() {
                   </div>
                 )}
               </div>
-            )}
+            </div>
+
           </div>
-        </PullToRefresh>
+        </div>
       </div>
 
       {/* =============================================================== */}

@@ -418,7 +418,6 @@ const StudioMenu = () => {
     const targetIdx = tabKeys.indexOf(key)
     el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
     el.style.transform = `translateX(-${targetIdx * 25}%)`
-    haptic.light()
     setActiveSection(key)
     requestAnimationFrame(() => {
       tabBarRef.current?.querySelector(`[data-tab="${key}"]`)
@@ -479,7 +478,6 @@ const StudioMenu = () => {
       el.style.transform = `translateX(-${target * 25}%)`
 
       if (target !== i) {
-        haptic.light()
         setActiveSection(tabKeys[target])
         requestAnimationFrame(() => {
           tabBarRef.current?.querySelector(`[data-tab="${tabKeys[target]}"]`)
