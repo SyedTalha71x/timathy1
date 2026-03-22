@@ -14,13 +14,12 @@ import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
 import PullToRefresh from "../../components/shared/PullToRefresh"
-import useKeyboardHeight from "../../hooks/useKeyboardHeight"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
-  const viewportHeight = useKeyboardHeight();
 
   const dispatch = useDispatch();
   const { countries, loading: countriesLoading } = useCountries();
@@ -538,11 +537,6 @@ const StudioMenu = () => {
   // ============================================
 
   /** Form field — matches EditMemberModal input style */
-  const handleFocus = useCallback((e) => {
-    const el = e.target;
-    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
-  }, [])
-
   const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
     <div>
       <label className="text-sm text-content-secondary block mb-2">{label}{required && <span className="text-accent-red ml-1">*</span>}</label>
@@ -551,7 +545,6 @@ const StudioMenu = () => {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        onFocus={handleFocus}
         className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
       />
     </div>
@@ -1428,7 +1421,7 @@ const StudioMenu = () => {
 
       {/* Edit Personal Data Popup — matches EditMemberModal */}
       {isEditingPersonal && (
-        <div className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50" style={{ height: viewportHeight ?? "100%" }}>
+        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
           <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Personal Data</h2>
@@ -1477,6 +1470,7 @@ const StudioMenu = () => {
                   </div>
                 </div>
               </div>
+              <KeyboardSpacer />
             </div>
 
             <FormActions onSave={handlePersonalDataSubmit} onCancel={() => setIsEditingPersonal(false)} />
@@ -1486,7 +1480,7 @@ const StudioMenu = () => {
 
       {/* Edit Address Popup — matches EditMemberModal */}
       {isEditingAddress && (
-        <div className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50" style={{ height: viewportHeight ?? "100%" }}>
+        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
           <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Address</h2>
@@ -1525,6 +1519,7 @@ const StudioMenu = () => {
                   disabled={countriesLoading}
                 />
               </div>
+              <KeyboardSpacer />
             </div>
 
             <FormActions onSave={handleAddressDataSubmit} onCancel={() => setIsEditingAddress(false)} />
@@ -1534,7 +1529,7 @@ const StudioMenu = () => {
 
       {/* Edit Contact Popup — matches EditMemberModal */}
       {isEditingContact && (
-        <div className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50" style={{ height: viewportHeight ?? "100%" }}>
+        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
           <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Contact Details</h2>
@@ -1554,6 +1549,7 @@ const StudioMenu = () => {
                 <FormField label="Mobile Number" type="tel" value={contactData.phone} onChange={(e) => handleContactDataChange("phone", e.target.value)} placeholder="+49 123 456789" />
                 <FormField label="Telephone Number" type="tel" value={contactData.telephoneNumber} onChange={(e) => handleContactDataChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
               </div>
+              <KeyboardSpacer />
             </div>
 
             <FormActions onSave={handleContactDataSubmit} onCancel={() => setIsEditingContact(false)} />
