@@ -267,7 +267,7 @@ export default function SignInPage() {
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-full flex items-center justify-center p-4 md:p-8">
+    <div className="flex-1 flex items-center justify-center p-4 md:p-8">
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
         {/* ================================================================= */}
