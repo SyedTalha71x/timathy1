@@ -21,8 +21,7 @@ import { Keyboard } from '@capacitor/keyboard';
 // iOS: WebView unterhalb der Statusleiste starten
 if (Capacitor.isNativePlatform()) {
   StatusBar.setOverlaysWebView({ overlay: false });
-  StatusBar.setStyle({ style: Style.Dark });
-  StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
+  StatusBar.setStyle({ style: Style.Dark }); // Dark = helle Icons auf dunklem Hintergrund
 }
 
 // ============================================================================
