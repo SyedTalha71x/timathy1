@@ -1,19 +1,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Drop this at the bottom of any scrollable popup container.
- * When a text input or select inside the popup is focused (keyboard open),
- * it expands to give the scroll container room to push the focused element
- * above the keyboard.
- *
- * Uses direct DOM manipulation to avoid React re-renders that would
- * steal focus from the input on iOS.
- *
- * Usage:
- *   <div className="overflow-y-auto">
- *     ...inputs...
- *     <KeyboardSpacer />
- *   </div>
+ * Drop at the bottom of any scrollable popup container.
+ * Only expands when an INPUT or TEXTAREA in the lower portion of the
+ * screen is focused — so fields already visible above the keyboard
+ * are left alone. SELECT elements are ignored (native picker, no keyboard).
  */
 export default function KeyboardSpacer() {
   const spacerRef = useRef(null);
@@ -25,23 +16,26 @@ export default function KeyboardSpacer() {
 
     const onFocusIn = (e) => {
       const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
-        // Expand spacer via DOM — no React rerender, no focus loss
-        spacer.style.height = "50vh";
-        // Scroll focused element into view after spacer expands
-        setTimeout(() => {
-          e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 60);
-      }
+      // Only text inputs and textareas — selects use native picker, no keyboard
+      if (tag !== "INPUT" && tag !== "TEXTAREA") return;
+
+      // Only expand if the field is in the lower 45% of the viewport
+      // (upper fields are already visible above the keyboard)
+      const rect = e.target.getBoundingClientRect();
+      const threshold = window.innerHeight * 0.55;
+      if (rect.top < threshold) return;
+
+      spacer.style.height = "50vh";
+      setTimeout(() => {
+        e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 60);
     };
 
     const onFocusOut = () => {
-      // Small delay to avoid collapsing when focus moves between inputs
       setTimeout(() => {
-        if (!container.contains(document.activeElement) ||
-            (document.activeElement.tagName !== "INPUT" &&
-             document.activeElement.tagName !== "TEXTAREA" &&
-             document.activeElement.tagName !== "SELECT")) {
+        const active = document.activeElement;
+        if (!container.contains(active) ||
+            (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA")) {
           spacer.style.height = "0px";
         }
       }, 100);

@@ -2,7 +2,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { haptic } from "../../../utils/haptic";
-import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 
 const PopupWrapper = ({ title, onClose, children }) => {
   return (
@@ -21,7 +20,6 @@ const PopupWrapper = ({ title, onClose, children }) => {
         </div>
         <div className="flex-1 overflow-y-auto px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6">
           <div className="text-content-secondary space-y-2 text-sm sm:text-base">{children}</div>
-          <KeyboardSpacer />
         </div>
       </div>
     </div>

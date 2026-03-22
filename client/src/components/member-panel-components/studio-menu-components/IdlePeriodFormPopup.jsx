@@ -2,7 +2,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { haptic } from "../../../utils/haptic";
-import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 
 const IdlePeriodFormPopup = ({ show, onClose }) => {
   if (!show) return null;
@@ -65,7 +64,6 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
               Apply for Idle Period
             </button>
           </div>
-          <KeyboardSpacer />
         </div>
       </div>
     </div>

@@ -6,43 +6,17 @@ import PrivacyPopup from "../../components/member-panel-components/studio-menu-c
 import PaymentMethodPopup from "../../components/member-panel-components/studio-menu-components/PaymentMethodPopup"
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
+import EditPersonalPopup from "../../components/member-panel-components/studio-menu-components/EditPersonalPopup"
+import EditAddressPopup from "../../components/member-panel-components/studio-menu-components/EditAddressPopup"
+import EditContactPopup from "../../components/member-panel-components/studio-menu-components/EditContactPopup"
 import { useDispatch, useSelector } from "react-redux"
 import { updateUserData } from "../../features/auth/authSlice"
-import DatePickerField from "../../components/shared/DatePickerField"
-import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
 import PullToRefresh from "../../components/shared/PullToRefresh"
-import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
-
-/** Form field — defined outside component to prevent remount on parent re-render */
-const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
-  <div>
-    <label className="text-sm text-content-secondary block mb-2">{label}{required && <span className="text-accent-red ml-1">*</span>}</label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
-    />
-  </div>
-)
-
-/** Form action buttons — defined outside component to prevent remount */
-const FormActions = ({ onSave, onCancel }) => (
-  <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
-    <button type="button" onClick={() => { haptic.light(); onCancel(); }} className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
-      Cancel
-    </button>
-    <button type="button" onClick={() => { haptic.success(); onSave(); }} className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
-      Request Change
-    </button>
-  </div>
-)
 
 const StudioMenu = () => {
   const { user } = useSelector((state) => state.auth)
@@ -1420,143 +1394,31 @@ const StudioMenu = () => {
       <CancelMembershipPopup show={showCancelMembershipPopup} onClose={() => setShowCancelMembershipPopup(false)} />
       <IdlePeriodFormPopup show={showIdlePeriodForm} onClose={() => setShowIdlePeriodForm(false)} />
 
-      {/* Edit Personal Data Popup — matches EditMemberModal */}
-      {isEditingPersonal && (
-        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl text-content-primary font-bold">Edit Personal Data</h2>
-              <button onClick={() => setIsEditingPersonal(false)} className="text-content-muted hover:text-content-primary transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+      <EditPersonalPopup
+        show={isEditingPersonal}
+        data={personalData}
+        onChange={handlePersonalDataChange}
+        onSave={handlePersonalDataSubmit}
+        onClose={() => setIsEditingPersonal(false)}
+      />
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
-              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
+      <EditAddressPopup
+        show={isEditingAddress}
+        data={addressData}
+        onChange={handleAddressDataChange}
+        onSave={handleAddressDataSubmit}
+        onClose={() => setIsEditingAddress(false)}
+        countries={countries}
+        countriesLoading={countriesLoading}
+      />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="First Name" value={personalData.firstName} onChange={(e) => handlePersonalDataChange("firstName", e.target.value)} required />
-                <FormField label="Last Name" value={personalData.lastName} onChange={(e) => handlePersonalDataChange("lastName", e.target.value)} required />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-content-secondary block mb-2">Gender</label>
-                  <CustomSelect
-                    name="gender"
-                    value={personalData.gender || ""}
-                    onChange={(e) => handlePersonalDataChange("gender", e.target.value)}
-                    placeholder="Select gender"
-                    options={[
-                      { value: "Male", label: "Male" },
-                      { value: "Female", label: "Female" },
-                      { value: "Other", label: "Other" },
-                    ]}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-content-secondary block mb-2">Birthday</label>
-                  <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                    <span className={personalData.dateOfBirth ? "text-content-primary" : "text-content-faint"}>
-                      {personalData.dateOfBirth
-                        ? (() => { const [y, m, d] = (personalData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })()
-                        : "Select date"}
-                    </span>
-                    <DatePickerField
-                      value={personalData.dateOfBirth || ""}
-                      onChange={(val) => handlePersonalDataChange("dateOfBirth", val)}
-                    />
-                  </div>
-                </div>
-              </div>
-              <KeyboardSpacer />
-            </div>
-
-            <FormActions onSave={handlePersonalDataSubmit} onCancel={() => setIsEditingPersonal(false)} />
-          </div>
-        </div>
-      )}
-
-      {/* Edit Address Popup — matches EditMemberModal */}
-      {isEditingAddress && (
-        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl text-content-primary font-bold">Edit Address</h2>
-              <button onClick={() => setIsEditingAddress(false)} className="text-content-muted hover:text-content-primary transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
-              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Street" value={addressData.street} onChange={(e) => handleAddressDataChange("street", e.target.value)} placeholder="Main Street" />
-                <FormField label="House Number" value={addressData.houseNumber} onChange={(e) => handleAddressDataChange("houseNumber", e.target.value)} placeholder="123" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="ZIP Code" value={addressData.zipCode} onChange={(e) => handleAddressDataChange("zipCode", e.target.value)} placeholder="12345" />
-                <FormField label="City" value={addressData.city} onChange={(e) => handleAddressDataChange("city", e.target.value)} placeholder="Berlin" />
-              </div>
-
-              <div>
-                <label className="text-sm text-content-secondary block mb-2">Country</label>
-                <CustomSelect
-                  name="country"
-                  value={addressData.country}
-                  onChange={(e) => handleAddressDataChange("country", e.target.value)}
-                  placeholder={countriesLoading ? "Loading countries..." : "Select a country"}
-                  searchable
-                  options={countries.map((country) => ({
-                    value: country.name,
-                    label: country.name,
-                  }))}
-                  disabled={countriesLoading}
-                />
-              </div>
-              <KeyboardSpacer />
-            </div>
-
-            <FormActions onSave={handleAddressDataSubmit} onCancel={() => setIsEditingAddress(false)} />
-          </div>
-        </div>
-      )}
-
-      {/* Edit Contact Popup — matches EditMemberModal */}
-      {isEditingContact && (
-        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl text-content-primary font-bold">Edit Contact Details</h2>
-              <button onClick={() => setIsEditingContact(false)} className="text-content-muted hover:text-content-primary transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
-              <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Contact Information</div>
-
-              <FormField label="Email" type="email" value={contactData.email} onChange={(e) => handleContactDataChange("email", e.target.value)} required />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Mobile Number" type="tel" value={contactData.phone} onChange={(e) => handleContactDataChange("phone", e.target.value)} placeholder="+49 123 456789" />
-                <FormField label="Telephone Number" type="tel" value={contactData.telephoneNumber} onChange={(e) => handleContactDataChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
-              </div>
-              <KeyboardSpacer />
-            </div>
-
-            <FormActions onSave={handleContactDataSubmit} onCancel={() => setIsEditingContact(false)} />
-          </div>
-        </div>
-      )}
+      <EditContactPopup
+        show={isEditingContact}
+        data={contactData}
+        onChange={handleContactDataChange}
+        onSave={handleContactDataSubmit}
+        onClose={() => setIsEditingContact(false)}
+      />
     </div>
   )
 }
