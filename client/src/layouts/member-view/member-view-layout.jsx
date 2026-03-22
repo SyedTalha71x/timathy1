@@ -43,9 +43,12 @@ const MemberDashboardLayout = () => {
         {/* Main Content Area */}
         <main
           ref={mainRef}
-          style={{ overscrollBehavior: "contain" }}
+          style={{
+            overscrollBehavior: "contain",
+            paddingTop: "calc(env(safe-area-inset-top, 0px) + 3.5rem)",
+          }}
           className="flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] 
-            lg:pt-0 md:pt-14 sm:pt-14 pt-14
+            lg:!pt-0
             p-2 overflow-hidden pb-0
             transition-all duration-500 ease-in-out"
         >
