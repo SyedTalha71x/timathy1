@@ -3,8 +3,8 @@
   "appName": "OrgaGym",
   "webDir": "dist",
   "ios": {
-    "contentInset": "always",
-    "backgroundColor": "#141414",
+    "contentInset": "never",
+    "backgroundColor": "#0E0E0E",
     "scrollEnabled": false,
     "allowsInlineMediaPlayback": true
   },
