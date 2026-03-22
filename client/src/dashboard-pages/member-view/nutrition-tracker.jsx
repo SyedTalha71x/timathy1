@@ -28,6 +28,7 @@ import BarcodeScannerModal from "../../components/member-panel-components/nutrit
 import SettingsModal from "../../components/member-panel-components/nutrition-tracking-components/SettingsModal"
 import StreakModal from "../../components/member-panel-components/nutrition-tracking-components/StreakModal"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // Shared constants & components
 import {
@@ -830,7 +831,11 @@ const NutritionTracker = () => {
         >
 
         {/* ---- Panel 1: DIARY ---- */}
-        <div className="w-1/2 h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
+        <div className="w-1/2 h-full">
+          <PullToRefresh
+            onRefresh={async () => { await Promise.all([dispatch(fetchDailySummery(dateStr)), dispatch(fetchFood())]).catch(() => {}) }}
+            className="h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+          >
           <div className="max-w-3xl mx-auto space-y-6">
             {diaryLoading && (
               <div className="flex items-center justify-center py-12">
@@ -961,10 +966,15 @@ const NutritionTracker = () => {
             </SettingsCard>
           </>)}
           </div>
+          </PullToRefresh>
         </div>
 
         {/* ---- Panel 2: INSIGHTS ---- */}
-        <div className="w-1/2 h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16">
+        <div className="w-1/2 h-full">
+          <PullToRefresh
+            onRefresh={async () => { await Promise.all([dispatch(fetchDailySummery(dateStr)), dispatch(fetchFood())]).catch(() => {}) }}
+            className="h-full overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
+          >
           <div className="max-w-3xl mx-auto space-y-6">
 
             {/* Daily Score */}
@@ -1130,6 +1140,7 @@ const NutritionTracker = () => {
               </div>
             </SettingsCard>
           </div>
+          </PullToRefresh>
         </div>
 
         </div>

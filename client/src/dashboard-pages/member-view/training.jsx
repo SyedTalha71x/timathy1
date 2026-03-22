@@ -66,6 +66,7 @@ import AddToPlanModal from "../../components/studio-components/training-componen
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -764,7 +765,11 @@ export default function Training() {
           >
 
             {/* ---- Panel 1: VIDEOS ---- */}
-            <div className="w-1/2 h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
+            <div className="w-1/2 h-full">
+              <PullToRefresh
+                onRefresh={async () => { await dispatch(fetchTrainingVideos()).catch(() => {}) }}
+                className="h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6"
+              >
               <div>
                 {/* Search */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -858,10 +863,15 @@ export default function Training() {
                   </div>
                 )}
               </div>
+              </PullToRefresh>
             </div>
 
             {/* ---- Panel 2: PLANS ---- */}
-            <div className="w-1/2 h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
+            <div className="w-1/2 h-full">
+              <PullToRefresh
+                onRefresh={async () => { await dispatch(fetchAllPlans()).catch(() => {}) }}
+                className="h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6"
+              >
               <div>
                 {/* Search and Create Button */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -999,6 +1009,7 @@ export default function Training() {
                   </div>
                 )}
               </div>
+              </PullToRefresh>
             </div>
 
           </div>

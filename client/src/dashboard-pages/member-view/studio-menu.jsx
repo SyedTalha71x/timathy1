@@ -13,6 +13,7 @@ import CustomSelect from "../../components/shared/CustomSelect"
 import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
@@ -623,7 +624,8 @@ const StudioMenu = () => {
         >
 
         {/* ---- Panel 1: STUDIO INFO ---- */}
-        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
+        <div className="w-1/4 h-full">
+          <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
             {/* Map */}
@@ -793,10 +795,12 @@ const StudioMenu = () => {
               </div>
             </Card>
           </div>
+          </PullToRefresh>
         </div>
 
         {/* ---- Panel 2: CHECK-IN ---- */}
-        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
+        <div className="w-1/4 h-full">
+          <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="grid gap-4 md:grid-cols-2">
             {/* QR Scanner */}
             <Card>
@@ -913,10 +917,12 @@ const StudioMenu = () => {
               )}
             </Card>
           </div>
+          </PullToRefresh>
         </div>
 
         {/* ---- Panel 3: BULLETIN BOARD ---- */}
-        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
+        <div className="w-1/4 h-full">
+          <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div>
             {messages.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 auto-rows-fr">
@@ -988,10 +994,12 @@ const StudioMenu = () => {
               </Card>
             )}
           </div>
+          </PullToRefresh>
         </div>
 
         {/* ---- Panel 4: SELF-SERVICE ---- */}
-        <div className="w-1/4 h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
+        <div className="w-1/4 h-full">
+          <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
             {/* Member summary strip */}
@@ -1279,6 +1287,7 @@ const StudioMenu = () => {
               </div>
             </Card>
           </div>
+          </PullToRefresh>
         </div>
 
         </div>
