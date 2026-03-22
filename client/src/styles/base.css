@@ -98,13 +98,14 @@
 }
 
 html,
-body {
-scroll-behavior: smooth
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 html {
-  /* Prevent overscroll bounce (pull-to-refresh) — app-like feel */
-  overscroll-behavior: none;
   /* Prevent text size adjustment on orientation change */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -113,11 +114,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
   background-color: var(--theme-surface-base, #1c1c1c);
   color: var(--theme-text, #ffffff);
-  /* Prevent overscroll bounce on body */
-  overscroll-behavior-y: none;
 }
 
 /* ============================================
