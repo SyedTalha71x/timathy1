@@ -2,42 +2,25 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { haptic } from "../../../utils/haptic";
-
-const scrollInputIntoView = (e) => {
-  const el = e.target;
-  const scroll = () => {
-    requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-  };
-  // Wait for keyboard to finish opening via visualViewport resize
-  if (window.visualViewport) {
-    let fired = false;
-    const onResize = () => {
-      fired = true;
-      window.visualViewport.removeEventListener("resize", onResize);
-      scroll();
-    };
-    window.visualViewport.addEventListener("resize", onResize);
-    // Fallback if resize never fires (e.g. keyboard already open)
-    setTimeout(() => {
-      if (!fired) {
-        window.visualViewport.removeEventListener("resize", onResize);
-        scroll();
-      }
-    }, 600);
-  } else {
-    setTimeout(scroll, 400);
-  }
-};
+import useKeyboardHeight from "../../../hooks/useKeyboardHeight";
 
 const PaymentMethodPopup = ({ show, onClose }) => {
+  const viewportHeight = useKeyboardHeight();
+
   if (!show) return null;
 
+  const handleFocus = (e) => {
+    const el = e.target;
+    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+  };
+
   return (
-    <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
+    <div
+      className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50"
+      style={{ height: viewportHeight ?? "100%" }}
+    >
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h2 className="text-xl text-content-primary font-bold">Payment Method</h2>
           <button onClick={() => { haptic.light(); onClose(); }} className="text-content-muted hover:text-content-primary transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,19 +34,19 @@ const PaymentMethodPopup = ({ show, onClose }) => {
 
           <div>
             <label className="text-sm text-content-secondary block mb-2">Account holder<span className="text-accent-red ml-1">*</span></label>
-            <input type="text" onFocus={scrollInputIntoView} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="John Doe" />
+            <input type="text" onFocus={handleFocus} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="John Doe" />
           </div>
           <div>
             <label className="text-sm text-content-secondary block mb-2">IBAN<span className="text-accent-red ml-1">*</span></label>
-            <input type="text" onFocus={scrollInputIntoView} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="DE89 3704 0044 0532 0130 00" />
+            <input type="text" onFocus={handleFocus} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="DE89 3704 0044 0532 0130 00" />
           </div>
           <div>
             <label className="text-sm text-content-secondary block mb-2">BIC<span className="text-accent-red ml-1">*</span></label>
-            <input type="text" onFocus={scrollInputIntoView} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="COBADEFFXXX" />
+            <input type="text" onFocus={handleFocus} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="COBADEFFXXX" />
           </div>
           <div>
             <label className="text-sm text-content-secondary block mb-2">Credit institute<span className="text-accent-red ml-1">*</span></label>
-            <input type="text" onFocus={scrollInputIntoView} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="Commerzbank AG" />
+            <input type="text" onFocus={handleFocus} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" defaultValue="Commerzbank AG" />
           </div>
 
           <div className="flex items-start space-x-2 pt-2">
@@ -76,18 +59,12 @@ const PaymentMethodPopup = ({ show, onClose }) => {
         </div>
 
         <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => { haptic.light(); onClose(); }}
-            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
-          >
+          <button type="button" onClick={() => { haptic.light(); onClose(); }}
+            className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={() => { haptic.success(); }}
-            className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors"
-          >
+          <button type="button" onClick={() => { haptic.success(); }}
+            className="px-4 py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover transition-colors">
             Request Change
           </button>
         </div>

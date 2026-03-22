@@ -2,39 +2,24 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { haptic } from "../../../utils/haptic";
-
-const scrollInputIntoView = (e) => {
-  const el = e.target;
-  const scroll = () => {
-    requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-  };
-  if (window.visualViewport) {
-    let fired = false;
-    const onResize = () => {
-      fired = true;
-      window.visualViewport.removeEventListener("resize", onResize);
-      scroll();
-    };
-    window.visualViewport.addEventListener("resize", onResize);
-    setTimeout(() => {
-      if (!fired) {
-        window.visualViewport.removeEventListener("resize", onResize);
-        scroll();
-      }
-    }, 600);
-  } else {
-    setTimeout(scroll, 400);
-  }
-};
+import useKeyboardHeight from "../../../hooks/useKeyboardHeight";
 
 const IdlePeriodFormPopup = ({ show, onClose }) => {
+  const viewportHeight = useKeyboardHeight();
+
   if (!show) return null;
 
+  const handleFocus = (e) => {
+    const el = e.target;
+    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+  };
+
   return (
-    <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-      <div className="bg-surface-card rounded-xl p-4 sm:p-5 md:p-6 max-w-md w-full max-h-[85dvh] sm:max-h-[80dvh] overflow-y-auto border border-border shadow-2xl">
+    <div
+      className="absolute inset-x-0 top-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50"
+      style={{ height: viewportHeight ?? "100%" }}
+    >
+      <div className="bg-surface-card rounded-xl p-4 sm:p-5 md:p-6 max-w-md w-full max-h-[90%] overflow-y-auto border border-border shadow-2xl">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h3 className="text-lg sm:text-xl font-bold text-content-primary">Apply for Idle Period</h3>
           <button onClick={() => { haptic.light(); onClose(); }} className="text-content-muted hover:text-content-primary transition-colors">
@@ -47,7 +32,7 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
         <div className="space-y-3 sm:space-y-4">
           <div className="relative">
             <label className="block text-content-muted text-xs sm:text-sm mb-1">Reason for idle period*</label>
-            <select onFocus={scrollInputIntoView} className="w-full bg-surface-button text-content-primary rounded-lg p-2 sm:p-3 text-sm sm:text-base">
+            <select onFocus={handleFocus} className="w-full bg-surface-button text-content-primary rounded-lg p-2 sm:p-3 text-sm sm:text-base">
               <option>Select reason...</option>
               <option>Vacation</option>
               <option>Medical</option>
@@ -58,12 +43,12 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
 
           <div>
             <label className="block text-content-muted text-xs sm:text-sm mb-1">Start Date*</label>
-            <input type="date" onFocus={scrollInputIntoView} className="w-full bg-surface-button text-content-primary rounded-lg p-2 sm:p-3 text-sm sm:text-base" />
+            <input type="date" onFocus={handleFocus} className="w-full bg-surface-button text-content-primary rounded-lg p-2 sm:p-3 text-sm sm:text-base" />
           </div>
 
           <div className="relative">
             <label className="block text-content-muted text-xs sm:text-sm mb-1">Duration*</label>
-            <select onFocus={scrollInputIntoView} className="w-full bg-surface-button text-content-primary rounded-lg p-2 sm:p-3 text-sm sm:text-base">
+            <select onFocus={handleFocus} className="w-full bg-surface-button text-content-primary rounded-lg p-2 sm:p-3 text-sm sm:text-base">
               <option>Select duration...</option>
               <option>1 week</option>
               <option>2 weeks</option>
@@ -84,10 +69,8 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
             </div>
           </div>
 
-          <button
-            onClick={() => { haptic.success(); }}
-            className="w-full bg-primary hover:bg-primary-hover text-white py-2.5 sm:py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
-          >
+          <button onClick={() => { haptic.success(); }}
+            className="w-full bg-primary hover:bg-primary-hover text-white py-2.5 sm:py-3 px-4 rounded-lg transition-colors text-sm sm:text-base">
             Apply for Idle Period
           </button>
         </div>

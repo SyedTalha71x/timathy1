@@ -14,11 +14,13 @@ import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
 import PullToRefresh from "../../components/shared/PullToRefresh"
+import useKeyboardHeight from "../../hooks/useKeyboardHeight"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
+  const viewportHeight = useKeyboardHeight();
 
   const dispatch = useDispatch();
   const { countries, loading: countriesLoading } = useCountries();
@@ -536,30 +538,9 @@ const StudioMenu = () => {
   // ============================================
 
   /** Form field — matches EditMemberModal input style */
-  const scrollInputIntoView = useCallback((e) => {
+  const handleFocus = useCallback((e) => {
     const el = e.target;
-    const scroll = () => {
-      requestAnimationFrame(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
-    };
-    if (window.visualViewport) {
-      let fired = false;
-      const onResize = () => {
-        fired = true;
-        window.visualViewport.removeEventListener("resize", onResize);
-        scroll();
-      };
-      window.visualViewport.addEventListener("resize", onResize);
-      setTimeout(() => {
-        if (!fired) {
-          window.visualViewport.removeEventListener("resize", onResize);
-          scroll();
-        }
-      }, 600);
-    } else {
-      setTimeout(scroll, 400);
-    }
+    setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
   }, [])
 
   const FormField = ({ label, type = "text", value, onChange, required, placeholder }) => (
@@ -570,7 +551,7 @@ const StudioMenu = () => {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        onFocus={scrollInputIntoView}
+        onFocus={handleFocus}
         className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
       />
     </div>
@@ -1447,8 +1428,8 @@ const StudioMenu = () => {
 
       {/* Edit Personal Data Popup — matches EditMemberModal */}
       {isEditingPersonal && (
-        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
+        <div className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50" style={{ height: viewportHeight ?? "100%" }}>
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Personal Data</h2>
               <button onClick={() => setIsEditingPersonal(false)} className="text-content-muted hover:text-content-primary transition-colors">
@@ -1505,8 +1486,8 @@ const StudioMenu = () => {
 
       {/* Edit Address Popup — matches EditMemberModal */}
       {isEditingAddress && (
-        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
+        <div className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50" style={{ height: viewportHeight ?? "100%" }}>
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Address</h2>
               <button onClick={() => setIsEditingAddress(false)} className="text-content-muted hover:text-content-primary transition-colors">
@@ -1553,8 +1534,8 @@ const StudioMenu = () => {
 
       {/* Edit Contact Popup — matches EditMemberModal */}
       {isEditingContact && (
-        <div className="absolute inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
-          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[85dvh] md:max-h-[80dvh] flex flex-col">
+        <div className="absolute inset-x-0 top-0 bg-black/50 flex p-2 justify-center items-center z-50" style={{ height: viewportHeight ?? "100%" }}>
+          <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[90%] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl text-content-primary font-bold">Edit Contact Details</h2>
               <button onClick={() => setIsEditingContact(false)} className="text-content-muted hover:text-content-primary transition-colors">
