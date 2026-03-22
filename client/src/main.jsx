@@ -18,10 +18,11 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
 
-// iOS: WebView unterhalb der Statusleiste starten
+// iOS: Status bar overlays WebView — header CSS fills behind it
 if (Capacitor.isNativePlatform()) {
-  StatusBar.setOverlaysWebView({ overlay: false });
-  StatusBar.setStyle({ style: Style.Dark }); // Dark = helle Icons auf dunklem Hintergrund
+  StatusBar.setOverlaysWebView({ overlay: true });
+  // Dark = light/white icons (for dark backgrounds at startup)
+  StatusBar.setStyle({ style: Style.Dark });
 }
 
 // ============================================================================

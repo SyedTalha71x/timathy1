@@ -7,6 +7,8 @@ import { Sun, Moon, Settings } from "lucide-react"
 import DefaultAvatar from '../../../../public/gray-avatar-fotor-20250912192528.png'
 import LanguageDropdown from '../../LanguageDropdown'
 import { haptic } from "../../../utils/haptic"
+import { Capacitor } from "@capacitor/core"
+import { StatusBar, Style } from "@capacitor/status-bar"
 
 /**
  * MemberDashboardHeader Component
@@ -52,6 +54,10 @@ const MemberDashboardHeader = ({
     } else {
       root.classList.add('light')
       localStorage.setItem('theme', 'light')
+    }
+    // Update native status bar icon color to match theme
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => {})
     }
   }, [isDarkMode])
 
@@ -127,8 +133,8 @@ const MemberDashboardHeader = ({
     <>
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
       <div
-        className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none"
-        style={{ touchAction: "manipulation" }}
+        className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border pb-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none"
+        style={{ touchAction: "manipulation", paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
       >
         {/* Left - Studio badge */}
         <div className="flex items-center gap-2">
