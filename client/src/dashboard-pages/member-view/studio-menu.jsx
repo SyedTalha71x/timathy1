@@ -53,9 +53,11 @@ const StudioMenu = () => {
   const [slideDirection, setSlideDirection] = useState(null)
   const [showMailConfirm, setShowMailConfirm] = useState(false)
   const [showMapConfirm, setShowMapConfirm] = useState(false)
-  const touchStartRef = useRef({ x: 0, y: 0 })
+  const swipeRef = useRef(null) // container for native touch listeners
+  const touchStartRef = useRef({ x: 0, y: 0, t: 0 })
   const touchDeltaRef = useRef({ x: 0, y: 0 })
   const isSwiping = useRef(false)
+  const directionLocked = useRef(false) // once locked, don't re-evaluate
 
   const [personalData, setPersonalData] = useState({
     firstName: "",
@@ -408,7 +410,7 @@ const StudioMenu = () => {
   }
 
   // ============================================
-  // Tab slide + swipe logic
+  // Tab slide + swipe logic (native non-passive)
   // ============================================
   const tabKeys = ["info", "checkin", "bulletin", "data"]
   const activeTabIndex = tabKeys.indexOf(activeSection)
@@ -417,47 +419,119 @@ const StudioMenu = () => {
     setSlideDirection(direction)
     haptic.light()
     setActiveSection(key)
-    // Auto-scroll tab into view
     requestAnimationFrame(() => {
       const btn = tabBarRef.current?.querySelector(`[data-tab="${key}"]`)
       btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
     })
-    // Clear animation class after it plays
     setTimeout(() => setSlideDirection(null), 350)
   }, [])
 
-  const handleTouchStart = useCallback((e) => {
-    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    touchDeltaRef.current = { x: 0, y: 0 }
-    isSwiping.current = false
-  }, [])
+  // Native touch listeners — attached as { passive: false } so preventDefault works on iOS
+  useEffect(() => {
+    const el = swipeRef.current
+    if (!el) return
 
-  const handleTouchMove = useCallback((e) => {
-    const dx = e.touches[0].clientX - touchStartRef.current.x
-    const dy = e.touches[0].clientY - touchStartRef.current.y
-    touchDeltaRef.current = { x: dx, y: dy }
-    // Lock to horizontal swipe if mostly horizontal
-    if (!isSwiping.current && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      isSwiping.current = true
-    }
-    // Once locked to horizontal, prevent vertical scroll / pull-to-refresh
-    if (isSwiping.current) {
-      try { e.preventDefault() } catch (_) { /* passive listener fallback */ }
-    }
-  }, [])
+    const SWIPE_THRESHOLD = 40 // px to trigger tab change
+    const VELOCITY_THRESHOLD = 0.3 // px/ms — fast flick triggers even below distance threshold
+    const MAX_TRANSLATE = 120 // max visual drag in px
+    const LOCK_ANGLE_RATIO = 1.2 // dx must be > dy * ratio to lock horizontal
 
-  const handleTouchEnd = useCallback(() => {
-    if (!isSwiping.current) return
-    const { x: dx } = touchDeltaRef.current
-    const threshold = 60
-    const currentIdx = tabKeys.indexOf(activeSection)
+    const onTouchStart = (e) => {
+      const touch = e.touches[0]
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY, t: Date.now() }
+      touchDeltaRef.current = { x: 0, y: 0 }
+      isSwiping.current = false
+      directionLocked.current = false
 
-    if (dx < -threshold && currentIdx < tabKeys.length - 1) {
-      goToTab(tabKeys[currentIdx + 1], "left")
-    } else if (dx > threshold && currentIdx > 0) {
-      goToTab(tabKeys[currentIdx - 1], "right")
+      // Remove transition so drag feels instant
+      el.style.transition = 'none'
     }
-    isSwiping.current = false
+
+    const onTouchMove = (e) => {
+      const touch = e.touches[0]
+      const dx = touch.clientX - touchStartRef.current.x
+      const dy = touch.clientY - touchStartRef.current.y
+      touchDeltaRef.current = { x: dx, y: dy }
+
+      // Decide direction once (after 8px movement)
+      if (!directionLocked.current && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        directionLocked.current = true
+        isSwiping.current = Math.abs(dx) > Math.abs(dy) * LOCK_ANGLE_RATIO
+      }
+
+      if (!isSwiping.current) return
+
+      // Prevent vertical scroll and pull-to-refresh during horizontal swipe
+      e.preventDefault()
+
+      // Clamp translation & apply rubber-band at edges
+      const currentIdx = tabKeys.indexOf(activeSection)
+      const atStart = currentIdx === 0 && dx > 0
+      const atEnd = currentIdx === tabKeys.length - 1 && dx < 0
+
+      let translate = dx
+      if (atStart || atEnd) {
+        // Rubber-band: diminishing returns past 0
+        translate = dx * 0.25
+      }
+      translate = Math.max(-MAX_TRANSLATE, Math.min(MAX_TRANSLATE, translate))
+
+      el.style.transform = `translateX(${translate}px)`
+      el.style.opacity = `${1 - Math.abs(translate) / (MAX_TRANSLATE * 3)}`
+    }
+
+    const onTouchEnd = () => {
+      if (!isSwiping.current) {
+        // Reset just in case
+        el.style.transition = ''
+        el.style.transform = ''
+        el.style.opacity = ''
+        return
+      }
+
+      const { x: dx } = touchDeltaRef.current
+      const dt = Date.now() - touchStartRef.current.t
+      const velocity = Math.abs(dx) / Math.max(dt, 1) // px/ms
+
+      const currentIdx = tabKeys.indexOf(activeSection)
+      const triggered = Math.abs(dx) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD
+
+      // Snap back with transition
+      el.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.25s ease'
+      el.style.transform = 'translateX(0)'
+      el.style.opacity = '1'
+
+      if (triggered) {
+        if (dx < 0 && currentIdx < tabKeys.length - 1) {
+          goToTab(tabKeys[currentIdx + 1], "left")
+        } else if (dx > 0 && currentIdx > 0) {
+          goToTab(tabKeys[currentIdx - 1], "right")
+        }
+      }
+
+      // Cleanup after transition
+      setTimeout(() => {
+        if (el) {
+          el.style.transition = ''
+          el.style.transform = ''
+          el.style.opacity = ''
+        }
+      }, 280)
+
+      isSwiping.current = false
+      directionLocked.current = false
+    }
+
+    // Non-passive so preventDefault() works on iOS
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd, { passive: true })
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+    }
   }, [activeSection, goToTab])
 
   const handleEmailClick = (e) => {
@@ -595,10 +669,8 @@ const StudioMenu = () => {
         className="flex-1 overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16"
       >
         <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ touchAction: "pan-y" }}
+          ref={swipeRef}
+          style={{ willChange: 'transform', touchAction: 'pan-y pinch-zoom' }}
         >
         <div
           key={activeSection}
