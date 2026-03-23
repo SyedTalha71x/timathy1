@@ -945,7 +945,7 @@ const NutritionTracker = () => {
 
             <SettingsCard className="!p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2"><Droplets className="w-4 h-4 text-blue-400" /><h3 className="text-sm font-medium text-content-primary"{t("nutrition.diary.water")}</h3></div>
+                <div className="flex items-center gap-2"><Droplets className="w-4 h-4 text-blue-400" /><h3 className="text-sm font-medium text-content-primary">{t("nutrition.diary.water")}</h3></div>
                 <span className="text-xs text-content-faint">{waterDrank} / {waterGoalMl} ml</span>
               </div>
               <div className="h-3 bg-surface-button rounded-full overflow-hidden mb-3">
@@ -1176,7 +1176,7 @@ const NutritionTracker = () => {
             <button onClick={(e) => { e.stopPropagation(); setShowQuickAdd(true); setIsFabOpen(false) }}
               className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap">
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm"{t("nutrition.diary.quickAdd")}</span>
+              <span className="text-sm">{t("nutrition.diary.quickAdd")}</span>
             </button>
           </div>
           {/* FAB Button */}
