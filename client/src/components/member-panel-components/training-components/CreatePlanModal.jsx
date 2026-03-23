@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Plus, Target, Trash2, Save } from 'lucide-react';
 import { haptic } from '../../../utils/haptic';
 
@@ -16,6 +17,7 @@ const CreatePlanModal = ({
   getVideoById,
   getDifficultyColor
 }) => {
+  const { t } = useTranslation();
   const [mobileTab, setMobileTab] = useState('details');
 
   if (!isOpen) return null;
@@ -31,44 +33,44 @@ const CreatePlanModal = ({
   const PlanDetailsForm = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-content-muted mb-2">Plan Name</label>
+        <label className="block text-sm font-medium text-content-muted mb-2">{t("training.modal.planName")}</label>
         <input
           type="text"
           value={planForm.name}
           onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
           className="w-full bg-surface-card rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm"
-          placeholder="Enter plan name..."
+          placeholder={t("training.modal.planNamePlaceholder")}
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-content-muted mb-2">Description</label>
+        <label className="block text-sm font-medium text-content-muted mb-2">{t("training.modal.description")}</label>
         <textarea
           value={planForm.description}
           onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })}
           className="w-full bg-surface-card rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none resize-none text-sm"
           rows={3}
-          placeholder="Describe your training plan..."
+          placeholder={t("training.modal.descriptionPlaceholder")}
         />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-content-muted mb-2">Duration</label>
+          <label className="block text-sm font-medium text-content-muted mb-2">{t("training.modal.duration")}</label>
           <input
             type="text"
             value={planForm.duration}
             onChange={(e) => setPlanForm({ ...planForm, duration: e.target.value })}
             className="w-full bg-surface-card rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm"
-            placeholder="e.g., 4 weeks"
+            placeholder={t("training.modal.durationPlaceholder")}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-content-muted mb-2">Workouts/Week</label>
+          <label className="block text-sm font-medium text-content-muted mb-2">{t("training.modal.workoutsPerWeek")}</label>
           <select
             value={planForm.workoutsPerWeek}
             onChange={(e) => setPlanForm({ ...planForm, workoutsPerWeek: e.target.value ? Number.parseInt(e.target.value) : "" })}
             className="w-full bg-surface-card rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm"
           >
-            <option value="">Select</option>
+            <option value="">{t("training.modal.select")}</option>
             {[1, 2, 3, 4, 5, 6, 7].map(n => (
               <option key={n} value={n}>{n}x per week</option>
             ))}
@@ -77,30 +79,30 @@ const CreatePlanModal = ({
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-content-muted mb-2">Difficulty</label>
+          <label className="block text-sm font-medium text-content-muted mb-2">{t("training.modal.difficulty")}</label>
           <select
             value={planForm.difficulty}
             onChange={(e) => setPlanForm({ ...planForm, difficulty: e.target.value })}
             className="w-full bg-surface-card rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm"
           >
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
+            <option value="Beginner">{t("training.difficulty.beginner")}</option>
+            <option value="Intermediate">{t("training.difficulty.intermediate")}</option>
+            <option value="Advanced">{t("training.difficulty.advanced")}</option>
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-content-muted mb-2">Category</label>
+          <label className="block text-sm font-medium text-content-muted mb-2">{t("training.modal.category")}</label>
           <select
             value={planForm.category}
             onChange={(e) => setPlanForm({ ...planForm, category: e.target.value })}
             className="w-full bg-surface-card rounded-xl px-4 py-3 text-content-primary border border-border focus:border-primary outline-none text-sm"
           >
-            <option value="Full Body">Full Body</option>
-            <option value="Upper Body">Upper Body</option>
-            <option value="Lower Body">Lower Body</option>
-            <option value="Cardio">Cardio</option>
-            <option value="Strength">Strength</option>
-            <option value="Flexibility">Flexibility</option>
+            <option value="Full Body">{t("training.categories.fullBody")}</option>
+            <option value="Upper Body">{t("training.categories.upperBody")}</option>
+            <option value="Lower Body">{t("training.categories.lowerBody")}</option>
+            <option value="Cardio">{t("training.categories.cardio")}</option>
+            <option value="Strength">{t("training.categories.strength")}</option>
+            <option value="Flexibility">{t("training.categories.flexibility")}</option>
           </select>
         </div>
       </div>
@@ -109,7 +111,7 @@ const CreatePlanModal = ({
 
   const ExerciseLibrary = () => (
     <div>
-      <h3 className="hidden lg:block text-base font-semibold text-content-primary mb-4">Exercise Library</h3>
+      <h3 className="hidden lg:block text-base font-semibold text-content-primary mb-4">{t("training.modal.exerciseLibrary")}</h3>
       <div className="space-y-2 lg:max-h-96 lg:overflow-y-auto">
         {availableVideos.map((video) => (
           <div key={video._id} className="bg-surface-card rounded-xl p-3 flex items-center gap-3">
@@ -137,8 +139,8 @@ const CreatePlanModal = ({
         ))}
         {availableVideos.length === 0 && (
           <div className="text-center py-8 text-content-muted text-sm">
-            <p>No exercises available</p>
-            <p className="text-xs mt-1">All exercises are already selected</p>
+            <p>{t("training.modal.noExercises")}</p>
+            <p className="text-xs mt-1">{t("training.modal.allSelected")}</p>
           </div>
         )}
       </div>
@@ -148,13 +150,13 @@ const CreatePlanModal = ({
   const SelectedExercises = () => (
     <div>
       <h3 className="hidden lg:block text-base font-semibold text-content-primary mb-4">
-        Selected Exercises ({selectedExercises.length})
+        {t("training.modal.selectedExercises", { count: selectedExercises.length })}
       </h3>
       {selectedExercises.length === 0 ? (
         <div className="text-center py-8 text-content-muted">
           <Target size={40} className="mx-auto mb-3 opacity-50" />
-          <p className="text-sm">No exercises selected yet</p>
-          <p className="text-xs mt-1">Add exercises from the library</p>
+          <p className="text-sm">{t("training.modal.noSelected")}</p>
+          <p className="text-xs mt-1">{t("training.modal.addFromLibrary")}</p>
         </div>
       ) : (
         <div className="space-y-2 lg:max-h-96 lg:overflow-y-auto">
@@ -213,9 +215,9 @@ const CreatePlanModal = ({
   // Mobile tab config
   // ==========================================
   const mobileTabs = [
-    { key: 'details', label: 'Details' },
-    { key: 'library', label: `Library (${availableVideos.length})` },
-    { key: 'selected', label: `Selected (${selectedExercises.length})` },
+    { key: 'details', label: t("training.modal.tabDetails") },
+    { key: 'library', label: t("training.modal.tabLibrary", { count: availableVideos.length }) },
+    { key: 'selected', label: t("training.modal.tabSelected", { count: selectedExercises.length }) },
   ];
 
   return (
@@ -224,7 +226,7 @@ const CreatePlanModal = ({
       {/* ===== MOBILE — bottom sheet with tabs ===== */}
       <div className="lg:hidden flex flex-col w-full h-[95dvh] bg-surface-base rounded-t-2xl overflow-hidden">
         <div className="flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0">
-          <h2 className="text-lg font-bold text-content-primary">Create Training Plan</h2>
+          <h2 className="text-lg font-bold text-content-primary">{t("training.modal.createTitle")}</h2>
           <button onClick={handleClose} className="p-2 hover:bg-surface-button rounded-lg transition-colors">
             <X size={20} className="text-content-muted" />
           </button>
@@ -260,7 +262,7 @@ const CreatePlanModal = ({
       {/* ===== DESKTOP — centered modal with 3-col grid ===== */}
       <div className="hidden lg:block w-full max-w-7xl max-h-[90vh] overflow-y-auto bg-surface-base rounded-xl p-6 mx-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-content-primary">Create Training Plan</h2>
+          <h2 className="text-xl font-bold text-content-primary">{t("training.modal.createTitle")}</h2>
           <button onClick={handleClose} className="p-2 hover:bg-surface-button rounded-lg transition-colors">
             <X size={20} className="text-content-muted" />
           </button>

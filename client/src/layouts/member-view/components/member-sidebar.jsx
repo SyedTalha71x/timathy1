@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Home,
   Calendar,
@@ -14,13 +15,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../../features/auth/authSlice";
 import { haptic } from "../../../utils/haptic";
 
-/**
- * MemberViewSidebar — Desktop only (lg+)
- *
- * On mobile, navigation is handled by MemberBottomBar.
- * Settings is in the header. Logout will move to Settings page (TODO).
- */
 const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse }) => {
+  const { t } = useTranslation();
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
   const isCollapsed = externalIsCollapsed !== undefined ? externalIsCollapsed : internalIsCollapsed;
 
@@ -47,15 +43,15 @@ const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse 
   };
 
   // ============================================
-  // Menu Items — Settings removed (now in header)
+  // Menu Items
   // ============================================
   const menuItems = [
-    { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-    { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
-    { icon: MessageCircle, label: "Messages", to: "/member-view/communication", badgeCount: unreadMessagesCount },
-    { icon: Timer, label: "Classes", to: "/member-view/classes" },
-    { icon: CgGym, label: "Training", to: "/member-view/training" },
-    { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
+    { icon: Home, labelKey: "nav.studio", to: "/member-view/studio-menu" },
+    { icon: Calendar, labelKey: "nav.appointments", to: "/member-view/appointment" },
+    { icon: MessageCircle, labelKey: "nav.messages", to: "/member-view/communication", badgeCount: unreadMessagesCount },
+    { icon: Timer, labelKey: "nav.classes", to: "/member-view/classes" },
+    { icon: CgGym, labelKey: "nav.training", to: "/member-view/training" },
+    { icon: Apple, labelKey: "nav.nutrition", to: "/member-view/nutrition" },
   ];
 
   return (
@@ -71,7 +67,7 @@ const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse 
         <nav className="flex-1 overflow-y-auto sidebar-scrollbar">
           <ul className="space-y-2 px-4 pt-1 pb-4">
             {menuItems.map((item) => (
-              <li key={item.label}>
+              <li key={item.labelKey}>
                 <button
                   onClick={() => handleNavigation(item.to)}
                   className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font relative w-full ${
@@ -97,14 +93,14 @@ const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse 
                       </span>
                     )}
                   </div>
-                  {!isCollapsed && <span>{item.label}</span>}
+                  {!isCollapsed && <span>{t(item.labelKey)}</span>}
                 </button>
               </li>
             ))}
           </ul>
         </nav>
 
-        {/* Logout — TODO: Move into Settings page */}
+        {/* Logout */}
         <div className="p-4 mt-auto">
           <button
             onClick={handleLogout}
@@ -115,7 +111,7 @@ const MemberViewSidebar = ({ isCollapsed: externalIsCollapsed, onToggleCollapse 
             } transition-all duration-300`}
           >
             <LogOut size={20} />
-            {!isCollapsed && <span>Logout</span>}
+            {!isCollapsed && <span>{t("common.logout")}</span>}
           </button>
         </div>
       </div>

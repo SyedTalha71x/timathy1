@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Play, Pause, Volume2, VolumeX, Maximize, Plus, RotateCcw, RotateCw } from 'lucide-react';
 import { haptic } from '../../../utils/haptic';
 
@@ -9,6 +10,7 @@ const VideoModal = ({
   onClose,
   onAddToPlan
 }) => {
+  const { t } = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -249,7 +251,7 @@ const VideoModal = ({
               onEnded={() => setIsPlaying(false)}
             >
               <source src={video.videoUrl?.url} type="video/mp4" />
-              Your browser does not support the video tag.
+              {t("training.video.browserNotSupported")}
             </video>
 
             {/* Center play overlay when paused */}
@@ -297,7 +299,7 @@ const VideoModal = ({
                 <button
                   onClick={() => skip(-10)}
                   className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                  title="Back 10s"
+                  title={t("training.video.back10s")}
                 >
                   <RotateCcw size={16} />
                 </button>
@@ -305,7 +307,7 @@ const VideoModal = ({
                 <button
                   onClick={() => skip(10)}
                   className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                  title="Forward 10s"
+                  title={t("training.video.forward10s")}
                 >
                   <RotateCw size={16} />
                 </button>
@@ -338,7 +340,7 @@ const VideoModal = ({
                 <button
                   onClick={handleFullscreen}
                   className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                  title="Fullscreen (f)"
+                  title={t("training.video.fullscreen")}
                 >
                   <Maximize size={16} />
                 </button>
@@ -350,18 +352,18 @@ const VideoModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-3">
-                About This Exercise
+                {t("training.video.aboutExercise")}
               </h3>
               <p className="text-content-muted mb-4 text-sm sm:text-base">
                 {video.description}
               </p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-content-faint text-sm">Duration:</span>
+                  <span className="text-content-faint text-sm">{t("training.modal.duration")}:</span>
                   <span className="text-content-primary text-sm">{video.duration}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-content-faint text-sm">Difficulty:</span>
+                  <span className="text-content-faint text-sm">{t("training.modal.difficulty")}:</span>
                   <span
                     className={`px-2 py-1 rounded text-xs text-white ${getDifficultyColor(
                       video.difficulty
@@ -374,12 +376,12 @@ const VideoModal = ({
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-3">
-                Exercise Details
+                {t("training.video.exerciseDetails")}
               </h3>
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-content-muted mb-2">
-                    Target Muscles
+                    {t("training.video.targetMuscles")}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {video.targetMuscles?.map((muscle, index) => (
@@ -394,7 +396,7 @@ const VideoModal = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-content-muted mb-2">
-                    Equipment Needed
+                    {t("training.video.equipmentNeeded")}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {video.equipment?.map((item, index) => (
@@ -413,7 +415,7 @@ const VideoModal = ({
                 className="w-full mt-4 sm:mt-6 px-4 py-3 bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <Plus size={16} />
-                Add to Training Plan
+                {t("training.modal.addToPlan")}
               </button>
             </div>
           </div>

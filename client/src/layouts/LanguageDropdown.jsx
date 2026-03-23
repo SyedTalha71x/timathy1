@@ -1,19 +1,22 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Globe } from "lucide-react"
 
 const LANGUAGES = [
-  { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a4/Flag_of_the_United_States.svg/1280px-Flag_of_the_United_States.svg.png" },
-  { code: "de", name: "German", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" },
-  { code: "fr", name: "French", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/1280px-Flag_of_France.svg.png" },
-  { code: "es", name: "Spanish", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
-  { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
+  { code: "en", flag: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a4/Flag_of_the_United_States.svg/1280px-Flag_of_the_United_States.svg.png" },
+  { code: "de", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" },
+  { code: "fr", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/1280px-Flag_of_France.svg.png" },
+  { code: "es", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
+  { code: "it", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
 ]
 
 const StudioLanguageDropdown = ({ isMobile = false }) => {
+  const { t, i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState("English")
   const ref = useRef(null)
+
+  const currentCode = i18n.language?.substring(0, 2) || "en"
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -26,7 +29,7 @@ const StudioLanguageDropdown = ({ isMobile = false }) => {
   const toggle = () => setIsOpen(prev => !prev)
 
   const handleSelect = (language) => {
-    setSelectedLanguage(language.name)
+    i18n.changeLanguage(language.code)
     setIsOpen(false)
   }
 
@@ -37,7 +40,7 @@ const StudioLanguageDropdown = ({ isMobile = false }) => {
         className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
           isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
         }`}
-        aria-label="Language Selection"
+        aria-label={t("languages.selectLanguage")}
       >
         <Globe size={18} />
       </button>
@@ -48,10 +51,12 @@ const StudioLanguageDropdown = ({ isMobile = false }) => {
               <button
                 key={language.code}
                 onClick={() => handleSelect(language)}
-                className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-content-primary hover:bg-surface-button text-left flex items-center gap-2`}
+                className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-content-primary hover:bg-surface-button text-left flex items-center gap-2 ${
+                  language.code === currentCode ? "bg-surface-button" : ""
+                }`}
               >
-                <img draggable="false" src={language.flag} alt={language.name} className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`} />
-                <span className={isMobile ? "text-xs" : "text-sm"}>{language.name}</span>
+                <img draggable="false" src={language.flag} alt={t(`languages.${language.code}`)} className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`} />
+                <span className={isMobile ? "text-xs" : "text-sm"}>{t(`languages.${language.code}`)}</span>
               </button>
             ))}
           </div>

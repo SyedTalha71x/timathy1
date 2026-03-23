@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import ImprintPopup from "../../components/member-panel-components/studio-menu-components/ImprintPopup"
 import TermsPopup from "../../components/member-panel-components/studio-menu-components/TermsPopup"
 import PrivacyPopup from "../../components/member-panel-components/studio-menu-components/PrivacyPopup"
@@ -15,10 +16,13 @@ import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
 import PullToRefresh from "../../components/shared/PullToRefresh"
+import toast from "../../components/shared/SharedToast"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 
 const StudioMenu = () => {
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
 
@@ -227,7 +231,7 @@ const StudioMenu = () => {
               onClick={() => { haptic.light(); setViewingPost(null) }}
               className="px-5 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
             >
-              Close
+              {t("common.close")}
             </button>
           </div>
         </div>
@@ -259,7 +263,7 @@ const StudioMenu = () => {
         // Native prompt with Settings button
         if (Capacitor.isNativePlatform()) {
           const goToSettings = window.confirm(
-            "Camera access is required for QR check-in.\n\nWould you like to open Settings to enable it?"
+            t("studioMenu.checkin.cameraPermission")
           )
           if (goToSettings) {
             window.open("app-settings:", "_self")
@@ -268,7 +272,7 @@ const StudioMenu = () => {
           setCameraError("denied")
         }
       } else {
-        setCameraError("Camera is not available on this device")
+        setCameraError(t("studioMenu.checkin.cameraUnavailable"))
       }
     }
   }
@@ -327,7 +331,7 @@ const StudioMenu = () => {
     }
     setCheckInHistory((prev) => [newCheckIn, ...prev])
 
-    alert("Check-in successful! Welcome to FitZone Studio!")
+    toast.success(t("studioMenu.checkin.success"))
   }
 
   useEffect(() => {
@@ -355,12 +359,12 @@ const StudioMenu = () => {
     dispatch(updateUserData(personalData))
       .unwrap()
       .then(() => {
-        alert("Personal data updated successfully!");
+        toast.success(t("studioMenu.toast.personalUpdated"));
         setIsEditingPersonal(false);
       })
       .catch((err) => {
         console.error("Update error:", err);
-        alert("Failed to update personal data: " + (err?.message || JSON.stringify(err)));
+        toast.error(t("studioMenu.toast.personalFailed"));
       });
   };
 
@@ -368,11 +372,11 @@ const StudioMenu = () => {
     dispatch(updateUserData(addressData))
       .unwrap()
       .then(() => {
-        alert("Address data updated successfully!");
+        toast.success(t("studioMenu.toast.addressUpdated"));
         setIsEditingAddress(false);
       })
       .catch((err) => {
-        alert("Failed to update address data: " + (err?.message || JSON.stringify(err)));
+        toast.error(t("studioMenu.toast.addressFailed"));
       });
   };
 
@@ -380,11 +384,11 @@ const StudioMenu = () => {
     dispatch(updateUserData(contactData))
       .unwrap()
       .then(() => {
-        alert("Contact data updated successfully!");
+        toast.success(t("studioMenu.toast.contactUpdated"));
         setIsEditingContact(false);
       })
       .catch((err) => {
-        alert("Failed to update contact data: " + (err?.message || JSON.stringify(err)));
+        toast.error(t("studioMenu.toast.contactFailed"));
       });
   };
 
@@ -556,10 +560,10 @@ const StudioMenu = () => {
   // Tab definitions
   // ============================================
   const tabs = [
-    { key: "info", label: "Studio Info" },
-    { key: "checkin", label: "Check-in" },
-    { key: "bulletin", label: "Bulletin Board" },
-    { key: "data", label: "Self-Service" },
+    { key: "info", label: t("studioMenu.tabs.studioInfo") },
+    { key: "checkin", label: t("studioMenu.tabs.checkin") },
+    { key: "bulletin", label: t("studioMenu.tabs.bulletin") },
+    { key: "data", label: t("studioMenu.tabs.selfService") },
   ]
 
   return (
@@ -637,7 +641,7 @@ const StudioMenu = () => {
                     </svg>
                   }
                 >
-                  Opening Hours
+                  {t("studioMenu.info.openingHours")}
                 </SectionHeading>
                 <div className="space-y-1.5">
                   {studio?.openingHours?.map((dayObj, index) => {
@@ -655,7 +659,7 @@ const StudioMenu = () => {
                           {dayObj.day}
                           {isToday && (
                             <span className="ml-2 text-[10px] bg-orange-500 px-1.5 py-0.5 rounded-full text-white">
-                              Today
+                              {t("studioMenu.info.today")}
                             </span>
                           )}
                         </span>
@@ -663,7 +667,7 @@ const StudioMenu = () => {
                           {dayObj.open} - {dayObj.close}
                         </span> */}
                         <span className={isToday ? "text-orange-300" : "text-content-muted"}>
-                          {dayObj.isClosed ? <span className="text-xs text-red-400">Closed</span> : `${dayObj.open} - ${dayObj.close}`}
+                          {dayObj.isClosed ? <span className="text-xs text-red-400">{t("studioMenu.info.closed")}</span> : `${dayObj.open} - ${dayObj.close}`}
                         </span>
                       </div>
                     );
@@ -681,7 +685,7 @@ const StudioMenu = () => {
                     </svg>
                   }
                 >
-                  Contact
+                  {t("studioMenu.info.contact")}
                 </SectionHeading>
 
                 <div className="space-y-3">
@@ -695,7 +699,7 @@ const StudioMenu = () => {
                     <button
                       onClick={handleCopyPhone}
                       className="p-1.5 hover:bg-surface-button rounded transition-colors flex-shrink-0 ml-2"
-                      title="Copy phone"
+                      title={t("studioMenu.info.copyPhone")}
                     >
                       {copiedPhone ? (
                         <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -719,7 +723,7 @@ const StudioMenu = () => {
                     <button
                       onClick={handleCopyEmail}
                       className="p-1.5 hover:bg-surface-button rounded transition-colors flex-shrink-0 ml-2"
-                      title="Copy email"
+                      title={t("studioMenu.info.copyEmail")}
                     >
                       {copiedEmail ? (
                         <svg className="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,9 +756,9 @@ const StudioMenu = () => {
             <Card className="!py-3 !px-4">
               <div className="flex flex-wrap gap-2">
                 {[
-                  { label: "Imprint", action: () => setShowImprintPopup(true) },
-                  { label: "Terms & Conditions", action: () => setShowTermsPopup(true) },
-                  { label: "Privacy Policy", action: () => setShowPrivacyPopup(true) },
+                  { label: t("studioMenu.info.imprint"), action: () => setShowImprintPopup(true) },
+                  { label: t("studioMenu.info.terms"), action: () => setShowTermsPopup(true) },
+                  { label: t("studioMenu.info.privacy"), action: () => setShowPrivacyPopup(true) },
                 ].map((link, i) => (
                   <button
                     key={i}
@@ -788,7 +792,7 @@ const StudioMenu = () => {
                   </svg>
                 }
               >
-                QR Code Check-in
+                {t("studioMenu.checkin.qrTitle")}
               </SectionHeading>
 
               {!isScanning ? (
@@ -796,21 +800,21 @@ const StudioMenu = () => {
                   <svg className="w-16 h-16 text-content-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                   </svg>
-                  <p className="text-content-secondary mb-1 text-sm">Scan the QR code at the studio entrance</p>
-                  <p className="text-content-muted text-xs mb-5">Make sure to allow camera access when prompted</p>
+                  <p className="text-content-secondary mb-1 text-sm">{t("studioMenu.checkin.scanDesc")}</p>
+                  <p className="text-content-muted text-xs mb-5">{t("studioMenu.checkin.cameraHint")}</p>
 
                   {cameraError && (
                     <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-4 mb-4">
                       {cameraError === "denied" ? (
                         <div className="text-center">
-                          <p className="text-red-400 text-sm mb-1">Camera access was denied</p>
-                          <p className="text-content-muted text-xs mb-3">Enable camera access in your device settings to use the scanner</p>
+                          <p className="text-red-400 text-sm mb-1">{t("studioMenu.checkin.cameraDenied")}</p>
+                          <p className="text-content-muted text-xs mb-3">{t("studioMenu.checkin.cameraDeniedHint")}</p>
                           {Capacitor.isNativePlatform() && (
                             <button
                               onClick={openAppSettings}
                               className="bg-surface-button hover:bg-surface-button-hover text-content-primary px-4 py-2 rounded-xl text-sm transition-colors"
                             >
-                              Open Settings
+                              {t("studioMenu.checkin.openSettings")}
                             </button>
                           )}
                         </div>
@@ -828,7 +832,7 @@ const StudioMenu = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Start Scanner
+                    {t("studioMenu.checkin.startScanner")}
                   </button>
                 </div>
               ) : (
@@ -845,12 +849,12 @@ const StudioMenu = () => {
                       </div>
                     </div>
                   </div>
-                  <p className="text-content-secondary mb-4 text-sm">Position the QR code within the frame</p>
+                  <p className="text-content-secondary mb-4 text-sm">{t("studioMenu.checkin.positionQR")}</p>
                   <button
                     onClick={stopScanning}
                     className="bg-surface-button hover:bg-surface-button-hover text-content-primary px-6 py-2 rounded-lg transition-colors text-sm"
                   >
-                    Cancel Scan
+                    {t("studioMenu.checkin.cancelScan")}
                   </button>
                 </div>
               )}
@@ -866,7 +870,7 @@ const StudioMenu = () => {
                   </svg>
                 }
               >
-                Recent Check-ins
+                {t("studioMenu.checkin.recentCheckins")}
               </SectionHeading>
 
               {checkInHistory.length > 0 ? (
@@ -884,12 +888,12 @@ const StudioMenu = () => {
                           <p className="text-content-muted text-xs">{entry.time}</p>
                         </div>
                       </div>
-                      <span className="text-white text-xs bg-primary px-2 py-1 rounded">Success</span>
+                      <span className="text-white text-xs bg-primary px-2 py-1 rounded">{t("common.success")}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-content-muted text-sm text-center py-6">No check-ins yet</p>
+                <p className="text-content-muted text-sm text-center py-6">{t("studioMenu.checkin.noCheckins")}</p>
               )}
             </Card>
           </div>
@@ -947,7 +951,7 @@ const StudioMenu = () => {
                       <button
                         onClick={() => setViewingPost(message)}
                         className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
-                        title="Preview Post"
+                        title={t("studioMenu.bulletin.previewPost")}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -964,8 +968,8 @@ const StudioMenu = () => {
                   <svg className="w-12 h-12 text-content-faint mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="text-content-muted text-sm">No announcements at the moment.</p>
-                  <p className="text-content-faint text-xs mt-1">Check back later for updates!</p>
+                  <p className="text-content-muted text-sm">{t("studioMenu.bulletin.noAnnouncements")}</p>
+                  <p className="text-content-faint text-xs mt-1">{t("studioMenu.bulletin.checkBackLater")}</p>
                 </div>
               </Card>
             )}
@@ -982,14 +986,14 @@ const StudioMenu = () => {
             <Card className="!py-3 !px-4 sm:!px-6">
               <div className="flex flex-wrap items-center gap-4">
                 <div>
-                  <p className="text-content-muted text-xs">Member Number</p>
+                  <p className="text-content-muted text-xs">{t("studioMenu.selfService.memberNumber")}</p>
                   <p className="text-content-primary font-mono text-sm font-medium">{user?.memberNumber}</p>
                 </div>
                 <div className="w-px h-8 bg-border" />
                 <div>
-                  <p className="text-content-muted text-xs">Member Since</p>
+                  <p className="text-content-muted text-xs">{t("studioMenu.selfService.memberSince")}</p>
                   <p className="text-content-primary text-sm font-medium">
-                    {new Date(user?.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                    {new Date(user?.createdAt).toLocaleDateString(lng, { year: "numeric", month: "short", day: "numeric" })}
                   </p>
                 </div>
               </div>
@@ -1008,39 +1012,39 @@ const StudioMenu = () => {
                     </svg>
                   }
                 >
-                  Contract
+                  {t("studioMenu.selfService.contract")}
                 </SectionHeading>
 
                 <div className="space-y-2">
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Type</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.type")}</span>
                     <span className="text-content-primary text-sm">Premium Annual</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Status</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.status")}</span>
                     <span className="flex items-center text-green-400 text-sm">
                       <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                      Active
+                      {t("studioMenu.selfService.active")}
                     </span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Start Date</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.startDate")}</span>
                     <span className="text-content-primary text-sm">January 15, 2025</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Fee</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.fee")}</span>
                     <span className="text-content-primary text-sm font-bold">€79.99/month</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Duration</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.duration")}</span>
                     <span className="text-content-primary text-sm">12 months</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Notice Period</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.noticePeriod")}</span>
                     <span className="text-content-primary text-sm">1 month</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
-                    <span className="text-content-muted text-xs">Last Cancellation</span>
+                    <span className="text-content-muted text-xs">{t("studioMenu.contract.lastCancellation")}</span>
                     <span className="text-content-primary text-sm">December 15, 2025</span>
                   </div>
                 </div>
@@ -1050,7 +1054,7 @@ const StudioMenu = () => {
                     <svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
                     </svg>
-                    View Contract
+                    {t("studioMenu.contract.viewContract")}
                   </button>
                   <button
                     onClick={() => setShowPaymentMethodPopup(true)}
@@ -1059,7 +1063,7 @@ const StudioMenu = () => {
                     <svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
                     </svg>
-                    Payment Method
+                    {t("studioMenu.contract.paymentMethod")}
                   </button>
                 </div>
 
@@ -1070,7 +1074,7 @@ const StudioMenu = () => {
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                   </svg>
-                  Cancel Membership
+                  {t("studioMenu.contract.cancelMembership")}
                 </button>
               </Card>
 
@@ -1084,13 +1088,13 @@ const StudioMenu = () => {
                       </svg>
                     }
                   >
-                    Idle Periods
+                    {t("studioMenu.selfService.idlePeriods")}
                   </SectionHeading>
                   <button
                     onClick={() => setShowIdlePeriodForm(true)}
                     className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg transition-colors text-xs"
                   >
-                    Apply
+                    {t("studioMenu.selfService.apply")}
                   </button>
                 </div>
 
@@ -1098,20 +1102,20 @@ const StudioMenu = () => {
                   <div className="bg-surface-hover rounded-lg p-3">
                     <div className="flex justify-between items-start gap-2">
                       <div>
-                        <p className="text-content-primary font-medium text-sm">Current Idle Period</p>
+                        <p className="text-content-primary font-medium text-sm">{t("studioMenu.selfService.currentIdlePeriod")}</p>
                         <p className="text-content-muted text-xs mt-0.5">Vacation — Jan 20 to Feb 5, 2025</p>
                       </div>
-                      <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs flex-shrink-0">Active</span>
+                      <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs flex-shrink-0">{t("studioMenu.selfService.active")}</span>
                     </div>
                   </div>
 
                   <div className="bg-surface-hover rounded-lg p-3">
                     <div className="flex justify-between items-start gap-2">
                       <div>
-                        <p className="text-content-primary font-medium text-sm">Past Idle Period</p>
+                        <p className="text-content-primary font-medium text-sm">{t("studioMenu.selfService.pastIdlePeriod")}</p>
                         <p className="text-content-muted text-xs mt-0.5">Medical — Dec 1 to Dec 15, 2024</p>
                       </div>
-                      <span className="bg-surface-button/20 text-content-muted px-2 py-0.5 rounded text-xs flex-shrink-0">Completed</span>
+                      <span className="bg-surface-button/20 text-content-muted px-2 py-0.5 rounded text-xs flex-shrink-0">{t("studioMenu.selfService.completed")}</span>
                     </div>
                   </div>
                 </div>
@@ -1128,7 +1132,7 @@ const StudioMenu = () => {
                   </svg>
                 }
               >
-                Personal Information
+                {t("studioMenu.selfService.personalInfo")}
               </SectionHeading>
 
               <div className="space-y-1">
@@ -1138,7 +1142,7 @@ const StudioMenu = () => {
                   className="flex justify-between items-center w-full py-3 px-4 bg-surface-hover rounded-xl hover:bg-surface-button-hover transition-colors group"
                 >
                   <div className="flex items-center">
-                    <span className="text-content-primary text-sm font-medium">Personal Data</span>
+                    <span className="text-content-primary text-sm font-medium">{t("studioMenu.personal.personalData")}</span>
                   </div>
                   <svg
                     className={`w-4 h-4 text-content-muted transition-transform ${expandedSection === "personal" ? "rotate-90" : ""}`}
@@ -1151,21 +1155,21 @@ const StudioMenu = () => {
                   <div className="px-4 pb-3 pt-2 space-y-3">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">First Name</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.firstName")}</p>
                         <p className="text-content-primary text-sm">{user?.firstName || "—"}</p>
                       </div>
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">Last Name</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.lastName")}</p>
                         <p className="text-content-primary text-sm">{user?.lastName || "—"}</p>
                       </div>
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">Date of Birth</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.dateOfBirth")}</p>
                         <p className="text-content-primary text-sm">
-                          {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}
+                          {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString(lng, { year: "numeric", month: "short", day: "numeric" }) : "—"}
                         </p>
                       </div>
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">Gender</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.gender")}</p>
                         <p className="text-content-primary text-sm">{user?.gender || "—"}</p>
                       </div>
                     </div>
@@ -1176,7 +1180,7 @@ const StudioMenu = () => {
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
-                      Edit Personal Data
+                      {t("studioMenu.personal.editPersonalData")}
                     </button>
                   </div>
                 )}
@@ -1187,7 +1191,7 @@ const StudioMenu = () => {
                   className="flex justify-between items-center w-full py-3 px-4 bg-surface-hover rounded-xl hover:bg-surface-button-hover transition-colors group"
                 >
                   <div className="flex items-center">
-                    <span className="text-content-primary text-sm font-medium">Address</span>
+                    <span className="text-content-primary text-sm font-medium">{t("studioMenu.personal.address")}</span>
                   </div>
                   <svg
                     className={`w-4 h-4 text-content-muted transition-transform ${expandedSection === "address" ? "rotate-90" : ""}`}
@@ -1213,7 +1217,7 @@ const StudioMenu = () => {
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
-                      Edit Address
+                      {t("studioMenu.personal.editAddress")}
                     </button>
                   </div>
                 )}
@@ -1224,7 +1228,7 @@ const StudioMenu = () => {
                   className="flex justify-between items-center w-full py-3 px-4 bg-surface-hover rounded-xl hover:bg-surface-button-hover transition-colors group"
                 >
                   <div className="flex items-center">
-                    <span className="text-content-primary text-sm font-medium">Contact Details</span>
+                    <span className="text-content-primary text-sm font-medium">{t("studioMenu.personal.contactDetails")}</span>
                   </div>
                   <svg
                     className={`w-4 h-4 text-content-muted transition-transform ${expandedSection === "contact" ? "rotate-90" : ""}`}
@@ -1237,15 +1241,15 @@ const StudioMenu = () => {
                   <div className="px-4 pb-3 pt-2 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">Email</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.email")}</p>
                         <p className="text-content-primary text-sm break-all">{user?.email || "—"}</p>
                       </div>
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">Mobile Number</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.mobileNumber")}</p>
                         <p className="text-content-primary text-sm">{user?.phone || "—"}</p>
                       </div>
                       <div className="bg-surface-hover rounded-lg p-2.5">
-                        <p className="text-content-muted text-[11px]">Telephone Number</p>
+                        <p className="text-content-muted text-[11px]">{t("studioMenu.personal.telephoneNumber")}</p>
                         <p className="text-content-primary text-sm">{user?.telephoneNumber || "—"}</p>
                       </div>
                     </div>
@@ -1256,7 +1260,7 @@ const StudioMenu = () => {
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
-                      Edit Contact Details
+                      {t("studioMenu.personal.editContactDetails")}
                     </button>
                   </div>
                 )}
@@ -1311,7 +1315,7 @@ const StudioMenu = () => {
             <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
 
             <div className="px-4 pb-3 border-b border-border">
-              <h4 className="text-sm font-semibold text-content-primary">Send Email</h4>
+              <h4 className="text-sm font-semibold text-content-primary">{t("studioMenu.info.sendEmail")}</h4>
               <p className="text-xs text-content-faint">{studioEmail}</p>
             </div>
 
@@ -1369,7 +1373,7 @@ const StudioMenu = () => {
             <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
 
             <div className="px-4 pb-3 border-b border-border">
-              <h4 className="text-sm font-semibold text-content-primary">Open in Maps</h4>
+              <h4 className="text-sm font-semibold text-content-primary">{t("studioMenu.info.openInMaps")}</h4>
               <p className="text-xs text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}</p>
             </div>
 

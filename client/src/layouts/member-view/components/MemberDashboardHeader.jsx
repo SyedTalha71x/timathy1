@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
 import { useNavigate, useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Sun, Moon, Settings } from "lucide-react"
 import DefaultAvatar from '../../../../public/gray-avatar-fotor-20250912192528.png'
 import LanguageDropdown from '../../LanguageDropdown'
@@ -10,27 +11,17 @@ import { haptic } from "../../../utils/haptic"
 import { Capacitor } from "@capacitor/core"
 import { StatusBar, Style } from "@capacitor/status-bar"
 
-/**
- * MemberDashboardHeader Component
- *
- * Header for member view.
- * - Mobile: Studio badge (left), Settings + Theme + Language (right). No hamburger — bottom bar handles nav.
- * - Desktop: Sidebar collapse toggle (left), Studio badge, Settings + Theme + Language (right).
- *
- * Props:
- * - isLeftSidebarCollapsed: Boolean for left sidebar collapsed state (desktop)
- * - toggleLeftSidebarCollapse: Function to toggle left sidebar collapse (desktop)
- */
 const MemberDashboardHeader = ({
   isLeftSidebarCollapsed,
   toggleLeftSidebarCollapse,
 }) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
 
   // Redux — studio data from backend
   const { studio } = useSelector((state) => state.studios)
-  const studioName = studio?.studioName || "Studio"
+  const studioName = studio?.studioName || t("nav.studio")
   const studioLogo = studio?.logo?.url || studio?.logo || null
 
   const isSettingsActive = location.pathname.includes("/settings")
@@ -55,7 +46,6 @@ const MemberDashboardHeader = ({
       root.classList.add('light')
       localStorage.setItem('theme', 'light')
     }
-    // Update native status bar icon color to match theme
     if (Capacitor.isNativePlatform()) {
       StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => {})
     }
@@ -85,8 +75,8 @@ const MemberDashboardHeader = ({
           ? "bg-primary/15 text-primary"
           : "bg-surface-card text-content-muted hover:bg-surface-button-hover"
       } ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"}`}
-      aria-label="Settings"
-      title="Settings"
+      aria-label={t("nav.settings")}
+      title={t("nav.settings")}
     >
       <Settings size={18} />
     </button>
@@ -98,8 +88,8 @@ const MemberDashboardHeader = ({
       className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
         isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
       }`}
-      aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label={isDarkMode ? t("header.switchToLight") : t("header.switchToDark")}
+      title={isDarkMode ? t("header.switchToLight") : t("header.switchToDark")}
     >
       {isDarkMode ? (
         <Sun size={18} className="text-content-muted" />
@@ -159,9 +149,9 @@ const MemberDashboardHeader = ({
               className="p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer"
             >
               {isLeftSidebarCollapsed ? (
-                <img draggable="false" key="collapsed" src="/expand-sidebar mirrored.svg" className="theme-icon h-5 w-5" alt="Expand sidebar" />
+                <img draggable="false" key="collapsed" src="/expand-sidebar mirrored.svg" className="theme-icon h-5 w-5" alt={t("header.expandSidebar")} />
               ) : (
-                <img draggable="false" key="expanded" src="/icon.svg" className="theme-icon h-5 w-5" alt="Collapse sidebar" />
+                <img draggable="false" key="expanded" src="/icon.svg" className="theme-icon h-5 w-5" alt={t("header.collapseSidebar")} />
               )}
             </div>
           )}

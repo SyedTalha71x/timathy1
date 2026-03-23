@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Plus, Minus, X, ChevronLeft, ChevronRight, Settings,
   Droplets, TrendingUp, AlertCircle, CheckCircle, Star, Copy,
@@ -50,11 +51,11 @@ const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const EMPTY_TOTALS = { calories: 0, protein: 0, carbs: 0, fats: 0 }
 const DEFAULT_PROFILE = { gender: "male", age: 30, height: 175, weight: 75, activity: "moderate", goalType: "maintain" }
 const DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 }
-const TABS = [{ key: "diary", label: "Diary", icon: BookOpen }, { key: "insights", label: "Insights", icon: TrendingUp }]
+const TABS = [{ key: "diary", labelKey: "nutrition.tabs.diary", icon: BookOpen }, { key: "insights", labelKey: "nutrition.tabs.insights", icon: TrendingUp }]
 const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snacks"]
 
 // FIX #7: Helper functions moved outside component — no re-creation per render
-const getScoreLabel = (s) => s >= 90 ? "Excellent" : s >= 70 ? "Good" : s >= 50 ? "Fair" : "Needs work"
+const getScoreLabel = (s, t) => s >= 90 ? t("nutrition.score.excellent") : s >= 70 ? t("nutrition.score.good") : s >= 50 ? t("nutrition.score.fair") : t("nutrition.score.needsWork")
 const getScoreColor = (s) => s >= 90 ? "text-green-400" : s >= 70 ? "text-blue-400" : s >= 50 ? "text-yellow-400" : "text-red-400"
 
 const getWeekDates = (date) => {
@@ -69,12 +70,12 @@ const getWeekDates = (date) => {
   })
 }
 
-const formatDateDisplay = (d, isToday, todayDate) => {
-  if (isToday) return "Today"
+const formatDateDisplay = (d, isToday, todayDate, t, lng) => {
+  if (isToday) return t("nutrition.today")
   const yesterday = new Date(todayDate)
   yesterday.setDate(yesterday.getDate() - 1)
-  if (d.toDateString() === yesterday.toDateString()) return "Yesterday"
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+  if (d.toDateString() === yesterday.toDateString()) return t("nutrition.yesterday")
+  return d.toLocaleDateString(lng || "en", { weekday: "short", month: "short", day: "numeric" })
 }
 
 const getSelectedDayLabel = (date) => DAY_NAMES[date.getDay() === 0 ? 6 : date.getDay() - 1]
@@ -84,6 +85,7 @@ const getSelectedDayLabel = (date) => DAY_NAMES[date.getDay() === 0 ? 6 : date.g
 // ============================================
 
 const CalorieRing = memo(({ consumed, goal, size = 160, strokeWidth = 10 }) => {
+  const { t } = useTranslation()
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const pct = Math.min(consumed / Math.max(goal, 1), 1.2)
@@ -101,7 +103,7 @@ const CalorieRing = memo(({ consumed, goal, size = 160, strokeWidth = 10 }) => {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-content-primary">{Math.abs(remaining)}</span>
-        <span className="text-xs text-content-muted">{isOver ? "over" : "remaining"}</span>
+        <span className="text-xs text-content-muted">{isOver ? t("nutrition.ring.over") : t("nutrition.ring.remaining")}</span>
       </div>
     </div>
   )
@@ -140,6 +142,8 @@ const ChartTooltip = memo(({ active, payload, label }) => {
 // MAIN COMPONENT
 // ============================================
 const NutritionTracker = () => {
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
   const dispatch = useDispatch()
   const { foodData } = useSelector((state) => state.food)
   const { dailySummeryData, loading: diaryLoading } = useSelector((state) => state.dailySummery)
@@ -303,7 +307,7 @@ const NutritionTracker = () => {
     return { calScore: calS, proteinScore: protS, carbsScore: carbS, fatScore: fatS, waterScore: watS, dailyScore: daily, calAccuracy: calAcc, macroAccuracy: macroAcc }
   }, [totals, goals, waterDrank, waterGoalMl])
 
-  const performanceLabel = isToday ? "Today's Performance" : `${formatDateDisplay(selectedDate, isToday, todayDate)} Performance`
+  const performanceLabel = isToday ? t("nutrition.insights.todayPerformance") : t("nutrition.insights.datePerformance", { date: formatDateDisplay(selectedDate, isToday, todayDate, t, lng) })
 
   const weeklyCalorieData = useMemo(() =>
     DAY_NAMES.map((day, idx) => {
@@ -358,7 +362,7 @@ const NutritionTracker = () => {
   const weekLabel = useMemo(() => {
     const start = weekDates[0]
     const end = weekDates[6]
-    const fmt = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    const fmt = (d) => d.toLocaleDateString(lng || "en", { month: "short", day: "numeric" })
     return `${fmt(start)} – ${fmt(end)}`
   }, [weekDates])
 
@@ -791,7 +795,7 @@ const NutritionTracker = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-semibold">{formatDateDisplay(selectedDate, isToday, todayDate)}</h1>
+              <h1 className="text-base sm:text-lg font-semibold">{formatDateDisplay(selectedDate, isToday, todayDate, t, lng)}</h1>
               <DatePickerField value={dateStr} onChange={handleDatePick} iconSize={16} maxDate={todayStr} />
             </div>
             <button onClick={() => shiftDate(1)} className="p-1.5 hover:bg-surface-button rounded-lg transition-colors text-content-muted hover:text-content-primary" disabled={isToday}>
@@ -821,7 +825,7 @@ const NutritionTracker = () => {
                   : "text-content-muted hover:text-content-primary"
                 }`}>
                 <TabIcon size={16} className="inline mr-1 sm:mr-2" />
-                {tab.label}
+                {t(tab.labelKey)}
               </button>
             )
           })}
@@ -846,7 +850,7 @@ const NutritionTracker = () => {
             {diaryLoading && (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                <span className="ml-2 text-sm text-content-muted">Loading {formatDateDisplay(selectedDate, isToday, todayDate)}...</span>
+                <span className="ml-2 text-sm text-content-muted">{t("nutrition.loading", { date: formatDateDisplay(selectedDate, isToday, todayDate, t, lng) })}</span>
               </div>
             )}
             {!diaryLoading && (<>
@@ -855,12 +859,12 @@ const NutritionTracker = () => {
                 <CalorieRing consumed={Math.round(totals.calories)} goal={Number(goals.calories)} />
                 <div className="flex-1 w-full space-y-3">
                   <div className="flex justify-between text-xs text-content-faint mb-1">
-                    <span>{Math.round(totals.calories)} eaten</span>
-                    <span>{goals.calories} kcal goal</span>
+                    <span>{t("nutrition.diary.eaten", { amount: Math.round(totals.calories) })}</span>
+                    <span>{t("nutrition.diary.kcalGoal", { amount: goals.calories })}</span>
                   </div>
-                  <MacroBar label="Protein" current={totals.protein} goal={Number(goals.protein)} color="bg-blue-500" />
-                  <MacroBar label="Carbs" current={totals.carbs} goal={Number(goals.carbs)} color="bg-primary" />
-                  <MacroBar label="Fat" current={totals.fats} goal={Number(goals.fats)} color="bg-yellow-500" />
+                  <MacroBar label={t("nutrition.macros.protein")} current={totals.protein} goal={Number(goals.protein)} color="bg-blue-500" />
+                  <MacroBar label={t("nutrition.macros.carbs")} current={totals.carbs} goal={Number(goals.carbs)} color="bg-primary" />
+                  <MacroBar label={t("nutrition.macros.fat")} current={totals.fats} goal={Number(goals.fats)} color="bg-yellow-500" />
                 </div>
               </div>
             </SettingsCard>
@@ -902,7 +906,7 @@ const NutritionTracker = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       {hasYesterday && items.length === 0 && (
-                        <button onClick={() => copyMealFromYesterday(mealType)} title="Copy from yesterday"
+                        <button onClick={() => copyMealFromYesterday(mealType)} title={t("nutrition.diary.copyFromYesterday")}
                           className="w-8 h-8 rounded-lg bg-surface-card hover:bg-surface-button flex items-center justify-center transition-colors text-content-faint hover:text-content-primary">
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -941,7 +945,7 @@ const NutritionTracker = () => {
 
             <SettingsCard className="!p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2"><Droplets className="w-4 h-4 text-blue-400" /><h3 className="text-sm font-medium text-content-primary">Water</h3></div>
+                <div className="flex items-center gap-2"><Droplets className="w-4 h-4 text-blue-400" /><h3 className="text-sm font-medium text-content-primary"{t("nutrition.diary.water")}</h3></div>
                 <span className="text-xs text-content-faint">{waterDrank} / {waterGoalMl} ml</span>
               </div>
               <div className="h-3 bg-surface-button rounded-full overflow-hidden mb-3">
@@ -964,10 +968,10 @@ const NutritionTracker = () => {
               </div>
               <p className="text-xs text-content-faint mt-2.5 text-center">
                 {waterDrank > waterGoalMl
-                  ? `${(waterDrank / 1000).toFixed(1)}L — ${waterDrank - waterGoalMl} ml over goal`
+                  ? t("nutrition.water.overGoal", { liters: (waterDrank / 1000).toFixed(1), ml: waterDrank - waterGoalMl })
                   : waterDrank === waterGoalMl
-                  ? `Goal reached! ${(waterDrank / 1000).toFixed(1)}L`
-                  : `${(waterDrank / 1000).toFixed(1)}L · ${waterGoalMl - waterDrank} ml to go`}
+                  ? t("nutrition.water.goalReached", { liters: (waterDrank / 1000).toFixed(1) })
+                  : t("nutrition.water.toGo", { liters: (waterDrank / 1000).toFixed(1), ml: waterGoalMl - waterDrank })}
               </p>
             </SettingsCard>
           </>)}
@@ -988,15 +992,15 @@ const NutritionTracker = () => {
             <SettingsCard className="!p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-content-primary">{performanceLabel}</h3>
-                <div className={`text-sm font-bold ${getScoreColor(dailyScore)}`}>{dailyScore}/100 — {getScoreLabel(dailyScore)}</div>
+                <div className={`text-sm font-bold ${getScoreColor(dailyScore)}`}>{dailyScore}/100 — {getScoreLabel(dailyScore, t)}</div>
               </div>
               <div className="grid grid-cols-5 gap-3">
                 {[
-                  { label: "Calories", pct: calScore, target: `${goals.calories} kcal`, actual: `${Math.round(totals.calories)}` },
-                  { label: "Protein", pct: proteinScore, target: `${goals.protein}g`, actual: `${Math.round(totals.protein)}g` },
-                  { label: "Carbs", pct: carbsScore, target: `${goals.carbs}g`, actual: `${Math.round(totals.carbs)}g` },
-                  { label: "Fat", pct: fatScore, target: `${goals.fats}g`, actual: `${Math.round(totals.fats)}g` },
-                  { label: "Water", pct: waterScore, target: `${(waterGoalMl / 1000).toFixed(1)}L`, actual: `${(waterDrank / 1000).toFixed(1)}L` },
+                  { label: t("nutrition.macros.calories"), pct: calScore, target: `${goals.calories} kcal`, actual: `${Math.round(totals.calories)}` },
+                  { label: t("nutrition.macros.protein"), pct: proteinScore, target: `${goals.protein}g`, actual: `${Math.round(totals.protein)}g` },
+                  { label: t("nutrition.macros.carbs"), pct: carbsScore, target: `${goals.carbs}g`, actual: `${Math.round(totals.carbs)}g` },
+                  { label: t("nutrition.macros.fat"), pct: fatScore, target: `${goals.fats}g`, actual: `${Math.round(totals.fats)}g` },
+                  { label: t("nutrition.diary.water"), pct: waterScore, target: `${(waterGoalMl / 1000).toFixed(1)}L`, actual: `${(waterDrank / 1000).toFixed(1)}L` },
                 ].map((item) => {
                   const capped = Math.min(item.pct, 100)
                   const isOver = item.pct > 110
@@ -1023,10 +1027,10 @@ const NutritionTracker = () => {
             {/* Overview Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Weekly Avg", value: `${weeklyAvg}`, sub: `Goal: ${goals.calories} kcal`, status: Math.abs(weeklyAvg - g) < g * 0.1 ? "on-track" : "low" },
-                { label: "On Target", value: `${daysOnTarget}/7`, sub: "days within ±10%", status: daysOnTarget >= 5 ? "on-track" : "low" },
-                { label: "Streak", value: `${streak} days`, sub: "Keep it up!", status: "on-track", isStreak: true },
-                { label: "Weekly", value: `${weeklyDeficit > 0 ? "-" : "+"}${Math.abs(Math.round(weeklyDeficit))}`, sub: weeklyDeficit > 0 ? "Deficit (kcal)" : "Surplus (kcal)", status: profile.goalType === "lose" ? (weeklyDeficit > 0 ? "on-track" : "low") : profile.goalType === "gain" ? (weeklyDeficit < 0 ? "on-track" : "low") : (Math.abs(weeklyDeficit) < 1000 ? "on-track" : "low") },
+                { label: t("nutrition.insights.weeklyAvg"), value: `${weeklyAvg}`, sub: t("nutrition.insights.goalAmount", { amount: goals.calories }), status: Math.abs(weeklyAvg - g) < g * 0.1 ? "on-track" : "low" },
+                { label: t("nutrition.insights.onTarget"), value: `${daysOnTarget}/7`, sub: t("nutrition.insights.daysWithin"), status: daysOnTarget >= 5 ? "on-track" : "low" },
+                { label: t("nutrition.insights.streak"), value: t("nutrition.insights.streakDays", { count: streak }), sub: t("nutrition.insights.keepItUp"), status: "on-track", isStreak: true },
+                { label: t("nutrition.insights.weekly"), value: `${weeklyDeficit > 0 ? "-" : "+"}${Math.abs(Math.round(weeklyDeficit))}`, sub: weeklyDeficit > 0 ? t("nutrition.insights.deficit") : t("nutrition.insights.surplus"), status: profile.goalType === "lose" ? (weeklyDeficit > 0 ? "on-track" : "low") : profile.goalType === "gain" ? (weeklyDeficit < 0 ? "on-track" : "low") : (Math.abs(weeklyDeficit) < 1000 ? "on-track" : "low") },
               ].map((card) => (
                 <SettingsCard key={card.label} className="!p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -1040,7 +1044,7 @@ const NutritionTracker = () => {
             </div>
 
             <SettingsCard>
-              <h3 className="text-sm font-medium text-content-primary mb-4">Weekly Calorie Intake <span className="text-xs text-content-faint font-normal ml-1">({weekLabel})</span></h3>
+              <h3 className="text-sm font-medium text-content-primary mb-4">{t("nutrition.insights.weeklyCalories")} <span className="text-xs text-content-faint font-normal ml-1">({weekLabel})</span></h3>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyCalorieData} barSize={28}>
@@ -1053,12 +1057,12 @@ const NutritionTracker = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-xs text-content-faint mt-2 text-center">Dashed line = daily goal ({goals.calories} kcal)</p>
+              <p className="text-xs text-content-faint mt-2 text-center">{t("nutrition.insights.dashedLine", { calories: goals.calories })}</p>
             </SettingsCard>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <SettingsCard>
-                <h3 className="text-sm font-medium text-content-primary mb-4">Macro Distribution</h3>
+                <h3 className="text-sm font-medium text-content-primary mb-4">{t("nutrition.insights.macroDistribution")}</h3>
                 <div className="flex items-center gap-4">
                   <div className="h-40 w-40 flex-shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
@@ -1078,7 +1082,7 @@ const NutritionTracker = () => {
                 </div>
               </SettingsCard>
               <SettingsCard>
-                <h3 className="text-sm font-medium text-content-primary mb-4">Calorie Trend</h3>
+                <h3 className="text-sm font-medium text-content-primary mb-4">{t("nutrition.insights.calorieTrend")}</h3>
                 <div className="h-40">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData}>
@@ -1095,7 +1099,7 @@ const NutritionTracker = () => {
             </div>
 
             <SettingsCard>
-              <h3 className="text-sm font-medium text-content-primary mb-4">Weekly Macros <span className="text-xs text-content-faint font-normal ml-1">({weekLabel})</span></h3>
+              <h3 className="text-sm font-medium text-content-primary mb-4">{t("nutrition.insights.weeklyMacros")} <span className="text-xs text-content-faint font-normal ml-1">({weekLabel})</span></h3>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyMacroData} barSize={24}>
@@ -1110,7 +1114,7 @@ const NutritionTracker = () => {
                 </ResponsiveContainer>
               </div>
               <div className="flex items-center justify-center gap-6 mt-3">
-                {[{ label: "Protein", color: "#3b82f6" }, { label: "Carbs", color: "var(--color-primary, #f97316)" }, { label: "Fat", color: "#eab308" }].map((l) => (
+                {[{ label: t("nutrition.macros.protein"), color: "#3b82f6" }, { label: t("nutrition.macros.carbs"), color: "var(--color-primary, #f97316)" }, { label: t("nutrition.macros.fat"), color: "#eab308" }].map((l) => (
                   <div key={l.label} className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} /><span className="text-xs text-content-faint">{l.label}</span></div>
                 ))}
               </div>
@@ -1118,9 +1122,9 @@ const NutritionTracker = () => {
 
             <SettingsCard>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-content-primary">Micronutrients</h3>
+                <h3 className="text-sm font-medium text-content-primary">{t("nutrition.insights.micronutrients")}</h3>
                 <div className="flex gap-1">
-                  {[{ key: "all", label: "All" }, { key: "vitamins", label: "Vitamins" }, { key: "minerals", label: "Minerals" }, { key: "critical", label: "Low" }].map((f) => (
+                  {[{ key: "all", label: t("common.all") }, { key: "vitamins", label: t("nutrition.insights.vitamins") }, { key: "minerals", label: t("nutrition.insights.minerals") }, { key: "critical", label: t("nutrition.insights.low") }].map((f) => (
                     <button key={f.key} onClick={() => { haptic.light(); setNutrientFilter(f.key) }}
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${nutrientFilter === f.key ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-button"}`}>{f.label}</button>
                   ))}
@@ -1172,13 +1176,13 @@ const NutritionTracker = () => {
             <button onClick={(e) => { e.stopPropagation(); setShowQuickAdd(true); setIsFabOpen(false) }}
               className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap">
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm">Quick Add</span>
+              <span className="text-sm"{t("nutrition.diary.quickAdd")}</span>
             </button>
           </div>
           {/* FAB Button */}
           <button onClick={handleFabToggle}
             className={`bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 ${isFabOpen ? "rotate-45" : ""}`}
-            aria-label="Add food">
+            aria-label={t("nutrition.diary.addFood")}>
             <Plus size={22} />
           </button>
         </div>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { Calendar, Clock, ChevronLeft, X, Filter, Check, Info, Search, CalendarPlus } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import BookingModal from "../../components/member-panel-components/appointments-components/BookingModal"
@@ -21,6 +22,8 @@ const SettingsCard = ({ children, className = "" }) => (
 )
 
 const Appointments = () => {
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
   const { services = [] } = useSelector((state) => state.services || {})
   const { appointments = [] } = useSelector((state) => state.appointments || {})
   const [selectedDate, setSelectedDate] = useState(new Date().getDate())
@@ -31,7 +34,7 @@ const Appointments = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
   const [showMyAppointments, setShowMyAppointments] = useState(false)
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
-  const [selectedCategories, setSelectedCategories] = useState(["All courses"])
+  const [selectedCategories, setSelectedCategories] = useState([])
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [appointmentToCancel, setAppointmentToCancel] = useState(null)
   const [appointmentView, setAppointmentView] = useState("upcoming")
@@ -73,10 +76,35 @@ const Appointments = () => {
     return () => el.removeEventListener("wheel", onWheel)
   })
 
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-  const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-  const categories = ["All courses", "Health Check", "Personal Training", "Wellness", "Recovery", "Mindfulness", "Group Class"]
+  // Localized date helpers
+  const getLocalizedMonths = () => {
+    const months = []
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(2020, i, 1)
+      months.push(d.toLocaleDateString(lng, { month: "long" }))
+    }
+    return months
+  }
+  const getLocalizedMonthsShort = () => {
+    const months = []
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(2020, i, 1)
+      months.push(d.toLocaleDateString(lng, { month: "short" }))
+    }
+    return months
+  }
+  const getLocalizedDayNames = () => {
+    const days = []
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(1970, 0, 4 + i)
+      days.push(d.toLocaleDateString(lng, { weekday: "short" }))
+    }
+    return days
+  }
+  const months = getLocalizedMonths()
+  const monthsShort = getLocalizedMonthsShort()
+  const dayNames = getLocalizedDayNames()
+  const categories = [...new Set(services.map(s => s.category).filter(Boolean))].sort()
 
   // Date value for DatePickerField (YYYY-MM-DD)
   const dateValue = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`
@@ -137,7 +165,7 @@ const Appointments = () => {
   }, {})
 
   const filteredServices = (() => {
-    let list = selectedCategories.includes("All courses")
+    let list = selectedCategories.length === 0
       ? services
       : services.filter((service) => selectedCategories.includes(service.category))
     if (searchQuery) {
@@ -177,7 +205,7 @@ const Appointments = () => {
       .unwrap()
       .then(() => {
         haptic.success()
-        toast.success("Appointment booked")
+        toast.success(t("appointments.toast.booked"))
         setShowBookingModal(false)
         setCalendarSheetData({
           title: selectedService.name,
@@ -203,7 +231,7 @@ const Appointments = () => {
       timeSlotId: { start: selectedTimeSlot.start, end: selectedTimeSlot.end },
     }))
       .unwrap()
-      .then(() => { haptic.success(); setShowRequestModal(false); setSelectedTimeSlot(null); alert("Appointment request sent successfully!") })
+      .then(() => { haptic.success(); setShowRequestModal(false); setSelectedTimeSlot(null); toast.success(t("appointments.toast.requestSent")) })
       .catch((err) => { haptic.error(); alert(err) })
   }
 
@@ -228,16 +256,16 @@ const Appointments = () => {
       try {
         const { CapacitorCalendar } = await import("@ebarooni/capacitor-calendar")
         try { await CapacitorCalendar.requestWriteOnlyCalendarAccess() } catch {
-          alert("Calendar access is required. Please enable it in Settings > OrgaGym > Calendar.")
+          alert(t("appointments.calendar.permissionRequired"))
           setCalendarSheetData(null); return
         }
         const result = await CapacitorCalendar.createEventWithPrompt({
-          title: data.title || "Appointment",
+          title: data.title || t("nav.appointments"),
           location: data.location || "",
           startDate: startDate.getTime(),
           endDate: endDate.getTime(),
         })
-        if (result?.id) toast.success("Added to calendar")
+        if (result?.id) toast.success(t("appointments.toast.addedToCalendar"))
       } catch (err) {
         if (!err.message?.includes("cancel")) console.error("[Calendar]", err)
       }
@@ -248,7 +276,7 @@ const Appointments = () => {
     const y = dateObj.getFullYear(), m = pad(dateObj.getMonth() + 1), d = pad(dateObj.getDate())
     const ics = ["BEGIN:VCALENDAR","VERSION:2.0","BEGIN:VEVENT",
       `UID:apt-${Date.now()}@app`,`DTSTART:${y}${m}${d}T${pad(sh)}${pad(sm)}00`,
-      `DTEND:${y}${m}${d}T${pad(eh)}${pad(em)}00`,`SUMMARY:${data.title || "Appointment"}`,
+      `DTEND:${y}${m}${d}T${pad(eh)}${pad(em)}00`,`SUMMARY:${data.title || t("nav.appointments")}`,
       `LOCATION:${data.location || ""}`,"END:VEVENT","END:VCALENDAR"].join("\r\n")
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
     const url = URL.createObjectURL(blob)
@@ -276,16 +304,16 @@ const Appointments = () => {
             <p className="text-content-secondary text-sm mb-4">{infoModalData?.description}</p>
             <div className="space-y-2">
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Duration</span>
+                <span className="text-content-muted">{t("appointments.infoModal.duration")}</span>
                 <span className="text-content-primary font-medium">{infoModalData?.duration}</span>
               </div>
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Category</span>
+                <span className="text-content-muted">{t("appointments.infoModal.category")}</span>
                 <span className="text-content-primary font-medium">{infoModalData?.category}</span>
               </div>
             </div>
             <button onClick={() => setShowInfoModal(false)} className="w-full mt-4 px-4 py-2.5 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
-              Close
+              {t("common.close")}
             </button>
           </div>
         </div>
@@ -302,23 +330,23 @@ const Appointments = () => {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <h1 className="text-lg sm:text-2xl font-bold">My Appointments</h1>
+              <h1 className="text-lg sm:text-2xl font-bold">{t("appointments.myAppointments")}</h1>
             </div>
           ) : (
             <>
-              <h1 className="text-lg sm:text-2xl font-bold">Appointments</h1>
+              <h1 className="text-lg sm:text-2xl font-bold">{t("nav.appointments")}</h1>
               <div className="flex items-center gap-1.5">
                 <div className="relative" ref={filterBtnRef}>
                   <button
                     onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
                     className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
-                      showFilterDropdown || (!selectedCategories.includes("All courses") && selectedCategories.length > 0)
+                      showFilterDropdown || selectedCategories.length > 0
                         ? "bg-primary/15 text-primary"
                         : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
                     }`}
                   >
                     <Filter className="w-3.5 h-3.5" />
-                    {!selectedCategories.includes("All courses") && selectedCategories.length > 0 && (
+                    {selectedCategories.length > 0 && (
                       <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
                         {selectedCategories.length}
                       </span>
@@ -327,6 +355,19 @@ const Appointments = () => {
                   {showFilterDropdown && (
                     <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
                       <div className="max-h-[200px] overflow-y-auto py-1">
+                        <button
+                          onClick={() => { haptic.light(); setSelectedCategories([]) }}
+                          className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
+                            selectedCategories.length === 0 ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
+                          }`}
+                        >
+                          <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
+                            selectedCategories.length === 0 ? "bg-primary border-primary" : "border-content-faint"
+                          }`}>
+                            {selectedCategories.length === 0 && <Check size={8} className="text-white" />}
+                          </div>
+                          {t("common.all")}
+                        </button>
                         {categories.map((cat) => {
                           const isActive = selectedCategories.includes(cat)
                           return (
@@ -335,13 +376,10 @@ const Appointments = () => {
                               onClick={() => {
                                 haptic.light()
                                 setSelectedCategories(prev => {
-                                  if (cat === "All courses") return ["All courses"]
-                                  const current = prev.filter(v => v !== "All courses")
-                                  if (current.includes(cat)) {
-                                    const next = current.filter(v => v !== cat)
-                                    return next.length === 0 ? ["All courses"] : next
+                                  if (prev.includes(cat)) {
+                                    return prev.filter(v => v !== cat)
                                   }
-                                  return [...current, cat]
+                                  return [...prev, cat]
                                 })
                               }}
                               className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
@@ -392,7 +430,7 @@ const Appointments = () => {
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Calendar className="w-4 h-4 text-white" />
               </div>
-              <span className="text-left flex-1 text-white font-semibold text-sm">My Appointments</span>
+              <span className="text-left flex-1 text-white font-semibold text-sm">{t("appointments.myAppointments")}</span>
               <div className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full min-w-[1.5rem] flex items-center justify-center">
                 {appointmentsArray.filter((a) => a.status === "confirmed" || a.status === "pending").length}
               </div>
@@ -404,7 +442,7 @@ const Appointments = () => {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
                 <input
                   type="text"
-                  placeholder="Search services..."
+                  placeholder={t("appointments.search.placeholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
@@ -478,9 +516,9 @@ const Appointments = () => {
           <div className="space-y-6">
             <div className="flex gap-2 overflow-x-auto">
               {[
-                { key: "upcoming", label: "Upcoming" },
-                { key: "pending", label: "Pending" },
-                { key: "past", label: "Past" },
+                { key: "upcoming", label: t("appointments.tabs.upcoming") },
+                { key: "pending", label: t("appointments.tabs.pending") },
+                { key: "past", label: t("appointments.tabs.past") },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -500,8 +538,8 @@ const Appointments = () => {
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
                   <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-content-primary mb-2">No {appointmentView} appointments</h3>
-                  <p className="text-sm">Your {appointmentView} appointments will appear here</p>
+                  <h3 className="text-lg font-medium text-content-primary mb-2">{t(`appointments.empty.no_${appointmentView}`)}</h3>
+                  <p className="text-sm">{t(`appointments.empty.no_${appointmentView}Desc`)}</p>
                 </div>
               </SettingsCard>
             ) : (
@@ -524,7 +562,7 @@ const Appointments = () => {
                         <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            {new Date(appointment.date).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).replace(",", "")}
+                            {new Date(appointment.date).toLocaleDateString(lng, { month: "short", day: "2-digit", year: "numeric" }).replace(",", "")}
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
@@ -537,7 +575,7 @@ const Appointments = () => {
                           onClick={() => appointment.status === "pending" ? handleCancelRequest(appointment) : handleCancelBooking(appointment)}
                           className="self-start sm:self-center px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors whitespace-nowrap"
                         >
-                          Cancel {appointment.status === "pending" ? "request" : "booking"}
+                          {appointment.status === "pending" ? t("appointments.cancelRequest") : t("appointments.cancelBooking")}
                         </button>
                       )}
                     </div>
@@ -559,7 +597,7 @@ const Appointments = () => {
               className="flex items-center gap-1.5 text-sm text-content-muted hover:text-content-primary transition-colors -ml-1"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Back</span>
+              <span>{t("appointments.back")}</span>
             </button>
 
             {/* Service Info — compact inline */}
@@ -639,11 +677,11 @@ const Appointments = () => {
             {/* Filter + Time Slots */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-sm font-medium text-content-secondary whitespace-nowrap">Filter</span>
+                <span className="text-sm font-medium text-content-secondary whitespace-nowrap">{t("appointments.filter")}</span>
                 {[
-                  { key: "all", label: "All" },
-                  { key: "available", label: "Available" },
-                  { key: "not-available", label: "Not Available" },
+                  { key: "all", label: t("common.all") },
+                  { key: "available", label: t("appointments.available") },
+                  { key: "not-available", label: t("appointments.notAvailable") },
                 ].map((f) => (
                   <button
                     key={f.key}
@@ -665,7 +703,7 @@ const Appointments = () => {
                   <SettingsCard>
                     <div className="text-center py-8 text-content-muted">
                       <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">No time slots match your filter</p>
+                      <p className="text-sm">{t("appointments.empty.noTimeSlots")}</p>
                     </div>
                   </SettingsCard>
                 ) : (
@@ -688,9 +726,9 @@ const Appointments = () => {
                               <span className="text-sm font-medium">{slot.start} - {slot.end}</span>
                             </div>
                             {!slot.available ? (
-                              <span className="text-[11px] bg-red-500/15 text-red-400 px-2.5 py-0.5 rounded-full font-medium">Request</span>
+                              <span className="text-[11px] bg-red-500/15 text-red-400 px-2.5 py-0.5 rounded-full font-medium">{t("appointments.request")}</span>
                             ) : (
-                              <span className="text-[11px] bg-green-500/15 text-green-400 px-2.5 py-0.5 rounded-full font-medium">Available</span>
+                              <span className="text-[11px] bg-green-500/15 text-green-400 px-2.5 py-0.5 rounded-full font-medium">{t("appointments.available")}</span>
                             )}
                           </button>
                         ))}
@@ -776,7 +814,7 @@ const Appointments = () => {
                 <div className="min-w-0">
                   <h4 className="text-sm font-semibold text-content-primary truncate">{calendarSheetData.title}</h4>
                   <p className="text-xs text-content-faint">
-                    {new Date(calendarSheetData.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {calendarSheetData.startTime} – {calendarSheetData.endTime}
+                    {new Date(calendarSheetData.date).toLocaleDateString(lng, { weekday: "short", month: "short", day: "numeric" })} · {calendarSheetData.startTime} – {calendarSheetData.endTime}
                   </p>
                 </div>
               </div>
@@ -788,8 +826,8 @@ const Appointments = () => {
               >
                 <CalendarPlus className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">Add to Calendar</p>
-                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                  <p className="text-sm font-medium">{t("appointments.addToCalendar")}</p>
+                  <p className="text-xs text-content-faint">{t("appointments.addToCalendarDesc")}</p>
                 </div>
               </button>
             </div>

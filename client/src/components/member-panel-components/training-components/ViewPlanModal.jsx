@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Play, X } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { haptic } from '../../../utils/haptic';
 
 export const ViewPlanModal = ({
@@ -10,6 +11,7 @@ export const ViewPlanModal = ({
   getDifficultyColor,
   onVideoClick
 }) => {
+  const { t } = useTranslation();
   if (!isOpen || !selectedPlan) return null;
 
   return (
@@ -34,20 +36,20 @@ export const ViewPlanModal = ({
             {/* Plan Info */}
             <div className="lg:col-span-1">
               <div className="bg-surface-card rounded-xl p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">Plan Details</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">{t("training.modal.planDetails")}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-content-muted text-sm">Created by</span>
+                    <span className="text-content-muted text-sm">{t("training.modal.createdBy")}</span>
                     <span className="text-content-primary text-sm truncate ml-2">{selectedPlan.createdBy?.firstName}{selectedPlan.createdBy?.lastName}</span>
                   </div>
                   {selectedPlan.duration && (
                     <div className="flex items-center justify-between">
-                      <span className="text-content-muted text-sm">Duration</span>
+                      <span className="text-content-muted text-sm">{t("training.modal.duration")}</span>
                       <span className="text-content-primary text-sm">{selectedPlan.duration}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-content-muted text-sm">Difficulty</span>
+                    <span className="text-content-muted text-sm">{t("training.modal.difficulty")}</span>
                     <span
                       className={`px-2 py-1 rounded text-xs text-white ${getDifficultyColor(selectedPlan.difficulty)}`}
                     >
@@ -56,12 +58,12 @@ export const ViewPlanModal = ({
                   </div>
                   {selectedPlan.workoutsPerWeek && (
                     <div className="flex items-center justify-between">
-                      <span className="text-content-muted text-sm">Workouts/Week</span>
+                      <span className="text-content-muted text-sm">{t("training.modal.workoutsPerWeek")}</span>
                       <span className="text-content-primary text-sm">{selectedPlan.workoutsPerWeek}x</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-content-muted text-sm">Category</span>
+                    <span className="text-content-muted text-sm">{t("training.modal.category")}</span>
                     <span className="text-content-primary text-sm truncate ml-2">{selectedPlan.category}</span>
                   </div>
                 </div>
@@ -71,7 +73,7 @@ export const ViewPlanModal = ({
             {/* Exercises */}
             <div className="lg:col-span-2">
               <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">
-                Exercises ({selectedPlan.exercises.length})
+                {t("training.modal.exercises", { count: selectedPlan.exercises.length })}
               </h3>
               <div className="space-y-4">
                 {selectedPlan.exercises.map((exercise, index) => {

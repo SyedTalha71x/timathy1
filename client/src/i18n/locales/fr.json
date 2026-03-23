@@ -1,0 +1,532 @@
+{
+  "common": {
+    "all": "Tous",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "by": "par {{name}}",
+    "perWeek": "{{count}}x par semaine",
+    "logout": "Déconnexion",
+    "more": "Plus"
+  },
+  "languages": {
+    "en": "Anglais",
+    "de": "Allemand",
+    "fr": "Français",
+    "es": "Espagnol",
+    "it": "Italien",
+    "selectLanguage": "Sélection de la langue"
+  },
+  "nav": {
+    "studio": "Studio",
+    "appointments": "Rendez-vous",
+    "messages": "Messages",
+    "nutrition": "Nutrition",
+    "classes": "Cours",
+    "training": "Entraînement",
+    "settings": "Paramètres"
+  },
+  "header": {
+    "switchToLight": "Passer au mode clair",
+    "switchToDark": "Passer au mode sombre",
+    "expandSidebar": "Déplier la barre latérale",
+    "collapseSidebar": "Replier la barre latérale"
+  },
+  "classes": {
+    "title": "Cours",
+    "myClasses": "Mes cours",
+    "upcoming": "À venir",
+    "past": "Passés",
+    "search": {
+      "placeholder": "Rechercher cours, coachs, salles..."
+    },
+    "dateSlider": {
+      "today": "Aujourd'hui"
+    },
+    "card": {
+      "enrolled": "Inscrit",
+      "watching": "Surveillé",
+      "full": "Complet",
+      "spotsLeft": "{{count}} place restante",
+      "spotsLeft_other": "{{count}} places restantes",
+      "duration": "{{minutes}} min",
+      "participants": "{{enrolled}}/{{max}}"
+    },
+    "empty": {
+      "noClasses": "Aucun cours disponible",
+      "noClassesDesc": "Aucun cours prévu pour cette date",
+      "noClassesSearch": "Aucun cours correspondant à votre recherche pour cette date",
+      "noUpcoming": "Aucun cours à venir",
+      "noUpcomingDesc": "Vous n'êtes inscrit à aucun cours à venir",
+      "noPast": "Aucun cours passé",
+      "noPastDesc": "Vos cours passés apparaîtront ici"
+    },
+    "status": {
+      "cancelled": "Annulé",
+      "completed": "Terminé"
+    },
+    "infoModal": {
+      "duration": "Durée",
+      "category": "Catégorie",
+      "time": "Horaire",
+      "room": "Salle",
+      "trainer": "Coach",
+      "participants": "Participants",
+      "enroll": "S'inscrire",
+      "cancelEnrollment": "Annuler l'inscription",
+      "cancelShort": "Annuler",
+      "notifyMe": "Me prévenir",
+      "watchingBtn": "Surveillé",
+      "watchingHint": "Vous serez notifié quand une place se libère. Appuyez sur 'Surveillé' pour arrêter.",
+      "fullHint": "Ce cours est complet. Appuyez sur 'Me prévenir' pour être alerté quand une place se libère."
+    },
+    "actionSheet": {
+      "addToCalendar": "Ajouter au calendrier",
+      "addToCalendarDesc": "Enregistrer dans le calendrier de l'appareil",
+      "cancelEnrollment": "Annuler l'inscription",
+      "cancelEnrollmentDesc": "Libérez votre place pour d'autres"
+    },
+    "toast": {
+      "enrolled": "Inscription réussie",
+      "cancelled": "Inscription annulée",
+      "addedToCalendar": "Ajouté au calendrier"
+    },
+    "calendar": {
+      "permissionRequired": "L'accès au calendrier est requis. Veuillez l'activer dans Réglages > OrgaGym > Calendrier."
+    },
+    "notification": {
+      "startsIn": "Commence dans {{hours}}h — {{time}} à {{room}}"
+    }
+  },
+  "training": {
+    "title": "Entraînement",
+    "tabs": {
+      "videos": "Vidéos d'entraînement",
+      "plans": "Plans d'entraînement"
+    },
+    "search": {
+      "videosPlaceholder": "Rechercher des vidéos...",
+      "plansPlaceholder": "Rechercher des plans..."
+    },
+    "filters": {
+      "myPlans": "Mes plans",
+      "allStaffPlans": "Plans de tout le personnel"
+    },
+    "plans": {
+      "createPlan": "Créer un plan",
+      "notStarted": "Non commencé"
+    },
+    "empty": {
+      "noVideos": "Aucune vidéo correspondant à vos critères",
+      "noPlans": "Aucun plan d'entraînement trouvé"
+    },
+    "toast": {
+      "planCreated": "Plan d'entraînement créé avec succès !",
+      "planCreateFailed": "Échec de la création du plan",
+      "planUpdated": "Plan d'entraînement mis à jour !",
+      "exerciseAdded": "Exercice ajouté au plan !",
+      "planAssigned": "Plan attribué à {{count}} membre !",
+      "planAssigned_other": "Plan attribué à {{count}} membres !",
+      "alreadyAssigned": "Les membres sélectionnés ont déjà ce plan !",
+      "planRemoved": "Plan retiré du membre !"
+    },
+    "aria": {
+      "createPlan": "Créer un plan d'entraînement"
+    },
+    "categories": {
+      "cardio": "Cardio",
+      "flexibility": "Souplesse",
+      "fullBody": "Corps entier",
+      "lowerBody": "Bas du corps",
+      "strength": "Force",
+      "upperBody": "Haut du corps"
+    },
+    "difficulty": {
+      "advanced": "Avancé",
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire"
+    },
+    "modal": {
+      "addFromLibrary": "Ajouter des exercices de la bibliothèque",
+      "addToPlan": "Ajouter au plan d'entraînement",
+      "allSelected": "Tous les exercices sont déjà sélectionnés",
+      "category": "Catégorie",
+      "createNewWithExercise": "Créer un nouveau plan avec cet exercice",
+      "createTitle": "Créer un plan d'entraînement",
+      "createdBy": "Créé par",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez votre plan d'entraînement...",
+      "difficulty": "Difficulté",
+      "duration": "Durée",
+      "durationPlaceholder": "ex. 4 semaines",
+      "editTitle": "Modifier le plan d'entraînement",
+      "exerciseCount": "{{count}} exercices",
+      "exerciseLibrary": "Bibliothèque d'exercices",
+      "exercises": "Exercices ({{count}})",
+      "noExercises": "Aucun exercice disponible",
+      "noSelected": "Aucun exercice sélectionné",
+      "orCreateNew": "Ou créer un nouveau plan",
+      "planDetails": "Détails du plan",
+      "planName": "Nom du plan",
+      "planNamePlaceholder": "Saisir le nom du plan...",
+      "select": "Sélectionner",
+      "selectExistingPlan": "Sélectionner un plan existant",
+      "selectedExercises": "Exercices sélectionnés ({{count}})",
+      "tabDetails": "Détails",
+      "tabLibrary": "Bibliothèque ({{count}})",
+      "tabSelected": "Sélectionnés ({{count}})",
+      "updatePlan": "Mettre à jour le plan",
+      "workoutsPerWeek": "Séances/Semaine"
+    },
+    "video": {
+      "aboutExercise": "À propos de cet exercice",
+      "back10s": "10s en arrière",
+      "browserNotSupported": "Votre navigateur ne prend pas en charge la balise vidéo.",
+      "equipmentNeeded": "Équipement nécessaire",
+      "exerciseDetails": "Détails de l'exercice",
+      "forward10s": "10s en avant",
+      "fullscreen": "Plein écran (f)",
+      "targetMuscles": "Muscles ciblés"
+    }
+  },
+  "appointments": {
+    "myAppointments": "Mes rendez-vous",
+    "back": "Retour",
+    "filter": "Filtrer",
+    "available": "Disponible",
+    "notAvailable": "Non disponible",
+    "request": "Demande",
+    "cancelBooking": "Annuler la réservation",
+    "cancelRequest": "Annuler la demande",
+    "addToCalendar": "Ajouter au calendrier",
+    "addToCalendarDesc": "Enregistrer dans le calendrier de l'appareil",
+    "search": {
+      "placeholder": "Rechercher des services..."
+    },
+    "tabs": {
+      "upcoming": "À venir",
+      "pending": "En attente",
+      "past": "Passés"
+    },
+    "infoModal": {
+      "duration": "Durée",
+      "category": "Catégorie"
+    },
+    "empty": {
+      "noTimeSlots": "Aucun créneau ne correspond à votre filtre",
+      "no_upcoming": "Aucun rendez-vous à venir",
+      "no_upcomingDesc": "Vos rendez-vous à venir apparaîtront ici",
+      "no_pending": "Aucun rendez-vous en attente",
+      "no_pendingDesc": "Vos rendez-vous en attente apparaîtront ici",
+      "no_past": "Aucun rendez-vous passé",
+      "no_pastDesc": "Vos rendez-vous passés apparaîtront ici"
+    },
+    "toast": {
+      "booked": "Rendez-vous réservé",
+      "requestSent": "Demande de rendez-vous envoyée !",
+      "addedToCalendar": "Ajouté au calendrier"
+    },
+    "calendar": {
+      "permissionRequired": "L'accès au calendrier est requis. Veuillez l'activer dans Réglages > OrgaGym > Calendrier."
+    }
+  },
+  "studioMenu": {
+    "tabs": {
+      "studioInfo": "Infos studio",
+      "checkin": "Check-in",
+      "bulletin": "Tableau d'affichage",
+      "selfService": "Libre-service"
+    },
+    "info": {
+      "openingHours": "Horaires d'ouverture",
+      "today": "Aujourd'hui",
+      "closed": "Fermé",
+      "contact": "Contact",
+      "copyPhone": "Copier le téléphone",
+      "copyEmail": "Copier l'e-mail",
+      "sendEmail": "Envoyer un e-mail",
+      "openInMaps": "Ouvrir dans Plans",
+      "imprint": "Mentions légales",
+      "terms": "Conditions générales",
+      "privacy": "Politique de confidentialité"
+    },
+    "checkin": {
+      "qrTitle": "Check-in par QR code",
+      "scanDesc": "Scannez le QR code à l'entrée du studio",
+      "cameraHint": "Autorisez l'accès à la caméra lorsque demandé",
+      "cameraDenied": "L'accès à la caméra a été refusé",
+      "cameraDeniedHint": "Activez l'accès à la caméra dans les paramètres de votre appareil",
+      "cameraPermission": "L'accès à la caméra est requis pour le check-in QR.\n\nVoulez-vous ouvrir les paramètres ?",
+      "cameraUnavailable": "La caméra n'est pas disponible sur cet appareil",
+      "openSettings": "Ouvrir les paramètres",
+      "startScanner": "Démarrer le scanner",
+      "cancelScan": "Annuler le scan",
+      "positionQR": "Positionnez le QR code dans le cadre",
+      "success": "Check-in réussi ! Bienvenue !",
+      "recentCheckins": "Check-ins récents",
+      "noCheckins": "Aucun check-in"
+    },
+    "bulletin": {
+      "noAnnouncements": "Aucune annonce pour le moment.",
+      "checkBackLater": "Revenez plus tard !",
+      "previewPost": "Aperçu"
+    },
+    "selfService": {
+      "memberNumber": "Numéro de membre",
+      "memberSince": "Membre depuis",
+      "idlePeriods": "Périodes d'inactivité",
+      "apply": "Demander",
+      "currentIdlePeriod": "Période d'inactivité actuelle",
+      "pastIdlePeriod": "Période d'inactivité passée",
+      "active": "Actif",
+      "completed": "Terminé",
+      "personalInfo": "Informations personnelles",
+      "contract": "Contrat"
+    },
+    "contract": {
+      "type": "Type",
+      "status": "Statut",
+      "startDate": "Date de début",
+      "fee": "Tarif",
+      "duration": "Durée",
+      "noticePeriod": "Délai de préavis",
+      "lastCancellation": "Dernière résiliation",
+      "viewContract": "Voir le contrat",
+      "paymentMethod": "Moyen de paiement",
+      "cancelMembership": "Résilier l'abonnement"
+    },
+    "personal": {
+      "personalData": "Données personnelles",
+      "address": "Adresse",
+      "contactDetails": "Coordonnées",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "dateOfBirth": "Date de naissance",
+      "gender": "Genre",
+      "email": "E-mail",
+      "mobileNumber": "Numéro de mobile",
+      "telephoneNumber": "Numéro de téléphone",
+      "editPersonalData": "Modifier les données personnelles",
+      "editAddress": "Modifier l'adresse",
+      "editContactDetails": "Modifier les coordonnées"
+    },
+    "toast": {
+      "personalUpdated": "Données personnelles mises à jour !",
+      "personalFailed": "Échec de la mise à jour des données personnelles",
+      "addressUpdated": "Adresse mise à jour !",
+      "addressFailed": "Échec de la mise à jour de l'adresse",
+      "contactUpdated": "Coordonnées mises à jour !",
+      "contactFailed": "Échec de la mise à jour des coordonnées"
+    }
+  },
+  "settings": {
+    "search": {
+      "placeholder": "Rechercher dans les paramètres..."
+    },
+    "nav": {
+      "account": "Compte OrgaGym",
+      "changeEmail": "Changer l'e-mail",
+      "changePassword": "Changer le mot de passe",
+      "deleteAccount": "Supprimer le compte",
+      "notifications": "Notifications",
+      "general": "Général",
+      "imprint": "Mentions légales",
+      "privacyPolicy": "Politique de confidentialité"
+    },
+    "email": {
+      "title": "Changer l'adresse e-mail",
+      "subtitle": "Un e-mail de confirmation sera envoyé à votre nouvelle adresse.",
+      "newEmail": "Nouvelle adresse e-mail",
+      "newEmailPlaceholder": "Saisir la nouvelle adresse e-mail",
+      "currentPassword": "Mot de passe actuel",
+      "currentPasswordPlaceholder": "Saisir le mot de passe actuel",
+      "requestChange": "Demander le changement d'e-mail",
+      "missingEmail": "E-mail manquant",
+      "missingEmailDesc": "Veuillez saisir une nouvelle adresse e-mail.",
+      "passwordRequired": "Mot de passe requis",
+      "passwordRequiredDesc": "Veuillez saisir votre mot de passe actuel pour confirmer.",
+      "changeRequested": "Changement d'e-mail demandé",
+      "changeRequestedDesc": "Un e-mail de confirmation a été envoyé à votre nouvelle adresse.",
+      "changeFailed": "Échec du changement d'e-mail"
+    },
+    "password": {
+      "title": "Changer le mot de passe",
+      "subtitle": "Un e-mail de confirmation sera envoyé pour finaliser le changement.",
+      "newPassword": "Nouveau mot de passe",
+      "newPasswordPlaceholder": "Saisir le nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "confirmPasswordPlaceholder": "Confirmer le nouveau mot de passe",
+      "requestChange": "Demander le changement de mot de passe",
+      "missingFields": "Champs manquants",
+      "missingFieldsDesc": "Veuillez remplir tous les champs.",
+      "mismatch": "Mots de passe différents",
+      "mismatchDesc": "Le nouveau mot de passe et la confirmation ne correspondent pas.",
+      "weakPassword": "Mot de passe faible",
+      "weakPasswordDesc": "Le mot de passe doit contenir au moins 8 caractères.",
+      "changed": "Mot de passe changé",
+      "changedDesc": "Votre mot de passe a été mis à jour.",
+      "changeFailed": "Échec du changement de mot de passe"
+    },
+    "notifications": {
+      "appointmentTitle": "Notifications de rendez-vous",
+      "appointmentSubtitle": "Configurez les notifications pour les confirmations, modifications et rappels.",
+      "enableAppointment": "Activer les notifications de rendez-vous",
+      "enableAppointmentDesc": "Notifications automatiques pour les confirmations, modifications et rappels",
+      "emailNotifications": "Notifications par e-mail",
+      "pushNotifications": "Notifications push",
+      "emailAppointmentDesc": "Confirmations, modifications et rappels par e-mail",
+      "pushAppointmentDesc": "Confirmations, modifications et rappels par push",
+      "reminderTiming": "Délai de rappel",
+      "reminderTimingAppointmentDesc": "Combien de temps avant le rendez-vous",
+      "remind": "Rappeler",
+      "hoursBeforeAppointment": "heures avant le rendez-vous",
+      "classTitle": "Notifications de cours",
+      "classSubtitle": "Configurez les notifications pour les inscriptions, annulations et rappels.",
+      "enableClass": "Activer les notifications de cours",
+      "enableClassDesc": "Notifications automatiques pour les inscriptions, modifications et rappels",
+      "emailClassDesc": "Confirmations d'inscription, annulations et rappels par e-mail",
+      "pushClassDesc": "Confirmations d'inscription, annulations et rappels par push",
+      "reminderTimingClassDesc": "Combien de temps avant le cours",
+      "hoursBeforeClass": "heures avant le cours",
+      "spotAvailable": "Place disponible",
+      "spotAvailableDesc": "Notification quand une place se libère dans un cours complet",
+      "email": "E-mail",
+      "push": "Push",
+      "generalTitle": "Notifications générales",
+      "generalSubtitle": "Gérez les notifications push pour les annonces et diffusions du studio.",
+      "generalHint": "Ces paramètres contrôlent les notifications push sur votre appareil. Désactiver une catégorie arrête toutes les alertes push.",
+      "bulletinBoard": "Tableau d'affichage",
+      "bulletinBoardDesc": "Nouveaux posts et mises à jour du tableau d'affichage",
+      "studioBroadcast": "Diffusions du studio",
+      "studioBroadcastDesc": "Diffusions et annonces de votre studio"
+    },
+    "logout": {
+      "subtitle": "Déconnectez-vous de votre compte sur cet appareil.",
+      "description": "Vous serez déconnecté et redirigé vers la page de connexion.",
+      "signOut": "Se déconnecter",
+      "signOutQuestion": "Se déconnecter ?",
+      "signInAgain": "Vous devrez vous reconnecter",
+      "confirmQuestion": "Êtes-vous sûr de vouloir vous déconnecter ?"
+    },
+    "deleteAccount": {
+      "title": "Supprimer le compte",
+      "subtitle": "Supprimez définitivement votre compte et toutes les données associées.",
+      "cannotUndo": "Cette action est irréversible",
+      "cannotBeUndone": "Irréversible",
+      "warning": "La suppression de votre compte effacera définitivement toutes les données.",
+      "deleteMyAccount": "Supprimer mon compte",
+      "confirmDesc": "Toutes vos données seront définitivement supprimées. Pour confirmer, tapez",
+      "confirmPlaceholder": "Tapez DELETE pour confirmer",
+      "deleted": "Compte supprimé",
+      "deletedDesc": "Votre compte a été définitivement supprimé.",
+      "deletionFailed": "Échec de la suppression"
+    },
+    "errors": {
+      "somethingWrong": "Une erreur est survenue.",
+      "updateFailed": "Mise à jour échouée",
+      "couldNotSave": "Impossible d'enregistrer les paramètres.",
+      "logoutFailed": "Échec de la déconnexion",
+      "couldNotDelete": "Impossible de supprimer le compte."
+    }
+  },
+  "chat": {
+    "noMessages": "Aucun message",
+    "messageDeleted": "Ce message a été supprimé",
+    "messageDeletedDesktop": "Le message a été supprimé.",
+    "you": "Vous",
+    "replyingTo": "Réponse à {{name}}",
+    "replyingToYourself": "Réponse à vous-même",
+    "placeholder": "Écrivez votre message ici...",
+    "placeholderMobile": "Écrire un message...",
+    "sendMessage": "Envoyer le message",
+    "copied": "Copié !",
+    "menu": {
+      "reply": "Répondre",
+      "react": "Réagir",
+      "copy": "Copier",
+      "delete": "Supprimer"
+    },
+    "deleteModal": {
+      "title": "Supprimer le message ?",
+      "description": "Ce message sera marqué comme supprimé et ne pourra pas être récupéré."
+    }
+  },
+  "nutrition": {
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "loading": "Chargement de {{date}}...",
+    "tabs": {
+      "diary": "Journal",
+      "insights": "Analyses"
+    },
+    "ring": {
+      "over": "au-dessus",
+      "remaining": "restant"
+    },
+    "macros": {
+      "calories": "Calories",
+      "protein": "Protéines",
+      "carbs": "Glucides",
+      "fat": "Lipides"
+    },
+    "diary": {
+      "eaten": "{{amount}} consommé",
+      "kcalGoal": "{{amount}} kcal objectif",
+      "water": "Eau",
+      "quickAdd": "Ajout rapide",
+      "addFood": "Ajouter un aliment",
+      "copyFromYesterday": "Copier depuis hier"
+    },
+    "water": {
+      "overGoal": "{{liters}}L — {{ml}} ml au-dessus de l'objectif",
+      "goalReached": "Objectif atteint ! {{liters}}L",
+      "toGo": "{{liters}}L · {{ml}} ml restants"
+    },
+    "score": {
+      "excellent": "Excellent",
+      "good": "Bien",
+      "fair": "Moyen",
+      "needsWork": "À améliorer"
+    },
+    "insights": {
+      "todayPerformance": "Performance du jour",
+      "datePerformance": "Performance du {{date}}",
+      "weeklyCalories": "Calories hebdomadaires",
+      "macroDistribution": "Répartition des macros",
+      "calorieTrend": "Tendance calorique",
+      "weeklyMacros": "Macros hebdomadaires",
+      "micronutrients": "Micronutriments",
+      "vitamins": "Vitamines",
+      "minerals": "Minéraux",
+      "low": "Faible",
+      "dashedLine": "Ligne pointillée = objectif quotidien ({{calories}} kcal)",
+      "weeklyAvg": "Moyenne hebdomadaire",
+      "onTarget": "Dans l'objectif",
+      "streak": "Série",
+      "streakDays": "{{count}} jours",
+      "weekly": "Hebdomadaire",
+      "goalAmount": "Objectif : {{amount}} kcal",
+      "daysWithin": "jours dans ±10%",
+      "keepItUp": "Continuez comme ça !",
+      "deficit": "Déficit (kcal)",
+      "surplus": "Excédent (kcal)"
+    }
+  },
+  "login": {
+    "studioName": "Nom du studio",
+    "studioNamePlaceholder": "Saisir le nom du studio",
+    "email": "E-mail",
+    "emailPlaceholder": "Saisir votre e-mail {{type}}",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Saisir votre mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signingIn": "Connexion...",
+    "signInAs": "Se connecter en tant que {{type}}"
+  }
+}

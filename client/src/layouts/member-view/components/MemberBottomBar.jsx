@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   Home,
   Calendar,
@@ -17,21 +18,22 @@ import { haptic } from "../../../utils/haptic"
 // Bottom Tab Bar — Mobile Only (lg:hidden)
 // ============================================
 
-// Primary tabs (always visible)
+// Primary tabs (always visible) — labels are i18n keys
 const BAR_ITEMS = [
-  { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-  { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
-  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
-  { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
+  { icon: Home, labelKey: "nav.studio", to: "/member-view/studio-menu" },
+  { icon: Calendar, labelKey: "nav.appointments", to: "/member-view/appointment" },
+  { icon: MessageCircle, labelKey: "nav.messages", to: "/member-view/communication" },
+  { icon: Apple, labelKey: "nav.nutrition", to: "/member-view/nutrition" },
 ]
 
 // Overflow items (inside "More" sheet)
 const MORE_ITEMS = [
-  { icon: Timer, label: "Classes", to: "/member-view/classes" },
-  { icon: CgGym, label: "Training", to: "/member-view/training" },
+  { icon: Timer, labelKey: "nav.classes", to: "/member-view/classes" },
+  { icon: CgGym, labelKey: "nav.training", to: "/member-view/training" },
 ]
 
 const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
+  const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const [showMore, setShowMore] = useState(false)
@@ -148,7 +150,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
                     active ? "text-primary font-medium" : "text-content-primary"
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </button>
             )
@@ -186,7 +188,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
                 )}
               </div>
               <span className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </button>
           )
@@ -219,7 +221,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
             )}
           </div>
           <span className={`text-[10px] leading-tight ${isMoreActive ? "font-semibold" : "font-medium"}`}>
-            More
+            {t("common.more")}
           </span>
         </button>
       </div>

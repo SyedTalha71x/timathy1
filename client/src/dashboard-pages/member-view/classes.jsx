@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { Calendar, Clock, ChevronLeft, X, Check, Users, MapPin, Search, Timer, BellRing, CalendarPlus, Filter } from "lucide-react"
 import DatePickerField from "../../components/shared/DatePickerField"
 import ClassEnrollModal from "../../components/member-panel-components/classes-components/ClassEnrollModal"
@@ -11,16 +12,14 @@ import toast from "../../components/shared/SharedToast"
 // ============================================
 // Local Notification Helpers
 // ============================================
-const scheduleClassReminder = async (cls) => {
+const scheduleClassReminder = async (cls, t) => {
   if (!Capacitor.isNativePlatform()) return
   try {
     const { LocalNotifications } = await import("@capacitor/local-notifications")
 
-    // Request permission (iOS shows dialog once, then remembers)
     const perm = await LocalNotifications.requestPermissions()
     if (perm.display !== "granted") return
 
-    // Read reminder timing — default 24 hours before (matches Settings)
     const reminderHours = (() => {
       try {
         const stored = JSON.parse(localStorage.getItem("class_reminder_hours"))
@@ -32,23 +31,20 @@ const scheduleClassReminder = async (cls) => {
     const [sh, sm] = (cls.startTime || "09:00").split(":")
     dateObj.setHours(parseInt(sh), parseInt(sm), 0, 0)
 
-    // Schedule notification X hours before
     const notifyAt = new Date(dateObj.getTime() - reminderHours * 60 * 60 * 1000)
 
-    // If reminder time already passed but class hasn't started yet → notify in 30s (for testing)
     const now = new Date()
     if (notifyAt <= now && dateObj > now) {
       notifyAt.setTime(now.getTime() + 30 * 1000)
     }
 
-    // Don't schedule if the class has already started
     if (dateObj <= now) return
 
     await LocalNotifications.schedule({
       notifications: [{
         id: cls.id,
-        title: cls.typeName || "Class Reminder",
-        body: `Starts in ${reminderHours}h — ${cls.startTime} at ${cls.room || "Studio"}`,
+        title: cls.typeName || t("classes.title"),
+        body: t("classes.notification.startsIn", { hours: reminderHours, time: cls.startTime, room: cls.room || "Studio" }),
         schedule: { at: notifyAt },
         sound: "default",
         extra: { classId: cls.id },
@@ -72,7 +68,7 @@ const cancelClassReminder = async (cls) => {
 }
 
 // ============================================
-// Reusable Components (matches appointment.jsx)
+// Reusable Components
 // ============================================
 const SectionHeader = ({ title, description, action }) => (
   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
@@ -96,26 +92,46 @@ const fmtDate = (d) => {
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`
 }
 
-const fmtDateDisplay = (ds) => {
+const fmtDateDisplay = (ds, lng) => {
   if (!ds) return ""
   const d = typeof ds === "string" ? new Date(ds) : ds
   if (isNaN(d.getTime())) return ds
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+  const locale = lng || "en"
+  return d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" })
 }
 
-const fmtDateLong = (ds) => {
+const fmtDateLong = (ds, lng) => {
   if (!ds) return ""
   const d = typeof ds === "string" ? new Date(ds) : ds
   if (isNaN(d.getTime())) return ds
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
+  const locale = lng || "en"
+  return d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric", year: "numeric" })
 }
 
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const getLocalizedDayNames = (lng) => {
+  const locale = lng || "en"
+  const days = []
+  // Start from a known Sunday (Jan 4, 1970 is a Sunday)
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(1970, 0, 4 + i)
+    days.push(d.toLocaleDateString(locale, { weekday: "short" }))
+  }
+  return days
+}
+
+const getLocalizedMonthsShort = (lng) => {
+  const locale = lng || "en"
+  const months = []
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(2020, i, 1)
+    months.push(d.toLocaleDateString(locale, { month: "short" }))
+  }
+  return months
+}
 
 const Classes = () => {
-  // TODO: Replace demo data with Redux slice / API calls once backend is ready
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
 
   // ─── State ───
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -123,7 +139,7 @@ const Classes = () => {
   })
   const [showMyClasses, setShowMyClasses] = useState(false)
   const [myClassesView, setMyClassesView] = useState("upcoming")
-  const [selectedCategories, setSelectedCategories] = useState(["All"])
+  const [selectedCategories, setSelectedCategories] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
@@ -132,17 +148,12 @@ const Classes = () => {
   const [selectedClass, setSelectedClass] = useState(null)
   const [classToCancel, setClassToCancel] = useState(null)
 
-  // Info modal — simple inline modal matching appointment.jsx
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [infoModalData, setInfoModalData] = useState(null)
 
-  // Watchlist — notify when a spot opens in a full class
   const [watchlist, setWatchlist] = useState(new Set())
 
-  // My Classes action sheet
   const [actionSheetClass, setActionSheetClass] = useState(null)
-
-  // Calendar sheet after enrollment
   const [calendarSheetClass, setCalendarSheetClass] = useState(null)
 
   const daySliderRef = useRef(null)
@@ -172,15 +183,13 @@ const Classes = () => {
     return () => el.removeEventListener("wheel", onWheel)
   })
 
-  // ─── Demo data (replace with API data when backend is ready) ───
-  // Test class starting in 5 minutes (for notification testing)
+  // ─── Demo data ───
   const testStart = new Date(Date.now() + 5 * 60 * 1000)
   const testEnd = new Date(Date.now() + 65 * 60 * 1000)
   const testStartTime = `${String(testStart.getHours()).padStart(2,"0")}:${String(testStart.getMinutes()).padStart(2,"0")}`
   const testEndTime = `${String(testEnd.getHours()).padStart(2,"0")}:${String(testEnd.getMinutes()).padStart(2,"0")}`
 
   const [availableClasses, setAvailableClasses] = useState([
-    // ── TEST CLASS — starts in 5 min (set reminder to 0.05h / ~3 min in Settings to test) ──
     {
       id: 99, typeId: "ct99", typeName: "Quick Test Class", color: "#e84393",
       date: fmtDate(new Date()), startTime: testStartTime, endTime: testEndTime, duration: 60,
@@ -188,10 +197,9 @@ const Classes = () => {
       room: "Studio 1", maxParticipants: 20, enrolledMembers: [],
       isCancelled: false, isPast: false, isRecurring: false,
       category: "Group Class",
-      description: "Test class for notification testing. Set reminder to a low number (e.g. 0.05 hours = 3 min) in Settings to see the notification quickly.",
+      description: "Test class for notification testing.",
       image: null,
     },
-    // ── TODAY ──
     {
       id: 1, typeId: "ct1", typeName: "Yoga Flow", color: "#6c5ce7",
       date: fmtDate(new Date()), startTime: "09:00", endTime: "10:00", duration: 60,
@@ -242,7 +250,6 @@ const Classes = () => {
       description: "Guided stretching and foam rolling to help your muscles recover and prevent injury.",
       image: null,
     },
-    // ── TOMORROW ──
     {
       id: 4, typeId: "ct1", typeName: "Yoga Flow", color: "#6c5ce7",
       date: fmtDate(new Date(Date.now() + 86400000)), startTime: "09:00", endTime: "10:00", duration: 60,
@@ -283,7 +290,6 @@ const Classes = () => {
       description: "Learn the fundamentals of boxing — footwork, jabs, hooks and defensive moves.",
       image: null,
     },
-    // ── DAY AFTER TOMORROW ──
     {
       id: 6, typeId: "ct2", typeName: "HIIT Training", color: "#e17055",
       date: fmtDate(new Date(Date.now() + 172800000)), startTime: "10:30", endTime: "11:15", duration: 45,
@@ -314,7 +320,6 @@ const Classes = () => {
       description: "Guided stretching and foam rolling to help your muscles recover and prevent injury.",
       image: null,
     },
-    // ── 3 DAYS FROM NOW ──
     {
       id: 13, typeId: "ct4", typeName: "Spinning", color: "#fdcb6e",
       date: fmtDate(new Date(Date.now() + 259200000)), startTime: "10:00", endTime: "10:45", duration: 45,
@@ -337,20 +342,17 @@ const Classes = () => {
     },
   ])
 
-  // Current member
   const currentMemberId = "m1"
 
   // ─── Derived ───
   const todayStr = fmtDate(new Date())
   const dateValue = fmtDate(selectedDate)
 
-  // Categories from classes
   const categories = useMemo(() => {
     const types = [...new Set(availableClasses.map(c => c.typeName))]
-    return ["All", ...types.sort()]
+    return types.sort()
   }, [availableClasses])
 
-  // My enrolled classes
   const myClasses = useMemo(() => {
     return availableClasses.filter(c => c.enrolledMembers?.includes(currentMemberId))
   }, [availableClasses, currentMemberId])
@@ -358,13 +360,12 @@ const Classes = () => {
   const myUpcomingClasses = myClasses.filter(c => !c.isPast && !c.isCancelled)
   const myPastClasses = myClasses.filter(c => c.isPast || c.isCancelled)
 
-  // Classes for selected date
   const classesForDate = useMemo(() => {
     const dateStr = fmtDate(selectedDate)
     return availableClasses.filter(c => {
       if (c.date !== dateStr) return false
       if (c.isCancelled) return false
-      if (!selectedCategories.includes("All") && !selectedCategories.includes(c.typeName)) return false
+      if (selectedCategories.length > 0 && !selectedCategories.includes(c.typeName)) return false
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
         if (!c.typeName.toLowerCase().includes(q) && !c.trainerName.toLowerCase().includes(q) && !c.room.toLowerCase().includes(q)) return false
@@ -373,7 +374,7 @@ const Classes = () => {
     }).sort((a, b) => a.startTime.localeCompare(b.startTime))
   }, [availableClasses, selectedDate, selectedCategories, searchQuery])
 
-  // ─── Dynamic day slider: 30 days, starting from today OR shifted so selectedDate is visible ───
+  // ─── Dynamic day slider ───
   const sliderDays = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -381,18 +382,17 @@ const Classes = () => {
     const sel = new Date(selectedDate)
     sel.setHours(0, 0, 0, 0)
 
-    // How many days from today to the selected date
     const diffDays = Math.round((sel - today) / 86400000)
 
-    // Calculate start: normally today. If selected date would be outside the 30-day window,
-    // shift the window so selectedDate sits ~7 days in (giving context before & after)
     let startDate = new Date(today)
     if (diffDays >= 30) {
       startDate = new Date(sel)
       startDate.setDate(startDate.getDate() - 7)
     }
-    // Never start before today
     if (startDate < today) startDate = new Date(today)
+
+    const localDayNames = getLocalizedDayNames(lng)
+    const localMonthsShort = getLocalizedMonthsShort(lng)
 
     const days = []
     for (let i = 0; i < 30; i++) {
@@ -404,17 +404,17 @@ const Classes = () => {
         date: d.getDate(),
         month: d.getMonth(),
         year: d.getFullYear(),
-        dayName: DAY_NAMES[d.getDay()],
-        monthShort: MONTHS_SHORT[d.getMonth()],
+        dayName: localDayNames[d.getDay()],
+        monthShort: localMonthsShort[d.getMonth()],
         isToday: dateStr === todayStr,
         dateStr,
         classCount,
       })
     }
     return days
-  }, [availableClasses, selectedDate, todayStr])
+  }, [availableClasses, selectedDate, todayStr, lng])
 
-  // Scroll slider to selected date whenever it changes
+  // Scroll slider to selected date
   useEffect(() => {
     requestAnimationFrame(() => {
       const el = daySliderRef.current
@@ -440,18 +440,16 @@ const Classes = () => {
   const confirmEnroll = () => {
     if (!selectedClass) return
     haptic.success()
-    // TODO: dispatch(enrollInClass({ classId: selectedClass.id })) when backend is ready
     console.log("Enrolled in class:", selectedClass.id)
 
-    // Update local state — add current member to enrolledMembers
     setAvailableClasses(prev => prev.map(cls =>
       cls.id === selectedClass.id
         ? { ...cls, enrolledMembers: [...(cls.enrolledMembers || []), currentMemberId] }
         : cls
     ))
 
-    scheduleClassReminder(selectedClass)
-    toast.success("Enrolled successfully")
+    scheduleClassReminder(selectedClass, t)
+    toast.success(t("classes.toast.enrolled"))
     const enrolledClass = selectedClass
     setShowEnrollModal(false)
     setSelectedClass(null)
@@ -465,10 +463,8 @@ const Classes = () => {
   const confirmCancel = () => {
     if (!classToCancel) return
     haptic.warning()
-    // TODO: dispatch(unenrollFromClass({ classId: classToCancel.id })) when backend is ready
     console.log("Cancelled enrollment:", classToCancel.id)
 
-    // Update local state — remove current member from enrolledMembers
     setAvailableClasses(prev => prev.map(cls =>
       cls.id === classToCancel.id
         ? { ...cls, enrolledMembers: (cls.enrolledMembers || []).filter(id => id !== currentMemberId) }
@@ -476,7 +472,7 @@ const Classes = () => {
     ))
 
     cancelClassReminder(classToCancel)
-    toast.info("Enrollment cancelled")
+    toast.info(t("classes.toast.cancelled"))
     setShowCancelModal(false)
     setClassToCancel(null)
   }
@@ -492,12 +488,10 @@ const Classes = () => {
       if (next.has(cls.id)) {
         next.delete(cls.id)
         haptic.light()
-        // TODO: dispatch remove from watchlist when backend is ready
         console.log("Removed from watchlist:", cls.id)
       } else {
         next.add(cls.id)
         haptic.success()
-        // TODO: dispatch add to watchlist when backend is ready
         console.log("Added to watchlist:", cls.id)
       }
       return next
@@ -519,31 +513,27 @@ const Classes = () => {
       try {
         const { CapacitorCalendar } = await import("@ebarooni/capacitor-calendar")
 
-        // Request write access (needed on iOS < 17)
         try {
           await CapacitorCalendar.requestWriteOnlyCalendarAccess()
         } catch (permErr) {
-          // User denied — show hint
-          alert("Calendar access is required to add events. Please enable it in Settings > OrgaGym > Calendar.")
+          alert(t("classes.calendar.permissionRequired"))
           setActionSheetClass(null)
           return
         }
 
-        // Opens native iOS "New Event" dialog with pre-filled data
         const result = await CapacitorCalendar.createEventWithPrompt({
-          title: cls.typeName || "Class",
+          title: cls.typeName || t("classes.title"),
           location: cls.room || "",
-          notes: `Trainer: ${cls.trainerName || "TBA"}`,
+          notes: `${t("classes.infoModal.trainer")}: ${cls.trainerName || "TBA"}`,
           startDate: startDate.getTime(),
           endDate: endDate.getTime(),
         })
 
         if (result?.id) {
           haptic.success()
-          toast.success("Added to calendar")
+          toast.success(t("classes.toast.addedToCalendar"))
         }
       } catch (err) {
-        // User cancelled the dialog — not an error
         if (!err.message?.includes("cancel")) {
           console.error("[Calendar] Error:", err)
         }
@@ -564,8 +554,8 @@ const Classes = () => {
       "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Studio App//Classes//EN",
       "BEGIN:VEVENT", `UID:class-${cls.id}-${Date.now()}@app`,
       `DTSTART:${dtStart}`, `DTEND:${dtEnd}`,
-      `SUMMARY:${cls.typeName || "Class"}`,
-      `DESCRIPTION:Trainer: ${cls.trainerName || "TBA"}`,
+      `SUMMARY:${cls.typeName || t("classes.title")}`,
+      `DESCRIPTION:${t("classes.infoModal.trainer")}: ${cls.trainerName || "TBA"}`,
       `LOCATION:${cls.room || ""}`,
       "END:VEVENT", "END:VCALENDAR",
     ].join("\r\n")
@@ -592,7 +582,7 @@ const Classes = () => {
   return (
     <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
 
-      {/* ═══ Info Modal (matches appointment.jsx info modal) ═══ */}
+      {/* ═══ Info Modal ═══ */}
       {showInfoModal && infoModalData && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md">
@@ -607,25 +597,25 @@ const Classes = () => {
             )}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Duration</span>
-                <span className="text-content-primary font-medium">{infoModalData.duration} min</span>
+                <span className="text-content-muted">{t("classes.infoModal.duration")}</span>
+                <span className="text-content-primary font-medium">{t("classes.card.duration", { minutes: infoModalData.duration })}</span>
               </div>
               {infoModalData.category && (
                 <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                  <span className="text-content-muted">Category</span>
+                  <span className="text-content-muted">{t("classes.infoModal.category")}</span>
                   <span className="text-content-primary font-medium">{infoModalData.category}</span>
                 </div>
               )}
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Time</span>
+                <span className="text-content-muted">{t("classes.infoModal.time")}</span>
                 <span className="text-content-primary font-medium">{infoModalData.startTime} – {infoModalData.endTime}</span>
               </div>
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Room</span>
+                <span className="text-content-muted">{t("classes.infoModal.room")}</span>
                 <span className="text-content-primary font-medium">{infoModalData.room}</span>
               </div>
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Trainer</span>
+                <span className="text-content-muted">{t("classes.infoModal.trainer")}</span>
                 <div className="flex items-center gap-2">
                   <div
                     className="w-5 h-5 rounded flex items-center justify-center text-white text-[8px] font-semibold flex-shrink-0"
@@ -637,9 +627,9 @@ const Classes = () => {
                 </div>
               </div>
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
-                <span className="text-content-muted">Participants</span>
+                <span className="text-content-muted">{t("classes.infoModal.participants")}</span>
                 <span className="text-content-primary font-medium">
-                  {infoModalData.enrolledMembers?.length || 0}/{infoModalData.maxParticipants}
+                  {t("classes.card.participants", { enrolled: infoModalData.enrolledMembers?.length || 0, max: infoModalData.maxParticipants })}
                 </span>
               </div>
             </div>
@@ -648,21 +638,21 @@ const Classes = () => {
                 <BellRing className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-content-secondary">
                   {isWatching(infoModalData)
-                    ? "You'll be notified when a spot opens up. Tap \"Watching\" to stop."
-                    : "This class is full. Tap \"Notify Me\" to get alerted when a spot becomes available."}
+                    ? t("classes.infoModal.watchingHint")
+                    : t("classes.infoModal.fullHint")}
                 </p>
               </div>
             )}
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowInfoModal(false)} className="flex-1 px-4 py-2.5 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors">
-                Close
+                {t("classes.infoModal.close")}
               </button>
               {isEnrolled(infoModalData) ? (
                 <button
                   onClick={() => { setShowInfoModal(false); handleCancelEnrollment(infoModalData) }}
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-xl transition-colors"
                 >
-                  <span className="sm:hidden">Cancel</span><span className="hidden sm:inline">Cancel Enrollment</span>
+                  <span className="sm:hidden">{t("classes.infoModal.cancel")}</span><span className="hidden sm:inline">{t("classes.infoModal.cancelEnrollment")}</span>
                 </button>
               ) : isFull(infoModalData) ? (
                 isWatching(infoModalData) ? (
@@ -671,7 +661,7 @@ const Classes = () => {
                     className="flex-1 px-4 py-2.5 text-sm font-medium text-yellow-400 bg-yellow-500/15 hover:bg-yellow-500/25 rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
                     <BellRing className="w-4 h-4" />
-                    <span>Watching</span>
+                    <span>{t("classes.infoModal.watchingBtn")}</span>
                   </button>
                 ) : (
                   <button
@@ -679,7 +669,7 @@ const Classes = () => {
                     className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-500 rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
                     <BellRing className="w-4 h-4" />
-                    <span>Notify Me</span>
+                    <span>{t("classes.infoModal.notifyMe")}</span>
                   </button>
                 )
               ) : (
@@ -687,7 +677,7 @@ const Classes = () => {
                   onClick={() => { setShowInfoModal(false); handleEnrollClick(infoModalData) }}
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-xl transition-colors"
                 >
-                  Enroll
+                  {t("classes.infoModal.enroll")}
                 </button>
               )}
             </div>
@@ -705,23 +695,23 @@ const Classes = () => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-2xl font-bold">My Classes</h1>
+            <h1 className="text-lg sm:text-2xl font-bold">{t("classes.myClasses")}</h1>
           </div>
         ) : (
           <>
-            <h1 className="text-lg sm:text-2xl font-bold">Classes</h1>
+            <h1 className="text-lg sm:text-2xl font-bold">{t("classes.title")}</h1>
             <div className="flex items-center gap-1.5">
               <div className="relative" ref={filterBtnRef}>
                 <button
                   onClick={() => { haptic.light(); setShowFilterDropdown(prev => !prev) }}
                   className={`p-1.5 rounded-lg transition-colors flex-shrink-0 relative ${
-                    showFilterDropdown || (!selectedCategories.includes("All") && selectedCategories.length > 0)
+                    showFilterDropdown || selectedCategories.length > 0
                       ? "bg-primary/15 text-primary"
                       : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
                   }`}
                 >
                   <Filter className="w-3.5 h-3.5" />
-                  {!selectedCategories.includes("All") && selectedCategories.length > 0 && (
+                  {selectedCategories.length > 0 && (
                     <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full text-[8px] font-bold text-white flex items-center justify-center">
                       {selectedCategories.length}
                     </span>
@@ -730,6 +720,24 @@ const Classes = () => {
                 {showFilterDropdown && (
                   <div className="absolute top-full right-0 mt-1 bg-surface-card border border-border rounded-xl shadow-xl z-[9999] min-w-[180px] overflow-hidden">
                     <div className="max-h-[200px] overflow-y-auto py-1">
+                      {/* "All" option — clears filters */}
+                      <button
+                        onClick={() => {
+                          haptic.light()
+                          setSelectedCategories([])
+                        }}
+                        className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
+                          selectedCategories.length === 0 ? "text-primary" : "text-content-secondary hover:bg-surface-hover"
+                        }`}
+                      >
+                        <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center flex-shrink-0 ${
+                          selectedCategories.length === 0 ? "bg-primary border-primary" : "border-content-faint"
+                        }`}>
+                          {selectedCategories.length === 0 && <Check size={8} className="text-white" />}
+                        </div>
+                        {t("common.all")}
+                      </button>
+                      {/* Category filters */}
                       {categories.map((cat) => {
                         const isActive = selectedCategories.includes(cat)
                         return (
@@ -738,13 +746,10 @@ const Classes = () => {
                             onClick={() => {
                               haptic.light()
                               setSelectedCategories(prev => {
-                                if (cat === "All") return ["All"]
-                                const current = prev.filter(v => v !== "All")
-                                if (current.includes(cat)) {
-                                  const next = current.filter(v => v !== cat)
-                                  return next.length === 0 ? ["All"] : next
+                                if (prev.includes(cat)) {
+                                  return prev.filter(v => v !== cat)
                                 }
-                                return [...current, cat]
+                                return [...prev, cat]
                               })
                             }}
                             className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2.5 transition-colors ${
@@ -777,14 +782,12 @@ const Classes = () => {
 
       {/* Content */}
       <PullToRefresh
-        onRefresh={async () => { /* TODO: dispatch(fetchClasses()) when backend is ready */ await new Promise(r => setTimeout(r, 600)) }}
+        onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }}
         className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 lg:pb-16"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
 
-        {/* ============================================ */}
-        {/* MAIN VIEW                                    */}
-        {/* ============================================ */}
+        {/* MAIN VIEW */}
         {!showMyClasses && (
           <div className="space-y-4">
             {/* My Classes CTA */}
@@ -795,7 +798,7 @@ const Classes = () => {
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Timer className="w-4 h-4 text-white" />
               </div>
-              <span className="text-left flex-1 text-white font-semibold text-sm">My Classes</span>
+              <span className="text-left flex-1 text-white font-semibold text-sm">{t("classes.myClasses")}</span>
               <div className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full min-w-[1.5rem] flex items-center justify-center">
                 {myUpcomingClasses.length}
               </div>
@@ -804,7 +807,7 @@ const Classes = () => {
             {/* Date */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-content-primary truncate">
-                {fmtDateLong(selectedDate)}
+                {fmtDateLong(selectedDate, lng)}
               </span>
               <DatePickerField
                 value={dateValue}
@@ -814,7 +817,7 @@ const Classes = () => {
               />
             </div>
 
-            {/* ── Day Slider ── */}
+            {/* Day Slider */}
             <div>
               <div
                 ref={daySliderRef}
@@ -856,13 +859,13 @@ const Classes = () => {
               </div>
             </div>
 
-            {/* Search (collapsible) */}
+            {/* Search */}
             {showSearch && (
               <div className="relative">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
                 <input
                   type="text"
-                  placeholder="Search classes, trainers, rooms..."
+                  placeholder={t("classes.search.placeholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
@@ -879,13 +882,13 @@ const Classes = () => {
               </div>
             )}
 
-            {/* ── Class Cards ── */}
+            {/* Class Cards */}
             {classesForDate.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
                   <Timer className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-content-primary mb-2">No classes available</h3>
-                  <p className="text-sm">No classes scheduled for this date{searchQuery ? " matching your search" : ""}</p>
+                  <h3 className="text-lg font-medium text-content-primary mb-2">{t("classes.empty.noClasses")}</h3>
+                  <p className="text-sm">{searchQuery ? t("classes.empty.noClassesSearch") : t("classes.empty.noClassesDesc")}</p>
                 </div>
               </SettingsCard>
             ) : (
@@ -901,7 +904,6 @@ const Classes = () => {
                       className="bg-surface-hover rounded-xl overflow-hidden border border-border transition-colors group cursor-pointer"
                       onClick={() => { haptic.light(); setInfoModalData(cls); setShowInfoModal(true) }}
                     >
-                      {/* Image / Timer placeholder */}
                       <div className="relative aspect-video bg-surface-card">
                         {cls.image?.url ? (
                           <img
@@ -917,45 +919,41 @@ const Classes = () => {
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                        {/* Category badge */}
                         {cls.category && (
                           <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
                             {cls.category}
                           </div>
                         )}
 
-                        {/* Enrolled / Full / Watching badge */}
                         {enrolled && (
                           <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-primary backdrop-blur-sm text-white text-xs font-medium rounded-full flex items-center gap-1">
-                            <Check className="w-3 h-3" /> Enrolled
+                            <Check className="w-3 h-3" /> {t("classes.card.enrolled")}
                           </div>
                         )}
                         {full && !enrolled && isWatching(cls) && (
                           <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-yellow-500/80 backdrop-blur-sm text-white text-xs font-medium rounded-full flex items-center gap-1">
-                            <BellRing className="w-3 h-3" /> Watching
+                            <BellRing className="w-3 h-3" /> {t("classes.card.watching")}
                           </div>
                         )}
                         {full && !enrolled && !isWatching(cls) && (
                           <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-red-500/80 backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                            Full
+                            {t("classes.card.full")}
                           </div>
                         )}
 
-                        {/* Time overlay */}
                         <div className="absolute bottom-3 right-3 px-2 py-0.5 bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium rounded-lg flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {cls.startTime} – {cls.endTime}
                         </div>
                       </div>
 
-                      {/* Content */}
                       <div className="p-4">
                         <h3 className="text-content-primary font-medium truncate mb-2">{cls.typeName}</h3>
 
                         <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint mb-2.5">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
-                            {cls.duration} min
+                            {t("classes.card.duration", { minutes: cls.duration })}
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
@@ -963,11 +961,10 @@ const Classes = () => {
                           </span>
                           <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />
-                            {cls.enrolledMembers?.length || 0}/{cls.maxParticipants}
+                            {t("classes.card.participants", { enrolled: cls.enrolledMembers?.length || 0, max: cls.maxParticipants })}
                           </span>
                         </div>
 
-                        {/* Trainer */}
                         <div className="flex items-center gap-2">
                           {cls.trainerImg ? (
                             <img src={cls.trainerImg} alt="" className="w-6 h-6 rounded-lg object-cover flex-shrink-0" />
@@ -982,7 +979,6 @@ const Classes = () => {
                           <span className="text-xs text-content-secondary">{cls.trainerName}</span>
                         </div>
 
-                        {/* Spots bar */}
                         {!enrolled && !full && spots <= 5 && (
                           <div className="mt-2.5 flex items-center gap-1.5">
                             <div className="flex-1 h-1 bg-surface-card rounded-full overflow-hidden">
@@ -995,7 +991,7 @@ const Classes = () => {
                               />
                             </div>
                             <span className={`text-[10px] font-medium ${spots <= 2 ? "text-red-400" : "text-yellow-400"}`}>
-                              {spots} spot{spots !== 1 ? "s" : ""} left
+                              {t("classes.card.spotsLeft", { count: spots })}
                             </span>
                           </div>
                         )}
@@ -1008,15 +1004,13 @@ const Classes = () => {
           </div>
         )}
 
-        {/* ============================================ */}
-        {/* MY CLASSES                                   */}
-        {/* ============================================ */}
+        {/* MY CLASSES */}
         {showMyClasses && (
           <div className="space-y-6">
             <div className="flex gap-2 overflow-x-auto">
               {[
-                { key: "upcoming", label: "Upcoming", count: myUpcomingClasses.length },
-                { key: "past", label: "Past", count: myPastClasses.length },
+                { key: "upcoming", label: t("classes.upcoming"), count: myUpcomingClasses.length },
+                { key: "past", label: t("classes.past"), count: myPastClasses.length },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1042,12 +1036,12 @@ const Classes = () => {
                 <div className="text-center py-12 text-content-muted">
                   <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-medium text-content-primary mb-2">
-                    No {myClassesView} classes
+                    {myClassesView === "upcoming" ? t("classes.empty.noUpcoming") : t("classes.empty.noPast")}
                   </h3>
                   <p className="text-sm">
                     {myClassesView === "upcoming"
-                      ? "You haven't enrolled in any upcoming classes yet"
-                      : "Your past classes will appear here"}
+                      ? t("classes.empty.noUpcomingDesc")
+                      : t("classes.empty.noPastDesc")}
                   </p>
                 </div>
               </SettingsCard>
@@ -1074,16 +1068,16 @@ const Classes = () => {
                               <div className="flex items-center gap-2 mb-1.5">
                                 <h3 className="text-sm font-medium text-content-primary truncate">{cls.typeName}</h3>
                                 {cls.isCancelled && (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/15 text-red-400">Cancelled</span>
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/15 text-red-400">{t("classes.status.cancelled")}</span>
                                 )}
                                 {cls.isPast && !cls.isCancelled && (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-surface-button text-content-faint">Completed</span>
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-surface-button text-content-faint">{t("classes.status.completed")}</span>
                                 )}
                               </div>
                               <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
                                 <span className="flex items-center gap-1">
                                   <Calendar className="w-3.5 h-3.5" />
-                                  {fmtDateDisplay(cls.date)}
+                                  {fmtDateDisplay(cls.date, lng)}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3.5 h-3.5" />
@@ -1128,9 +1122,7 @@ const Classes = () => {
         classData={classToCancel}
       />
 
-      {/* ============================================ */}
-      {/* MY CLASS ACTION SHEET                        */}
-      {/* ============================================ */}
+      {/* MY CLASS ACTION SHEET */}
       {actionSheetClass && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center"
@@ -1164,10 +1156,8 @@ const Classes = () => {
               }
             }}
           >
-            {/* Handle bar */}
             <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
 
-            {/* Class info header */}
             <div className="px-4 pb-3 border-b border-border">
               <div className="flex items-center gap-3">
                 <div
@@ -1177,13 +1167,12 @@ const Classes = () => {
                 <div className="min-w-0">
                   <h4 className="text-sm font-semibold text-content-primary truncate">{actionSheetClass.typeName}</h4>
                   <p className="text-xs text-content-faint">
-                    {fmtDateDisplay(actionSheetClass.date)} · {actionSheetClass.startTime} – {actionSheetClass.endTime}
+                    {fmtDateDisplay(actionSheetClass.date, lng)} · {actionSheetClass.startTime} – {actionSheetClass.endTime}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="p-3 pb-4 space-y-1">
               <button
                 onClick={() => addToCalendar(actionSheetClass)}
@@ -1191,8 +1180,8 @@ const Classes = () => {
               >
                 <CalendarPlus className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">Add to Calendar</p>
-                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                  <p className="text-sm font-medium">{t("classes.actionSheet.addToCalendar")}</p>
+                  <p className="text-xs text-content-faint">{t("classes.actionSheet.addToCalendarDesc")}</p>
                 </div>
               </button>
 
@@ -1205,8 +1194,8 @@ const Classes = () => {
               >
                 <X className="w-5 h-5" />
                 <div>
-                  <p className="text-sm font-medium">Cancel Enrollment</p>
-                  <p className="text-xs text-red-400/60">Free up your spot for others</p>
+                  <p className="text-sm font-medium">{t("classes.actionSheet.cancelEnrollment")}</p>
+                  <p className="text-xs text-red-400/60">{t("classes.actionSheet.cancelEnrollmentDesc")}</p>
                 </div>
               </button>
             </div>
@@ -1214,9 +1203,7 @@ const Classes = () => {
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* CALENDAR SHEET (after enrollment)            */}
-      {/* ============================================ */}
+      {/* CALENDAR SHEET (after enrollment) */}
       {calendarSheetClass && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center"
@@ -1261,7 +1248,7 @@ const Classes = () => {
                 <div className="min-w-0">
                   <h4 className="text-sm font-semibold text-content-primary truncate">{calendarSheetClass.typeName}</h4>
                   <p className="text-xs text-content-faint">
-                    {fmtDateDisplay(calendarSheetClass.date)} · {calendarSheetClass.startTime} – {calendarSheetClass.endTime}
+                    {fmtDateDisplay(calendarSheetClass.date, lng)} · {calendarSheetClass.startTime} – {calendarSheetClass.endTime}
                   </p>
                 </div>
               </div>
@@ -1278,8 +1265,8 @@ const Classes = () => {
               >
                 <CalendarPlus className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">Add to Calendar</p>
-                  <p className="text-xs text-content-faint">Save to your device calendar</p>
+                  <p className="text-sm font-medium">{t("classes.actionSheet.addToCalendar")}</p>
+                  <p className="text-xs text-content-faint">{t("classes.actionSheet.addToCalendarDesc")}</p>
                 </div>
               </button>
             </div>

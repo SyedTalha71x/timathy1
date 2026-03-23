@@ -11,6 +11,9 @@ import "./styles/ant-overrides.css"; // Ant Design Overrides
 import "./styles/fullcalendar.css"; // FullCalendar Overrides
 import "./styles/animations.css";   // Wobble, Drag & Drop
 
+// --- i18n (Sprachen: EN, DE, FR, ES, IT — erkennt Systemsprache automatisch) ---
+import "./i18n/i18n";
+
 import App from "./App.jsx";
 import { store } from "./app/store.js";
 import { Provider } from 'react-redux'
