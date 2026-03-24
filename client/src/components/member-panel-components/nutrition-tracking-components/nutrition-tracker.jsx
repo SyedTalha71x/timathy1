@@ -48,7 +48,6 @@ const DEMO_WEEK_MACROS = {
   Thu: { p: 130, c: 220, f: 65 }, Fri: { p: 120, c: 200, f: 60 }, Sat: { p: 135, c: 230, f: 70 }, Sun: { p: 125, c: 215, f: 63 },
 }
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-const DAY_I18N_KEYS = ["nutrition.daysShort.mon", "nutrition.daysShort.tue", "nutrition.daysShort.wed", "nutrition.daysShort.thu", "nutrition.daysShort.fri", "nutrition.daysShort.sat", "nutrition.daysShort.sun"]
 const EMPTY_TOTALS = { calories: 0, protein: 0, carbs: 0, fats: 0 }
 const DEFAULT_PROFILE = { gender: "male", age: 30, height: 175, weight: 75, activity: "moderate", goalType: "maintain" }
 const DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 }
@@ -145,7 +144,6 @@ const ChartTooltip = memo(({ active, payload, label }) => {
 const NutritionTracker = () => {
   const { t, i18n } = useTranslation()
   const lng = i18n.language
-  const dayLabel = (idx) => t(DAY_I18N_KEYS[idx])
   const dispatch = useDispatch()
   const { foodData } = useSelector((state) => state.food)
   const { dailySummeryData, loading: diaryLoading } = useSelector((state) => state.dailySummery)
@@ -313,18 +311,17 @@ const NutritionTracker = () => {
 
   const weeklyCalorieData = useMemo(() =>
     DAY_NAMES.map((day, idx) => {
-      const label = dayLabel(idx)
       if (weeklyData?.days?.[idx]) {
         const apiDay = weeklyData.days[idx]
-        return { day: label, Calories: Math.round(apiDay.calories || 0), Goal: g }
+        return { day, Calories: Math.round(apiDay.calories || 0), Goal: g }
       }
       return {
-        day: label,
+        day,
         Calories: day === selectedDayLabel ? Math.round(totals.calories) : DEMO_WEEK_CALORIES[day],
         Goal: g,
       }
     }),
-    [weeklyData, g, selectedDayLabel, totals.calories, lng]
+    [weeklyData, g, selectedDayLabel, totals.calories]
   )
 
   const weeklyAvg = useMemo(() => Math.round(weeklyCalorieData.reduce((s, d) => s + d.Calories, 0) / 7), [weeklyCalorieData])
@@ -332,35 +329,34 @@ const NutritionTracker = () => {
   const daysOnTarget = useMemo(() => weeklyCalorieData.filter((d) => Math.abs(d.Calories - g) <= g * 0.1).length, [weeklyCalorieData, g])
 
   const trendData = useMemo(() => [
-    { date: t("nutrition.insights.week1"), Actual: Math.round(g * 0.92), Target: g },
-    { date: t("nutrition.insights.week2"), Actual: Math.round(g * 1.03), Target: g },
-    { date: t("nutrition.insights.week3"), Actual: Math.round(g * 0.96), Target: g },
-    { date: t("nutrition.insights.thisWeek"), Actual: weeklyAvg, Target: g },
-  ], [g, weeklyAvg, lng])
+    { date: "Week 1", Actual: Math.round(g * 0.92), Target: g },
+    { date: "Week 2", Actual: Math.round(g * 1.03), Target: g },
+    { date: "Week 3", Actual: Math.round(g * 0.96), Target: g },
+    { date: "This week", Actual: weeklyAvg, Target: g },
+  ], [g, weeklyAvg])
 
   const macroPieData = useMemo(() => [
-    { name: t("nutrition.macros.protein"), value: Math.round(totals.protein) || 1, color: "#3b82f6" },
-    { name: t("nutrition.macros.carbs"), value: Math.round(totals.carbs) || 1, color: "var(--color-primary, #f97316)" },
-    { name: t("nutrition.macros.fat"), value: Math.round(totals.fats) || 1, color: "#eab308" },
-  ], [totals.protein, totals.carbs, totals.fats, lng])
+    { name: "Protein", value: Math.round(totals.protein) || 1, color: "#3b82f6" },
+    { name: "Carbs", value: Math.round(totals.carbs) || 1, color: "var(--color-primary, #f97316)" },
+    { name: "Fat", value: Math.round(totals.fats) || 1, color: "#eab308" },
+  ], [totals.protein, totals.carbs, totals.fats])
 
   const macroTotal = useMemo(() => macroPieData.reduce((s, d) => s + d.value, 0), [macroPieData])
 
   const weeklyMacroData = useMemo(() =>
     DAY_NAMES.map((day, idx) => {
-      const label = dayLabel(idx)
       if (weeklyData?.days?.[idx]) {
         const apiDay = weeklyData.days[idx]
-        return { day: label, Protein: Math.round(apiDay.protein || 0), Carbs: Math.round(apiDay.carbs || 0), Fat: Math.round(apiDay.fats || 0) }
+        return { day, Protein: Math.round(apiDay.protein || 0), Carbs: Math.round(apiDay.carbs || 0), Fat: Math.round(apiDay.fats || 0) }
       }
       return {
-        day: label,
+        day,
         Protein: day === selectedDayLabel ? Math.round(totals.protein) : DEMO_WEEK_MACROS[day].p,
         Carbs: day === selectedDayLabel ? Math.round(totals.carbs) : DEMO_WEEK_MACROS[day].c,
         Fat: day === selectedDayLabel ? Math.round(totals.fats) : DEMO_WEEK_MACROS[day].f,
       }
     }),
-    [weeklyData, selectedDayLabel, totals.protein, totals.carbs, totals.fats, lng]
+    [weeklyData, selectedDayLabel, totals.protein, totals.carbs, totals.fats]
   )
 
   const weekLabel = useMemo(() => {
@@ -949,7 +945,7 @@ const NutritionTracker = () => {
 
             <SettingsCard className="!p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2"><Droplets className="w-4 h-4 text-blue-400" /><h3 className="text-sm font-medium text-content-primary">{t("nutrition.diary.water")}</h3></div>
+                <div className="flex items-center gap-2"><Droplets className="w-4 h-4 text-blue-400" /><h3 className="text-sm font-medium text-content-primary"{t("nutrition.diary.water")}</h3></div>
                 <span className="text-xs text-content-faint">{waterDrank} / {waterGoalMl} ml</span>
               </div>
               <div className="h-3 bg-surface-button rounded-full overflow-hidden mb-3">
@@ -1180,7 +1176,7 @@ const NutritionTracker = () => {
             <button onClick={(e) => { e.stopPropagation(); setShowQuickAdd(true); setIsFabOpen(false) }}
               className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap">
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm">{t("nutrition.diary.quickAdd")}</span>
+              <span className="text-sm"{t("nutrition.diary.quickAdd")}</span>
             </button>
           </div>
           {/* FAB Button */}

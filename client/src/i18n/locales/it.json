@@ -13,7 +13,11 @@
     "by": "di {{name}}",
     "perWeek": "{{count}}x a settimana",
     "logout": "Esci",
-    "more": "Altro"
+    "more": "Altro",
+    "today": "Oggi",
+    "clear": "Cancella",
+    "noOptions": "Nessuna opzione trovata",
+    "nSelected": "{{count}} selezionati"
   },
   "languages": {
     "en": "Inglese",
@@ -84,7 +88,12 @@
       "notifyMe": "Avvisami",
       "watchingBtn": "In osservazione",
       "watchingHint": "Riceverai una notifica quando si libera un posto. Tocca 'In osservazione' per interrompere.",
-      "fullHint": "Questo corso è completo. Tocca 'Avvisami' per ricevere un avviso quando si libera un posto."
+      "fullHint": "Questo corso è completo. Tocca 'Avvisami' per ricevere un avviso quando si libera un posto.",
+      "schedule": "Programma",
+      "recurring": "Ricorrente",
+      "availability": "Disponibilità",
+      "close": "Chiudi",
+      "cancel": "Annulla"
     },
     "actionSheet": {
       "addToCalendar": "Aggiungi al calendario",
@@ -102,6 +111,20 @@
     },
     "notification": {
       "startsIn": "Inizia tra {{hours}}h — {{time}} presso {{room}}"
+    },
+    "cancelModal": {
+      "title": "Annulla iscrizione",
+      "description": "Sei sicuro di voler annullare la tua iscrizione a questo corso?",
+      "warning": "Il tuo posto sarà liberato e reso disponibile per altri membri. Potrai iscriverti di nuovo in seguito se ci sono ancora posti disponibili.",
+      "keepEnrollment": "Mantieni iscrizione"
+    },
+    "enrollModal": {
+      "title": "Conferma iscrizione",
+      "enrollmentInfo": "Info iscrizione",
+      "currentParticipants": "Partecipanti attuali",
+      "afterEnrollment": "Dopo l'iscrizione",
+      "spotsRemaining": "Posti rimanenti",
+      "confirmEnrollment": "Conferma iscrizione"
     }
   },
   "training": {
@@ -234,6 +257,28 @@
     },
     "calendar": {
       "permissionRequired": "È necessario l'accesso al calendario. Attivalo in Impostazioni > OrgaGym > Calendario."
+    },
+    "bookingModal": {
+      "title": "Conferma prenotazione",
+      "contingentInfo": "Informazioni sul contingente",
+      "currentContingent": "Contingente attuale",
+      "afterBooking": "Dopo la prenotazione",
+      "confirm": "Conferma",
+      "dateTime": "{{day}} {{month}} {{year}} alle {{start}} - {{end}}"
+    },
+    "cancelModal": {
+      "cancelRequest": "Annulla richiesta",
+      "cancelBooking": "Annulla prenotazione",
+      "confirmCancelRequest": "Sei sicuro di voler annullare questa richiesta?",
+      "confirmCancelBooking": "Sei sicuro di voler annullare questa prenotazione?",
+      "keep": "Mantieni",
+      "confirmBtn": "Annulla"
+    },
+    "requestModal": {
+      "title": "Richiedi appuntamento",
+      "requestInfo": "Informazioni sulla richiesta",
+      "requestDesc": "Questo orario non è attualmente disponibile. La tua richiesta sarà inviata all'istruttore per l'approvazione.",
+      "sendRequest": "Invia richiesta"
     }
   },
   "studioMenu": {
@@ -323,6 +368,112 @@
       "addressFailed": "Impossibile aggiornare l'indirizzo",
       "contactUpdated": "Dati di contatto aggiornati!",
       "contactFailed": "Impossibile aggiornare i dati di contatto"
+    },
+    "forms": {
+      "requestChange": "Richiedi modifica",
+      "select": "Seleziona",
+      "selectDate": "Seleziona data",
+      "birthday": "Compleanno",
+      "male": "Maschio",
+      "female": "Femmina",
+      "other": "Altro",
+      "street": "Via",
+      "houseNumber": "Numero civico",
+      "zipCode": "CAP",
+      "city": "Città",
+      "country": "Paese",
+      "loadingCountries": "Caricamento paesi...",
+      "selectCountry": "Seleziona paese",
+      "phone": "Telefono",
+      "managingDirector": "Amministratore delegato",
+      "commercialRegister": "Registro delle imprese",
+      "notProvided": "Non fornito",
+      "bankDetails": "Coordinate bancarie",
+      "accountHolder": "Titolare del conto",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "creditInstitute": "Istituto di credito",
+      "sepaConsent": "Autorizzo FitZone Studio a riscuotere pagamenti dal mio conto tramite addebito diretto SEPA utilizzando l'identificativo creditore DE02FZS00000123456. Autorizzo inoltre il mio istituto di credito ad onorare tali addebiti."
+    },
+    "cancel": {
+      "info": "Informazioni sulla cancellazione",
+      "effective": "Cancellazione effettiva",
+      "description": "Se cancelli ora, il tuo abbonamento rimarrà attivo fino alla data effettiva. Continuerai ad avere accesso a tutte le strutture e servizi fino a quella data.",
+      "keepMembership": "Mantieni abbonamento",
+      "confirmCancellation": "Conferma cancellazione"
+    },
+    "idle": {
+      "applyTitle": "Richiedi periodo di inattività",
+      "reason": "Motivo del periodo di inattività",
+      "selectReason": "Seleziona motivo...",
+      "startDate": "Data di inizio",
+      "duration": "Durata",
+      "selectDuration": "Seleziona durata...",
+      "document": "Documento",
+      "vacation": "Vacanza",
+      "medical": "Medico",
+      "businessTravel": "Viaggio di lavoro",
+      "personal": "Personale",
+      "1week": "1 settimana",
+      "2weeks": "2 settimane",
+      "1month": "1 mese",
+      "2months": "2 mesi",
+      "3months": "3 mesi",
+      "tapToUpload": "Tocca per caricare",
+      "clickToUpload": "Clicca o trascina qui",
+      "fileHint": "PDF, JPG, PNG fino a 10 MB",
+      "fileTypeError": "Sono consentiti solo file PDF, JPG e PNG",
+      "fileSizeError": "Il file deve essere inferiore a 10 MB"
+    },
+    "popup": {
+      "requestChange": "Richiedi modifica",
+      "select": "Seleziona",
+      "selectDate": "Seleziona data",
+      "selectCountry": "Seleziona paese",
+      "male": "Maschio",
+      "female": "Femmina",
+      "other": "Altro",
+      "street": "Via",
+      "houseNumber": "Numero civico",
+      "zipCode": "CAP",
+      "city": "Città",
+      "country": "Paese",
+      "phone": "Telefono",
+      "managingDirector": "Amministratore delegato",
+      "commercialRegister": "Registro delle imprese",
+      "notProvided": "Non fornito",
+      "bankDetails": "Coordinate bancarie",
+      "accountHolder": "Titolare del conto",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "creditInstitute": "Istituto di credito",
+      "sepaMandate": "Autorizzo FitZone Studio a riscuotere pagamenti dal mio conto tramite addebito diretto SEPA utilizzando l'identificativo creditore DE02FZS00000123456. Autorizzo inoltre il mio istituto di credito ad onorare tali addebiti.",
+      "cancellationInfo": "Informazioni sulla cancellazione",
+      "cancellationEffective": "Cancellazione effettiva",
+      "cancellationDesc": "Se cancelli ora, il tuo abbonamento rimarrà attivo fino al 15 gennaio 2026. Continuerai ad avere accesso a tutte le strutture e servizi fino a quella data.",
+      "keepMembership": "Mantieni abbonamento",
+      "confirmCancellation": "Conferma cancellazione",
+      "applyIdlePeriod": "Richiedi periodo di inattività",
+      "idleReason": "Motivo del periodo di inattività",
+      "selectReason": "Seleziona motivo...",
+      "startDate": "Data di inizio",
+      "idleDuration": "Durata",
+      "selectDuration": "Seleziona durata...",
+      "document": "Documento",
+      "tapToUpload": "Tocca per caricare",
+      "clickToUpload": "Clicca o trascina qui",
+      "fileTypes": "PDF, JPG, PNG fino a 10 MB",
+      "fileTypeError": "Sono consentiti solo file PDF, JPG e PNG",
+      "fileSizeError": "Il file deve essere inferiore a 10 MB",
+      "vacation": "Vacanza",
+      "medical": "Medico",
+      "businessTravel": "Viaggio di lavoro",
+      "personal": "Personale",
+      "1week": "1 settimana",
+      "2weeks": "2 settimane",
+      "1month": "1 mese",
+      "2months": "2 mesi",
+      "3months": "3 mesi"
     }
   },
   "settings": {
@@ -515,7 +666,165 @@
       "daysWithin": "giorni entro ±10%",
       "keepItUp": "Continua così!",
       "deficit": "Deficit (kcal)",
-      "surplus": "Surplus (kcal)"
+      "surplus": "Surplus (kcal)",
+      "week1": "Settimana 1",
+      "week2": "Settimana 2",
+      "week3": "Settimana 3",
+      "thisWeek": "Questa settimana"
+    },
+    "meals": {
+      "breakfast": "Colazione",
+      "lunch": "Pranzo",
+      "dinner": "Cena",
+      "snacks": "Spuntini"
+    },
+    "customFood": {
+      "editTitle": "Modifica alimento personalizzato",
+      "createTitle": "Crea alimento personalizzato",
+      "foodName": "Nome alimento",
+      "servingSize": "Porzione",
+      "unit": "Unità",
+      "caloriesKcal": "Calorie (kcal)",
+      "saveChanges": "Salva modifiche",
+      "saveCustomFood": "Salva alimento personalizzato"
+    },
+    "editQuantity": {
+      "title": "Modifica quantità"
+    },
+    "quickAdd": {
+      "description": "Aggiungi calorie velocemente — perfetto per pasti al ristorante o stime.",
+      "nameOptional": "Nome (opzionale)",
+      "addTo": "Aggiungi a {{meal}}"
+    },
+    "addFood": {
+      "addTo": "Aggiungi a {{meal}}",
+      "searchPlaceholder": "Cerca alimenti...",
+      "barcode": "Codice a barre",
+      "createFood": "Crea alimento",
+      "quantity": "Quantità",
+      "noFoods": "Nessun alimento trovato",
+      "suggestions": "Suggerimenti",
+      "favorites": "Preferiti",
+      "recent": "Recenti",
+      "noFavorites": "Nessun preferito",
+      "starHint": "Segna gli alimenti come preferiti quando li aggiungi",
+      "custom": "Personalizzati"
+    },
+    "settings": {
+      "profile": "Profilo",
+      "goals": "Obiettivi",
+      "myFoods": "I miei alimenti",
+      "profileDesc": "Le tue misure corporee ci aiutano a calcolare obiettivi giornalieri accurati usando la formula di Mifflin-St Jeor.",
+      "gender": "Genere",
+      "age": "Età",
+      "height": "Altezza (cm)",
+      "weight": "Peso (kg)",
+      "activityLevel": "Livello di attività",
+      "goal": "Obiettivo",
+      "calculatedTargets": "Obiettivi giornalieri calcolati",
+      "goalsDesc": "Regola i tuoi obiettivi giornalieri manualmente o usa il calcolo del profilo.",
+      "caloriesKcal": "Calorie (kcal)",
+      "proteinG": "Proteine (g)",
+      "carbsG": "Carboidrati (g)",
+      "fatG": "Grassi (g)",
+      "waterMl": "Acqua (ml)",
+      "newFood": "Nuovo alimento",
+      "noCustomFoods": "Nessun alimento personalizzato",
+      "createCustomHint": "Crea i tuoi alimenti con valori nutrizionali personalizzati",
+      "customFoodCount": "{{count}} alimenti personalizzati creati",
+      "applySetGoals": "Applica e imposta obiettivi",
+      "reset": "Reimposta",
+      "saveGoals": "Salva obiettivi"
+    },
+    "streak": {
+      "title": "La tua serie",
+      "days": "GIORNI",
+      "keepGoing": "Continua così!",
+      "nextMilestone": "Prossimo traguardo: {{days}} giorni",
+      "toGo": "Mancano {{days}}",
+      "tip1": "Il monitoraggio costante aiuta a identificare le abitudini alimentari",
+      "tip2": "Anche registrare giorni imperfetti mantiene la tua serie",
+      "tip3": "Le serie creano disciplina — la disciplina porta risultati"
+    },
+    "barcode": {
+      "cameraPermission": "L'accesso alla fotocamera è necessario per la scansione dei codici a barre.\n\nVuoi aprire le impostazioni?",
+      "openSettings": "Apri impostazioni",
+      "resumeScanner": "Riprendi scanner",
+      "pauseScanner": "Metti in pausa scanner",
+      "changeMeal": "Cambia pasto",
+      "scanBarcode": "Scansiona codice",
+      "lookingUp": "Ricerca del codice…",
+      "productFound": "Prodotto trovato!",
+      "notFound": "Non trovato — riprova",
+      "alignBarcode": "Allinea il codice a barre nel riquadro",
+      "cameraAccessDenied": "Accesso fotocamera negato",
+      "enableCamera": "Attiva la fotocamera nelle impostazioni del dispositivo",
+      "scannerPaused": "Scanner in pausa",
+      "productNotFound": "Prodotto non trovato",
+      "chooseMeal": "Scegli pasto"
+    },
+    "units": {
+      "selectUnit": "Seleziona unità",
+      "gram": "Grammo (g)",
+      "milliliter": "Millilitro (ml)",
+      "ounce": "Oncia (oz)",
+      "cup": "Tazza",
+      "tablespoon": "Cucchiaio",
+      "teaspoon": "Cucchiaino",
+      "piece": "Pezzo",
+      "slice": "Fetta",
+      "portion": "Porzione",
+      "bowl": "Ciotola",
+      "scoop": "Misurino"
+    },
+    "activity": {
+      "sedentary": "Sedentario",
+      "sedentaryDesc": "Lavoro d'ufficio, nessun esercizio",
+      "light": "Poco attivo",
+      "lightDesc": "Esercizio leggero 1–3 giorni/settimana",
+      "moderate": "Moderatamente attivo",
+      "moderateDesc": "Esercizio moderato 3–5 giorni/settimana",
+      "active": "Attivo",
+      "activeDesc": "Esercizio intenso 6–7 giorni/settimana",
+      "veryActive": "Molto attivo",
+      "veryActiveDesc": "Lavoro fisico + esercizio"
+    },
+    "goalTypes": {
+      "loseWeight": "Perdere peso",
+      "maintainWeight": "Mantenere peso",
+      "buildMuscle": "Aumentare massa"
+    },
+    "daysShort": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mer",
+      "thu": "Gio",
+      "fri": "Ven",
+      "sat": "Sab",
+      "sun": "Dom"
+    },
+    "streakMsg": {
+      "1title": "Si comincia!",
+      "1text": "Ogni viaggio inizia con un primo passo. Continua a registrare i pasti — la costanza è la chiave.",
+      "2title": "Si va avanti!",
+      "2text": "3+ giorni di fila — la tua abitudine si sta formando. Servono circa 21 giorni per creare un'abitudine duratura.",
+      "3title": "Una settimana forte!",
+      "3text": "Una settimana completa di monitoraggio! Stai sviluppando una vera consapevolezza della tua nutrizione.",
+      "4title": "Due settimane!",
+      "4text": "Hai superato la parte più difficile. La maggior parte abbandona nella prima settimana — tu sei già avanti.",
+      "5title": "Abitudine formata!",
+      "5text": "21+ giorni significa che sta diventando naturale. La tua costanza sta dando i suoi frutti.",
+      "6title": "Campione mensile!",
+      "6text": "Un mese intero di dedizione. Sei nel 5% che mantiene davvero il monitoraggio nutrizionale.",
+      "7title": "Due mesi forti!",
+      "7text": "La tua disciplina è fonte di ispirazione. I dati raccolti sono molto preziosi per capire il tuo corpo.",
+      "8title": "Serie leggendaria!",
+      "8text": "90+ giorni — il monitoraggio nutrizionale è diventato il tuo stile di vita."
+    },
+    "placeholders": {
+      "foodName": "es. Zuppa della nonna",
+      "quickAddName": "es. Cena al ristorante",
+      "calories": "es. 500"
     }
   },
   "login": {

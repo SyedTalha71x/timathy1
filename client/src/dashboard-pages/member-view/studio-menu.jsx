@@ -23,6 +23,43 @@ import toast from "../../components/shared/SharedToast"
 const StudioMenu = () => {
   const { t, i18n } = useTranslation()
   const lng = i18n.language
+
+  /** Format an ISO date string (YYYY-MM-DD) with the current locale */
+  const fmtDate = (iso, opts = { year: "numeric", month: "short", day: "numeric" }) => {
+    if (!iso) return "—"
+    const [y, m, d] = iso.split("-").map(Number)
+    if (!y || !m || !d) return "—"
+    return new Date(y, m - 1, d).toLocaleDateString(lng, opts)
+  }
+
+  /** Format a number of months in the current locale (e.g. "12 Monate", "1 mois") */
+  const fmtMonths = (n) => {
+    try { return new Intl.NumberFormat(lng, { style: "unit", unit: "month", unitDisplay: "long" }).format(n) }
+    catch { return `${n} month${n !== 1 ? "s" : ""}` }
+  }
+
+  /** The locale word for "month" (e.g. "Monat", "mois", "mes") — used for per-unit display */
+  const monthUnit = (() => {
+    try {
+      return new Intl.NumberFormat(lng, { style: "unit", unit: "month", unitDisplay: "long" })
+        .formatToParts(1).find(p => p.type === "unit")?.value || "month"
+    } catch { return "month" }
+  })()
+
+  /** Format currency in the current locale */
+  const fmtCurrency = (amount, currency = "EUR") =>
+    new Intl.NumberFormat(lng, { style: "currency", currency }).format(amount)
+
+  /** Translate an English day name coming from the API using the browser locale */
+  const localDay = (engDay) => {
+    const map = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 }
+    const idx = map[engDay]
+    if (idx === undefined) return engDay
+    // Create a date that falls on the correct weekday (2024-01-07 = Sunday)
+    const d = new Date(2024, 0, 7 + idx)
+    return d.toLocaleDateString(lng, { weekday: "long" })
+  }
+
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
 
@@ -222,7 +259,7 @@ const StudioMenu = () => {
             </div>
 
             {/* Date */}
-            <p className="text-xs text-content-faint mt-3">{viewingPost.date}</p>
+            <p className="text-xs text-content-faint mt-3">{fmtDate(viewingPost.date)}</p>
           </div>
 
           {/* Footer */}
@@ -656,7 +693,7 @@ const StudioMenu = () => {
                           }`}
                       >
                         <span className={`font-medium ${isToday ? "text-orange-400" : "text-content-secondary"}`}>
-                          {dayObj.day}
+                          {localDay(dayObj.day)}
                           {isToday && (
                             <span className="ml-2 text-[10px] bg-orange-500 px-1.5 py-0.5 rounded-full text-white">
                               {t("studioMenu.info.today")}
@@ -884,7 +921,7 @@ const StudioMenu = () => {
                           </svg>
                         </div>
                         <div>
-                          <p className="text-content-primary text-sm font-medium">{entry.date}</p>
+                          <p className="text-content-primary text-sm font-medium">{fmtDate(entry.date)}</p>
                           <p className="text-content-muted text-xs">{entry.time}</p>
                         </div>
                       </div>
@@ -946,7 +983,7 @@ const StudioMenu = () => {
                     {/* Date + Eye icon — same line */}
                     <div className="flex items-center justify-between mt-auto pt-3">
                       <p className="text-[11px] text-content-faint">
-                        {message.date}
+                        {fmtDate(message.date)}
                       </p>
                       <button
                         onClick={() => setViewingPost(message)}
@@ -993,7 +1030,7 @@ const StudioMenu = () => {
                 <div>
                   <p className="text-content-muted text-xs">{t("studioMenu.selfService.memberSince")}</p>
                   <p className="text-content-primary text-sm font-medium">
-                    {new Date(user?.createdAt).toLocaleDateString(lng, { year: "numeric", month: "short", day: "numeric" })}
+                    {fmtDate(user?.createdAt?.split("T")[0])}
                   </p>
                 </div>
               </div>
@@ -1029,23 +1066,23 @@ const StudioMenu = () => {
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
                     <span className="text-content-muted text-xs">{t("studioMenu.contract.startDate")}</span>
-                    <span className="text-content-primary text-sm">January 15, 2025</span>
+                    <span className="text-content-primary text-sm">{fmtDate("2025-01-15")}</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
                     <span className="text-content-muted text-xs">{t("studioMenu.contract.fee")}</span>
-                    <span className="text-content-primary text-sm font-bold">€79.99/month</span>
+                    <span className="text-content-primary text-sm font-bold">{fmtCurrency(79.99)}/{monthUnit}</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
                     <span className="text-content-muted text-xs">{t("studioMenu.contract.duration")}</span>
-                    <span className="text-content-primary text-sm">12 months</span>
+                    <span className="text-content-primary text-sm">{fmtMonths(12)}</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
                     <span className="text-content-muted text-xs">{t("studioMenu.contract.noticePeriod")}</span>
-                    <span className="text-content-primary text-sm">1 month</span>
+                    <span className="text-content-primary text-sm">{fmtMonths(1)}</span>
                   </div>
                   <div className="flex justify-between bg-surface-hover rounded-lg p-2.5">
                     <span className="text-content-muted text-xs">{t("studioMenu.contract.lastCancellation")}</span>
-                    <span className="text-content-primary text-sm">December 15, 2025</span>
+                    <span className="text-content-primary text-sm">{fmtDate("2025-12-15")}</span>
                   </div>
                 </div>
 
@@ -1103,7 +1140,7 @@ const StudioMenu = () => {
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <p className="text-content-primary font-medium text-sm">{t("studioMenu.selfService.currentIdlePeriod")}</p>
-                        <p className="text-content-muted text-xs mt-0.5">Vacation — Jan 20 to Feb 5, 2025</p>
+                        <p className="text-content-muted text-xs mt-0.5">{t("studioMenu.idle.vacation")} — {fmtDate("2025-01-20", { month: "short", day: "numeric" })} – {fmtDate("2025-02-05")}</p>
                       </div>
                       <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs flex-shrink-0">{t("studioMenu.selfService.active")}</span>
                     </div>
@@ -1113,7 +1150,7 @@ const StudioMenu = () => {
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <p className="text-content-primary font-medium text-sm">{t("studioMenu.selfService.pastIdlePeriod")}</p>
-                        <p className="text-content-muted text-xs mt-0.5">Medical — Dec 1 to Dec 15, 2024</p>
+                        <p className="text-content-muted text-xs mt-0.5">{t("studioMenu.idle.medical")} — {fmtDate("2024-12-01", { month: "short", day: "numeric" })} – {fmtDate("2024-12-15")}</p>
                       </div>
                       <span className="bg-surface-button/20 text-content-muted px-2 py-0.5 rounded text-xs flex-shrink-0">{t("studioMenu.selfService.completed")}</span>
                     </div>
@@ -1165,7 +1202,7 @@ const StudioMenu = () => {
                       <div className="bg-surface-hover rounded-lg p-2.5">
                         <p className="text-content-muted text-[11px]">{t("studioMenu.personal.dateOfBirth")}</p>
                         <p className="text-content-primary text-sm">
-                          {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString(lng, { year: "numeric", month: "short", day: "numeric" }) : "—"}
+                          {fmtDate(user?.dateOfBirth?.split("T")[0])}
                         </p>
                       </div>
                       <div className="bg-surface-hover rounded-lg p-2.5">

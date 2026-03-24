@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { haptic } from "../../../utils/haptic";
 import CustomSelect from "../../../components/shared/CustomSelect";
 import DatePickerField from "../../../components/shared/DatePickerField";
@@ -17,6 +18,7 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
   const [fileError, setFileError] = useState(null);
   const fileInputRef = useRef(null);
 
+  const { t } = useTranslation();
   if (!show) return null;
 
   const formatDate = (str) => {
@@ -34,11 +36,11 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
   const validateAndSetFile = (f) => {
     setFileError(null);
     if (!ACCEPTED_TYPES.includes(f.type)) {
-      setFileError("Only PDF, JPG and PNG files are allowed");
+      setFileError(t("studioMenu.popup.fileTypeError"));
       return;
     }
     if (f.size > MAX_FILE_SIZE) {
-      setFileError("File must be smaller than 10MB");
+      setFileError(t("studioMenu.popup.fileSizeError"));
       return;
     }
     haptic.light();
@@ -76,7 +78,7 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
     <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
       <div className="bg-surface-card rounded-xl max-w-md w-full max-h-[85dvh] sm:max-h-[80dvh] border border-border shadow-2xl flex flex-col">
         <div className="flex justify-between items-center p-4 sm:p-5 md:p-6 pb-3 sm:pb-4 flex-shrink-0">
-          <h3 className="text-lg sm:text-xl font-bold text-content-primary">Apply for Idle Period</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-content-primary">{t("studioMenu.popup.applyIdlePeriod")}</h3>
           <button onClick={() => { haptic.light(); onClose(); }} className="text-content-muted hover:text-content-primary transition-colors">
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -87,26 +89,26 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
         <div className="flex-1 overflow-y-auto px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6">
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Reason for idle period<span className="text-accent-red ml-1">*</span></label>
+              <label className="text-sm text-content-secondary block mb-2">{t("studioMenu.popup.idleReason")}<span className="text-accent-red ml-1">*</span></label>
               <CustomSelect
                 name="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Select reason..."
+                placeholder={t("studioMenu.popup.selectReason")}
                 options={[
-                  { value: "Vacation", label: "Vacation" },
-                  { value: "Medical", label: "Medical" },
-                  { value: "Business Travel", label: "Business Travel" },
-                  { value: "Personal", label: "Personal" },
+                  { value: "Vacation", label: t("studioMenu.popup.vacation") },
+                  { value: "Medical", label: t("studioMenu.popup.medical") },
+                  { value: "Business Travel", label: t("studioMenu.popup.businessTravel") },
+                  { value: "Personal", label: t("studioMenu.popup.personal") },
                 ]}
               />
             </div>
 
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Start Date<span className="text-accent-red ml-1">*</span></label>
+              <label className="text-sm text-content-secondary block mb-2">{t("studioMenu.popup.startDate")}<span className="text-accent-red ml-1">*</span></label>
               <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
                 <span className={startDate ? "text-content-primary" : "text-content-faint"}>
-                  {startDate ? formatDate(startDate) : "Select date"}
+                  {startDate ? formatDate(startDate) : t("studioMenu.popup.selectDate")}
                 </span>
                 <DatePickerField
                   value={startDate}
@@ -116,24 +118,24 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
             </div>
 
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Duration<span className="text-accent-red ml-1">*</span></label>
+              <label className="text-sm text-content-secondary block mb-2">{t("studioMenu.popup.idleDuration")}<span className="text-accent-red ml-1">*</span></label>
               <CustomSelect
                 name="duration"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                placeholder="Select duration..."
+                placeholder={t("studioMenu.popup.selectDuration")}
                 options={[
-                  { value: "1 week", label: "1 week" },
-                  { value: "2 weeks", label: "2 weeks" },
-                  { value: "1 month", label: "1 month" },
-                  { value: "2 months", label: "2 months" },
-                  { value: "3 months", label: "3 months" },
+                  { value: "1 week", label: t("studioMenu.popup.1week") },
+                  { value: "2 weeks", label: t("studioMenu.popup.2weeks") },
+                  { value: "1 month", label: t("studioMenu.popup.1month") },
+                  { value: "2 months", label: t("studioMenu.popup.2months") },
+                  { value: "3 months", label: t("studioMenu.popup.3months") },
                 ]}
               />
             </div>
 
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Document</label>
+              <label className="text-sm text-content-secondary block mb-2">{t("studioMenu.popup.document")}</label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -159,10 +161,10 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
                   </svg>
                   {/* Mobile: "Click to upload" — Desktop: "Click to upload or drag and drop" */}
                   <p className="text-content-muted text-xs sm:text-sm">
-                    <span className="sm:hidden">Tap to upload</span>
-                    <span className="hidden sm:inline">Click to upload or drag and drop</span>
+                    <span className="sm:hidden">{t("studioMenu.popup.tapToUpload")}</span>
+                    <span className="hidden sm:inline">{t("studioMenu.popup.clickToUpload")}</span>
                   </p>
-                  <p className="text-content-faint text-[10px] sm:text-xs">PDF, JPG, PNG up to 10MB</p>
+                  <p className="text-content-faint text-[10px] sm:text-xs">{t("studioMenu.popup.fileTypes")}</p>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-3">
@@ -188,7 +190,7 @@ const IdlePeriodFormPopup = ({ show, onClose }) => {
 
             <button onClick={() => { haptic.success(); }}
               className="w-full bg-primary hover:bg-primary-hover text-white py-2.5 sm:py-3 px-4 rounded-xl transition-colors text-sm sm:text-base">
-              Apply for Idle Period
+              {t("studioMenu.popup.applyIdlePeriod")}
             </button>
           </div>
         </div>

@@ -1,28 +1,29 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef, useCallback } from "react"
 import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-]
-const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-const DAY_HEADERS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+/** Generate localized month names */
+const getMonthNames = (lng, style = "long") =>
+  Array.from({ length: 12 }, (_, i) => new Date(2020, i, 1).toLocaleDateString(lng, { month: style }))
 
-/**
- * Icon-only date picker. Renders a calendar icon button that opens a
- * portal-based calendar popup. The parent controls the surrounding field
- * styling and display value — this component only provides the icon trigger
- * and the calendar dropdown.
- *
- * Props:
- * - value        YYYY-MM-DD string (or "")
- * - onChange(str) callback with YYYY-MM-DD or ""
- * - iconSize     optional, default 16
- * - className    optional extra classes on the icon button
- */
+/** Generate localized 2-letter day headers starting Monday */
+const getDayHeaders = (lng) => {
+  // 2024-01-01 = Monday
+  return Array.from({ length: 7 }, (_, i) =>
+    new Date(2024, 0, 1 + i).toLocaleDateString(lng, { weekday: "short" }).slice(0, 2)
+  )
+}
+
 const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDate = "", maxDate = "" }) => {
+  const { t, i18n } = useTranslation()
+  const lng = i18n.language
+
+  const MONTH_NAMES = getMonthNames(lng, "long")
+  const MONTH_SHORT = getMonthNames(lng, "short")
+  const DAY_HEADERS = getDayHeaders(lng)
+
   const [open, setOpen] = useState(false)
   const [view, setView] = useState("days")
   const [viewDate, setViewDate] = useState(() => {
@@ -105,23 +106,13 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
   const todayYear = new Date().getFullYear()
   const todayMonth = new Date().getMonth()
 
-  // minDate support: parse "YYYY-MM-DD" into components
   const minYear = minDate ? +minDate.split('-')[0] : null
   const minMonth = minDate ? +minDate.split('-')[1] - 1 : null
-  const minDay = minDate ? +minDate.split('-')[2] : null
-  const isBeforeMin = (dateStr) => {
-    if (!minDate) return false
-    return dateStr < minDate
-  }
+  const isBeforeMin = (dateStr) => minDate ? dateStr < minDate : false
 
-  // maxDate support: parse "YYYY-MM-DD" into components
   const maxYear = maxDate ? +maxDate.split('-')[0] : null
   const maxMonth = maxDate ? +maxDate.split('-')[1] - 1 : null
-  const maxDay = maxDate ? +maxDate.split('-')[2] : null
-  const isAfterMax = (dateStr) => {
-    if (!maxDate) return false
-    return dateStr > maxDate
-  }
+  const isAfterMax = (dateStr) => maxDate ? dateStr > maxDate : false
 
   const handleSelect = (day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -261,10 +252,10 @@ const DatePickerField = ({ value, onChange, iconSize = 16, className = "", minDa
         <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
           <button type="button"
             onClick={() => { const now = new Date(); setViewDate(now); setView("days"); onChange(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`); setOpen(false) }}
-            className="text-xs text-primary hover:text-primary-hover transition-colors">Today</button>
+            className="text-xs text-primary hover:text-primary-hover transition-colors">{t("common.today")}</button>
           {value && (
             <button type="button" onClick={() => { onChange(""); setOpen(false) }}
-              className="text-xs text-content-faint hover:text-red-400 transition-colors">Clear</button>
+              className="text-xs text-content-faint hover:text-red-400 transition-colors">{t("common.clear")}</button>
           )}
         </div>
       </div>

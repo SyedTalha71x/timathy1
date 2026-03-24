@@ -13,7 +13,11 @@
     "by": "par {{name}}",
     "perWeek": "{{count}}x par semaine",
     "logout": "Déconnexion",
-    "more": "Plus"
+    "more": "Plus",
+    "today": "Aujourd'hui",
+    "clear": "Effacer",
+    "noOptions": "Aucune option trouvée",
+    "nSelected": "{{count}} sélectionnés"
   },
   "languages": {
     "en": "Anglais",
@@ -84,7 +88,12 @@
       "notifyMe": "Me prévenir",
       "watchingBtn": "Surveillé",
       "watchingHint": "Vous serez notifié quand une place se libère. Appuyez sur 'Surveillé' pour arrêter.",
-      "fullHint": "Ce cours est complet. Appuyez sur 'Me prévenir' pour être alerté quand une place se libère."
+      "fullHint": "Ce cours est complet. Appuyez sur 'Me prévenir' pour être alerté quand une place se libère.",
+      "schedule": "Fréquence",
+      "recurring": "Récurrent",
+      "availability": "Disponibilité",
+      "close": "Fermer",
+      "cancel": "Annuler"
     },
     "actionSheet": {
       "addToCalendar": "Ajouter au calendrier",
@@ -102,6 +111,20 @@
     },
     "notification": {
       "startsIn": "Commence dans {{hours}}h — {{time}} à {{room}}"
+    },
+    "cancelModal": {
+      "title": "Annuler l'inscription",
+      "description": "Êtes-vous sûr de vouloir annuler votre inscription à ce cours ?",
+      "warning": "Votre place sera libérée et disponible pour d'autres membres. Vous pourrez vous réinscrire plus tard s'il reste des places.",
+      "keepEnrollment": "Garder l'inscription"
+    },
+    "enrollModal": {
+      "title": "Confirmer l'inscription",
+      "enrollmentInfo": "Infos d'inscription",
+      "currentParticipants": "Participants actuels",
+      "afterEnrollment": "Après inscription",
+      "spotsRemaining": "Places restantes",
+      "confirmEnrollment": "Confirmer l'inscription"
     }
   },
   "training": {
@@ -234,6 +257,28 @@
     },
     "calendar": {
       "permissionRequired": "L'accès au calendrier est requis. Veuillez l'activer dans Réglages > OrgaGym > Calendrier."
+    },
+    "bookingModal": {
+      "title": "Confirmer la réservation",
+      "contingentInfo": "Information sur le contingent",
+      "currentContingent": "Contingent actuel",
+      "afterBooking": "Après réservation",
+      "confirm": "Confirmer",
+      "dateTime": "{{day}} {{month}} {{year}} à {{start}} - {{end}}"
+    },
+    "cancelModal": {
+      "cancelRequest": "Annuler la demande",
+      "cancelBooking": "Annuler la réservation",
+      "confirmCancelRequest": "Êtes-vous sûr de vouloir annuler cette demande ?",
+      "confirmCancelBooking": "Êtes-vous sûr de vouloir annuler cette réservation ?",
+      "keep": "Garder",
+      "confirmBtn": "Annuler"
+    },
+    "requestModal": {
+      "title": "Demander un rendez-vous",
+      "requestInfo": "Information sur la demande",
+      "requestDesc": "Ce créneau n'est pas disponible actuellement. Votre demande sera envoyée au coach pour approbation.",
+      "sendRequest": "Envoyer la demande"
     }
   },
   "studioMenu": {
@@ -323,6 +368,112 @@
       "addressFailed": "Échec de la mise à jour de l'adresse",
       "contactUpdated": "Coordonnées mises à jour !",
       "contactFailed": "Échec de la mise à jour des coordonnées"
+    },
+    "forms": {
+      "requestChange": "Demander une modification",
+      "select": "Sélectionner",
+      "selectDate": "Sélectionner une date",
+      "birthday": "Anniversaire",
+      "male": "Masculin",
+      "female": "Féminin",
+      "other": "Autre",
+      "street": "Rue",
+      "houseNumber": "Numéro",
+      "zipCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays",
+      "loadingCountries": "Chargement des pays...",
+      "selectCountry": "Sélectionner un pays",
+      "phone": "Téléphone",
+      "managingDirector": "Directeur général",
+      "commercialRegister": "Registre du commerce",
+      "notProvided": "Non renseigné",
+      "bankDetails": "Coordonnées bancaires",
+      "accountHolder": "Titulaire du compte",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "creditInstitute": "Établissement bancaire",
+      "sepaConsent": "J'autorise FitZone Studio à prélever les paiements sur mon compte par prélèvement SEPA en utilisant l'identifiant créancier DE02FZS00000123456. J'autorise également mon établissement bancaire à honorer ces prélèvements."
+    },
+    "cancel": {
+      "info": "Information de résiliation",
+      "effective": "Résiliation effective",
+      "description": "Si vous résiliez maintenant, votre abonnement restera actif jusqu'à la date effective. Vous continuerez à avoir accès à toutes les installations et services jusqu'à cette date.",
+      "keepMembership": "Garder l'abonnement",
+      "confirmCancellation": "Confirmer la résiliation"
+    },
+    "idle": {
+      "applyTitle": "Demander une période d'inactivité",
+      "reason": "Motif de la période d'inactivité",
+      "selectReason": "Sélectionner un motif...",
+      "startDate": "Date de début",
+      "duration": "Durée",
+      "selectDuration": "Sélectionner la durée...",
+      "document": "Document",
+      "vacation": "Vacances",
+      "medical": "Médical",
+      "businessTravel": "Voyage d'affaires",
+      "personal": "Personnel",
+      "1week": "1 semaine",
+      "2weeks": "2 semaines",
+      "1month": "1 mois",
+      "2months": "2 mois",
+      "3months": "3 mois",
+      "tapToUpload": "Appuyez pour télécharger",
+      "clickToUpload": "Cliquez ou glissez-déposez",
+      "fileHint": "PDF, JPG, PNG jusqu'à 10 Mo",
+      "fileTypeError": "Seuls les fichiers PDF, JPG et PNG sont autorisés",
+      "fileSizeError": "Le fichier doit être inférieur à 10 Mo"
+    },
+    "popup": {
+      "requestChange": "Demander une modification",
+      "select": "Sélectionner",
+      "selectDate": "Sélectionner une date",
+      "selectCountry": "Sélectionner un pays",
+      "male": "Masculin",
+      "female": "Féminin",
+      "other": "Autre",
+      "street": "Rue",
+      "houseNumber": "Numéro",
+      "zipCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays",
+      "phone": "Téléphone",
+      "managingDirector": "Directeur général",
+      "commercialRegister": "Registre du commerce",
+      "notProvided": "Non renseigné",
+      "bankDetails": "Coordonnées bancaires",
+      "accountHolder": "Titulaire du compte",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "creditInstitute": "Établissement bancaire",
+      "sepaMandate": "J'autorise FitZone Studio à prélever les paiements sur mon compte par prélèvement SEPA en utilisant l'identifiant créancier DE02FZS00000123456. J'autorise également mon établissement bancaire à honorer ces prélèvements.",
+      "cancellationInfo": "Information de résiliation",
+      "cancellationEffective": "Résiliation effective",
+      "cancellationDesc": "Si vous résiliez maintenant, votre abonnement restera actif jusqu'au 15 janvier 2026. Vous continuerez à avoir accès à toutes les installations et services jusqu'à cette date.",
+      "keepMembership": "Garder l'abonnement",
+      "confirmCancellation": "Confirmer la résiliation",
+      "applyIdlePeriod": "Demander une période d'inactivité",
+      "idleReason": "Motif de la période d'inactivité",
+      "selectReason": "Sélectionner un motif...",
+      "startDate": "Date de début",
+      "idleDuration": "Durée",
+      "selectDuration": "Sélectionner la durée...",
+      "document": "Document",
+      "tapToUpload": "Appuyez pour télécharger",
+      "clickToUpload": "Cliquez ou glissez-déposez",
+      "fileTypes": "PDF, JPG, PNG jusqu'à 10 Mo",
+      "fileTypeError": "Seuls les fichiers PDF, JPG et PNG sont autorisés",
+      "fileSizeError": "Le fichier doit être inférieur à 10 Mo",
+      "vacation": "Vacances",
+      "medical": "Médical",
+      "businessTravel": "Voyage d'affaires",
+      "personal": "Personnel",
+      "1week": "1 semaine",
+      "2weeks": "2 semaines",
+      "1month": "1 mois",
+      "2months": "2 mois",
+      "3months": "3 mois"
     }
   },
   "settings": {
@@ -515,7 +666,165 @@
       "daysWithin": "jours dans ±10%",
       "keepItUp": "Continuez comme ça !",
       "deficit": "Déficit (kcal)",
-      "surplus": "Excédent (kcal)"
+      "surplus": "Excédent (kcal)",
+      "week1": "Semaine 1",
+      "week2": "Semaine 2",
+      "week3": "Semaine 3",
+      "thisWeek": "Cette semaine"
+    },
+    "meals": {
+      "breakfast": "Petit-déjeuner",
+      "lunch": "Déjeuner",
+      "dinner": "Dîner",
+      "snacks": "Collations"
+    },
+    "customFood": {
+      "editTitle": "Modifier l'aliment personnalisé",
+      "createTitle": "Créer un aliment personnalisé",
+      "foodName": "Nom de l'aliment",
+      "servingSize": "Taille de portion",
+      "unit": "Unité",
+      "caloriesKcal": "Calories (kcal)",
+      "saveChanges": "Enregistrer les modifications",
+      "saveCustomFood": "Enregistrer l'aliment personnalisé"
+    },
+    "editQuantity": {
+      "title": "Modifier la quantité"
+    },
+    "quickAdd": {
+      "description": "Ajoutez des calories rapidement — idéal pour les repas au restaurant ou les estimations.",
+      "nameOptional": "Nom (optionnel)",
+      "addTo": "Ajouter à {{meal}}"
+    },
+    "addFood": {
+      "addTo": "Ajouter à {{meal}}",
+      "searchPlaceholder": "Rechercher des aliments...",
+      "barcode": "Code-barres",
+      "createFood": "Créer un aliment",
+      "quantity": "Quantité",
+      "noFoods": "Aucun aliment trouvé",
+      "suggestions": "Suggestions",
+      "favorites": "Favoris",
+      "recent": "Récents",
+      "noFavorites": "Aucun favori",
+      "starHint": "Marquez des aliments en favoris lors de l'ajout",
+      "custom": "Personnalisés"
+    },
+    "settings": {
+      "profile": "Profil",
+      "goals": "Objectifs",
+      "myFoods": "Mes aliments",
+      "profileDesc": "Vos mesures corporelles nous aident à calculer des objectifs quotidiens précis grâce à la formule de Mifflin-St Jeor.",
+      "gender": "Genre",
+      "age": "Âge",
+      "height": "Taille (cm)",
+      "weight": "Poids (kg)",
+      "activityLevel": "Niveau d'activité",
+      "goal": "Objectif",
+      "calculatedTargets": "Objectifs quotidiens calculés",
+      "goalsDesc": "Ajustez vos objectifs quotidiens manuellement ou utilisez le calcul de votre profil.",
+      "caloriesKcal": "Calories (kcal)",
+      "proteinG": "Protéines (g)",
+      "carbsG": "Glucides (g)",
+      "fatG": "Lipides (g)",
+      "waterMl": "Eau (ml)",
+      "newFood": "Nouvel aliment",
+      "noCustomFoods": "Aucun aliment personnalisé",
+      "createCustomHint": "Créez vos propres aliments avec des valeurs nutritionnelles personnalisées",
+      "customFoodCount": "{{count}} aliments personnalisés créés",
+      "applySetGoals": "Appliquer et définir les objectifs",
+      "reset": "Réinitialiser",
+      "saveGoals": "Enregistrer les objectifs"
+    },
+    "streak": {
+      "title": "Votre série",
+      "days": "JOURS",
+      "keepGoing": "Continuez !",
+      "nextMilestone": "Prochain jalon : {{days}} jours",
+      "toGo": "Encore {{days}}",
+      "tip1": "Un suivi régulier aide à identifier les habitudes alimentaires",
+      "tip2": "Même les jours imparfaits comptent pour votre série",
+      "tip3": "Les séries forgent la discipline — la discipline apporte des résultats"
+    },
+    "barcode": {
+      "cameraPermission": "L'accès à la caméra est requis pour scanner les codes-barres.\n\nVoulez-vous ouvrir les paramètres ?",
+      "openSettings": "Ouvrir les paramètres",
+      "resumeScanner": "Reprendre le scanner",
+      "pauseScanner": "Mettre en pause le scanner",
+      "changeMeal": "Changer de repas",
+      "scanBarcode": "Scanner le code",
+      "lookingUp": "Recherche du code…",
+      "productFound": "Produit trouvé !",
+      "notFound": "Non trouvé — réessayez",
+      "alignBarcode": "Alignez le code-barres dans le cadre",
+      "cameraAccessDenied": "Accès caméra refusé",
+      "enableCamera": "Activez la caméra dans les paramètres de l'appareil",
+      "scannerPaused": "Scanner en pause",
+      "productNotFound": "Produit non trouvé",
+      "chooseMeal": "Choisir le repas"
+    },
+    "units": {
+      "selectUnit": "Choisir unité",
+      "gram": "Gramme (g)",
+      "milliliter": "Millilitre (ml)",
+      "ounce": "Once (oz)",
+      "cup": "Tasse",
+      "tablespoon": "Cuillère à soupe",
+      "teaspoon": "Cuillère à café",
+      "piece": "Pièce",
+      "slice": "Tranche",
+      "portion": "Portion",
+      "bowl": "Bol",
+      "scoop": "Dosette"
+    },
+    "activity": {
+      "sedentary": "Sédentaire",
+      "sedentaryDesc": "Travail de bureau, pas de sport",
+      "light": "Peu actif",
+      "lightDesc": "Sport léger 1–3 jours/semaine",
+      "moderate": "Modérément actif",
+      "moderateDesc": "Sport modéré 3–5 jours/semaine",
+      "active": "Actif",
+      "activeDesc": "Sport intense 6–7 jours/semaine",
+      "veryActive": "Très actif",
+      "veryActiveDesc": "Travail physique + sport"
+    },
+    "goalTypes": {
+      "loseWeight": "Perdre du poids",
+      "maintainWeight": "Maintenir le poids",
+      "buildMuscle": "Prise de muscle"
+    },
+    "daysShort": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mer",
+      "thu": "Jeu",
+      "fri": "Ven",
+      "sat": "Sam",
+      "sun": "Dim"
+    },
+    "streakMsg": {
+      "1title": "C'est parti !",
+      "1text": "Chaque voyage commence par un premier pas. Continuez à enregistrer vos repas — la régularité est la clé.",
+      "2title": "L'élan se construit !",
+      "2text": "3+ jours d'affilée — votre habitude se forme. Il faut environ 21 jours pour créer une habitude durable.",
+      "3title": "Une semaine accomplie !",
+      "3text": "Une semaine complète de suivi ! Vous développez une vraie conscience de votre nutrition.",
+      "4title": "Deux semaines !",
+      "4text": "Vous avez passé le plus difficile. La plupart abandonnent la première semaine — vous êtes déjà en avance.",
+      "5title": "Habitude formée !",
+      "5text": "21+ jours signifie que cela devient naturel. Votre régularité porte ses fruits.",
+      "6title": "Champion mensuel !",
+      "6text": "Un mois entier de dévouement. Vous faites partie des 5% qui maintiennent le suivi nutritionnel.",
+      "7title": "Deux mois solides !",
+      "7text": "Votre discipline est inspirante. Les données recueillies sont précieuses pour comprendre votre corps.",
+      "8title": "Série légendaire !",
+      "8text": "90+ jours — le suivi nutritionnel est devenu votre mode de vie."
+    },
+    "placeholders": {
+      "foodName": "ex. Soupe de mamie",
+      "quickAddName": "ex. Dîner au restaurant",
+      "calories": "ex. 500"
     }
   },
   "login": {

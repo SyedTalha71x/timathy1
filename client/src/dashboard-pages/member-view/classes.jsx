@@ -94,7 +94,7 @@ const fmtDate = (d) => {
 
 const fmtDateDisplay = (ds, lng) => {
   if (!ds) return ""
-  const d = typeof ds === "string" ? new Date(ds) : ds
+  const d = typeof ds === "string" ? (() => { const [y,m,day] = ds.split("-").map(Number); return new Date(y, m-1, day) })() : ds
   if (isNaN(d.getTime())) return ds
   const locale = lng || "en"
   return d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" })
@@ -102,7 +102,7 @@ const fmtDateDisplay = (ds, lng) => {
 
 const fmtDateLong = (ds, lng) => {
   if (!ds) return ""
-  const d = typeof ds === "string" ? new Date(ds) : ds
+  const d = typeof ds === "string" ? (() => { const [y,m,day] = ds.split("-").map(Number); return new Date(y, m-1, day) })() : ds
   if (isNaN(d.getTime())) return ds
   const locale = lng || "en"
   return d.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric", year: "numeric" })
@@ -652,7 +652,7 @@ const Classes = () => {
                   onClick={() => { setShowInfoModal(false); handleCancelEnrollment(infoModalData) }}
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-xl transition-colors"
                 >
-                  <span className="sm:hidden">{t("classes.infoModal.cancel")}</span><span className="hidden sm:inline">{t("classes.infoModal.cancelEnrollment")}</span>
+                  <span className="lg:hidden">{t("classes.infoModal.cancel")}</span><span className="hidden sm:inline">{t("classes.infoModal.cancelEnrollment")}</span>
                 </button>
               ) : isFull(infoModalData) ? (
                 isWatching(infoModalData) ? (
@@ -1125,13 +1125,12 @@ const Classes = () => {
       {/* MY CLASS ACTION SHEET */}
       {actionSheetClass && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="fixed inset-0 z-[60]"
           onClick={() => setActionSheetClass(null)}
         >
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
-            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            className="absolute bottom-0 left-0 right-0 lg:bottom-auto lg:top-1/2 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-lg"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => {
               e.currentTarget._startY = e.touches[0].clientY
@@ -1156,48 +1155,56 @@ const Classes = () => {
               }
             }}
           >
-            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+            <div className="bg-surface-card rounded-t-2xl lg:rounded-xl pt-3 lg:pt-0">
+              <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-2 lg:hidden" />
 
-            <div className="px-4 pb-3 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-1 h-10 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: actionSheetClass.color || "#6c5ce7" }}
-                />
-                <div className="min-w-0">
-                  <h4 className="text-sm font-semibold text-content-primary truncate">{actionSheetClass.typeName}</h4>
-                  <p className="text-xs text-content-faint">
-                    {fmtDateDisplay(actionSheetClass.date, lng)} · {actionSheetClass.startTime} – {actionSheetClass.endTime}
-                  </p>
+              <div className="px-4 lg:px-6 pb-3 lg:pb-4 lg:pt-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-1 lg:w-1.5 h-10 lg:h-12 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: actionSheetClass.color || "#6c5ce7" }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm lg:text-base font-semibold text-content-primary truncate">{actionSheetClass.typeName}</h4>
+                    <p className="text-xs lg:text-sm text-content-faint">
+                      {fmtDateDisplay(actionSheetClass.date, lng)} · {actionSheetClass.startTime} – {actionSheetClass.endTime}
+                    </p>
+                  </div>
+                  <button onClick={() => setActionSheetClass(null)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <div className="p-3 pb-4 space-y-1">
-              <button
-                onClick={() => addToCalendar(actionSheetClass)}
-                className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
-              >
-                <CalendarPlus className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">{t("classes.actionSheet.addToCalendar")}</p>
-                  <p className="text-xs text-content-faint">{t("classes.actionSheet.addToCalendarDesc")}</p>
-                </div>
-              </button>
+              <div className="p-3 lg:p-4 space-y-1 lg:space-y-2">
+                <button
+                  onClick={() => addToCalendar(actionSheetClass)}
+                  className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                >
+                  <CalendarPlus className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                  <div>
+                    <p className="text-sm lg:text-base font-medium">{t("classes.actionSheet.addToCalendar")}</p>
+                    <p className="text-xs lg:text-sm text-content-faint">{t("classes.actionSheet.addToCalendarDesc")}</p>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => {
-                  setActionSheetClass(null)
-                  handleCancelEnrollment(actionSheetClass)
-                }}
-                className="w-full text-left px-4 py-3.5 hover:bg-red-500/10 active:bg-red-500/10 rounded-xl text-red-400 flex items-center gap-3 transition-colors"
-              >
-                <X className="w-5 h-5" />
-                <div>
-                  <p className="text-sm font-medium">{t("classes.actionSheet.cancelEnrollment")}</p>
-                  <p className="text-xs text-red-400/60">{t("classes.actionSheet.cancelEnrollmentDesc")}</p>
-                </div>
-              </button>
+                <button
+                  onClick={() => {
+                    setActionSheetClass(null)
+                    handleCancelEnrollment(actionSheetClass)
+                  }}
+                  className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-red-500/10 active:bg-red-500/10 rounded-xl text-red-400 flex items-center gap-3 lg:gap-4 transition-colors"
+                >
+                  <X className="w-5 h-5 lg:w-6 lg:h-6" />
+                  <div>
+                    <p className="text-sm lg:text-base font-medium">{t("classes.actionSheet.cancelEnrollment")}</p>
+                    <p className="text-xs lg:text-sm text-red-400/60">{t("classes.actionSheet.cancelEnrollmentDesc")}</p>
+                  </div>
+                </button>
+
+                {/* Spacer for mobile bottom bar */}
+                <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
+              </div>
             </div>
           </div>
         </div>
@@ -1206,13 +1213,12 @@ const Classes = () => {
       {/* CALENDAR SHEET (after enrollment) */}
       {calendarSheetClass && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="fixed inset-0 z-[60]"
           onClick={() => setCalendarSheetClass(null)}
         >
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
-            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            className="absolute bottom-0 left-0 right-0 lg:bottom-auto lg:top-1/2 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-lg"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => {
               e.currentTarget._startY = e.touches[0].clientY
@@ -1237,38 +1243,46 @@ const Classes = () => {
               }
             }}
           >
-            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+            <div className="bg-surface-card rounded-t-2xl lg:rounded-xl pt-3 lg:pt-0">
+              <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-2 lg:hidden" />
 
-            <div className="px-4 pb-3 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-1 h-10 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: calendarSheetClass.color || "#6c5ce7" }}
-                />
-                <div className="min-w-0">
-                  <h4 className="text-sm font-semibold text-content-primary truncate">{calendarSheetClass.typeName}</h4>
-                  <p className="text-xs text-content-faint">
-                    {fmtDateDisplay(calendarSheetClass.date, lng)} · {calendarSheetClass.startTime} – {calendarSheetClass.endTime}
-                  </p>
+              <div className="px-4 lg:px-6 pb-3 lg:pb-4 lg:pt-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-1 lg:w-1.5 h-10 lg:h-12 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: calendarSheetClass.color || "#6c5ce7" }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm lg:text-base font-semibold text-content-primary truncate">{calendarSheetClass.typeName}</h4>
+                    <p className="text-xs lg:text-sm text-content-faint">
+                      {fmtDateDisplay(calendarSheetClass.date, lng)} · {calendarSheetClass.startTime} – {calendarSheetClass.endTime}
+                    </p>
+                  </div>
+                  <button onClick={() => setCalendarSheetClass(null)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <div className="p-3 pb-4">
-              <button
-                onClick={() => {
-                  const cls = calendarSheetClass
-                  setCalendarSheetClass(null)
-                  addToCalendar(cls)
-                }}
-                className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
-              >
-                <CalendarPlus className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">{t("classes.actionSheet.addToCalendar")}</p>
-                  <p className="text-xs text-content-faint">{t("classes.actionSheet.addToCalendarDesc")}</p>
-                </div>
-              </button>
+              <div className="p-3 lg:p-4">
+                <button
+                  onClick={() => {
+                    const cls = calendarSheetClass
+                    setCalendarSheetClass(null)
+                    addToCalendar(cls)
+                  }}
+                  className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                >
+                  <CalendarPlus className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                  <div>
+                    <p className="text-sm lg:text-base font-medium">{t("classes.actionSheet.addToCalendar")}</p>
+                    <p className="text-xs lg:text-sm text-content-faint">{t("classes.actionSheet.addToCalendarDesc")}</p>
+                  </div>
+                </button>
+
+                {/* Spacer for mobile bottom bar */}
+                <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
+              </div>
             </div>
           </div>
         </div>

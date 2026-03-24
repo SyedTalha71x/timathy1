@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
+import { useTranslation } from "react-i18next"
 
 const BookingModal = ({
   show,
@@ -13,31 +14,37 @@ const BookingModal = ({
   selectedTimeSlot,
   months,
 }) => {
+  const { t } = useTranslation()
   if (!show) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-surface-card rounded-xl p-4 md:p-6 max-w-md w-full">
-        <h3 className="text-lg font-semibold text-content-primary mb-4">Confirm Booking</h3>
+        <h3 className="text-lg font-semibold text-content-primary mb-4">{t("appointments.bookingModal.title")}</h3>
 
         <div className="space-y-4 mb-6">
           <div className="bg-surface-hover rounded-xl p-4">
             <p className="text-content-primary font-medium text-sm">{selectedService?.name}</p>
             <p className="text-content-muted text-xs mt-1">
-              {months[selectedMonth]} {selectedDate}, {selectedYear} at{" "}
-              {selectedTimeSlot?.start} - {selectedTimeSlot?.end}
+              {t("appointments.bookingModal.dateTime", {
+                month: months[selectedMonth],
+                day: selectedDate,
+                year: selectedYear,
+                start: selectedTimeSlot?.start,
+                end: selectedTimeSlot?.end,
+              })}
             </p>
           </div>
 
           <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
-            <h4 className="text-primary font-medium mb-2 text-sm">Contingent Information</h4>
+            <h4 className="text-primary font-medium mb-2 text-sm">{t("appointments.bookingModal.contingentInfo")}</h4>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-content-muted">Current Contingent:</span>
+                <span className="text-content-muted">{t("appointments.bookingModal.currentContingent")}</span>
                 <span className="text-content-primary">{selectedService?.contingentUsage}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-content-muted">After Booking:</span>
+                <span className="text-content-muted">{t("appointments.bookingModal.afterBooking")}</span>
                 <span className="text-content-primary">{selectedService?.contingentUsage - 1}</span>
               </div>
             </div>
@@ -49,13 +56,13 @@ const BookingModal = ({
             onClick={onClose}
             className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary transition-colors text-sm"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onConfirm}
             className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white transition-colors text-sm"
           >
-            Confirm
+            {t("appointments.bookingModal.confirm")}
           </button>
         </div>
       </div>

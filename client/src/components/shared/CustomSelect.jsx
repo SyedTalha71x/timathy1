@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { ChevronDown, Check } from "lucide-react"
 import { createPortal } from "react-dom"
 
@@ -37,6 +38,8 @@ const CustomSelect = ({
   multi = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const { t } = useTranslation()
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024)
   const [search, setSearch] = useState("")
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const triggerRef = useRef(null)
@@ -54,7 +57,7 @@ const CustomSelect = ({
       ? placeholder
       : multiValue.length === 1
         ? options.find(opt => opt.value === multiValue[0])?.label || multiValue[0]
-        : `${multiValue.length} selected`
+        : t("common.nSelected", { count: multiValue.length })
     : selectedOption ? selectedOption.label : ""
 
   const filteredOptions = searchable && search
@@ -136,6 +139,14 @@ const CustomSelect = ({
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [isOpen])
+
+  // Track screen size for responsive searchable behavior
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)")
+    const onChange = (e) => setIsMobile(e.matches)
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
 
   // Reposition on scroll / resize
   useEffect(() => {
@@ -259,15 +270,15 @@ const CustomSelect = ({
 
       {/* Dropdown via portal */}
       {isOpen && createPortal(
-        searchable ? (
-          /* Searchable: fullscreen overlay — keyboard-proof */
+        searchable && isMobile ? (
+          /* Mobile searchable: fullscreen overlay — keyboard-proof */
           <div
             ref={dropdownRef}
             className="fixed inset-0 z-[99999999] flex flex-col bg-black/50"
             onClick={(e) => { if (e.target === e.currentTarget) closeDropdown() }}
             onKeyDown={handleKeyDown}
           >
-            <div className="bg-surface-card w-full max-w-md mx-auto mt-2 sm:mt-8 rounded-xl shadow-xl overflow-hidden flex flex-col" style={{ maxHeight: "45vh" }}>
+            <div className="bg-surface-card w-full max-w-md mx-auto mt-2 rounded-xl shadow-xl overflow-hidden flex flex-col" style={{ maxHeight: "45vh" }}>
               {/* Search header */}
               <div className="p-3 border-b border-border flex items-center gap-2 flex-shrink-0">
                 <input
@@ -279,7 +290,7 @@ const CustomSelect = ({
                     setHighlightedIndex(0)
                   }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search..."
+                  placeholder={t("common.search") + "..."}
                   className="flex-1 bg-surface-dark text-sm text-content-primary rounded-lg px-3 py-2 outline-none border border-transparent focus:border-primary transition-colors"
                 />
                 <button
@@ -296,7 +307,7 @@ const CustomSelect = ({
               <div className="flex-1 overflow-y-auto py-1 custom-scrollbar">
                 {filteredOptions.length === 0 ? (
                   <div className="px-4 py-3 text-sm text-content-faint text-center">
-                    No options found
+                    {t("common.noOptions")}
                   </div>
                 ) : (
                   filteredOptions.map((opt, index) => {
@@ -341,17 +352,34 @@ const CustomSelect = ({
             </div>
           </div>
         ) : (
-          /* Non-searchable: positioned dropdown as before */
+          /* Desktop searchable + all non-searchable: positioned dropdown */
           <div
             ref={dropdownRef}
             style={dropdownStyle}
             className="bg-surface-card border border-border rounded-xl shadow-xl overflow-hidden"
             onKeyDown={handleKeyDown}
           >
+            {/* Search input — only for searchable on desktop */}
+            {searchable && (
+              <div className="p-2 border-b border-border flex-shrink-0">
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setHighlightedIndex(0)
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t("common.search") + "..."}
+                  className="w-full bg-surface-dark text-sm text-content-primary rounded-lg px-3 py-1.5 outline-none border border-transparent focus:border-primary transition-colors"
+                />
+              </div>
+            )}
             <div className="max-h-[200px] overflow-y-auto py-1 custom-scrollbar">
               {filteredOptions.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-content-faint text-center">
-                  No options found
+                  {t("common.noOptions")}
                 </div>
               ) : (
                 filteredOptions.map((opt, index) => {

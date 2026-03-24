@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Drop at the bottom of any scrollable popup container.
+ * Only active on mobile/tablet (< 1024px) — desktop has no virtual keyboard.
  * Only expands when an INPUT or TEXTAREA in the lower portion of the
  * screen is focused. Ignores SELECT elements and anything inside
  * a [data-no-spacer] wrapper (e.g. CustomSelect components).
@@ -9,8 +10,18 @@ import { useEffect, useRef } from "react";
  */
 export default function KeyboardSpacer() {
   const spacerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
 
   useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)");
+    const onChange = (e) => setIsMobile(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
     const spacer = spacerRef.current;
     const container = spacer?.parentElement;
     if (!container) return;
@@ -55,7 +66,9 @@ export default function KeyboardSpacer() {
       container.removeEventListener("focusin", onFocusIn);
       container.removeEventListener("focusout", onFocusOut);
     };
-  }, []);
+  }, [isMobile]);
+
+  if (!isMobile) return null;
 
   return <div ref={spacerRef} style={{ height: 0 }} />;
 }

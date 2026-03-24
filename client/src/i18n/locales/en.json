@@ -13,9 +13,12 @@
     "by": "by {{name}}",
     "perWeek": "{{count}}x per week",
     "logout": "Logout",
-    "more": "More"
+    "more": "More",
+    "today": "Today",
+    "clear": "Clear",
+    "noOptions": "No options found",
+    "nSelected": "{{count}} selected"
   },
-
   "languages": {
     "en": "English",
     "de": "German",
@@ -24,7 +27,6 @@
     "it": "Italian",
     "selectLanguage": "Language Selection"
   },
-
   "nav": {
     "studio": "Studio",
     "appointments": "Appointments",
@@ -34,21 +36,23 @@
     "training": "Training",
     "settings": "Settings"
   },
-
   "header": {
     "switchToLight": "Switch to Light Mode",
     "switchToDark": "Switch to Dark Mode",
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar"
   },
-
   "classes": {
     "title": "Classes",
     "myClasses": "My Classes",
     "upcoming": "Upcoming",
     "past": "Past",
-    "search": { "placeholder": "Search classes, trainers, rooms..." },
-    "dateSlider": { "today": "Today" },
+    "search": {
+      "placeholder": "Search classes, trainers, rooms..."
+    },
+    "dateSlider": {
+      "today": "Today"
+    },
     "card": {
       "enrolled": "Enrolled",
       "watching": "Watching",
@@ -67,7 +71,10 @@
       "noPast": "No past classes",
       "noPastDesc": "Your past classes will appear here"
     },
-    "status": { "cancelled": "Cancelled", "completed": "Completed" },
+    "status": {
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
     "infoModal": {
       "duration": "Duration",
       "category": "Category",
@@ -81,7 +88,12 @@
       "notifyMe": "Notify Me",
       "watchingBtn": "Watching",
       "watchingHint": "You'll be notified when a spot opens up. Tap 'Watching' to stop.",
-      "fullHint": "This class is full. Tap 'Notify Me' to get alerted when a spot becomes available."
+      "fullHint": "This class is full. Tap 'Notify Me' to get alerted when a spot becomes available.",
+      "schedule": "Schedule",
+      "recurring": "Recurring",
+      "availability": "Availability",
+      "close": "Close",
+      "cancel": "Cancel"
     },
     "actionSheet": {
       "addToCalendar": "Add to Calendar",
@@ -94,10 +106,27 @@
       "cancelled": "Enrollment cancelled",
       "addedToCalendar": "Added to calendar"
     },
-    "calendar": { "permissionRequired": "Calendar access is required to add events. Please enable it in Settings > OrgaGym > Calendar." },
-    "notification": { "startsIn": "Starts in {{hours}}h — {{time}} at {{room}}" }
+    "calendar": {
+      "permissionRequired": "Calendar access is required to add events. Please enable it in Settings > OrgaGym > Calendar."
+    },
+    "notification": {
+      "startsIn": "Starts in {{hours}}h — {{time}} at {{room}}"
+    },
+    "cancelModal": {
+      "title": "Cancel Enrollment",
+      "description": "Are you sure you want to cancel your enrollment in this class?",
+      "warning": "Your spot will be released and made available to other members. You can re-enroll later if spots are still available.",
+      "keepEnrollment": "Keep Enrollment"
+    },
+    "enrollModal": {
+      "title": "Confirm Enrollment",
+      "enrollmentInfo": "Enrollment Info",
+      "currentParticipants": "Current Participants",
+      "afterEnrollment": "After Enrollment",
+      "spotsRemaining": "Spots Remaining",
+      "confirmEnrollment": "Confirm Enrollment"
+    }
   },
-
   "training": {
     "title": "Training",
     "tabs": {
@@ -130,8 +159,9 @@
       "alreadyAssigned": "Selected members already have this plan assigned!",
       "planRemoved": "Training plan removed from member!"
     },
-    "aria": { "createPlan": "Create Training Plan" },
-
+    "aria": {
+      "createPlan": "Create Training Plan"
+    },
     "modal": {
       "createTitle": "Create Training Plan",
       "editTitle": "Edit Training Plan",
@@ -164,7 +194,6 @@
       "orCreateNew": "Or Create New Plan",
       "createNewWithExercise": "Create New Plan with This Exercise"
     },
-
     "video": {
       "aboutExercise": "About This Exercise",
       "exerciseDetails": "Exercise Details",
@@ -175,13 +204,11 @@
       "fullscreen": "Fullscreen (f)",
       "browserNotSupported": "Your browser does not support the video tag."
     },
-
     "difficulty": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
       "advanced": "Advanced"
     },
-
     "categories": {
       "fullBody": "Full Body",
       "upperBody": "Upper Body",
@@ -191,7 +218,6 @@
       "flexibility": "Flexibility"
     }
   },
-
   "appointments": {
     "myAppointments": "My Appointments",
     "back": "Back",
@@ -203,20 +229,18 @@
     "cancelRequest": "Cancel request",
     "addToCalendar": "Add to Calendar",
     "addToCalendarDesc": "Save to your device calendar",
-
-    "search": { "placeholder": "Search services..." },
-
+    "search": {
+      "placeholder": "Search services..."
+    },
     "tabs": {
       "upcoming": "Upcoming",
       "pending": "Pending",
       "past": "Past"
     },
-
     "infoModal": {
       "duration": "Duration",
       "category": "Category"
     },
-
     "empty": {
       "noTimeSlots": "No time slots match your filter",
       "no_upcoming": "No upcoming appointments",
@@ -226,18 +250,37 @@
       "no_past": "No past appointments",
       "no_pastDesc": "Your past appointments will appear here"
     },
-
     "toast": {
       "booked": "Appointment booked",
       "requestSent": "Appointment request sent successfully!",
       "addedToCalendar": "Added to calendar"
     },
-
     "calendar": {
       "permissionRequired": "Calendar access is required. Please enable it in Settings > OrgaGym > Calendar."
+    },
+    "bookingModal": {
+      "title": "Confirm Booking",
+      "contingentInfo": "Contingent Information",
+      "currentContingent": "Current Contingent",
+      "afterBooking": "After Booking",
+      "confirm": "Confirm",
+      "dateTime": "{{month}} {{day}}, {{year}} at {{start}} - {{end}}"
+    },
+    "cancelModal": {
+      "cancelRequest": "Cancel Request",
+      "cancelBooking": "Cancel Booking",
+      "confirmCancelRequest": "Are you sure you want to cancel this request?",
+      "confirmCancelBooking": "Are you sure you want to cancel this booking?",
+      "keep": "Keep",
+      "confirmBtn": "Cancel"
+    },
+    "requestModal": {
+      "title": "Request Appointment",
+      "requestInfo": "Request Information",
+      "requestDesc": "This time slot is currently unavailable. Your request will be sent to the trainer for approval.",
+      "sendRequest": "Send Request"
     }
   },
-
   "studioMenu": {
     "tabs": {
       "studioInfo": "Studio Info",
@@ -245,7 +288,6 @@
       "bulletin": "Bulletin Board",
       "selfService": "Self-Service"
     },
-
     "info": {
       "openingHours": "Opening Hours",
       "today": "Today",
@@ -259,7 +301,6 @@
       "terms": "Terms & Conditions",
       "privacy": "Privacy Policy"
     },
-
     "checkin": {
       "qrTitle": "QR Code Check-in",
       "scanDesc": "Scan the QR code at the studio entrance",
@@ -276,13 +317,11 @@
       "recentCheckins": "Recent Check-ins",
       "noCheckins": "No check-ins yet"
     },
-
     "bulletin": {
       "noAnnouncements": "No announcements at the moment.",
       "checkBackLater": "Check back later for updates!",
       "previewPost": "Preview Post"
     },
-
     "selfService": {
       "memberNumber": "Member Number",
       "memberSince": "Member Since",
@@ -295,7 +334,6 @@
       "personalInfo": "Personal Information",
       "contract": "Contract"
     },
-
     "contract": {
       "type": "Type",
       "status": "Status",
@@ -308,7 +346,6 @@
       "paymentMethod": "Payment Method",
       "cancelMembership": "Cancel Membership"
     },
-
     "personal": {
       "personalData": "Personal Data",
       "address": "Address",
@@ -324,7 +361,6 @@
       "editAddress": "Edit Address",
       "editContactDetails": "Edit Contact Details"
     },
-
     "toast": {
       "personalUpdated": "Personal data updated successfully!",
       "personalFailed": "Failed to update personal data",
@@ -332,12 +368,118 @@
       "addressFailed": "Failed to update address data",
       "contactUpdated": "Contact data updated successfully!",
       "contactFailed": "Failed to update contact data"
+    },
+    "forms": {
+      "requestChange": "Request Change",
+      "select": "Select",
+      "selectDate": "Select date",
+      "birthday": "Birthday",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "street": "Street",
+      "houseNumber": "House Number",
+      "zipCode": "ZIP Code",
+      "city": "City",
+      "country": "Country",
+      "loadingCountries": "Loading countries...",
+      "selectCountry": "Select a country",
+      "phone": "Phone",
+      "managingDirector": "Managing Director",
+      "commercialRegister": "Commercial Register",
+      "notProvided": "Not Provided",
+      "bankDetails": "Bank Details",
+      "accountHolder": "Account holder",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "creditInstitute": "Credit institute",
+      "sepaConsent": "I allow FitZone Studio to collect payments from my account via direct debit using the creditors id DE02FZS00000123456. I also instruct my credit institute to honour these direct debits for account."
+    },
+    "cancel": {
+      "info": "Cancellation Information",
+      "effective": "Cancellation Effective",
+      "description": "If you cancel now, your membership will remain active until the effective date. You will continue to have access to all facilities and services until that date.",
+      "keepMembership": "Keep Membership",
+      "confirmCancellation": "Confirm Cancellation"
+    },
+    "idle": {
+      "applyTitle": "Apply for Idle Period",
+      "reason": "Reason for idle period",
+      "selectReason": "Select reason...",
+      "startDate": "Start Date",
+      "duration": "Duration",
+      "selectDuration": "Select duration...",
+      "document": "Document",
+      "vacation": "Vacation",
+      "medical": "Medical",
+      "businessTravel": "Business Travel",
+      "personal": "Personal",
+      "1week": "1 week",
+      "2weeks": "2 weeks",
+      "1month": "1 month",
+      "2months": "2 months",
+      "3months": "3 months",
+      "tapToUpload": "Tap to upload",
+      "clickToUpload": "Click to upload or drag and drop",
+      "fileHint": "PDF, JPG, PNG up to 10MB",
+      "fileTypeError": "Only PDF, JPG and PNG files are allowed",
+      "fileSizeError": "File must be smaller than 10MB"
+    },
+    "popup": {
+      "requestChange": "Request Change",
+      "select": "Select",
+      "selectDate": "Select date",
+      "selectCountry": "Select a country",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "street": "Street",
+      "houseNumber": "House Number",
+      "zipCode": "ZIP Code",
+      "city": "City",
+      "country": "Country",
+      "phone": "Phone",
+      "managingDirector": "Managing Director",
+      "commercialRegister": "Commercial Register",
+      "notProvided": "Not Provided",
+      "bankDetails": "Bank Details",
+      "accountHolder": "Account holder",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "creditInstitute": "Credit institute",
+      "sepaMandate": "I allow FitZone Studio to collect payments from my account via direct debit using the creditors id DE02FZS00000123456. I also instruct my credit institute to honour these direct debits for account.",
+      "cancellationInfo": "Cancellation Information",
+      "cancellationEffective": "Cancellation Effective",
+      "cancellationDesc": "If you cancel now, your membership will remain active until January 15, 2026. You will continue to have access to all facilities and services until that date.",
+      "keepMembership": "Keep Membership",
+      "confirmCancellation": "Confirm Cancellation",
+      "applyIdlePeriod": "Apply for Idle Period",
+      "idleReason": "Reason for idle period",
+      "selectReason": "Select reason...",
+      "startDate": "Start Date",
+      "idleDuration": "Duration",
+      "selectDuration": "Select duration...",
+      "document": "Document",
+      "tapToUpload": "Tap to upload",
+      "clickToUpload": "Click to upload or drag and drop",
+      "fileTypes": "PDF, JPG, PNG up to 10MB",
+      "fileTypeError": "Only PDF, JPG and PNG files are allowed",
+      "fileSizeError": "File must be smaller than 10MB",
+      "vacation": "Vacation",
+      "medical": "Medical",
+      "businessTravel": "Business Travel",
+      "personal": "Personal",
+      "1week": "1 week",
+      "2weeks": "2 weeks",
+      "1month": "1 month",
+      "2months": "2 months",
+      "3months": "3 months"
     }
   },
-
   "settings": {
-    "search": { "placeholder": "Search settings..." },
-
+    "search": {
+      "placeholder": "Search settings..."
+    },
     "nav": {
       "account": "OrgaGym Account",
       "changeEmail": "Change Email",
@@ -348,7 +490,6 @@
       "imprint": "Imprint",
       "privacyPolicy": "Privacy Policy"
     },
-
     "email": {
       "title": "Change Email Address",
       "subtitle": "A confirmation email will be sent to your new email address to complete the change.",
@@ -365,7 +506,6 @@
       "changeRequestedDesc": "A confirmation email has been sent to your new email address.",
       "changeFailed": "Email Change Failed"
     },
-
     "password": {
       "title": "Change Password",
       "subtitle": "A confirmation email will be sent to complete the password change.",
@@ -384,7 +524,6 @@
       "changedDesc": "Your password has been updated successfully.",
       "changeFailed": "Password Change Failed"
     },
-
     "notifications": {
       "appointmentTitle": "Appointment Notifications",
       "appointmentSubtitle": "Configure notifications for confirmations, changes, and reminders.",
@@ -398,7 +537,6 @@
       "reminderTimingAppointmentDesc": "How early to send appointment reminders",
       "remind": "Remind",
       "hoursBeforeAppointment": "hours before appointment",
-
       "classTitle": "Class Notifications",
       "classSubtitle": "Configure notifications for class enrollments, cancellations, and reminders.",
       "enableClass": "Enable Class Notifications",
@@ -411,7 +549,6 @@
       "spotAvailableDesc": "Notify when a spot opens in a full class you're watching",
       "email": "Email",
       "push": "Push",
-
       "generalTitle": "General Notifications",
       "generalSubtitle": "Manage push notifications for bulletin board posts and studio broadcasts.",
       "generalHint": "These settings control push notifications on your device. Disabling a category will stop all push alerts for it.",
@@ -420,7 +557,6 @@
       "studioBroadcast": "Studio Broadcast",
       "studioBroadcastDesc": "Broadcasts and announcements from your studio"
     },
-
     "logout": {
       "subtitle": "Sign out of your account on this device.",
       "description": "You will be signed out and redirected to the login page.",
@@ -429,7 +565,6 @@
       "signInAgain": "You'll need to sign in again",
       "confirmQuestion": "Are you sure you want to sign out of your account?"
     },
-
     "deleteAccount": {
       "title": "Delete Account",
       "subtitle": "Permanently delete your account and all associated data.",
@@ -443,7 +578,6 @@
       "deletedDesc": "Your account has been permanently deleted.",
       "deletionFailed": "Deletion Failed"
     },
-
     "errors": {
       "somethingWrong": "Something went wrong.",
       "updateFailed": "Update Failed",
@@ -452,7 +586,6 @@
       "couldNotDelete": "Could not delete account."
     }
   },
-
   "chat": {
     "noMessages": "No messages yet",
     "messageDeleted": "This message was deleted",
@@ -464,42 +597,41 @@
     "placeholderMobile": "Type a message...",
     "sendMessage": "Send message",
     "copied": "Copied!",
-
     "menu": {
       "reply": "Reply",
       "react": "React",
       "copy": "Copy",
       "delete": "Delete"
     },
-
     "deleteModal": {
       "title": "Delete Message?",
       "description": "This message will be marked as deleted and cannot be recovered."
     }
   },
-
   "nutrition": {
     "today": "Today",
     "yesterday": "Yesterday",
     "loading": "Loading {{date}}...",
-
     "tabs": {
       "diary": "Diary",
       "insights": "Insights"
     },
-
     "ring": {
       "over": "over",
       "remaining": "remaining"
     },
-
     "macros": {
       "calories": "Calories",
       "protein": "Protein",
       "carbs": "Carbs",
       "fat": "Fat"
     },
-
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snacks": "Snacks"
+    },
     "diary": {
       "eaten": "{{amount}} eaten",
       "kcalGoal": "{{amount}} kcal goal",
@@ -508,20 +640,17 @@
       "addFood": "Add food",
       "copyFromYesterday": "Copy from yesterday"
     },
-
     "water": {
       "overGoal": "{{liters}}L — {{ml}} ml over goal",
       "goalReached": "Goal reached! {{liters}}L",
       "toGo": "{{liters}}L · {{ml}} ml to go"
     },
-
     "score": {
       "excellent": "Excellent",
       "good": "Good",
       "fair": "Fair",
       "needsWork": "Needs work"
     },
-
     "insights": {
       "todayPerformance": "Today's Performance",
       "datePerformance": "{{date}} Performance",
@@ -543,10 +672,161 @@
       "daysWithin": "days within ±10%",
       "keepItUp": "Keep it up!",
       "deficit": "Deficit (kcal)",
-      "surplus": "Surplus (kcal)"
+      "surplus": "Surplus (kcal)",
+      "week1": "Week 1",
+      "week2": "Week 2",
+      "week3": "Week 3",
+      "thisWeek": "This week"
+    },
+    "customFood": {
+      "editTitle": "Edit Custom Food",
+      "createTitle": "Create Custom Food",
+      "foodName": "Food Name",
+      "servingSize": "Serving Size",
+      "unit": "Unit",
+      "caloriesKcal": "Calories (kcal)",
+      "saveChanges": "Save Changes",
+      "saveCustomFood": "Save Custom Food"
+    },
+    "editQuantity": {
+      "title": "Edit Quantity"
+    },
+    "quickAdd": {
+      "description": "Add calories quickly — perfect for restaurant meals or estimates.",
+      "nameOptional": "Name (optional)",
+      "addTo": "Add to {{meal}}"
+    },
+    "addFood": {
+      "addTo": "Add to {{meal}}",
+      "searchPlaceholder": "Search foods...",
+      "barcode": "Barcode",
+      "createFood": "Create Food",
+      "quantity": "Quantity",
+      "noFoods": "No foods found",
+      "suggestions": "Suggestions",
+      "favorites": "Favorites",
+      "recent": "Recent",
+      "noFavorites": "No favorites yet",
+      "starHint": "Star foods when adding them to save as favorites",
+      "custom": "Custom"
+    },
+    "settings": {
+      "profile": "Profile",
+      "goals": "Goals",
+      "myFoods": "My Foods",
+      "profileDesc": "Your body metrics help us calculate accurate daily targets using the Mifflin-St Jeor formula.",
+      "gender": "Gender",
+      "age": "Age",
+      "height": "Height (cm)",
+      "weight": "Weight (kg)",
+      "activityLevel": "Activity Level",
+      "goal": "Goal",
+      "calculatedTargets": "Calculated Daily Targets",
+      "goalsDesc": "Fine-tune your daily targets manually or use your profile calculation.",
+      "caloriesKcal": "Calories (kcal)",
+      "proteinG": "Protein (g)",
+      "carbsG": "Carbohydrates (g)",
+      "fatG": "Fat (g)",
+      "waterMl": "Water (ml)",
+      "newFood": "New Food",
+      "noCustomFoods": "No custom foods yet",
+      "createCustomHint": "Create your own foods with custom nutrition values",
+      "customFoodCount": "{{count}} custom foods created",
+      "applySetGoals": "Apply & Set Goals",
+      "reset": "Reset",
+      "saveGoals": "Save Goals"
+    },
+    "streak": {
+      "title": "Your Streak",
+      "days": "DAYS",
+      "keepGoing": "Keep Going!",
+      "nextMilestone": "Next milestone: {{days}} days",
+      "toGo": "{{days}} to go",
+      "tip1": "Consistent tracking helps identify eating patterns",
+      "tip2": "Even logging imperfect days keeps your streak alive",
+      "tip3": "Streaks build discipline — discipline builds results"
+    },
+    "barcode": {
+      "cameraPermission": "Camera access is required for barcode scanning.\n\nWould you like to open Settings to enable it?",
+      "openSettings": "Open Settings",
+      "resumeScanner": "Resume Scanner",
+      "pauseScanner": "Pause Scanner",
+      "changeMeal": "Change meal",
+      "scanBarcode": "Scan Barcode",
+      "lookingUp": "Looking up barcode…",
+      "productFound": "Product found!",
+      "notFound": "Not found — try again",
+      "alignBarcode": "Align barcode within the frame",
+      "cameraAccessDenied": "Camera access denied",
+      "enableCamera": "Enable camera in your device settings",
+      "scannerPaused": "Scanner paused",
+      "productNotFound": "Product not found",
+      "chooseMeal": "Choose meal"
+    },
+    "units": {
+      "selectUnit": "Select unit",
+      "gram": "Gram (g)",
+      "milliliter": "Milliliter (ml)",
+      "ounce": "Ounce (oz)",
+      "cup": "Cup",
+      "tablespoon": "Tablespoon",
+      "teaspoon": "Teaspoon",
+      "piece": "Piece",
+      "slice": "Slice",
+      "portion": "Portion",
+      "bowl": "Bowl",
+      "scoop": "Scoop"
+    },
+    "activity": {
+      "sedentary": "Sedentary",
+      "sedentaryDesc": "Office job, no exercise",
+      "light": "Lightly Active",
+      "lightDesc": "Light exercise 1-3 days/week",
+      "moderate": "Moderately Active",
+      "moderateDesc": "Moderate exercise 3-5 days/week",
+      "active": "Active",
+      "activeDesc": "Hard exercise 6-7 days/week",
+      "veryActive": "Very Active",
+      "veryActiveDesc": "Physical job + exercise"
+    },
+    "goalTypes": {
+      "loseWeight": "Lose Weight",
+      "maintainWeight": "Maintain Weight",
+      "buildMuscle": "Build Muscle"
+    },
+    "daysShort": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "streakMsg": {
+      "1title": "Just Getting Started!",
+      "1text": "Every journey begins with a single step. Keep logging your meals — consistency is key.",
+      "2title": "Building Momentum!",
+      "2text": "3+ days in a row — your habit is forming. It takes about 21 days to build a lasting habit, you're on your way.",
+      "3title": "One Week Strong!",
+      "3text": "A full week of tracking! You're developing real awareness of your nutrition. This is where change begins.",
+      "4title": "Two Weeks In!",
+      "4text": "You're past the hardest part. Most people quit in the first week — you're already ahead of the curve.",
+      "5title": "Habit Formed!",
+      "5text": "21+ days means this is becoming second nature. Your consistency is paying off.",
+      "6title": "Monthly Champion!",
+      "6text": "A whole month of dedication. You're in the top 5% of people who actually stick with nutrition tracking.",
+      "7title": "Two Months Strong!",
+      "7text": "Your discipline is inspiring. The data you've collected is incredibly valuable for understanding your body.",
+      "8title": "Legendary Streak!",
+      "8text": "90+ days — you've made nutrition tracking a lifestyle. This level of commitment leads to lasting results."
+    },
+    "placeholders": {
+      "foodName": "e.g. Grandma's Soup",
+      "quickAddName": "e.g. Restaurant dinner",
+      "calories": "e.g. 500"
     }
   },
-
   "login": {
     "studioName": "Studio Name",
     "studioNamePlaceholder": "Enter your studio name",

@@ -1,14 +1,8 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { X, Clock, MapPin, Users, Repeat } from "lucide-react"
-
-const fmtDateDisplay = (ds) => {
-  if (!ds) return ""
-  const d = typeof ds === "string" ? new Date(ds) : ds
-  if (isNaN(d.getTime())) return ds
-  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
-}
 
 const ClassInfoModal = ({
   show,
@@ -20,7 +14,15 @@ const ClassInfoModal = ({
   onEnroll,
   onCancel,
 }) => {
+  const { t, i18n } = useTranslation()
   if (!show || !classData) return null
+
+  const fmtDate = (ds) => {
+    if (!ds) return ""
+    const d = typeof ds === "string" ? (() => { const [y,m,day] = ds.split("-").map(Number); return new Date(y, m-1, day) })() : ds
+    if (isNaN(d.getTime())) return ds
+    return d.toLocaleDateString(i18n.language, { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+  }
 
   const fillPct = ((classData.enrolledMembers?.length || 0) / (classData.maxParticipants || 1)) * 100
 
@@ -34,7 +36,7 @@ const ClassInfoModal = ({
         <div className="px-4 md:px-6 pt-4 md:pt-5 pb-0 flex justify-between items-start">
           <div className="flex-1 min-w-0 pr-4">
             <h3 className="text-lg font-semibold text-content-primary truncate">{classData.typeName}</h3>
-            <p className="text-xs text-content-faint mt-0.5">{fmtDateDisplay(classData.date)}</p>
+            <p className="text-xs text-content-faint mt-0.5">{fmtDate(classData.date)}</p>
           </div>
           <button
             onClick={onClose}
@@ -56,7 +58,7 @@ const ClassInfoModal = ({
             <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
               <span className="text-content-muted flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Time
+                {t("classes.infoModal.time")}
               </span>
               <span className="text-content-primary font-medium">
                 {classData.startTime} – {classData.endTime}
@@ -66,15 +68,15 @@ const ClassInfoModal = ({
             <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
               <span className="text-content-muted flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Duration
+                {t("classes.infoModal.duration")}
               </span>
-              <span className="text-content-primary font-medium">{classData.duration} min</span>
+              <span className="text-content-primary font-medium">{t("classes.card.duration", { minutes: classData.duration })}</span>
             </div>
 
             <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
               <span className="text-content-muted flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Room
+                {t("classes.infoModal.room")}
               </span>
               <span className="text-content-primary font-medium">{classData.room}</span>
             </div>
@@ -82,10 +84,10 @@ const ClassInfoModal = ({
             <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
               <span className="text-content-muted flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Participants
+                {t("classes.infoModal.participants")}
               </span>
               <span className="text-content-primary font-medium">
-                {classData.enrolledMembers?.length || 0}/{classData.maxParticipants}
+                {t("classes.card.participants", { enrolled: classData.enrolledMembers?.length || 0, max: classData.maxParticipants })}
               </span>
             </div>
 
@@ -93,9 +95,9 @@ const ClassInfoModal = ({
               <div className="flex justify-between items-center text-sm bg-surface-hover rounded-xl p-3">
                 <span className="text-content-muted flex items-center gap-2">
                   <Repeat className="w-4 h-4" />
-                  Schedule
+                  {t("classes.infoModal.schedule")}
                 </span>
-                <span className="text-content-primary font-medium">Recurring</span>
+                <span className="text-content-primary font-medium">{t("classes.infoModal.recurring")}</span>
               </div>
             )}
           </div>
@@ -110,7 +112,7 @@ const ClassInfoModal = ({
             </div>
             <div>
               <p className="text-sm text-content-primary font-medium">{classData.trainerName}</p>
-              <p className="text-xs text-content-faint">Trainer</p>
+              <p className="text-xs text-content-faint">{t("classes.infoModal.trainer")}</p>
             </div>
           </div>
 
@@ -118,9 +120,9 @@ const ClassInfoModal = ({
           {!isEnrolled && !isFull && (
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs text-content-faint">Availability</span>
+                <span className="text-xs text-content-faint">{t("classes.infoModal.availability")}</span>
                 <span className={`text-xs font-medium ${spotsLeft <= 3 ? "text-yellow-400" : "text-green-400"}`}>
-                  {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
+                  {t("classes.card.spotsLeft", { count: spotsLeft })}
                 </span>
               </div>
               <div className="h-1.5 bg-surface-card rounded-full overflow-hidden">
@@ -142,28 +144,28 @@ const ClassInfoModal = ({
             onClick={onClose}
             className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary transition-colors text-sm"
           >
-            Close
+            {t("common.close")}
           </button>
           {isEnrolled ? (
             <button
               onClick={onCancel}
               className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white transition-colors text-sm"
             >
-              Cancel Enrollment
+              {t("classes.infoModal.cancelEnrollment")}
             </button>
           ) : isFull ? (
             <button
               disabled
               className="flex-1 px-4 py-2.5 bg-surface-button text-content-faint rounded-xl text-sm cursor-not-allowed"
             >
-              Class Full
+              {t("classes.card.full")}
             </button>
           ) : (
             <button
               onClick={onEnroll}
               className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white transition-colors text-sm"
             >
-              Enroll
+              {t("classes.infoModal.enroll")}
             </button>
           )}
         </div>

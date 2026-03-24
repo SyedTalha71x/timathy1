@@ -27,10 +27,10 @@ const MemberDashboardLayout = () => {
     <ToastProvider>
     <style>{`
       @keyframes page-fade-in {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
-      .page-transition { animation: page-fade-in 0.25s ease-out both; }
+      .page-transition { animation: page-fade-in 0.2s ease-out both; }
       .page-transition-none { animation: none; }
     `}</style>
     <div className="member-root bg-surface-dark h-dvh overflow-hidden">

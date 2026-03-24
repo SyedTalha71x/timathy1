@@ -3,12 +3,13 @@ import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { Globe } from "lucide-react"
 
+// Flags served from public/flags/ — no import needed, Vite serves them as-is
 const LANGUAGES = [
-  { code: "en", flag: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a4/Flag_of_the_United_States.svg/1280px-Flag_of_the_United_States.svg.png" },
-  { code: "de", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" },
-  { code: "fr", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/1280px-Flag_of_France.svg.png" },
-  { code: "es", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/1280px-Flag_of_Spain.svg.png" },
-  { code: "it", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
+  { code: "en", flag: "/flags/en.svg" },
+  { code: "de", flag: "/flags/de.svg" },
+  { code: "fr", flag: "/flags/fr.svg" },
+  { code: "es", flag: "/flags/es.svg" },
+  { code: "it", flag: "/flags/it.svg" },
 ]
 
 const StudioLanguageDropdown = ({ isMobile = false }) => {
@@ -51,11 +52,11 @@ const StudioLanguageDropdown = ({ isMobile = false }) => {
               <button
                 key={language.code}
                 onClick={() => handleSelect(language)}
-                className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-content-primary hover:bg-surface-button text-left flex items-center gap-2 ${
+                className={`w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-content-primary hover:bg-surface-button text-left flex items-center gap-2 ${
                   language.code === currentCode ? "bg-surface-button" : ""
                 }`}
               >
-                <img draggable="false" src={language.flag} alt={t(`languages.${language.code}`)} className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`} />
+                <img draggable="false" src={language.flag} alt={t(`languages.${language.code}`)} className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded object-cover`} />
                 <span className={isMobile ? "text-xs" : "text-sm"}>{t(`languages.${language.code}`)}</span>
               </button>
             ))}
