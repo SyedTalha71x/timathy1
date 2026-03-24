@@ -131,6 +131,8 @@ import {
 import { useStudioConfiguration } from "../../hooks/useStudioConfiguration"
 import { useDispatch } from "react-redux"
 import { updateStudioThunk } from "../../features/studio/studioSlice"
+import { createAppointmentTypesThunk, deleteAppointmentTypesThunk, updateAppointmentTypesThunk } from "../../features/services/servicesSlice"
+
 
 // ============================================
 // Navigation Items Configuration
@@ -610,12 +612,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     name: "",
     description: "",
     duration: 30,
-    capacity: 1,
-    color: "#3B82F6",
+    slot: 1,
+    calenderColor: "#3B82F6",
     interval: 30,
     category: "",
     image: null,
     contingentUsage: 1,
+    maxSimultaneous: 8,
   })
 
 
@@ -874,29 +877,58 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ============================================
   // Studio field change handlers
   // ============================================
-  useEffect(() => {
-    console.log('Config state changed:', {
-      hasConfig: !!config,
-      hasStudio: !!config?.studio,
-      studioId: config?.studio?._id,
-      isLoading: isLoading,
-      error: error
-    });
+  // useEffect(() => {
+  //   console.log('Config state changed:', {
+  //     hasConfig: !!config,
+  //     hasStudio: !!config?.studio,
+  //     studioId: config?.studio?._id,
+  //     isLoading: isLoading,
+  //     error: error
+  //   });
 
-    if (config?.studio) {
-      console.log('Studio config loaded:', {
-        id: config.studio._id,
-        studioName: config.studio.studioName,
-        studioOwner: config.studio.studioOwner,
-        ownerPhone: config.studio.ownerPhone,
-        ownerEmail: config.studio.ownerEmail,
-        operatorTelephone: config.studio.operatorTelephone,
-        phone: config.studio.phone,
-        telephone: config.studio.telephone,
-        email: config.studio.email,
-      });
-    }
-  }, [config, isLoading, error]);
+  //   if (config?.studio) {
+  //     console.log('Studio config loaded:', {
+  //       id: config.studio._id,
+  //       studioName: config.studio.studioName,
+  //       studioOwner: config.studio.studioOwner,
+  //       ownerPhone: config.studio.ownerPhone,
+  //       ownerEmail: config.studio.ownerEmail,
+  //       operatorTelephone: config.studio.operatorTelephone,
+  //       phone: config.studio.phone,
+  //       telephone: config.studio.telephone,
+  //       email: config.studio.email,
+  //     });
+  //   }
+  // }, [config, isLoading, error]);
+
+
+  // ========================
+  // All AppointmentType Data
+  // ========================
+useEffect(() => {
+  if (config?.services?.length) {
+    const mapped = config.services.map(service => ({
+      id: service._id,
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      // fallback/defaults for missing fields
+      duration: service.duration ?? 30, // or any default
+      interval: service.interval ?? 30,
+      category: service.category ?? "General",
+      image: service.image?.url ?? null,
+      calenderColor: service.calenderColor ?? "#10b981", // default green
+      slotsRequired: service.slot ?? 1,
+      maxParallel: service.maxSimultaneous ?? 1,
+      contingentUsage: service.contingentUsage ?? 1,
+    }));
+
+    console.log("Mapped Appointment Types:", mapped);
+    setAppointmentTypes(mapped);
+  }
+}, [config]);
+
+  // console.log('Appointment Type',appointmentTypes)
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -1568,9 +1600,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         name: type.name || "",
         description: type.description || "",
         duration: type.duration || 30,
-        maxParallel: type.maxParallel || 1,
-        slotsRequired: type.slotsRequired ?? 1,
-        color: type.color || "#FF843E",
+        maxSimultaneous: type.maxSimultaneous || 1,
+        slot: type.slot ?? 1,
+        calendarColor: type.calendarColor || "#FF843E",
         interval: type.interval || 30,
         category: type.category || "",
         image: type.image || null,
@@ -1583,9 +1615,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         name: "",
         description: "",
         duration: 30,
-        maxParallel: 1,
-        slotsRequired: 1,
-        color: "#FF843E",
+        maxSimultaneous: 1,
+        slot: 1,
+        calenderColor: "#FF843E",
         interval: 30,
         category: "",
         image: null,
@@ -1608,11 +1640,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       toast.error("Please enter a valid interval (min. 5 minutes)")
       return
     }
-    if (appointmentTypeForm.slotsRequired === undefined || appointmentTypeForm.slotsRequired === null || appointmentTypeForm.slotsRequired === "") {
+    if (appointmentTypeForm.slot === undefined || appointmentTypeForm.slot === null || appointmentTypeForm.slot === "") {
       toast.error("Please enter the slots required")
       return
     }
-    if (!appointmentTypeForm.maxParallel || appointmentTypeForm.maxParallel < 1) {
+    if (!appointmentTypeForm.maxSimultaneous || appointmentTypeForm.maxSimultaneous < 1) {
       toast.error("Please enter max parallel (min. 1)")
       return
     }
@@ -1621,21 +1653,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return
     }
 
+    const data = {
+      ...appointmentTypeForm,
+      studio: studioId, // must send this
+    };
+
     if (editingAppointmentType) {
-      // Update existing
-      setAppointmentTypes(appointmentTypes.map(t =>
-        t.id === editingAppointmentType.id
-          ? { ...t, ...appointmentTypeForm }
-          : t
-      ))
-      toast.success("Appointment type updated")
+      dispatch(updateAppointmentTypesThunk({
+        id: editingAppointmentType._id,
+        updateData: data,
+      }));
+      toast.success("Appointment type updated");
     } else {
-      // Create new
-      setAppointmentTypes([...appointmentTypes, {
-        id: Date.now(),
-        ...appointmentTypeForm
-      }])
-      toast.success("Appointment type created")
+      dispatch(createAppointmentTypesThunk(data));
+      toast.success("Appointment type created");
     }
 
     setShowAppointmentTypeModal(false)
@@ -1649,7 +1680,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       type?.name || "this appointment type",
       "This cannot be undone.",
       () => {
-        setAppointmentTypes(appointmentTypes.filter(t => t.id !== id))
+        setAppointmentTypes(appointmentTypes.filter(t => t._id !== id))
+        dispatch(deleteAppointmentTypesThunk(appointmentTypes._id));
         closeDeleteModal()
         toast.success("Appointment type deleted")
       }
@@ -2146,6 +2178,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return text
     }
   }
+
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   // ============================================
   // Render Section Content
@@ -2962,7 +2995,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
 
-            {appointmentTypes.length === 0 ? (
+            {config?.service?.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
                   <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -2979,16 +3012,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </SettingsCard>
             ) : (
               <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-                {appointmentTypes.map((type) => (
+                {config?.services.map((type) => (
                   <div
-                    key={type.id}
+                    key={type._id}
                     className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
                   >
                     {/* Image */}
                     <div className="relative aspect-video bg-surface-card">
-                      {type.image ? (
+                      {type.image?.url ? (
                         <img
-                          src={type.image}
+                          src={type.image?.url}
                           alt={type.name}
                           className="w-full h-full object-cover"
                         />
@@ -3030,9 +3063,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <div className="flex items-center gap-2 mb-2">
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: type.color }}
+                          style={{ backgroundColor: type.calenderColor }}
                           title="Calendar color"
-                        />
+                          />
+
                         <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                       </div>
 
@@ -3043,11 +3077,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </span>
                         <span className="flex items-center gap-1">
                           <Settings className="w-3.5 h-3.5" />
-                          {type.slotsRequired ?? 1} {(type.slotsRequired ?? 1) === 1 ? 'slot' : 'slots'}
+                          {type.slot ?? 1} {(type.slot ?? 1) === 1 ? 'slot' : 'slots'}
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-3.5 h-3.5" />
-                          {type.maxParallel || 1}× parallel
+                          {type.maxSimultaneous || 1}× parallel
                         </span>
                         <span className="flex items-center gap-1">
                           <BadgeDollarSign className="w-3.5 h-3.5" />
