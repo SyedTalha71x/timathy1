@@ -12,6 +12,7 @@ import ImageSourceModal from "../../shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../shared/image-handler/ImageCropModal"
 import MediaLibraryPickerModal from "../../shared/image-handler/MediaLibraryPickerModal"
 import CustomSelect from "../../shared/CustomSelect"
+// import { image } from "framer-motion/client"
 
 // ============================================
 // Inline helper components
@@ -48,15 +49,21 @@ const AppointmentTypeModal = ({
   const imageInputRef = useRef(null)
 
   const handleImageSelect = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setTempImage(event.target.result)
-        setShowImageCropModal(true)
-      }
-      reader.readAsDataURL(file)
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Update local state for preview
+    imageInputRef(prev => ({ ...prev, image: file }))
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      imageInputRef(reader.result)
     }
+    reader.readAsDataURL(file)
+
+    // Prepare FormData to send to backend
+    const formData = new FormData()
+    formData.append("img", file)
     if (imageInputRef.current) imageInputRef.current.value = ""
   }
 
@@ -102,9 +109,9 @@ const AppointmentTypeModal = ({
                 className="relative aspect-video bg-surface-card rounded-xl border-2 border-dashed border-border hover:border-border transition-colors cursor-pointer overflow-hidden group"
                 onClick={() => setShowImageSourceModal(true)}
               >
-                {appointmentTypeForm.image ? (
+                {appointmentTypeForm.image?.url ? (
                   <>
-                    <img src={appointmentTypeForm.image} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={appointmentTypeForm.image?.url} alt="Preview" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="text-white text-sm font-medium">Change Image</span>
                     </div>
@@ -239,8 +246,8 @@ const AppointmentTypeModal = ({
                 </label>
                 <input
                   type="number"
-                  value={appointmentTypeForm.slotsRequired}
-                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, slotsRequired: Math.floor(Number(e.target.value)) })}
+                  value={appointmentTypeForm.slot}
+                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, slot: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                   min={0} max={studioCapacity}
                   className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
@@ -258,8 +265,8 @@ const AppointmentTypeModal = ({
                 </label>
                 <input
                   type="number"
-                  value={appointmentTypeForm.maxParallel}
-                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, maxParallel: Math.floor(Number(e.target.value)) })}
+                  value={appointmentTypeForm.maxSimultaneous}
+                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, maxSimultaneous: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                   min={1} max={studioCapacity}
                   className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
@@ -300,9 +307,9 @@ const AppointmentTypeModal = ({
                 </Tooltip>
               </label>
               <button
-                onClick={() => openColorPicker(appointmentTypeForm.color || '#3B82F6', 'Calendar Color', (color) => setAppointmentTypeForm({ ...appointmentTypeForm, color }))}
+                onClick={() => openColorPicker(appointmentTypeForm.calenderColor || '#3B82F6', 'Calendar Color', (calenderColor) => setAppointmentTypeForm({ ...appointmentTypeForm, calenderColor }))}
                 className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
-                style={{ backgroundColor: appointmentTypeForm.color }}
+                style={{ backgroundColor: appointmentTypeForm.calenderColor }}
                 title="Pick a color"
               />
             </div>

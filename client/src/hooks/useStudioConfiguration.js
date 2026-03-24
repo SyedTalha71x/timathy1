@@ -39,10 +39,10 @@ import {
  */
 function transformStudioResponse(backendData) {
   if (!backendData) return null
-  
+
   // Handle different response formats
   let studio;
-  
+
   if (backendData?.studio) {
     // Format: { studio: {...} }
     studio = backendData.studio
@@ -145,37 +145,37 @@ function transformStudioResponse(backendData) {
       studioName: studio.studioName || "",
       studioOwner: studio.studioOwner || "",
       email: studio.email || "",
-      
+
       // Address
       street: studio.street || "",
       zipCode: studio.zipCode || "",
       city: studio.city || "",
       country: studio.country || "",
-      
+
       // Contact
       phone: studio.phone || "",
       telephone: studio.telephone || "",
-      
+
       // Owner fields
       OwnerPhone: studio.OwnerPhone || "",
       ownerEmail: studio.ownerEmail || "",
       operatorTelephone: studio.operatorTelephone || "",
-      
+
       // Other
       website: studio.website || "",
       overallCapacity: studio.overallCapacity || DEFAULT_STUDIO_CAPACITY,
       registrationNumber: studio.registrationNumber || "",
       texId: studio.texId || "",
       court: studio.court || "",
-      
+
       // Arrays
       openingHours: formatOpeningHours(studio.openingHours),
       closingDays: formatClosingDays(studio.closingDays),
-      
+
       // Metadata
       createdAt: studio.createdAt,
       updatedAt: studio.updatedAt,
-      
+
       // Legacy/compatibility fields
       name: studio.studioName || "",
       operator: studio.studioOwner || "",
@@ -314,7 +314,17 @@ function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
       iban: "",
       bic: "",
     },
-    services: [],
+    services: (studioData.services || []).map((service) => ({
+      _id: service._id,
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      // optional fields if later populated
+      duration: service.duration,
+      interval: service.interval,
+      category: service.category,
+      image: service.image,
+    })),
     leads: [],
     notes: [],
     appearance: DEFAULT_APPEARANCE_SETTINGS,

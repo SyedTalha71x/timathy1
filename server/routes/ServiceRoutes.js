@@ -5,6 +5,7 @@ const {
   deleteService,
   getServiceById,
   getAllServices,
+  updateService
   //   studioServices 
 } = require('../controllers/ServiceController');
 const { verifyAccessToken } = require('../middleware/verifyToken');
@@ -26,5 +27,6 @@ router.get('/:id', verifyAccessToken, getServiceById);
 
 // Delete a service
 router.delete('/:id', verifyAccessToken, deleteService);
+router.put('/:id', verifyAccessToken, updateService);
 
 module.exports = router;

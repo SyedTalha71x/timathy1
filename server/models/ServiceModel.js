@@ -22,9 +22,12 @@ const serviceSchema = new mongoose.Schema(
       type: Number,
       required: true
     },
-    duration: { type: String, required: true }, // in minutes
+    duration: { type: Number, required: true }, // in minutes
+    interval: { type: Number, required: true }, // in minutes
     contingentUsage: { type: Number, default: 1, max: 8 },
-    maxSimultaneous: { type: Number, default: 1 }, // how many can be booked at same time
+    slot: { type: String },
+    maxSimultaneous: { type: Number, default: 1 },
+    calenderColor: { type: String }
   },
   { timestamps: true }
 );
