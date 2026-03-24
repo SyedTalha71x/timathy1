@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { ChevronDown, Check } from "lucide-react"
 import { createPortal } from "react-dom"
 
@@ -37,6 +38,8 @@ const CustomSelect = ({
   multi = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const { t } = useTranslation()
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024)
   const [search, setSearch] = useState("")
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const triggerRef = useRef(null)
@@ -54,7 +57,7 @@ const CustomSelect = ({
       ? placeholder
       : multiValue.length === 1
         ? options.find(opt => opt.value === multiValue[0])?.label || multiValue[0]
-        : `${multiValue.length} selected`
+        : t("common.nSelected", { count: multiValue.length })
     : selectedOption ? selectedOption.label : ""
 
   const filteredOptions = searchable && search
@@ -65,11 +68,11 @@ const CustomSelect = ({
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
-    // Account for iOS keyboard height (set by Capacitor keyboard handler in main.jsx)
-    const kbHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--keyboard-height')) || 0
-    const viewportBottom = window.innerHeight - kbHeight
-    const spaceBelow = viewportBottom - rect.bottom
-    const spaceAbove = rect.top
+    // Use visualViewport for accurate visible area (accounts for iOS keyboard)
+    const viewportHeight = window.visualViewport?.height || window.innerHeight
+    const viewportOffset = window.visualViewport?.offsetTop || 0
+    const spaceBelow = viewportHeight + viewportOffset - rect.bottom
+    const spaceAbove = rect.top - viewportOffset
     const dropdownHeight = Math.min(filteredOptions.length * 36 + (searchable ? 44 : 0) + 8, 240)
     const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
 
@@ -137,18 +140,29 @@ const CustomSelect = ({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [isOpen])
 
+  // Track screen size for responsive searchable behavior
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)")
+    const onChange = (e) => setIsMobile(e.matches)
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
+
   // Reposition on scroll / resize
   useEffect(() => {
     if (!isOpen) return
     const handleReposition = () => updatePosition()
     window.addEventListener("scroll", handleReposition, true)
     window.addEventListener("resize", handleReposition)
-    // Reposition when iOS keyboard opens/closes (event from main.jsx)
     window.addEventListener("capacitor-keyboard", handleReposition)
+    // Reposition when iOS keyboard opens/closes
+    const vv = window.visualViewport
+    if (vv) vv.addEventListener("resize", handleReposition)
     return () => {
       window.removeEventListener("scroll", handleReposition, true)
       window.removeEventListener("resize", handleReposition)
       window.removeEventListener("capacitor-keyboard", handleReposition)
+      if (vv) vv.removeEventListener("resize", handleReposition)
     }
   }, [isOpen, updatePosition])
 
@@ -256,78 +270,159 @@ const CustomSelect = ({
 
       {/* Dropdown via portal */}
       {isOpen && createPortal(
-        <div
-          ref={dropdownRef}
-          style={dropdownStyle}
-          className="bg-surface-card border border-border rounded-xl shadow-xl overflow-hidden"
-          onKeyDown={handleKeyDown}
-        >
-          {/* Search input (optional) */}
-          {searchable && (
-            <div className="p-2 border-b border-border">
-              <input
-                ref={searchRef}
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setHighlightedIndex(0)
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder="Search..."
-                className="w-full bg-surface-dark text-sm text-content-primary rounded-lg px-3 py-1.5 outline-none border border-transparent focus:border-primary transition-colors"
-              />
-            </div>
-          )}
-
-          {/* Options list */}
-          <div className="max-h-[200px] overflow-y-auto py-1 custom-scrollbar">
-            {filteredOptions.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-content-faint text-center">
-                No options found
+        searchable && isMobile ? (
+          /* Mobile searchable: fullscreen overlay — keyboard-proof */
+          <div
+            ref={dropdownRef}
+            className="fixed inset-0 z-[99999999] flex flex-col bg-black/50"
+            onClick={(e) => { if (e.target === e.currentTarget) closeDropdown() }}
+            onKeyDown={handleKeyDown}
+          >
+            <div className="bg-surface-card w-full max-w-md mx-auto mt-2 rounded-xl shadow-xl overflow-hidden flex flex-col" style={{ maxHeight: "45vh" }}>
+              {/* Search header */}
+              <div className="p-3 border-b border-border flex items-center gap-2 flex-shrink-0">
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setHighlightedIndex(0)
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t("common.search") + "..."}
+                  className="flex-1 bg-surface-dark text-sm text-content-primary rounded-lg px-3 py-2 outline-none border border-transparent focus:border-primary transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={closeDropdown}
+                  className="text-content-muted hover:text-content-primary p-1 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-            ) : (
-              filteredOptions.map((opt, index) => {
-                // Divider support
-                if (opt.divider) {
-                  return <div key={`divider-${index}`} className="my-1 border-t border-border mx-2" />
-                }
-                const isSelected = multi
-                  ? multiValue.includes(opt.value)
-                  : String(opt.value) === String(value)
-                const isHighlighted = index === highlightedIndex
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    data-index={index}
-                    onClick={() => handleSelect(opt.value)}
-                    onMouseEnter={() => setHighlightedIndex(index)}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
-                      isHighlighted
-                        ? "bg-surface-hover text-content-primary"
-                        : isSelected
-                          ? "text-primary"
-                          : "text-content-secondary hover:bg-surface-hover"
-                    }`}
-                  >
-                    {multi && (
-                      <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? "bg-primary border-primary" : "border-content-faint"
-                      }`}>
-                        {isSelected && <Check size={10} className="text-white" />}
-                      </div>
-                    )}
-                    <span className="truncate flex-1">{opt.label}</span>
-                    {!multi && isSelected && (
-                      <Check size={14} className="text-primary flex-shrink-0" />
-                    )}
-                  </button>
-                )
-              })
-            )}
+              {/* Results */}
+              <div className="flex-1 overflow-y-auto py-1 custom-scrollbar">
+                {filteredOptions.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-content-faint text-center">
+                    {t("common.noOptions")}
+                  </div>
+                ) : (
+                  filteredOptions.map((opt, index) => {
+                    if (opt.divider) {
+                      return <div key={`divider-${index}`} className="my-1 border-t border-border mx-2" />
+                    }
+                    const isSelected = multi
+                      ? multiValue.includes(opt.value)
+                      : String(opt.value) === String(value)
+                    const isHighlighted = index === highlightedIndex
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        data-index={index}
+                        onClick={() => handleSelect(opt.value)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
+                          isHighlighted
+                            ? "bg-surface-hover text-content-primary"
+                            : isSelected
+                              ? "text-primary"
+                              : "text-content-secondary hover:bg-surface-hover"
+                        }`}
+                      >
+                        {multi && (
+                          <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
+                            isSelected ? "bg-primary border-primary" : "border-content-faint"
+                          }`}>
+                            {isSelected && <Check size={10} className="text-white" />}
+                          </div>
+                        )}
+                        <span className="truncate flex-1">{opt.label}</span>
+                        {!multi && isSelected && (
+                          <Check size={14} className="text-primary flex-shrink-0" />
+                        )}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </div>
           </div>
-        </div>,
+        ) : (
+          /* Desktop searchable + all non-searchable: positioned dropdown */
+          <div
+            ref={dropdownRef}
+            style={dropdownStyle}
+            className="bg-surface-card border border-border rounded-xl shadow-xl overflow-hidden"
+            onKeyDown={handleKeyDown}
+          >
+            {/* Search input — only for searchable on desktop */}
+            {searchable && (
+              <div className="p-2 border-b border-border flex-shrink-0">
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setHighlightedIndex(0)
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t("common.search") + "..."}
+                  className="w-full bg-surface-dark text-sm text-content-primary rounded-lg px-3 py-1.5 outline-none border border-transparent focus:border-primary transition-colors"
+                />
+              </div>
+            )}
+            <div className="max-h-[200px] overflow-y-auto py-1 custom-scrollbar">
+              {filteredOptions.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-content-faint text-center">
+                  {t("common.noOptions")}
+                </div>
+              ) : (
+                filteredOptions.map((opt, index) => {
+                  if (opt.divider) {
+                    return <div key={`divider-${index}`} className="my-1 border-t border-border mx-2" />
+                  }
+                  const isSelected = multi
+                    ? multiValue.includes(opt.value)
+                    : String(opt.value) === String(value)
+                  const isHighlighted = index === highlightedIndex
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      data-index={index}
+                      onClick={() => handleSelect(opt.value)}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
+                        isHighlighted
+                          ? "bg-surface-hover text-content-primary"
+                          : isSelected
+                            ? "text-primary"
+                            : "text-content-secondary hover:bg-surface-hover"
+                      }`}
+                    >
+                      {multi && (
+                        <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? "bg-primary border-primary" : "border-content-faint"
+                        }`}>
+                          {isSelected && <Check size={10} className="text-white" />}
+                        </div>
+                      )}
+                      <span className="truncate flex-1">{opt.label}</span>
+                      {!multi && isSelected && (
+                        <Check size={14} className="text-primary flex-shrink-0" />
+                      )}
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        ),
         document.body
       )}
     </>

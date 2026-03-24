@@ -6,6 +6,7 @@ import {
   Star,
   CheckCircle,
 } from "lucide-react"
+import { haptic } from "../../utils/haptic"
 
 // ============================================
 // Feedback Modal Component
@@ -70,8 +71,9 @@ const FeedbackModal = ({
             </div>
           </div>
           <button 
-            onClick={onClose}
-            className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
+            onClick={() => { haptic.light(); onClose() }}
+            className="p-2 hover:bg-surface-hover rounded-lg transition-colors active:scale-90"
+            style={{ touchAction: "manipulation" }}
           >
             <span className="text-content-faint hover:text-content-secondary text-xl">×</span>
           </button>
@@ -90,12 +92,13 @@ const FeedbackModal = ({
                 return (
                   <button
                     key={type.id}
-                    onClick={() => onFeedbackDataChange({ ...feedbackData, type: type.id })}
-                    className={`p-3 rounded-xl border transition-all text-center ${
+                    onClick={() => { haptic.light(); onFeedbackDataChange({ ...feedbackData, type: type.id }) }}
+                    className={`p-3 rounded-xl border transition-all text-center active:scale-95 ${
                       isSelected
                         ? 'border-primary bg-primary/10 text-content-primary'
                         : 'border-border bg-surface-button text-content-secondary hover:bg-surface-button-hover'
                     }`}
+                    style={{ touchAction: "manipulation" }}
                   >
                     <IconComponent 
                       size={20} 
@@ -143,8 +146,9 @@ const FeedbackModal = ({
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
-                  onClick={() => onFeedbackDataChange({ ...feedbackData, rating: star })}
-                  className="transition-transform hover:scale-110"
+                  onClick={() => { haptic.light(); onFeedbackDataChange({ ...feedbackData, rating: star }) }}
+                  className="transition-transform active:scale-90"
+                  style={{ touchAction: "manipulation" }}
                 >
                   <Star 
                     size={24} 
@@ -154,7 +158,7 @@ const FeedbackModal = ({
               ))}
               {feedbackData.rating > 0 && (
                 <button
-                  onClick={() => onFeedbackDataChange({ ...feedbackData, rating: 0 })}
+                  onClick={() => { haptic.light(); onFeedbackDataChange({ ...feedbackData, rating: 0 }) }}
                   className="text-xs text-content-faint hover:text-content-secondary ml-2"
                 >
                   Clear
@@ -165,17 +169,19 @@ const FeedbackModal = ({
         </div>
         
         {/* Footer */}
-        <div className="flex gap-3 p-4 sm:p-5 border-t border-border">
+        <div className="flex gap-3 p-4 sm:p-5 border-t border-border" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}>
           <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 sm:py-3 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors font-medium text-sm sm:text-base open_sans_font"
+            onClick={() => { haptic.light(); onClose() }}
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors font-medium text-sm sm:text-base open_sans_font active:scale-[0.97]"
+            style={{ touchAction: "manipulation" }}
           >
             Cancel
           </button>
           <button
-            onClick={onSubmit}
+            onClick={() => { haptic.medium(); onSubmit() }}
             disabled={!feedbackData.subject.trim() || !feedbackData.message.trim()}
-            className="flex-1 px-4 py-2.5 sm:py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base open_sans_font"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base open_sans_font active:scale-[0.97]"
+            style={{ touchAction: "manipulation" }}
           >
             Send Feedback
           </button>

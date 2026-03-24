@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
 import { memberLogin, staffLoginThunk } from '../features/auth/authSlice'
@@ -18,6 +19,7 @@ import { fetchAllMember } from "../features/member/memberSlice"
 // ============================================================================
 // Drei Login-Typen: Studio (Gym-Betreiber), Admin, Member
 // Jeder Typ hat eigene Formularfelder und Ziel-Route
+// Layout (header, safe-areas, theme/language) handled by LoginLayout
 // ============================================================================
 
 // Login-Typ Konfiguration
@@ -59,6 +61,7 @@ const TAB_POSITIONS = {
 }
 
 export default function SignInPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { user, loading, error } = useSelector((state) => state.auth)
@@ -157,46 +160,45 @@ export default function SignInPage() {
   }
 
   // Login Submit Handler
+  // TEMPORARY: Auth auskommentiert für alle Login-Typen
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     const config = LOGIN_TYPES[activeLoginType]
-    const currentFormData = formData[activeLoginType]
+    // const currentFormData = formData[activeLoginType]
 
-    // MEMBER LOGIN (REAL AUTH)
-    if (activeLoginType === "studio") {
-      try {
-        const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
+    // // STUDIO LOGIN (REAL AUTH - temporarily disabled)
+    // if (activeLoginType === "studio") {
+    //   try {
+    //     const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
+    //     dispatch(fetchAllAppointments())
+    //     dispatch(fetchAllMember());
+    //     dispatch(fetchStudioServices())
+    //     dispatch(fetchMyStudio())
+    //     navigate(config.redirectPath)
+    //   } catch (err) {
+    //     console.error(err)
+    //     alert(err?.message || "Invalid email or password")
+    //   }
+    //   return
+    // }
 
-        dispatch(fetchAllAppointments())
-        dispatch(fetchAllMember());
-        dispatch(fetchStudioServices())
-        dispatch(fetchMyStudio())
-        // success → redirect
-        navigate(config.redirectPath)
-      } catch (err) {
-        console.error(err)
-        alert(err?.message || "Invalid email or password")
-      }
-      return
-    }
-    if (activeLoginType === "member") {
-      try {
-        const res = await dispatch(memberLogin(currentFormData)).unwrap()
+    // // MEMBER LOGIN (REAL AUTH - temporarily disabled)
+    // if (activeLoginType === "member") {
+    //   try {
+    //     const res = await dispatch(memberLogin(currentFormData)).unwrap()
+    //     dispatch(fetchMyAppointments())
+    //     dispatch(fetchStudioServices())
+    //     dispatch(fetchMyStudio())
+    //     navigate(config.redirectPath)
+    //   } catch (err) {
+    //     console.error(err)
+    //     alert(err?.message || "Invalid email or password")
+    //   }
+    //   return
+    // }
 
-        dispatch(fetchMyAppointments())
-        dispatch(fetchStudioServices())
-        dispatch(fetchMyStudio())
-        // success → redirect
-        navigate(config.redirectPath)
-      } catch (err) {
-        console.error(err)
-        alert(err?.message || "Invalid email or password")
-      }
-      return
-    }
-
-    // STUDIO / ADMIN (TEMPORARY)
+    // TEMPORARY: Direkt weiterleiten für alle Typen
     navigate(config.redirectPath)
   }
 
@@ -215,11 +217,11 @@ export default function SignInPage() {
         {activeLoginType === "studio" && (
           <div>
             <label className="block text-xs text-gray-500 mb-1.5 ml-1">
-              Studio Name
+              {t("login.studioName")}
             </label>
             <input
               type="text"
-              placeholder="Enter your studio name"
+              placeholder={t("login.studioNamePlaceholder")}
               className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
               value={currentFormData.studioName || ""}
               onChange={(e) => handleInputChange(activeLoginType, "studioName", e.target.value)}
@@ -231,11 +233,11 @@ export default function SignInPage() {
         {/* Email Feld */}
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 ml-1">
-            Email
+            {t("login.email")}
           </label>
           <input
             type="email"
-            placeholder={`Enter your ${config.label.toLowerCase()} email`}
+            placeholder={t("login.emailPlaceholder", { type: config.label.toLowerCase() })}
             className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
             value={currentFormData.email.toLowerCase()}
             onChange={(e) => handleInputChange(activeLoginType, "email", e.target.value)}
@@ -246,11 +248,11 @@ export default function SignInPage() {
         {/* Password Feld */}
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 ml-1">
-            Password
+            {t("login.password")}
           </label>
           <input
             type="password"
-            placeholder="Enter your password"
+            placeholder={t("login.passwordPlaceholder")}
             className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
             value={currentFormData.password}
             onChange={(e) => handleInputChange(activeLoginType, "password", e.target.value)}
@@ -267,7 +269,7 @@ export default function SignInPage() {
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8">
+    <div className="flex-1 flex items-center justify-center p-4 md:p-8">
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
         {/* ================================================================= */}
@@ -321,7 +323,7 @@ export default function SignInPage() {
                   type="button"
                   className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors"
                 >
-                  Forgot Password?
+                  {t("login.forgotPassword")}
                 </button>
               </div>
 
@@ -333,11 +335,11 @@ export default function SignInPage() {
     px-4 py-3 text-white font-medium transition-all duration-300
     text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed`}
               >
-                {loading ? "Signing in..." : `Sign In as ${config.label}`}
+                {loading ? t("login.signingIn") : t("login.signInAs", { type: config.label })}
               </button>
               {error && (
                 <p className="text-xs text-red-500 text-center">
-                  {error ? error.message : 'Something went wrong'}
+                  {error ? error.message : t("settings.errors.somethingWrong")}
                 </p>
               )}
 

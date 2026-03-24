@@ -11,6 +11,9 @@ import "./styles/ant-overrides.css"; // Ant Design Overrides
 import "./styles/fullcalendar.css"; // FullCalendar Overrides
 import "./styles/animations.css";   // Wobble, Drag & Drop
 
+// --- i18n (Sprachen: EN, DE, FR, ES, IT — erkennt Systemsprache automatisch) ---
+import "./i18n/i18n";
+
 import App from "./App.jsx";
 import { store } from "./app/store.js";
 import { Provider } from 'react-redux'
@@ -18,11 +21,11 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
 
-// iOS: WebView unterhalb der Statusleiste starten
+// iOS: Status bar overlays WebView — header CSS fills behind it
 if (Capacitor.isNativePlatform()) {
-  StatusBar.setOverlaysWebView({ overlay: false });
+  StatusBar.setOverlaysWebView({ overlay: true });
+  // Dark = light/white icons (for dark backgrounds at startup)
   StatusBar.setStyle({ style: Style.Dark });
-  StatusBar.setBackgroundColor({ color: '#141414' }).catch(() => {});
 }
 
 // ============================================================================
@@ -47,14 +50,6 @@ if (Capacitor.getPlatform() === 'ios') {
 
     // Custom Event — Portale/Dropdowns können darauf reagieren
     window.dispatchEvent(new CustomEvent('capacitor-keyboard', { detail: { height: kb, visible: true } }))
-
-    // Fokussiertes Element sichtbar halten
-    setTimeout(() => {
-      const el = document.activeElement
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }, 100)
   })
 
   Keyboard.addListener('keyboardWillHide', () => {
@@ -63,12 +58,6 @@ if (Capacitor.getPlatform() === 'ios') {
 
     // Custom Event
     window.dispatchEvent(new CustomEvent('capacitor-keyboard', { detail: { height: 0, visible: false } }))
-
-    setTimeout(() => {
-      window.scrollTo(0, 0)
-      document.body.scrollTop = 0
-      document.documentElement.scrollTop = 0
-    }, 50)
   })
 }
 

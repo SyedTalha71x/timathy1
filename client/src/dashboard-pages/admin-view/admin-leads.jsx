@@ -12,6 +12,7 @@ import {
   closestCorners,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   pointerWithin,
@@ -119,14 +120,26 @@ export default function LeadManagement() {
   // ============================================
   const [activeId, setActiveId] = useState(null)
   const [activeLead, setActiveLead] = useState(null)
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
+
+  // Track screen size for mobile-only autoScroll
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Configure sensors for drag detection with mobile optimizations
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 15,
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
         delay: 150,
-        tolerance: 5,
+        tolerance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -809,7 +822,7 @@ export default function LeadManagement() {
 
 
   return (
-    <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden md:overflow-x-visible">
+    <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -967,7 +980,12 @@ export default function LeadManagement() {
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        autoScroll={false}
+        autoScroll={isMobileView ? {
+          enabled: true,
+          threshold: { x: 0.1, y: 0.15 },
+          acceleration: 15,
+          interval: 5,
+        } : false}
       >
         <div 
           className="

@@ -1,11 +1,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react";
+import { useTranslation } from "react-i18next";
 import PopupWrapper from "./PopupWrapper";
 
 const ImprintPopup = ({ onClose, studio }) => {
+  const { t } = useTranslation();
   return (
-    <PopupWrapper title="Imprint" onClose={onClose}>
+    <PopupWrapper title={t("studioMenu.info.imprint")} onClose={onClose}>
       <p>
         <strong>{studio?.studioName}</strong>
       </p>
@@ -14,14 +16,14 @@ const ImprintPopup = ({ onClose, studio }) => {
         {studio?.zipCode} {studio?.city} {studio?.country}
       </p>
       <p>
-        Phone: {studio?.phone}
+                {t("studioMenu.popup.phone")}: {studio?.phone}
         <br />
-        Email: {studio?.email}
+                {t("studioMenu.personal.email")}: {studio?.email}
       </p>
       <p>
-        Managing Director: {studio?.studioOwner}
+                {t("studioMenu.popup.managingDirector")}: {studio?.studioOwner}
         <br />
-        Commercial Register: Not Provided
+        {t("studioMenu.popup.commercialRegister")}: {t("studioMenu.popup.notProvided")}
       </p>
     </PopupWrapper>
   );

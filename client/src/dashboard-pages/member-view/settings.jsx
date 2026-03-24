@@ -1,11 +1,14 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useSelector, useDispatch } from "react-redux"
 import { updateUserData, updatedPassword, logout } from "../../features/auth/authSlice"
 import { updateReminders } from "../../features/notification/notificationSlice"
 import { notification } from "antd"
 import { haptic } from "../../utils/haptic"
+import { useNavigate } from "react-router-dom"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 import {
   ChevronRight,
   ChevronLeft,
@@ -33,38 +36,40 @@ import { IoIosMegaphone } from "react-icons/io"
 const NAVIGATION_ITEMS = [
   {
     id: "account",
-    label: "Account",
+    labelKey: "settings.nav.account",
     icon: User,
     sections: [
-      { id: "change-email", label: "Change Email" },
-      { id: "change-password", label: "Change Password" },
-      { id: "logout", label: "Logout" },
-      { id: "delete-account", label: "Delete Account" },
+      { id: "change-email", labelKey: "settings.nav.changeEmail" },
+      { id: "change-password", labelKey: "settings.nav.changePassword" },
+      { id: "logout", labelKey: "common.logout" },
+      { id: "delete-account", labelKey: "settings.nav.deleteAccount" },
     ],
   },
   {
     id: "notifications",
-    label: "Notifications",
+    labelKey: "settings.nav.notifications",
     icon: Bell,
     sections: [
-      { id: "appointment-notifications", label: "Appointments" },
-      { id: "classes-notifications", label: "Classes" },
-      { id: "general-notifications", label: "General" },
+      { id: "appointment-notifications", labelKey: "nav.appointments" },
+      { id: "classes-notifications", labelKey: "nav.classes" },
+      { id: "general-notifications", labelKey: "settings.nav.general" },
     ],
   },
   {
     id: "general",
-    label: "General",
+    labelKey: "settings.nav.general",
     icon: FileText,
     sections: [
-      { id: "imprint", label: "Imprint" },
-      { id: "privacy-policy", label: "Privacy Policy" },
+      { id: "imprint", labelKey: "settings.nav.imprint" },
+      { id: "privacy-policy", labelKey: "settings.nav.privacyPolicy" },
     ],
   },
 ]
 
 const SettingsPage = () => {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { studio, loading } = useSelector((state) => state.studios)
 
   // Navigation state
@@ -196,41 +201,41 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   const handleRequestEmailChange = async () => {
     const { newEmail, currentPassword } = accountSettings
     if (!newEmail) {
-      return notification.error({ message: "Missing Email", description: "Please enter a new email address." })
+      return notification.error({ message: t("settings.email.missingEmail"), description: t("settings.email.missingEmailDesc") })
     }
     if (!currentPassword) {
-      return notification.error({ message: "Password Required", description: "Please enter your current password to confirm the change." })
+      return notification.error({ message: t("settings.email.passwordRequired"), description: t("settings.email.passwordRequiredDesc") })
     }
     try {
       await dispatch(updateUserData({ email: newEmail, currentPassword })).unwrap()
       haptic.success()
-      notification.success({ message: "Email Change Requested", description: "A confirmation email has been sent to your new email address." })
+      notification.success({ message: t("settings.email.changeRequested"), description: t("settings.email.changeRequestedDesc") })
       setAccountSettings({ ...accountSettings, newEmail: "", currentPassword: "" })
     } catch (err) {
       haptic.error()
-      notification.error({ message: "Email Change Failed", description: err.message || "Something went wrong." })
+      notification.error({ message: t("settings.email.changeFailed"), description: err.message || t("settings.errors.somethingWrong") })
     }
   }
 
   const handleRequestPasswordChange = async () => {
     const { currentPassword, newPassword, confirmPassword } = accountSettings
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return notification.error({ message: "Missing Fields", description: "Please fill in all password fields." })
+      return notification.error({ message: t("settings.password.missingFields"), description: t("settings.password.missingFieldsDesc") })
     }
     if (newPassword !== confirmPassword) {
-      return notification.error({ message: "Password Mismatch", description: "New password and confirm password do not match." })
+      return notification.error({ message: t("settings.password.mismatch"), description: t("settings.password.mismatchDesc") })
     }
     if (newPassword.length < 8) {
-      return notification.error({ message: "Weak Password", description: "Password must be at least 8 characters long." })
+      return notification.error({ message: t("settings.password.weakPassword"), description: t("settings.password.weakPasswordDesc") })
     }
     try {
       await dispatch(updatedPassword({ oldPassword: currentPassword, newPassword })).unwrap()
       haptic.success()
-      notification.success({ message: "Password Changed", description: "Your password has been updated successfully." })
+      notification.success({ message: t("settings.password.changed"), description: t("settings.password.changedDesc") })
       setAccountSettings({ ...accountSettings, currentPassword: "", newPassword: "", confirmPassword: "" })
     } catch (err) {
       haptic.error()
-      notification.error({ message: "Password Change Failed", description: err.message || "Something went wrong." })
+      notification.error({ message: t("settings.password.changeFailed"), description: err.message || t("settings.errors.somethingWrong") })
     }
   }
 
@@ -252,7 +257,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     const data = reminderData || notificationSettings.appointmentReminders
     dispatch(updateReminders({ reminderData: data }))
       .unwrap()
-      .catch((err) => notification.error({ message: "Update Failed", description: err.message || "Could not save settings." }))
+      .catch((err) => notification.error({ message: t("settings.errors.updateFailed"), description: err.message || t("settings.errors.couldNotSave") }))
   }
 
   const handleToggleAppointmentReminders = (checked) => {
@@ -263,7 +268,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     setNotificationSettings(updated)
     dispatch(updateReminders({ reminderData: updated.appointmentReminders }))
       .unwrap()
-      .catch((err) => notification.error({ message: "Update Failed", description: err.message || "Could not save settings." }))
+      .catch((err) => notification.error({ message: t("settings.errors.updateFailed"), description: err.message || t("settings.errors.couldNotSave") }))
   }
 
   const handleUpdateGeneralNotification = (category, field, value) => {
@@ -324,10 +329,10 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     try {
       haptic.warning()
       await dispatch(logout()).unwrap()
-      window.location.href = "/login"
+      navigate("/login", { replace: true })
     } catch (err) {
       haptic.error()
-      notification.error({ message: "Logout Failed", description: err.message || "Something went wrong." })
+      notification.error({ message: t("settings.errors.logoutFailed"), description: err.message || t("settings.errors.somethingWrong") })
     }
   }
 
@@ -336,13 +341,13 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     try {
       haptic.warning()
       // TODO: dispatch(deleteAccount()) when backend endpoint is ready
-      notification.success({ message: "Account Deleted", description: "Your account has been permanently deleted." })
+      notification.success({ message: t("settings.deleteAccount.deleted"), description: t("settings.deleteAccount.deletedDesc") })
       setShowDeleteConfirm(false)
       setDeleteConfirmText("")
-      window.location.href = "/login"
+      navigate("/login", { replace: true })
     } catch (err) {
       haptic.error()
-      notification.error({ message: "Deletion Failed", description: err.message || "Could not delete account." })
+      notification.error({ message: t("settings.deleteAccount.deletionFailed"), description: err.message || t("settings.errors.couldNotDelete") })
     }
   }
 
@@ -370,10 +375,10 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   const getCurrentSectionTitle = () => {
     for (const cat of NAVIGATION_ITEMS) {
       for (const section of cat.sections) {
-        if (section.id === activeSection) return section.label
+        if (section.id === activeSection) return t(section.labelKey)
       }
     }
-    return "Settings"
+    return t("nav.settings")
   }
 
   const matchesSearch = (text) => {
@@ -383,7 +388,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
 
   const filteredNavItems = searchQuery
     ? NAVIGATION_ITEMS.filter(
-        (cat) => matchesSearch(cat.label) || cat.sections.some((s) => matchesSearch(s.label))
+        (cat) => matchesSearch(t(cat.labelKey)) || cat.sections.some((s) => matchesSearch(t(s.labelKey)))
       )
     : NAVIGATION_ITEMS
 
@@ -415,30 +420,30 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "change-email":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Change Email Address</h3>
-              <p className="text-sm text-content-faint">A confirmation email will be sent to your new email address to complete the change.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-content-primary mb-1">                {t("settings.email.title")}</h3>
+              <p className="text-sm text-content-faint">                {t("settings.email.subtitle")}</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">New Email Address<span className="text-accent-red ml-1">*</span></label>
+                <label className="text-sm text-content-secondary block mb-2">                  {t("settings.email.newEmail")}<span className="text-accent-red ml-1">*</span></label>
                 <input
                   type="email"
                   value={accountSettings.newEmail}
                   onChange={(e) => handleUpdateAccountLogin("newEmail", e.target.value)}
-                  placeholder="Enter new email address"
+                  placeholder={t("settings.email.newEmailPlaceholder")}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                 />
               </div>
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Current Password<span className="text-accent-red ml-1">*</span></label>
+                <label className="text-sm text-content-secondary block mb-2">                  {t("settings.email.currentPassword")}<span className="text-accent-red ml-1">*</span></label>
                 <div className="relative">
                   <input
                     type={showCurrentPassword ? "text" : "password"}
                     value={accountSettings.currentPassword}
                     onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
-                    placeholder="Enter current password"
+                    placeholder={t("settings.email.currentPasswordPlaceholder")}
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 pr-10 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                   />
                   <button
@@ -455,7 +460,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 onClick={handleRequestEmailChange}
                 className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-colors"
               >
-                Request Email Change
+                {t("settings.email.requestChange")}
               </button>
             </div>
           </div>
@@ -465,20 +470,20 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "change-password":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Change Password</h3>
-              <p className="text-sm text-content-faint">A confirmation email will be sent to complete the password change.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-content-primary mb-1">                {t("settings.password.title")}</h3>
+              <p className="text-sm text-content-faint">                {t("settings.password.subtitle")}</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Current Password<span className="text-accent-red ml-1">*</span></label>
+                <label className="text-sm text-content-secondary block mb-2">                  {t("settings.email.currentPassword")}<span className="text-accent-red ml-1">*</span></label>
                 <div className="relative">
                   <input
                     type={showCurrentPassword ? "text" : "password"}
                     value={accountSettings.currentPassword}
                     onChange={(e) => handleUpdateAccountLogin("currentPassword", e.target.value)}
-                    placeholder="Enter current password"
+                    placeholder={t("settings.email.currentPasswordPlaceholder")}
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 pr-10 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                   />
                   <button
@@ -491,13 +496,13 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 </div>
               </div>
               <div>
-                <label className="text-sm text-content-secondary block mb-2">New Password<span className="text-accent-red ml-1">*</span></label>
+                <label className="text-sm text-content-secondary block mb-2">                  {t("settings.password.newPassword")}<span className="text-accent-red ml-1">*</span></label>
                 <div className="relative">
                   <input
                     type={showNewPassword ? "text" : "password"}
                     value={accountSettings.newPassword}
                     onChange={(e) => handleUpdateAccountLogin("newPassword", e.target.value)}
-                    placeholder="Enter new password"
+                    placeholder={t("settings.password.newPasswordPlaceholder")}
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 pr-10 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                   />
                   <button
@@ -510,13 +515,13 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 </div>
               </div>
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Confirm New Password<span className="text-accent-red ml-1">*</span></label>
+                <label className="text-sm text-content-secondary block mb-2">                  {t("settings.password.confirmPassword")}<span className="text-accent-red ml-1">*</span></label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={accountSettings.confirmPassword}
                     onChange={(e) => handleUpdateAccountLogin("confirmPassword", e.target.value)}
-                    placeholder="Confirm new password"
+                    placeholder={t("settings.password.confirmPasswordPlaceholder")}
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 pr-10 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors"
                   />
                   <button
@@ -533,7 +538,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 onClick={handleRequestPasswordChange}
                 className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-colors"
               >
-                Request Password Change
+                {t("settings.password.requestChange")}
               </button>
             </div>
           </div>
@@ -543,15 +548,15 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "appointment-notifications":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Appointment Notifications</h3>
-              <p className="text-sm text-content-faint">Configure notifications for confirmations, changes, and reminders.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-content-primary mb-1">{t("settings.notifications.appointmentTitle")}</h3>
+              <p className="text-sm text-content-faint">{t("settings.notifications.appointmentSubtitle")}</p>
             </div>
 
             <div className="flex items-center justify-between bg-surface-card rounded-xl p-4 border border-border">
               <div>
-                <p className="text-sm font-medium text-content-primary">Enable Appointment Notifications</p>
-                <p className="text-xs text-content-faint mt-0.5">Send automated notifications for confirmations, changes, and reminders</p>
+                <p className="text-sm font-medium text-content-primary">{t("settings.notifications.enableAppointment")}</p>
+                <p className="text-xs text-content-faint mt-0.5">{t("settings.notifications.enableAppointmentDesc")}</p>
               </div>
               <Toggle
                 checked={notificationSettings.appointmentReminders.enabled}
@@ -567,8 +572,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                     <div className="flex items-center gap-3">
                       <Mail size={16} className="text-content-muted" />
                       <div>
-                        <p className="text-sm font-medium text-content-primary">Email Notifications</p>
-                        <p className="text-xs text-content-faint">Confirmations, changes, and reminders via email</p>
+                        <p className="text-sm font-medium text-content-primary">{t("settings.notifications.emailNotifications")}</p>
+                        <p className="text-xs text-content-faint">{t("settings.notifications.emailAppointmentDesc")}</p>
                       </div>
                     </div>
                     <Toggle
@@ -584,8 +589,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                     <div className="flex items-center gap-3">
                       <Bell size={16} className="text-content-muted" />
                       <div>
-                        <p className="text-sm font-medium text-content-primary">Push Notifications</p>
-                        <p className="text-xs text-content-faint">Confirmations, changes, and reminders via push</p>
+                        <p className="text-sm font-medium text-content-primary">{t("settings.notifications.pushNotifications")}</p>
+                        <p className="text-xs text-content-faint">{t("settings.notifications.pushAppointmentDesc")}</p>
                       </div>
                     </div>
                     <Toggle
@@ -600,12 +605,12 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                   <div className="flex items-center gap-3">
                     <Clock size={16} className="text-content-muted" />
                     <div>
-                      <p className="text-sm font-medium text-content-primary">Reminder Timing</p>
-                      <p className="text-xs text-content-faint">How early to send appointment reminders</p>
+                      <p className="text-sm font-medium text-content-primary">{t("settings.notifications.reminderTiming")}</p>
+                      <p className="text-xs text-content-faint">{t("settings.notifications.reminderTimingAppointmentDesc")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 ml-7">
-                    <span className="text-xs text-content-muted">Remind</span>
+                    <span className="text-xs text-content-muted">{t("settings.notifications.remind")}</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -640,7 +645,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
                       onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                     />
-                    <span className="text-xs text-content-muted">hours before appointment</span>
+                    <span className="text-xs text-content-muted">{t("settings.notifications.hoursBeforeAppointment")}</span>
                   </div>
                 </div>
               </div>
@@ -652,15 +657,15 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "classes-notifications":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Class Notifications</h3>
-              <p className="text-sm text-content-faint">Configure notifications for class enrollments, cancellations, and reminders.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-content-primary mb-1">{t("settings.notifications.classTitle")}</h3>
+              <p className="text-sm text-content-faint">{t("settings.notifications.classSubtitle")}</p>
             </div>
 
             <div className="flex items-center justify-between bg-surface-card rounded-xl p-4 border border-border">
               <div>
-                <p className="text-sm font-medium text-content-primary">Enable Class Notifications</p>
-                <p className="text-xs text-content-faint mt-0.5">Send automated notifications for enrollments, changes, and reminders</p>
+                <p className="text-sm font-medium text-content-primary">{t("settings.notifications.enableClass")}</p>
+                <p className="text-xs text-content-faint mt-0.5">{t("settings.notifications.enableClassDesc")}</p>
               </div>
               <Toggle
                 checked={notificationSettings.classReminders.enabled}
@@ -676,8 +681,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                     <div className="flex items-center gap-3">
                       <Mail size={16} className="text-content-muted" />
                       <div>
-                        <p className="text-sm font-medium text-content-primary">Email Notifications</p>
-                        <p className="text-xs text-content-faint">Enrollment confirmations, cancellations, and reminders via email</p>
+                        <p className="text-sm font-medium text-content-primary">{t("settings.notifications.emailNotifications")}</p>
+                        <p className="text-xs text-content-faint">{t("settings.notifications.emailClassDesc")}</p>
                       </div>
                     </div>
                     <Toggle
@@ -693,8 +698,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                     <div className="flex items-center gap-3">
                       <Bell size={16} className="text-content-muted" />
                       <div>
-                        <p className="text-sm font-medium text-content-primary">Push Notifications</p>
-                        <p className="text-xs text-content-faint">Enrollment confirmations, cancellations, and reminders via push</p>
+                        <p className="text-sm font-medium text-content-primary">{t("settings.notifications.pushNotifications")}</p>
+                        <p className="text-xs text-content-faint">{t("settings.notifications.pushClassDesc")}</p>
                       </div>
                     </div>
                     <Toggle
@@ -709,12 +714,12 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                   <div className="flex items-center gap-3">
                     <Clock size={16} className="text-content-muted" />
                     <div>
-                      <p className="text-sm font-medium text-content-primary">Reminder Timing</p>
-                      <p className="text-xs text-content-faint">How early to send class reminders</p>
+                      <p className="text-sm font-medium text-content-primary">{t("settings.notifications.reminderTiming")}</p>
+                      <p className="text-xs text-content-faint">{t("settings.notifications.reminderTimingClassDesc")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 ml-7">
-                    <span className="text-xs text-content-muted">Remind</span>
+                    <span className="text-xs text-content-muted">{t("settings.notifications.remind")}</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -749,7 +754,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                       className="w-20 bg-surface-dark rounded-lg px-3 py-1.5 text-content-primary text-sm outline-none border border-transparent focus:border-primary transition-colors text-center"
                       onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                     />
-                    <span className="text-xs text-content-muted">hours before class</span>
+                    <span className="text-xs text-content-muted">{t("settings.notifications.hoursBeforeClass")}</span>
                   </div>
                 </div>
 
@@ -759,8 +764,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                     <div className="flex items-center gap-3">
                       <Timer size={16} className="text-content-muted" />
                       <div>
-                        <p className="text-sm font-medium text-content-primary">Spot Available</p>
-                        <p className="text-xs text-content-faint">Notify when a spot opens in a full class you're watching</p>
+                        <p className="text-sm font-medium text-content-primary">{t("settings.notifications.spotAvailable")}</p>
+                        <p className="text-xs text-content-faint">{t("settings.notifications.spotAvailableDesc")}</p>
                       </div>
                     </div>
                     <Toggle
@@ -774,7 +779,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                       <div className="flex items-center justify-between pt-2">
                         <div className="flex items-center gap-2.5">
                           <Mail size={14} className="text-content-muted" />
-                          <span className="text-sm text-content-primary">Email</span>
+                          <span className="text-sm text-content-primary">{t("settings.notifications.email")}</span>
                         </div>
                         <Toggle
                           checked={notificationSettings.classReminders.spotAvailable.email}
@@ -784,7 +789,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <Bell size={14} className="text-content-muted" />
-                          <span className="text-sm text-content-primary">Push</span>
+                          <span className="text-sm text-content-primary">{t("settings.notifications.push")}</span>
                         </div>
                         <Toggle
                           checked={notificationSettings.classReminders.spotAvailable.push}
@@ -803,13 +808,13 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "general-notifications":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">General Notifications</h3>
-              <p className="text-sm text-content-faint">Manage push notifications for bulletin board posts and studio broadcasts.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-content-primary mb-1">{t("settings.notifications.generalTitle")}</h3>
+              <p className="text-sm text-content-faint">{t("settings.notifications.generalSubtitle")}</p>
             </div>
 
             <p className="text-xs text-content-muted bg-surface-card rounded-xl px-4 py-3 border border-border">
-              These settings control push notifications on your device. Disabling a category will stop all push alerts for it.
+              {t("settings.notifications.generalHint")}
             </p>
 
             {/* Bulletin Board */}
@@ -818,8 +823,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 <div className="flex items-center gap-3">
                   <ClipboardList size={16} className="text-content-muted" />
                   <div>
-                    <p className="text-sm font-medium text-content-primary">Bulletin Board</p>
-                    <p className="text-xs text-content-faint">New posts and updates on the bulletin board</p>
+                    <p className="text-sm font-medium text-content-primary">{t("settings.notifications.bulletinBoard")}</p>
+                    <p className="text-xs text-content-faint">{t("settings.notifications.bulletinBoardDesc")}</p>
                   </div>
                 </div>
                 <Toggle
@@ -835,8 +840,8 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 <div className="flex items-center gap-3">
                   <IoIosMegaphone size={16} className="text-content-muted" />
                   <div>
-                    <p className="text-sm font-medium text-content-primary">Studio Broadcast</p>
-                    <p className="text-xs text-content-faint">Broadcasts and announcements from your studio</p>
+                    <p className="text-sm font-medium text-content-primary">{t("settings.notifications.studioBroadcast")}</p>
+                    <p className="text-xs text-content-faint">{t("settings.notifications.studioBroadcastDesc")}</p>
                   </div>
                 </div>
                 <Toggle
@@ -851,11 +856,9 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       // ---- IMPRINT ----
       case "imprint":
         return (
-          <div className="space-y-6 max-w-2xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Imprint</h3>
-            </div>
-            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none max-h-72 overflow-y-auto whitespace-pre-wrap">
+          <div className="max-w-2xl">
+            <h3 className="text-lg font-semibold text-content-primary mb-3 hidden lg:block">{t("settings.nav.imprint")}</h3>
+            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none overflow-y-auto whitespace-pre-wrap min-h-[calc(100vh-14rem)]">
               {generalSettings.imprint}
             </div>
           </div>
@@ -864,11 +867,9 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       // ---- PRIVACY POLICY ----
       case "privacy-policy":
         return (
-          <div className="space-y-6 max-w-2xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Privacy Policy</h3>
-            </div>
-            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none max-h-96 overflow-y-auto whitespace-pre-wrap">
+          <div className="max-w-2xl">
+            <h3 className="text-lg font-semibold text-content-primary mb-3 hidden lg:block">{t("settings.nav.privacyPolicy")}</h3>
+            <div className="w-full bg-white rounded-xl px-4 py-3 text-gray-900 text-sm border border-border select-none overflow-y-auto whitespace-pre-wrap min-h-[calc(100vh-14rem)]">
               {generalSettings.privacyPolicy}
             </div>
           </div>
@@ -878,20 +879,20 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "logout":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-content-primary mb-1">Logout</h3>
-              <p className="text-sm text-content-faint">Sign out of your account on this device.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-content-primary mb-1">{t("common.logout")}</h3>
+              <p className="text-sm text-content-faint">{t("settings.logout.subtitle")}</p>
             </div>
             <div className="bg-surface-hover rounded-xl p-5">
               <p className="text-sm text-content-secondary mb-4">
-                You will be signed out and redirected to the login page.
+                {t("settings.logout.description")}
               </p>
               <button
                 onClick={() => { haptic.light(); setShowLogoutConfirm(true) }}
                 className="w-full sm:w-auto px-6 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                {t("settings.logout.signOut")}
               </button>
             </div>
           </div>
@@ -901,17 +902,17 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       case "delete-account":
         return (
           <div className="space-y-6 max-w-xl">
-            <div>
-              <h3 className="text-lg font-semibold text-red-400 mb-1">Delete Account</h3>
-              <p className="text-sm text-content-faint">Permanently delete your account and all associated data.</p>
+            <div className="hidden lg:block">
+              <h3 className="text-lg font-semibold text-red-400 mb-1">{t("settings.deleteAccount.title")}</h3>
+              <p className="text-sm text-content-faint">{t("settings.deleteAccount.subtitle")}</p>
             </div>
             <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-5">
               <div className="flex items-start gap-3 mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-red-400 mb-1">This action cannot be undone</p>
+                  <p className="text-sm font-medium text-red-400 mb-1">{t("settings.deleteAccount.cannotUndo")}</p>
                   <p className="text-xs text-content-muted">
-                    Deleting your account will permanently delete all data.
+                    {t("settings.deleteAccount.warning")}
                   </p>
                 </div>
               </div>
@@ -920,7 +921,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 className="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete My Account
+                {t("settings.deleteAccount.deleteMyAccount")}
               </button>
             </div>
           </div>
@@ -935,7 +936,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   // Main Render — matches configuration.jsx layout
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden select-none">
+    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none relative">
       {/* Sidebar Navigation - Desktop */}
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-border bg-surface-card flex-col min-h-0">
         {/* Search */}
@@ -946,7 +947,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search settings..."
+              placeholder={t("settings.search.placeholder")}
               className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-primary transition-colors"
             />
             {searchQuery && (
@@ -963,7 +964,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto p-2 min-h-0" style={{ overscrollBehavior: 'contain' }}>
           {filteredNavItems.map((category) => {
-            const categoryMatches = matchesSearch(category.label)
+            const categoryMatches = matchesSearch(t(category.labelKey))
 
             return (
               <div key={category.id} className="mb-1">
@@ -983,7 +984,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                   }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="flex-1 font-medium">{category.label}</span>
+                  <span className="flex-1 font-medium">{t(category.labelKey)}</span>
                   <ChevronRight
                     className={`w-4 h-4 transition-transform ${
                       expandedCategories.includes(category.id) ? "rotate-90" : ""
@@ -994,7 +995,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
                     {category.sections.map((section) => {
-                      const sectionMatches = matchesSearch(section.label)
+                      const sectionMatches = matchesSearch(t(section.labelKey))
 
                       return (
                         <button
@@ -1008,7 +1009,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                                 : "text-content-faint hover:text-content-primary hover:bg-surface-hover"
                           }`}
                         >
-                          {section.label}
+                          {t(section.labelKey)}
                         </button>
                       )
                     })}
@@ -1022,11 +1023,11 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
 
       {/* Mobile Navigation List */}
       <div
-        className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
+        className={`lg:hidden absolute inset-0 flex flex-col bg-surface-base z-20 ${mobileShowContent ? "hidden" : "flex"}`}
       >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-          <h1 className="text-xl font-bold">Settings</h1>
+          <h1 className="text-xl font-bold">{t("nav.settings")}</h1>
         </div>
 
         {/* Mobile Search */}
@@ -1037,7 +1038,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search settings..."
+              placeholder={t("settings.search.placeholder")}
               className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-primary transition-colors"
             />
             {searchQuery && (
@@ -1054,7 +1055,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
         {/* Mobile Navigation Items */}
         <div className="flex-1 overflow-y-auto p-2" style={{ overscrollBehavior: 'contain' }}>
           {filteredNavItems.map((category) => {
-            const categoryMatches = matchesSearch(category.label)
+            const categoryMatches = matchesSearch(t(category.labelKey))
 
             return (
               <div key={category.id} className="mb-1">
@@ -1069,7 +1070,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                   }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="flex-1 font-medium">{category.label}</span>
+                  <span className="flex-1 font-medium">{t(category.labelKey)}</span>
                   <ChevronRight
                     className={`w-4 h-4 transition-transform ${
                       expandedCategories.includes(category.id) ? "rotate-90" : ""
@@ -1084,12 +1085,12 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                         key={section.id}
                         onClick={() => navigateToSection(category.id, section.id)}
                         className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
-                          matchesSearch(section.label)
+                          matchesSearch(t(section.labelKey))
                             ? "text-orange-300 bg-primary/10"
                             : "text-content-faint hover:text-content-primary hover:bg-surface-hover"
                         }`}
                       >
-                        <span>{section.label}</span>
+                        <span>{t(section.labelKey)}</span>
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     ))}
@@ -1107,7 +1108,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Mobile Content View - fixed fullscreen below dashboard header */}
       {mobileShowContent && (
         <div
-          className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-surface-base z-30"
+          className="lg:hidden absolute inset-0 flex flex-col bg-surface-base z-30"
         >
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
@@ -1123,6 +1124,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
           {/* Mobile Content Area */}
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
             {renderSectionContent()}
+            <KeyboardSpacer />
           </div>
 
           {/* Spacer for bottom bar — collapses when keyboard opens */}
@@ -1135,7 +1137,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Desktop Main Content */}
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-2xl font-bold">{t("nav.settings")}</h1>
         </div>
         <div className="flex-1 overflow-y-auto p-6" style={{ overscrollBehavior: 'contain' }}>
           <div>{renderSectionContent()}</div>
@@ -1146,33 +1148,33 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Logout Confirmation                          */}
       {/* ============================================ */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
           <div className="bg-surface-card rounded-xl p-5 w-full max-w-sm shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-surface-hover flex items-center justify-center flex-shrink-0">
                 <LogOut className="w-5 h-5 text-content-muted" />
               </div>
               <div>
-                <h4 className="text-content-primary font-semibold">Sign Out?</h4>
-                <p className="text-xs text-content-faint">You'll need to sign in again</p>
+                <h4 className="text-content-primary font-semibold">{t("settings.logout.signOutQuestion")}</h4>
+                <p className="text-xs text-content-faint">{t("settings.logout.signInAgain")}</p>
               </div>
             </div>
             <p className="text-sm text-content-muted mb-5">
-              Are you sure you want to sign out of your account?
+              {t("settings.logout.confirmQuestion")}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => { haptic.light(); setShowLogoutConfirm(false) }}
                 className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm rounded-xl transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleLogout}
                 className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                {t("settings.logout.signOut")}
               </button>
             </div>
           </div>
@@ -1183,25 +1185,25 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       {/* Delete Account Confirmation                  */}
       {/* ============================================ */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
           <div className="bg-surface-card rounded-xl p-5 w-full max-w-sm shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <h4 className="text-red-400 font-semibold">Delete Account</h4>
-                <p className="text-xs text-content-faint">This cannot be undone</p>
+                <h4 className="text-red-400 font-semibold">{t("settings.deleteAccount.title")}</h4>
+                <p className="text-xs text-content-faint">{t("settings.deleteAccount.cannotBeUndone")}</p>
               </div>
             </div>
             <p className="text-sm text-content-muted mb-4">
-              All your data will be permanently deleted. To confirm, type <span className="font-semibold text-content-primary">DELETE</span> below.
+              {t("settings.deleteAccount.confirmDesc")} <span className="font-semibold text-content-primary">DELETE</span>
             </p>
             <input
               type="text"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder='Type DELETE to confirm'
+              placeholder={t("settings.deleteAccount.confirmPlaceholder")}
               className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-border focus:border-red-500 outline-none mb-5 placeholder:text-content-faint"
             />
             <div className="flex gap-3">
@@ -1209,7 +1211,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 onClick={() => { haptic.light(); setShowDeleteConfirm(false); setDeleteConfirmText("") }}
                 className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm rounded-xl transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleDeleteAccount}
@@ -1217,7 +1219,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
                 className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 disabled:bg-red-600/30 disabled:text-white/40 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete
+                {t("common.delete")}
               </button>
             </div>
           </div>

@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Tag, Pin, PinOff } from "lucide-react"
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import TagManagerModal from "../../components/admin-dashboard-components/shared/TagManagerModal"
@@ -320,7 +320,39 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
 }
 
 // Sortable Note Item in Sidebar
-const SortableNoteItem = ({ note, isSelected, onClick, availableTags }) => {
+const NoteOverlayItem = ({ note, availableTags }) => {
+  const stripText = stripHtmlTags(note.content)
+  return (
+    <div
+      className="bg-gray-800/95 rounded-xl border border-orange-500/50 shadow-2xl"
+      style={{ boxShadow: '0 12px 32px rgba(249, 115, 22, 0.25)', width: 'var(--note-list-width, 300px)' }}
+    >
+      <div className="flex items-start gap-2 p-3 overflow-hidden">
+        <div className="text-orange-400 mt-0.5 flex-shrink-0 p-1">
+          <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
+        </div>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
+            {note.title || 'Untitled'}
+          </h4>
+          <p className="text-xs text-gray-400 mt-1 truncate">{stripText || 'No content'}</p>
+          {note.tags && note.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {note.tags.slice(0, 3).map(tagId => {
+                const tag = availableTags.find(t => t.id === tagId)
+                return tag ? (
+                  <span key={tagId} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>{tag.name}</span>
+                ) : null
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags }) => {
   const {
     attributes,
     listeners,
@@ -331,12 +363,9 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags }) => {
   } = useSortable({ id: note.id })
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition,
-    opacity: isDragging ? 0.85 : 1,
-    zIndex: isDragging ? 50 : 'auto',
-    boxShadow: isDragging ? '0 8px 24px rgba(249, 115, 22, 0.3)' : 'none',
-    willChange: isDragging ? 'transform' : 'auto',
+    transform: transform ? `translate3d(0, ${Math.round(transform.y)}px, 0)` : undefined,
+    transition,
+    opacity: isDragging ? 0.4 : 1,
   }
 
   const stripText = stripHtmlTags(note.content)
@@ -349,7 +378,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags }) => {
         isSelected 
           ? 'bg-gray-800/80' 
           : 'hover:bg-gray-800/50 active:bg-gray-800/70'
-      } ${isDragging ? 'rounded-xl border border-orange-500/50 bg-gray-800/90' : ''}`}
+      } ${isDragging ? 'pointer-events-none' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
@@ -411,7 +440,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags }) => {
       </div>
     </div>
   )
-}
+})
 
 export default function NotesApp() {
   const [notes, setNotes] = useState(demoNotes)
@@ -439,15 +468,18 @@ export default function NotesApp() {
   // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
+      activationConstraint: { distance: 8 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 0, tolerance: 5 },
+      activationConstraint: { delay: 200, tolerance: 8 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
+
+  // Track actively dragged note for DragOverlay
+  const [activeId, setActiveId] = useState(null)
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -693,7 +725,12 @@ export default function NotesApp() {
   }
 
   // Handle drag end
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id)
+  }
+
   const handleDragEnd = (event) => {
+    setActiveId(null)
     const { active, over } = event
     if (!over || active.id === over.id) return
 
@@ -894,7 +931,7 @@ export default function NotesApp() {
                   <p className="text-xs mt-2">Create your first note to get started</p>
                 </div>
               ) : (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
                   <SortableContext items={noteIds} strategy={verticalListSortingStrategy}>
                     {currentNotes.map(note => (
                       <SortableNoteItem
@@ -906,6 +943,14 @@ export default function NotesApp() {
                       />
                     ))}
                   </SortableContext>
+                  <DragOverlay dropAnimation={{ duration: 200, easing: "ease-out" }}>
+                    {activeId ? (
+                      <NoteOverlayItem
+                        note={currentNotes.find(n => n.id === activeId)}
+                        availableTags={availableTags}
+                      />
+                    ) : null}
+                  </DragOverlay>
                 </DndContext>
               )}
             </div>

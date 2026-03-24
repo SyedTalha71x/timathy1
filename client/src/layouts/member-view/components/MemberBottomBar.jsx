@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   Home,
   Calendar,
@@ -17,25 +18,27 @@ import { haptic } from "../../../utils/haptic"
 // Bottom Tab Bar — Mobile Only (lg:hidden)
 // ============================================
 
-// Primary tabs (always visible)
+// Primary tabs (always visible) — labels are i18n keys
 const BAR_ITEMS = [
-  { icon: Home, label: "Studio", to: "/member-view/studio-menu" },
-  { icon: Calendar, label: "Appointments", to: "/member-view/appointment" },
-  { icon: MessageCircle, label: "Messages", to: "/member-view/communication" },
-  { icon: Apple, label: "Nutrition", to: "/member-view/nutrition" },
+  { icon: Home, labelKey: "nav.studio", to: "/member-view/studio-menu" },
+  { icon: Calendar, labelKey: "nav.appointments", to: "/member-view/appointment" },
+  { icon: MessageCircle, labelKey: "nav.messages", to: "/member-view/communication" },
+  { icon: Apple, labelKey: "nav.nutrition", to: "/member-view/nutrition" },
 ]
 
 // Overflow items (inside "More" sheet)
 const MORE_ITEMS = [
-  { icon: Timer, label: "Classes", to: "/member-view/classes" },
-  { icon: CgGym, label: "Training", to: "/member-view/training" },
+  { icon: Timer, labelKey: "nav.classes", to: "/member-view/classes" },
+  { icon: CgGym, labelKey: "nav.training", to: "/member-view/training" },
 ]
 
 const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
+  const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const [showMore, setShowMore] = useState(false)
   const [keyboardOpen, setKeyboardOpen] = useState(false)
+  const [tappedTab, setTappedTab] = useState(null)
   const moreRef = useRef(null)
 
   // Detect keyboard open/close via focus/blur on inputs
@@ -91,6 +94,14 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
 
   const handleNavigate = (to) => {
     haptic.light()
+    setTappedTab(to)
+    setTimeout(() => setTappedTab(null), 450)
+    // Re-tap active tab → scroll to top (iOS pattern)
+    if (isActive(to)) {
+      const scrollable = document.querySelector("[data-scroll-container]")
+      if (scrollable) scrollable.scrollTo({ top: 0, behavior: "smooth" })
+      return
+    }
     navigate(to)
     setShowMore(false)
   }
@@ -99,6 +110,15 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50" ref={moreRef}>
+
+      {/* Pulse glow keyframes */}
+      <style>{`
+        @keyframes tab-pulse {
+          0%   { transform: scale(1); opacity: 0.7; filter: brightness(1); }
+          40%  { transform: scale(1.1); opacity: 1; filter: brightness(1.4); }
+          100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+        }
+      `}</style>
 
       {/* ═══ More menu — slides up above the bar ═══ */}
       <div
@@ -130,7 +150,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
                     active ? "text-primary font-medium" : "text-content-primary"
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </button>
             )
@@ -158,14 +178,17 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
                 active ? "text-primary" : "text-content-faint active:text-content-muted"
               }`}
             >
-              <div className="relative">
+              <div
+                className="relative"
+                style={tappedTab === item.to ? { animation: "tab-pulse 0.45s ease-out" } : undefined}
+              >
                 <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
                 {isCommunication && unreadMessagesCount > 0 && (
                   <div className="absolute -top-0.5 -right-1.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-transparent" style={{ borderColor: "var(--color-surface-dark, #111)" }} />
                 )}
               </div>
               <span className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </button>
           )
@@ -175,6 +198,8 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
         <button
           onClick={() => {
             haptic.light()
+            setTappedTab("__more__")
+            setTimeout(() => setTappedTab(null), 450)
             setShowMore((prev) => !prev)
           }}
           className={`flex-1 flex flex-col items-center gap-0 pt-1.5 pb-1 transition-colors relative ${
@@ -185,7 +210,10 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
               : "text-content-faint active:text-content-muted"
           }`}
         >
-          <div className="relative">
+          <div
+            className="relative"
+            style={tappedTab === "__more__" ? { animation: "tab-pulse 0.45s ease-out" } : undefined}
+          >
             {showMore ? (
               <X size={20} strokeWidth={1.8} />
             ) : (
@@ -193,7 +221,7 @@ const MemberBottomBar = ({ unreadMessagesCount = 0 }) => {
             )}
           </div>
           <span className={`text-[10px] leading-tight ${isMoreActive ? "font-semibold" : "font-medium"}`}>
-            More
+            {t("common.more")}
           </span>
         </button>
       </div>

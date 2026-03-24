@@ -137,6 +137,13 @@ useEffect(() => {
           .drag-over {
             border: 2px dashed #888;
           }
+          @keyframes page-fade-in {
+            from { transform: translateY(4px); }
+            to { transform: translateY(0); }
+          }
+          .page-transition {
+            animation: page-fade-in 0.2s ease-out;
+          }
         `}
       </style>
       
@@ -155,11 +162,14 @@ useEffect(() => {
             ref={mainRef}
       className={`
   flex-1 md:h-dvh h-[calc(100dvh-3.5rem)] ${hasOwnScroll ? 'overflow-hidden' : 'overflow-y-auto'}
-  lg:pt-0 md:pt-14 sm:pt-14 pt-14
+  lg:!pt-0
   pb-10 p-2
   transition-all duration-500 ease-in-out
   ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}
 `}
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 3.5rem)",
+      }}
           >
             {/* Header - handles both mobile + desktop views */}
             <DashboardHeader 
@@ -172,8 +182,10 @@ useEffect(() => {
               hideRightSidebarToggle={hasNoRightSidebar}
             />
 
-            {/* Page Content */}
-            <Outlet />
+            {/* Page Content — fades in on route change */}
+            <div key={location.pathname} className="page-transition h-full">
+              <Outlet />
+            </div>
           </main>
 
           {/* Central Sidebar (Right) - Always available, toggle hidden on desktop for Selling/Leads/MyArea */}

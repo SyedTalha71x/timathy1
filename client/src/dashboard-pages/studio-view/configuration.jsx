@@ -134,6 +134,11 @@ import { updateStudioThunk } from "../../features/studio/studioSlice"
 import { createAppointmentTypesThunk, deleteAppointmentTypesThunk, updateAppointmentTypesThunk } from "../../features/services/servicesSlice"
 
 
+
+
+const getCSSVar = (name) => 
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+
 // ============================================
 // Navigation Items Configuration
 // ============================================
@@ -721,7 +726,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   // Appearance
   const [appearance, setAppearance] = useState({})
-  const [colorPickerState, setColorPickerState] = useState({ isOpen: false, currentColor: '#FF843E', title: 'Choose Color', onSelect: null })
+  const [colorPickerState, setColorPickerState] = useState({ isOpen: false, currentColor: getCSSVar('--color-primary'), title: 'Choose Color', onSelect: null })
 
   const openColorPicker = (currentColor, title, onSelect) => {
     setColorPickerState({ isOpen: true, currentColor, title, onSelect })
@@ -6265,7 +6270,7 @@ useEffect(() => {
                       <label className="text-sm font-medium text-content-secondary">Color Scheme</label>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => openColorPicker(appearance.primaryColor || '#FF843E', 'Choose Primary Color', (color) => setAppearance({ ...appearance, primaryColor: color }))}
+                          onClick={() => openColorPicker(appearance.primaryColor || getCSSVar('--color-primary'), 'Choose Primary Color', (color) => setAppearance({ ...appearance, primaryColor: color }))}
                           className="w-10 h-10 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
                           style={{ backgroundColor: appearance.primaryColor }}
                           title="Pick a color"

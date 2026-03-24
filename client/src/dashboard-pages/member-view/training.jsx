@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Play,
   Pause,
@@ -49,7 +50,7 @@ import {
   canEditPlan as checkCanEditPlan,
   getVideoInstructor,
 
-  // APIs (fÃ¼r spÃ¤tere Backend-Integration)
+  // APIs (für spätere Backend-Integration)
   trainingPlansApi,
   memberTrainingPlansApi,
 } from "../../utils/studio-states/training-states"
@@ -66,6 +67,7 @@ import AddToPlanModal from "../../components/studio-components/training-componen
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllPlans, fetchMyPlans, fetchTrainingVideos } from "../../features/training/TrainingSlice"
 import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 // ============================================================================
 // RESPONSIVE TAG LIST COMPONENT
@@ -145,13 +147,15 @@ const ResponsiveTagList = ({ tags }) => {
 // MAIN TRAINING COMPONENT
 // ============================================================================
 export default function Training() {
+  const { t } = useTranslation()
+
   // -------------------------------------------------------------------------
   // STATE - Tab & Filter
   // -------------------------------------------------------------------------
   const [activeTab, setActiveTab] = useState("videos")
   const [selectedCategories, setSelectedCategories] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedStaffIds, setSelectedStaffIds] = useState([]) // Renamed for clarity
+  const [selectedStaffIds, setSelectedStaffIds] = useState([])
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false)
 
@@ -175,6 +179,11 @@ export default function Training() {
   // -------------------------------------------------------------------------
   const videoRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
+
+  // Panel swipe refs
+  const swipeRef = useRef(null)
+  const activeTabRef = useRef(activeTab)
+  activeTabRef.current = activeTab
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -182,15 +191,10 @@ export default function Training() {
   // -------------------------------------------------------------------------
   // REDUX STATE
   // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  // REDUX STATE - FIXED based on your actual structure
-  // -------------------------------------------------------------------------
   const { trainings: trainingVideos = [], myPlans } = useSelector((state) => state.trainings || {})
   const { staff = [] } = useSelector((state) => state.staff)
   const { user } = useSelector((state) => state.auth)
   const currentUserId = user?._id
-  // Extract staff array from the nested structure
-  // const staff = staffState?.staff || [] // This gets the array from staff.staff
 
   // Transform staff data for consistent usage
   const transformedStaff = useMemo(() => {
@@ -205,7 +209,6 @@ export default function Training() {
       ...member
     }))
   }, [staff])
-  // -------------------------------------------------------------------------
 
   // Update your trainingPlans state initialization
   const [trainingPlans, setTrainingPlans] = useState(
@@ -215,7 +218,6 @@ export default function Training() {
       creatorName: plan.createdBy
         ? `${plan.createdBy.firstName || ''} ${plan.createdBy.lastName || ''}`.trim()
         : 'Unknown',
-      // Keep original data
       ...plan
     }))
   )
@@ -257,7 +259,6 @@ export default function Training() {
   // COMPUTED - Filtered Data
   // -------------------------------------------------------------------------
 
-  // Filter videos based on categories and search
   const filteredVideos = trainingVideos.filter((video) => {
     const matchesCategory =
       selectedCategories.length === 0 ||
@@ -271,26 +272,17 @@ export default function Training() {
     return matchesCategory && matchesSearch
   })
 
-  // Filter plans based on staff members and search
   const filteredPlans = trainingPlans.filter((plan) => {
     const matchesSearch =
       (plan.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (plan.description || '').toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Fix staff filtering based on your actual data structure
     const matchesStaff = selectedStaffIds.length === 0 ||
       selectedStaffIds.some(staffId => {
-        // Handle "own" special case - plans created by current user
         if (staffId === "own") {
-          // Check if createdBy is an object and matches current user
-          // You'll need to get currentUserId from your auth state // Get this from auth state
           return plan.createdBy?._id === currentUserId
         }
-
-        // Check if plan was created by this staff member
-        // In your API response, createdBy is an object with _id
         const planCreatorId = plan.createdBy?._id?.toString()
-
         return planCreatorId === staffId
       })
 
@@ -318,7 +310,7 @@ export default function Training() {
 
     if (newMembers.length === 0) {
       haptic.warning()
-      toast.error("Selected members already have this plan assigned!")
+      toast.error(t("training.toast.alreadyAssigned"))
       return
     }
 
@@ -326,17 +318,16 @@ export default function Training() {
       .filter(member => newMembers.includes(member.id))
       .map(member => ({
         ...member,
-        assignedPlan: planToAssign?.name || "Training Plan",
+        assignedPlan: planToAssign?.name || t("training.tabs.plans"),
         assignedDate: new Date().toISOString().split('T')[0],
-        progress: "Not Started"
+        progress: t("training.plans.notStarted")
       }))
 
-    // Update member training plans (für Backend: API-Call)
     const newAssignments = newMembers.map(memberId => ({
       id: Math.max(...memberTrainingPlans.map(m => m.id), 0) + 1,
       memberId,
       planId: planToAssign?.id,
-      assignedByStaffId: null, // Current user
+      assignedByStaffId: null,
       assignedAt: new Date().toISOString().split('T')[0],
       startDate: new Date().toISOString().split('T')[0],
       endDate: null,
@@ -353,7 +344,7 @@ export default function Training() {
     setSelectedMembers([])
     setMemberSearchQuery("")
 
-    toast.success(`Training plan assigned to ${newMembers.length} member${newMembers.length !== 1 ? 's' : ''}!`)
+    toast.success(t("training.toast.planAssigned", { count: newMembers.length }))
   }
 
   const handleRemovePlanFromMember = (memberId) => {
@@ -361,7 +352,7 @@ export default function Training() {
     setMemberTrainingPlans(memberTrainingPlans.filter(
       mtp => !(mtp.memberId === memberId && mtp.planId === planToAssign?.id)
     ))
-    toast.success("Training plan removed from member!")
+    toast.success(t("training.toast.planRemoved"))
   }
 
   // -------------------------------------------------------------------------
@@ -418,7 +409,6 @@ export default function Training() {
 
   const handleCreatePlan = async () => {
     try {
-      // Prepare data for backend API
       const apiPlanData = {
         name: planForm.name,
         description: planForm.description,
@@ -427,7 +417,7 @@ export default function Training() {
         category: planForm.category,
         workoutsPerWeek: planForm.workoutsPerWeek,
         exercises: selectedExercises.map((ex, index) => ({
-          video: ex.videoId, // Use videoId as 'video' field for backend
+          video: ex.videoId,
           sets: ex.sets || 3,
           reps: ex.reps || "10-12",
           rest: ex.rest || "60s",
@@ -435,16 +425,12 @@ export default function Training() {
         }))
       };
 
-      // console.log('Sending to backend:', apiPlanData);
-
-      // Dispatch to backend
       const result = await dispatch(createPlan(apiPlanData)).unwrap();
 
-      // Create local version with the ID from backend
       const newLocalPlan = {
         ...apiPlanData,
-        _id: result.plan._id, // Use the MongoDB _id from response
-        id: result.plan._id,   // Also set id for local compatibility
+        _id: result.plan._id,
+        id: result.plan._id,
         createdByStaffId: null,
         createdByName: "Current User",
         createdBy: "Current User",
@@ -454,22 +440,20 @@ export default function Training() {
         isActive: true,
         likes: 0,
         uses: 0,
-        creatorName: "Current User", // Add this for display
-        exercises: selectedExercises // Keep the original format for local display
+        creatorName: "Current User",
+        exercises: selectedExercises
       };
 
-      // Update local state with the new plan
       setTrainingPlans(prev => [...prev, newLocalPlan]);
 
-      // Close modal and reset form
       setIsCreatePlanModalOpen(false);
       resetPlanForm();
 
-      toast.success("Training plan created successfully!");
+      toast.success(t("training.toast.planCreated"));
 
     } catch (error) {
       console.error('Create plan error:', error);
-      toast.error(error.message || "Failed to create training plan");
+      toast.error(error.message || t("training.toast.planCreateFailed"));
     }
   };
 
@@ -497,7 +481,7 @@ export default function Training() {
     setIsEditPlanModalOpen(false)
     setEditingPlan(null)
     resetPlanForm()
-    toast.success("Training plan updated successfully!")
+    toast.success(t("training.toast.planUpdated"))
     haptic.success()
   }
 
@@ -534,7 +518,7 @@ export default function Training() {
     setTrainingPlans(updatedPlans)
     setIsAddToPlanModalOpen(false)
     setVideoToAdd(null)
-    toast.success("Exercise added to training plan!")
+    toast.success(t("training.toast.exerciseAdded"))
     haptic.success()
   }
 
@@ -583,17 +567,15 @@ export default function Training() {
   // -------------------------------------------------------------------------
 
   const canEditPlan = (plan) => {
-    // Verwende die Helper-Funktion oder Legacy-Check
     return plan.createdBy === "Current User" || plan.createdByStaffId === null
   }
 
   const getStaffDisplayName = (staffId) => {
-    if (staffId === "all") return "All Staff Plans"
+    if (staffId === "all") return t("training.filters.allStaffPlans")
     const member = transformedStaff.find((s) => s.id === staffId)
     return member?.name || staffId
   }
 
-  // Toggle staff selection
   const toggleStaffSelection = (staffId) => {
     haptic.light()
     setSelectedStaffIds(prev => {
@@ -605,19 +587,81 @@ export default function Training() {
     })
   }
 
-  // Clear all staff filters
   const clearStaffFilters = () => {
     haptic.light()
     setSelectedStaffIds([])
   }
 
-  // Load assigned members when opening assign modal
   useEffect(() => {
     if (isAssignPlanModalOpen && planToAssign) {
       const members = getMembersWithPlan(planToAssign.id)
       setAssignedMembers(members)
     }
   }, [isAssignPlanModalOpen, planToAssign])
+
+  // -------------------------------------------------------------------------
+  // PANEL SWIPE
+  // -------------------------------------------------------------------------
+  const tabKeys = ["videos", "plans"]
+
+  const animateToTab = useCallback((key) => {
+    const el = swipeRef.current
+    if (!el) return
+    const idx = tabKeys.indexOf(key)
+    el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+    el.style.transform = `translateX(-${idx * 50}%)`
+    setActiveTab(key)
+  }, [])
+
+  useEffect(() => {
+    const el = swipeRef.current
+    if (!el) return
+    let startX, startY, startT, dx, locked, isH
+
+    const onStart = (e) => {
+      const t = e.touches[0]
+      startX = t.clientX; startY = t.clientY; startT = Date.now()
+      dx = 0; locked = false; isH = false
+      el.style.transition = 'none'
+    }
+    const onMove = (e) => {
+      const t = e.touches[0]
+      const rawDx = t.clientX - startX
+      const dy = t.clientY - startY
+      if (!locked && (Math.abs(rawDx) > 8 || Math.abs(dy) > 8)) {
+        locked = true
+        isH = Math.abs(rawDx) > Math.abs(dy) * 1.3
+      }
+      if (!isH) return
+      e.preventDefault()
+      const i = tabKeys.indexOf(activeTabRef.current)
+      dx = rawDx
+      if ((i === 0 && dx > 0) || (i === tabKeys.length - 1 && dx < 0)) dx = rawDx * 0.15
+      el.style.transform = `translateX(calc(-${i * 50}% + ${dx}px))`
+    }
+    const onEnd = () => {
+      if (!isH) return
+      const i = tabKeys.indexOf(activeTabRef.current)
+      const velocity = Math.abs(dx) / Math.max(Date.now() - startT, 1)
+      const panelW = el.parentElement?.offsetWidth || window.innerWidth
+      const threshold = panelW * 0.15
+      let target = i
+      if (dx < -threshold || (dx < -20 && velocity > 0.25)) target = Math.min(i + 1, tabKeys.length - 1)
+      else if (dx > threshold || (dx > 20 && velocity > 0.25)) target = Math.max(i - 1, 0)
+      el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+      el.style.transform = `translateX(-${target * 50}%)`
+      if (target !== i) setActiveTab(tabKeys[target])
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+    }
+  }, [])
 
   // -------------------------------------------------------------------------
   // RENDER
@@ -648,50 +692,58 @@ export default function Training() {
         `}
       </style>
 
-      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden lg:rounded-3xl transition-all duration-500 ease-in-out flex-1">
+      <div className="flex flex-col h-full bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl transition-all duration-500 ease-in-out flex-1">
 
         {/* Sticky Header + Tabs */}
         <div className="flex-shrink-0 md:px-6 md:pt-6 px-3 pt-3">
           {/* Header */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Training</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("training.title")}</h1>
             </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-border-subtle" style={{ touchAction: "manipulation" }}>
+          <div className="flex border-b border-border-subtle">
             <button
-              onClick={() => { haptic.light(); setActiveTab("videos") }}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "videos"
+              onClick={() => animateToTab("videos")}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors duration-150 whitespace-nowrap ${activeTab === "videos"
                 ? "text-content-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
                 }`}
             >
               <Play size={16} className="inline mr-1 sm:mr-2" />
-              Training Videos
+              {t("training.tabs.videos")}
             </button>
             <button
-              onClick={() => { haptic.light(); setActiveTab("plans") }}
-              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${activeTab === "plans"
+              onClick={() => animateToTab("plans")}
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors duration-150 whitespace-nowrap ${activeTab === "plans"
                 ? "text-content-primary border-b-2 border-primary"
                 : "text-content-muted hover:text-content-primary"
                 }`}
             >
               <Target size={16} className="inline mr-1 sm:mr-2" />
-              Training Plans
+              {t("training.tabs.plans")}
             </button>
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6">
-          <div className="w-full mx-auto">
+        {/* Panel container — both tabs side by side */}
+        <div className="flex-1 overflow-hidden">
+          <div
+            ref={swipeRef}
+            className="flex h-full"
+            style={{ width: '200%', willChange: 'transform', touchAction: 'pan-y pinch-zoom' }}
+          >
 
-            {/* =============================================================== */}
-            {/* VIDEOS TAB */}
-            {/* =============================================================== */}
-            {activeTab === "videos" && (
+            {/* ---- Panel 1: VIDEOS ---- */}
+            <div className="w-1/2 h-full">
+              <PullToRefresh
+                onRefresh={async () => { await dispatch(fetchTrainingVideos()).catch(() => {}) }}
+                className="h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6"
+              >
               <div>
                 {/* Search */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -699,7 +751,7 @@ export default function Training() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                     <input
                       type="text"
-                      placeholder="Search training videos..."
+                      placeholder={t("training.search.videosPlaceholder")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
@@ -716,7 +768,7 @@ export default function Training() {
                       : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                   >
-                    All
+                    {t("common.all")}
                   </button>
                   {categoriesData.map((category) => (
                     <button
@@ -780,17 +832,20 @@ export default function Training() {
                   <div className="text-center py-12">
                     <div className="text-content-muted mb-4">
                       <Search size={48} className="mx-auto mb-4" />
-                      <p>No videos found matching your criteria</p>
+                      <p>{t("training.empty.noVideos")}</p>
                     </div>
                   </div>
                 )}
               </div>
-            )}
+              </PullToRefresh>
+            </div>
 
-            {/* =============================================================== */}
-            {/* PLANS TAB */}
-            {/* =============================================================== */}
-            {activeTab === "plans" && (
+            {/* ---- Panel 2: PLANS ---- */}
+            <div className="w-1/2 h-full">
+              <PullToRefresh
+                onRefresh={async () => { await dispatch(fetchAllPlans()).catch(() => {}) }}
+                className="h-full overflow-y-auto md:px-6 md:pb-6 px-3 pb-3 pt-6"
+              >
               <div>
                 {/* Search and Create Button */}
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -798,7 +853,7 @@ export default function Training() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                     <input
                       type="text"
-                      placeholder="Search training plans..."
+                      placeholder={t("training.search.plansPlaceholder")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
@@ -809,7 +864,7 @@ export default function Training() {
                     className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                   >
                     <Plus size={18} />
-                    Create Plan
+                    {t("training.plans.createPlan")}
                   </button>
                 </div>
 
@@ -822,7 +877,7 @@ export default function Training() {
                       : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                   >
-                    All
+                    {t("common.all")}
                   </button>
                   {/* "My Plans" option */}
                   <button
@@ -832,7 +887,7 @@ export default function Training() {
                       : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                   >
-                    My Plans
+                    {t("training.filters.myPlans")}
                   </button>
                   {/* Staff members */}
                   {transformedStaff.map((member) => (
@@ -877,12 +932,12 @@ export default function Training() {
                         {plan.workoutsPerWeek && (
                           <div className="flex items-center gap-2 text-sm text-content-muted">
                             <Calendar size={14} />
-                            <span>{plan.workoutsPerWeek}x per week</span>
+                            <span>{t("common.perWeek", { count: plan.workoutsPerWeek })}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-sm text-content-muted">
                           <User size={14} />
-                          <span className="truncate">by {plan.creatorName}</span>
+                          <span className="truncate">{t("common.by", { name: plan.creatorName })}</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-end gap-2">
@@ -923,12 +978,14 @@ export default function Training() {
                   <div className="text-center py-12">
                     <div className="text-content-muted mb-4">
                       <Target size={48} className="mx-auto mb-4" />
-                      <p>No training plans found</p>
+                      <p>{t("training.empty.noPlans")}</p>
                     </div>
                   </div>
                 )}
               </div>
-            )}
+              </PullToRefresh>
+            </div>
+
           </div>
         </div>
       </div>
@@ -1042,7 +1099,7 @@ export default function Training() {
           onClick={() => { haptic.light(); setIsCreatePlanModalOpen(true) }}
           className="md:hidden fixed right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
-          aria-label="Create Training Plan"
+          aria-label={t("training.aria.createPlan")}
         >
           <Plus size={22} />
         </button>

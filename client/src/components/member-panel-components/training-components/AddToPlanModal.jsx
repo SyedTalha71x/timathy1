@@ -12,6 +12,7 @@ const AddToPlanModal = ({
   onCreateNewPlan,
   getDifficultyColor
 }) => {
+  const { t } = useTranslation();
   if (!isOpen || !videoToAdd) return null;
   const {user}= useSelector((state)=>state.auth)
   const userPlans = trainingPlans.filter(
@@ -30,7 +31,7 @@ const AddToPlanModal = ({
       <div className="bg-surface-base rounded-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-content-primary">Add to Training Plan</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-content-primary">{t("training.modal.addToPlan")}</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-surface-button rounded-lg transition-colors"
@@ -53,7 +54,7 @@ const AddToPlanModal = ({
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-content-primary truncate">{plan.name}</h4>
-                      <p className="text-content-muted text-sm">{plan.exercises.length} exercises</p>
+                      <p className="text-content-muted text-sm">{t("training.modal.exerciseCount", { count: plan.exercises.length })}</p>
                     </div>
                     <div
                       className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan.difficulty)}`}

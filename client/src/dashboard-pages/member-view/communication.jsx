@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { useSelector, useDispatch } from 'react-redux'
 import { accessChatThunk, fetchMessagesThunk, sendMessageThunk, createGroupThunk, receiveSocketMessage, setActiveChat, clearMessages } from '../../features/communication/chatSlice'
 import { socket } from '../../services/socket'
@@ -85,6 +86,7 @@ const initialMessages = [
 ]
 
 export default function StudioChat() {
+  const { t } = useTranslation()
   const dispatch = useDispatch();
   const { studio, loading } = useSelector((state) => state.studios)
   const { messages, activeChat } = useSelector((state) => state.chats)
@@ -199,12 +201,20 @@ export default function StudioChat() {
     setMessageText("")
     setReplyingTo(null)
     setShowEmojiPicker(false)
+
+    // Reset textarea heights
+    if (textareaRef.current) textareaRef.current.style.height = "32px"
+    if (mobileTextareaRef.current) mobileTextareaRef.current.style.height = "20px"
   }
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
-      e.preventDefault()
-      handleSendMessage()
+      // Desktop: Enter sends — Mobile: Enter inserts newline
+      const isMobile = window.innerWidth < 1024
+      if (!isMobile) {
+        e.preventDefault()
+        handleSendMessage()
+      }
     }
   }
 
@@ -356,7 +366,7 @@ export default function StudioChat() {
   };
 
   return (
-    <div className="flex flex-col h-[92vh] bg-surface-base text-content-primary overflow-hidden select-none">
+    <div className="flex flex-col h-[92vh] bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
       {/* ==========================================
           DESKTOP VIEW - Hidden on mobile
           ========================================== */}
@@ -364,6 +374,7 @@ export default function StudioChat() {
         {/* Messages Area */}
         <div
           ref={messagesContainerRef}
+          data-scroll-container
           className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
           style={{ minHeight: 0 }}
         >
@@ -392,7 +403,7 @@ export default function StudioChat() {
                       }`}
                   >
                     <p className={`font-semibold mb-0.5 text-xs ${message.sender === "me" ? 'text-white' : 'text-content-primary'}`}>
-                      {message.replyTo.sender === 'me' ? 'You' : studio.name}
+                      {message.replyTo.sender === 'me' ? t("chat.you") : studio.name}
                     </p>
                     <p className={`${message.sender === 'me' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
                       {truncateText(message.replyTo.text, 50)}
@@ -408,7 +419,7 @@ export default function StudioChat() {
                   {message.isDeleted ? (
                     <span className="flex items-center gap-1.5">
                       <Trash2 size={14} />
-                      The message was deleted.
+                      {t("chat.messageDeletedDesktop")}
                     </span>
                   ) : (
                     <HighlightedText text={message.text} isUserMessage={message.sender === 'me'} />
@@ -452,7 +463,7 @@ export default function StudioChat() {
               <div className="w-1 h-10 bg-primary rounded-full"></div>
               <div className="flex-1 min-w-0">
                 <p className="text-primary text-xs font-semibold">
-                  Replying to {replyingTo.sender === 'me' ? 'yourself' : studioInfo.name}
+                  {replyingTo.sender === 'me' ? t("chat.replyingToYourself") : t("chat.replyingTo", { name: studioInfo.name })}
                 </p>
                 <p className="text-content-secondary text-sm truncate">{truncateText(replyingTo.text, 50)}</p>
               </div>
@@ -490,9 +501,14 @@ export default function StudioChat() {
               ref={textareaRef}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage() } }}
-              placeholder="Type your message here..."
+              onInput={(e) => {
+                e.target.style.height = "32px";
+                e.target.style.height = Math.min(e.target.scrollHeight, 150) + "px";
+              }}
+              onKeyDown={handleKeyPress}
+              placeholder={t("chat.placeholder")}
               className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-content-secondary placeholder-content-faint max-h-[150px]"
+              rows={1}
               style={{ height: '32px' }}
             />
 
@@ -503,7 +519,7 @@ export default function StudioChat() {
                 ? 'bg-primary hover:bg-primary-hover text-white'
                 : 'text-content-faint cursor-not-allowed'
                 }`}
-              aria-label="Send message"
+              aria-label={t("chat.sendMessage")}
             >
               <Send className="w-6 h-6" />
             </button>
@@ -518,12 +534,13 @@ export default function StudioChat() {
         {/* Mobile Messages Area */}
         <div
           ref={mobileMessagesContainerRef}
+          data-scroll-container
           className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3"
           style={{ minHeight: 0 }}
         >
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-content-faint">
-              <p>No messages yet</p>
+              <p>{t("chat.noMessages")}</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -557,7 +574,7 @@ export default function StudioChat() {
                           }`}
                       >
                         <p className={`text-xs font-medium ${message.sender === "me" ? "text-white/80" : "text-content-muted"}`}>
-                          {message.replyTo.sender === 'me' ? 'You' : studioInfo.name}
+                          {message.replyTo.sender === 'me' ? t("chat.you") : studioInfo.name}
                         </p>
                         <p className={`text-xs truncate max-w-[200px] ${message.sender === "me" ? "text-white/60" : "text-content-faint"}`}>
                           {message.replyTo.text}
@@ -574,7 +591,7 @@ export default function StudioChat() {
                       style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                     >
                       {message.isDeleted
-                        ? "This message was deleted"
+                        ? t("chat.messageDeleted")
                         : (message.text || "")
                       }
                     </p>
@@ -619,7 +636,7 @@ export default function StudioChat() {
           <div className="px-3 py-2 bg-surface-hover border-t border-border flex items-center gap-3 flex-shrink-0">
             <div className="flex-1 pl-3 border-l-2 border-primary">
               <p className="text-xs font-medium text-primary">
-                {replyingTo.sender === 'me' ? 'You' : studioInfo.name}
+                {replyingTo.sender === 'me' ? t("chat.you") : studioInfo.name}
               </p>
               <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.text, 50)}</p>
             </div>
@@ -645,7 +662,7 @@ export default function StudioChat() {
                   e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
                 }}
                 onKeyDown={handleKeyPress}
-                placeholder="Type a message..."
+                placeholder={t("chat.placeholderMobile")}
                 className="w-full bg-transparent text-content-primary outline-none text-xs resize-none max-h-[120px] leading-5 placeholder:text-content-faint"
                 rows={1}
                 style={{ height: '20px' }}
@@ -656,7 +673,7 @@ export default function StudioChat() {
                 ? 'bg-primary hover:bg-primary-hover text-white'
                 : 'bg-surface-button text-content-faint'
                 }`}
-              aria-label="Send message"
+              aria-label={t("chat.sendMessage")}
               onClick={handleSendMessage}
               disabled={!messageText.trim()}
               type="button"
@@ -703,7 +720,7 @@ export default function StudioChat() {
               className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"
             >
               <Reply size={14} />
-              Reply
+              {t("chat.menu.reply")}
             </button>
 
             <button
@@ -715,7 +732,7 @@ export default function StudioChat() {
               className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"
             >
               <Smile size={14} />
-              React
+              {t("chat.menu.react")}
             </button>
 
             <button
@@ -726,7 +743,7 @@ export default function StudioChat() {
               className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"
             >
               <Copy size={14} />
-              Copy
+              {t("chat.menu.copy")}
             </button>
 
             {menuPosition.isOwn && (
@@ -739,7 +756,7 @@ export default function StudioChat() {
                 className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-red-400 flex items-center gap-2"
               >
                 <Trash2 size={14} />
-                Delete
+                {t("chat.menu.delete")}
               </button>
             )}
           </div>
@@ -771,7 +788,7 @@ export default function StudioChat() {
                 className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3"
               >
                 <Reply size={20} />
-                Reply
+                {t("chat.menu.reply")}
               </button>
 
               <button
@@ -782,7 +799,7 @@ export default function StudioChat() {
                 className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3"
               >
                 <Smile size={20} />
-                React
+                {t("chat.menu.react")}
               </button>
 
               <button
@@ -792,7 +809,7 @@ export default function StudioChat() {
                 className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3"
               >
                 <Copy size={20} />
-                Copy
+                {t("chat.menu.copy")}
               </button>
 
               {mobileContextMenu.message?.sender === 'me' && (
@@ -804,7 +821,7 @@ export default function StudioChat() {
                   className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-red-400 flex items-center gap-3"
                 >
                   <Trash2 size={20} />
-                  Delete
+                  {t("chat.menu.delete")}
                 </button>
               )}
             </div>
@@ -813,7 +830,7 @@ export default function StudioChat() {
               onClick={() => setMobileContextMenu(null)}
               className="w-full mt-4 px-4 py-3 text-base bg-surface-hover hover:bg-surface-button-hover rounded-xl text-content-primary font-medium"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -825,20 +842,20 @@ export default function StudioChat() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
           <div className="bg-surface-button rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-border">
-            <h4 className="text-content-primary font-medium mb-2">Delete Message?</h4>
-            <p className="text-content-muted text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
+            <h4 className="text-content-primary font-medium mb-2">{t("chat.deleteModal.title")}</h4>
+            <p className="text-content-muted text-sm mb-4">{t("chat.deleteModal.description")}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="flex-1 px-4 py-2.5 bg-surface-hover text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() => handleDeleteMessage(showDeleteConfirm)}
                 className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
               >
-                Delete
+                {t("common.delete")}
               </button>
             </div>
           </div>
@@ -874,7 +891,7 @@ export default function StudioChat() {
           ========================================== */}
       {showCopiedToast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-content-primary px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
-          Copied!
+          {t("chat.copied")}
         </div>
       )}
     </div>

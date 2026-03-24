@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useState, useEffect } from "react"
 import { X, ScanBarcode, CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
 import BarcodeScannerComponent from "react-qr-barcode-scanner"
@@ -52,23 +53,23 @@ const ScanFrame = ({ status }) => {
 }
 
 // ── Status pill ─────────────────────────────────────────────
-const StatusPill = ({ status, code, loading }) => {
+const StatusPill = ({ status, code, loading, t }) => {
   if (loading) return (
     <div className="flex items-center justify-center gap-2 py-2 px-4 bg-surface-hover rounded-xl">
       <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
-      <span className="text-xs text-content-secondary">Looking up barcode…</span>
+      <span className="text-xs text-content-secondary">{t("nutrition.barcode.lookingUp")}</span>
     </div>
   )
   if (status === "found") return (
     <div className="flex items-center justify-center gap-2 py-2 px-4 bg-green-500/10 rounded-xl">
       <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-      <span className="text-xs text-green-400 font-medium">Product found!</span>
+      <span className="text-xs text-green-400 font-medium">{t("nutrition.barcode.productFound")}</span>
     </div>
   )
   if (status === "error") return (
     <div className="flex items-center justify-center gap-2 py-2 px-4 bg-red-500/10 rounded-xl">
       <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-      <span className="text-xs text-red-400">Not found — try again</span>
+      <span className="text-xs text-red-400">{t("nutrition.barcode.notFound")}</span>
     </div>
   )
   if (code) return (
@@ -79,7 +80,7 @@ const StatusPill = ({ status, code, loading }) => {
   )
   return (
     <div className="flex items-center justify-center gap-2 py-2 px-4">
-      <span className="text-xs text-content-faint">Align barcode within the frame</span>
+      <span className="text-xs text-content-faint">{t("nutrition.barcode.alignBarcode")}</span>
     </div>
   )
 }
@@ -157,7 +158,7 @@ const BarcodeScannerModal = ({
           setBarcodeActive(false)
           if (Capacitor.isNativePlatform()) {
             const goToSettings = window.confirm(
-              "Camera access is required for barcode scanning.\n\nWould you like to open Settings to enable it?"
+              t("nutrition.barcode.cameraPermission")
             )
             if (goToSettings) window.open("app-settings:", "_self")
           }
@@ -193,6 +194,7 @@ const BarcodeScannerModal = ({
     }
   }, [scanStatus])
 
+  const { t } = useTranslation()
   if (!show) return null
 
   return (
@@ -203,7 +205,7 @@ const BarcodeScannerModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h3 className="text-base font-semibold text-content-primary flex items-center gap-2">
-            <ScanBarcode className="w-4 h-4 text-primary" /> Scan Barcode
+            <ScanBarcode className="w-4 h-4 text-primary" /> {t("nutrition.barcode.scanBarcode")}
           </h3>
           <button onClick={onClose}
             className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors">
@@ -252,7 +254,7 @@ const BarcodeScannerModal = ({
                         setBarcodeActive(false)
                         if (Capacitor.isNativePlatform()) {
                           const goToSettings = window.confirm(
-                            "Camera access is required for barcode scanning.\n\nWould you like to open Settings to enable it?"
+                            t("nutrition.barcode.cameraPermission")
                           )
                           if (goToSettings) window.open("app-settings:", "_self")
                         }
@@ -274,21 +276,21 @@ const BarcodeScannerModal = ({
                 <ScanBarcode className="w-10 h-10 text-content-faint/30 mb-3" />
                 {cameraBlocked ? (
                   <>
-                    <p className="text-sm text-red-400 mb-1">Camera access denied</p>
-                    <p className="text-xs text-content-muted mb-3">Enable camera in your device settings</p>
+                    <p className="text-sm text-red-400 mb-1">{t("nutrition.barcode.cameraAccessDenied")}</p>
+                    <p className="text-xs text-content-muted mb-3">{t("nutrition.barcode.enableCamera")}</p>
                     {Capacitor.isNativePlatform() && (
                       <button onClick={() => window.open("app-settings:", "_self")}
                         className="px-4 py-2 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl text-sm transition-colors">
-                        Open Settings
+                        {t("nutrition.barcode.openSettings")}
                       </button>
                     )}
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-content-muted">Scanner paused</p>
+                    <p className="text-sm text-content-muted">{t("nutrition.barcode.scannerPaused")}</p>
                     <button onClick={() => setBarcodeActive(true)}
                       className="mt-3 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-colors">
-                      Resume Scanner
+                      {t("nutrition.barcode.resumeScanner")}
                     </button>
                   </>
                 )}
@@ -297,7 +299,7 @@ const BarcodeScannerModal = ({
           </div>
 
           {/* ── Status indicator ── */}
-          <StatusPill status={scanStatus} code={lastScanned?.current} loading={barcodeLoading} />
+          <StatusPill status={scanStatus} code={lastScanned?.current} loading={barcodeLoading} t={t} />
 
           {/* ── Found product card with confirmation ── */}
           {barcodeFood && (
@@ -319,10 +321,10 @@ const BarcodeScannerModal = ({
                 {/* Macro badges */}
                 <div className="grid grid-cols-4 gap-2 mb-4">
                   {[
-                    { label: "Calories", value: `${barcodeFood.calories}`, unit: "kcal", color: "text-primary" },
-                    { label: "Protein", value: `${barcodeFood.protein}`, unit: "g", color: "text-blue-400" },
-                    { label: "Carbs", value: `${barcodeFood.carbs}`, unit: "g", color: "text-orange-400" },
-                    { label: "Fat", value: `${barcodeFood.fats}`, unit: "g", color: "text-yellow-400" },
+                    { label: t("nutrition.macros.calories"), value: `${barcodeFood.calories}`, unit: "kcal", color: "text-primary" },
+                    { label: t("nutrition.macros.protein"), value: `${barcodeFood.protein}`, unit: "g", color: "text-blue-400" },
+                    { label: t("nutrition.macros.carbs"), value: `${barcodeFood.carbs}`, unit: "g", color: "text-orange-400" },
+                    { label: t("nutrition.macros.fat"), value: `${barcodeFood.fats}`, unit: "g", color: "text-yellow-400" },
                   ].map((m) => (
                     <div key={m.label} className="text-center bg-surface-dark rounded-xl py-2 px-1">
                       <p className={`text-sm font-bold ${m.color}`}>{m.value}<span className="text-[10px] font-normal text-content-faint ml-0.5">{m.unit}</span></p>
@@ -337,16 +339,16 @@ const BarcodeScannerModal = ({
                     <button onClick={() => onAddFood(selectedMeal, barcodeFood)}
                       className="w-full flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.98]">
                       {(() => { const MIcon = mealIcons[selectedMeal]; return <MIcon className="w-4 h-4" /> })()}
-                      Add to {mealLabels[selectedMeal]}
+                      {t("nutrition.addFood.addTo", { meal: t(mealLabels[selectedMeal]) })}
                     </button>
                     <button onClick={() => setShowMealPicker(true)}
                       className="w-full py-2 text-xs text-content-faint hover:text-content-secondary transition-colors">
-                      Change meal
+                      {t("nutrition.barcode.changeMeal")}
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-[10px] text-content-faint uppercase tracking-wider mb-1">Choose meal</p>
+                    <p className="text-[10px] text-content-faint uppercase tracking-wider mb-1">{t("nutrition.barcode.chooseMeal")}</p>
                     <div className="grid grid-cols-4 gap-2">
                       {["breakfast", "lunch", "dinner", "snacks"].map((m) => {
                         const MealIcon = mealIcons[m]
@@ -359,7 +361,7 @@ const BarcodeScannerModal = ({
                                 : "bg-surface-button text-content-primary hover:bg-surface-button-hover"
                             }`}>
                             <MealIcon className="w-4 h-4" />
-                            <span className="capitalize text-[10px] font-medium">{m}</span>
+                            <span className="capitalize text-[10px] font-medium">{t(mealLabels[m])}</span>
                           </button>
                         )
                       })}
@@ -375,7 +377,7 @@ const BarcodeScannerModal = ({
             <div className="animate-fade-in-up">
               <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 text-center">
                 <AlertTriangle className="w-5 h-5 text-red-400 mx-auto mb-2" />
-                <p className="text-sm text-red-400 font-medium mb-1">Product not found</p>
+                <p className="text-sm text-red-400 font-medium mb-1">{t("nutrition.barcode.productNotFound")}</p>
                 <p className="text-xs text-content-faint">{barcodeError}</p>
               </div>
             </div>
@@ -385,7 +387,7 @@ const BarcodeScannerModal = ({
           {barcodeActive && (
             <button onClick={() => setBarcodeActive(false)}
               className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors bg-surface-hover text-content-secondary hover:bg-surface-button">
-              Pause Scanner
+              {t("nutrition.barcode.pauseScanner")}
             </button>
           )}
         </div>

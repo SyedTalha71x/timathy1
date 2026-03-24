@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { X, Plus, Star, Pencil, Trash2, ChevronDown, User, Target, ListPlus } from "lucide-react"
 import {
   SettingsCard, ACTIVITY_LEVELS, GOAL_TYPES,
@@ -11,22 +12,23 @@ const SettingsModal = ({
   customFoods, deleteCustomFood, toggleFavorite, isFavorite,
   openCustomFood, setShowSettings,
 }) => {
+  const { t } = useTranslation()
   if (!show) return null
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[90dvh] sm:max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-          <h3 className="text-base font-semibold text-content-primary">Settings</h3>
+          <h3 className="text-base font-semibold text-content-primary">{t("nav.settings")}</h3>
           <button onClick={onClose} className="p-1 text-content-muted hover:text-content-primary"><X className="w-5 h-5" /></button>
         </div>
 
         <div className="flex border-b border-border flex-shrink-0" style={{ touchAction: "manipulation" }}>
-          {[{ key: "profile", label: "Profile", icon: User }, { key: "goals", label: "Goals", icon: Target }, { key: "foods", label: "My Foods", icon: ListPlus }].map((t) => {
-            const TabIcon = t.icon
+          {[{ key: "profile", label: t("nutrition.settings.profile"), icon: User }, { key: "goals", label: t("nutrition.settings.goals"), icon: Target }, { key: "foods", label: t("nutrition.settings.myFoods"), icon: ListPlus }].map((tab) => {
+            const TabIcon = tab.icon
             return (
-              <button key={t.key} onClick={() => setSettingsTab(t.key)}
-                className={`flex-1 py-3 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${settingsTab === t.key ? "text-primary border-b-2 border-primary" : "text-content-muted"}`}>
-                <TabIcon className="w-3.5 h-3.5" /> {t.label}
+              <button key={tab.key} onClick={() => setSettingsTab(tab.key)}
+                className={`flex-1 py-3 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${settingsTab === tab.key ? "text-primary border-b-2 border-primary" : "text-content-muted"}`}>
+                <TabIcon className="w-3.5 h-3.5" /> {tab.label}
               </button>
             )
           })}
@@ -36,61 +38,61 @@ const SettingsModal = ({
           {/* PROFILE TAB */}
           {settingsTab === "profile" && (
             <div className="space-y-4">
-              <p className="text-xs text-content-muted">Your body metrics help us calculate accurate daily targets using the Mifflin-St Jeor formula.</p>
+              <p className="text-xs text-content-muted">{t("nutrition.settings.profileDesc")}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-content-muted mb-1 block">Gender</label>
+                  <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.gender")}</label>
                   <div className="relative">
                     <select value={profileForm.gender} onChange={(e) => setProfileForm((p) => ({ ...p, gender: e.target.value }))}
                       className="w-full appearance-none bg-surface-dark rounded-xl px-4 py-2.5 pr-9 text-sm text-content-primary border border-transparent focus:border-primary outline-none">
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
+                      <option value="male">{t("studioMenu.popup.male")}</option>
+                      <option value="female">{t("studioMenu.popup.female")}</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint pointer-events-none" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-content-muted mb-1 block">Age</label>
+                  <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.age")}</label>
                   <input type="number" value={profileForm.age} onChange={(e) => setProfileForm((p) => ({ ...p, age: e.target.value }))} placeholder="30"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-content-muted mb-1 block">Height (cm)</label>
+                  <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.height")}</label>
                   <input type="number" value={profileForm.height} onChange={(e) => setProfileForm((p) => ({ ...p, height: e.target.value }))} placeholder="175"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
                 <div>
-                  <label className="text-xs text-content-muted mb-1 block">Weight (kg)</label>
+                  <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.weight")}</label>
                   <input type="number" value={profileForm.weight} onChange={(e) => setProfileForm((p) => ({ ...p, weight: e.target.value }))} placeholder="75"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-content-muted mb-2 block">Activity Level</label>
+                <label className="text-xs text-content-muted mb-2 block">{t("nutrition.settings.activityLevel")}</label>
                 <div className="space-y-1.5">
                   {ACTIVITY_LEVELS.map((level) => (
                     <button key={level.value} onClick={() => setProfileForm((p) => ({ ...p, activity: level.value }))}
                       className={`w-full text-left px-3.5 py-2.5 rounded-xl border transition-colors ${profileForm.activity === level.value ? "border-primary bg-primary/5" : "border-transparent bg-surface-dark hover:bg-surface-button"}`}>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-content-primary">{level.label}</p>
+                        <p className="text-sm font-medium text-content-primary">{t(level.labelKey)}</p>
                         {profileForm.activity === level.value && (
                           <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-[11px] text-content-faint leading-tight mt-0.5">{level.desc}</p>
+                      <p className="text-[11px] text-content-faint leading-tight mt-0.5">{t(level.descKey)}</p>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="text-xs text-content-muted mb-2 block">Goal</label>
+                <label className="text-xs text-content-muted mb-2 block">{t("nutrition.settings.goal")}</label>
                 <div className="flex gap-2">
                   {GOAL_TYPES.map((g) => (
                     <button key={g.value} onClick={() => setProfileForm((p) => ({ ...p, goalType: g.value }))}
                       className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-colors ${profileForm.goalType === g.value ? "bg-primary text-white" : "bg-surface-dark text-content-muted hover:text-content-primary"}`}>
-                      {g.label}
+                      {t(g.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -98,7 +100,7 @@ const SettingsModal = ({
               {/* TDEE preview */}
               {profileForm.weight && profileForm.height && profileForm.age && (
                 <SettingsCard className="!p-4 !bg-primary/5 border border-primary/20">
-                  <p className="text-xs text-content-muted mb-2">Calculated Daily Targets</p>
+                  <p className="text-xs text-content-muted mb-2">{t("nutrition.settings.calculatedTargets")}</p>
                   <div className="grid grid-cols-5 gap-1.5 sm:gap-2 text-center">
                     {(() => {
                       const bmr = calcBMR(profileForm.weight, profileForm.height, profileForm.age, profileForm.gender)
@@ -108,11 +110,11 @@ const SettingsModal = ({
                       const m = calcMacros(cal)
                       const wMl = calcWaterMl(profileForm.weight, profileForm.activity)
                       return [
-                        { label: "Calories", val: cal },
-                        { label: "Protein", val: m.protein },
-                        { label: "Carbs", val: m.carbs },
-                        { label: "Fat", val: m.fats },
-                        { label: "Water", val: `${(wMl / 1000).toFixed(1)}L` },
+                        { label: t("nutrition.macros.calories"), val: cal },
+                        { label: t("nutrition.macros.protein"), val: m.protein },
+                        { label: t("nutrition.macros.carbs"), val: m.carbs },
+                        { label: t("nutrition.macros.fat"), val: m.fats },
+                        { label: t("nutrition.diary.water"), val: `${(wMl / 1000).toFixed(1)}L` },
                       ].map((item) => (
                         <div key={item.label}>
                           <p className="text-base sm:text-lg font-bold text-primary">{item.val}</p>
@@ -129,8 +131,8 @@ const SettingsModal = ({
           {/* GOALS TAB */}
           {settingsTab === "goals" && (
             <div className="space-y-4">
-              <p className="text-xs text-content-muted">Fine-tune your daily targets manually or use your profile calculation.</p>
-              {[{ key: "calories", label: "Calories (kcal)" }, { key: "protein", label: "Protein (g)" }, { key: "carbs", label: "Carbohydrates (g)" }, { key: "fats", label: "Fat (g)" }, { key: "waterMl", label: "Water (ml)" }].map((field) => (
+              <p className="text-xs text-content-muted">{t("nutrition.settings.goalsDesc")}</p>
+              {[{ key: "calories", label: t("nutrition.settings.caloriesKcal") }, { key: "protein", label: t("nutrition.settings.proteinG") }, { key: "carbs", label: t("nutrition.settings.carbsG") }, { key: "fats", label: t("nutrition.settings.fatG") }, { key: "waterMl", label: t("nutrition.settings.waterMl") }].map((field) => (
                 <div key={field.key}>
                   <label className="text-sm text-content-secondary block mb-2">{field.label}</label>
                   <input type="number" value={goalForm[field.key]} onChange={(e) => setGoalForm((p) => ({ ...p, [field.key]: e.target.value }))}
@@ -147,10 +149,10 @@ const SettingsModal = ({
           {settingsTab === "foods" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-content-muted">{customFoods.length} custom food{customFoods.length !== 1 ? "s" : ""} created</p>
+                <p className="text-xs text-content-muted">{t("nutrition.settings.customFoodCount", { count: customFoods.length })}</p>
                 <button onClick={() => { setShowSettings(false); openCustomFood("settings") }}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-xs font-medium transition-colors">
-                  <Plus className="w-3.5 h-3.5" /> New Food
+                  <Plus className="w-3.5 h-3.5" /> {t("nutrition.settings.newFood")}
                 </button>
               </div>
               {customFoods.length > 0 ? (
@@ -187,8 +189,8 @@ const SettingsModal = ({
               ) : (
                 <div className="text-center py-10 text-content-muted">
                   <ListPlus className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">No custom foods yet</p>
-                  <p className="text-xs mt-1">Create your own foods with custom nutrition values</p>
+                  <p className="text-sm">{t("nutrition.settings.noCustomFoods")}</p>
+                  <p className="text-xs mt-1">{t("nutrition.settings.createCustomHint")}</p>
                 </div>
               )}
             </div>
@@ -197,20 +199,20 @@ const SettingsModal = ({
 
         {/* Sticky footer buttons — always visible above keyboard */}
         {settingsTab === "profile" && (
-          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card">
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}>
             <button onClick={() => { calculateFromProfile(); setSettingsTab("goals") }}
               className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-2.5 text-sm font-medium transition-colors">
-              Apply & Set Goals
+              {t("nutrition.settings.applySetGoals")}
             </button>
           </div>
         )}
         {settingsTab === "goals" && (
-          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card">
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}>
             <div className="flex gap-3">
               <button onClick={() => setGoalForm({ calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 })}
-                className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary text-sm transition-colors">Reset</button>
+                className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary text-sm transition-colors">{t("nutrition.settings.reset")}</button>
               <button onClick={handleSaveSettings}
-                className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors">Save Goals</button>
+                className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors">{t("nutrition.settings.saveGoals")}</button>
             </div>
           </div>
         )}

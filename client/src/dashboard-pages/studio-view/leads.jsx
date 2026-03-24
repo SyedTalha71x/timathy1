@@ -12,6 +12,7 @@ import {
   closestCorners,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   pointerWithin,
@@ -195,6 +196,14 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // ============================================
   const [activeId, setActiveId] = useState(null)
   const [activeLead, setActiveLead] = useState(null)
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
+
+  // Track screen size for mobile-only autoScroll
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Drag confirmation state (for trial column transitions)
   const [pendingDrag, setPendingDrag] = useState(null)
@@ -220,9 +229,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 15, // Increased from 8px to reduce accidental drags
-        delay: 150, // Add 150ms delay for touch devices
-        tolerance: 5, // Allow 5px movement during delay
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -1596,7 +1609,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
-          autoScroll={false}
+          autoScroll={isMobileView ? {
+            enabled: true,
+            threshold: { x: 0.1, y: 0.15 },
+            acceleration: 15,
+            interval: 5,
+          } : false}
         >
           {/* Mobile: CSS Grid (1 column), Desktop: Flexbox for equal width columns */}
           <div

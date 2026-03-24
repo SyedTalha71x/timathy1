@@ -1104,11 +1104,13 @@ export default function ActivityMonitor() {
             />
           </div>
           
+          {/* Filter + Sort - always side by side */}
+          <div className="flex gap-3">
           {/* Filter Dropdown */}
-          <div className="relative" ref={filterDropdownRef}>
+          <div className="relative flex-1 sm:flex-none" ref={filterDropdownRef}>
             <button
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="flex items-center gap-2 px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors min-w-[140px]"
+              className="w-full flex items-center gap-2 px-3 sm:px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors sm:min-w-[140px]"
             >
               <Filter size={16} className="text-content-muted" />
               <span className="text-content-secondary">
@@ -1143,10 +1145,10 @@ export default function ActivityMonitor() {
           </div>
           
           {/* Sort Dropdown */}
-          <div className="relative" ref={sortDropdownRef}>
+          <div className="relative flex-1 sm:flex-none" ref={sortDropdownRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-2 px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors min-w-[130px]"
+              className="w-full flex items-center gap-2 px-3 sm:px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors sm:min-w-[130px]"
             >
               {sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
               <span className="text-content-secondary">
@@ -1186,6 +1188,7 @@ export default function ActivityMonitor() {
                 </div>
               </div>
             )}
+          </div>
           </div>
         </div>
 

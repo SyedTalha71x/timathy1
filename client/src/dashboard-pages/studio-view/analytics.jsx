@@ -928,43 +928,41 @@ export default function AnalyticsDashboard() {
           {/* ============================== */}
           {/* HEADER */}
           {/* ============================== */}
-          <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
 
-              {/* Time Period Filter - inline with title */}
-              <div className="relative" ref={timePeriodRef}>
-                <button
-                  onClick={() => setIsTimePeriodDropdownOpen(!isTimePeriodDropdownOpen)}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface-card hover:bg-surface-hover rounded-xl text-sm text-content-primary transition-colors"
-                >
-                  <Calendar size={16} className="text-content-muted" />
-                  <span>
-                    {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label}
-                  </span>
-                  <ChevronDown size={16} className={`text-content-muted transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+            {/* Time Period Filter - right aligned */}
+            <div className="relative" ref={timePeriodRef}>
+              <button
+                onClick={() => setIsTimePeriodDropdownOpen(!isTimePeriodDropdownOpen)}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-surface-card hover:bg-surface-hover rounded-xl text-xs sm:text-sm text-content-primary transition-colors"
+              >
+                <Calendar size={14} className="text-content-muted sm:w-4 sm:h-4" />
+                <span className="max-w-[100px] sm:max-w-none truncate">
+                  {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label}
+                </span>
+                <ChevronDown size={14} className={`text-content-muted transition-transform flex-shrink-0 sm:w-4 sm:h-4 ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-                {isTimePeriodDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-surface-card rounded-xl shadow-lg border border-border-subtle z-50 overflow-hidden">
-                    {timePeriodOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setSelectedTimePeriod(option.value)
-                          setIsTimePeriodDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${selectedTimePeriod === option.value
-                          ? 'bg-primary/20 text-primary'
-                          : 'text-content-primary'
-                          }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {isTimePeriodDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-surface-card rounded-xl shadow-lg border border-border-subtle z-50 overflow-hidden">
+                  {timePeriodOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSelectedTimePeriod(option.value)
+                        setIsTimePeriodDropdownOpen(false)
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${selectedTimePeriod === option.value
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-content-primary'
+                        }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

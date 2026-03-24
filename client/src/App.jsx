@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
@@ -9,6 +9,9 @@ import { useDispatch, useSelector } from 'react-redux';
 // import ProtectedRoutes from "./ProtectedRoutes";
 
 // import { me } from "./features/auth/authSlice";
+
+// Login Layout
+import LoginLayout from './layouts/login/LoginLayout';
 
 // Studio-View Dashboard
 import Dashboardlayout from "./layouts/studio-view/studio-view-layout";
@@ -84,16 +87,18 @@ import MemberClasses from './dashboard-pages/member-view/classes'
 // chat setup
 import { connectSocket, disconnectSocket } from "./services/socket";
 import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 
 
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth)
-  // const dispatch = useDispatch();
-  // const navigate = useNavigate();
 
-  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training");
+  const isNative = Capacitor.isNativePlatform()
+
+  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training") || (isNative && location.pathname === "/");
 
 
 
@@ -146,8 +151,22 @@ function App() {
     <>
       {!isAuthOrDashboardPage && <Header />}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="login" element={<Login />} />
+        {/* ═══════════════════════════════════════════════════════════════════
+            LOGIN / LANDING — with LoginLayout (header: theme + language)
+            Native: "/" → LoginLayout + Login
+            Web: "/" → Home (landing page), "/login" → LoginLayout + Login
+        ═══════════════════════════════════════════════════════════════════ */}
+        {isNative ? (
+          <Route path="/" element={<LoginLayout />}>
+            <Route index element={<Login />} />
+          </Route>
+        ) : (
+          <Route path="/" element={<Home />} />
+        )}
+
+        <Route path="/login" element={<LoginLayout />}>
+          <Route index element={<Login />} />
+        </Route>
 
         {/* ═══════════════════════════════════════════════════════════════════
             STANDALONE PUBLIC PAGE — Trial Training Booking

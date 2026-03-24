@@ -208,7 +208,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -1631,7 +1631,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
               <div className="hidden lg:block relative group">
                 <button
                   onClick={handleAddContract}
-                  className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+                  className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
                 >
                   <Plus size={14} className="sm:w-4 sm:h-4" />
                   <span className='hidden sm:inline'>Create Contract</span>
@@ -1666,7 +1666,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                     className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                   >
                     <div className="w-5 h-5 rounded bg-surface-button flex items-center justify-center flex-shrink-0">
-                      <FileText size={12} className="text-orange-400" />
+                      <FileText size={12} className="text-primary" />
                     </div>
                     <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                     <button
@@ -1721,7 +1721,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                       className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
                     >
                       <div className="w-8 h-8 rounded-lg bg-surface-button flex items-center justify-center flex-shrink-0">
-                        <FileText size={16} className="text-orange-400" />
+                        <FileText size={16} className="text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-content-primary truncate">{member.memberName}</p>
@@ -1885,7 +1885,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                             className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-8 h-8' : 'w-10 h-10'}`}
                             title="Open Contract Documents"
                           >
-                            <FileText size={isCompactView ? 16 : 20} className="text-orange-400" />
+                            <FileText size={isCompactView ? 16 : 20} className="text-primary" />
                           </button>
                         </div>
                         <div className={`text-content-muted truncate ${isCompactView ? 'text-xs' : 'text-sm'}`} title={contract.contractNumber || '-'}>
@@ -1902,12 +1902,12 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                             const isCancelled = contract.status === 'Cancelled'
                             return renewalInfo.hasRenewal ? (
                               <div className="relative group inline-flex">
-                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-orange-400'}`}>
+                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-primary'}`}>
                                   <RefreshCw size={isCompactView ? 10 : 12} /> Yes
                                 </span>
                                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                                   <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-content-muted' : ''}`}>
-                                    <RefreshCw size={10} className={isCancelled ? 'text-content-faint' : 'text-orange-400'} />
+                                    <RefreshCw size={10} className={isCancelled ? 'text-content-faint' : 'text-primary'} />
                                     <span>{renewalInfo.tooltip}</span>
                                   </div>
                                   <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
@@ -1936,7 +1936,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                           )}
                           {contract.bonusTime && (
                             <div className="relative group inline-flex ml-2">
-                              <span className={`text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
+                              <span className={`text-primary flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
                                 <Gift size={isCompactView ? 10 : 12} />
                                 Bonus
                               </span>
@@ -1945,7 +1945,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   const eff = getEffectiveEndDate(contract)
                                   return (
                                     <div className="flex items-start gap-2">
-                                      <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
+                                      <Gift size={10} className="text-primary mt-0.5 flex-shrink-0" />
                                       <div className="min-w-0 overflow-hidden">
                                         <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
                                         {contract.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contract.bonusTime.reason}</span>}
@@ -1963,7 +1963,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         </div>
                         <div className={`flex items-center justify-end gap-0.5 ${isCompactView ? 'w-20' : 'w-24'}`}>
                           {contract.status === "Pending" ? (
-                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                            <button onClick={() => handleEditContract(contract)} className={`text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
                               <Pencil size={isCompactView ? 14 : 18} />
                             </button>
                           ) : (
@@ -1986,9 +1986,9 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                 )}
                                 {contract.status === "Paused" && (
                                   <>
-                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-surface-hover flex items-center gap-2"><PlayCircle size={14} /> Resume</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-primary hover:bg-surface-hover flex items-center gap-2"><PlayCircle size={14} /> Resume</button>
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-primary' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
                                     {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
                                     <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
                                     <hr className="border-border my-1" />
@@ -1999,7 +1999,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   <>
                                     <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><PauseCircle size={14} /> Pause</button>
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-primary' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
                                     {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
                                     <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
                                     <hr className="border-border my-1" />
@@ -2045,7 +2045,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               className="w-11 h-11 bg-surface-button rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-surface-button-hover transition-colors"
                               title="Open Contract Documents"
                             >
-                              <FileText size={22} className="text-orange-400" />
+                              <FileText size={22} className="text-primary" />
                             </button>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
@@ -2082,7 +2082,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   })()}
                                 </span>
                                 {contract.bonusTime && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary flex items-center gap-1">
                                     <Gift size={10} /> Bonus
                                   </span>
                                 )}
@@ -2099,7 +2099,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
                                       <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
@@ -2120,13 +2120,13 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               {contract.status === "Paused" && (
                                 <>
                                   <div className="grid grid-cols-4 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
                                       <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
                                       <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
@@ -2146,7 +2146,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
 
                               {contract.status === "Pending" && (
                                 <div className="grid grid-cols-4 gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
                                     <Pencil size={18} /><span className="text-[10px]">Edit</span>
                                   </button>
                                   <div className="p-2" />
@@ -2216,7 +2216,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-12 h-12 mb-2' : 'w-20 h-20 mb-3'}`}
                         title="Open Contract Documents"
                       >
-                        <FileText size={isCompactView ? 22 : 36} className="text-orange-400" />
+                        <FileText size={isCompactView ? 22 : 36} className="text-primary" />
                       </button>
                       <h3 className={`text-content-primary font-medium text-center ${isCompactView ? 'text-sm' : 'text-lg'}`}>{contract.memberName}</h3>
                       {contract.contractNumber && (
@@ -2242,12 +2242,12 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                             const isCancelled = contract.status === 'Cancelled'
                             return renewalInfo.hasRenewal ? (
                               <div className="relative group inline-flex">
-                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-orange-400'}`}>
+                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-primary'}`}>
                                   <RefreshCw size={10} /> Auto Renewal
                                 </span>
                                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                                   <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-content-muted' : ''}`}>
-                                    <RefreshCw size={10} className={isCancelled ? 'text-content-faint' : 'text-orange-400'} />
+                                    <RefreshCw size={10} className={isCancelled ? 'text-content-faint' : 'text-primary'} />
                                     <span>{renewalInfo.tooltip}</span>
                                   </div>
                                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent" style={{ borderTopColor: 'var(--color-surface-dark)' }} />
@@ -2266,7 +2266,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                       )}
                       {contract.bonusTime && (
                         <div className="relative group inline-flex mt-1">
-                          <span className={`rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'}`}>
+                          <span className={`rounded-full bg-primary/20 text-primary flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'}`}>
                             <Gift size={isCompactView ? 10 : 12} /> Bonus
                           </span>
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
@@ -2274,7 +2274,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               const eff = getEffectiveEndDate(contract)
                               return (
                                 <div className="flex items-start gap-2">
-                                  <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
+                                  <Gift size={10} className="text-primary mt-0.5 flex-shrink-0" />
                                   <div className="min-w-0 overflow-hidden">
                                     <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
                                     {contract.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contract.bonusTime.reason}</span>}
@@ -2302,7 +2302,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                             <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
+                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
                               <Gift size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
@@ -2317,13 +2317,13 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         {/* Paused: Resume, Renew, Bonus, Change, Cancel */}
                         {contract.status === "Paused" && (
                           <>
-                            <button onClick={() => handleResumeContract(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Resume">
+                            <button onClick={() => handleResumeContract(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Resume">
                               <PlayCircle size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
+                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
                               <Gift size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
@@ -2338,7 +2338,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         {/* Pending: Edit, empty, empty, empty, Delete */}
                         {contract.status === "Pending" && (
                           <>
-                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                            <button onClick={() => handleEditContract(contract)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
                               <Pencil size={isCompactView ? 14 : 16} />
                             </button>
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
@@ -2392,7 +2392,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         {/* Floating Action Button - Mobile */}
         <button
           onClick={handleAddContract}
-          className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
+          className="sm:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
           aria-label="Create Contract"
         >
           <Plus size={22} />
@@ -2611,7 +2611,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                 </button>
                 <button
                   onClick={confirmRenew}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-sm text-white rounded-xl transition-colors"
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover text-sm text-white rounded-xl transition-colors"
                 >
                   Renew Anyway
                 </button>
