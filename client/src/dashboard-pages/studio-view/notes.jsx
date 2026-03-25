@@ -12,7 +12,7 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import toast from "../../components/shared/SharedToast"
 import { useDispatch, useSelector } from "react-redux"
 import { getTagsThunk } from "../../features/todos/todosSlice"
-import { createPersonalNotesThunk, createStudioNotesThunk, getPersonalNotesThunk, getStudioNotesThunk, updateNoteThunk } from "../../features/notes/noteSlice"
+import { createPersonalNotesThunk, createStudioNotesThunk, deleteNoteThunk, getPersonalNotesThunk, getStudioNotesThunk, updateNoteThunk } from "../../features/notes/noteSlice"
 
 // Available tags
 const AVAILABLE_TAGS = [
@@ -195,48 +195,59 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags,
 })
 
 export default function NotesApp() {
-
-  const { tags = [] } = useSelector((state) => state.todos || {})
+  // Get notes from Redux
+  const { tags = [] } = useSelector((state) => state.todos || {});
+  const {
+    personalNotes = [],
+    studioNotes = [],
+    loading
+  } = useSelector((state) => state.notes || {});
   const dispatch = useDispatch();
-  const [activeTab, setActiveTab] = useState("studio")
-  const [notes, setNotes] = useState(DEMO_NOTES)
-  const [selectedNote, setSelectedNote] = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortBy, setSortBy] = useState('date') // Changed from 'updated' to 'date'
-  const [sortDirection, setSortDirection] = useState('desc')
-  const [showSortDropdown, setShowSortDropdown] = useState(false)
-  const [availableTags, setAvailableTags] = useState([]) // Now has setter
-  const [showTagsModal, setShowTagsModal] = useState(false)
+
+  // Local state
+  const [activeTab, setActiveTab] = useState("studio");
+  const [selectedNote, setSelectedNote] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showTagsModal, setShowTagsModal] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
 
   // Editing state
-  const [editedTitle, setEditedTitle] = useState("")
-  const [editedContent, setEditedContent] = useState("")
-  const [editedTags, setEditedTags] = useState([])
-  const [editedAttachments, setEditedAttachments] = useState([])
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [viewingImage, setViewingImage] = useState(null)
-  const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
-  const [showAllAttachments, setShowAllAttachments] = useState(false)
-  const [showAllTags, setShowAllTags] = useState(false)
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedContent, setEditedContent] = useState("");
+  const [editedTags, setEditedTags] = useState([]);
+  const [editedAttachments, setEditedAttachments] = useState([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [viewingImage, setViewingImage] = useState(null);
+  const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false);
+  const [showAllAttachments, setShowAllAttachments] = useState(false);
+  const [showAllTags, setShowAllTags] = useState(false);
 
   // Image source modal states
-  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
-  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false);
+  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false);
 
-  const sortDropdownRef = useRef(null)
-  const desktopSortDropdownRef = useRef(null)
-  const fileInputRef = useRef(null)
-  const pendingSaveRef = useRef(null)
-  const mobileActionsMenuRef = useRef(null)
+  // Combine notes based on active tab
+  const notes = {
+    studio: Array.isArray(studioNotes) ? studioNotes : [],
+    personal: Array.isArray(personalNotes) ? personalNotes : [],
+  };
 
-  // Sidebar tooltip ref (combined info tooltip uses studioTooltipRef)
-  const [showStudioTooltip, setShowStudioTooltip] = useState(false)
-  const studioTooltipRef = useRef(null)
+  // Refs
+  const sortDropdownRef = useRef(null);
+  const desktopSortDropdownRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const pendingSaveRef = useRef(null);
+  const mobileActionsMenuRef = useRef(null);
+  const studioTooltipRef = useRef(null);
+  const [showStudioTooltip, setShowStudioTooltip] = useState(false);
+  const loadedNoteIdRef = useRef(null);
+  const autoSaveTimeoutRef = useRef(null);
 
-  const trainingVideos = trainingVideosData
-
-  // DnD sensors - responsive, low-latency
+  // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 3 },
@@ -247,248 +258,172 @@ export default function NotesApp() {
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  )
+  );
 
-  // Track actively dragged note for DragOverlay
-  const [activeId, setActiveId] = useState(null)
+  const [activeId, setActiveId] = useState(null);
+
 
   // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Only close sort dropdown if click is outside BOTH mobile and desktop refs
-      const isInsideMobileSort = sortDropdownRef.current && sortDropdownRef.current.contains(event.target)
-      const isInsideDesktopSort = desktopSortDropdownRef.current && desktopSortDropdownRef.current.contains(event.target)
+      const isInsideMobileSort = sortDropdownRef.current && sortDropdownRef.current.contains(event.target);
+      const isInsideDesktopSort = desktopSortDropdownRef.current && desktopSortDropdownRef.current.contains(event.target);
       if (!isInsideMobileSort && !isInsideDesktopSort) {
-        setShowSortDropdown(false)
+        setShowSortDropdown(false);
       }
       if (studioTooltipRef.current && !studioTooltipRef.current.contains(event.target)) {
-        setShowStudioTooltip(false)
+        setShowStudioTooltip(false);
       }
       if (mobileActionsMenuRef.current && !mobileActionsMenuRef.current.contains(event.target)) {
-        setShowMobileActionsMenu(false)
+        setShowMobileActionsMenu(false);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  //  fetch tags
+  // Fetch notes and tags on mount
   useEffect(() => {
-    dispatch(getTagsThunk())
-    dispatch(getStudioNotesThunk())
-    dispatch(getPersonalNotesThunk())
-  }, [dispatch])
+    dispatch(getTagsThunk());
+    dispatch(getStudioNotesThunk());
+    dispatch(getPersonalNotesThunk());
+  }, [dispatch]);
 
-  // Track the currently loaded note ID to prevent unnecessary resets
-  const loadedNoteIdRef = useRef(null)
-
-  // Helper: select a note and set editing state synchronously in one batch
-  // This prevents the race condition where the editor remounts (via key change)
-  // before useEffect has loaded the new content
+  // Helper: select a note and set editing state
   const selectNote = (note) => {
-    if (note && (!selectedNote || selectedNote.id !== note.id)) {
-      setEditedTitle(note.title || '')
-      setEditedContent(note.content || '')
-      setEditedTags(note.tags || [])
-      setEditedAttachments(note.attachments || [])
-      setHasUnsavedChanges(false)
-      setShowAllAttachments(false)
-      setShowAllTags(false)
-      loadedNoteIdRef.current = note.id
+    if (note && (!selectedNote || selectedNote._id !== note._id)) {
+      setEditedTitle(note.title || '');
+      setEditedContent(note.content || '');
+      setEditedTags(note.tags || []);
+      const attachments = (note.attachments || []).map(att => ({
+        name: att.name,
+        url: att.url,
+        public_id: att.public_id,
+        isNew: false
+      }));
+      setEditedAttachments(attachments || []);
+      setHasUnsavedChanges(false);
+      setShowAllAttachments(false);
+      setShowAllTags(false);
+      loadedNoteIdRef.current = note._id;
     }
-    setSelectedNote(note)
-  }
+    setSelectedNote(note);
+  };
 
   // Cleanup editing state when note is closed
   useEffect(() => {
     if (!selectedNote) {
-      setEditedTitle('')
-      setEditedContent('')
-      setEditedTags([])
-      setEditedAttachments([])
-      setHasUnsavedChanges(false)
-      setShowAllAttachments(false)
-      setShowAllTags(false)
-      loadedNoteIdRef.current = null
-    }
-  }, [selectedNote])
-
-  // Auto-save functionality - instant updates for responsive sidebar
-  useEffect(() => {
-    if (!selectedNote || !hasUnsavedChanges) return
-
-    // Track pending save data in ref for flush-on-close (with updatedAt)
-    pendingSaveRef.current = {
-      noteId: selectedNote._id,
-      tabKey: activeTab,
-      title: editedTitle,
-      content: editedContent,
-      tags: editedTags,
-      attachments: editedAttachments,
-    }
-
-    // Save immediately for instant sidebar updates - but WITHOUT updating updatedAt
-    // (updatedAt is only set on close to prevent notes from jumping around in sort order)
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map(note =>
-        note.id === selectedNote.id
-          ? { ...note, title: editedTitle, content: editedContent, tags: editedTags, attachments: editedAttachments }
-          : note
-      ),
-    }))
-    setHasUnsavedChanges(false)
-  }, [editedTitle, editedContent, editedTags, editedAttachments, hasUnsavedChanges])
-
-  // Set updatedAt and release focus when note editor is closed
-  useEffect(() => {
-    if (!selectedNote) {
-      // Stamp updatedAt on the note now that editing is done
-      if (pendingSaveRef.current) {
-        const { noteId, tabKey } = pendingSaveRef.current
-        setNotes(prev => ({
-          ...prev,
-          [tabKey]: prev[tabKey].map(note =>
-            note._id === noteId
-              ? { ...note, updatedAt: new Date().toISOString() }
-              : note
-          ),
-        }))
-        pendingSaveRef.current = null
-      }
-      
-      setHasUnsavedChanges(false)
-      if (document.activeElement && document.activeElement !== document.body) {
-        document.activeElement.blur()
-      }
-    }
-  }, [selectedNote])
-
-  // Keyboard shortcuts - only active when NOT in any editable area
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      // NEVER intercept Enter key - always let it through for editors
-      if (e.key === 'Enter') {
-        return
+      // Clear any pending auto-save timeout
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
       }
 
-      // Check if user is typing in an input/textarea (e.g. search bar, tag input)
-      const target = e.target
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable === true ||
-        target.closest?.('[contenteditable="true"]')
-      ) {
-        // Only handle Escape to blur
-        if (e.key === 'Escape') {
-          target.blur?.()
+      setEditedTitle('');
+      setEditedContent('');
+      setEditedTags([]);
+      setEditedAttachments([]);
+      setHasUnsavedChanges(false);
+      setShowAllAttachments(false);
+      setShowAllTags(false);
+      loadedNoteIdRef.current = null;
+
+      // Save any pending changes before closing
+      if (pendingSaveRef.current && pendingSaveRef.current.noteId) {
+        const { noteId, updateData } = pendingSaveRef.current;
+        dispatch(updateNoteThunk({ noteId, updateData }))
+          .unwrap()
+          .catch((error) => {
+            console.error("Final save failed:", error);
+          });
+        pendingSaveRef.current = null;
+      }
+    }
+  }, [selectedNote, dispatch]);
+
+  // Auto-save functionality with debounce
+  useEffect(() => {
+    if (!selectedNote || !selectedNote._id) return;
+
+    // Check for actual changes
+    const hasTitleChange = editedTitle !== (selectedNote.title || '');
+    const hasContentChange = editedContent !== (selectedNote.content || '');
+    const hasTagsChange = JSON.stringify(editedTags) !== JSON.stringify(selectedNote.tags || []);
+
+    // Check attachments change (compare URLs and names)
+    const currentAttachments = editedAttachments.map(a => ({
+      name: a.name,
+      url: a.url,
+      public_id: a.public_id
+    }));
+    const originalAttachments = (selectedNote.attachments || []).map(a => ({
+      name: a.name,
+      url: a.url,
+      public_id: a.public_id
+    }));
+    const hasAttachmentsChange = JSON.stringify(currentAttachments) !== JSON.stringify(originalAttachments);
+
+    if (!hasTitleChange && !hasContentChange && !hasTagsChange && !hasAttachmentsChange) {
+      return;
+    }
+
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Debounce save
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      setIsAutoSaving(true);
+
+      try {
+        // Prepare update data
+        const updateData = {};
+
+        if (hasTitleChange) updateData.title = editedTitle;
+        if (hasContentChange) updateData.content = editedContent;
+        if (hasTagsChange) updateData.tagsId = editedTags;
+
+        // Handle attachments - send the full attachments array
+        if (hasAttachmentsChange) {
+          const attachmentsToSave = editedAttachments.map(att => ({
+            name: att.name,
+            url: att.url,
+            public_id: att.public_id
+          }));
+          updateData.attachments = attachmentsToSave;
         }
-        return
+
+        // Dispatch update thunk
+        const result = await dispatch(updateNoteThunk({
+          noteId: selectedNote._id,
+          updateData
+        })).unwrap();
+
+        console.log('Auto-save successful:', result);
+
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+        // Don't show toast for 304 errors
+        if (error.message !== 'Request failed with status code 304') {
+          toast.error("Failed to auto-save note");
+        }
+      } finally {
+        setIsAutoSaving(false);
       }
+    }, 1000); // 1 second debounce
 
-      // Don't handle if modifier keys are pressed
-      if (e.ctrlKey || e.metaKey || e.altKey) return
-
-      // Handle Escape for modals
-      if (e.key === 'Escape') {
-        if (showImageSourceModal) setShowImageSourceModal(false)
-        else if (showMediaLibraryModal) setShowMediaLibraryModal(false)
-        else if (deleteConfirm) setDeleteConfirm(null)
-        else if (showTagsModal) setShowTagsModal(false)
-        else if (selectedNote) setSelectedNote(null)
-        return
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
       }
+    };
+  }, [selectedNote, editedTitle, editedContent, editedTags, editedAttachments, dispatch]);
 
-      // Check if ANY modal is open - if so, don't trigger other hotkeys
-      const anyModalOpen =
-        deleteConfirm ||
-        showTagsModal ||
-        showImageSourceModal ||
-        showMediaLibraryModal
+  // Create new note
 
-      if (anyModalOpen) return
 
-      // C - Create new note
-      if (e.key === 'c' || e.key === 'C') {
-        e.preventDefault()
-        handleCreateNote()
-      }
-
-      // T - Manage tags
-      if (e.key === 't' || e.key === 'T') {
-        e.preventDefault()
-        setShowTagsModal(true)
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyPress)
-    return () => document.removeEventListener('keydown', handleKeyPress)
-  }, [deleteConfirm, selectedNote, showTagsModal, showImageSourceModal, showMediaLibraryModal])
-
-  // Get current sort label
-  const sortOptions = [
-    { value: 'date', label: 'Date' }, // Merged: uses most recent of created/updated
-    { value: 'title', label: 'Title' },
-    { value: 'custom', label: 'Custom' },
-  ]
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date'
-
-  // Toggle sort direction
-  const toggleSortDirection = () => {
-    setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-  }
-
-  // Get sort icon based on current state
-  const getSortIcon = () => {
-    if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-content-muted" />
-    }
-    return sortDirection === 'asc'
-      ? <ArrowUp size={14} className="text-content-primary" />
-      : <ArrowDown size={14} className="text-content-primary" />
-  }
-
-  // Handle sort option click (dropdown stays open for direction toggle)
-  const handleSortOptionClick = (newSortBy) => {
-    if (newSortBy === 'custom') {
-      setSortBy('custom')
-      setShowSortDropdown(false)
-    } else if (sortBy === newSortBy) {
-      // If same option clicked, toggle direction
-      toggleSortDirection()
-    } else {
-      setSortBy(newSortBy)
-      setSortDirection('desc') // Default to descending for new sort
-    }
-  }
-
-  // Tag Management Functions
-  // const handleAddTag = (newTag) => {
-  //   setAvailableTags([...tags, newTag])
-  // }
-
-  const handleDeleteTag = (tagId) => {
-    // Remove tag from all notes
-    setNotes((prev) => {
-      const updatedNotes = {}
-      Object.keys(prev).forEach(tab => {
-        updatedNotes[tab] = prev[tab].map(note => ({
-          ...note,
-          tags: note.tags?.filter(t => t !== tagId) || []
-        }))
-      })
-      return updatedNotes
-    })
-
-    // Remove from available tags
-    setAvailableTags(tags.filter(tag => tag.id !== tagId))
-  }
-
-  // Create new note directly
-  const handleCreateNote = () => {
-    const note = {
-      // id: Date.now(),
+  const handleCreateNote = async () => {
+    const newNote = {
       title: 'untitled',
       content: '',
       tags: [],
@@ -496,159 +431,191 @@ export default function NotesApp() {
       isPinned: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }
+    };
 
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: [note, ...prev[activeTab]],
-    }))
-    const thunk = activeTab === 'studio'
-      ? createStudioNotesThunk(note)
-      : createPersonalNotesThunk(note)
+    try {
+      let result;
+      if (activeTab === 'studio') {
+        // Create the note
+        result = await dispatch(createStudioNotesThunk(newNote)).unwrap();
+        console.log('Created studio note:', result);
 
+        // Refresh the list to get the latest data
+        await dispatch(getStudioNotesThunk());
+      } else {
+        // Create the note
+        result = await dispatch(createPersonalNotesThunk(newNote)).unwrap();
+        console.log('Created personal note:', result);
 
-    dispatch(thunk)
-    // Reset editing state BEFORE selecting note so editor mounts with empty content
-    setEditedContent('')
-    setEditedTitle('')
-    setEditedTags([])
-    setEditedAttachments([])
-    setHasUnsavedChanges(false)
-    loadedNoteIdRef.current = note.id
-    setSelectedNote(note)
-    toast.success("Note created")
-
-    // Focus title input after render - iOS needs longer delay and special handling
-    const focusTitleInput = () => {
-      const titleInputs = document.querySelectorAll('[data-title-input]')
-      // Focus the visible one (last one in the DOM for mobile overlay)
-      const visibleInput = Array.from(titleInputs).find(input => {
-        const rect = input.getBoundingClientRect()
-        return rect.width > 0 && rect.height > 0
-      })
-      if (visibleInput) {
-        visibleInput.focus()
-        // iOS sometimes needs selection to trigger keyboard
-        visibleInput.setSelectionRange(0, 0)
+        // Refresh the list to get the latest data
+        await dispatch(getPersonalNotesThunk());
       }
-    }
 
-    // Use multiple attempts for iOS reliability
-    setTimeout(focusTitleInput, 100)
-    setTimeout(focusTitleInput, 300)
-    setTimeout(focusTitleInput, 500)
-  }
+      // After refreshing, select the note using the result from the API
+      if (result && result._id) {
+        selectNote(result);
+        toast.success("Note created");
+
+        // Focus title input after render
+        setTimeout(() => {
+          const titleInputs = document.querySelectorAll('[data-title-input]');
+          const visibleInput = Array.from(titleInputs).find(input => {
+            const rect = input.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          });
+          if (visibleInput) {
+            visibleInput.focus();
+            visibleInput.setSelectionRange(0, 0);
+          }
+        }, 100);
+      } else {
+        console.error('Created note missing _id:', result);
+        toast.success("Note created");
+      }
+    } catch (error) {
+      toast.error("Failed to create note");
+      console.error("Create note error:", error);
+    }
+  };
 
   // Delete note
-  const deleteNote = (noteId) => {
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter(note => note.id !== noteId),
-    }))
+  const deleteNote = async (noteId) => {
+    try {
+      await dispatch(deleteNoteThunk(noteId)).unwrap();
 
-    if (selectedNote?.id === noteId) {
-      setSelectedNote(null)
+      if (selectedNote?._id === noteId) {
+        setSelectedNote(null);
+      }
+      toast.success("Note deleted");
+    } catch (error) {
+      toast.error("Failed to delete note");
+      console.error("Delete note error:", error);
     }
-    toast.success("Note deleted")
-  }
+  };
 
   // Duplicate note
-  const duplicateNote = () => {
-    if (!selectedNote) return
+  const duplicateNote = async () => {
+    if (!selectedNote) return;
 
     const duplicated = {
-      ...selectedNote,
-      id: Date.now(),
       title: `${selectedNote.title} (Copy)`,
+      content: selectedNote.content,
+      tags: selectedNote.tags || [],
+      attachments: selectedNote.attachments || [],
+      isPinned: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }
+    };
 
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: [duplicated, ...prev[activeTab]],
-    }))
+    try {
+      let result;
+      if (activeTab === 'studio') {
+        result = await dispatch(createStudioNotesThunk(duplicated)).unwrap();
+      } else {
+        result = await dispatch(createPersonalNotesThunk(duplicated)).unwrap();
+      }
 
-    // On mobile: go back to list; on desktop: select the duplicate
-    const isMobile = window.innerWidth < 768
-    if (isMobile) {
-      setSelectedNote(null)
-    } else {
-      selectNote(duplicated)
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        setSelectedNote(null);
+      } else {
+        selectNote(result);
+      }
+      toast.success("Note duplicated");
+    } catch (error) {
+      toast.error("Failed to duplicate note");
+      console.error("Duplicate note error:", error);
     }
-    toast.success("Note duplicated")
-  }
+  };
 
   // Toggle pin
-  const togglePin = (noteId) => {
-    const note = notes[activeTab].find(n => n.id === noteId)
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map(note =>
-        note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
-      ),
-    }))
+  const togglePin = async (noteId) => {
+    const note = notes[activeTab].find(n => n._id === noteId);
+    if (!note) return;
 
-    if (selectedNote?.id === noteId) {
-      setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }))
+    try {
+      await dispatch(updateNoteThunk({
+        noteId,
+        updateData: { isPinned: !note.isPinned }
+      })).unwrap();
+
+      if (selectedNote?._id === noteId) {
+        setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }));
+      }
+      toast.success(note.isPinned ? "Note unpinned" : "Note pinned");
+    } catch (error) {
+      toast.error("Failed to update pin status");
+      console.error("Toggle pin error:", error);
     }
-    toast.success(note?.isPinned ? "Note unpinned" : "Note pinned")
-  }
+  };
 
   // Move note to other tab
-  const moveNoteToOtherTab = () => {
-    if (!selectedNote) return
+  const moveNoteToOtherTab = async () => {
+    if (!selectedNote) return;
 
-    const targetTab = activeTab === 'personal' ? 'studio' : 'personal'
-    const noteToMove = { ...selectedNote }
+    const targetTab = activeTab === 'personal' ? 'studio' : 'personal';
 
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter(note => note.id !== selectedNote.id),
-      [targetTab]: [noteToMove, ...prev[targetTab]],
-    }))
+    try {
+      // First, delete from current tab
+      await dispatch(deleteNoteThunk(selectedNote._id)).unwrap();
 
-    setActiveTab(targetTab)
-    toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes`)
+      // Then create in target tab with same data
+      const noteToMove = {
+        title: selectedNote.title,
+        content: selectedNote.content,
+        tags: selectedNote.tags || [],
+        attachments: selectedNote.attachments || [],
+        isPinned: selectedNote.isPinned,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-    // On mobile: go back to list; on desktop: keep the note selected in new tab
-    const isMobile = window.innerWidth < 768
-    if (isMobile) {
-      setSelectedNote(null)
+      if (targetTab === 'studio') {
+        await dispatch(createStudioNotesThunk(noteToMove)).unwrap();
+      } else {
+        await dispatch(createPersonalNotesThunk(noteToMove)).unwrap();
+      }
+
+      setActiveTab(targetTab);
+      setSelectedNote(null);
+      toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes`);
+    } catch (error) {
+      toast.error("Failed to move note");
+      console.error("Move note error:", error);
     }
-    // On desktop: selectedNote stays the same (note is still selected in new tab)
-  }
+  };
 
   // Handle file upload
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files)
+    const files = Array.from(e.target.files);
+
     const newAttachments = files.map(file => ({
       name: file.name,
       url: URL.createObjectURL(file),
-      file: file
-    }))
+      file: file,
+      isNew: true
+    }));
 
-    setEditedAttachments(prev => [...prev, ...newAttachments])
-    setHasUnsavedChanges(true)
-  }
+    setEditedAttachments(prev => [...prev, ...newAttachments]);
+  };
 
   // Handle media library selection
   const handleMediaLibrarySelect = (imageUrl) => {
-    const filename = imageUrl.split('/').pop() || `media-${Date.now()}.jpg`
+    const filename = imageUrl.split('/').pop() || `media-${Date.now()}.jpg`;
     const newAttachment = {
       name: filename,
       url: imageUrl,
       file: null
-    }
-    setEditedAttachments(prev => [...prev, newAttachment])
-    setHasUnsavedChanges(true)
-  }
+    };
+    setEditedAttachments(prev => [...prev, newAttachment]);
+    setHasUnsavedChanges(true);
+  };
 
   // Remove attachment
   const removeAttachment = (index) => {
-    setEditedAttachments(prev => prev.filter((_, i) => i !== index))
-    setHasUnsavedChanges(true)
-  }
+    setEditedAttachments(prev => prev.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
+  };
 
   // Toggle tag
   const toggleTag = (tagId) => {
@@ -656,93 +623,196 @@ export default function NotesApp() {
       prev.includes(tagId)
         ? prev.filter(t => t !== tagId)
         : [...prev, tagId]
-    )
-    setHasUnsavedChanges(true)
-  }
+    );
+    setHasUnsavedChanges(true);
+  };
 
   // Handle drag end
-  // Handle drag start
   const handleDragStart = (event) => {
-    setActiveId(event.active.id)
-  }
+    setActiveId(event.active.id);
+  };
 
-  // Handle drag end
   const handleDragEnd = (event) => {
-    setActiveId(null)
-    const { active, over } = event
-    if (!over || active.id === over.id) return
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    // Switch to custom sorting when manually reordering
-    setSortBy('custom')
+    setSortBy('custom');
 
-    setNotes(prev => {
-      const oldIndex = prev[activeTab].findIndex(note => note.id === active.id)
-      const newIndex = prev[activeTab].findIndex(note => note.id === over.id)
+    const oldIndex = notes[activeTab].findIndex(note => note._id === active.id);
+    const newIndex = notes[activeTab].findIndex(note => note._id === over.id);
 
-      return {
-        ...prev,
-        [activeTab]: arrayMove(prev[activeTab], oldIndex, newIndex),
-      }
-    })
-  }
+    // Note: You'll need to implement order persistence if needed
+    // For now, we're just reordering locally
+    // The order will reset on refresh unless you save it to backend
+
+    // If you want to persist order, you'd need to add an 'order' field
+    // and update all notes' order in the backend
+  };
 
   // Get current notes (filtered, sorted)
   const getCurrentNotes = () => {
-    let currentNotes = notes[activeTab] || []
+    // Safety check: ensure notes[activeTab] exists and is an array
+    const notesArray = notes[activeTab];
+
+    // Debug logging
+    console.log('activeTab:', activeTab);
+    console.log('notes object:', notes);
+    console.log('notes[activeTab]:', notesArray);
+    console.log('Is array?', Array.isArray(notesArray));
+
+    // If notes[activeTab] is undefined or not an array, return empty array
+    if (!notesArray || !Array.isArray(notesArray)) {
+      console.warn(`notes[${activeTab}] is not an array:`, notesArray);
+      return [];
+    }
+
+    let currentNotes = [...notesArray]; // Create a copy
 
     // Filter by search
-    if (searchQuery) {
-      currentNotes = currentNotes.filter(note =>
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        stripHtmlTags(note.content).toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    if (searchQuery && searchQuery.trim()) {
+      currentNotes = currentNotes.filter(note => {
+        if (!note) return false;
+        const titleMatch = note.title?.toLowerCase().includes(searchQuery.toLowerCase());
+        const contentMatch = stripHtmlTags(note.content || '').toLowerCase().includes(searchQuery.toLowerCase());
+        return titleMatch || contentMatch;
+      });
     }
 
     // Sort
-    currentNotes = [...currentNotes].sort((a, b) => {
+    currentNotes.sort((a, b) => {
+      // Handle null/undefined notes
+      if (!a || !b) return 0;
+
       // Pinned notes always first
       if (a.isPinned !== b.isPinned) {
-        return a.isPinned ? -1 : 1
+        return a.isPinned ? -1 : 1;
       }
 
-      let comparison = 0
+      let comparison = 0;
       switch (sortBy) {
         case 'date':
-          // Use the most recent date (either updated or created)
-          const aDate = new Date(a.updatedAt || a.createdAt)
-          const bDate = new Date(b.updatedAt || b.createdAt)
-          comparison = bDate - aDate
-          break
+          const aDate = new Date(a.updatedAt || a.createdAt);
+          const bDate = new Date(b.updatedAt || b.createdAt);
+          comparison = bDate - aDate;
+          break;
         case 'title':
-          comparison = a.title.localeCompare(b.title)
-          break
+          comparison = (a.title || '').localeCompare(b.title || '');
+          break;
         case 'custom':
-          return 0
+          return 0;
         default:
-          comparison = 0
+          comparison = 0;
       }
 
-      return sortDirection === 'asc' ? -comparison : comparison
-    })
+      return sortDirection === 'asc' ? -comparison : comparison;
+    });
 
-    return currentNotes
-  }
+    return currentNotes;
+  };
 
-  const currentNotes = getCurrentNotes()
-  const noteIds = currentNotes.map(note => note.id)
+  const currentNotes = getCurrentNotes();
+  const noteIds = Array.isArray(currentNotes) ? currentNotes.map(note => note?._id).filter(id => id) : [];
+  // Sort options
+  const sortOptions = [
+    { value: 'date', label: 'Date' },
+    { value: 'title', label: 'Title' },
+    { value: 'custom', label: 'Custom' },
+  ];
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date';
+
+  const toggleSortDirection = () => {
+    setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+  };
+
+  const getSortIcon = () => {
+    if (sortBy === 'custom') {
+      return <ArrowUpDown size={14} className="text-content-muted" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />;
+  };
+
+  const handleSortOptionClick = (newSortBy) => {
+    if (newSortBy === 'custom') {
+      setSortBy('custom');
+      setShowSortDropdown(false);
+    } else if (sortBy === newSortBy) {
+      toggleSortDirection();
+    } else {
+      setSortBy(newSortBy);
+      setSortDirection('desc');
+    }
+  };
 
   // Format date
   const formatDateTime = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
+    if (!dateString) return '';
+    const date = new Date(dateString);
     return date.toLocaleString('en-GB', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    })
-  }
+    });
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === 'Enter') {
+        return;
+      }
+
+      const target = e.target;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable === true ||
+        target.closest?.('[contenteditable="true"]')
+      ) {
+        if (e.key === 'Escape') {
+          target.blur?.();
+        }
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      if (e.key === 'Escape') {
+        if (showImageSourceModal) setShowImageSourceModal(false);
+        else if (showMediaLibraryModal) setShowMediaLibraryModal(false);
+        else if (deleteConfirm) setDeleteConfirm(null);
+        else if (showTagsModal) setShowTagsModal(false);
+        else if (selectedNote) setSelectedNote(null);
+        return;
+      }
+
+      const anyModalOpen = deleteConfirm || showTagsModal || showImageSourceModal || showMediaLibraryModal;
+      if (anyModalOpen) return;
+
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        handleCreateNote();
+      }
+
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        setShowTagsModal(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [deleteConfirm, selectedNote, showTagsModal, showImageSourceModal, showMediaLibraryModal]);
+
+  // Handle delete tag (you'll need to implement this based on your backend)
+  const handleDeleteTag = (tagId) => {
+    // Implementation depends on your tag deletion logic
+    console.log("Delete tag:", tagId);
+  };
 
   return (
     <>
@@ -755,8 +825,8 @@ export default function NotesApp() {
             <div className="relative" ref={studioTooltipRef}>
               <button
                 onClick={(e) => {
-                  e.stopPropagation()
-                  setShowStudioTooltip(!showStudioTooltip)
+                  e.stopPropagation();
+                  setShowStudioTooltip(!showStudioTooltip);
                 }}
                 onMouseEnter={() => setShowStudioTooltip(true)}
                 onMouseLeave={() => setShowStudioTooltip(false)}
@@ -794,9 +864,6 @@ export default function NotesApp() {
           {/* Left Sidebar - Notes List */}
           <div className="w-full md:w-[22rem] flex flex-col bg-surface-card rounded-xl border border-border h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
             {/* Desktop: Buttons Row + Search Row */}
-            {/* Mobile: Single Row with Search + Icon Buttons */}
-
-            {/* Desktop Only: Create + Sort + Tags Buttons Row */}
             <div className="hidden md:flex p-3 gap-2">
               <div className="relative group">
                 <button
@@ -806,8 +873,6 @@ export default function NotesApp() {
                   <Plus size={16} />
                   <span className="hidden min-[400px]:inline">Create Note</span>
                 </button>
-
-                {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Create Note</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
@@ -821,8 +886,8 @@ export default function NotesApp() {
               <div className="relative flex-1 max-w-[180px]" ref={desktopSortDropdownRef}>
                 <button
                   onClick={(e) => {
-                    e.stopPropagation()
-                    setShowSortDropdown(!showSortDropdown)
+                    e.stopPropagation();
+                    setShowSortDropdown(!showSortDropdown);
                   }}
                   className="w-full px-3 py-2.5 bg-surface-button text-content-secondary rounded-xl text-sm hover:bg-surface-button-hover transition-colors flex items-center justify-between gap-2"
                 >
@@ -840,8 +905,8 @@ export default function NotesApp() {
                         <button
                           key={option.value}
                           onClick={(e) => {
-                            e.stopPropagation()
-                            handleSortOptionClick(option.value)
+                            e.stopPropagation();
+                            handleSortOptionClick(option.value);
                           }}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
                             }`}
@@ -868,8 +933,6 @@ export default function NotesApp() {
                   <Tag size={16} />
                   <span className="hidden sm:inline">Tags</span>
                 </button>
-
-                {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Manage Tags</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
@@ -882,7 +945,6 @@ export default function NotesApp() {
 
             {/* Search Bar + Icon Buttons */}
             <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-border flex gap-2">
-              {/* Search Bar */}
               <div className="relative flex-1">
                 <div className="bg-surface-dark rounded-xl px-3 py-2 min-h-[42px] flex items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text">
                   <Search className="text-content-muted flex-shrink-0" size={16} />
@@ -900,8 +962,8 @@ export default function NotesApp() {
               <div className="md:hidden relative" ref={sortDropdownRef}>
                 <button
                   onClick={(e) => {
-                    e.stopPropagation()
-                    setShowSortDropdown(!showSortDropdown)
+                    e.stopPropagation();
+                    setShowSortDropdown(!showSortDropdown);
                   }}
                   className="w-10 h-10 flex items-center justify-center bg-surface-button text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors"
                   title="Sort"
@@ -917,8 +979,8 @@ export default function NotesApp() {
                         <button
                           key={option.value}
                           onClick={(e) => {
-                            e.stopPropagation()
-                            handleSortOptionClick(option.value)
+                            e.stopPropagation();
+                            handleSortOptionClick(option.value);
                           }}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
                             }`}
@@ -948,11 +1010,10 @@ export default function NotesApp() {
 
             {/* Tabs */}
             <div className="flex border-b border-border mt-1">
-              {/* Studio Notes Tab */}
               <button
                 onClick={() => {
-                  setActiveTab("studio")
-                  setSelectedNote(null)
+                  setActiveTab("studio");
+                  setSelectedNote(null);
                 }}
                 className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${activeTab === "studio"
                   ? "text-content-primary border-b-2 border-primary"
@@ -962,11 +1023,10 @@ export default function NotesApp() {
                 Studio Notes
               </button>
 
-              {/* Personal Notes Tab */}
               <button
                 onClick={() => {
-                  setActiveTab("personal")
-                  setSelectedNote(null)
+                  setActiveTab("personal");
+                  setSelectedNote(null);
                 }}
                 className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${activeTab === "personal"
                   ? "text-content-primary border-b-2 border-primary"
@@ -979,7 +1039,11 @@ export default function NotesApp() {
 
             {/* Notes List with DnD */}
             <div className="flex-1 overflow-y-auto">
-              {currentNotes.length === 0 ? (
+              {loading && currentNotes.length === 0 ? (
+                <div className="p-6 md:p-8 text-center text-content-faint">
+                  <p className="text-sm">Loading notes...</p>
+                </div>
+              ) : currentNotes.length === 0 ? (
                 <div className="p-6 md:p-8 text-center text-content-faint">
                   <p className="text-sm">No notes yet</p>
                   <p className="text-xs mt-2">Create your first note to get started</p>
@@ -995,9 +1059,9 @@ export default function NotesApp() {
                   <SortableContext items={noteIds} strategy={verticalListSortingStrategy}>
                     {currentNotes.map(note => (
                       <SortableNoteItem
-                        key={note.id}
+                        key={note._id}
                         note={note}
-                        isSelected={selectedNote?._id === note.id}
+                        isSelected={selectedNote?._id === note._id}
                         onClick={() => selectNote(note)}
                         availableTags={tags}
                         onPin={togglePin}
@@ -1007,7 +1071,7 @@ export default function NotesApp() {
                   <DragOverlay dropAnimation={{ duration: 200, easing: "ease-out" }}>
                     {activeId ? (
                       <NoteOverlayItem
-                        note={currentNotes.find(n => n.id === activeId)}
+                        note={currentNotes.find(n => n._id === activeId)}
                         availableTags={tags}
                       />
                     ) : null}
@@ -1030,8 +1094,8 @@ export default function NotesApp() {
                         data-title-input
                         value={editedTitle}
                         onChange={(e) => {
-                          setEditedTitle(e.target.value)
-                          setHasUnsavedChanges(true)
+                          setEditedTitle(e.target.value);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="Untitled"
                         className="w-full bg-transparent text-xl md:text-2xl font-bold text-content-primary outline-none border-b-2 border-transparent hover:border-border-subtle focus:border-primary transition-all pb-1 truncate"
@@ -1046,7 +1110,7 @@ export default function NotesApp() {
 
                     <div className="flex gap-2 flex-shrink-0">
                       <button
-                        onClick={() => togglePin(selectedNote.id)}
+                        onClick={() => togglePin(selectedNote._id)}
                         className={`p-2 rounded-lg hover:bg-surface-hover transition-colors ${selectedNote.isPinned ? 'text-primary' : 'text-content-muted hover:text-content-primary'
                           }`}
                         title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
@@ -1093,27 +1157,27 @@ export default function NotesApp() {
                         </button>
                       ))}
                     </div>
-                    {availableTags.length > 6 && (
+                    {tags.length > 6 && (
                       <button
                         onClick={() => setShowAllTags(!showAllTags)}
                         className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                       >
                         {showAllTags
                           ? 'Show less'
-                          : `Show ${availableTags.length - 6} more`}
+                          : `Show ${tags.length - 6} more`}
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Note Content - Fills available space */}
+                {/* Note Content */}
                 <div className="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
                   <WysiwygEditor
-                    key={`editor-${selectedNote.id}`}
+                    key={`editor-${selectedNote._id}`}
                     value={editedContent}
                     onChange={(value) => {
-                      setEditedContent(value)
-                      setHasUnsavedChanges(true)
+                      setEditedContent(value);
+                      setHasUnsavedChanges(true);
                     }}
                     placeholder="Start writing..."
                     minHeight={350}
@@ -1122,7 +1186,7 @@ export default function NotesApp() {
                   />
                 </div>
 
-                {/* Attachments Section - Fixed at bottom */}
+                {/* Attachments Section */}
                 <div className="flex-shrink-0 border-t border-border p-4 md:p-6 bg-surface-card">
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
@@ -1219,8 +1283,8 @@ export default function NotesApp() {
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => {
-          deleteNote(deleteConfirm.id)
-          setDeleteConfirm(null)
+          deleteNote(deleteConfirm._id);
+          setDeleteConfirm(null);
         }}
         noteTitle={deleteConfirm?.title || ''}
       />
@@ -1242,9 +1306,9 @@ export default function NotesApp() {
             <>
               <button
                 onClick={(e) => {
-                  e.stopPropagation()
-                  const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
-                  setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex })
+                  e.stopPropagation();
+                  const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1;
+                  setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex });
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-lg hover:bg-white/10"
               >
@@ -1254,9 +1318,9 @@ export default function NotesApp() {
               </button>
               <button
                 onClick={(e) => {
-                  e.stopPropagation()
-                  const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
-                  setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex })
+                  e.stopPropagation();
+                  const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0;
+                  setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex });
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-lg hover:bg-white/10"
               >
@@ -1290,7 +1354,7 @@ export default function NotesApp() {
       {/* Mobile Fullscreen Note Editor Overlay */}
       {selectedNote && (
         <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
-          {/* Mobile Header with Back Button */}
+          {/* Mobile Header */}
           <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
             <button
               onClick={() => setSelectedNote(null)}
@@ -1302,11 +1366,10 @@ export default function NotesApp() {
               </svg>
             </button>
 
-            {/* Right side: Pin + 3-Dot Menu */}
             <div className="flex items-center gap-3">
               {selectedNote.isPinned && (
                 <button
-                  onClick={() => togglePin(selectedNote.id)}
+                  onClick={() => togglePin(selectedNote._id)}
                   className="text-primary p-1 hover:bg-surface-hover rounded-lg transition-colors"
                   aria-label="Unpin note"
                 >
@@ -1314,7 +1377,6 @@ export default function NotesApp() {
                 </button>
               )}
 
-              {/* 3-Dot Actions Menu */}
               <div className="relative" ref={mobileActionsMenuRef}>
                 <button
                   onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
@@ -1326,14 +1388,13 @@ export default function NotesApp() {
                   </svg>
                 </button>
 
-                {/* Dropdown Menu */}
                 {showMobileActionsMenu && (
                   <div className="absolute top-full right-0 mt-2 bg-surface-hover border border-border rounded-lg shadow-lg min-w-[180px] z-50">
                     <div className="py-1">
                       <button
                         onClick={() => {
-                          togglePin(selectedNote.id)
-                          setShowMobileActionsMenu(false)
+                          togglePin(selectedNote._id);
+                          setShowMobileActionsMenu(false);
                         }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
@@ -1352,8 +1413,8 @@ export default function NotesApp() {
 
                       <button
                         onClick={() => {
-                          duplicateNote()
-                          setShowMobileActionsMenu(false)
+                          duplicateNote();
+                          setShowMobileActionsMenu(false);
                         }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
@@ -1363,8 +1424,8 @@ export default function NotesApp() {
 
                       <button
                         onClick={() => {
-                          moveNoteToOtherTab()
-                          setShowMobileActionsMenu(false)
+                          moveNoteToOtherTab();
+                          setShowMobileActionsMenu(false);
                         }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
@@ -1376,8 +1437,8 @@ export default function NotesApp() {
 
                       <button
                         onClick={() => {
-                          setDeleteConfirm(selectedNote)
-                          setShowMobileActionsMenu(false)
+                          setDeleteConfirm(selectedNote);
+                          setShowMobileActionsMenu(false);
                         }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500"
                       >
@@ -1400,8 +1461,8 @@ export default function NotesApp() {
                 data-title-input
                 value={editedTitle}
                 onChange={(e) => {
-                  setEditedTitle(e.target.value)
-                  setHasUnsavedChanges(true)
+                  setEditedTitle(e.target.value);
+                  setHasUnsavedChanges(true);
                 }}
                 placeholder="Untitled"
                 className="w-full bg-transparent text-xl font-bold text-content-primary outline-none border-b-2 border-transparent hover:border-border-subtle focus:border-primary transition-all pb-1"
@@ -1426,27 +1487,27 @@ export default function NotesApp() {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {(showAllTags ? availableTags : availableTags.slice(0, 4)).map(tag => (
+                {(showAllTags ? tags : tags.slice(0, 4)).map(tag => (
                   <button
-                    key={tag.id}
-                    onClick={() => toggleTag(tag.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    key={tag._id}
+                    onClick={() => toggleTag(tag._id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag._id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
-                    style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
+                    style={{ backgroundColor: editedTags.includes(tag._id) ? tag.color : undefined }}
                   >
                     <Tag size={10} />
                     {tag.name}
                   </button>
                 ))}
               </div>
-              {availableTags.length > 4 && (
+              {tags.length > 4 && (
                 <button
                   onClick={() => setShowAllTags(!showAllTags)}
                   className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                 >
                   {showAllTags
                     ? 'Show less'
-                    : `Show ${availableTags.length - 4} more`}
+                    : `Show ${tags.length - 4} more`}
                 </button>
               )}
             </div>
@@ -1454,11 +1515,11 @@ export default function NotesApp() {
             {/* Editor */}
             <div className="mobile-editor-container">
               <WysiwygEditor
-                key={`editor-mobile-${selectedNote.id}`}
+                key={`editor-mobile-${selectedNote._id}`}
                 value={editedContent}
                 onChange={(value) => {
-                  setEditedContent(value)
-                  setHasUnsavedChanges(true)
+                  setEditedContent(value);
+                  setHasUnsavedChanges(true);
                 }}
                 placeholder="Start writing..."
                 minHeight={300}
@@ -1491,8 +1552,8 @@ export default function NotesApp() {
                       </div>
                       <button
                         onClick={(e) => {
-                          e.stopPropagation()
-                          removeAttachment(index)
+                          e.stopPropagation();
+                          removeAttachment(index);
                         }}
                         className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
@@ -1541,7 +1602,6 @@ export default function NotesApp() {
         isOpen={showTagsModal}
         onClose={() => setShowTagsModal(false)}
         tags={tags}
-        // onAddTag={handleAddTag}
         onDeleteTag={handleDeleteTag}
       />
 
@@ -1569,5 +1629,5 @@ export default function NotesApp() {
         <Plus size={22} />
       </button>
     </>
-  )
+  );
 }

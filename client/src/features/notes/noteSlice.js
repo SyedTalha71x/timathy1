@@ -7,7 +7,8 @@ import * as noteApi from './noteApi'
 export const createStudioNotesThunk = createAsyncThunk('/notes/create/create-studio-notes', async (noteData, { rejectWithValue }) => {
     try {
         const res = await noteApi.createNoteForStudio(noteData)
-        return res.note
+        console.log('res', res.notes)
+        return res.notes
     }
     catch (error) {
         return rejectWithValue(error.response?.data)
@@ -20,7 +21,7 @@ export const createStudioNotesThunk = createAsyncThunk('/notes/create/create-stu
 export const getStudioNotesThunk = createAsyncThunk('/notes/get/all-studio-notes', async (_, { rejectWithValue }) => {
     try {
         const res = await noteApi.getNotesOfStudio();
-        return res.note
+        return res.notes
     }
     catch (error) {
         return rejectWithValue(error.response?.data)
@@ -33,7 +34,7 @@ export const getStudioNotesThunk = createAsyncThunk('/notes/get/all-studio-notes
 export const createPersonalNotesThunk = createAsyncThunk('/notes/create/create-personal-notes', async (noteData, { rejectWithValue }) => {
     try {
         const res = await noteApi.createNote(noteData)
-        return res.note
+        return res.notes
     }
     catch (error) {
         return rejectWithValue(error.response?.data)
@@ -46,7 +47,7 @@ export const createPersonalNotesThunk = createAsyncThunk('/notes/create/create-p
 export const getPersonalNotesThunk = createAsyncThunk('/notes/get/all-personal-notes', async (_, { rejectWithValue }) => {
     try {
         const res = await noteApi.getNotes();
-        return res.note
+        return res.notes
     }
     catch (error) {
         return rejectWithValue(error.response?.data)
@@ -58,13 +59,22 @@ export const getPersonalNotesThunk = createAsyncThunk('/notes/get/all-personal-n
 // ========
 export const updateNoteThunk = createAsyncThunk('/notes/update-note', async ({ noteId, updateData }, { rejectWithValue }) => {
     try {
-        const res = await noteApi.updateNotes(noteId, updateData)
-        return res.note
+        const res = await noteApi.updateNotes(noteId, updateData);
+        // Assume res.notes contains the updated note
+        if (!res || !res.notes) {
+            throw new Error('Invalid response from server');
+        }
+        return res.notes;
+    } catch (error) {
+        // If status is 304, treat as success (no changes)
+        if (error.response && error.response.status === 304) {
+            // Return the current note data (you may need to fetch it or get from state)
+            // Since we don't have it here, we'll just return a dummy success object
+            return { _id: noteId, ...updateData };
+        }
+        return rejectWithValue(error.response?.data || { message: error.message });
     }
-    catch (error) {
-        return rejectWithValue(error.response?.data)
-    }
-})
+});
 
 // =====
 // Delete Notes Thunks - FIXED THE PATH
@@ -99,13 +109,13 @@ const noteSlice = createSlice({
             })
             .addCase(createStudioNotesThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.studioNotes.push(action.payload);
+                state.studioNotes = [action.payload, ...state.studioNotes];
             })
             .addCase(createStudioNotesThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // =======
             // create personal notes slice
             // ===========
@@ -115,7 +125,7 @@ const noteSlice = createSlice({
             })
             .addCase(createPersonalNotesThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.personalNotes.push(action.payload);
+                state.personalNotes = [action.payload, ...state.personalNotes];
             })
             .addCase(createPersonalNotesThunk.rejected, (state, action) => {
                 state.loading = false;
@@ -137,7 +147,7 @@ const noteSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // =======
             // get Personal Notes Slice
             // ==========
@@ -153,7 +163,7 @@ const noteSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // =====
             // update notes - NOW WORKS FOR BOTH ARRAYS
             // ========
@@ -169,7 +179,7 @@ const noteSlice = createSlice({
                     if (personalIndex !== -1) {
                         state.personalNotes[personalIndex] = action.payload;
                     }
-                    
+
                     // Try to update in studioNotes
                     const studioIndex = state.studioNotes.findIndex(n => n._id === action.payload._id);
                     if (studioIndex !== -1) {
@@ -192,10 +202,10 @@ const noteSlice = createSlice({
             .addCase(deleteNoteThunk.fulfilled, (state, action) => {
                 state.loading = false;
                 const { noteId } = action.payload; // Get noteId from the returned object
-                
+
                 // Remove from personalNotes
                 state.personalNotes = state.personalNotes.filter(n => n._id !== noteId);
-                
+
                 // Remove from studioNotes
                 state.studioNotes = state.studioNotes.filter(n => n._id !== noteId);
             })
