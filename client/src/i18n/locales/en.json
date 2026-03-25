@@ -17,7 +17,34 @@
     "today": "Today",
     "clear": "Clear",
     "noOptions": "No options found",
-    "nSelected": "{{count}} selected"
+    "nSelected": "{{count}} selected",
+    "refresh": "Refresh",
+    "confirm": "Confirm",
+    "apply": "Apply",
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "noResults": "No results found",
+    "created": "Created",
+    "updated": "Updated",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "actions": "Actions",
+    "back": "Back",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove",
+    "duplicate": "Duplicate",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "reply": "Reply",
+    "send": "Send",
+    "colorPicker": {
+      "title": "Choose Color",
+      "presets": "Presets",
+      "custom": "Custom",
+      "confirm": "Confirm"
+    }
   },
   "languages": {
     "en": "English",
@@ -837,5 +864,448 @@
     "forgotPassword": "Forgot Password?",
     "signingIn": "Signing in...",
     "signInAs": "Sign In as {{type}}"
+  },
+  "admin": {
+    "tickets": {
+      "title": "Tickets",
+      "refresh": "Refresh",
+      "search": {
+        "placeholder": "Search by subject, studio or email..."
+      },
+      "filters": {
+        "title": "Filters",
+        "sortBy": "Sort by"
+      },
+      "sort": {
+        "date": "Date",
+        "subject": "Subject",
+        "status": "Status",
+        "priority": "Priority"
+      },
+      "status": {
+        "all": "All",
+        "open": "Open",
+        "awaitingReply": "Awaiting your reply",
+        "closed": "Closed"
+      },
+      "priority": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low",
+        "label": "{{level}} Priority"
+      },
+      "list": {
+        "created": "Created",
+        "updated": "Updated"
+      },
+      "empty": {
+        "title": "No tickets found",
+        "description": "Try adjusting your search or filter criteria."
+      }
+    },
+    "analytics": {
+      "title": "Analytics",
+      "currentValue": "Current Value (Dec 2024)",
+      "monthlyGrowth": "Monthly Growth",
+      "leadFunnel": "Lead Conversion Funnel",
+      "overallConversion": "Overall Conversion Rate",
+      "totalLeads": "Total Leads",
+      "conversion": "Conversion",
+      "leads": "leads",
+      "financialInsights": "Financial Insights",
+      "totalRevenue": "Total Revenue",
+      "totalExpenses": "Total Expenses",
+      "profitMargin": "Profit Margin",
+      "topPerformingStudios": "Top Performing Studios",
+      "topPerformers": "Top Performers",
+      "topStudiosByRevenue": "Top Studios by Revenue",
+      "topFranchises": "Top Franchises",
+      "members": "members",
+      "studios": "studios",
+      "growthTrends": "Growth Trends",
+      "memberGrowth": "Member Growth",
+      "retentionRate": "Retention Rate",
+      "avgRevenuePerStudio": "Avg Revenue/Studio",
+      "newMembers": "+{{count}} new members",
+      "fromLastMonth": "{{percent}}% from last month",
+      "growth": "{{percent}}% growth"
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "addProduct": "Add Product",
+      "search": {
+        "placeholder": "Search by name, brand or article number (all languages)..."
+      },
+      "filter": {
+        "all": "All",
+        "active": "Active",
+        "inactive": "Inactive",
+        "pinned": "Pinned"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "name": "Name",
+        "price": "Price",
+        "brand": "Brand",
+        "articleNo": "Article No."
+      },
+      "sections": {
+        "featured": "Featured",
+        "moreProducts": "More Products"
+      },
+      "card": {
+        "status": "Status",
+        "translations": "Translations",
+        "viewProduct": "View Product",
+        "pinProduct": "Pin Product",
+        "unpinProduct": "Unpin Product",
+        "viewInfo": "View Info",
+        "editProduct": "Edit Product",
+        "deleteProduct": "Delete Product"
+      },
+      "empty": {
+        "noProducts": "No products added yet",
+        "noActive": "No active products found.",
+        "noInactive": "No inactive products found.",
+        "noPinned": "No pinned products yet. Click the pin icon to feature products.",
+        "noSearch": "No products found matching your search."
+      },
+      "toast": {
+        "pinned": "Product pinned!",
+        "unpinned": "Product unpinned",
+        "activated": "Product activated!",
+        "deactivated": "Product deactivated",
+        "updated": "Product updated successfully!",
+        "added": "Product added successfully!",
+        "deleted": "Product deleted successfully!"
+      }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "View and manage feedback from all studios",
+      "refresh": "Refresh",
+      "search": {
+        "placeholder": "Search by subject, studio, or person..."
+      },
+      "filters": {
+        "title": "Filters"
+      },
+      "stats": {
+        "total": "Total",
+        "new": "New",
+        "review": "Review",
+        "resolved": "Resolved"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "rating": "Highest rating"
+      },
+      "allTypes": "All Types",
+      "detail": {
+        "submittedBy": "Submitted by",
+        "message": "Message",
+        "rating": "Rating",
+        "status": "Status"
+      },
+      "empty": {
+        "title": "No feedback found",
+        "description": "Try adjusting your search or filters"
+      },
+      "results": "{{filtered}} of {{total}} entries"
+    },
+    "finances": {
+      "title": "Finances",
+      "search": {
+        "placeholder": "Search by studio, account holder, IBAN, or mandate..."
+      },
+      "period": {
+        "selectPeriod": "Select Period",
+        "customPeriod": "Custom Period",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "apply": "Apply"
+      },
+      "stats": {
+        "totalRevenue": "Total Revenue",
+        "successful": "Successful",
+        "pending": "Pending",
+        "checkFunds": "Check Funds",
+        "failed": "Failed"
+      },
+      "status": {
+        "successful": "Successful",
+        "pending": "Pending",
+        "failed": "Failed",
+        "checkFunds": "Check incoming funds"
+      },
+      "table": {
+        "studioName": "Studio Name",
+        "studio": "Studio",
+        "accountHolder": "Account Holder",
+        "holder": "Holder",
+        "amount": "Amount",
+        "amt": "Amt",
+        "services": "Services",
+        "svc": "Svc",
+        "status": "Status",
+        "st": "St.",
+        "iban": "IBAN",
+        "mandateNumber": "Mandate Number",
+        "mandate": "Mandate",
+        "date": "Date",
+        "type": "Type"
+      },
+      "actions": {
+        "runPayment": "Run Payment",
+        "checkFunds": "Check Funds",
+        "showIban": "Show full IBAN",
+        "hideIban": "Hide IBAN"
+      },
+      "empty": "No transactions found matching your criteria.",
+      "clearAll": "Clear All",
+      "deletePermanently": "Delete Permanently?",
+      "cannotBeUndone": "This action cannot be undone",
+      "toast": {
+        "statusUpdated": "Transaction statuses updated successfully!"
+      }
+    },
+    "email": {
+      "title": "Email",
+      "search": {
+        "placeholder": "Search emails..."
+      },
+      "sendEmail": "Send Email",
+      "folders": {
+        "inbox": "Inbox",
+        "sent": "Sent",
+        "draft": "Drafts",
+        "archive": "Archive",
+        "error": "Failed",
+        "trash": "Trash"
+      },
+      "list": {
+        "pinned": "Pinned",
+        "selectAll": "Select all",
+        "selected": "{{count}} selected",
+        "noEmails": "No emails in this folder",
+        "noSubject": "(No subject)",
+        "draft": "Draft"
+      },
+      "detail": {
+        "noSelected": "No email selected",
+        "noSelectedDesc": "Select an email from the list to view its contents",
+        "attachments": "Attachments",
+        "retrySend": "Retry Send",
+        "reply": "Reply"
+      },
+      "actions": {
+        "markAsRead": "Mark as read",
+        "markAsUnread": "Mark as unread",
+        "archive": "Archive",
+        "delete": "Delete",
+        "deletePermanently": "Delete permanently",
+        "retry": "Retry",
+        "pin": "Pin",
+        "unpin": "Unpin"
+      },
+      "deleteConfirm": {
+        "title": "Delete Permanently?",
+        "description": "This action cannot be undone",
+        "single": "Are you sure you want to permanently delete this email?",
+        "multiple": "Are you sure you want to permanently delete {{count}} emails?"
+      },
+      "toast": {
+        "sent": "Email sent successfully!",
+        "fillRequired": "Please fill in all required email fields"
+      }
+    },
+    "todo": {
+      "title": "To-Do",
+      "newTask": "New Task",
+      "create": "Create",
+      "placeholder": "What needs to be done?",
+      "inputPlaceholder": "New task… (Press Enter to add)",
+      "noDate": "No due date",
+      "noTags": "No tags",
+      "dueDateTime": "Due Date & Time",
+      "reminder": "Reminder",
+      "tags": "Tags",
+      "addTags": "Add Tags",
+      "manageTags": "Manage Tags",
+      "columns": {
+        "ongoing": "Ongoing",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "custom": "Custom",
+        "title": "Title",
+        "dueDate": "Due Date",
+        "recent": "Recent"
+      },
+      "actions": {
+        "markComplete": "Mark Complete",
+        "setOngoing": "Set Ongoing",
+        "cancelTask": "Cancel Task",
+        "pinTask": "Pin Task",
+        "unpinTask": "Unpin Task",
+        "duplicate": "Duplicate",
+        "setRepeat": "Set Repeat",
+        "delete": "Delete"
+      },
+      "empty": {
+        "ongoing": "No ongoing tasks",
+        "completed": "No completed tasks",
+        "canceled": "No canceled tasks"
+      }
+    },
+    "notes": {
+      "title": "Notes",
+      "newNote": "New Note",
+      "search": {
+        "placeholder": "Search notes..."
+      },
+      "untitled": "Untitled Note",
+      "noContent": "No content",
+      "empty": {
+        "title": "No notes yet",
+        "description": "Create your first note"
+      }
+    },
+    "leads": {
+      "title": "Leads",
+      "search": {
+        "placeholder": "Search leads..."
+      },
+      "addLead": "Add Lead"
+    },
+    "exercises": {
+      "title": "Exercises",
+      "search": {
+        "placeholder": "Search exercises..."
+      },
+      "addExercise": "Add Exercise",
+      "manageOptions": "Manage Options",
+      "filters": {
+        "title": "Filters",
+        "allTypes": "All Types"
+      },
+      "sort": {
+        "sortBy": "Sort by"
+      },
+      "empty": {
+        "title": "No exercises found",
+        "description": "Try adjusting your search or filters"
+      },
+      "toast": {
+        "created": "Exercise created successfully!",
+        "updated": "Exercise updated successfully!",
+        "deleted": "Exercise deleted successfully!"
+      }
+    },
+    "customers": {
+      "title": "Customers",
+      "search": {
+        "placeholder": "Search customers..."
+      },
+      "toast": {
+        "leadUpdated": "Lead updated successfully!",
+        "leadAdded": "Lead added successfully!",
+        "passwordMismatch": "Passwords do not match",
+        "franchiseUpdated": "Franchise updated successfully",
+        "franchiseCreated": "Franchise created successfully",
+        "detailsUpdated": "Details updated successfully",
+        "franchiseArchived": "Franchise archived successfully"
+      }
+    },
+    "demoAccess": {
+      "title": "Demo Access",
+      "search": {
+        "placeholder": "Search demo accounts..."
+      },
+      "addDemo": "Add Demo",
+      "toast": {
+        "created": "Demo account created!",
+        "updated": "Demo account updated!",
+        "deleted": "Demo account deleted!",
+        "activated": "Account activated!",
+        "deactivated": "Account deactivated!",
+        "emailSent": "Email sent successfully!"
+      }
+    },
+    "contract": {
+      "title": "Contracts",
+      "search": {
+        "placeholder": "Search contracts..."
+      },
+      "table": {
+        "contractNo": "Contract No.",
+        "studioName": "Studio Name",
+        "owner": "Owner",
+        "contractType": "Contract Type",
+        "status": "Status",
+        "autoRenewal": "Auto Renewal",
+        "contractDuration": "Contract Duration"
+      },
+      "status": {
+        "active": "Active",
+        "paused": "Contract is paused",
+        "cancelled": "Contract was cancelled",
+        "scheduled": "Contract is scheduled",
+        "pending": "Pending"
+      },
+      "actions": {
+        "addContract": "Add Contract",
+        "editContract": "Edit Contract",
+        "pauseContract": "Pause Contract",
+        "cancelContract": "Cancel Contract",
+        "resumeContract": "Resume Contract",
+        "deleteContract": "Delete Contract"
+      },
+      "toast": {
+        "resumed": "Contract resumed successfully",
+        "scheduledCancelled": "Scheduled contract cancelled",
+        "deleted": "Contract deleted successfully",
+        "bonusRemoved": "Bonus time removed",
+        "added": "Contract added successfully",
+        "updated": "Contract updated successfully"
+      }
+    },
+    "configuration": {
+      "title": "Configuration",
+      "search": {
+        "placeholder": "Search settings..."
+      },
+      "toast": {
+        "logoUploaded": "Logo uploaded successfully",
+        "passwordChanged": "Password changed successfully",
+        "accountCreated": "Account created successfully",
+        "accountRemoved": "Account removed",
+        "contractTypeCreated": "Contract type created",
+        "contractTypeUpdated": "Contract type updated",
+        "contractTypeDeleted": "Contract type deleted",
+        "pauseReasonDeleted": "Pause reason deleted",
+        "contractFormCreated": "Contract form created",
+        "leadSourceAdded": "Lead source added",
+        "leadSourceDeleted": "Lead source deleted",
+        "connectionSuccess": "Connection successful!",
+        "testingConnection": "Testing connection...",
+        "noSignatureConfigured": "No email signature configured"
+      },
+      "errors": {
+        "fillPasswordFields": "Please fill in all password fields correctly",
+        "fillNameEmail": "Please fill in name and email",
+        "primaryAdminCannotRemove": "Primary admin account cannot be removed",
+        "enterContractName": "Please enter a contract name",
+        "enterValidDuration": "Please enter a valid duration",
+        "selectBillingPeriod": "Please select a billing period",
+        "createContractFormFirst": "Please create a contract form first",
+        "selectContractForm": "Please select a contract form",
+        "enterName": "Please enter a name"
+      }
+    }
   }
 }

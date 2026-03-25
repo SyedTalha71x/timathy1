@@ -11,6 +11,9 @@ import PaymentRunsModal from "../../components/admin-dashboard-components/financ
 import SepaXmlSuccessModal from "../../components/admin-dashboard-components/finance-components/sepa-xml-success-modal"
 import SuccessModal from "../../components/admin-dashboard-components/finance-components/check-funds-success-modal"
 
+import { useTranslation } from "react-i18next"
+import DatePickerField from "../../components/shared/DatePickerField"
+import { haptic } from "../../utils/haptic"
 // Default creditor info - configure for your organization
 const defaultCreditorInfo = {
   name: "Studio Management Company",
@@ -45,6 +48,7 @@ const MaskedIban = ({ iban, className = "" }) => {
 
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
+  const { t } = useTranslation()
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const [isCustomPeriodExpanded, setIsCustomPeriodExpanded] = useState(false)
   const [inlineCustomDates, setInlineCustomDates] = useState({ startDate: "", endDate: "" })
@@ -91,7 +95,15 @@ export default function FinancesPage() {
     { id: "Check incoming funds", label: "Check incoming funds", color: "#3b82f6" },
   ]
 
-  const handleSort = (column) => { if (sortBy === column) { setSortDirection(sortDirection === "asc" ? "desc" : "asc") } else { setSortBy(column); setSortDirection("asc") } }
+  const handleSort = (column) => {
+    haptic.light()
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortBy(column)
+      setSortDirection("asc")
+    }
+  }
   const getSortIcon = (column) => { if (sortBy !== column) return <ArrowUpDown size={14} className="text-gray-500" />; return sortDirection === "asc" ? <ArrowUp size={14} className="text-white" /> : <ArrowDown size={14} className="text-white" /> }
 
   useEffect(() => {
@@ -199,7 +211,7 @@ export default function FinancesPage() {
         updatedFinancialState[periodKey] = periodData
       }
     })
-    setFinancialState(updatedFinancialState); setSuccessMessage("Transaction statuses updated successfully!"); setSuccessModalOpen(true)
+    setFinancialState(updatedFinancialState); setSuccessMessage(t("admin.finances.toast.statusUpdated")); setSuccessModalOpen(true)
   }
 
   const hasCheckingTransactionsAnyPeriod = useMemo(() => Object.values(financialState).some(periodData => periodData?.transactions?.some((tx) => tx.status === "Check incoming funds")), [financialState])
@@ -242,7 +254,7 @@ export default function FinancesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-white font-bold">Finances</h1>
+          <h1 className="text-xl sm:text-2xl text-white font-bold">{t("admin.finances.title")}</h1>
           {/* Payment Runs Button */}
           <button onClick={() => setPaymentRunsModalOpen(true)} className="bg-black text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative" title="View Payment Run History">
             <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -259,19 +271,19 @@ export default function FinancesPage() {
             {periodDropdownOpen && (
               <div className="hidden md:block absolute right-0 z-40 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden top-full">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Select Period</div>
+                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("admin.finances.period.selectPeriod")}</div>
                   {Object.keys(financialState).map((period) => (<button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={() => handleSelectPeriod(period)}>{period}</button>))}
                 </div>
                 <div className="border-t border-gray-700">
-                  <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={handleCustomPeriodClick}><Calendar className="w-4 h-4" />Custom Period</button>
+                  <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={handleCustomPeriodClick}><Calendar className="w-4 h-4" />{t("admin.finances.period.customPeriod")}</button>
                   {isCustomPeriodExpanded && (
                     <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
                       <div className="flex flex-col gap-3">
                         <div className="grid grid-cols-2 gap-3">
-                          <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={inlineCustomDates.startDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
-                          <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={inlineCustomDates.endDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+                          <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.startDate")}</label><input type="date" value={inlineCustomDates.startDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+                          <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.endDate")}</label><input type="date" value={inlineCustomDates.endDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
                         </div>
-                        <button onClick={handleApplyInlineCustomPeriod} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Apply</button>
+                        <button onClick={handleApplyInlineCustomPeriod} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{t("common.apply")}</button>
                       </div>
                     </div>
                   )}
@@ -279,8 +291,8 @@ export default function FinancesPage() {
               </div>
             )}
           </div>
-          <button onClick={() => setSepaModalOpen(true)} className="hidden md:flex bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><Play className="w-4 h-4" /><span className="hidden lg:inline">Run Payment</span></button>
-          {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="hidden md:flex bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><RefreshCw className="w-4 h-4" /><span className="hidden lg:inline">Check Funds</span></button>)}
+          <button onClick={() => setSepaModalOpen(true)} className="hidden md:flex bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><Play className="w-4 h-4" /><span className="hidden lg:inline">{t("admin.finances.actions.runPayment")}</span></button>
+          {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="hidden md:flex bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><RefreshCw className="w-4 h-4" /><span className="hidden lg:inline">{t("admin.finances.actions.checkFunds")}</span></button>)}
         </div>
       </div>
 
@@ -291,15 +303,15 @@ export default function FinancesPage() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700"><span className="text-white font-medium">Select Period</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) }} className="text-gray-400 hover:text-white p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
             <div className="py-1 max-h-[40vh] overflow-y-auto">{Object.keys(financialState).map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }}>{period}</button>))}</div>
             <div className="border-t border-gray-700">
-              <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(!isCustomPeriodExpanded) }}><Calendar className="w-4 h-4" />Custom Period</button>
+              <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(!isCustomPeriodExpanded) }}><Calendar className="w-4 h-4" />{t("admin.finances.period.customPeriod")}</button>
               {isCustomPeriodExpanded && (
                 <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-2 gap-3">
-                      <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={inlineCustomDates.startDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
-                      <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={inlineCustomDates.endDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
+                      <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.startDate")}</label><input type="date" value={inlineCustomDates.startDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
+                      <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.endDate")}</label><input type="date" value={inlineCustomDates.endDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
                     </div>
-                    <button type="button" onClick={() => { if (inlineCustomDates.startDate && inlineCustomDates.endDate) { setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate }); setSelectedPeriod(`Custom: ${formatDateForDisplay(inlineCustomDates.startDate)} - ${formatDateForDisplay(inlineCustomDates.endDate)}`); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) } }} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">Apply</button>
+                    <button type="button" onClick={() => { if (inlineCustomDates.startDate && inlineCustomDates.endDate) { setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate }); setSelectedPeriod(`Custom: ${formatDateForDisplay(inlineCustomDates.startDate)} - ${formatDateForDisplay(inlineCustomDates.endDate)}`); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) } }} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">{t("common.apply")}</button>
                   </div>
                 </div>
               )}
@@ -311,22 +323,22 @@ export default function FinancesPage() {
       {/* Search */}
       <div className="mb-4 sm:mb-6 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-        <input type="text" placeholder="Search by studio, account holder, IBAN, or mandate..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors" />
+        <input type="text" placeholder={t("admin.finances.search.placeholder")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors" />
       </div>
 
       {/* Stats Grid */}
       <div className="grid gap-3 sm:gap-4 mb-4 sm:mb-6 grid-cols-2 lg:grid-cols-5">
-        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Total Revenue</h3><p className="text-white text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.totalRevenue)}</p></div>
-        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Successful</h3><p className="text-green-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.successfulPayments)}</p></div>
-        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Pending</h3><p className="text-yellow-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.pendingPayments)}</p></div>
-        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Check Funds</h3><p className="text-blue-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.checkingFunds || 0)}</p></div>
-        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Failed</h3><p className="text-red-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.failedPayments)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">{t("admin.finances.stats.totalRevenue")}</h3><p className="text-white text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.totalRevenue)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">{t("admin.finances.stats.successful")}</h3><p className="text-green-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.successfulPayments)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">{t("admin.finances.stats.pending")}</h3><p className="text-yellow-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.pendingPayments)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">{t("admin.finances.stats.checkFunds")}</h3><p className="text-blue-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.checkingFunds || 0)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">{t("admin.finances.stats.failed")}</h3><p className="text-red-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.failedPayments)}</p></div>
       </div>
 
       {/* Status Filter Pills */}
       <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 items-center">
         {statusOptions.map(status => (<button key={status.id} onClick={() => toggleStatusFilter(status.id)} className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${selectedStatuses.includes(status.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`} style={{ backgroundColor: selectedStatuses.includes(status.id) ? status.color : undefined }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedStatuses.includes(status.id) ? 'white' : status.color }} />{status.label}</button>))}
-        {selectedStatuses.length > 0 && (<button onClick={() => setSelectedStatuses([])} className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] flex items-center gap-1.5"><X size={12} />Clear All</button>)}
+        {selectedStatuses.length > 0 && (<button onClick={() => setSelectedStatuses([])} className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] flex items-center gap-1.5"><X size={12} />{t("admin.finances.clearAll")}</button>)}
       </div>
 
       {/* Table */}
@@ -392,7 +404,7 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {sortedTransactions.length === 0 && (<div className="bg-[#141414] p-4 md:p-6 rounded-xl text-center mt-3 md:mt-4"><p className="text-gray-400 text-sm md:text-base">No transactions found matching your criteria.</p></div>)}
+      {sortedTransactions.length === 0 && (<div className="bg-[#141414] p-4 md:p-6 rounded-xl text-center mt-3 md:mt-4"><p className="text-gray-400 text-sm md:text-base">{t("admin.finances.empty")}</p></div>)}
 
       {/* Modals */}
       <SepaXmlModal

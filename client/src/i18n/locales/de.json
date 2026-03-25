@@ -17,7 +17,34 @@
     "today": "Heute",
     "clear": "Löschen",
     "noOptions": "Keine Optionen gefunden",
-    "nSelected": "{{count}} ausgewählt"
+    "nSelected": "{{count}} ausgewählt",
+    "refresh": "Aktualisieren",
+    "confirm": "Bestätigen",
+    "apply": "Anwenden",
+    "filters": "Filter",
+    "sortBy": "Sortieren nach",
+    "noResults": "Keine Ergebnisse gefunden",
+    "created": "Erstellt",
+    "updated": "Aktualisiert",
+    "status": "Status",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "actions": "Aktionen",
+    "back": "Zurück",
+    "create": "Erstellen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "duplicate": "Duplizieren",
+    "pin": "Anheften",
+    "unpin": "Lösen",
+    "reply": "Antworten",
+    "send": "Senden",
+    "colorPicker": {
+      "title": "Farbe wählen",
+      "presets": "Voreinstellungen",
+      "custom": "Benutzerdefiniert",
+      "confirm": "Bestätigen"
+    }
   },
   "languages": {
     "en": "Englisch",
@@ -162,60 +189,60 @@
     "aria": {
       "createPlan": "Trainingsplan erstellen"
     },
-    "categories": {
-      "cardio": "Cardio",
-      "flexibility": "Flexibilität",
-      "fullBody": "Ganzkörper",
-      "lowerBody": "Unterkörper",
-      "strength": "Kraft",
-      "upperBody": "Oberkörper"
-    },
-    "difficulty": {
-      "advanced": "Fortgeschritten",
-      "beginner": "Anfänger",
-      "intermediate": "Mittelstufe"
-    },
     "modal": {
-      "addFromLibrary": "Übungen aus der Bibliothek hinzufügen",
-      "addToPlan": "Zum Trainingsplan hinzufügen",
-      "allSelected": "Alle Übungen sind bereits ausgewählt",
-      "category": "Kategorie",
-      "createNewWithExercise": "Neuen Plan mit dieser Übung erstellen",
       "createTitle": "Trainingsplan erstellen",
-      "createdBy": "Erstellt von",
-      "description": "Beschreibung",
-      "descriptionPlaceholder": "Beschreibe deinen Trainingsplan...",
-      "difficulty": "Schwierigkeit",
-      "duration": "Dauer",
-      "durationPlaceholder": "z. B. 4 Wochen",
       "editTitle": "Trainingsplan bearbeiten",
-      "exerciseCount": "{{count}} Übungen",
-      "exerciseLibrary": "Übungsbibliothek",
-      "exercises": "Übungen ({{count}})",
-      "noExercises": "Keine Übungen verfügbar",
-      "noSelected": "Noch keine Übungen ausgewählt",
-      "orCreateNew": "Oder neuen Plan erstellen",
-      "planDetails": "Plandetails",
+      "addToPlan": "Zum Trainingsplan hinzufügen",
       "planName": "Planname",
       "planNamePlaceholder": "Planname eingeben...",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibe deinen Trainingsplan...",
+      "duration": "Dauer",
+      "durationPlaceholder": "z. B. 4 Wochen",
+      "workoutsPerWeek": "Einheiten/Woche",
+      "difficulty": "Schwierigkeit",
+      "category": "Kategorie",
       "select": "Auswählen",
-      "selectExistingPlan": "Bestehenden Plan auswählen",
+      "exerciseLibrary": "Übungsbibliothek",
+      "noExercises": "Keine Übungen verfügbar",
+      "allSelected": "Alle Übungen sind bereits ausgewählt",
       "selectedExercises": "Ausgewählte Übungen ({{count}})",
+      "noSelected": "Noch keine Übungen ausgewählt",
+      "addFromLibrary": "Übungen aus der Bibliothek hinzufügen",
+      "updatePlan": "Plan aktualisieren",
       "tabDetails": "Details",
       "tabLibrary": "Bibliothek ({{count}})",
       "tabSelected": "Ausgewählt ({{count}})",
-      "updatePlan": "Plan aktualisieren",
-      "workoutsPerWeek": "Einheiten/Woche"
+      "planDetails": "Plandetails",
+      "createdBy": "Erstellt von",
+      "exercises": "Übungen ({{count}})",
+      "exerciseCount": "{{count}} Übungen",
+      "selectExistingPlan": "Bestehenden Plan auswählen",
+      "orCreateNew": "Oder neuen Plan erstellen",
+      "createNewWithExercise": "Neuen Plan mit dieser Übung erstellen"
     },
     "video": {
       "aboutExercise": "Über diese Übung",
-      "back10s": "10s zurück",
-      "browserNotSupported": "Dein Browser unterstützt das Video-Tag nicht.",
-      "equipmentNeeded": "Benötigtes Equipment",
       "exerciseDetails": "Übungsdetails",
+      "targetMuscles": "Zielmuskeln",
+      "equipmentNeeded": "Benötigtes Equipment",
+      "back10s": "10s zurück",
       "forward10s": "10s vor",
       "fullscreen": "Vollbild (f)",
-      "targetMuscles": "Zielmuskeln"
+      "browserNotSupported": "Dein Browser unterstützt das Video-Tag nicht."
+    },
+    "difficulty": {
+      "beginner": "Anfänger",
+      "intermediate": "Mittelstufe",
+      "advanced": "Fortgeschritten"
+    },
+    "categories": {
+      "fullBody": "Ganzkörper",
+      "upperBody": "Oberkörper",
+      "lowerBody": "Unterkörper",
+      "cardio": "Cardio",
+      "strength": "Kraft",
+      "flexibility": "Flexibilität"
     }
   },
   "appointments": {
@@ -285,7 +312,7 @@
     "tabs": {
       "studioInfo": "Studio-Info",
       "checkin": "Check-in",
-      "bulletin": "Pinnwand",
+      "bulletin": "Schwarzes Brett",
       "selfService": "Self-Service"
     },
     "info": {
@@ -550,10 +577,10 @@
       "email": "E-Mail",
       "push": "Push",
       "generalTitle": "Allgemeine Benachrichtigungen",
-      "generalSubtitle": "Verwalte Push-Benachrichtigungen für Pinnwand-Beiträge und Studio-Mitteilungen.",
+      "generalSubtitle": "Verwalte Push-Benachrichtigungen für Schwarzes Brett-Beiträge und Studio-Mitteilungen.",
       "generalHint": "Diese Einstellungen steuern Push-Benachrichtigungen auf deinem Gerät. Das Deaktivieren einer Kategorie stoppt alle Push-Benachrichtigungen dafür.",
-      "bulletinBoard": "Pinnwand",
-      "bulletinBoardDesc": "Neue Beiträge und Aktualisierungen auf der Pinnwand",
+      "bulletinBoard": "Schwarzes Brett",
+      "bulletinBoardDesc": "Neue Beiträge und Aktualisierungen auf der Schwarzes Brett",
       "studioBroadcast": "Studio-Mitteilungen",
       "studioBroadcastDesc": "Mitteilungen und Ankündigungen deines Studios"
     },
@@ -626,6 +653,12 @@
       "carbs": "Kohlenhydrate",
       "fat": "Fett"
     },
+    "meals": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snacks": "Snacks"
+    },
     "diary": {
       "eaten": "{{amount}} gegessen",
       "kcalGoal": "{{amount}} kcal Ziel",
@@ -671,12 +704,6 @@
       "week2": "Woche 2",
       "week3": "Woche 3",
       "thisWeek": "Diese Woche"
-    },
-    "meals": {
-      "breakfast": "Frühstück",
-      "lunch": "Mittagessen",
-      "dinner": "Abendessen",
-      "snacks": "Snacks"
     },
     "customFood": {
       "editTitle": "Eigenes Lebensmittel bearbeiten",
@@ -837,5 +864,448 @@
     "forgotPassword": "Passwort vergessen?",
     "signingIn": "Anmeldung...",
     "signInAs": "Anmelden als {{type}}"
+  },
+  "admin": {
+    "tickets": {
+      "title": "Tickets",
+      "refresh": "Aktualisieren",
+      "search": {
+        "placeholder": "Suche nach Betreff, Studio oder E-Mail..."
+      },
+      "filters": {
+        "title": "Filter",
+        "sortBy": "Sortieren nach"
+      },
+      "sort": {
+        "date": "Datum",
+        "subject": "Betreff",
+        "status": "Status",
+        "priority": "Priorität"
+      },
+      "status": {
+        "all": "Alle",
+        "open": "Offen",
+        "awaitingReply": "Wartet auf deine Antwort",
+        "closed": "Geschlossen"
+      },
+      "priority": {
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig",
+        "label": "{{level}} Priorität"
+      },
+      "list": {
+        "created": "Erstellt",
+        "updated": "Aktualisiert"
+      },
+      "empty": {
+        "title": "Keine Tickets gefunden",
+        "description": "Versuche deine Suche oder Filterkriterien anzupassen."
+      }
+    },
+    "analytics": {
+      "title": "Analytik",
+      "currentValue": "Aktueller Wert (Dez 2024)",
+      "monthlyGrowth": "Monatliches Wachstum",
+      "leadFunnel": "Lead-Konversionstrichter",
+      "overallConversion": "Gesamtkonversionsrate",
+      "totalLeads": "Leads gesamt",
+      "conversion": "Konversion",
+      "leads": "Leads",
+      "financialInsights": "Finanzielle Einblicke",
+      "totalRevenue": "Gesamtumsatz",
+      "totalExpenses": "Gesamtausgaben",
+      "profitMargin": "Gewinnmarge",
+      "topPerformingStudios": "Top-Studios",
+      "topPerformers": "Top-Performer",
+      "topStudiosByRevenue": "Top-Studios nach Umsatz",
+      "topFranchises": "Top-Franchises",
+      "members": "Mitglieder",
+      "studios": "Studios",
+      "growthTrends": "Wachstumstrends",
+      "memberGrowth": "Mitgliederwachstum",
+      "retentionRate": "Bindungsrate",
+      "avgRevenuePerStudio": "Durchschn. Umsatz/Studio",
+      "newMembers": "+{{count}} neue Mitglieder",
+      "fromLastMonth": "{{percent}}% gegenüber Vormonat",
+      "growth": "{{percent}}% Wachstum"
+    },
+    "marketplace": {
+      "title": "Marktplatz",
+      "addProduct": "Produkt hinzufügen",
+      "search": {
+        "placeholder": "Suche nach Name, Marke oder Artikelnummer (alle Sprachen)..."
+      },
+      "filter": {
+        "all": "Alle",
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "pinned": "Angeheftet"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "name": "Name",
+        "price": "Preis",
+        "brand": "Marke",
+        "articleNo": "Artikelnr."
+      },
+      "sections": {
+        "featured": "Empfohlen",
+        "moreProducts": "Weitere Produkte"
+      },
+      "card": {
+        "status": "Status",
+        "translations": "Übersetzungen",
+        "viewProduct": "Produkt ansehen",
+        "pinProduct": "Produkt anheften",
+        "unpinProduct": "Produkt lösen",
+        "viewInfo": "Info anzeigen",
+        "editProduct": "Produkt bearbeiten",
+        "deleteProduct": "Produkt löschen"
+      },
+      "empty": {
+        "noProducts": "Noch keine Produkte hinzugefügt",
+        "noActive": "Keine aktiven Produkte gefunden.",
+        "noInactive": "Keine inaktiven Produkte gefunden.",
+        "noPinned": "Noch keine angehefteten Produkte. Klicke auf das Pin-Symbol, um Produkte hervorzuheben.",
+        "noSearch": "Keine Produkte für deine Suche gefunden."
+      },
+      "toast": {
+        "pinned": "Produkt angeheftet!",
+        "unpinned": "Produkt gelöst",
+        "activated": "Produkt aktiviert!",
+        "deactivated": "Produkt deaktiviert",
+        "updated": "Produkt erfolgreich aktualisiert!",
+        "added": "Produkt erfolgreich hinzugefügt!",
+        "deleted": "Produkt erfolgreich gelöscht!"
+      }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "Feedback aller Studios anzeigen und verwalten",
+      "refresh": "Aktualisieren",
+      "search": {
+        "placeholder": "Suche nach Betreff, Studio oder Person..."
+      },
+      "filters": {
+        "title": "Filter"
+      },
+      "stats": {
+        "total": "Gesamt",
+        "new": "Neu",
+        "review": "Prüfung",
+        "resolved": "Gelöst"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "newest": "Neueste zuerst",
+        "oldest": "Älteste zuerst",
+        "rating": "Höchste Bewertung"
+      },
+      "allTypes": "Alle Typen",
+      "detail": {
+        "submittedBy": "Eingereicht von",
+        "message": "Nachricht",
+        "rating": "Bewertung",
+        "status": "Status"
+      },
+      "empty": {
+        "title": "Kein Feedback gefunden",
+        "description": "Versuche deine Suche oder Filter anzupassen"
+      },
+      "results": "{{filtered}} von {{total}} Einträgen"
+    },
+    "finances": {
+      "title": "Finanzen",
+      "search": {
+        "placeholder": "Suche nach Studio, Kontoinhaber, IBAN oder Mandat..."
+      },
+      "period": {
+        "selectPeriod": "Zeitraum wählen",
+        "customPeriod": "Benutzerdefinierter Zeitraum",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "apply": "Anwenden"
+      },
+      "stats": {
+        "totalRevenue": "Gesamtumsatz",
+        "successful": "Erfolgreich",
+        "pending": "Ausstehend",
+        "checkFunds": "Zahlungseingang prüfen",
+        "failed": "Fehlgeschlagen"
+      },
+      "status": {
+        "successful": "Erfolgreich",
+        "pending": "Ausstehend",
+        "failed": "Fehlgeschlagen",
+        "checkFunds": "Zahlungseingang prüfen"
+      },
+      "table": {
+        "studioName": "Studioname",
+        "studio": "Studio",
+        "accountHolder": "Kontoinhaber",
+        "holder": "Inhaber",
+        "amount": "Betrag",
+        "amt": "Betr.",
+        "services": "Leistungen",
+        "svc": "Lstg.",
+        "status": "Status",
+        "st": "St.",
+        "iban": "IBAN",
+        "mandateNumber": "Mandatsnummer",
+        "mandate": "Mandat",
+        "date": "Datum",
+        "type": "Typ"
+      },
+      "actions": {
+        "runPayment": "Zahlung ausführen",
+        "checkFunds": "Zahlungseingang prüfen",
+        "showIban": "Vollständige IBAN anzeigen",
+        "hideIban": "IBAN verbergen"
+      },
+      "empty": "Keine Transaktionen für deine Kriterien gefunden.",
+      "clearAll": "Alle löschen",
+      "deletePermanently": "Endgültig löschen?",
+      "cannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden",
+      "toast": {
+        "statusUpdated": "Transaktionsstatus erfolgreich aktualisiert!"
+      }
+    },
+    "email": {
+      "title": "E-Mail",
+      "search": {
+        "placeholder": "E-Mails suchen..."
+      },
+      "sendEmail": "E-Mail senden",
+      "folders": {
+        "inbox": "Posteingang",
+        "sent": "Gesendet",
+        "draft": "Entwürfe",
+        "archive": "Archiv",
+        "error": "Fehlgeschlagen",
+        "trash": "Papierkorb"
+      },
+      "list": {
+        "pinned": "Angeheftet",
+        "selectAll": "Alle auswählen",
+        "selected": "{{count}} ausgewählt",
+        "noEmails": "Keine E-Mails in diesem Ordner",
+        "noSubject": "(Kein Betreff)",
+        "draft": "Entwurf"
+      },
+      "detail": {
+        "noSelected": "Keine E-Mail ausgewählt",
+        "noSelectedDesc": "Wähle eine E-Mail aus der Liste, um den Inhalt anzuzeigen",
+        "attachments": "Anhänge",
+        "retrySend": "Erneut senden",
+        "reply": "Antworten"
+      },
+      "actions": {
+        "markAsRead": "Als gelesen markieren",
+        "markAsUnread": "Als ungelesen markieren",
+        "archive": "Archivieren",
+        "delete": "Löschen",
+        "deletePermanently": "Endgültig löschen",
+        "retry": "Wiederholen",
+        "pin": "Anheften",
+        "unpin": "Lösen"
+      },
+      "deleteConfirm": {
+        "title": "Endgültig löschen?",
+        "description": "Diese Aktion kann nicht rückgängig gemacht werden",
+        "single": "Möchtest du diese E-Mail wirklich endgültig löschen?",
+        "multiple": "Möchtest du wirklich {{count}} E-Mails endgültig löschen?"
+      },
+      "toast": {
+        "sent": "E-Mail erfolgreich gesendet!",
+        "fillRequired": "Bitte fülle alle erforderlichen E-Mail-Felder aus"
+      }
+    },
+    "todo": {
+      "title": "Aufgaben",
+      "newTask": "Neue Aufgabe",
+      "create": "Erstellen",
+      "placeholder": "Was muss erledigt werden?",
+      "inputPlaceholder": "Neue Aufgabe… (Enter zum Hinzufügen)",
+      "noDate": "Kein Fälligkeitsdatum",
+      "noTags": "Keine Tags",
+      "dueDateTime": "Fälligkeitsdatum & Uhrzeit",
+      "reminder": "Erinnerung",
+      "tags": "Tags",
+      "addTags": "Tags hinzufügen",
+      "manageTags": "Tags verwalten",
+      "columns": {
+        "ongoing": "Laufend",
+        "completed": "Abgeschlossen",
+        "canceled": "Abgebrochen"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "custom": "Benutzerdefiniert",
+        "title": "Titel",
+        "dueDate": "Fälligkeitsdatum",
+        "recent": "Neueste"
+      },
+      "actions": {
+        "markComplete": "Als erledigt markieren",
+        "setOngoing": "Auf Laufend setzen",
+        "cancelTask": "Aufgabe abbrechen",
+        "pinTask": "Aufgabe anheften",
+        "unpinTask": "Aufgabe lösen",
+        "duplicate": "Duplizieren",
+        "setRepeat": "Wiederholung einstellen",
+        "delete": "Löschen"
+      },
+      "empty": {
+        "ongoing": "Keine laufenden Aufgaben",
+        "completed": "Keine abgeschlossenen Aufgaben",
+        "canceled": "Keine abgebrochenen Aufgaben"
+      }
+    },
+    "notes": {
+      "title": "Notizen",
+      "newNote": "Neue Notiz",
+      "search": {
+        "placeholder": "Notizen suchen..."
+      },
+      "untitled": "Unbenannte Notiz",
+      "noContent": "Kein Inhalt",
+      "empty": {
+        "title": "Noch keine Notizen",
+        "description": "Erstelle deine erste Notiz"
+      }
+    },
+    "leads": {
+      "title": "Leads",
+      "search": {
+        "placeholder": "Leads suchen..."
+      },
+      "addLead": "Lead hinzufügen"
+    },
+    "exercises": {
+      "title": "Übungen",
+      "search": {
+        "placeholder": "Übungen suchen..."
+      },
+      "addExercise": "Übung hinzufügen",
+      "manageOptions": "Optionen verwalten",
+      "filters": {
+        "title": "Filter",
+        "allTypes": "Alle Typen"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach"
+      },
+      "empty": {
+        "title": "Keine Übungen gefunden",
+        "description": "Versuche deine Suche oder Filter anzupassen"
+      },
+      "toast": {
+        "created": "Übung erfolgreich erstellt!",
+        "updated": "Übung erfolgreich aktualisiert!",
+        "deleted": "Übung erfolgreich gelöscht!"
+      }
+    },
+    "customers": {
+      "title": "Kunden",
+      "search": {
+        "placeholder": "Kunden suchen..."
+      },
+      "toast": {
+        "leadUpdated": "Lead erfolgreich aktualisiert!",
+        "leadAdded": "Lead erfolgreich hinzugefügt!",
+        "passwordMismatch": "Passwörter stimmen nicht überein",
+        "franchiseUpdated": "Franchise erfolgreich aktualisiert",
+        "franchiseCreated": "Franchise erfolgreich erstellt",
+        "detailsUpdated": "Details erfolgreich aktualisiert",
+        "franchiseArchived": "Franchise erfolgreich archiviert"
+      }
+    },
+    "demoAccess": {
+      "title": "Demo-Zugang",
+      "search": {
+        "placeholder": "Demo-Konten suchen..."
+      },
+      "addDemo": "Demo hinzufügen",
+      "toast": {
+        "created": "Demo-Konto erstellt!",
+        "updated": "Demo-Konto aktualisiert!",
+        "deleted": "Demo-Konto gelöscht!",
+        "activated": "Konto aktiviert!",
+        "deactivated": "Konto deaktiviert!",
+        "emailSent": "E-Mail erfolgreich gesendet!"
+      }
+    },
+    "contract": {
+      "title": "Verträge",
+      "search": {
+        "placeholder": "Verträge suchen..."
+      },
+      "table": {
+        "contractNo": "Vertragsnr.",
+        "studioName": "Studioname",
+        "owner": "Inhaber",
+        "contractType": "Vertragsart",
+        "status": "Status",
+        "autoRenewal": "Automatische Verlängerung",
+        "contractDuration": "Vertragslaufzeit"
+      },
+      "status": {
+        "active": "Aktiv",
+        "paused": "Vertrag pausiert",
+        "cancelled": "Vertrag gekündigt",
+        "scheduled": "Vertrag geplant",
+        "pending": "Ausstehend"
+      },
+      "actions": {
+        "addContract": "Vertrag hinzufügen",
+        "editContract": "Vertrag bearbeiten",
+        "pauseContract": "Vertrag pausieren",
+        "cancelContract": "Vertrag kündigen",
+        "resumeContract": "Vertrag fortsetzen",
+        "deleteContract": "Vertrag löschen"
+      },
+      "toast": {
+        "resumed": "Vertrag erfolgreich fortgesetzt",
+        "scheduledCancelled": "Geplanter Vertrag gekündigt",
+        "deleted": "Vertrag erfolgreich gelöscht",
+        "bonusRemoved": "Bonuszeit entfernt",
+        "added": "Vertrag erfolgreich hinzugefügt",
+        "updated": "Vertrag erfolgreich aktualisiert"
+      }
+    },
+    "configuration": {
+      "title": "Konfiguration",
+      "search": {
+        "placeholder": "Einstellungen suchen..."
+      },
+      "toast": {
+        "logoUploaded": "Logo erfolgreich hochgeladen",
+        "passwordChanged": "Passwort erfolgreich geändert",
+        "accountCreated": "Konto erfolgreich erstellt",
+        "accountRemoved": "Konto entfernt",
+        "contractTypeCreated": "Vertragsart erstellt",
+        "contractTypeUpdated": "Vertragsart aktualisiert",
+        "contractTypeDeleted": "Vertragsart gelöscht",
+        "pauseReasonDeleted": "Pausengrund gelöscht",
+        "contractFormCreated": "Vertragsformular erstellt",
+        "leadSourceAdded": "Lead-Quelle hinzugefügt",
+        "leadSourceDeleted": "Lead-Quelle gelöscht",
+        "connectionSuccess": "Verbindung erfolgreich!",
+        "testingConnection": "Verbindung wird getestet...",
+        "noSignatureConfigured": "Keine E-Mail-Signatur konfiguriert"
+      },
+      "errors": {
+        "fillPasswordFields": "Bitte alle Passwortfelder korrekt ausfüllen",
+        "fillNameEmail": "Bitte Name und E-Mail ausfüllen",
+        "primaryAdminCannotRemove": "Primäres Admin-Konto kann nicht entfernt werden",
+        "enterContractName": "Bitte einen Vertragsnamen eingeben",
+        "enterValidDuration": "Bitte eine gültige Laufzeit eingeben",
+        "selectBillingPeriod": "Bitte einen Abrechnungszeitraum auswählen",
+        "createContractFormFirst": "Bitte zuerst ein Vertragsformular erstellen",
+        "selectContractForm": "Bitte ein Vertragsformular auswählen",
+        "enterName": "Bitte einen Namen eingeben"
+      }
+    }
   }
 }

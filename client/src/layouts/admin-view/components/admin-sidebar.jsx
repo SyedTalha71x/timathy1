@@ -386,7 +386,10 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
           ${isCollapsed ? "lg:w-20" : "lg:w-64 w-64"}
         `}
       >
-        <div className="flex flex-col h-full overflow-hidden">
+        <div
+          className="flex flex-col h-full overflow-hidden"
+          style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+        >
           {/* Logo Section */}
           <div className="hidden lg:block">
             <div className="flex justify-center items-center w-full">

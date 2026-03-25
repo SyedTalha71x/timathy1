@@ -50,8 +50,8 @@
   } from "../../utils/admin-panel-states/customers-states"
 
   import DefaultStudioImage from "../../../public/gray-avatar-fotor-20250912192528.png"
-  import toast, { Toaster } from "react-hot-toast"
-  import { RiContractLine } from "react-icons/ri"
+  import toast from "../../components/shared/SharedToast"
+import { RiContractLine } from "react-icons/ri"
 
   import FranchiseModal from "../../components/admin-dashboard-components/studios-modal/franchise-modal"
   import AssignStudioModal from "../../components/admin-dashboard-components/studios-modal/assign-studios-modal"
@@ -86,8 +86,13 @@
   import StudioDocumentManagementModal from "../../components/admin-dashboard-components/shared/StudioDocumentManagementModal";
   import PaymentDetailsModal from "../../components/admin-dashboard-components/studios-modal/PaymentDetailsModal";
 
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
   // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Reusable StatusTag (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const StatusTag = ({ isActive, isArchived, compact = false }) => {
+  const StatusTag = ({
+ isActive, isArchived, compact = false }) => {
     const getColor = () => {
       if (isArchived) return 'bg-red-600';
       if (isActive) return 'bg-green-600';
@@ -154,6 +159,7 @@
     const navigate = useNavigate();
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { t } = useTranslation()
     const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
     const [selectedStudio, setSelectedStudio] = useState(null)
     const [searchQuery, setSearchQuery] = useState("")
@@ -311,9 +317,9 @@
     const getFilteredLeads = () => { if (!selectedStudioForModal || !studioLeads[selectedStudioForModal.id]) return []; return studioLeads[selectedStudioForModal.id].filter((lead) => `${lead.firstName} ${lead.surname}`.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.email.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.phoneNumber.includes(leadSearchQuery) || lead.about?.toLowerCase().includes(leadSearchQuery.toLowerCase())) }
     const handleViewLead = (lead) => { setSelectedLead(lead); setIsViewLeadModalOpen(true) }
     const handleEditLead = (lead) => { setSelectedLead(lead); setIsEditLeadModalOpen(true) }
-    const handleSaveEditedLead = (updatedLeadData) => { if (!selectedStudioForModal || !selectedLead) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map(lead => lead.id === selectedLead.id ? updatedLeadData : lead) })); toast.success("Lead updated successfully!"); setIsEditLeadModalOpen(false); setSelectedLead(null) }
+    const handleSaveEditedLead = (updatedLeadData) => { if (!selectedStudioForModal || !selectedLead) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map(lead => lead.id === selectedLead.id ? updatedLeadData : lead) })); haptic.success(); toast.success(t("admin.customers.toast.leadUpdated")); setIsEditLeadModalOpen(false); setSelectedLead(null) }
     const handleAddLead = () => { setIsAddLeadModalOpen(true) }
-    const handleSaveLead = (newLeadData) => { if (!selectedStudioForModal) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), { ...newLeadData, trialPeriod: newLeadData.hasTrialTraining ? "Trial Period" : "", avatar: "", source: newLeadData.source || "hardcoded" }] })); toast.success("Lead added successfully!") }
+    const handleSaveLead = (newLeadData) => { if (!selectedStudioForModal) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), { ...newLeadData, trialPeriod: newLeadData.hasTrialTraining ? "Trial Period" : "", avatar: "", source: newLeadData.source || "hardcoded" }] })); haptic.success(); toast.success(t("admin.customers.toast.leadAdded")) }
     const handleCloseModal = () => { setIsEditFranchiseModalOpen(false); setIsCreateFranchiseModalOpen(false) }
     const handleAssignStudioCloseModal = () => { setIsAssignStudioModalOpen(false); setSelectedFranchiseForAssignment(null) }
     const handleStudioManagementCloseModal = () => { setIsStudioManagementModalOpen(false); setSelectedFranchiseForManagement(null) }
@@ -381,20 +387,20 @@
     const handleLogoUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { setFranchiseForm((prev) => ({ ...prev, logo: e.target.result })) }; reader.readAsDataURL(file) } }
 
     const handleFranchiseSubmit = (formData) => {
-      if (formData.loginPassword !== formData.confirmPassword) { toast.error("Passwords do not match"); return }
+      if (formData.loginPassword !== formData.confirmPassword) { haptic.warning(); toast.error(t("admin.customers.toast.passwordMismatch")); return }
       if (selectedFranchise) {
         setFranchises(franchises.map((f) => f.id === selectedFranchise.id ? { ...f, ...formData } : f))
-        setIsEditFranchiseModalOpen(false); setSelectedFranchise(null); toast.success("Franchise updated successfully")
+        setIsEditFranchiseModalOpen(false); setSelectedFranchise(null); haptic.success(); toast.success(t("admin.customers.toast.franchiseUpdated"))
       } else {
         setFranchises([...franchises, { id: Math.max(...franchises.map((f) => f.id), 0) + 1, ...formData, createdDate: new Date().toISOString().split("T")[0], studioCount: 0 }])
-        setIsCreateFranchiseModalOpen(false); toast.success("Franchise created successfully")
+        setIsCreateFranchiseModalOpen(false); haptic.success(); toast.success(t("admin.customers.toast.franchiseCreated"))
       }
       setFranchiseForm({ ...DEFAULT_FRANCHISE_FORM })
     }
 
    const handleMemberEditSubmit = (e, formData) => {
   e.preventDefault()
-  setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); toast.success("Details updated successfully")
+  setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); haptic.success(); toast.success(t("admin.customers.toast.detailsUpdated"))
 }
 
     const handleViewMemberDetails = (member) => { setSelectedItemForDetails(member); setIsMemberDetailsModalOpen(true) }
@@ -444,19 +450,19 @@
     const handleViewDetails = (studio) => { setSelectedStudio(studio); setIsViewDetailsModalOpen(true) }
     const handleViewFranchiseDetails = (franchise) => { setSelectedFranchise(franchise); setIsFranchiseDetailsModalOpen(true) }
     const handleGoToContract = (studio) => { setSelectedStudioForModal(studio); setIsContractsModalOpen(true); setIsViewDetailsModalOpen(false) }
-    const handleArchiveFranchise = (fId) => { setFranchises(franchises.map((f) => f.id === fId ? { ...f, isArchived: !f.isArchived } : f)); toast.success("Franchise archived successfully") }
+    const handleArchiveFranchise = (fId) => { setFranchises(franchises.map((f) => f.id === fId ? { ...f, isArchived: !f.isArchived } : f)); haptic.success(); toast.success(t("admin.customers.toast.franchiseArchived")) }
 
     const handleAssignStudio = (franchiseId, studioId) => {
       setStudios(studios.map((s) => s.id === studioId ? { ...s, franchiseId } : s))
       setFranchises(franchises.map((f) => f.id === franchiseId ? { ...f, studioCount: f.studioCount + 1 } : f))
-      toast.success("Studio assigned to franchise successfully")
+      haptic.success(); toast.success("Studio assigned to franchise successfully")
     }
 
     const handleUnassignStudio = (studioId) => {
       const studio = studios.find((s) => s.id === studioId)
       setStudios(studios.map((s) => s.id === studioId ? { ...s, franchiseId: null } : s))
       if (studio.franchiseId) { setFranchises(franchises.map((f) => f.id === studio.franchiseId ? { ...f, studioCount: Math.max(0, f.studioCount - 1) } : f)) }
-      toast.success("Studio unassigned from franchise")
+      haptic.success(); toast.success("Studio unassigned from franchise")
     }
 
     const handleOpenStudioManagement = (franchise) => { setSelectedFranchiseForManagement(franchise); setIsStudioManagementModalOpen(true) }
@@ -464,8 +470,8 @@
     const handleOpenStaffsModal = (studio) => { navigate(`/admin-dashboard/studio-staff/${studio.id}`) }
     const handleOpenContractsModal = (studio) => { navigate(`/admin-dashboard/studio-contracts/${studio.id}`) }
 
-    const handleDownloadFile = (fileName) => { toast.success(`Downloading ${fileName}`) }
-    const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); toast.success(`${newFiles.length} file(s) uploaded successfully`) } }
+    const handleDownloadFile = (fileName) => { haptic.success(); toast.success(`Downloading ${fileName}`) }
+    const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); haptic.success(); toast.success(`${newFiles.length} file(s) uploaded successfully`) } }
     const handleHistoryFromOverview = (member) => { setSelectedMemberForEdit(member); setShowHistoryModal(true) }
     const handleDocumentFromOverview = (member) => { setSelectedMemberForEdit(member); setShowDocumentModal(true) }
     const handleCalendarFromOverview = (member) => { setSelectedMemberForEdit(member); setShowAppointmentModalMain(true) }
@@ -475,8 +481,8 @@
     const handleCreateNewAppointmentMain = () => { setShowCreateAppointmentModalMain(true); setShowAppointmentModalMain(false) }
     const handleManageContingentMain = (memberId) => { const d = memberContingent[memberId]; if (d) { setTempContingentMain(d.current); setSelectedBillingPeriodMain("current") } else { setTempContingentMain({ used: 0, total: 0 }) }; setShowContingentModalMain(true) }
     const handleBillingPeriodChange = (periodId) => { setSelectedBillingPeriodMain(periodId); const d = memberContingent[selectedMemberForEdit.id]; if (periodId === "current") setTempContingentMain(d.current); else setTempContingentMain(d.future[periodId] || { used: 0, total: 0 }) }
-    const handleSaveContingentMain = () => { if (selectedMemberForEdit) { const u = { ...memberContingent }; if (selectedBillingPeriodMain === "current") u[selectedMemberForEdit.id].current = { ...tempContingentMain }; else { if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[selectedBillingPeriodMain] = { ...tempContingentMain } }; setMemberContingent(u); toast.success("Contingent updated successfully") }; setShowContingentModalMain(false) }
-    const handleAddBillingPeriodMain = () => { if (newBillingPeriodMain.trim() && selectedMemberForEdit) { const u = { ...memberContingent }; if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[newBillingPeriodMain] = { used: 0, total: 0 }; setMemberContingent(u); setNewBillingPeriodMain(""); setShowAddBillingPeriodModalMain(false); toast.success("New billing period added successfully") } }
+    const handleSaveContingentMain = () => { if (selectedMemberForEdit) { const u = { ...memberContingent }; if (selectedBillingPeriodMain === "current") u[selectedMemberForEdit.id].current = { ...tempContingentMain }; else { if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[selectedBillingPeriodMain] = { ...tempContingentMain } }; setMemberContingent(u); haptic.success(); toast.success("Contingent updated successfully") }; setShowContingentModalMain(false) }
+    const handleAddBillingPeriodMain = () => { if (newBillingPeriodMain.trim() && selectedMemberForEdit) { const u = { ...memberContingent }; if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[newBillingPeriodMain] = { used: 0, total: 0 }; setMemberContingent(u); setNewBillingPeriodMain(""); setShowAddBillingPeriodModalMain(false); haptic.success(); toast.success("New billing period added successfully") } }
     const handleAddAppointmentSubmit = (data) => { setAppointmentsMain([...appointmentsMain, { id: Math.max(0, ...appointmentsMain.map((a) => a.id)) + 1, ...data, memberId: selectedMemberForEdit?.id }]); setShowCreateAppointmentModalMain(false) }
     const handleAppointmentChange = (changes) => { if (selectedAppointmentDataMain) setSelectedAppointmentDataMain({ ...selectedAppointmentDataMain, ...changes }) }
     const handleViewContractHistory = (contract) => { setSelectedContractForHistory(contract); setIsContractHistoryModalOpen(true) }
@@ -486,31 +492,29 @@
       const newTempMember = { id: Math.max(0, ...(studioMembers[selectedStudioForModal.id] || []).map(m => m.id)) + 1, firstName: tempMemberForm.firstName, lastName: tempMemberForm.lastName, email: tempMemberForm.email, phone: tempMemberForm.phone, gender: tempMemberForm.gender, country: tempMemberForm.country, street: tempMemberForm.street, zipCode: tempMemberForm.zipCode, city: tempMemberForm.city, dateOfBirth: tempMemberForm.dateOfBirth, about: tempMemberForm.about, joinDate: new Date().toISOString().split('T')[0], status: "active", isTemporary: true, note: tempMemberForm.note, noteImportance: tempMemberForm.noteImportance, noteStartDate: tempMemberForm.noteStartDate, noteEndDate: tempMemberForm.noteEndDate, autoArchiveDate: tempMemberForm.autoArchivePeriod ? new Date(Date.now() + tempMemberForm.autoArchivePeriod * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null }
       setStudioMembers(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newTempMember] }))
       setTempMemberForm({ ...DEFAULT_TEMP_MEMBER_FORM })
-      setTempMemberModalTab("details"); setIsCreateTempMemberModalOpen(false); toast.success("Temporary member created successfully!")
+      setTempMemberModalTab("details"); setIsCreateTempMemberModalOpen(false); haptic.success(); toast.success("Temporary member created successfully!")
     }
 
     const handleTempMemberInputChange = (e) => { const { name, value } = e.target; setTempMemberForm(prev => ({ ...prev, [name]: value })) }
     const handleImgUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => { setTempMemberForm(prev => ({ ...prev, img: ev.target.result })) }; reader.readAsDataURL(file) } }
     const relationOptionsMain = RELATION_OPTIONS
     const handleTrainingPlanFromOverview = (member) => { setSelectedMemberForEdit(member); setShowTrainingPlansModalMain(true) }
-    const handleAssignPlanMain = (memberId, planId) => { const plan = availableTrainingPlansMain.find(p => p.id === parseInt(planId)); if (!plan) return; setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: [...(prev[memberId] || []), { ...plan, assignedDate: new Date().toISOString().split('T')[0] }] })); toast.success("Training plan assigned successfully!"); setShowTrainingPlansModalMain(false) }
-    const handleRemovePlanMain = (memberId, planId) => { setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: (prev[memberId] || []).filter(p => p.id !== planId) })); toast.success("Training plan removed successfully!") }
+    const handleAssignPlanMain = (memberId, planId) => { const plan = availableTrainingPlansMain.find(p => p.id === parseInt(planId)); if (!plan) return; setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: [...(prev[memberId] || []), { ...plan, assignedDate: new Date().toISOString().split('T')[0] }] })); haptic.success(); toast.success("Training plan assigned successfully!"); setShowTrainingPlansModalMain(false) }
+    const handleRemovePlanMain = (memberId, planId) => { setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: (prev[memberId] || []).filter(p => p.id !== planId) })); haptic.success(); toast.success("Training plan removed successfully!") }
 
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     // RENDER
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     return (
       <>
-        <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
-
-        <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
+<div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
           <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
 
             {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Header (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-white oxanium_font text-xl md:text-2xl">
-                  {viewMode === "studios" ? "Studios" : "Franchises"}
+                  {viewMode === "studios" ? t("admin.customers.title") : "Franchises"}
                 </h1>
 
                 {/* Sort Button - Mobile */}
@@ -521,7 +525,7 @@
                   {showMobileSortDropdown && (
                     <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
                           <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleMobileSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
                             <span>{opt.label}</span>
@@ -658,7 +662,7 @@
                   {showSortDropdown && (
                     <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
                           <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
                             <span>{opt.label}</span>

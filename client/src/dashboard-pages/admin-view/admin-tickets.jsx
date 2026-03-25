@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
     Search,
     MessageSquare,
@@ -11,43 +12,41 @@ import {
     ArrowUp,
     ArrowDown,
 } from "lucide-react"
-import toast from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 
 import AdminTicketView from "../../components/admin-dashboard-components/tickets-component/admin-ticket-view-modal"
 import { adminTickets } from "../../utils/admin-panel-states/tickets-states"
 
 const AdminTicketsSystem = () => {
+    const { t } = useTranslation()
     const [tickets, setTickets] = useState(adminTickets)
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
 
-    // Filter states
     const [statusFilter, setStatusFilter] = useState("all")
     const [priorityFilter, setPriorityFilter] = useState("all")
 
-    // Sort states
     const [sortBy, setSortBy] = useState("date")
     const [sortDirection, setSortDirection] = useState("desc")
     const [showSortDropdown, setShowSortDropdown] = useState(false)
     const sortDropdownRef = useRef(null)
 
-    // Filter collapse state
     const [filtersExpanded, setFiltersExpanded] = useState(false)
 
-    // Expand filters on desktop, keep collapsed on mobile
     useEffect(() => {
         const isDesktop = window.innerWidth >= 768
         setFiltersExpanded(isDesktop)
     }, [])
 
     const sortOptions = [
-        { value: "date", label: "Date" },
-        { value: "subject", label: "Subject" },
-        { value: "status", label: "Status" },
-        { value: "priority", label: "Priority" },
+        { value: "date", label: t("admin.tickets.sort.date") },
+        { value: "subject", label: t("admin.tickets.sort.subject") },
+        { value: "status", label: t("admin.tickets.sort.status") },
+        { value: "priority", label: t("admin.tickets.sort.priority") },
     ]
 
-    // Close sort dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
@@ -110,6 +109,7 @@ const AdminTicketsSystem = () => {
 
     // ── Sort helpers ──────────────────────────────────────────
     const handleSortOptionClick = (value) => {
+        haptic.light()
         if (value === sortBy) {
             setSortDirection(prev => (prev === "asc" ? "desc" : "asc"))
         } else {
@@ -124,10 +124,13 @@ const AdminTicketsSystem = () => {
             : <ArrowDown size={14} className="text-white" />
     }
 
-    const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || "Date"
+    const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || t("admin.tickets.sort.date")
 
     // ── Handlers ───────────────────────────────────────────────
-    const handleTicketClick = (ticket) => setSelectedTicket(ticket)
+    const handleTicketClick = (ticket) => {
+        haptic.light()
+        setSelectedTicket(ticket)
+    }
     const handleCloseTicketView = () => setSelectedTicket(null)
 
     const handleUpdateTicket = (updatedTicket) => {
@@ -135,16 +138,18 @@ const AdminTicketsSystem = () => {
             ticket.id === updatedTicket.id ? updatedTicket : ticket
         ))
         setSelectedTicket(updatedTicket)
+        haptic.success()
     }
 
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
         setTickets([...adminTickets])
         setSearchTerm("")
         setStatusFilter("all")
         setPriorityFilter("all")
+        haptic.success()
     }
 
-    // ── Status — solid badges (only 3 statuses) ─────────────
+    // ── Status — solid badges ─────────────────────────────────
     const getStatusColor = (status) => {
         switch (status) {
             case "Open":
@@ -158,7 +163,7 @@ const AdminTicketsSystem = () => {
         }
     }
 
-    // ── Priority — colored text (no badge) ──────────────────
+    // ── Priority — colored text ──────────────────────────────
     const getPriorityTextColor = (priority) => {
         switch (priority) {
             case "High": return "text-red-400"
@@ -185,7 +190,7 @@ const AdminTicketsSystem = () => {
     const SortDropdown = ({ className = "" }) => (
         <div className={`relative ${className}`} ref={sortDropdownRef}>
             <button
-                onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
+                onClick={(e) => { e.stopPropagation(); haptic.light(); setShowSortDropdown(!showSortDropdown) }}
                 className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
             >
                 {getSortIcon()}
@@ -196,7 +201,7 @@ const AdminTicketsSystem = () => {
                 <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
                         <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                            Sort by
+                            {t("common.sortBy")}
                         </div>
                         {sortOptions.map((option) => (
                             <button
@@ -226,7 +231,7 @@ const AdminTicketsSystem = () => {
             {/* ── Header ─────────────────────────────────────── */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                 <div className="flex items-center gap-3">
-                    <h1 className="text-white oxanium_font text-xl md:text-2xl">Tickets</h1>
+                    <h1 className="text-white oxanium_font text-xl md:text-2xl">{t("admin.tickets.title")}</h1>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -235,7 +240,7 @@ const AdminTicketsSystem = () => {
                         className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
                     >
                         <RefreshCw size={16} />
-                        <span className="hidden sm:inline">Refresh</span>
+                        <span className="hidden sm:inline">{t("common.refresh")}</span>
                     </button>
                 </div>
             </div>
@@ -246,7 +251,7 @@ const AdminTicketsSystem = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input
                         type="text"
-                        placeholder="Search by subject, studio or email..."
+                        placeholder={t("admin.tickets.search.placeholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -256,14 +261,13 @@ const AdminTicketsSystem = () => {
 
             {/* ── Filters Section - Collapsible ── */}
             <div className="mb-4 sm:mb-6">
-                {/* Filters Header Row - Always visible */}
                 <div className="flex items-center justify-between mb-2">
                     <button
-                        onClick={() => setFiltersExpanded(!filtersExpanded)}
+                        onClick={() => { haptic.light(); setFiltersExpanded(!filtersExpanded) }}
                         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
                     >
                         <Filter size={14} />
-                        <span className="text-xs sm:text-sm font-medium">Filters</span>
+                        <span className="text-xs sm:text-sm font-medium">{t("common.filters")}</span>
                         <ChevronDown
                             size={14}
                             className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
@@ -275,38 +279,40 @@ const AdminTicketsSystem = () => {
                         )}
                     </button>
 
-                    {/* Sort Controls - Always visible */}
                     <SortDropdown />
                 </div>
 
-                {/* Filter Pills - Collapsible */}
                 <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
                     {/* Status Pills */}
                     <div className="flex flex-wrap gap-1.5 sm:gap-3 mb-2">
                         <button
-                            onClick={() => setStatusFilter("all")}
+                            onClick={() => { haptic.light(); setStatusFilter("all") }}
                             className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                                 statusFilter === "all"
                                     ? "bg-blue-600 text-white"
                                     : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                             }`}
                         >
-                            All
+                            {t("admin.tickets.status.all")}
                         </button>
-                        {["Open", "Awaiting your reply", "Closed"].map((status) => (
+                        {[
+                            { key: "Open", label: t("admin.tickets.status.open") },
+                            { key: "Awaiting your reply", label: t("admin.tickets.status.awaitingReply") },
+                            { key: "Closed", label: t("admin.tickets.status.closed") },
+                        ].map(({ key, label }) => (
                             <button
-                                key={status}
-                                onClick={() => setStatusFilter(statusFilter === status ? "all" : status)}
+                                key={key}
+                                onClick={() => { haptic.light(); setStatusFilter(statusFilter === key ? "all" : key) }}
                                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                                    statusFilter === status
+                                    statusFilter === key
                                         ? "bg-blue-600 text-white"
                                         : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                                 }`}
                             >
-                                {status}
-                                {statusCounts[status] ? (
-                                    <span className={`text-[11px] ${statusFilter === status ? "text-blue-200" : "text-gray-500"}`}>
-                                        ({statusCounts[status]})
+                                {label}
+                                {statusCounts[key] ? (
+                                    <span className={`text-[11px] ${statusFilter === key ? "text-blue-200" : "text-gray-500"}`}>
+                                        ({statusCounts[key]})
                                     </span>
                                 ) : null}
                             </button>
@@ -315,26 +321,26 @@ const AdminTicketsSystem = () => {
 
                     {/* Priority Pills */}
                     <div className="flex flex-wrap gap-1.5 sm:gap-3">
-                        {["High", "Medium", "Low"].map((priority) => (
+                        {[
+                            { key: "High", label: t("admin.tickets.priority.high"), activeColor: "bg-red-600" },
+                            { key: "Medium", label: t("admin.tickets.priority.medium"), activeColor: "bg-yellow-600" },
+                            { key: "Low", label: t("admin.tickets.priority.low"), activeColor: "bg-green-600" },
+                        ].map(({ key, label, activeColor }) => (
                             <button
-                                key={priority}
-                                onClick={() => setPriorityFilter(priorityFilter === priority ? "all" : priority)}
+                                key={key}
+                                onClick={() => { haptic.light(); setPriorityFilter(priorityFilter === key ? "all" : key) }}
                                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
-                                    priorityFilter === priority
-                                        ? priority === "High"
-                                            ? "bg-red-600 text-white"
-                                            : priority === "Medium"
-                                                ? "bg-yellow-600 text-white"
-                                                : "bg-green-600 text-white"
+                                    priorityFilter === key
+                                        ? `${activeColor} text-white`
                                         : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                                 }`}
                             >
-                                {priority}
-                                {priorityCounts[priority] ? (
+                                {label}
+                                {priorityCounts[key] ? (
                                     <span className={`text-[11px] ml-1 ${
-                                        priorityFilter === priority ? "opacity-80" : "text-gray-500"
+                                        priorityFilter === key ? "opacity-80" : "text-gray-500"
                                     }`}>
-                                        ({priorityCounts[priority]})
+                                        ({priorityCounts[key]})
                                     </span>
                                 ) : null}
                             </button>
@@ -344,54 +350,52 @@ const AdminTicketsSystem = () => {
             </div>
 
             {/* ── Ticket List ────────────────────────────────── */}
-            <div className="space-y-2">
-                {sortedTickets.map((ticket) => (
-                    <div
-                        key={ticket.id}
-                        onClick={() => handleTicketClick(ticket)}
-                        className="bg-[#161616] rounded-lg p-3 sm:p-4 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
-                    >
-                        {/* Row 1: Subject + #ID */}
-                        <div className="flex justify-between items-start mb-1.5 min-w-0">
-                            <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
-                                {ticket.subject} <span className="text-blue-400 font-semibold">#{ticket.id}</span>
-                            </h3>
+            <PullToRefresh onRefresh={handleRefresh} className="flex-1 overflow-y-auto">
+                <div className="space-y-2">
+                    {sortedTickets.map((ticket) => (
+                        <div
+                            key={ticket.id}
+                            onClick={() => handleTicketClick(ticket)}
+                            className="bg-[#161616] rounded-lg p-3 sm:p-4 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
+                        >
+                            <div className="flex justify-between items-start mb-1.5 min-w-0">
+                                <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
+                                    {ticket.subject} <span className="text-blue-400 font-semibold">#{ticket.id}</span>
+                                </h3>
+                            </div>
+
+                            <p className="text-sm text-gray-400 mb-2">{ticket.studioName}</p>
+
+                            <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
+                                <span>{t("admin.tickets.list.created")}: <span className="text-gray-300">{ticket.createdDate}</span></span>
+                                <span>{t("admin.tickets.list.updated")}: <span className="text-gray-300">{ticket.lastUpdated}</span></span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}>
+                                    {ticket.status}
+                                </span>
+                                <span className={`text-xs font-medium ${getPriorityTextColor(ticket.priority)}`}>
+                                    {t("admin.tickets.priority.label", { level: ticket.priority })}
+                                </span>
+                            </div>
                         </div>
-
-                        {/* Row 2: Studio name */}
-                        <p className="text-sm text-gray-400 mb-2">{ticket.studioName}</p>
-
-                        {/* Row 3: Timestamps */}
-                        <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
-                            <span>Created: <span className="text-gray-300">{ticket.createdDate}</span></span>
-                            <span>Updated: <span className="text-gray-300">{ticket.lastUpdated}</span></span>
-                        </div>
-
-                        {/* Row 4: Status badge + Priority text */}
-                        <div className="flex items-center gap-3">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}>
-                                {ticket.status}
-                            </span>
-                            <span className={`text-xs font-medium ${getPriorityTextColor(ticket.priority)}`}>
-                                {ticket.priority} Priority
-                            </span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* ── Empty State ────────────────────────────────── */}
-            {sortedTickets.length === 0 && (
-                <div className="text-center py-16">
-                    <div className="text-gray-500 mb-6">
-                        <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-300 mb-3">No tickets found</h3>
-                    <p className="text-gray-500 mb-6">Try adjusting your search or filter criteria.</p>
+                    ))}
                 </div>
-            )}
+
+                {/* ── Empty State ────────────────────────────────── */}
+                {sortedTickets.length === 0 && (
+                    <div className="text-center py-16">
+                        <div className="text-gray-500 mb-6">
+                            <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-medium text-gray-300 mb-3">{t("admin.tickets.empty.title")}</h3>
+                        <p className="text-gray-500 mb-6">{t("admin.tickets.empty.description")}</p>
+                    </div>
+                )}
+            </PullToRefresh>
 
             {selectedTicket && (
                 <AdminTicketView

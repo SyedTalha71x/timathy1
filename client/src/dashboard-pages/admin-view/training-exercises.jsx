@@ -20,14 +20,16 @@ import {
   Dumbbell,
   Settings,
 } from "lucide-react"
-import toast from "react-hot-toast";
-
+import toast from "../../components/shared/SharedToast"
 import ManageOptionsModal from "../../components/admin-dashboard-components/training-components/ManageOptionsModal";
 import ExerciseFormModal from "../../components/admin-dashboard-components/training-components/ExerciseFormModal";
 import ViewExerciseModal from "../../components/admin-dashboard-components/training-components/ViewExerciseModal";
 import DeleteExerciseModal from "../../components/admin-dashboard-components/training-components/DeleteExerciseModal";
 import { getTranslation, getOptionName, emptyTranslations } from '../../components/admin-dashboard-components/shared/LanguageTabs';
 
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import {
   initialTrainingVideos,
   initialMuscleOptions,
@@ -38,6 +40,7 @@ import {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function AdminTrainingManagement() {
+  const { t } = useTranslation()
   const [trainingVideos, setTrainingVideos] = useState(initialTrainingVideos)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDifficulty, setSelectedDifficulty] = useState("all")
@@ -123,7 +126,7 @@ export default function AdminTrainingManagement() {
 
   const handleCreate = () => {
     if (!formData.name?.en || !formData.description?.en || formData.targetMuscles.length === 0) {
-      alert("Please fill in all required fields (English name and description are required)")
+      toast.error("Please fill in all required fields (English name and description are required)")
       return
     }
 
@@ -148,7 +151,7 @@ export default function AdminTrainingManagement() {
 
   const handleEdit = () => {
     if (!selectedVideo || !formData.name?.en || !formData.description?.en || formData.targetMuscles.length === 0) {
-      alert("Please fill in all required fields (English name and description are required)")
+      toast.error("Please fill in all required fields (English name and description are required)")
       return
     }
 
@@ -262,7 +265,7 @@ export default function AdminTrainingManagement() {
         m.translations[lang]?.toLowerCase() === newMuscleGroup.trim().toLowerCase()
       )
       if (duplicate) {
-        toast.error("This muscle group already exists")
+        haptic.warning(); toast.error("This muscle group already exists")
         return
       }
       const newOption = {
@@ -271,7 +274,7 @@ export default function AdminTrainingManagement() {
       }
       setMuscleOptions([...muscleOptions, newOption])
       setNewMuscleGroup("")
-      toast.success("Muscle group added successfully")
+      haptic.success(); toast.success("Muscle group added successfully")
     }
   }
 
@@ -285,7 +288,7 @@ export default function AdminTrainingManagement() {
         targetMuscles: v.targetMuscles.filter(id => id !== removed.id)
       })))
     }
-    toast.success("Muscle group removed successfully")
+    haptic.success(); toast.success("Muscle group removed successfully")
   }
 
   const startEditingMuscle = (index, value) => {
@@ -306,7 +309,7 @@ export default function AdminTrainingManagement() {
       setMuscleOptions(updated)
       setEditingMuscleIndex(null)
       setEditingMuscleValue("")
-      toast.success("Muscle group updated successfully")
+      haptic.success(); toast.success("Muscle group updated successfully")
     }
   }
 
@@ -318,7 +321,7 @@ export default function AdminTrainingManagement() {
         e.translations[lang]?.toLowerCase() === newEquipment.trim().toLowerCase()
       )
       if (duplicate) {
-        toast.error("This equipment already exists")
+        haptic.warning(); toast.error("This equipment already exists")
         return
       }
       const newOption = {
@@ -327,7 +330,7 @@ export default function AdminTrainingManagement() {
       }
       setEquipmentOptions([...equipmentOptions, newOption])
       setNewEquipment("")
-      toast.success("Equipment added successfully")
+      haptic.success(); toast.success("Equipment added successfully")
     }
   }
 
@@ -341,7 +344,7 @@ export default function AdminTrainingManagement() {
         equipment: v.equipment.filter(id => id !== removed.id)
       })))
     }
-    toast.success("Equipment removed successfully")
+    haptic.success(); toast.success("Equipment removed successfully")
   }
 
   const startEditingEquipment = (index, value) => {
@@ -362,7 +365,7 @@ export default function AdminTrainingManagement() {
       setEquipmentOptions(updated)
       setEditingEquipmentIndex(null)
       setEditingEquipmentValue("")
-      toast.success("Equipment updated successfully")
+      haptic.success(); toast.success("Equipment updated successfully")
     }
   }
 
@@ -385,7 +388,7 @@ export default function AdminTrainingManagement() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex justify-between items-center gap-2 w-full md:w-auto">
-            <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training Exercises</h1>
+            <h1 className="text-white text-xl md:text-2xl font-bold mb-2">{t("admin.exercises.title")}</h1>
             <button
               onClick={() => setIsManageOptionsModalOpen(true)}
               className="md:hidden p-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white transition-colors"
@@ -418,7 +421,7 @@ export default function AdminTrainingManagement() {
             <Search className="absolute left-3 text-sm top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search exercises (all languages)..."
+              placeholder={t("admin.exercises.search.placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
@@ -460,6 +463,7 @@ export default function AdminTrainingManagement() {
           </div>
         </div>
 
+        <PullToRefresh onRefresh={async () => { haptic.success() }} className="flex-1 overflow-y-auto">
         {/* Exercise Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredVideos.map((video) => (
@@ -557,6 +561,7 @@ export default function AdminTrainingManagement() {
             </div>
           </div>
         )}
+        </PullToRefresh>
       </div>
 
       {/* Manage Options Modal */}

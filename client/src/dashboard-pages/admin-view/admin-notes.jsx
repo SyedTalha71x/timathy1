@@ -10,6 +10,10 @@ import TagManagerModal from "../../components/admin-dashboard-components/shared/
 import DeleteConfirmModal from "../../components/admin-dashboard-components/notes-components/DeleteConfirmModal"
 import { demoNotes, notesTagsData } from "../../utils/admin-panel-states/notes-states"
 
+import { useTranslation } from "react-i18next"
+import PullToRefresh from "../../components/shared/PullToRefresh"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
+import { haptic } from "../../utils/haptic"
 // Helper function to strip HTML tags and normalize whitespace for preview
 const stripHtmlTags = (html) => {
   if (!html) return ''
@@ -443,6 +447,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags 
 })
 
 export default function NotesApp() {
+  const { t } = useTranslation()
   const [notes, setNotes] = useState(demoNotes)
   const [selectedNote, setSelectedNote] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
@@ -586,6 +591,7 @@ export default function NotesApp() {
 
   // Save current note
   const saveCurrentNote = () => {
+    haptic.success()
     if (!selectedNote) return
 
     const updatedNote = {
@@ -613,6 +619,7 @@ export default function NotesApp() {
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date'
 
   const toggleSortDirection = () => {
+    haptic.light()
     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
   }
 
@@ -626,6 +633,7 @@ export default function NotesApp() {
   }
 
   const handleSortOptionClick = (newSortBy) => {
+    haptic.light()
     if (newSortBy === 'custom') {
       setSortBy('custom')
       setShowSortDropdown(false)
@@ -639,10 +647,12 @@ export default function NotesApp() {
 
   // Tag Management
   const handleAddTag = (newTag) => {
+    haptic.success()
     setAvailableTags([...availableTags, newTag])
   }
 
   const handleDeleteTag = (tagId) => {
+    haptic.warning()
     setNotes(prev => prev.map(note => ({
       ...note,
       tags: note.tags?.filter(t => t !== tagId) || []
@@ -652,6 +662,7 @@ export default function NotesApp() {
 
   // Create new note
   const handleCreateNote = () => {
+    haptic.success()
     const note = {
       id: Date.now(),
       title: '',
@@ -683,6 +694,7 @@ export default function NotesApp() {
 
   // Delete note
   const deleteNote = (noteId) => {
+    haptic.warning()
     setNotes(prev => prev.filter(note => note.id !== noteId))
     if (selectedNote?.id === noteId) setSelectedNote(null)
   }
@@ -706,6 +718,7 @@ export default function NotesApp() {
 
   // Toggle pin
   const togglePin = (noteId) => {
+    haptic.light()
     setNotes(prev => prev.map(note =>
       note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
     ))
@@ -716,6 +729,7 @@ export default function NotesApp() {
 
   // Toggle tag
   const toggleTag = (tagId) => {
+    haptic.light()
     setEditedTags(prev =>
       prev.includes(tagId)
         ? prev.filter(t => t !== tagId)
@@ -726,10 +740,12 @@ export default function NotesApp() {
 
   // Handle drag end
   const handleDragStart = (event) => {
+    haptic.light()
     setActiveId(event.active.id)
   }
 
   const handleDragEnd = (event) => {
+    haptic.light()
     setActiveId(null)
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -797,7 +813,7 @@ export default function NotesApp() {
       <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-white">Notes</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">{t("admin.notes.title")}</h1>
         </div>
 
         {/* Main Content */}
@@ -1196,6 +1212,7 @@ export default function NotesApp() {
                 isMobile={true}
               />
             </div>
+            <KeyboardSpacer />
           </div>
         </div>
       )}

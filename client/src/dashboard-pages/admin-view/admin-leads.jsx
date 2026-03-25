@@ -2,7 +2,7 @@
 import React from "react"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Search, Plus, X, ChevronLeft, ChevronRight, File, ClipboardList } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import { useNavigate, useLocation } from "react-router-dom"
 
 // @dnd-kit imports
@@ -42,7 +42,12 @@ import {
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads, appointmentTypesData, freeAppointmentsData, leadsData as leadsDataMain } from "../../utils/studio-states"
 
+import { useTranslation } from "react-i18next"
+import PullToRefresh from "../../components/shared/PullToRefresh"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
+import { haptic } from "../../utils/haptic"
 export default function LeadManagement() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
@@ -242,7 +247,7 @@ export default function LeadManagement() {
         
         setLeads(newLeads)
         updateLocalStorage(newLeads)
-        toast.success("Lead reordered")
+        haptic.success(); toast.success("Lead reordered")
       }
       return
     }
@@ -293,7 +298,7 @@ export default function LeadManagement() {
     updateLocalStorage(newLeads)
     
     const targetColumn = columns.find((c) => c.id === targetColumnId)
-    toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
+    haptic.success(); toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
   }
 
   // Demo access confirmation handlers (drag to trial column)
@@ -579,7 +584,7 @@ export default function LeadManagement() {
     }
     setIsDeleteConfirmationModalOpen(false)
     setLeadToDelete(null)
-    toast.success("Lead has been deleted")
+    haptic.success(); toast.success("Lead has been deleted")
   }
 
   const handleEditLeadNote = (lead, targetColumnId = null) => {
@@ -619,9 +624,9 @@ export default function LeadManagement() {
     
     if (targetColumnId) {
       const targetColumn = columns.find((c) => c.id === targetColumnId)
-      toast.success(`Special note added and lead moved to ${targetColumn?.title || targetColumnId}`)
+      haptic.success(); toast.success(`Special note added and lead moved to ${targetColumn?.title || targetColumnId}`)
     } else {
-      toast.success("Special note added successfully")
+      haptic.success(); toast.success("Special note added successfully")
     }
   }
 
@@ -672,7 +677,7 @@ export default function LeadManagement() {
     const updatedLeads = [...leads, newLead]
     setLeads(updatedLeads)
     updateLocalStorage(updatedLeads)
-    toast.success("Lead has been added")
+    haptic.success(); toast.success("Lead has been added")
   }
 
   const handleSaveEdit = (data) => {
@@ -730,9 +735,9 @@ export default function LeadManagement() {
     if (pendingMove && pendingMove.leadId === data.id) {
       sessionStorage.removeItem('pendingLeadMove')
       const targetColumn = columns.find((c) => c.id === pendingMove.targetColumnId)
-      toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId} with note`)
+      haptic.success(); toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId} with note`)
     } else {
-      toast.success("Lead has been updated")
+      haptic.success(); toast.success("Lead has been updated")
     }
   }
 
@@ -748,7 +753,7 @@ export default function LeadManagement() {
     setColumns(updatedColumns)
     setIsEditColumnModalOpen(false)
     setSelectedColumn(null)
-    toast.success("Column saved successfully")
+    haptic.success(); toast.success("Column saved successfully")
   }
 
   // Filter leads based on search
@@ -823,21 +828,10 @@ export default function LeadManagement() {
 
   return (
     <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-
-      {/* Header */}
+{/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
+          <h1 className="text-xl sm:text-2xl text-white font-bold">{t("admin.leads.title")}</h1>
           
           {/* Compact/Detailed View Toggle - Desktop only */}
           <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">

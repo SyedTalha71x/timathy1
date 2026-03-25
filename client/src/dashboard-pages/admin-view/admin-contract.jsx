@@ -46,6 +46,9 @@ import { adminContractsFlatList } from "../../utils/admin-panel-states/admin-con
 import { DEFAULT_ADMIN_CONTRACT_TYPES } from "../../utils/admin-panel-states/admin-contract-states"
 import { studioDataNew } from "../../utils/admin-panel-states/customers-states"
 
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 // Status Tag Component - matches members.jsx
 const StatusTag = ({ 
   status, 
@@ -57,6 +60,7 @@ const StatusTag = ({
   cancelDate = null,
   scheduledStartDate = null 
 }) => {
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-600';
@@ -99,7 +103,7 @@ const StatusTag = ({
           </div>
         )}
         {!pauseReason && !pauseStartDate && (
-          <span>Contract is paused</span>
+          <span>{t("admin.contract.status.paused")}</span>
         )}
       </>
     );
@@ -123,7 +127,7 @@ const StatusTag = ({
           </div>
         )}
         {!cancelReason && !cancelDate && (
-          <span>Contract was cancelled</span>
+          <span>{t("admin.contract.status.cancelled")}</span>
         )}
       </>
     );
@@ -141,7 +145,7 @@ const StatusTag = ({
           </div>
         )}
         {!scheduledStartDate && (
-          <span>Contract is scheduled</span>
+          <span>{t("admin.contract.status.scheduled")}</span>
         )}
       </>
     );
@@ -225,6 +229,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
 
   // View and display states
   const [viewMode, setViewMode] = useState("list")
+  const { t } = useTranslation()
   const [isCompactView, setIsCompactView] = useState(false)
   const [expandedMobileRowId, setExpandedMobileRowId] = useState(null)
   const [expandedCompactId, setExpandedCompactId] = useState(null)
@@ -863,7 +868,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
       setContracts(contracts.map((c) =>
         c.id === resumeConfirmData.id ? { ...c, status: "Active", pauseReason: null } : c
       ))
-      toast.success("Contract resumed successfully")
+      haptic.success(); toast.success(t("admin.contract.toast.resumed"))
     }
     setResumeConfirmData(null)
   }
@@ -896,7 +901,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
       }
       return updated
     })
-    toast.success("Scheduled contract cancelled")
+    haptic.success(); toast.success(t("admin.contract.toast.scheduledCancelled"))
   }
 
   const handleDeleteContract = (contractId) => {
@@ -908,7 +913,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
   const confirmDeleteContract = () => {
     if (contractToDelete) {
       setContracts(contracts.filter((c) => c.id !== contractToDelete.id))
-      toast.success("Contract deleted successfully")
+      haptic.success(); toast.success(t("admin.contract.toast.deleted"))
       setIsDeleteModalOpen(false)
       setContractToDelete(null)
     }
@@ -936,7 +941,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
       setContracts(contracts.map(c =>
         c.id === removeBonusConfirmData.id ? { ...c, bonusTime: null } : c
       ))
-      toast.success("Bonus time removed")
+      haptic.success(); toast.success(t("admin.contract.toast.bonusRemoved"))
     }
     setRemoveBonusConfirmData(null)
   }
@@ -1119,7 +1124,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         // Remove lead from leads list
         setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadToConvert.id))
         
-        toast.success(`Lead "${newContract.studioName}" converted to member!`)
+        haptic.success(); toast.success(`Lead "${newContract.studioName}" converted to member!`)
       }
     } else if (contractStatus === "Pending") {
       // For Pending contracts, keep the lead - no conversion yet
@@ -1128,14 +1133,14 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     
     // Toast is handled by contract-modal.jsx for new format
     if (!isNewFormat) {
-      toast.success("Contract added successfully")
+      haptic.success(); toast.success(t("admin.contract.toast.added"))
     }
   }
 
   const handleSaveEditedContract = (updatedContract) => {
     setContracts(contracts.map((c) => (c.id === updatedContract.id ? updatedContract : c)))
     setIsEditModalOpenContract(false)
-    toast.success("Contract updated successfully")
+    haptic.success(); toast.success(t("admin.contract.toast.updated"))
   }
 
   const handlePauseReasonSubmit = ({ reason, startDate, endDate }) => {
@@ -1148,7 +1153,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     }
     setIsPauseModalOpen(false)
     setSelectedContract(null)
-    toast.success("Contract has been paused")
+    haptic.success(); toast.success("Contract has been paused")
   }
 
   const handleCancelSubmit = ({ reason, cancelDate, cancelToDate, cancellationType, extraordinaryCancellation, cancellationThroughStudio, notificationRule }) => {
@@ -1176,7 +1181,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     }
     setIsCancelModalOpen(false)
     setSelectedContract(null)
-    toast.success("Contract has been cancelled")
+    haptic.success(); toast.success("Contract has been cancelled")
   }
 
   const handleRenewSubmit = (renewalData) => {
@@ -1287,7 +1292,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (isDraft) {
       // Draft: just add the new contract as Pending, don't touch the old contract yet
       setContracts(prev => [...prev, newContract])
-      toast.success("Contract renewal saved as draft")
+      haptic.success(); toast.success("Contract renewal saved as draft")
     } else if (isFutureStart) {
       // Future start: old contract stays as-is (it will end naturally or on its end date)
       // New contract is "Scheduled" - will auto-activate on start date
@@ -1302,7 +1307,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      toast.success(`Contract renewal scheduled for ${new Date(startDate).toLocaleDateString('de-DE')}`)
+      haptic.success(); toast.success(`Contract renewal scheduled for ${new Date(startDate).toLocaleDateString('de-DE')}`)
     } else {
       // Immediate: mark old contract as ended/renewed, new contract is Active
       setContracts(prev => {
@@ -1319,7 +1324,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      toast.success("Contract renewed successfully")
+      haptic.success(); toast.success("Contract renewed successfully")
     }
 
     // Filter to show the member's contracts
@@ -1442,7 +1447,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (isDraft) {
       // Draft: just add the new contract as Pending, don't touch the old contract yet
       setContracts(prev => [...removeDraft(prev), newContract])
-      toast.success("Contract change saved as draft")
+      haptic.success(); toast.success("Contract change saved as draft")
     } else if (isFutureStart) {
       // Future start: old contract stays Active, gets scheduled cancel date
       // New contract is "Scheduled" - will auto-activate on start date
@@ -1458,7 +1463,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      toast.success(`Contract change scheduled for ${new Date(changeData.startDate).toLocaleDateString('de-DE')}`)
+      haptic.success(); toast.success(`Contract change scheduled for ${new Date(changeData.startDate).toLocaleDateString('de-DE')}`)
     } else {
       // Immediate: cancel old contract now, new contract is Active
       setContracts(prev => {
@@ -1475,7 +1480,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      toast.success("Contract changed successfully")
+      haptic.success(); toast.success("Contract changed successfully")
     }
 
     // Filter to show the member's contracts
@@ -1499,7 +1504,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
           {/* Header - matches members.jsx */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Contracts</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("admin.contract.title")}</h1>
               
               {/* Sort Button - Mobile: next to title */}
               <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
@@ -1518,7 +1523,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                 {showMobileSortDropdown && (
                   <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -1754,7 +1759,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                 {showSortDropdown && (
                   <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -1832,13 +1837,13 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   {/* Table Header */}
                   <div className={`grid grid-cols-[auto_1fr_1.2fr_1fr_1fr_1fr_0.8fr_1.2fr_auto] gap-4 px-4 bg-surface-dark text-content-muted font-medium border-b border-border rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
                     <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>Contract</div>
-                    <div>Contract No.</div>
-                    <div>Studio Name</div>
-                    <div>Owner</div>
-                    <div>Contract Type</div>
+                    <div>{t("admin.contract.table.contractNo")}</div>
+                    <div>{t("admin.contract.table.studioName")}</div>
+                    <div>{t("admin.contract.table.owner")}</div>
+                    <div>{t("admin.contract.table.contractType")}</div>
                     <div>Status</div>
-                    <div>Auto Renewal</div>
-                    <div>Contract Duration</div>
+                    <div>{t("admin.contract.table.autoRenewal")}</div>
+                    <div>{t("admin.contract.table.contractDuration")}</div>
                     <div className={`text-right ${isCompactView ? 'w-20' : 'w-24'}`}>Actions</div>
                   </div>
                   {/* Table Body */}
@@ -1943,7 +1948,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                         </div>
                         <div className={`flex items-center justify-end gap-0.5 ${isCompactView ? 'w-20' : 'w-24'}`}>
                           {contract.status === "Pending" ? (
-                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.edit")}>
                               <Pencil size={isCompactView ? 14 : 18} />
                             </button>
                           ) : (
@@ -2320,13 +2325,13 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                         {/* Pending: Edit, empty, empty, empty, Delete */}
                         {contract.status === "Pending" && (
                           <>
-                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.edit")}>
                               <Pencil size={isCompactView ? 14 : 16} />
                             </button>
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                            <button onClick={() => handleDeleteContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Delete">
+                            <button onClick={() => handleDeleteContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.delete")}>
                               <Trash2 size={isCompactView ? 14 : 16} />
                             </button>
                           </>
@@ -2432,7 +2437,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   : c
               ))
               setIsBonusTimeModalOpen(false)
-              toast.success(wasEdit ? "Bonus time updated successfully" : "Bonus time added successfully")
+              haptic.success(); toast.success(wasEdit ? "Bonus time updated successfully" : "Bonus time added successfully")
             }}
             onDelete={() => {
               setContracts(contracts.map(c =>
@@ -2441,7 +2446,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   : c
               ))
               setIsBonusTimeModalOpen(false)
-              toast.success("Bonus time removed")
+              haptic.success(); toast.success(t("admin.contract.toast.bonusRemoved"))
             }}
           />
         )}

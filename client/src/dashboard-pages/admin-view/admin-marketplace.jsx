@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from 'react';
-import toast from 'react-hot-toast';
-import { Toaster } from 'react-hot-toast';
+import toast from "../../components/shared/SharedToast"
 import { FaInfoCircle, FaThumbtack, FaPlus } from 'react-icons/fa';
 import { ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink, Plus } from 'lucide-react';
 
@@ -10,12 +9,16 @@ import DeleteConfirmationModal from '../../components/admin-dashboard-components
 import ProductInfoModal from '../../components/admin-dashboard-components/marketplace-components/ProductInfoModal';
 import { getTranslation, emptyTranslations } from '../../components/admin-dashboard-components/shared/LanguageTabs';
 
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import {
   initialProducts,
 } from "../../utils/admin-panel-states/marketplace-states";
 
 // ─── Admin Product Card ──────────────────────────────────────────────────────
 const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStatus, onInfo }) => {
+  const { t } = useTranslation()
   const productName = getTranslation(product.productName, "en");
 
   return (
@@ -74,7 +77,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
 
         {/* Translation status indicator */}
         <div className="flex items-center gap-1 mt-2">
-          <span className="text-gray-600 text-xs mr-1">Translations:</span>
+          <span className="text-gray-600 text-xs mr-1">{t("admin.marketplace.card.translations")}:</span>
           {["en", "de", "fr", "it", "es"].map((lang) => (
             <span
               key={lang}
@@ -90,7 +93,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
 
         {/* Active/Inactive Toggle */}
         <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700">
-          <span className="text-sm text-gray-300">Status</span>
+          <span className="text-sm text-gray-300">{t("admin.marketplace.card.status")}</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -108,7 +111,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
         {product.link && (
           <a href={product.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm mt-3 truncate">
             <ExternalLink size={14} />
-            <span className="truncate">View Product</span>
+            <span className="truncate">{t("admin.marketplace.card.viewProduct")}</span>
           </a>
         )}
       </div>
@@ -118,6 +121,8 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
 
 // ─── Main Marketplace Component ──────────────────────────────────────────────
 const Marketplace = () => {
+  const { t } = useTranslation()
+
   const [products, setProducts] = useState(initialProducts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -265,6 +270,7 @@ const Marketplace = () => {
   // ─── Modal handlers ─────────────────────────────────────────────────────────
 
   const openAddModal = () => {
+    haptic.light()
     setEditingProduct(null);
     setFormData({
       brandName: '',
@@ -281,6 +287,7 @@ const Marketplace = () => {
   };
 
   const openEditModal = (product) => {
+    haptic.light()
     setEditingProduct(product);
     setFormData({
       brandName: product.brandName,
@@ -301,6 +308,7 @@ const Marketplace = () => {
   };
 
   const openDeleteModal = (product) => {
+    haptic.warning()
     setProductToDelete(product);
     setIsDeleteModalOpen(true);
   };
@@ -321,22 +329,24 @@ const Marketplace = () => {
   };
 
   const togglePinProduct = (productId) => {
+    haptic.light()
     setProducts(products.map(product =>
       product.id === productId ? { ...product, isPinned: !product.isPinned } : product
     ));
     const product = products.find(p => p.id === productId);
     if (product) {
-      toast.success(product.isPinned ? 'Product unpinned' : 'Product pinned!');
+      toast.success(product.isPinned ? t('admin.marketplace.toast.unpinned') : t('admin.marketplace.toast.pinned'));
     }
   };
 
   const toggleProductStatus = (productId) => {
+    haptic.light()
     setProducts(products.map(product =>
       product.id === productId ? { ...product, isActive: !product.isActive } : product
     ));
     const product = products.find(p => p.id === productId);
     if (product) {
-      toast.success(product.isActive ? 'Product deactivated' : 'Product activated!');
+      toast.success(product.isActive ? t('admin.marketplace.toast.deactivated') : t('admin.marketplace.toast.activated'));
     }
   };
 
@@ -386,11 +396,11 @@ const Marketplace = () => {
       setProducts(products.map(product =>
         product.id === editingProduct.id ? { ...productData, id: editingProduct.id } : product
       ));
-      toast.success('Product updated successfully!');
+      toast.success(t('admin.marketplace.toast.updated'));
     } else {
       const newProduct = { ...productData, id: Date.now().toString() };
       setProducts([...products, newProduct]);
-      toast.success('Product added successfully!');
+      toast.success(t('admin.marketplace.toast.added'));
     }
 
     setIsModalOpen(false);
@@ -398,9 +408,10 @@ const Marketplace = () => {
 
   const confirmDelete = () => {
     if (productToDelete) {
+      haptic.success()
       setProducts(products.filter(product => product.id !== productToDelete.id));
       closeDeleteModal();
-      toast.success('Product deleted successfully!');
+      toast.success(t('admin.marketplace.toast.deleted'));
     }
   };
 
@@ -418,7 +429,7 @@ const Marketplace = () => {
       {showSortDropdown && (
         <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
           <div className="py-1">
-            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
             {sortOptions.map((option) => (
               <button
                 key={option.value}
@@ -442,8 +453,7 @@ const Marketplace = () => {
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
-      <div className={`
+<div className={`
         min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1
         transition-all duration-500 ease-in-out flex-1
         
@@ -452,14 +462,14 @@ const Marketplace = () => {
           {/* Header */}
           <div className="flex justify-between items-center w-full mb-6">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Marketplace</h1>
+              <h1 className="text-white oxanium_font text-xl md:text-2xl">{t("admin.marketplace.title")}</h1>
               <div className="sm:hidden"><SortDropdown /></div>
             </div>
 
             <div className="hidden md:flex items-center gap-2">
               <button onClick={openAddModal} className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white px-4 sm:px-6 py-2 cursor-pointer rounded-xl font-medium transition-colors duration-200 flex items-center gap-2 text-sm">
                 <FaPlus size={14} />
-                <span>Add Product</span>
+                <span>{t("admin.marketplace.addProduct")}</span>
               </button>
             </div>
           </div>
@@ -470,7 +480,7 @@ const Marketplace = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                placeholder="Search by name, brand or article number (all languages)..."
+                placeholder={t("admin.marketplace.search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -499,12 +509,13 @@ const Marketplace = () => {
           </div>
 
           {/* Products Display */}
+          <PullToRefresh onRefresh={async () => { haptic.success() }} className="flex-1 overflow-y-auto">
           {products.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg mb-4">No products added yet</p>
+              <p className="text-gray-400 text-lg mb-4">{t("admin.marketplace.empty.noProducts")}</p>
               <button onClick={openAddModal} className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-sm text-white px-6 py-2 rounded-xl flex items-center gap-2 mx-auto">
                 <FaPlus size={14} />
-                <span>Add Product</span>
+                <span>{t("admin.marketplace.addProduct")}</span>
               </button>
             </div>
           ) : filterStatus === 'all' && !searchQuery ? (
@@ -513,7 +524,7 @@ const Marketplace = () => {
                 <div className="mb-8">
                   <button onClick={() => setIsFeaturedCollapsed(!isFeaturedCollapsed)} className="flex items-center gap-2 mb-4 group cursor-pointer">
                     <ChevronDown size={20} className={`text-gray-400 transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} />
-                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">Featured</h2>
+                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">{t("admin.marketplace.sections.featured")}</h2>
                     <span className="text-sm text-gray-400">({featuredProducts.length})</span>
                   </button>
                   {!isFeaturedCollapsed && (
@@ -530,7 +541,7 @@ const Marketplace = () => {
                 <div>
                   <button onClick={() => setIsMoreCollapsed(!isMoreCollapsed)} className="flex items-center gap-2 mb-4 group cursor-pointer">
                     <ChevronDown size={20} className={`text-gray-400 transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} />
-                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">More Products</h2>
+                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">{t("admin.marketplace.sections.moreProducts")}</h2>
                     <span className="text-sm text-gray-400">({allProducts.length})</span>
                   </button>
                   {!isMoreCollapsed && (
@@ -561,6 +572,7 @@ const Marketplace = () => {
               </div>
             )
           )}
+          </PullToRefresh>
         </div>
       </div>
 

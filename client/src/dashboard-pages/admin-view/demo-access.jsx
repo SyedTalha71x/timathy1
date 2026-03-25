@@ -21,11 +21,15 @@ import {
   LogIn,
 } from "lucide-react";
 import { IoIosJournal } from "react-icons/io";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "../../components/shared/SharedToast"
 import DemoWizardModal from "../../components/admin-dashboard-components/demo-access-components/DemoWizardModal";
 import SendEmailModal from "../../components/admin-dashboard-components/demo-access-components/SendEmailModal";
 import JournalModal from "../../components/admin-dashboard-components/demo-access-components/JournalModal";
 
+import { useTranslation } from "react-i18next"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import {
   demoAccessAccounts,
   demoTemplates,
@@ -193,6 +197,7 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
 // Main Page
 // ============================================
 export default function DemoCreationPage() {
+  const { t } = useTranslation()
   // All demos — normalized to always have config
   const [demos, setDemos] = useState(() => demoAccessAccounts.map(ensureConfig));
 
@@ -370,7 +375,7 @@ export default function DemoCreationPage() {
     setDemos((prev) => [newDemo, ...prev]);
     setLastCreatedDemo(newDemo);
     setIsWizardOpen(false);
-    toast.success("Access created successfully!");
+    haptic.success(); toast.success("Access created successfully!");
     setEmailModalMode("create");
     setTimeout(() => setIsEmailModalOpen(true), 100);
   };
@@ -412,7 +417,7 @@ export default function DemoCreationPage() {
     );
     setEditingDemo(null);
     setIsWizardOpen(false);
-    toast.success("Access updated successfully!");
+    haptic.success(); toast.success("Access updated successfully!");
   };
 
   // =============================================
@@ -439,7 +444,7 @@ export default function DemoCreationPage() {
           };
         })
       );
-      toast.success("Access deactivated!");
+      haptic.success(); toast.success("Access deactivated!");
     } else {
       setReactivateDemoId(demoId);
       setReactivateDays(demo.config?.demoDuration || 7);
@@ -469,7 +474,7 @@ export default function DemoCreationPage() {
     );
     setIsReactivateModalOpen(false);
     setReactivateDemoId(null);
-    toast.success("Access reactivated!");
+    haptic.success(); toast.success("Access reactivated!");
   };
 
   // =============================================
@@ -493,10 +498,10 @@ export default function DemoCreationPage() {
           }
         )
       );
-      toast.success("Access email sent!");
+      haptic.success(); toast.success("Access email sent!");
     } else {
       if (emailModalMode === "create") {
-        toast.success("Access created without email");
+        haptic.success(); toast.success("Access created without email");
       }
     }
     setIsEmailModalOpen(false);
@@ -531,7 +536,7 @@ export default function DemoCreationPage() {
     setDemos((prev) => prev.filter((d) => d.id !== demoToDelete.id));
     setIsDeleteModalOpen(false);
     setDemoToDelete(null);
-    toast.success("Access deleted successfully!");
+    haptic.success(); toast.success("Access deleted successfully!");
   };
 
   // =============================================
@@ -542,12 +547,10 @@ export default function DemoCreationPage() {
 
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 md:p-6 transition-all duration-500 ease-in-out flex-1">
-      <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
-
-      {/* ======== HEADER ======== */}
+{/* ======== HEADER ======== */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-white oxanium_font text-xl md:text-2xl">Demo Access</h1>
+          <h1 className="text-white oxanium_font text-xl md:text-2xl">{t("admin.demoAccess.title")}</h1>
 
           {/* Sort button (mobile) */}
           <div className="lg:hidden relative" ref={sortDropdownRef}>
@@ -664,11 +667,14 @@ export default function DemoCreationPage() {
           </p>
         </div>
       ) : (
+
+        <PullToRefresh onRefresh={async () => { haptic.success() }} className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-20 md:pb-4">
           {filteredDemos.map((demo) => (
             <DemoCard key={demo.id} demo={demo} onViewJournal={handleViewJournal} onEdit={handleEditDemo} onResendEmail={handleResendEmail} onToggleStatus={handleToggleDemoStatus} onDelete={handleDeleteDemo} />
           ))}
         </div>
+        </PullToRefresh>
       )}
 
       {/* ======== FAB (Mobile) ======== */}

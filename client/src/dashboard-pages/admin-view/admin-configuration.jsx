@@ -42,7 +42,7 @@ import {
   Clock,
 } from "lucide-react"
 import { RiContractLine } from "react-icons/ri"
-import { Modal, notification, ColorPicker } from "antd"
+import { Modal, ColorPicker } from "antd"
 import dayjs from "dayjs"
 
 
@@ -53,6 +53,11 @@ import CreateContractFormModal from "../../components/studio-components/configur
 import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
 import LanguageTabs, { emptyTranslations } from "../../components/admin-dashboard-components/shared/LanguageTabs"
 
+import { useTranslation } from "react-i18next"
+import DatePickerField from "../../components/shared/DatePickerField"
+import toast from "../../components/shared/SharedToast"
+import { haptic } from "../../utils/haptic"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 // Import configuration defaults from admin-panel-states (Single Source of Truth)
 import {
   DEFAULT_COMMUNICATION_SETTINGS,
@@ -362,6 +367,7 @@ const ConfigurationPage = () => {
 
   // Navigation State
   const [activeCategory, setActiveCategory] = useState("account")
+  const { t } = useTranslation()
   const [activeSection, setActiveSection] = useState("accounts")
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileShowContent, setMobileShowContent] = useState(false)
@@ -524,6 +530,8 @@ const ConfigurationPage = () => {
   }
 
   const toggleCategory = (categoryId) => {
+    haptic.light()
+
     setExpandedCategories(prev =>
       prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
     )
@@ -610,16 +618,16 @@ const ConfigurationPage = () => {
       const url = URL.createObjectURL(file)
       setLogoUrl(url)
       setLogo([file])
-      notification.success({ message: "Logo uploaded successfully" })
+      toast.success("Logo uploaded successfully")
     }
   }
 
   const handleChangePassword = (accountId) => {
     if (!isPasswordFormValid()) {
-      notification.error({ message: "Please fill in all password fields correctly" })
+      toast.error("Please fill in all password fields correctly")
       return
     }
-    notification.success({ message: "Password changed successfully" })
+    toast.success("Password changed successfully")
     setNewPassword("")
     setConfirmPassword("")
     setChangingPasswordId(null)
@@ -628,8 +636,10 @@ const ConfigurationPage = () => {
   }
 
   const handleAddAccount = () => {
+    haptic.light()
+
     if (!newAccount.firstName.trim() || !newAccount.email.trim()) {
-      notification.error({ message: "Please fill in name and email" })
+      toast.error("Please fill in name and email")
       return
     }
     setAccounts([...accounts, {
@@ -643,7 +653,7 @@ const ConfigurationPage = () => {
     }])
     setNewAccount({ firstName: "", lastName: "", email: "", password: "" })
     setAddingAccount(false)
-    notification.success({ message: "Account created successfully" })
+    toast.success("Account created successfully")
   }
 
   const handleUpdateAccount = (id, field, value) => {
@@ -651,9 +661,11 @@ const ConfigurationPage = () => {
   }
 
   const handleRemoveAccount = (id) => {
+    haptic.warning()
+
     const account = accounts.find(a => a.id === id)
     if (account?.isPrimary) {
-      notification.error({ message: "Primary admin account cannot be removed" })
+      toast.error("Primary admin account cannot be removed")
       return
     }
     Modal.confirm({
@@ -664,12 +676,14 @@ const ConfigurationPage = () => {
       onOk: () => {
         setAccounts(accounts.filter(a => a.id !== id))
         if (editingAccountId === id) setEditingAccountId(null)
-        notification.success({ message: "Account removed" })
+        toast.success("Account removed")
       },
     })
   }
 
   const handleAddContractType = () => {
+    haptic.light()
+
     setEditingContractType({
       id: Date.now(),
       name: "",
@@ -695,24 +709,26 @@ const ConfigurationPage = () => {
   }
 
   const handleSaveContractType = () => {
+    haptic.success()
+
     if (!editingContractType.name.trim()) {
-      notification.error({ message: "Please enter a contract name" })
+      toast.error("Please enter a contract name")
       return
     }
     if (!editingContractType.duration || editingContractType.duration < 1) {
-      notification.error({ message: "Please enter a valid duration" })
+      toast.error("Please enter a valid duration")
       return
     }
     if (!editingContractType.billingPeriod) {
-      notification.error({ message: "Please select a billing period" })
+      toast.error("Please select a billing period")
       return
     }
     if (contractForms.length === 0) {
-      notification.error({ message: "Please create a contract form first" })
+      toast.error("Please create a contract form first")
       return
     }
     if (!editingContractType.contractFormId) {
-      notification.error({ message: "Please select a contract form" })
+      toast.error("Please select a contract form")
       return
     }
     
@@ -720,10 +736,10 @@ const ConfigurationPage = () => {
       const updated = [...contractTypes]
       updated[editingContractTypeIndex] = editingContractType
       setContractTypes(updated)
-      notification.success({ message: "Contract type updated" })
+      toast.success("Contract type updated")
     } else {
       setContractTypes([...contractTypes, editingContractType])
-      notification.success({ message: "Contract type created" })
+      toast.success("Contract type created")
     }
     
     setContractTypeModalVisible(false)
@@ -732,6 +748,8 @@ const ConfigurationPage = () => {
   }
 
   const handleDeleteContractType = (index) => {
+    haptic.warning()
+
     const type = contractTypes[index]
     Modal.confirm({
       title: "Delete Contract Type",
@@ -740,16 +758,20 @@ const ConfigurationPage = () => {
       okType: "danger",
       onOk: () => {
         setContractTypes(contractTypes.filter((_, i) => i !== index))
-        notification.success({ message: "Contract type deleted" })
+        toast.success("Contract type deleted")
       }
     })
   }
 
   const handleAddPauseReason = () => {
+    haptic.light()
+
     setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
   }
 
   const handleRemovePauseReason = (index) => {
+    haptic.warning()
+
     const reason = contractPauseReasons[index]
     Modal.confirm({
       title: "Delete Pause Reason",
@@ -758,14 +780,16 @@ const ConfigurationPage = () => {
       okType: "danger",
       onOk: () => {
         setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
-        notification.success({ message: "Pause reason deleted" })
+        toast.success("Pause reason deleted")
       }
     })
   }
 
   const handleCreateContractForm = () => {
+    haptic.light()
+
     if (!newContractFormName.trim()) {
-      notification.error({ message: "Please enter a name" })
+      toast.error("Please enter a name")
       return
     }
     const newForm = {
@@ -779,10 +803,12 @@ const ConfigurationPage = () => {
     setNewContractFormName("")
     setShowCreateFormModal(false)
     setContractBuilderModalVisible(true)
-    notification.success({ message: "Contract form created" })
+    toast.success("Contract form created")
   }
 
   const handleAddLeadSource = () => {
+    haptic.light()
+
     setLeadSources([
       ...leadSources,
       {
@@ -791,10 +817,12 @@ const ConfigurationPage = () => {
         color: "#3B82F6",
       },
     ])
-    notification.success({ message: "Lead source added" })
+    toast.success("Lead source added")
   }
 
   const handleRemoveLeadSource = (id) => {
+    haptic.warning()
+
     const source = leadSources.find(s => s.id === id)
     Modal.confirm({
       title: "Delete Lead Source",
@@ -803,7 +831,7 @@ const ConfigurationPage = () => {
       okType: "danger",
       onOk: () => {
         setLeadSources(leadSources.filter(s => s.id !== id))
-        notification.success({ message: "Lead source deleted" })
+        toast.success("Lead source deleted")
       }
     })
   }
@@ -814,28 +842,24 @@ const ConfigurationPage = () => {
 
   const testEmailConnection = () => {
     if (!smtpConfig.smtpServer || !smtpConfig.smtpUser) {
-      notification.error({ message: "Please fill in SMTP server and username" })
+      toast.error("Please fill in SMTP server and username")
       return
     }
-    notification.loading({ message: "Testing connection...", key: "smtp-test" })
+    toast.info("Testing connection...")
     setTimeout(() => {
-      notification.success({ 
-        message: "Connection successful!", 
-        description: `Connected to ${smtpConfig.smtpServer}:${smtpConfig.smtpPort}`,
-        key: "smtp-test"
-      })
+      toast.success(`Connection successful! Connected to ${smtpConfig.smtpServer}:${smtpConfig.smtpPort}`)
     }, 1500)
   }
 
   const addChangelogEntry = () => {
     const hasContent = Object.values(newChangelog.content).some(v => v?.trim())
     if (!newChangelog.version || !newChangelog.date || !hasContent) {
-      notification.warning({ message: "Please fill in version, date, and content in at least one language" })
+      toast.error("Please fill in version, date, and content in at least one language")
       return
     }
     setChangelog([{ ...newChangelog, content: { ...newChangelog.content }, id: Date.now() }, ...changelog])
     setNewChangelog({ version: "", date: "", color: newChangelog.color, content: { en: "", de: "", fr: "", it: "", es: "" } })
-    notification.success({ message: "Changelog entry added" })
+    toast.success("Changelog entry added")
   }
 
   const removeChangelogEntry = (index) => {
@@ -847,7 +871,7 @@ const ConfigurationPage = () => {
       okType: "danger",
       onOk: () => {
         setChangelog(changelog.filter((_, i) => i !== index))
-        notification.success({ message: "Changelog entry deleted" })
+        toast.success("Changelog entry deleted")
       }
     })
   }
@@ -856,6 +880,8 @@ const ConfigurationPage = () => {
   // Access Template Handlers
   // ============================================
   const handleAddDemoTemplate = () => {
+    haptic.light()
+
     const newTemplate = {
       id: Date.now(),
       name: "",
@@ -888,6 +914,8 @@ const ConfigurationPage = () => {
   }
 
   const handleRemoveDemoTemplate = (id) => {
+    haptic.warning()
+
     Modal.confirm({
       title: "Remove Template",
       content: "Are you sure you want to remove this template? This cannot be undone.",
@@ -910,7 +938,7 @@ const ConfigurationPage = () => {
     }
     setDemoTemplates([...demoTemplates, duplicate])
     setEditingTemplate(duplicate.id)
-    notification.success({ message: "Template duplicated" })
+    toast.success("Template duplicated")
   }
 
   // ============================================
@@ -1580,7 +1608,7 @@ const ConfigurationPage = () => {
                                   okType: "danger",
                                   onOk: () => {
                                     setContractForms(contractForms.filter(f => f.id !== form.id))
-                                    notification.success({ message: "Contract form deleted" })
+                                    toast.success("Contract form deleted")
                                   }
                                 })
                               }}
@@ -1899,7 +1927,7 @@ const ConfigurationPage = () => {
                         if (sig) {
                           setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: (demoEmail.content?.[demoEmailLang] || "") + sig } })
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured")
                         }
                       }}
                       className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
@@ -1976,7 +2004,7 @@ const ConfigurationPage = () => {
                         if (sig) {
                           setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: (registrationEmail.content?.[registrationEmailLang] || "") + sig } })
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error("No email signature configured")
                         }
                       }}
                       className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
@@ -2539,7 +2567,7 @@ const ConfigurationPage = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search settings..."
+              placeholder={t("admin.configuration.search.placeholder")}
               className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
             />
             {searchQuery && (
@@ -2615,10 +2643,13 @@ const ConfigurationPage = () => {
       </div>
 
       {/* Mobile Navigation List - fixed fullscreen below dashboard header */}
-      <div className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-[#1C1C1C] z-20 ${mobileShowContent ? 'hidden' : 'flex'}`}>
+      <div
+        className={`lg:hidden fixed inset-x-0 bottom-0 flex flex-col bg-[#1C1C1C] z-20 ${mobileShowContent ? 'hidden' : 'flex'}`}
+        style={{ top: "calc(3.5rem + env(safe-area-inset-top, 0px))" }}
+      >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
-          <h1 className="text-xl font-bold">Configuration</h1>
+          <h1 className="text-xl font-bold">{t("admin.configuration.title")}</h1>
         </div>
 
         {/* Mobile Search */}
@@ -2629,7 +2660,7 @@ const ConfigurationPage = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search settings..."
+              placeholder={t("admin.configuration.search.placeholder")}
               className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
             />
             {searchQuery && (
@@ -2697,7 +2728,10 @@ const ConfigurationPage = () => {
 
       {/* Mobile Content View - fixed fullscreen below dashboard header */}
       {mobileShowContent && (
-        <div className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-[#1C1C1C] z-30">
+        <div
+          className="lg:hidden fixed inset-x-0 bottom-0 flex flex-col bg-[#1C1C1C] z-30"
+          style={{ top: "calc(3.5rem + env(safe-area-inset-top, 0px))" }}
+        >
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
             <button
@@ -2731,12 +2765,13 @@ const ConfigurationPage = () => {
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
         {/* Desktop Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#333333] flex-shrink-0">
-          <h1 className="text-2xl font-bold">Configuration</h1>
+          <h1 className="text-2xl font-bold">{t("admin.configuration.title")}</h1>
         </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
           {renderSectionContent()}
+          <KeyboardSpacer />
         </div>
       </div>
 
