@@ -2,73 +2,22 @@
 import React, { useState, useRef, useEffect } from "react"
 import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Paperclip, Tag, Pin, PinOff, ArrowRightLeft, Info } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import DeleteConfirmModal from "../../components/shared/notes/DeleteConfirmModal"
 import TagManagerModal from "../../components/shared/TagManagerModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
-import { trainingVideosData } from "../../utils/studio-states/training-states"
 import toast from "../../components/shared/SharedToast"
 import { useDispatch, useSelector } from "react-redux"
 import { getTagsThunk } from "../../features/todos/todosSlice"
 import { createPersonalNotesThunk, createStudioNotesThunk, deleteNoteThunk, getPersonalNotesThunk, getStudioNotesThunk, updateNoteThunk } from "../../features/notes/noteSlice"
 
-// Available tags
-const AVAILABLE_TAGS = [
-  { id: 'urgent', name: 'Urgent', color: '#ef4444' },
-  { id: 'meeting', name: 'Meeting', color: '#3b82f6' },
-  { id: 'ideas', name: 'Ideas', color: '#8b5cf6' },
-  { id: 'todo', name: 'Todo', color: '#f59e0b' },
-  { id: 'training', name: 'Training', color: '#10b981' },
-  { id: 'member', name: 'Member', color: '#ec4899' },
-]
-
-// Demo notes with tags and dates before 2026
-const DEMO_NOTES = {
-  personal: [
-    {
-      id: 1,
-      title: "Quarterly Review Meeting Notes",
-      content: "<p>Discussed Q4 goals and performance metrics. Team showed 15% improvement in customer satisfaction.</p><p><strong>Action items:</strong></p><ul><li>Reduce response time in support tickets</li><li>Schedule follow-up meeting</li></ul>",
-      tags: ['meeting', 'urgent'],
-      attachments: [],
-      isPinned: true,
-      createdAt: "2025-12-15T10:30:00",
-      updatedAt: "2025-12-20T14:45:00"
-    },
-    {
-      id: 2,
-      title: "New Member Orientation Checklist",
-      content: "<ol><li>Welcome package preparation</li><li>Training schedule setup</li><li>Facility tour arrangement</li><li>Equipment assignment</li><li>Introduction to team members</li></ol>",
-      tags: ['member', 'todo'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-12-10T09:15:00",
-      updatedAt: "2025-12-10T09:15:00"
-    },
-  ],
-  studio: [
-    {
-      id: 3,
-      title: "Equipment Maintenance Schedule",
-      content: "<h3>Weekly Maintenance</h3><ul><li>Check treadmill belts</li><li>Clean all surfaces</li><li>Test emergency stop buttons</li></ul><h3>Monthly Maintenance</h3><ul><li>Deep clean all equipment</li><li>Inspect cables and pulleys</li><li>Update maintenance log</li></ul>",
-      tags: ['training'],
-      attachments: [],
-      isPinned: true,
-      createdAt: "2025-12-01T08:00:00",
-      updatedAt: "2025-12-18T16:30:00"
-    },
-  ],
-}
-
-// Helper function to strip HTML tags for preview
 // Helper function to strip HTML tags and normalize whitespace for preview
 const stripHtmlTags = (html) => {
   if (!html) return ''
   const tmp = document.createElement('div')
   tmp.innerHTML = html
-  // Get text content and normalize whitespace (replace multiple spaces/newlines with single space)
   const text = tmp.textContent || tmp.innerText || ''
   return text.replace(/\s+/g, ' ').trim()
 }
@@ -92,7 +41,7 @@ const NoteOverlayItem = ({ note, availableTags }) => {
           {note.tags && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {note.tags.slice(0, 3).map(tagId => {
-                const tag = availableTags.find(t => t.id === tagId)
+                const tag = availableTags.find(t => t._id === tagId)
                 return tag ? (
                   <span key={tagId} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>{tag.name}</span>
                 ) : null
@@ -105,7 +54,7 @@ const NoteOverlayItem = ({ note, availableTags }) => {
   )
 }
 
-const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags, onPin }) => {
+const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags, onPin, isPinning }) => {
   const {
     attributes,
     listeners,
@@ -113,7 +62,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags,
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: note.id })
+  } = useSortable({ id: note._id })
 
   const style = {
     transform: transform ? `translate3d(0, ${transform.y}px, 0)` : undefined,
@@ -123,6 +72,19 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags,
 
   const stripText = stripHtmlTags(note.content)
 
+  const handleNoteClick = (e) => {
+    // Don't trigger if clicking on the drag handle or pin button
+    if (e.target.closest('[data-drag-handle]') || e.target.closest('[data-pin-button]')) {
+      return;
+    }
+    onClick(note);
+  };
+
+  const handlePinClick = (e) => {
+    e.stopPropagation();
+    onPin(note._id);
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -131,28 +93,41 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags,
         ? 'bg-surface-hover/80'
         : 'hover:bg-surface-hover/50 active:bg-surface-hover/70'
         } ${isDragging ? 'pointer-events-none' : ''}`}
-      onClick={onClick}
+      onClick={handleNoteClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
-        {/* Drag Handle - larger on mobile, instant feedback */}
+        {/* Drag Handle */}
         <div
           {...attributes}
           {...listeners}
+          data-drag-handle
           className="cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-primary mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-primary/30"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
         </div>
 
-        {/* Note Content - constrained width */}
+        {/* Note Content */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h4 className={`text-sm font-medium truncate ${note.title ? 'text-content-primary' : 'text-content-faint italic'}`}>
               {note.title || 'Untitled'}
             </h4>
-            {note.isPinned && (
-              <Pin size={12} className="text-primary fill-primary flex-shrink-0 mt-0.5" />
-            )}
+            <button
+              data-pin-button
+              onClick={handlePinClick}
+              disabled={isPinning}
+              className="flex-shrink-0 p-1 rounded hover:bg-surface-hover transition-colors disabled:opacity-50"
+              title={note.isPinned ? 'Unpin' : 'Pin'}
+            >
+              {isPinning ? (
+                <div className="animate-spin rounded-full h-3 w-3 border-2 border-primary border-t-transparent" />
+              ) : note.isPinned ? (
+                <Pin size={12} className="text-primary fill-primary" />
+              ) : (
+                <PinOff size={12} className="text-content-muted" />
+              )}
+            </button>
           </div>
 
           <p
@@ -172,7 +147,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags,
           {note.tags && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {note.tags.slice(0, 4).map(tagId => {
-                const tag = availableTags.find(t => t.id === tagId)
+                const tag = availableTags.find(t => t._id === tagId);
                 return tag ? (
                   <span
                     key={tagId}
@@ -214,6 +189,7 @@ export default function NotesApp() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [pinningNoteId, setPinningNoteId] = useState(null);
 
   // Editing state
   const [editedTitle, setEditedTitle] = useState("");
@@ -229,12 +205,6 @@ export default function NotesApp() {
   // Image source modal states
   const [showImageSourceModal, setShowImageSourceModal] = useState(false);
   const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false);
-
-  // Combine notes based on active tab
-  const notes = {
-    studio: Array.isArray(studioNotes) ? studioNotes : [],
-    personal: Array.isArray(personalNotes) ? personalNotes : [],
-  };
 
   // Refs
   const sortDropdownRef = useRef(null);
@@ -261,7 +231,6 @@ export default function NotesApp() {
   );
 
   const [activeId, setActiveId] = useState(null);
-
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -291,11 +260,20 @@ export default function NotesApp() {
 
   // Helper: select a note and set editing state
   const selectNote = (note) => {
-    if (note && (!selectedNote || selectedNote._id !== note._id)) {
+    if (!note) {
+      setSelectedNote(null);
+      return;
+    }
+
+    // Only update if it's a different note
+    if (!selectedNote || selectedNote._id !== note._id) {
+      console.log('Selecting note:', note._id, 'Title:', note.title);
+
       setEditedTitle(note.title || '');
       setEditedContent(note.content || '');
       setEditedTags(note.tags || []);
-      const attachments = (note.attachments || []).map(att => ({
+
+      const attachments = (note.attachment || []).map(att => ({
         name: att.name,
         url: att.url,
         public_id: att.public_id,
@@ -307,13 +285,13 @@ export default function NotesApp() {
       setShowAllTags(false);
       loadedNoteIdRef.current = note._id;
     }
+
     setSelectedNote(note);
   };
 
   // Cleanup editing state when note is closed
   useEffect(() => {
     if (!selectedNote) {
-      // Clear any pending auto-save timeout
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
@@ -327,7 +305,6 @@ export default function NotesApp() {
       setShowAllTags(false);
       loadedNoteIdRef.current = null;
 
-      // Save any pending changes before closing
       if (pendingSaveRef.current && pendingSaveRef.current.noteId) {
         const { noteId, updateData } = pendingSaveRef.current;
         dispatch(updateNoteThunk({ noteId, updateData }))
@@ -344,18 +321,16 @@ export default function NotesApp() {
   useEffect(() => {
     if (!selectedNote || !selectedNote._id) return;
 
-    // Check for actual changes
     const hasTitleChange = editedTitle !== (selectedNote.title || '');
     const hasContentChange = editedContent !== (selectedNote.content || '');
     const hasTagsChange = JSON.stringify(editedTags) !== JSON.stringify(selectedNote.tags || []);
 
-    // Check attachments change (compare URLs and names)
     const currentAttachments = editedAttachments.map(a => ({
       name: a.name,
       url: a.url,
       public_id: a.public_id
     }));
-    const originalAttachments = (selectedNote.attachments || []).map(a => ({
+    const originalAttachments = (selectedNote.attachment || []).map(a => ({
       name: a.name,
       url: a.url,
       public_id: a.public_id
@@ -366,51 +341,43 @@ export default function NotesApp() {
       return;
     }
 
-    // Clear previous timeout
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Debounce save
     autoSaveTimeoutRef.current = setTimeout(async () => {
       setIsAutoSaving(true);
 
       try {
-        // Prepare update data
         const updateData = {};
 
         if (hasTitleChange) updateData.title = editedTitle;
         if (hasContentChange) updateData.content = editedContent;
         if (hasTagsChange) updateData.tagsId = editedTags;
 
-        // Handle attachments - send the full attachments array
         if (hasAttachmentsChange) {
           const attachmentsToSave = editedAttachments.map(att => ({
             name: att.name,
             url: att.url,
             public_id: att.public_id
           }));
-          updateData.attachments = attachmentsToSave;
+          updateData.attachment = attachmentsToSave;
         }
 
-        // Dispatch update thunk
-        const result = await dispatch(updateNoteThunk({
+        await dispatch(updateNoteThunk({
           noteId: selectedNote._id,
           updateData
         })).unwrap();
 
-        console.log('Auto-save successful:', result);
-
       } catch (error) {
         console.error("Auto-save failed:", error);
-        // Don't show toast for 304 errors
         if (error.message !== 'Request failed with status code 304') {
           toast.error("Failed to auto-save note");
         }
       } finally {
         setIsAutoSaving(false);
       }
-    }, 1000); // 1 second debounce
+    }, 1000);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
@@ -420,43 +387,29 @@ export default function NotesApp() {
   }, [selectedNote, editedTitle, editedContent, editedTags, editedAttachments, dispatch]);
 
   // Create new note
-
-
   const handleCreateNote = async () => {
     const newNote = {
       title: 'untitled',
       content: '',
       tags: [],
-      attachments: [],
+      attachment: [],
       isPinned: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
     try {
       let result;
       if (activeTab === 'studio') {
-        // Create the note
         result = await dispatch(createStudioNotesThunk(newNote)).unwrap();
-        console.log('Created studio note:', result);
-
-        // Refresh the list to get the latest data
         await dispatch(getStudioNotesThunk());
       } else {
-        // Create the note
         result = await dispatch(createPersonalNotesThunk(newNote)).unwrap();
-        console.log('Created personal note:', result);
-
-        // Refresh the list to get the latest data
         await dispatch(getPersonalNotesThunk());
       }
 
-      // After refreshing, select the note using the result from the API
       if (result && result._id) {
         selectNote(result);
         toast.success("Note created");
 
-        // Focus title input after render
         setTimeout(() => {
           const titleInputs = document.querySelectorAll('[data-title-input]');
           const visibleInput = Array.from(titleInputs).find(input => {
@@ -465,7 +418,6 @@ export default function NotesApp() {
           });
           if (visibleInput) {
             visibleInput.focus();
-            visibleInput.setSelectionRange(0, 0);
           }
         }, 100);
       } else {
@@ -486,6 +438,14 @@ export default function NotesApp() {
       if (selectedNote?._id === noteId) {
         setSelectedNote(null);
       }
+
+      // Refresh the notes list
+      if (activeTab === 'studio') {
+        await dispatch(getStudioNotesThunk());
+      } else {
+        await dispatch(getPersonalNotesThunk());
+      }
+
       toast.success("Note deleted");
     } catch (error) {
       toast.error("Failed to delete note");
@@ -501,18 +461,18 @@ export default function NotesApp() {
       title: `${selectedNote.title} (Copy)`,
       content: selectedNote.content,
       tags: selectedNote.tags || [],
-      attachments: selectedNote.attachments || [],
+      attachment: selectedNote.attachment || [],
       isPinned: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
     try {
       let result;
       if (activeTab === 'studio') {
         result = await dispatch(createStudioNotesThunk(duplicated)).unwrap();
+        await dispatch(getStudioNotesThunk());
       } else {
         result = await dispatch(createPersonalNotesThunk(duplicated)).unwrap();
+        await dispatch(getPersonalNotesThunk());
       }
 
       const isMobile = window.innerWidth < 768;
@@ -528,24 +488,53 @@ export default function NotesApp() {
     }
   };
 
-  // Toggle pin
+  // Toggle pin - FIXED
   const togglePin = async (noteId) => {
-    const note = notes[activeTab].find(n => n._id === noteId);
-    if (!note) return;
+    // Get the note from current tab's notes
+    const currentNotesList = activeTab === 'studio' ? studioNotes : personalNotes;
+    const note = currentNotesList.find(n => n._id === noteId);
+
+    if (!note) {
+      console.error('Note not found:', noteId);
+      return;
+    }
+
+    setPinningNoteId(noteId);
 
     try {
+      // Optimistically update the selected note if it's the current one
+      if (selectedNote?._id === noteId) {
+        setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }));
+      }
+
       await dispatch(updateNoteThunk({
         noteId,
         updateData: { isPinned: !note.isPinned }
       })).unwrap();
 
-      if (selectedNote?._id === noteId) {
-        setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }));
+      // Refresh the notes list to ensure consistency
+      if (activeTab === 'studio') {
+        await dispatch(getStudioNotesThunk());
+      } else {
+        await dispatch(getPersonalNotesThunk());
       }
+
       toast.success(note.isPinned ? "Note unpinned" : "Note pinned");
     } catch (error) {
-      toast.error("Failed to update pin status");
       console.error("Toggle pin error:", error);
+
+      // Revert the optimistic update on error
+      if (selectedNote?._id === noteId) {
+        setSelectedNote(prev => ({ ...prev, isPinned: note.isPinned }));
+      }
+
+      if (error.message === 'Request failed with status code 304') {
+        toast.info("Note already up to date");
+      } else {
+        toast.error("Failed to update pin status");
+      }
+    } finally {
+      setPinningNoteId(null);
     }
   };
 
@@ -556,25 +545,26 @@ export default function NotesApp() {
     const targetTab = activeTab === 'personal' ? 'studio' : 'personal';
 
     try {
-      // First, delete from current tab
       await dispatch(deleteNoteThunk(selectedNote._id)).unwrap();
 
-      // Then create in target tab with same data
       const noteToMove = {
         title: selectedNote.title,
         content: selectedNote.content,
         tags: selectedNote.tags || [],
-        attachments: selectedNote.attachments || [],
+        attachment: selectedNote.attachment || [],
         isPinned: selectedNote.isPinned,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       };
 
       if (targetTab === 'studio') {
         await dispatch(createStudioNotesThunk(noteToMove)).unwrap();
+        await dispatch(getStudioNotesThunk());
       } else {
         await dispatch(createPersonalNotesThunk(noteToMove)).unwrap();
+        await dispatch(getPersonalNotesThunk());
       }
+
+      await dispatch(getPersonalNotesThunk());
+      await dispatch(getStudioNotesThunk());
 
       setActiveTab(targetTab);
       setSelectedNote(null);
@@ -597,6 +587,7 @@ export default function NotesApp() {
     }));
 
     setEditedAttachments(prev => [...prev, ...newAttachments]);
+    setHasUnsavedChanges(true);
   };
 
   // Handle media library selection
@@ -638,36 +629,18 @@ export default function NotesApp() {
     if (!over || active.id === over.id) return;
 
     setSortBy('custom');
-
-    const oldIndex = notes[activeTab].findIndex(note => note._id === active.id);
-    const newIndex = notes[activeTab].findIndex(note => note._id === over.id);
-
-    // Note: You'll need to implement order persistence if needed
-    // For now, we're just reordering locally
-    // The order will reset on refresh unless you save it to backend
-
-    // If you want to persist order, you'd need to add an 'order' field
-    // and update all notes' order in the backend
+    // Note: Order persistence would require backend support
   };
 
   // Get current notes (filtered, sorted)
   const getCurrentNotes = () => {
-    // Safety check: ensure notes[activeTab] exists and is an array
-    const notesArray = notes[activeTab];
+    let currentNotes = [];
 
-    // Debug logging
-    console.log('activeTab:', activeTab);
-    console.log('notes object:', notes);
-    console.log('notes[activeTab]:', notesArray);
-    console.log('Is array?', Array.isArray(notesArray));
-
-    // If notes[activeTab] is undefined or not an array, return empty array
-    if (!notesArray || !Array.isArray(notesArray)) {
-      console.warn(`notes[${activeTab}] is not an array:`, notesArray);
-      return [];
+    if (activeTab === "studio") {
+      currentNotes = [...(Array.isArray(studioNotes) ? studioNotes : [])];
+    } else {
+      currentNotes = [...(Array.isArray(personalNotes) ? personalNotes : [])];
     }
-
-    let currentNotes = [...notesArray]; // Create a copy
 
     // Filter by search
     if (searchQuery && searchQuery.trim()) {
@@ -681,10 +654,8 @@ export default function NotesApp() {
 
     // Sort
     currentNotes.sort((a, b) => {
-      // Handle null/undefined notes
       if (!a || !b) return 0;
 
-      // Pinned notes always first
       if (a.isPinned !== b.isPinned) {
         return a.isPinned ? -1 : 1;
       }
@@ -712,7 +683,8 @@ export default function NotesApp() {
   };
 
   const currentNotes = getCurrentNotes();
-  const noteIds = Array.isArray(currentNotes) ? currentNotes.map(note => note?._id).filter(id => id) : [];
+  const noteIds = currentNotes.map(note => note?._id).filter(id => id);
+
   // Sort options
   const sortOptions = [
     { value: 'date', label: 'Date' },
@@ -808,10 +780,9 @@ export default function NotesApp() {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [deleteConfirm, selectedNote, showTagsModal, showImageSourceModal, showMediaLibraryModal]);
 
-  // Handle delete tag (you'll need to implement this based on your backend)
   const handleDeleteTag = (tagId) => {
-    // Implementation depends on your tag deletion logic
-    console.log("Delete tag:", tagId);
+    // dispatch()
+    // Implement tag deletion logic here
   };
 
   return (
@@ -821,7 +792,6 @@ export default function NotesApp() {
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
             <h1 className="text-xl md:text-2xl font-bold text-content-primary">Notes</h1>
-            {/* Combined Info Tooltip */}
             <div className="relative" ref={studioTooltipRef}>
               <button
                 onClick={(e) => {
@@ -1065,6 +1035,7 @@ export default function NotesApp() {
                         onClick={() => selectNote(note)}
                         availableTags={tags}
                         onPin={togglePin}
+                        isPinning={pinningNoteId === note._id}
                       />
                     ))}
                   </SortableContext>
@@ -1111,11 +1082,18 @@ export default function NotesApp() {
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => togglePin(selectedNote._id)}
-                        className={`p-2 rounded-lg hover:bg-surface-hover transition-colors ${selectedNote.isPinned ? 'text-primary' : 'text-content-muted hover:text-content-primary'
+                        disabled={pinningNoteId === selectedNote._id}
+                        className={`p-2 rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50 ${selectedNote.isPinned ? 'text-primary' : 'text-content-muted hover:text-content-primary'
                           }`}
                         title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
                       >
-                        {selectedNote.isPinned ? <Pin size={18} className="fill-current" /> : <PinOff size={18} />}
+                        {pinningNoteId === selectedNote._id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                        ) : selectedNote.isPinned ? (
+                          <Pin size={18} className="fill-current" />
+                        ) : (
+                          <PinOff size={18} />
+                        )}
                       </button>
                       <button
                         onClick={duplicateNote}
@@ -1370,10 +1348,15 @@ export default function NotesApp() {
               {selectedNote.isPinned && (
                 <button
                   onClick={() => togglePin(selectedNote._id)}
-                  className="text-primary p-1 hover:bg-surface-hover rounded-lg transition-colors"
+                  disabled={pinningNoteId === selectedNote._id}
+                  className="text-primary p-1 hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
                   aria-label="Unpin note"
                 >
-                  <Pin size={20} className="fill-primary" />
+                  {pinningNoteId === selectedNote._id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <Pin size={20} className="fill-primary" />
+                  )}
                 </button>
               )}
 

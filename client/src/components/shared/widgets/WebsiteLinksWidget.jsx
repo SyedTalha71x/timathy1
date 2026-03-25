@@ -2,14 +2,16 @@
 import { useState, useRef, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { Plus, ExternalLink, MoreVertical, X, Edit, Trash2 } from "lucide-react"
+import { useSelector, useDispatch } from 'react-redux'
+import { createWebsiteThunk, fetchWebsiteThunk, updateWebsiteThunk, deleteWebsiteThunk } from "../../../features/website/websiteSlice"
 
 // ============================================
 // Website Link Modal Component
 // ============================================
-const WebsiteLinkModal = ({ 
-  link = null, 
-  onClose, 
-  onSave 
+const WebsiteLinkModal = ({
+  link = null,
+  onClose,
+  onSave
 }) => {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
@@ -26,14 +28,13 @@ const WebsiteLinkModal = ({
 
   const handleSave = () => {
     if (!title.trim() || !url.trim()) return
-    
-    if (link?.id) {
-      // Edit existing link
-      onSave(link.id, { title: title.trim(), url: url.trim() })
+
+    if (link?._id) {
+      // Edit existing link - pass _id instead of id
+      onSave(link._id, { title: title.trim(), url: url.trim() })
     } else {
       // Add new link
       const newLink = {
-        id: `link${Date.now()}`,
         url: url.trim(),
         title: title.trim(),
       }
@@ -49,14 +50,14 @@ const WebsiteLinkModal = ({
           <h2 className="text-lg font-semibold text-content-primary">
             {link ? "Edit Website Link" : "Add Website Link"}
           </h2>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
           >
             <X size={16} />
           </button>
         </div>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-content-muted mb-2">Title</label>
@@ -79,10 +80,10 @@ const WebsiteLinkModal = ({
             />
           </div>
         </div>
-        
+
         <div className="flex gap-3 justify-end mt-6">
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover text-sm"
           >
             Cancel
@@ -90,11 +91,10 @@ const WebsiteLinkModal = ({
           <button
             onClick={handleSave}
             disabled={!title.trim() || !url.trim()}
-            className={`px-4 py-2 text-sm rounded-xl ${
-              !title.trim() || !url.trim() 
-                ? "bg-primary/50 cursor-not-allowed text-content-muted" 
-                : "bg-primary hover:bg-primary-hover text-white"
-            }`}
+            className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim()
+              ? "bg-primary/50 cursor-not-allowed text-content-muted"
+              : "bg-primary hover:bg-primary-hover text-white"
+              }`}
           >
             Save
           </button>
@@ -105,28 +105,29 @@ const WebsiteLinkModal = ({
 }
 
 // ============================================
-// Website Links Widget Component
+// Website Links Widget Component (Fixed)
 // ============================================
-const WebsiteLinksWidget = ({ 
-  isEditing, 
+const WebsiteLinksWidget = ({
+  isEditing,
   onRemove,
-  customLinks = [],
   onAddLink,
   onEditLink,
   onRemoveLink,
   showHeader = true,
   maxItems = null
 }) => {
+  const { website = [] } = useSelector((state) => state.website) || {}
+  const dispatch = useDispatch();
   const [openDropdownId, setOpenDropdownId] = useState(null)
   const [dropdownPosition, setDropdownPosition] = useState({})
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingLink, setEditingLink] = useState(null)
   const [linkToDelete, setLinkToDelete] = useState(null)
   const dropdownRef = useRef(null)
-  const dropdownButtonRefs = useRef({})
-  // Measure actual item heights for maxItems constraint
   const listRef = useRef(null)
   const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  const customLinks = Array.isArray(website) ? website : []
 
   useEffect(() => {
     if (!maxItems || !listRef.current) {
@@ -146,6 +147,10 @@ const WebsiteLinksWidget = ({
     return () => cancelAnimationFrame(frame)
   }, [maxItems, customLinks.length])
 
+  // fetch all websites 
+  useEffect(() => {
+    dispatch(fetchWebsiteThunk())
+  }, [dispatch])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -167,11 +172,10 @@ const WebsiteLinksWidget = ({
     const button = event.currentTarget
     const rect = button.getBoundingClientRect()
     const viewportHeight = window.innerHeight
-    const dropdownHeight = 80 // Approximate height of dropdown menu
+    const dropdownHeight = 80
     const spaceBelow = viewportHeight - rect.bottom
     const spaceAbove = rect.top
 
-    // Determine if dropdown should open upwards
     const openUpwards = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
 
     setDropdownPosition({
@@ -191,14 +195,16 @@ const WebsiteLinksWidget = ({
     setOpenDropdownId(null)
   }
 
-  const handleSaveLink = (id, linkData) => {
+  const handleSaveLink = async (id, linkData) => {
     if (id) {
-      // Edit existing link
-      onEditLink(linkData)
+      // Edit existing link - FIXED: Proper update with id and updateData
+      await dispatch(updateWebsiteThunk({ id: id, updateData: linkData }))
     } else {
       // Add new link
-      onAddLink(linkData)
+      await dispatch(createWebsiteThunk(linkData))
     }
+    // Refresh the list after operation
+    await dispatch(fetchWebsiteThunk())
     setIsModalOpen(false)
     setEditingLink(null)
   }
@@ -208,14 +214,18 @@ const WebsiteLinksWidget = ({
     setOpenDropdownId(null)
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (linkToDelete) {
-      onRemoveLink(linkToDelete)
+      // FIXED: Delete using the correct ID
+      await dispatch(deleteWebsiteThunk(linkToDelete))
+      // Refresh the list after deletion
+      await dispatch(fetchWebsiteThunk())
       setLinkToDelete(null)
     }
   }
 
   const truncateUrl = (url, maxLength = 60) => {
+    if (!url) return ''
     if (url.length <= maxLength) return url
     return url.substring(0, maxLength - 3) + "..."
   }
@@ -257,7 +267,7 @@ const WebsiteLinksWidget = ({
       >
         {customLinks.map((link) => (
           <div
-            key={link.id}
+            key={link._id}
             className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-all"
           >
             <div className="flex items-start gap-3">
@@ -277,21 +287,20 @@ const WebsiteLinksWidget = ({
                 >
                   <ExternalLink size={14} />
                 </button>
-                <div className="relative" ref={openDropdownId === link.id ? dropdownRef : null}>
+                <div className="relative" ref={openDropdownId === link._id ? dropdownRef : null}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleDropdownToggle(link.id, e)
+                      handleDropdownToggle(link._id, e)
                     }}
                     className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
                   >
                     <MoreVertical size={14} />
                   </button>
-                  {openDropdownId === link.id && (
-                    <div 
-                      className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
-                        dropdownPosition[link.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
-                      }`}
+                  {openDropdownId === link._id && (
+                    <div
+                      className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${dropdownPosition[link._id] === 'top' ? 'bottom-full mb-1' : 'top-6'
+                        }`}
                     >
                       <button
                         onClick={() => handleEditClick(link)}
@@ -301,7 +310,7 @@ const WebsiteLinksWidget = ({
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(link.id)}
+                        onClick={() => handleDeleteClick(link._id)}
                         className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2"
                       >
                         <Trash2 size={12} />

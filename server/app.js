@@ -1,7 +1,11 @@
 require('dotenv').config();
+
 const express = require('express');
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
+
+
+const { startCronJobs, runInitialUpdates } = require('./corns/AppointmentCorns');
 
 // all routes
 const apiRoutes = require('./routes/AllRoutes')
@@ -21,22 +25,22 @@ app.use(cors({
 
 app.options(/.*/, cors());
 
-//  const allowedOrigins = [
-//      'https://fitness-web-kappa.vercel.app',
-//      'http://localhost:5173', // add this
-//  ];
+// const allowedOrigins = [
+//     'https://fitness-web-kappa.vercel.app',
+//     'http://localhost:5173', // add this
+// ];
 
-//  app.use(cors({
-//      origin: function (origin, callback) {
-//          if (!origin) return callback(null, true); // allow non-browser requests
-//          if (allowedOrigins.indexOf(origin) === -1) {
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         if (!origin) return callback(null, true); // allow non-browser requests
+//         if (allowedOrigins.indexOf(origin) === -1) {
 //             const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
 //             return callback(new Error(msg), false);
-//          }
-//          return callback(null, true);
-//      },
-//      credentials: true
-//  }));
+//         }
+//         return callback(null, true);
+//     },
+//     credentials: true
+// }));
 
 
 app.use(express.json());
@@ -47,7 +51,6 @@ app.use(express.urlencoded({ extended: true }))
 // for cookies
 app.use(cookieParser())
 
-require('./corns/AppointmentCorns');
 
 // for checking server is running and api call is working or not
 app.get('/api', (req, res) => {
@@ -58,6 +61,23 @@ app.get('/api', (req, res) => {
 app.use('/api', apiRoutes)
 app.use(errorHandler)
 
+// Initialize cron jobs after server is ready
+const initializeCronJobs = async () => {
+    console.log('Initializing cron jobs...');
+
+    // Run initial updates immediately
+    await runInitialUpdates();
+
+    // Start scheduled cron jobs
+    startCronJobs();
+
+    console.log('Cron jobs initialized successfully');
+};
+
+// Export app but don't start cron jobs if in test environment
+if (process.env.NODE_ENV !== 'test') {
+    initializeCronJobs();
+}
 
 
 module.exports = app 

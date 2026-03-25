@@ -111,7 +111,7 @@ const notesOfUser = async (req, res, next) => {
 
         await StaffModel.findByIdAndUpdate(userId, {
             $addToSet: {
-                notes: note._id
+                notes: notes._id
             }
         },
             { new: true })
@@ -135,7 +135,7 @@ const getNotesOfStudio = async (req, res, next) => {
         const userId = req.user?._id;
         const studioId = req.user?.studio;
 
-        const notes = await NotesModel.find({ studio: studioId })
+        const notes = await NotesModel.findById({ studio: studioId })
             .populate('tags', 'name color')
             .populate('studio', 'studioName email')
             .populate('createdBy', 'firstName lastName')
@@ -164,11 +164,11 @@ const getNotesOfStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
 
-        const notes = await NotesModel.find({ createdBy: userId })
+        const notes = await NotesModel.findById({ createdBy: userId })
             .populate('tags', 'name color')
             .populate('studio', 'studioName email')
             .populate('staff', 'firstName lastName')
-            .populate('createdBy', 'firstName lastName')
+            // .populate('createdBy', 'firstName lastName')
 
         if (!notes || notes.length === 0) {
             return res.status(200).json({
@@ -234,7 +234,7 @@ const updateNotes = async (req, res, next) => {
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
         if (tagsId !== undefined) updateData.tags = tagsId;
-        if (attachments !== undefined) updateData.attachment = attachment;
+        if (attachment !== undefined) updateData.attachment = attachment;
         if (isPinned !== undefined) updateData.isPinned = isPinned;
 
         // Handle file upload if present

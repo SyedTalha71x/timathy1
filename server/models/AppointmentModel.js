@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const AppointmentSchema = new mongoose.Schema({
+const appointmentSchema = new mongoose.Schema({
     member: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'member',
@@ -80,11 +80,60 @@ const AppointmentSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-AppointmentSchema.index(
+appointmentSchema.index(
     { serviceId: 1, date: 1, "timeSlot.start": 1, member: 1 }
 );
 
+appointmentSchema.methods.isPast = function () {
+    const now = new Date();
+    const appointmentDate = new Date(this.date);
+    const [hours, minutes] = this.timeSlot.start.split(':');
+    appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-const AppointmentModel = mongoose.model('Appointment', AppointmentSchema);
+    // Add duration to get end time
+    const duration = this.timeSlot.duration || 60;
+    const endTime = new Date(appointmentDate.getTime() + duration * 60000);
+
+    return endTime < now;
+};
+
+// Static method to update all past appointments
+appointmentSchema.statics.updatePastAppointments = async function () {
+    const now = new Date();
+
+    // Find all confirmed upcoming appointments
+    const appointments = await this.find({
+        status: 'confirmed',
+        view: 'upcoming'
+    });
+
+    const bulkOps = [];
+
+    for (const appointment of appointments) {
+        if (appointment.isPast()) {
+            bulkOps.push({
+                updateOne: {
+                    filter: { _id: appointment._id },
+                    update: {
+                        $set: {
+                            status: 'completed',
+                            view: 'past'
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    if (bulkOps.length > 0) {
+        const result = await this.bulkWrite(bulkOps);
+        console.log(`Updated ${result.modifiedCount} appointments`);
+        return result.modifiedCount;
+    }
+
+    return 0;
+};
+
+const AppointmentModel = mongoose.model('Appointment', appointmentSchema);
 
 module.exports = AppointmentModel;

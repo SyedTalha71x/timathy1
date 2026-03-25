@@ -18,7 +18,7 @@ import staffReducer from '../features/staff/staffSlice'
 import taskReducer from '../features/todos/todosSlice'
 import noteReducer from '../features/notes/noteSlice'
 import medicalReducer from '../features/medicalHistory/medicalHistorySlice'
-
+import websiteReducer from '../features/website/websiteSlice'
 
 
 
@@ -47,6 +47,7 @@ export const store = configureStore({
         specials: specialNotesReducer,
         todos: taskReducer,
         notes: noteReducer,
-        medical: medicalReducer
+        medical: medicalReducer,
+        website: websiteReducer
     }
 })
