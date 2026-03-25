@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { useSelector, useDispatch } from 'react-redux'
-import { accessChatThunk, fetchMessagesThunk, sendMessageThunk, createGroupThunk, receiveSocketMessage, setActiveChat, clearMessages } from '../../features/communication/chatSlice'
+import { accessChatThunk, fetchMessagesThunk, sendMessageThunk, createGroupThunk, receiveSocketMessage, setActiveChat, clearMessages, accessStudioChatThunk } from '../../features/communication/chatSlice'
 import { socket } from '../../services/socket'
 import {
   Send,
@@ -65,32 +65,18 @@ const truncateText = (text, maxLength = 50) => {
   return text.substring(0, maxLength) + '...';
 };
 
-const studioInfo = {
-  name: "FitZone Studio",
-  avatar: DefaultAvatar,
-  status: "online",
-  lastSeen: "Active now",
-  description: "Your Personal Fitness Hub"
-}
 
-const initialMessages = [
-  { id: 1, text: "Welcome to FitZone Studio! 🎉", sender: "other", timestamp: "9:00 AM", isDeleted: false },
-  { id: 2, text: "We're here to support your fitness journey. How can we help you today?", sender: "other", timestamp: "9:01 AM", isDeleted: false },
-  { id: 3, text: "Hi! I'm excited to start my fitness journey with you all 💪", sender: "me", timestamp: "9:05 AM", status: "read", isDeleted: false },
-  { id: 4, text: "That's fantastic! Our team of trainers, nutritionists, and wellness coaches are ready to guide you.", sender: "other", timestamp: "9:07 AM", isDeleted: false },
-  { id: 5, text: "What are your main fitness goals? Weight loss, muscle building, or general wellness?", sender: "other", timestamp: "9:08 AM", isDeleted: false },
-  { id: 6, text: "I'm mainly looking to build muscle and improve my overall strength", sender: "me", timestamp: "9:10 AM", status: "read", isDeleted: false },
-  { id: 7, text: "Perfect! I'll create a personalized strength training program for you. When would you like to start?", sender: "other", timestamp: "9:12 AM", isDeleted: false },
-  { id: 8, text: "Can we start this week? I'm really motivated!", sender: "me", timestamp: "9:15 AM", status: "read", isDeleted: false },
-  { id: 9, text: "Absolutely! I'll also prepare a nutrition plan to support your muscle-building goals 🥗", sender: "other", timestamp: "9:17 AM", isDeleted: false }
-]
+
 
 export default function StudioChat() {
   const { t } = useTranslation()
   const dispatch = useDispatch();
-  const { studio, loading } = useSelector((state) => state.studios)
-  const { messages, activeChat } = useSelector((state) => state.chats)
-  // const [messages, setMessages] = useState(initialMessages)
+  const { user } = useSelector((state) => state.auth)
+  const { studio } = useSelector((state) => state.studios)
+  const chatState = useSelector((state) => state.chats) || {}
+  const { messages, activeChat } = chatState
+  const safeMessages = Array.isArray(messages) ? messages : []
+  // const [messages, setMessages] = useState([])
   const [messageText, setMessageText] = useState("")
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
@@ -117,6 +103,33 @@ export default function StudioChat() {
   const emojiPickerRef = useRef(null)
   const messageMenuRef = useRef(null)
   const reactionPickerRef = useRef(null)
+
+
+  // useEffect to create chat
+  useEffect(() => {
+    dispatch(accessStudioChatThunk());
+    // dispatch(fetchMessagesThunk());
+  }, [dispatch])
+
+  const transformedMessages = safeMessages.map(msg => ({
+    _id: msg._id || msg.id,
+    id: msg._id || msg.id,
+    text: msg.content || msg.text,
+    content: msg.content || msg.text,
+    sender: msg.sender?._id === user?._id ? 'me' : (msg.sender === 'me' ? 'me' : 'other'),
+    senderId: msg.sender?._id,
+    senderName: msg.sender?.firstName
+      ? `${msg.sender.firstName} ${msg.sender.lastName}`
+      : (msg.senderName || 'Unknown'),
+    timestamp: msg.createdAt || msg.timestamp,
+    createdAt: msg.createdAt || msg.timestamp,
+    isDeleted: msg.isDeleted || false,
+    status: msg.status || 'delivered',
+    replyTo: msg.replyTo || null
+  }))
+
+
+
 
   // Detect keyboard to expand mobile container to bottom-0 when keyboard opens
   useEffect(() => {
@@ -192,8 +205,9 @@ export default function StudioChat() {
     const messageData = {
       chatId: activeChat._id,
       content: messageText,
-      replyTo: replyingTo?.id || null
+      replyTo: replyingTo?._id || null
     }
+    console.log("message send", messageData);
 
     dispatch(sendMessageThunk(messageData))
     socket.emit("new message", messageData)
@@ -378,16 +392,16 @@ export default function StudioChat() {
           className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
           style={{ minHeight: 0 }}
         >
-          {messages.map((message) => (
+          {transformedMessages.map((message) => (
             <div
-              key={message.id}
+              key={message._id}
               className={`flex items-start gap-2 ${message.sender === "me" ? "justify-end" : ""} group`}
             >
               {/* Left menu for own messages */}
               {message.sender === "me" && !message.isDeleted && (
                 <div className="relative flex-shrink-0">
                   <button
-                    onClick={(e) => openMessageMenu(message.id, e.currentTarget, true)}
+                    onClick={(e) => openMessageMenu(message._id, e.currentTarget, true)}
                     className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
                   >
                     <MoreVertical size={18} className="text-content-muted" />
@@ -463,7 +477,7 @@ export default function StudioChat() {
               <div className="w-1 h-10 bg-primary rounded-full"></div>
               <div className="flex-1 min-w-0">
                 <p className="text-primary text-xs font-semibold">
-                  {replyingTo.sender === 'me' ? t("chat.replyingToYourself") : t("chat.replyingTo", { name: studioInfo.name })}
+                  Replying to {replyingTo.sender === user ? 'yourself' : studio?.studioName}
                 </p>
                 <p className="text-content-secondary text-sm truncate">{truncateText(replyingTo.text, 50)}</p>
               </div>
@@ -574,7 +588,7 @@ export default function StudioChat() {
                           }`}
                       >
                         <p className={`text-xs font-medium ${message.sender === "me" ? "text-white/80" : "text-content-muted"}`}>
-                          {message.replyTo.sender === 'me' ? t("chat.you") : studioInfo.name}
+                          {message.replyTo.sender === 'me' ? 'You' : studio.studioName}
                         </p>
                         <p className={`text-xs truncate max-w-[200px] ${message.sender === "me" ? "text-white/60" : "text-content-faint"}`}>
                           {message.replyTo.text}
@@ -636,7 +650,7 @@ export default function StudioChat() {
           <div className="px-3 py-2 bg-surface-hover border-t border-border flex items-center gap-3 flex-shrink-0">
             <div className="flex-1 pl-3 border-l-2 border-primary">
               <p className="text-xs font-medium text-primary">
-                {replyingTo.sender === 'me' ? t("chat.you") : studioInfo.name}
+                {replyingTo.sender === user ? 'You' : studio?.studioName}
               </p>
               <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.text, 50)}</p>
             </div>
@@ -714,7 +728,7 @@ export default function StudioChat() {
           >
             <button
               onClick={() => {
-                const msg = messages.find(m => m.id === activeMessageMenu);
+                const msg = messages.find(m => m._id === activeMessageMenu);
                 if (msg) handleReplyToMessage(msg);
               }}
               className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"

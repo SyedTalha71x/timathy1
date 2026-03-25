@@ -24,7 +24,7 @@ const accessChat = async (req, res, next) => {
                 $all: [userId, reciverId]
             }
         })
-        .populate('users', 'firstName lastName');
+            .populate('users', 'firstName lastName');
 
         if (!chat) {
             chat = await chatModel.create({
@@ -94,26 +94,49 @@ const sendMessage = async (req, res, next) => {
 
         if (!chatId || !content) throw new BadRequestError("Invalid Data");
 
+        const chat = await chatModel.findById(chatId);
+        if (!chat) throw new BadRequestError("Chat not found");
+
+        // 🔐 Authorization
+        if (req.user.role === "member") {
+            if (chat.member?.toString() !== userId.toString()) {
+                throw new BadRequestError("Not authorized");
+            }
+        }
+
+        if (req.user.role === "staff") {
+            if (chat.studio?.toString() !== req.user.studio.toString()) {
+                throw new BadRequestError("Not authorized");
+            }
+        }
+
         const message = await messageModel.create({
             chat: chatId,
             sender: userId,
+            senderType: req.user?.role === 'staff' ? "staff" : "member",
             content
         });
-        const fullMessage = await message.populate('sender', 'firstName lastName');
-        await fullMessage.populate('chat');
+
+        const fullMessage = await messageModel
+            .findById(message._id)
+            .populate('sender', 'firstName lastName img')
+            .populate('chat');
+        // ✅ update chat for sorting
+        await chatModel.findByIdAndUpdate(chatId, {
+            lastMessage: content,
+            updatedAt: new Date()
+        });
 
         res.status(201).json({
             success: true,
-            message: "Message send Successfully",
+            message: "Message sent Successfully",
             fullMessage: fullMessage
-        })
+        });
 
-
+    } catch (error) {
+        next(error);
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
 
 
@@ -124,14 +147,68 @@ const sendMessage = async (req, res, next) => {
 const fetchMessages = async (req, res, next) => {
     try {
         const { chatId } = req.params;
-        const message = await messageModel.find({ chat: chatId })
-            .populate('sender', 'firstName lastName')
+        const userId = req.user?._id;
+
+        const chat = await chatModel.findById(chatId);
+        if (!chat) throw new BadRequestError("Chat not found");
+
+        // 🔐 Authorization
+        if (req.user.role === "member") {
+            if (chat.member?.toString() !== userId.toString()) {
+                throw new BadRequestError("Not authorized");
+            }
+        }
+
+        if (req.user.role === "staff") {
+            if (chat.studio?.toString() !== req.user.studio.toString()) {
+                throw new BadRequestError("Not authorized");
+            }
+        }
+
+        const messages = await messageModel.find({ chat: chatId })
+            .populate('sender', 'firstName lastName img')
             .populate('chat');
 
         return res.status(200).json({
             success: true,
-            message: message
+            messages: messages
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// --------------------------------
+// studio chat Access 
+// --------------------------------
+
+const accessStudioChat = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const studioId = req.user?.studio;
+
+        let chat = await chatModel.findOne({
+            member: userId,
+            studio: studioId
         })
+            .populate('member', 'firstName lastName img')
+
+        if (!chat) {
+            chat = await chatModel.create({
+                member: userId,
+                studio: studioId,
+                isGroupChat: false
+            });
+            chat = await chat.populate('member', 'firstName lastName img')
+        }
+
+        return res.status(200).json({
+            success: true,
+            chat: chat
+        })
+
+
     }
     catch (error) {
         next(error)
@@ -139,9 +216,33 @@ const fetchMessages = async (req, res, next) => {
 }
 
 
+// -------------------------
+// Fetch all studio Chat
+// -------------------------
+
+const fetchStudioChat = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio;
+        const chat = await chatModel.find({ studio: studioId })
+            .populate('member', 'firstName lastName img')
+            .sort({ updatedAt: -1 })
+
+        return res.status(200).json({
+            success: true,
+            chats: chat
+        })
+
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
 module.exports = {
     fetchMessages,
     createGroupChat,
     sendMessage,
-    accessChat
+    accessChat,
+    accessStudioChat,
+    fetchStudioChat
 }
