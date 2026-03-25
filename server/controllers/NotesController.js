@@ -70,7 +70,7 @@ const notesOfStudio = async (req, res, next) => {
 const notesOfUser = async (req, res, next) => {
     try {
         const userId = req.user?._id;
-
+        const studioId = req.user?.studio;
 
         const { title, content, tagsId } = req.body;
 
@@ -135,13 +135,17 @@ const getNotesOfStudio = async (req, res, next) => {
         const userId = req.user?._id;
         const studioId = req.user?.studio;
 
-        const notes = await NotesModel.find(studioId)
+        const notes = await NotesModel.find({ studio: studioId })
             .populate('tags', 'name color')
             .populate('studio', 'studioName email')
             .populate('createdBy', 'firstName lastName')
 
-        if (notes.length < 0) throw new NotFoundError('No notes Available')
-
+        if (!notes || notes.length === 0) {
+            return res.status(200).json({
+                success: true,
+                notes: [] // Return empty array instead of throwing error
+            })
+        }
 
         return res.status(200).json({
             success: true,
@@ -160,14 +164,18 @@ const getNotesOfStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
 
-        const notes = await NotesModel.find(userId)
+        const notes = await NotesModel.find({ createdBy: userId })
             .populate('tags', 'name color')
             .populate('studio', 'studioName email')
             .populate('staff', 'firstName lastName')
             .populate('createdBy', 'firstName lastName')
 
-        if (notes.length < 0) throw new NotFoundError('No notes Available')
-
+        if (!notes || notes.length === 0) {
+            return res.status(200).json({
+                success: true,
+                notes: []
+            })
+        }
 
         return res.status(200).json({
             success: true,
@@ -191,7 +199,7 @@ const deleteNotes = async (req, res, next) => {
 
         if (!findNote) throw new NotFoundError("Invalid Note Id")
 
-        if (findNote.createdBy?.toString() === userId.toString || findNote.studio?.toString() === studioId.toString()) {
+        if (findNote.createdBy?.toString() === userId.toString() || findNote.studio?.toString() === studioId.toString()) {
             await NotesModel.findByIdAndDelete(noteId)
         }
 
@@ -210,29 +218,91 @@ const deleteNotes = async (req, res, next) => {
 const updateNotes = async (req, res, next) => {
     try {
         const userId = req.user?._id;
-        const studioId = req.user?.studio
+        const studioId = req.user?.studio;
         const { noteId } = req.params;
-        const updateData = { ...req.body, updatedBy: userId, updatedAt: new Date() }
 
-        const notes = await NotesModel.findById(noteId)
+        const {
+            title,
+            content,
+            tagsId,
+            attachment,
+            isPinned
+        } = req.body;
 
-        if (notes.createdBy?.toString() === userId.toString()) {
-            await NotesModel.findByIdAndUpdate(noteId, updateData, { new: true })
+        // Build update object with only provided fields
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (content !== undefined) updateData.content = content;
+        if (tagsId !== undefined) updateData.tags = tagsId;
+        if (attachments !== undefined) updateData.attachment = attachment;
+        if (isPinned !== undefined) updateData.isPinned = isPinned;
+
+        // Handle file upload if present
+        if (req.file) {
+            const imageData = await uploadAttachment(req.file.buffer);
+            updateData.attachment = {
+                url: imageData.secure_url,
+                public_id: imageData.public_id
+            };
         }
 
-        if (!notes) throw new BadRequestError(" Something went wrong")
+        // Add metadata
+        updateData.updatedBy = userId;
+        updateData.updatedAt = new Date();
 
-        return res.status(304).json({
+        // Find the note
+        const note = await NotesModel.findById(noteId);
+
+        if (!note) {
+            throw new BadRequestError("Note not found");
+        }
+        let tagsArray = [];
+        if (tagsId) {
+            const tagsIdArray = Array.isArray(tagsId) ? tagsId : [tagsId];  // Convert to array if it's a single tag ID
+
+            // Validate all tags exist and belong to this studio
+            const validTags = await TagsModel.find({
+                _id: { $in: tagsIdArray },
+                studioId: studioId // Ensure tags belong to this studio
+            });
+
+            if (validTags.length !== tagsIdArray.length) {
+                throw new BadRequestError("One or more tag IDs are invalid or don't belong to this studio");
+            }
+
+            tagsArray = validTags.map(tag => tag._id);  // Ensure tags are ObjectId references
+        }
+        if (tagsId) {
+            updateData.tagsId = tagsArray
+
+        }
+
+
+        // Check permissions: user can update if they created it OR they're in the studio
+        const isCreator = note.createdBy?.toString() === userId.toString();
+        const isInStudio = note.studio?.toString() === req.user?.studio?.toString();
+
+        if (!isCreator && !isInStudio) {
+            throw new BadRequestError("You don't have permission to update this note");
+        }
+
+        // Update the note
+        const updatedNote = await NotesModel.findByIdAndUpdate(
+            noteId,
+            updateData,
+            { new: true } // This returns the updated document
+        );
+
+        // Return 200 with the updated note
+        return res.status(200).json({
             success: true,
-            note: notes
-        })
+            notes: updatedNote
+        });
 
-
+    } catch (error) {
+        next(error);
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
 
 module.exports = {

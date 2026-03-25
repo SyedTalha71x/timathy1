@@ -524,7 +524,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     }
     setProfileData((prev) => ({ ...prev, [field]: value }))
     dispatch(updateLoggedInStaffThunk(updateData))
-    console.log('update Data', updateData)
+    // console.log('update Data', updateData)
   }
 
   const handleProfileImageChange = (e) => {
