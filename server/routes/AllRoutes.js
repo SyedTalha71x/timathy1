@@ -26,6 +26,9 @@ const LeadRoutes = require('./LeadRoutes')
 const TodoRoutes = require('./TodoRoutes')
 const NotesRoutes = require('./NotesRoutes')
 const MedicalHistoryRoutes = require('./MedicalHistoryRoutes')
+const WebsiteRoutes = require('./WebsiteRoutes')
+
+
 
 const router = express.Router();
 
@@ -82,6 +85,7 @@ router.use('/lead', LeadRoutes);
 router.use('/todos', TodoRoutes)
 router.use('/notes', NotesRoutes)
 router.use('/medical', MedicalHistoryRoutes)
+router.use('/website', WebsiteRoutes)
 
 
 

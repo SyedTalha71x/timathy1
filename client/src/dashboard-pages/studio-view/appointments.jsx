@@ -41,7 +41,7 @@ import EditMemberModalMain from "../../components/studio-components/members-comp
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
 import EditBlockedSlotModalMain from "../../components/studio-components/appointments-components/EditBlockedSlotModalMain"
-import { cancelAppointment, createBlockAppointmentThunk, createBookingTrialThunk, createdAppointmentByStaff, fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
+import { cancelAppointment, createBlockAppointmentThunk, createBookingTrialThunk, createdAppointmentByStaff, fetchAllAppointments, deleteAppointmentThunk } from "../../features/appointments/AppointmentSlice"
 import { fetchAllMember, setMemberFilters } from "../../features/member/memberSlice"
 import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 import { fetchStudioServices } from "../../features/services/servicesSlice"
@@ -833,8 +833,9 @@ export default function Appointments() {
     other: ["Neighbor", "Doctor", "Trainer", "Other"],
   };
 
-  const handleAppointmentSubmit = (appointmentData) => {
+  const handleAppointmentSubmit = async (appointmentData) => {
     dispatch(createdAppointmentByStaff({ memberId: appointmentData.memberId, appointmentData }))
+    await dispatch(fetchAllAppointments());
   }
 
   const handleTrialSubmit = (trialData) => {
@@ -886,8 +887,7 @@ export default function Appointments() {
 
   // Delete appointment permanently (for already cancelled appointments)
   const handleDeleteAppointmentMain = () => {
-    if (!selectedAppointmentMain) return
-    appointments.filter((a) => a.id !== selectedAppointmentMain.id)
+    dispatch(deleteAppointmentThunk(selectedAppointmentMain._id))
     setSelectedAppointmentMain(null)
     setshowAppointmentOptionsModalMain(false)
     // No notify modal - just delete directly
