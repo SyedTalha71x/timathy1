@@ -130,8 +130,8 @@
   "training": {
     "title": "Entraînement",
     "tabs": {
-      "videos": "Vidéos d'entraînement",
-      "plans": "Plans d'entraînement"
+      "videos": "Vidéos",
+      "plans": "Plans"
     },
     "search": {
       "videosPlaceholder": "Rechercher des vidéos...",
@@ -285,7 +285,7 @@
     "tabs": {
       "studioInfo": "Infos studio",
       "checkin": "Check-in",
-      "bulletin": "Tableau d'affichage",
+      "bulletin": "Annonces",
       "selfService": "Libre-service"
     },
     "info": {

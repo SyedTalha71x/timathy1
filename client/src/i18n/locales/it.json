@@ -130,8 +130,8 @@
   "training": {
     "title": "Allenamento",
     "tabs": {
-      "videos": "Video di allenamento",
-      "plans": "Piani di allenamento"
+      "videos": "Video",
+      "plans": "Piani"
     },
     "search": {
       "videosPlaceholder": "Cerca video...",
