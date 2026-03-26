@@ -45,22 +45,22 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
                 ? 'bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white' 
                 : 'bg-black/50 hover:bg-black/70 text-white'
             }`}
-            title={product.isPinned ? 'Unpin Product' : 'Pin Product'}
+            title={product.isPinned ? t('admin.marketplace.card.unpinProduct') : t('admin.marketplace.card.pinProduct')}
           >
             <FaThumbtack size={14} />
           </button>
 
-          <button onClick={() => onInfo(product)} className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors" title="View Info">
+          <button onClick={() => onInfo(product)} className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors" title={t('admin.marketplace.card.viewInfo')}>
             <Info size={16} />
           </button>
 
-          <button onClick={() => onEdit(product)} className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors" title="Edit Product">
+          <button onClick={() => onEdit(product)} className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors" title={t('admin.marketplace.card.editProduct')}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
 
-          <button onClick={() => onDelete(product)} className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors" title="Delete Product">
+          <button onClick={() => onDelete(product)} className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors" title={t('admin.marketplace.card.deleteProduct')}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
@@ -72,7 +72,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
       <div className="p-4 bg-[#2a2a2a] text-white">
         <h3 className="text-base font-medium truncate mb-1">{productName}</h3>
         <p className="text-sm text-gray-300 mb-1">{product.brandName}</p>
-        <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
+        <p className="text-sm text-gray-400 mb-2">{t("admin.marketplace.card.articleNo")}: {product.articleNo}</p>
         <p className="text-lg font-bold text-white">${product.price}</p>
 
         {/* Translation status indicator */}
@@ -103,7 +103,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
             />
             <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             <span className="ml-3 text-sm font-medium text-gray-300">
-              {product.isActive ? 'Active' : 'Inactive'}
+              {product.isActive ? t('common.active') : t('common.inactive')}
             </span>
           </label>
         </div>
@@ -162,13 +162,13 @@ const Marketplace = () => {
 
   // Sort options
   const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'price', label: 'Price' },
-    { value: 'brand', label: 'Brand' },
-    { value: 'articleNo', label: 'Article No.' },
+    { value: 'name', label: t('admin.marketplace.sort.name') },
+    { value: 'price', label: t('admin.marketplace.sort.price') },
+    { value: 'brand', label: t('admin.marketplace.sort.brand') },
+    { value: 'articleNo', label: t('admin.marketplace.sort.articleNo') },
   ];
 
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort';
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || t('common.sortBy');
 
   const getSortIcon = () => {
     if (sortDirection === 'asc') return <ArrowUp size={14} />;
@@ -491,19 +491,19 @@ const Marketplace = () => {
           {/* Filter and Sort Controls */}
           <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
             <button onClick={() => setFilterStatus('all')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
-              All ({products.length})
+              {t("admin.marketplace.filter.all")} ({products.length})
             </button>
             <button onClick={() => setFilterStatus(filterStatus === 'active' ? 'all' : 'active')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'active' ? "bg-green-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
               <span className={`w-2 h-2 rounded-full ${filterStatus === 'active' ? 'bg-white' : 'bg-green-500'}`}></span>
-              Active ({activeCount})
+              {t("admin.marketplace.filter.active")} ({activeCount})
             </button>
             <button onClick={() => setFilterStatus(filterStatus === 'inactive' ? 'all' : 'inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'inactive' ? "bg-red-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
               <span className={`w-2 h-2 rounded-full ${filterStatus === 'inactive' ? 'bg-white' : 'bg-red-500'}`}></span>
-              Inactive ({inactiveCount})
+              {t("admin.marketplace.filter.inactive")} ({inactiveCount})
             </button>
             <button onClick={() => setFilterStatus(filterStatus === 'pinned' ? 'all' : 'pinned')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'pinned' ? "bg-[#FF6B35] text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
               <FaThumbtack size={12} className={filterStatus === 'pinned' ? "text-white" : ""} />
-              Pinned ({pinnedCount})
+              {t("admin.marketplace.filter.pinned")} ({pinnedCount})
             </button>
             <div className="ml-auto hidden sm:block"><SortDropdown /></div>
           </div>
@@ -564,10 +564,10 @@ const Marketplace = () => {
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-400 text-lg">
-                  {filterStatus === 'active' ? "No active products found."
-                    : filterStatus === 'inactive' ? "No inactive products found."
-                    : filterStatus === 'pinned' ? "No pinned products yet. Click the pin icon to feature products."
-                    : "No products found matching your search."}
+                  {filterStatus === 'active' ? t("admin.marketplace.empty.noActive")
+                    : filterStatus === 'inactive' ? t("admin.marketplace.empty.noInactive")
+                    : filterStatus === 'pinned' ? t("admin.marketplace.empty.noPinned")
+                    : t("admin.marketplace.empty.noSearch")}
                 </p>
               </div>
             )
@@ -580,7 +580,7 @@ const Marketplace = () => {
       <button
         onClick={openAddModal}
         className="md:hidden fixed bottom-4 right-4 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Add Product"
+        aria-label={t("admin.marketplace.addProduct")}
       >
         <Plus size={22} />
       </button>

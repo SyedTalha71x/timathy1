@@ -149,6 +149,26 @@ const AdminTicketsSystem = () => {
         haptic.success()
     }
 
+    // ── Status label (translated) ─────────────────────────────
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case "Open": return t("admin.tickets.status.open")
+            case "Awaiting your reply": return t("admin.tickets.status.awaitingReply")
+            case "Closed": return t("admin.tickets.status.closed")
+            default: return status
+        }
+    }
+
+    // ── Priority label (translated) ──────────────────────────
+    const getPriorityLabel = (priority) => {
+        switch (priority) {
+            case "High": return t("admin.tickets.priority.high")
+            case "Medium": return t("admin.tickets.priority.medium")
+            case "Low": return t("admin.tickets.priority.low")
+            default: return priority
+        }
+    }
+
     // ── Status — solid badges ─────────────────────────────────
     const getStatusColor = (status) => {
         switch (status) {
@@ -373,10 +393,10 @@ const AdminTicketsSystem = () => {
 
                             <div className="flex items-center gap-3">
                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}>
-                                    {ticket.status}
+                                    {getStatusLabel(ticket.status)}
                                 </span>
                                 <span className={`text-xs font-medium ${getPriorityTextColor(ticket.priority)}`}>
-                                    {t("admin.tickets.priority.label", { level: ticket.priority })}
+                                    {t("admin.tickets.priority.label", { level: getPriorityLabel(ticket.priority) })}
                                 </span>
                             </div>
                         </div>

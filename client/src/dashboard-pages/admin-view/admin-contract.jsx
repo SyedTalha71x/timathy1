@@ -60,6 +60,7 @@ const StatusTag = ({
   cancelDate = null,
   scheduledStartDate = null 
 }) => {
+  const { t } = useTranslation()
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -86,19 +87,19 @@ const StatusTag = ({
       <>
         {pauseReason && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span className="text-yellow-400 font-medium">{t("admin.contract.tooltip.reason")}:</span>
             <span>{pauseReason}</span>
           </div>
         )}
         {pauseStartDate && pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Period:</span>
+            <span className="text-yellow-400 font-medium">{t("admin.contract.tooltip.period")}:</span>
             <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
           </div>
         )}
         {pauseStartDate && !pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Since:</span>
+            <span className="text-yellow-400 font-medium">{t("admin.contract.tooltip.since")}:</span>
             <span>{formatD(pauseStartDate)}</span>
           </div>
         )}
@@ -116,13 +117,13 @@ const StatusTag = ({
       <>
         {cancelReason && (
           <div className="flex items-center gap-2">
-            <span className="text-red-400 font-medium">Reason:</span>
+            <span className="text-red-400 font-medium">{t("admin.contract.tooltip.reason")}:</span>
             <span>{cancelReason}</span>
           </div>
         )}
         {cancelDate && (
           <div className="flex items-center gap-2">
-            <span className="text-red-400 font-medium">Cancelled:</span>
+            <span className="text-red-400 font-medium">{t("admin.contract.tooltip.cancelled")}:</span>
             <span>{formatD(cancelDate)}</span>
           </div>
         )}
@@ -140,7 +141,7 @@ const StatusTag = ({
       <>
         {scheduledStartDate && (
           <div className="flex items-center gap-2">
-            <span className="text-content-muted font-medium">Starts:</span>
+            <span className="text-content-muted font-medium">{t("admin.contract.tooltip.starts")}:</span>
             <span>{formatD(scheduledStartDate)}</span>
           </div>
         )}
@@ -377,15 +378,15 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
 
   // Sort options - matches members.jsx pattern
   const sortOptions = [
-    { value: "name", label: "Name" },
-    { value: "contractType", label: "Contract Type" },
-    { value: "status", label: "Status" },
-    { value: "expiring", label: "Expiring" },
-    { value: "recentlyAdded", label: "Recently Added" },
+    { value: "name", label: t("admin.contract.sort.name") },
+    { value: "contractType", label: t("admin.contract.sort.contractType") },
+    { value: "status", label: t("admin.contract.sort.status") },
+    { value: "expiring", label: t("admin.contract.sort.expiring") },
+    { value: "recentlyAdded", label: t("admin.contract.sort.recentlyAdded") },
   ]
 
   // Get current sort label
-  const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || "Name"
+  const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || t("admin.contract.sort.name")
 
   // Get sort icon based on current sort
   const getSortIcon = () => {
@@ -498,7 +499,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
   // Get auto renewal display info for a contract
   const getAutoRenewalInfo = (contract) => {
     if (!contract.autoRenewal) {
-      return { hasRenewal: false, label: "No", tooltip: "No auto renewal" }
+      return { hasRenewal: false, label: t("common.no"), tooltip: t("admin.contract.autoRenewal.none") }
     }
     
     // Check if renewal is indefinite (from contract or lookup from contract type)
@@ -507,9 +508,9 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (isIndefinite) {
       return { 
         hasRenewal: true, 
-        label: "Yes", 
-        sublabel: "unlimited",
-        tooltip: "Unlimited auto renewal" 
+        label: t("common.yes"), 
+        sublabel: t("admin.contract.autoRenewal.unlimited"),
+        tooltip: t("admin.contract.autoRenewal.unlimitedTooltip") 
       }
     }
     
@@ -517,9 +518,9 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (contract.autoRenewalEndDate) {
       return { 
         hasRenewal: true, 
-        label: "Yes", 
-        sublabel: `until ${formatDate(contract.autoRenewalEndDate)}`,
-        tooltip: `Auto renewal until ${formatDate(contract.autoRenewalEndDate)}` 
+        label: t("common.yes"), 
+        sublabel: t("admin.contract.autoRenewal.until", { date: formatDate(contract.autoRenewalEndDate) }),
+        tooltip: t("admin.contract.autoRenewal.untilTooltip", { date: formatDate(contract.autoRenewalEndDate) }) 
       }
     }
     
@@ -528,14 +529,14 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (contractType?.renewalPeriod) {
       return { 
         hasRenewal: true, 
-        label: "Yes", 
-        sublabel: `+${contractType.renewalPeriod} months`,
-        tooltip: `Renews for ${contractType.renewalPeriod} months` 
+        label: t("common.yes"), 
+        sublabel: t("admin.contract.autoRenewal.plusMonths", { months: contractType.renewalPeriod }),
+        tooltip: t("admin.contract.autoRenewal.renewsForMonths", { months: contractType.renewalPeriod }) 
       }
     }
     
     // Fallback
-    return { hasRenewal: true, label: "Yes", sublabel: "", tooltip: "Auto renewal enabled" }
+    return { hasRenewal: true, label: t("common.yes"), sublabel: "", tooltip: t("admin.contract.autoRenewal.enabled") }
   }
 
   const formatDate = (dateString) => {
@@ -1124,11 +1125,11 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         // Remove lead from leads list
         setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadToConvert.id))
         
-        haptic.success(); toast.success(`Lead "${newContract.studioName}" converted to member!`)
+        haptic.success(); toast.success(t("admin.contract.toast.leadConverted", { name: newContract.studioName }))
       }
     } else if (contractStatus === "Pending") {
       // For Pending contracts, keep the lead - no conversion yet
-      toast.info("Contract saved as draft. Lead will be converted when contract is activated.")
+      toast.info(t("admin.contract.toast.savedAsDraft"))
     }
     
     // Toast is handled by contract-modal.jsx for new format
@@ -1153,7 +1154,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     }
     setIsPauseModalOpen(false)
     setSelectedContract(null)
-    haptic.success(); toast.success("Contract has been paused")
+    haptic.success(); toast.success(t("admin.contract.toast.paused"))
   }
 
   const handleCancelSubmit = ({ reason, cancelDate, cancelToDate, cancellationType, extraordinaryCancellation, cancellationThroughStudio, notificationRule }) => {
@@ -1181,7 +1182,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     }
     setIsCancelModalOpen(false)
     setSelectedContract(null)
-    haptic.success(); toast.success("Contract has been cancelled")
+    haptic.success(); toast.success(t("admin.contract.toast.cancelled"))
   }
 
   const handleRenewSubmit = (renewalData) => {
@@ -1292,7 +1293,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (isDraft) {
       // Draft: just add the new contract as Pending, don't touch the old contract yet
       setContracts(prev => [...prev, newContract])
-      haptic.success(); toast.success("Contract renewal saved as draft")
+      haptic.success(); toast.success(t("admin.contract.toast.renewDraft"))
     } else if (isFutureStart) {
       // Future start: old contract stays as-is (it will end naturally or on its end date)
       // New contract is "Scheduled" - will auto-activate on start date
@@ -1307,7 +1308,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      haptic.success(); toast.success(`Contract renewal scheduled for ${new Date(startDate).toLocaleDateString('de-DE')}`)
+      haptic.success(); toast.success(t("admin.contract.toast.renewScheduled", { date: new Date(startDate).toLocaleDateString('de-DE') }))
     } else {
       // Immediate: mark old contract as ended/renewed, new contract is Active
       setContracts(prev => {
@@ -1324,7 +1325,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      haptic.success(); toast.success("Contract renewed successfully")
+      haptic.success(); toast.success(t("admin.contract.toast.renewed"))
     }
 
     // Filter to show the member's contracts
@@ -1447,7 +1448,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
     if (isDraft) {
       // Draft: just add the new contract as Pending, don't touch the old contract yet
       setContracts(prev => [...removeDraft(prev), newContract])
-      haptic.success(); toast.success("Contract change saved as draft")
+      haptic.success(); toast.success(t("admin.contract.toast.changeDraft"))
     } else if (isFutureStart) {
       // Future start: old contract stays Active, gets scheduled cancel date
       // New contract is "Scheduled" - will auto-activate on start date
@@ -1463,7 +1464,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      haptic.success(); toast.success(`Contract change scheduled for ${new Date(changeData.startDate).toLocaleDateString('de-DE')}`)
+      haptic.success(); toast.success(t("admin.contract.toast.changeScheduled", { date: new Date(changeData.startDate).toLocaleDateString('de-DE') }))
     } else {
       // Immediate: cancel old contract now, new contract is Active
       setContracts(prev => {
@@ -1480,7 +1481,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      haptic.success(); toast.success("Contract changed successfully")
+      haptic.success(); toast.success(t("admin.contract.toast.changed"))
     }
 
     // Filter to show the member's contracts
@@ -1558,7 +1559,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">Grid View</span>
+                    <span className="font-medium">{t("admin.contract.view.grid")}</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
@@ -1574,7 +1575,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">List View</span>
+                    <span className="font-medium">{t("admin.contract.view.list")}</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
@@ -1601,7 +1602,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   
                   {/* Tooltip */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                    <span className="font-medium">{isCompactView ? t("admin.contract.view.compact") : t("admin.contract.view.detailed")}</span>
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
@@ -1615,12 +1616,12 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
                 >
                   <Plus size={14} className="sm:w-4 sm:h-4" />
-                  <span className='hidden sm:inline'>Create Contract</span>
+                  <span className='hidden sm:inline'>{t("admin.contract.createContract")}</span>
                 </button>
                 
                 {/* Tooltip - YouTube Style */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Create Contract</span>
+                  <span className="font-medium">{t("admin.contract.createContract")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
                   </span>
@@ -1666,7 +1667,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder={studioFilters.length > 0 ? "Add more..." : "Search contracts..."}
+                  placeholder={studioFilters.length > 0 ? t("admin.contract.search.addMore") : t("admin.contract.search.placeholder")}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -1685,7 +1686,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                       setMemberFilters([])
                     }}
                     className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                    title="Clear all filters"
+                    title={t("admin.contract.filters.clearAll")}
                   >
                     <X size={14} className="text-content-muted hover:text-content-primary" />
                   </button>
@@ -1716,7 +1717,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
               {/* No results message */}
               {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                  <p className="text-sm text-content-faint text-center">No members found</p>
+                  <p className="text-sm text-content-faint text-center">{t("admin.contract.search.noMembers")}</p>
                 </div>
               )}
             </div>
@@ -1732,7 +1733,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                 className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
               >
                 <Filter size={14} />
-                <span className="text-xs sm:text-sm font-medium">Filters</span>
+                <span className="text-xs sm:text-sm font-medium">{t("admin.contract.filters.title")}</span>
                 <ChevronDown
                   size={14}
                   className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
@@ -1796,31 +1797,31 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   onClick={() => setFilterStatuses(prev => prev.includes('active') ? prev.filter(f => f !== 'active') : [...prev, 'active'])}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('active') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
-                  Active ({contracts.filter((c) => c.status === "Active").length})
+                  {t("admin.contract.status.active")} ({contracts.filter((c) => c.status === "Active").length})
                 </button>
                 <button
                   onClick={() => setFilterStatuses(prev => prev.includes('scheduled') ? prev.filter(f => f !== 'scheduled') : [...prev, 'scheduled'])}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('scheduled') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
-                  Scheduled ({contracts.filter((c) => c.status === "Scheduled").length})
+                  {t("admin.contract.status.scheduled")} ({contracts.filter((c) => c.status === "Scheduled").length})
                 </button>
                 <button
                   onClick={() => setFilterStatuses(prev => prev.includes('pending') ? prev.filter(f => f !== 'pending') : [...prev, 'pending'])}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('pending') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
-                  Pending ({contracts.filter((c) => c.status === "Pending").length})
+                  {t("admin.contract.status.pending")} ({contracts.filter((c) => c.status === "Pending").length})
                 </button>
                 <button
                   onClick={() => setFilterStatuses(prev => prev.includes('paused') ? prev.filter(f => f !== 'paused') : [...prev, 'paused'])}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('paused') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
-                  Paused ({contracts.filter((c) => c.status === "Paused").length})
+                  {t("admin.contract.status.paused")} ({contracts.filter((c) => c.status === "Paused").length})
                 </button>
                 <button
                   onClick={() => setFilterStatuses(prev => prev.includes('cancelled') ? prev.filter(f => f !== 'cancelled') : [...prev, 'cancelled'])}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('cancelled') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
-                  Cancelled ({contracts.filter((c) => c.status === "Cancelled").length})
+                  {t("admin.contract.status.cancelled")} ({contracts.filter((c) => c.status === "Cancelled").length})
                 </button>
               </div>
             </div>
@@ -1836,15 +1837,15 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                 <div className="bg-surface-card rounded-xl overflow-visible">
                   {/* Table Header */}
                   <div className={`grid grid-cols-[auto_1fr_1.2fr_1fr_1fr_1fr_0.8fr_1.2fr_auto] gap-4 px-4 bg-surface-dark text-content-muted font-medium border-b border-border rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
-                    <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>Contract</div>
+                    <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>{t("admin.contract.table.contract")}</div>
                     <div>{t("admin.contract.table.contractNo")}</div>
                     <div>{t("admin.contract.table.studioName")}</div>
                     <div>{t("admin.contract.table.owner")}</div>
                     <div>{t("admin.contract.table.contractType")}</div>
-                    <div>Status</div>
+                    <div>{t("admin.contract.table.status")}</div>
                     <div>{t("admin.contract.table.autoRenewal")}</div>
                     <div>{t("admin.contract.table.contractDuration")}</div>
-                    <div className={`text-right ${isCompactView ? 'w-20' : 'w-24'}`}>Actions</div>
+                    <div className={`text-right ${isCompactView ? 'w-20' : 'w-24'}`}>{t("admin.contract.table.actions")}</div>
                   </div>
                   {/* Table Body */}
                   {filteredAndSortedContracts().length > 0 ? (
@@ -1865,7 +1866,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                           <button
                             onClick={() => handleManageDocuments(contract)}
                             className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-8 h-8' : 'w-10 h-10'}`}
-                            title="Open Contract Documents"
+                            title={t("admin.contract.actions.openDocuments")}
                           >
                             <FileText size={isCompactView ? 16 : 20} className="text-orange-400" />
                           </button>
@@ -1888,7 +1889,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                             return renewalInfo.hasRenewal ? (
                               <div className="relative group inline-flex">
                                 <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-orange-400'}`}>
-                                  <RefreshCw size={isCompactView ? 10 : 12} /> Yes
+                                  <RefreshCw size={isCompactView ? 10 : 12} /> {t("common.yes")}
                                 </span>
                                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                                   <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-content-muted' : ''}`}>
@@ -1899,7 +1900,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-content-faint">No</span>
+                              <span className="text-content-faint">{t("common.no")}</span>
                             )
                           })()}
                         </div>
@@ -1916,14 +1917,14 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                           {shouldShowExpiring(contract) && (
                             <span className={`ml-2 text-red-400 flex items-center gap-1 inline-flex ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
                               <AlertTriangle size={isCompactView ? 10 : 12} />
-                              Expiring
+                              {t("admin.contract.labels.expiring")}
                             </span>
                           )}
                           {contract.bonusTime && (
                             <div className="relative group inline-flex ml-2">
                               <span className={`text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
                                 <Gift size={isCompactView ? 10 : 12} />
-                                Bonus
+                                {t("admin.contract.labels.bonus")}
                               </span>
                               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
                                 {(() => {
@@ -1961,34 +1962,34 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                             {activeDropdownId === contract.id && (
                               <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-surface-hover border border-border rounded-lg shadow-xl z-[9999] min-w-[190px] py-1">
                                 {contract.status === "Pending" && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Delete</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> {t("common.delete")}</button>
                                 )}
                                 {contract.status === "Cancelled" && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> {t("admin.contract.actions.renew")}</button>
                                 )}
                                 {contract.status === "Scheduled" && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> {t("common.cancel")}</button>
                                 )}
                                 {contract.status === "Paused" && (
                                   <>
-                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-surface-hover flex items-center gap-2"><PlayCircle size={14} /> Resume</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
-                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
-                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-surface-hover flex items-center gap-2"><PlayCircle size={14} /> {t("admin.contract.actions.resume")}</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> {t("admin.contract.actions.renew")}</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? t("admin.contract.actions.editBonusTime") : t("admin.contract.actions.addBonusTime")}</button>
+                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> {t("admin.contract.actions.removeBonusTime")}</button>)}
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> {t("admin.contract.actions.change")}</button>
                                     <hr className="border-border my-1" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> {t("common.cancel")}</button>
                                   </>
                                 )}
                                 {contract.status === "Active" && (
                                   <>
-                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><PauseCircle size={14} /> Pause</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
-                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
-                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><PauseCircle size={14} /> {t("admin.contract.actions.pause")}</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> {t("admin.contract.actions.renew")}</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? t("admin.contract.actions.editBonusTime") : t("admin.contract.actions.addBonusTime")}</button>
+                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> {t("admin.contract.actions.removeBonusTime")}</button>)}
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> {t("admin.contract.actions.change")}</button>
                                     <hr className="border-border my-1" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> {t("common.cancel")}</button>
                                   </>
                                 )}
                               </div>
@@ -2000,7 +2001,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-content-muted text-sm">No contracts found.</p>
+                      <p className="text-content-muted text-sm">{t("admin.contract.noContracts")}</p>
                     </div>
                   )}
                 </div>
@@ -2028,7 +2029,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                             <button
                               onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
                               className="w-11 h-11 bg-surface-button rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-surface-button-hover transition-colors"
-                              title="Open Contract Documents"
+                              title={t("admin.contract.actions.openDocuments")}
                             >
                               <FileText size={22} className="text-orange-400" />
                             </button>
@@ -2069,7 +2070,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                 </span>
                                 {contract.bonusTime && (
                                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1">
-                                    <Gift size={10} /> Bonus
+                                    <Gift size={10} /> {t("admin.contract.labels.bonus")}
                                   </span>
                                 )}
                                 </>
@@ -2080,16 +2081,16 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                 <>
                                   <div className="grid grid-cols-4 gap-1">
                                     <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <PauseCircle size={18} /><span className="text-[10px]">Pause</span>
+                                      <PauseCircle size={18} /><span className="text-[10px]">{t("admin.contract.actions.pause")}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                      <RefreshCw size={18} /><span className="text-[10px]">{t("admin.contract.actions.renew")}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                      <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
+                                      <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? t("admin.contract.actions.editBonus") : t("admin.contract.labels.bonus")}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                      <ArrowRightLeft size={18} /><span className="text-[10px]">{t("admin.contract.actions.change")}</span>
                                     </button>
                                   </div>
                                   <div className="grid grid-cols-4 gap-1 mt-1">
@@ -2097,7 +2098,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                     <div className="p-2" />
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                      <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                      <XCircle size={18} /><span className="text-[10px]">{t("common.cancel")}</span>
                                     </button>
                                   </div>
                                 </>
@@ -2107,16 +2108,16 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                 <>
                                   <div className="grid grid-cols-4 gap-1">
                                     <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                      <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
+                                      <PlayCircle size={18} /><span className="text-[10px]">{t("admin.contract.actions.resume")}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                      <RefreshCw size={18} /><span className="text-[10px]">{t("admin.contract.actions.renew")}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                      <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
+                                      <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? t("admin.contract.actions.editBonus") : t("admin.contract.labels.bonus")}</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                      <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                      <ArrowRightLeft size={18} /><span className="text-[10px]">{t("admin.contract.actions.change")}</span>
                                     </button>
                                   </div>
                                   <div className="grid grid-cols-4 gap-1 mt-1">
@@ -2124,7 +2125,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                     <div className="p-2" />
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                      <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                      <XCircle size={18} /><span className="text-[10px]">{t("common.cancel")}</span>
                                     </button>
                                   </div>
                                 </>
@@ -2133,12 +2134,12 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                               {contract.status === "Pending" && (
                                 <div className="grid grid-cols-4 gap-1">
                                   <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                    <Pencil size={18} /><span className="text-[10px]">Edit</span>
+                                    <Pencil size={18} /><span className="text-[10px]">{t("common.edit")}</span>
                                   </button>
                                   <div className="p-2" />
                                   <div className="p-2" />
                                   <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                    <Trash2 size={18} /><span className="text-[10px]">Delete</span>
+                                    <Trash2 size={18} /><span className="text-[10px]">{t("common.delete")}</span>
                                   </button>
                                 </div>
                               )}
@@ -2146,7 +2147,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                               {contract.status === "Cancelled" && (
                                 <div className="grid grid-cols-4 gap-1">
                                   <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                    <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                    <RefreshCw size={18} /><span className="text-[10px]">{t("admin.contract.actions.renew")}</span>
                                   </button>
                                   <div className="p-2" />
                                   <div className="p-2" />
@@ -2160,7 +2161,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                   <div className="p-2" />
                                   <div className="p-2" />
                                   <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                    <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                    <XCircle size={18} /><span className="text-[10px]">{t("common.cancel")}</span>
                                   </button>
                                 </div>
                               )}
@@ -2172,7 +2173,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-content-muted text-sm">No contracts found.</p>
+                      <p className="text-content-muted text-sm">{t("admin.contract.noContracts")}</p>
                     </div>
                   )}
                 </div>
@@ -2200,7 +2201,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                       <button
                         onClick={() => handleManageDocuments(contract)}
                         className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-12 h-12 mb-2' : 'w-20 h-20 mb-3'}`}
-                        title="Open Contract Documents"
+                        title={t("admin.contract.actions.openDocuments")}
                       >
                         <FileText size={isCompactView ? 22 : 36} className="text-orange-400" />
                       </button>
@@ -2230,7 +2231,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                             return renewalInfo.hasRenewal ? (
                               <div className="relative group inline-flex">
                                 <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-orange-400'}`}>
-                                  <RefreshCw size={10} /> Auto Renewal
+                                  <RefreshCw size={10} /> {t("admin.contract.autoRenewal.label")}
                                 </span>
                                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                                   <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-content-muted' : ''}`}>
@@ -2241,20 +2242,20 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-content-faint">No Auto Renewal</span>
+                              <span className="text-content-faint">{t("admin.contract.autoRenewal.noAutoRenewal")}</span>
                             )
                           })()}
                         </div>
                       )}
                       {shouldShowExpiring(contract) && (
                         <span className={`rounded-full bg-red-500/20 text-red-400 flex items-center gap-1 ${isCompactView ? 'mt-1 text-[10px] px-1.5 py-0.5' : 'mt-2 text-xs px-2 py-1'}`}>
-                          <AlertTriangle size={isCompactView ? 10 : 12} /> Expiring
+                          <AlertTriangle size={isCompactView ? 10 : 12} /> {t("admin.contract.labels.expiring")}
                         </span>
                       )}
                       {contract.bonusTime && (
                         <div className="relative group inline-flex mt-1">
                           <span className={`rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'}`}>
-                            <Gift size={isCompactView ? 10 : 12} /> Bonus
+                            <Gift size={isCompactView ? 10 : 12} /> {t("admin.contract.labels.bonus")}
                           </span>
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
                             {(() => {
@@ -2283,19 +2284,19 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                         {/* Active: Pause, Renew, Bonus, Change, Cancel */}
                         {contract.status === "Active" && (
                           <>
-                            <button onClick={() => handlePauseContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Pause">
+                            <button onClick={() => handlePauseContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.pause")}>
                               <PauseCircle size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.renew")}>
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
+                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? t("admin.contract.actions.editBonusTime") : t("admin.contract.actions.addBonusTime")}>
                               <Gift size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                            <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.changeContract")}>
                               <ArrowRightLeft size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.cancel")}>
                               <XCircle size={isCompactView ? 14 : 16} />
                             </button>
                           </>
@@ -2304,19 +2305,19 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                         {/* Paused: Resume, Renew, Bonus, Change, Cancel */}
                         {contract.status === "Paused" && (
                           <>
-                            <button onClick={() => handleResumeContract(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Resume">
+                            <button onClick={() => handleResumeContract(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.resume")}>
                               <PlayCircle size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.renew")}>
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
+                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? t("admin.contract.actions.editBonusTime") : t("admin.contract.actions.addBonusTime")}>
                               <Gift size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                            <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.changeContract")}>
                               <ArrowRightLeft size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.cancel")}>
                               <XCircle size={isCompactView ? 14 : 16} />
                             </button>
                           </>
@@ -2341,7 +2342,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                         {contract.status === "Cancelled" && (
                           <>
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("admin.contract.actions.renew")}>
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
@@ -2357,7 +2358,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.cancel")}>
                               <XCircle size={isCompactView ? 14 : 16} />
                             </button>
                           </>
@@ -2369,7 +2370,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                 ))
               ) : (
                 <div className="text-center py-8 col-span-full">
-                  <p className="text-content-muted text-sm">No contracts found.</p>
+                  <p className="text-content-muted text-sm">{t("admin.contract.noContracts")}</p>
                 </div>
               )}
             </div>
@@ -2380,7 +2381,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         <button
           onClick={handleAddContract}
           className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
-          aria-label="Create Contract"
+          aria-label={t("admin.contract.createContract")}
         >
           <Plus size={22} />
         </button>
@@ -2437,7 +2438,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   : c
               ))
               setIsBonusTimeModalOpen(false)
-              haptic.success(); toast.success(wasEdit ? "Bonus time updated successfully" : "Bonus time added successfully")
+              haptic.success(); toast.success(wasEdit ? t("admin.contract.toast.bonusUpdated") : t("admin.contract.toast.bonusAdded"))
             }}
             onDelete={() => {
               setContracts(contracts.map(c =>
@@ -2570,11 +2571,11 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
               <button onClick={() => setRenewConfirmData(null)} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
                 <X size={20} />
               </button>
-              <h3 className="text-content-primary text-lg font-semibold mb-3">Renew Contract</h3>
+              <h3 className="text-content-primary text-lg font-semibold mb-3">{t("admin.contract.renewConfirm.title")}</h3>
               <div className="flex items-start gap-2.5 bg-primary/10 border border-primary/20 rounded-xl p-3 mb-4">
                 <AlertCircle size={16} className="text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-xs text-content-secondary leading-relaxed">
-                  This member already has {renewConfirmData.otherContracts.length === 1 ? 'an' : ''} {renewConfirmData.otherContracts.length} other {renewConfirmData.otherContracts.length === 1 ? 'contract' : 'contracts'} with a running status:
+                  {t("admin.contract.renewConfirm.otherContracts", { count: renewConfirmData.otherContracts.length })}
                   <div className="mt-2 space-y-1">
                     {renewConfirmData.otherContracts.map(c => (
                       <div key={c.id} className="flex items-center gap-2">
@@ -2588,19 +2589,19 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-content-secondary mb-5">Are you sure you want to renew the <span className="text-content-primary font-medium">{renewConfirmData.contract.contractType}</span> contract? This will result in multiple active contracts for this member.</p>
+              <p className="text-sm text-content-secondary mb-5">{t("admin.contract.renewConfirm.confirmText", { contractType: renewConfirmData.contract.contractType })}</p>
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setRenewConfirmData(null)}
                   className="px-4 py-2 bg-surface-dark text-sm text-content-primary rounded-xl border border-border hover:bg-surface-hover transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   onClick={confirmRenew}
                   className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-sm text-white rounded-xl transition-colors"
                 >
-                  Renew Anyway
+                  {t("admin.contract.renewConfirm.renewAnyway")}
                 </button>
               </div>
             </div>
@@ -2614,15 +2615,15 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
               <button onClick={() => setResumeConfirmData(null)} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
                 <X size={20} />
               </button>
-              <h3 className="text-content-primary text-lg font-semibold mb-3">Resume Contract</h3>
+              <h3 className="text-content-primary text-lg font-semibold mb-3">{t("admin.contract.resumeConfirm.title")}</h3>
               <p className="text-sm text-content-secondary mb-4">
-                Are you sure you want to resume the <span className="text-content-primary font-medium">{resumeConfirmData.contractType}</span> contract for <span className="text-content-primary font-medium">{resumeConfirmData.studioName}</span>?
+                {t("admin.contract.resumeConfirm.confirmText", { contractType: resumeConfirmData.contractType, name: resumeConfirmData.studioName })}
               </p>
               {resumeConfirmData.pauseReason && (
                 <div className="flex items-start gap-2.5 bg-primary/10 border border-primary/20 rounded-xl p-3 mb-5">
                   <Info size={16} className="text-primary flex-shrink-0 mt-0.5" />
                   <div className="text-xs text-content-secondary leading-relaxed">
-                    Pause reason: <span className="text-content-primary font-medium">{resumeConfirmData.pauseReason}</span>
+                    {t("admin.contract.resumeConfirm.pauseReason")}: <span className="text-content-primary font-medium">{resumeConfirmData.pauseReason}</span>
                   </div>
                 </div>
               )}
@@ -2631,13 +2632,13 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   onClick={() => setResumeConfirmData(null)}
                   className="px-4 py-2 bg-surface-dark text-sm text-content-primary rounded-xl border border-border hover:bg-surface-hover transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   onClick={confirmResume}
                   className="px-4 py-2 bg-primary hover:bg-primary-hover text-sm text-white rounded-xl transition-colors"
                 >
-                  Resume Contract
+                  {t("admin.contract.resumeConfirm.resumeContract")}
                 </button>
               </div>
             </div>
@@ -2651,15 +2652,15 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
               <button onClick={() => setRemoveBonusConfirmData(null)} className="absolute top-4 right-4 text-content-muted hover:text-content-primary">
                 <X size={20} />
               </button>
-              <h3 className="text-content-primary text-lg font-semibold mb-3">Remove Bonus Time</h3>
+              <h3 className="text-content-primary text-lg font-semibold mb-3">{t("admin.contract.removeBonusConfirm.title")}</h3>
               <p className="text-sm text-content-secondary mb-4">
-                Are you sure you want to remove the bonus time from the <span className="text-content-primary font-medium">{removeBonusConfirmData.contractType}</span> contract for <span className="text-content-primary font-medium">{removeBonusConfirmData.studioName}</span>?
+                {t("admin.contract.removeBonusConfirm.confirmText", { contractType: removeBonusConfirmData.contractType, name: removeBonusConfirmData.studioName })}
               </p>
               {removeBonusConfirmData.bonusTime && (
                 <div className="flex items-start gap-2.5 bg-primary/10 border border-primary/20 rounded-xl p-3 mb-5">
                   <Info size={16} className="text-primary flex-shrink-0 mt-0.5" />
                   <div className="text-xs text-content-secondary leading-relaxed">
-                    Current bonus: <span className="text-content-primary font-medium">{removeBonusConfirmData.bonusTime.days || removeBonusConfirmData.bonusTime.amount} {removeBonusConfirmData.bonusTime.days ? 'days' : removeBonusConfirmData.bonusTime.type}</span>
+                    {t("admin.contract.removeBonusConfirm.currentBonus")}: <span className="text-content-primary font-medium">{removeBonusConfirmData.bonusTime.days || removeBonusConfirmData.bonusTime.amount} {removeBonusConfirmData.bonusTime.days ? t("admin.contract.labels.days") : removeBonusConfirmData.bonusTime.type}</span>
                     {removeBonusConfirmData.bonusTime.reason && (
                       <> — {removeBonusConfirmData.bonusTime.reason}</>
                     )}
@@ -2671,13 +2672,13 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   onClick={() => setRemoveBonusConfirmData(null)}
                   className="px-4 py-2 bg-surface-dark text-sm text-content-primary rounded-xl border border-border hover:bg-surface-hover transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   onClick={confirmRemoveBonusTime}
                   className="px-4 py-2 bg-red-500 hover:bg-red-600 text-sm text-white rounded-xl transition-colors"
                 >
-                  Remove
+                  {t("common.remove")}
                 </button>
               </div>
             </div>

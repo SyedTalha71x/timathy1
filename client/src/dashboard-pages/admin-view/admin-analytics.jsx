@@ -15,40 +15,40 @@ export default function Analytics() {
     "Studios Acquired": {
       data: [30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195],
       growth: "12%",
-      title: t("admin.analytics.title") === "Analytics" ? "Studios Acquired" : t("admin.analytics.title"),
+      title: t("admin.analytics.studiosAcquired"),
       icon: Users,
       color: "#FF6B1A",
-      description: "Total studios in network",
+      description: t("admin.analytics.totalStudiosInNetwork"),
       conversionRate: "85%",
       topPerformer: "Downtown Fitness"
     },
     Finance: {
       data: [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000, 175000, 190000, 210000],
       growth: "8%",
-      title: "Revenue",
+      title: t("admin.analytics.revenue"),
       icon: DollarSign,
       color: "#10B981",
-      description: "Monthly revenue",
+      description: t("admin.analytics.monthlyRevenue"),
       profitMargin: "32%",
-      topSource: "Membership Fees"
+      topSource: t("admin.analytics.membershipFees")
     },
     Leads: {
       data: [120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420, 450],
       growth: "15%",
-      title: "Leads Generated",
+      title: t("admin.analytics.leadsGenerated"),
       icon: Target,
       color: "#3B82F6",
-      description: "New leads per month",
+      description: t("admin.analytics.newLeadsPerMonth"),
       conversionRate: "17%",
-      topSource: "Website"
+      topSource: t("admin.analytics.website")
     },
     Franchises: {
       data: [10, 15, 22, 28, 35, 42, 50, 58, 65, 73, 82, 90],
       growth: "10%",
-      title: "Franchises Acquired",
+      title: t("admin.analytics.franchisesAcquired"),
       icon: TrendingUp,
       color: "#8B5CF6",
-      description: "Active franchises",
+      description: t("admin.analytics.activeFranchises"),
       successRate: "92%",
       topPerformer: "Fit Nation Group"
     },
@@ -59,10 +59,10 @@ export default function Analytics() {
     converted: 420,
     conversionRate: 17.1,
     stages: [
-      { name: "Generated", count: 2450, percentage: 100 },
-      { name: "Contacted", count: 1890, percentage: 77 },
-      { name: "Qualified", count: 1250, percentage: 51 },
-      { name: "Converted", count: 420, percentage: 17 }
+      { name: t("admin.analytics.stageGenerated"), count: 2450, percentage: 100 },
+      { name: t("admin.analytics.stageContacted"), count: 1890, percentage: 77 },
+      { name: t("admin.analytics.stageQualified"), count: 1250, percentage: 51 },
+      { name: t("admin.analytics.stageConverted"), count: 420, percentage: 17 }
     ]
   }
 
@@ -144,11 +144,11 @@ export default function Analytics() {
         </div>
 
         <div className="text-xs text-zinc-400">
-          {data.conversionRate && `Conversion: ${data.conversionRate}`}
+          {data.conversionRate && `${t("admin.analytics.conversionLabel")}: ${data.conversionRate}`}
           {data.profitMargin && `${t("admin.analytics.profitMargin")}: ${data.profitMargin}`}
-          {data.successRate && `Success Rate: ${data.successRate}`}
-          {data.topPerformer && `Top: ${data.topPerformer}`}
-          {data.topSource && `Top Source: ${data.topSource}`}
+          {data.successRate && `${t("admin.analytics.successRate")}: ${data.successRate}`}
+          {data.topPerformer && `${t("admin.analytics.topPerformerLabel")}: ${data.topPerformer}`}
+          {data.topSource && `${t("admin.analytics.topSourceLabel")}: ${data.topSource}`}
         </div>
       </div>
     )

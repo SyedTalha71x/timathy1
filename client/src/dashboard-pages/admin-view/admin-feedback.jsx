@@ -37,6 +37,7 @@ import {
 // Detail Modal Component
 // ============================================
 const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
+  const { t } = useTranslation()
   if (!feedback) return null
 
   const typeConfig = FEEDBACK_TYPES[feedback.type]
@@ -131,7 +132,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
             onClick={onClose}
             className="w-full px-4 py-2.5 bg-gray-700 text-white text-sm font-medium rounded-xl hover:bg-gray-600 transition-colors"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </div>
@@ -233,11 +234,11 @@ const Feedback = () => {
   }
 
   const sortOptions = [
-    { value: "newest", label: "Newest first" },
-    { value: "oldest", label: "Oldest first" },
-    { value: "rating", label: "Highest rating" },
+    { value: "newest", label: t("admin.feedback.sort.newest") },
+    { value: "oldest", label: t("admin.feedback.sort.oldest") },
+    { value: "rating", label: t("admin.feedback.sort.rating") },
   ]
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || "Newest first"
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || t("admin.feedback.sort.newest")
 
   return (
     <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
@@ -309,7 +310,7 @@ const Feedback = () => {
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
             <Filter size={14} />
-            <span className="text-xs sm:text-sm font-medium">Filters</span>
+            <span className="text-xs sm:text-sm font-medium">{t("admin.feedback.filters.title")}</span>
             <ChevronDown 
               size={14} 
               className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
@@ -344,7 +345,7 @@ const Feedback = () => {
               <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                 <div className="py-1">
                   <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                    Sort by
+                    {t("admin.feedback.sort.sortBy")}
                   </div>
                   {sortOptions.map((option) => (
                     <button
@@ -381,7 +382,7 @@ const Feedback = () => {
                   : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
               }`}
             >
-              All ({feedbackList.length})
+              {t("common.all")} ({feedbackList.length})
             </button>
             {/* Status Filter Pills */}
             {Object.entries(FEEDBACK_STATUSES).map(([key, config]) => (
@@ -410,7 +411,7 @@ const Feedback = () => {
                   : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
               }`}
             >
-              All Types
+              {t("admin.feedback.allTypes")}
             </button>
             {/* Type Filter Pills */}
             {Object.entries(FEEDBACK_TYPES).map(([key, config]) => (
@@ -515,7 +516,7 @@ const Feedback = () => {
       {/* Results Count */}
       {filteredFeedback.length > 0 && (
         <p className="text-gray-600 text-xs text-center mt-4">
-          {filteredFeedback.length} of {feedbackList.length} entries
+          {t("admin.feedback.results", { filtered: filteredFeedback.length, total: feedbackList.length })}
         </p>
       )}
 

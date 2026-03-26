@@ -325,6 +325,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
 
 // Sortable Note Item in Sidebar
 const NoteOverlayItem = ({ note, availableTags }) => {
+  const { t } = useTranslation()
   const stripText = stripHtmlTags(note.content)
   return (
     <div
@@ -337,9 +338,9 @@ const NoteOverlayItem = ({ note, availableTags }) => {
         </div>
         <div className="flex-1 min-w-0 overflow-hidden">
           <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
-            {note.title || 'Untitled'}
+            {note.title || t("admin.notes.untitled")}
           </h4>
-          <p className="text-xs text-gray-400 mt-1 truncate">{stripText || 'No content'}</p>
+          <p className="text-xs text-gray-400 mt-1 truncate">{stripText || t("admin.notes.noContent")}</p>
           {note.tags && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {note.tags.slice(0, 3).map(tagId => {
@@ -357,6 +358,7 @@ const NoteOverlayItem = ({ note, availableTags }) => {
 }
 
 const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags }) => {
+  const { t } = useTranslation()
   const {
     attributes,
     listeners,
@@ -400,7 +402,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags 
         <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
-              {note.title || 'Untitled'}
+              {note.title || t("admin.notes.untitled")}
             </h4>
             {note.isPinned && (
               <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-0.5" />
@@ -417,7 +419,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags 
               wordBreak: 'break-word'
             }}
           >
-            {stripText || 'No content'}
+            {stripText || t("admin.notes.noContent")}
           </p>
 
           {/* Tags */}
@@ -612,11 +614,11 @@ export default function NotesApp() {
 
   // Sort options
   const sortOptions = [
-    { value: 'date', label: 'Date' },
-    { value: 'title', label: 'Title' },
-    { value: 'custom', label: 'Custom' },
+    { value: 'date', label: t("admin.notes.sort.date") },
+    { value: 'title', label: t("admin.notes.sort.title") },
+    { value: 'custom', label: t("admin.notes.sort.custom") },
   ]
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date'
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || t("admin.notes.sort.date")
 
   const toggleSortDirection = () => {
     haptic.light()
@@ -706,7 +708,7 @@ export default function NotesApp() {
     const duplicated = {
       ...selectedNote,
       id: Date.now(),
-      title: `${selectedNote.title} (Copy)`,
+      title: `${selectedNote.title} (${t("common.duplicate")})`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -828,10 +830,10 @@ export default function NotesApp() {
                   className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors font-medium"
                 >
                   <Plus size={16} />
-                  <span>Create Note</span>
+                  <span>{t("admin.notes.newNote")}</span>
                 </button>
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Create Note</span>
+                  <span className="font-medium">{t("admin.notes.newNote")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
                 </div>
               </div>
@@ -850,7 +852,7 @@ export default function NotesApp() {
                 {showSortDropdown && (
                   <div className="absolute left-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-full w-max">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -877,10 +879,10 @@ export default function NotesApp() {
                   className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors font-medium"
                 >
                   <Tag size={16} />
-                  <span className="hidden sm:inline">Tags</span>
+                  <span className="hidden sm:inline">{t("admin.notes.tags")}</span>
                 </button>
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Manage Tags</span>
+                  <span className="font-medium">{t("admin.notes.manageTags")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">T</span>
                 </div>
               </div>
@@ -892,7 +894,7 @@ export default function NotesApp() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder={t("admin.notes.search.placeholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-blue-500 transition-colors"
@@ -910,7 +912,7 @@ export default function NotesApp() {
                 {showSortDropdown && (
                   <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -943,8 +945,8 @@ export default function NotesApp() {
             <div className="flex-1 overflow-y-auto">
               {currentNotes.length === 0 ? (
                 <div className="p-6 md:p-8 text-center text-gray-500">
-                  <p className="text-sm">No notes yet</p>
-                  <p className="text-xs mt-2">Create your first note to get started</p>
+                  <p className="text-sm">{t("admin.notes.empty.title")}</p>
+                  <p className="text-xs mt-2">{t("admin.notes.empty.description")}</p>
                 </div>
               ) : (
                 <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
@@ -985,13 +987,13 @@ export default function NotesApp() {
                         data-title-input
                         value={editedTitle}
                         onChange={(e) => { setEditedTitle(e.target.value); setHasUnsavedChanges(true) }}
-                        placeholder="Untitled"
+                        placeholder={t("admin.notes.untitled")}
                         className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1 truncate"
                       />
                       <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
-                        <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
+                        <span>{t("common.created")}: {formatDateTime(selectedNote.createdAt)}</span>
                         {selectedNote.updatedAt !== selectedNote.createdAt && (
-                          <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
+                          <span>{t("common.updated")}: {formatDateTime(selectedNote.updatedAt)}</span>
                         )}
                       </div>
                     </div>
@@ -1000,21 +1002,21 @@ export default function NotesApp() {
                       <button
                         onClick={() => togglePin(selectedNote.id)}
                         className={`p-2 rounded-lg hover:bg-gray-800 transition-colors ${selectedNote.isPinned ? 'text-orange-400' : 'text-gray-400 hover:text-white'}`}
-                        title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
+                        title={selectedNote.isPinned ? t("common.unpin") : t("common.pin")}
                       >
                         {selectedNote.isPinned ? <Pin size={18} className="fill-current" /> : <PinOff size={18} />}
                       </button>
                       <button
                         onClick={duplicateNote}
                         className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                        title="Duplicate"
+                        title={t("common.duplicate")}
                       >
                         <Copy size={18} />
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(selectedNote)}
                         className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                        title="Delete"
+                        title={t("common.delete")}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -1041,7 +1043,7 @@ export default function NotesApp() {
                         onClick={() => setShowAllTags(!showAllTags)}
                         className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
                       >
-                        {showAllTags ? 'Show less' : `Show ${availableTags.length - 6} more`}
+                        {showAllTags ? t("admin.notes.showLess") : t("admin.notes.showMore", { count: availableTags.length - 6 })}
                       </button>
                     )}
                   </div>
@@ -1055,7 +1057,7 @@ export default function NotesApp() {
                     initialValue={selectedNote.content}
                     value={editedContent}
                     onChange={(value) => { setEditedContent(value); setHasUnsavedChanges(true) }}
-                    placeholder="Start writing..."
+                    placeholder={t("admin.notes.startWriting")}
                     className="full-height"
                   />
                 </div>
@@ -1066,14 +1068,14 @@ export default function NotesApp() {
                   <div className="text-gray-600 mb-4">
                     <Edit size={40} className="mx-auto md:w-12 md:h-12" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-400 mb-2">No note selected</h3>
-                  <p className="text-xs md:text-sm text-gray-500 mb-6">Select a note from the list or create a new one</p>
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-400 mb-2">{t("admin.notes.noNoteSelected")}</h3>
+                  <p className="text-xs md:text-sm text-gray-500 mb-6">{t("admin.notes.selectNoteHint")}</p>
                   <button
                     onClick={handleCreateNote}
                     className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
                   >
                     <Plus size={16} />
-                    Create Note
+                    {t("admin.notes.newNote")}
                   </button>
                 </div>
               </div>
@@ -1128,20 +1130,20 @@ export default function NotesApp() {
                         onClick={() => { togglePin(selectedNote.id); setShowMobileActionsMenu(false) }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
                       >
-                        {selectedNote.isPinned ? <><PinOff size={16} /><span>Unpin Note</span></> : <><Pin size={16} /><span>Pin Note</span></>}
+                        {selectedNote.isPinned ? <><PinOff size={16} /><span>{t("admin.notes.unpinNote")}</span></> : <><Pin size={16} /><span>{t("admin.notes.pinNote")}</span></>}
                       </button>
                       <button
                         onClick={() => { duplicateNote(); setShowMobileActionsMenu(false) }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
                       >
-                        <Copy size={16} /><span>Duplicate</span>
+                        <Copy size={16} /><span>{t("common.duplicate")}</span>
                       </button>
                       <div className="border-t border-gray-700 my-1"></div>
                       <button
                         onClick={() => { setDeleteConfirm(selectedNote); setShowMobileActionsMenu(false) }}
                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
                       >
-                        <Trash2 size={16} /><span>Delete</span>
+                        <Trash2 size={16} /><span>{t("common.delete")}</span>
                       </button>
                     </div>
                   </div>
@@ -1158,13 +1160,13 @@ export default function NotesApp() {
                 data-title-input
                 value={editedTitle}
                 onChange={(e) => { setEditedTitle(e.target.value); setHasUnsavedChanges(true) }}
-                placeholder="Untitled"
+                placeholder={t("admin.notes.untitled")}
                 className="w-full bg-transparent text-xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1"
               />
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
+                <span>{t("common.created")}: {formatDateTime(selectedNote.createdAt)}</span>
                 {selectedNote.updatedAt !== selectedNote.createdAt && (
-                  <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
+                  <span>{t("common.updated")}: {formatDateTime(selectedNote.updatedAt)}</span>
                 )}
               </div>
             </div>
@@ -1172,9 +1174,9 @@ export default function NotesApp() {
             {/* Tags */}
             <div className="p-4 border-b border-gray-800">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-300">Tags</label>
+                <label className="text-sm font-medium text-gray-300">{t("admin.notes.tags")}</label>
                 <button onClick={() => setShowTagsModal(true)} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
-                  Manage Tags
+                  {t("admin.notes.manageTags")}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1195,7 +1197,7 @@ export default function NotesApp() {
                   onClick={() => setShowAllTags(!showAllTags)}
                   className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
                 >
-                  {showAllTags ? 'Show less' : `Show ${availableTags.length - 4} more`}
+                  {showAllTags ? t("admin.notes.showLess") : t("admin.notes.showMore", { count: availableTags.length - 4 })}
                 </button>
               )}
             </div>
@@ -1208,7 +1210,7 @@ export default function NotesApp() {
                 initialValue={selectedNote.content}
                 value={editedContent}
                 onChange={(value) => { setEditedContent(value); setHasUnsavedChanges(true) }}
-                placeholder="Start writing..."
+                placeholder={t("admin.notes.startWriting")}
                 isMobile={true}
               />
             </div>

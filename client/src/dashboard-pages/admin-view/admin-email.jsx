@@ -7,6 +7,7 @@ import {
   FileText, Reply, Trash2, XCircle, Inbox, Paperclip, RefreshCw, X,
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
+import { useTranslation } from "react-i18next"
 
 // ── Admin-panel states (NOT studio-states) ─────────────────
 import {
@@ -24,6 +25,7 @@ import BroadcastModal from "../../components/admin-dashboard-components/email-co
 // MOBILE EMAIL ITEM
 // ═══════════════════════════════════════════════════════════
 const MobileEmailItem = ({ email, emailTab, selectedEmailIds, toggleEmailSelection, handleEmailItemClick, formatEmailTime, truncateEmailText, moveEmailToTrash }) => {
+  const { t } = useTranslation()
   const [touchStart, setTouchStart] = useState(null)
   const [showActions, setShowActions] = useState(false)
   return (
@@ -47,8 +49,8 @@ const MobileEmailItem = ({ email, emailTab, selectedEmailIds, toggleEmailSelecti
             <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>{email.subject || "(No subject)"}</p>
-            {email.status === "Draft" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>}
+            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>{email.subject || t("admin.email.noSubject")}</p>
+            {email.status === "Draft" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">{t("admin.email.folders.draft")}</span>}
           </div>
           <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body, 50)}</p>
           {email.attachments?.length > 0 && <div className="flex items-center gap-1 mt-1 text-xs text-gray-500"><Paperclip size={10} /><span>{email.attachments.length}</span></div>}
@@ -65,6 +67,7 @@ const MobileEmailItem = ({ email, emailTab, selectedEmailIds, toggleEmailSelecti
 // DESKTOP EMAIL LIST ITEM
 // ═══════════════════════════════════════════════════════════
 function EmailListItem({ email, emailTab, isSelected, isChecked, onToggleSelect, onClick, formatEmailTime, truncateEmailText }) {
+  const { t } = useTranslation()
   return (
     <div draggable={!["draft","error","trash"].includes(emailTab)}
       onDragStart={(e) => { if (["draft","error","trash"].includes(emailTab)) { e.preventDefault(); return } e.dataTransfer.setData("emailId", email.id.toString()); e.currentTarget.classList.add("opacity-50") }}
@@ -86,8 +89,8 @@ function EmailListItem({ email, emailTab, isSelected, isChecked, onToggleSelect,
           <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
         </div>
         <div className="flex items-center gap-2">
-          <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>{email.subject || "(No subject)"}</p>
-          {email.status === "Draft" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>}
+          <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>{email.subject || t("admin.email.noSubject")}</p>
+          {email.status === "Draft" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">{t("admin.email.folders.draft")}</span>}
         </div>
         <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body)}</p>
         {email.attachments?.length > 0 && <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500 select-none"><Paperclip size={12} /><span>{email.attachments.length}</span></div>}
@@ -105,7 +108,6 @@ function EmailListItem({ email, emailTab, isSelected, isChecked, onToggleSelect,
 //
 // Usage:
 //   import EmailPanel from "./email-components/EmailPanel"
-import { useTranslation } from "react-i18next"
 import { haptic } from "../../utils/haptic"
 import toast from "../../components/shared/SharedToast"
 //   <EmailPanel />
@@ -143,12 +145,12 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
 
   // ── Folder Definitions ───────────────────────────────────
   const emailFolders = [
-    { id: "inbox", label: "Inbox", icon: Inbox },
-    { id: "sent", label: "Sent", icon: Send },
-    { id: "draft", label: "Drafts", icon: FileText },
-    { id: "archive", label: "Archive", icon: Archive },
-    { id: "error", label: "Failed", icon: XCircle },
-    { id: "trash", label: "Trash", icon: Trash2 },
+    { id: "inbox", label: t("admin.email.folders.inbox"), icon: Inbox },
+    { id: "sent", label: t("admin.email.folders.sent"), icon: Send },
+    { id: "draft", label: t("admin.email.folders.drafts"), icon: FileText },
+    { id: "archive", label: t("admin.email.folders.archive"), icon: Archive },
+    { id: "error", label: t("admin.email.folders.failed"), icon: XCircle },
+    { id: "trash", label: t("admin.email.folders.trash"), icon: Trash2 },
   ]
 
   // ═══════════════════════════════════════════════════════════
@@ -288,7 +290,7 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input type="text" placeholder={t("admin.email.search.placeholder")} value={emailSearchQuery} onChange={(e) => setEmailSearchQuery(e.target.value)} className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 border border-[#333333] focus:border-[#3F74FF] transition-colors" />
           </div>
-          <button onClick={() => setShowEmailModal(true)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-sm text-white font-medium transition-colors w-full"><Send className="w-4 h-4" /> Send Email</button>
+          <button onClick={() => setShowEmailModal(true)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-sm text-white font-medium transition-colors w-full"><Send className="w-4 h-4" /> {t("admin.email.sendEmail")}</button>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar select-none px-4 pb-6" style={{ minHeight: 0 }}>
@@ -322,12 +324,12 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedEmailIds.length > 0 && selectedEmailIds.length === [...getPinnedEmails(), ...getFilteredEmails(false)].length ? "bg-orange-500 border-orange-500" : selectedEmailIds.length > 0 ? "bg-orange-500/50 border-orange-500" : "border-gray-500"}`}>
                   {selectedEmailIds.length > 0 && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </div>
-                <span className="text-xs text-gray-400">{selectedEmailIds.length > 0 ? `${selectedEmailIds.length} selected` : "Select all"}</span>
+                <span className="text-xs text-gray-400">{selectedEmailIds.length > 0 ? t("admin.email.list.nSelected", { count: selectedEmailIds.length }) : t("admin.email.list.selectAll")}</span>
               </button>
               {selectedEmailIds.length > 0 && (
                 <div className="flex items-center gap-1 ml-auto">
-                  {!["draft","error","trash"].includes(emailTab) && (<><button onClick={() => bulkMarkAsRead(true)} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title="Mark as read"><MailCheck size={16} /></button><button onClick={() => bulkMarkAsRead(false)} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title="Mark as unread"><MailOpen size={16} /></button><button onClick={bulkArchive} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title="Archive"><Archive size={16} /></button></>)}
-                  <button onClick={bulkDelete} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-red-400" title={emailTab === "trash" ? "Delete permanently" : "Delete"}><Trash2 size={16} /></button>
+                  {!["draft","error","trash"].includes(emailTab) && (<><button onClick={() => bulkMarkAsRead(true)} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title={t("admin.email.actions.markRead")}><MailCheck size={16} /></button><button onClick={() => bulkMarkAsRead(false)} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title={t("admin.email.actions.markUnread")}><MailOpen size={16} /></button><button onClick={bulkArchive} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title={t("admin.email.folders.archive")}><Archive size={16} /></button></>)}
+                  <button onClick={bulkDelete} className="p-1.5 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-red-400" title={emailTab === "trash" ? t("admin.email.actions.deletePermanently") : t("common.delete")}><Trash2 size={16} /></button>
                 </div>
               )}
             </div>
@@ -349,22 +351,22 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
           <div className="flex-1 flex flex-col min-w-0 select-text">
             <div className="p-4 border-b border-[#333333] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">{selectedEmail.isPinned && <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg"><Pin size={12} /> Pinned</span>}</div>
+                <div className="flex items-center gap-2">{selectedEmail.isPinned && <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg"><Pin size={12} /> {t("admin.email.list.pinned")}</span>}</div>
                 <div className="flex items-center gap-1">
-                  {emailTab === "error" && <button onClick={() => retryFailedEmail(selectedEmail)} className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title="Retry"><RefreshCw size={18} /></button>}
-                  {!["draft","error","trash"].includes(emailTab) && <button onClick={() => handleEmailReply(selectedEmail)} className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title="Reply"><Reply size={18} /></button>}
+                  {emailTab === "error" && <button onClick={() => retryFailedEmail(selectedEmail)} className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title={t("admin.email.actions.retry")}><RefreshCw size={18} /></button>}
+                  {!["draft","error","trash"].includes(emailTab) && <button onClick={() => handleEmailReply(selectedEmail)} className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white" title={t("common.reply")}><Reply size={18} /></button>}
                   {!["trash","error"].includes(emailTab) && (<><button onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })} className={`p-2 hover:bg-[#333333] rounded-lg ${selectedEmail.isPinned ? "text-amber-500" : "text-gray-400 hover:text-white"}`}>{selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}</button><button onClick={() => { updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived }); setSelectedEmail(null) }} className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white"><Archive size={18} /></button></>)}
                   <button onClick={() => { if (emailTab === "trash") { setEmailsToDelete([selectedEmail.id]); setShowPermanentDeleteConfirm(true) } else moveEmailToTrash(selectedEmail.id) }} className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-red-400"><Trash2 size={18} /></button>
                 </div>
               </div>
               <h2 className="text-xl font-semibold text-white mb-3">{selectedEmail.subject}</h2>
               <div className="flex items-start justify-between">
-                <div><p className="text-sm text-white font-medium">{selectedEmail.sender}</p>{selectedEmail.senderEmail && <p className="text-xs text-gray-500">&lt;{selectedEmail.senderEmail}&gt;</p>}<p className="text-xs text-gray-500 mt-1">To: {selectedEmail.recipient}{selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}{selectedEmail.cc && <span> · CC: {selectedEmail.cc}</span>}</p></div>
+                <div><p className="text-sm text-white font-medium">{selectedEmail.sender}</p>{selectedEmail.senderEmail && <p className="text-xs text-gray-500">&lt;{selectedEmail.senderEmail}&gt;</p>}<p className="text-xs text-gray-500 mt-1">{t("admin.email.detail.to")}: {selectedEmail.recipient}{selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}{selectedEmail.cc && <span> · {t("admin.email.detail.cc")}: {selectedEmail.cc}</span>}</p></div>
                 <div className="text-right"><p className="text-xs text-gray-500">{new Date(selectedEmail.time).toLocaleString()}</p>{selectedEmail.status === "Failed" && <span className="inline-flex items-center text-xs px-2 py-0.5 rounded mt-1 bg-red-500/20 text-red-400">{t("admin.email.folders.error")}</span>}</div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              {selectedEmail.attachments?.length > 0 && (<div className="mb-6 pb-4 border-b border-[#333333] select-none"><p className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2"><Paperclip size={16} /> Attachments ({selectedEmail.attachments.length})</p><div className="flex flex-wrap gap-2">{selectedEmail.attachments.map((f, i) => <div key={i} className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg border border-[#333333]"><Paperclip size={14} className="text-gray-500" /><span className="text-sm text-gray-300">{f.name || f}</span>{f.size && <span className="text-xs text-gray-500">({f.size})</span>}</div>)}</div></div>)}
+              {selectedEmail.attachments?.length > 0 && (<div className="mb-6 pb-4 border-b border-[#333333] select-none"><p className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2"><Paperclip size={16} /> {t("admin.email.detail.attachments")} ({selectedEmail.attachments.length})</p><div className="flex flex-wrap gap-2">{selectedEmail.attachments.map((f, i) => <div key={i} className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg border border-[#333333]"><Paperclip size={14} className="text-gray-500" /><span className="text-sm text-gray-300">{f.name || f}</span>{f.size && <span className="text-xs text-gray-500">({f.size})</span>}</div>)}</div></div>)}
               <div className="max-w-none bg-white p-6 rounded-xl" style={{ color: "#1f2937", fontSize: "14px", lineHeight: "1.5", fontFamily: "Arial, sans-serif" }} dangerouslySetInnerHTML={{ __html: selectedEmail.body }} />
             </div>
           </div>
@@ -378,7 +380,7 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
       {mobileView === "list" && (
         <div className="md:hidden flex flex-col w-full h-full">
           <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-white">Email</h2>
+            <h2 className="text-lg font-semibold text-white">{t("admin.email.title")}</h2>
             <div className="flex items-center gap-2">
               <button onClick={() => setShowBroadcastModal(true)} className="p-2 bg-[#222222] hover:bg-[#333333] rounded-xl"><IoIosMegaphone size={18} className="text-orange-400" /></button>
               <button onClick={() => setShowEmailModal(true)} className="p-2 bg-orange-500 hover:bg-orange-600 rounded-xl"><Send size={18} className="text-white" /></button>
@@ -386,7 +388,7 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
           </div>
           <div className="border-b border-gray-800 flex-shrink-0"><div className="flex overflow-x-auto px-2 py-2 gap-1" style={{ scrollbarWidth: "none" }}>{emailFolders.map((f) => { const Icon = f.icon; const uc = getUnreadCountForFolder(f.id); const isA = emailTab === f.id; return (<button key={f.id} onClick={() => { setEmailTab(f.id); setSelectedEmailIds([]) }} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${isA ? "bg-orange-500 text-white" : "bg-[#222222] text-gray-400"}`}><Icon size={16} /><span>{f.label}</span>{uc > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full ${isA ? "bg-white/20" : "bg-orange-500 text-white"}`}>{uc}</span>}</button>) })}</div></div>
           <div className="px-3 py-2 border-b border-gray-800 flex-shrink-0"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" /><input type="text" placeholder={t("admin.email.search.placeholder")} value={emailSearchQuery} onChange={(e) => setEmailSearchQuery(e.target.value)} className="w-full bg-[#222222] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-500 focus:outline-none" /></div></div>
-          {selectedEmailIds.length > 0 && (<div className="px-3 py-2 bg-[#181818] border-b border-gray-800 flex items-center justify-between flex-shrink-0"><button onClick={() => setSelectedEmailIds([])} className="text-sm text-gray-400 flex items-center gap-1"><X size={16} /> {selectedEmailIds.length} selected</button><div className="flex items-center gap-2">{!["draft","error","trash"].includes(emailTab) && (<><button onClick={() => bulkMarkAsRead(true)} className="p-2 text-gray-400"><MailCheck size={18} /></button><button onClick={() => bulkMarkAsRead(false)} className="p-2 text-gray-400"><MailOpen size={18} /></button><button onClick={bulkArchive} className="p-2 text-gray-400"><Archive size={18} /></button></>)}<button onClick={bulkDelete} className="p-2 text-red-400"><Trash2 size={18} /></button></div></div>)}
+          {selectedEmailIds.length > 0 && (<div className="px-3 py-2 bg-[#181818] border-b border-gray-800 flex items-center justify-between flex-shrink-0"><button onClick={() => setSelectedEmailIds([])} className="text-sm text-gray-400 flex items-center gap-1"><X size={16} /> {t("admin.email.list.nSelected", { count: selectedEmailIds.length })}</button><div className="flex items-center gap-2">{!["draft","error","trash"].includes(emailTab) && (<><button onClick={() => bulkMarkAsRead(true)} className="p-2 text-gray-400"><MailCheck size={18} /></button><button onClick={() => bulkMarkAsRead(false)} className="p-2 text-gray-400"><MailOpen size={18} /></button><button onClick={bulkArchive} className="p-2 text-gray-400"><Archive size={18} /></button></>)}<button onClick={bulkDelete} className="p-2 text-red-400"><Trash2 size={18} /></button></div></div>)}
           <div className="flex-1 overflow-y-auto select-none">
             {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (<div className="flex flex-col items-center justify-center h-full text-center p-6"><div className="w-20 h-20 rounded-2xl bg-[#222222] border border-[#333333] flex items-center justify-center mb-4"><Mail className="w-10 h-10 text-gray-600" /></div><h3 className="text-white font-medium text-lg mb-2">{t("admin.email.list.noEmails")}</h3></div>) : (
               <div className="pb-20">
@@ -411,8 +413,8 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             <h2 className="text-lg font-semibold text-white mb-3">{selectedEmail.subject}</h2>
-            <div className="flex items-start justify-between mb-4"><div><p className="text-sm text-white font-medium">{selectedEmail.sender}</p>{selectedEmail.senderEmail && <p className="text-xs text-gray-500">&lt;{selectedEmail.senderEmail}&gt;</p>}<p className="text-xs text-gray-500 mt-1">To: {selectedEmail.recipient}</p></div><p className="text-xs text-gray-500">{formatEmailTime(selectedEmail.time)}</p></div>
-            {selectedEmail.attachments?.length > 0 && (<div className="mb-4 pb-4 border-b border-[#333333]"><p className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2"><Paperclip size={14} /> Attachments</p>{selectedEmail.attachments.map((f, i) => <div key={i} className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg mb-1"><Paperclip size={14} className="text-gray-500" /><span className="text-sm text-gray-300">{f.name || f}</span></div>)}</div>)}
+            <div className="flex items-start justify-between mb-4"><div><p className="text-sm text-white font-medium">{selectedEmail.sender}</p>{selectedEmail.senderEmail && <p className="text-xs text-gray-500">&lt;{selectedEmail.senderEmail}&gt;</p>}<p className="text-xs text-gray-500 mt-1">{t("admin.email.detail.to")}: {selectedEmail.recipient}</p></div><p className="text-xs text-gray-500">{formatEmailTime(selectedEmail.time)}</p></div>
+            {selectedEmail.attachments?.length > 0 && (<div className="mb-4 pb-4 border-b border-[#333333]"><p className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2"><Paperclip size={14} /> {t("admin.email.detail.attachments")}</p>{selectedEmail.attachments.map((f, i) => <div key={i} className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg mb-1"><Paperclip size={14} className="text-gray-500" /><span className="text-sm text-gray-300">{f.name || f}</span></div>)}</div>)}
             <div className="bg-white p-4 rounded-xl" style={{ color: "#1f2937", fontSize: "14px", lineHeight: "1.5", fontFamily: "Arial, sans-serif" }} dangerouslySetInnerHTML={{ __html: selectedEmail.body }} />
           </div>
           {!["trash","draft"].includes(emailTab) && (<div className="p-3 border-t border-[#333333] bg-[#181818]">{emailTab === "error" ? <button onClick={() => retryFailedEmail(selectedEmail)} className="w-full py-3 bg-green-500 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"><RefreshCw size={16} /> {t("admin.email.detail.retrySend")}</button> : <button onClick={() => handleEmailReply(selectedEmail)} className="w-full py-3 bg-orange-500 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"><Reply size={16} /> {t("common.reply")}</button>}</div>)}
@@ -430,7 +432,7 @@ export default function EmailPanel({ className = "h-[92vh]" }) {
       {showBroadcastModal && (<div className="fixed inset-0 z-[100] hidden md:flex items-center justify-center"><div className="absolute inset-0 bg-black/60" onClick={() => setShowBroadcastModal(false)} /><div className="relative z-10 w-full h-full max-w-[95vw] max-h-[95vh] m-4"><BroadcastModal onClose={() => setShowBroadcastModal(false)} broadcastFolders={broadcastFolders} preConfiguredMessages={preConfiguredMessages} settings={{}} onBroadcast={handleBroadcast} onCreateMessage={(d) => { const nid = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1; setPreConfiguredMessages([...preConfiguredMessages, { id: nid, ...d }]) }} onUpdateMessage={(d) => setPreConfiguredMessages((p) => p.map((m) => m.id === d.id ? d : m))} onDeleteMessage={(id) => setPreConfiguredMessages((p) => p.filter((m) => m.id !== id))} onCreateFolder={(n) => { const nid = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1; setBroadcastFolders([...broadcastFolders, { id: nid, name: n }]) }} onUpdateFolder={(fid, fn) => setBroadcastFolders((p) => p.map((f) => f.id === fid ? { ...f, name: fn } : f))} onDeleteFolder={(fid) => { setBroadcastFolders((p) => p.filter((f) => f.id !== fid)); setPreConfiguredMessages((p) => p.filter((m) => m.folderId !== fid)) }} /></div></div>)}
       {showBroadcastModal && (<div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[100] flex flex-col overflow-auto"><BroadcastModal onClose={() => setShowBroadcastModal(false)} broadcastFolders={broadcastFolders} preConfiguredMessages={preConfiguredMessages} settings={{}} onBroadcast={handleBroadcast} onCreateMessage={(d) => { const nid = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1; setPreConfiguredMessages([...preConfiguredMessages, { id: nid, ...d }]) }} onUpdateMessage={(d) => setPreConfiguredMessages((p) => p.map((m) => m.id === d.id ? d : m))} onDeleteMessage={(id) => setPreConfiguredMessages((p) => p.filter((m) => m.id !== id))} onCreateFolder={(n) => { const nid = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1; setBroadcastFolders([...broadcastFolders, { id: nid, name: n }]) }} onUpdateFolder={(fid, fn) => setBroadcastFolders((p) => p.map((f) => f.id === fid ? { ...f, name: fn } : f))} onDeleteFolder={(fid) => { setBroadcastFolders((p) => p.filter((f) => f.id !== fid)); setPreConfiguredMessages((p) => p.filter((m) => m.folderId !== fid)) }} /></div>)}
 
-      {showPermanentDeleteConfirm && (<div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90] p-4"><div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6"><div className="flex items-center gap-3 mb-4"><div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center"><Trash2 className="w-6 h-6 text-red-400" /></div><div><h3 className="text-lg font-semibold text-white">{t("admin.email.deleteConfirm.title")}</h3><p className="text-sm text-gray-500">{t("admin.email.deleteConfirm.description")}</p></div></div><p className="text-gray-400 text-sm mb-6">{emailsToDelete.length === 1 ? "Are you sure you want to permanently delete this email?" : `Are you sure you want to permanently delete ${emailsToDelete.length} emails?`}</p><div className="flex justify-end gap-3"><button onClick={() => { setShowPermanentDeleteConfirm(false); setEmailsToDelete([]) }} className="px-4 py-2.5 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium">{t("common.cancel")}</button><button onClick={confirmPermanentDelete} className="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium flex items-center gap-2"><Trash2 className="w-4 h-4" /> Delete</button></div></div></div>)}
+      {showPermanentDeleteConfirm && (<div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90] p-4"><div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6"><div className="flex items-center gap-3 mb-4"><div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center"><Trash2 className="w-6 h-6 text-red-400" /></div><div><h3 className="text-lg font-semibold text-white">{t("admin.email.deleteConfirm.title")}</h3><p className="text-sm text-gray-500">{t("admin.email.deleteConfirm.description")}</p></div></div><p className="text-gray-400 text-sm mb-6">{emailsToDelete.length === 1 ? t("admin.email.deleteConfirm.confirmSingle") : t("admin.email.deleteConfirm.confirmMultiple", { count: emailsToDelete.length })}</p><div className="flex justify-end gap-3"><button onClick={() => { setShowPermanentDeleteConfirm(false); setEmailsToDelete([]) }} className="px-4 py-2.5 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium">{t("common.cancel")}</button><button onClick={confirmPermanentDelete} className="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium flex items-center gap-2"><Trash2 className="w-4 h-4" /> {t("common.delete")}</button></div></div></div>)}
     </div>
   )
 }
