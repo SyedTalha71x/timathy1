@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users, 
   Calendar, 
@@ -26,6 +27,7 @@ import {
 // Import logo
 import OrgaGymLogo from "../../public/OrgaGym Logo.svg";
 import DashboardPng from "../../public/Dashboard.png";
+import NavBar from "./navbar";
 
 // Animated counter component
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -95,8 +97,48 @@ const FloatingBadge = ({ children, className }) => (
 );
 
 export default function Home() {
+  const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Prevent drag and drop for images
+  useEffect(() => {
+    const preventDrag = (e) => {
+      if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    const preventDrop = (e) => {
+      if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    document.addEventListener('dragstart', preventDrag);
+    document.addEventListener('drop', preventDrop);
+    
+    return () => {
+      document.removeEventListener('dragstart', preventDrag);
+      document.removeEventListener('drop', preventDrop);
+    };
+  }, []);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -111,6 +153,13 @@ export default function Home() {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  const handleDemoClick = () => {
+    // Mobile Menü schließen, falls es offen ist
+    setMobileMenuOpen(false);
+    // Zur Demo-Seite navigieren
+    navigate('/demo');
+  };
 
   const features = [
     {
@@ -177,311 +226,263 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] overflow-x-hidden">
-      {/* Animated background gradient */}
+    <>
+      <NavBar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+      
       <div 
-        className="fixed inset-0 opacity-30 pointer-events-none"
+        className="min-h-screen bg-[#0a0a0a] overflow-x-hidden select-none"
         style={{
-          background: `
-            radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(255, 132, 62, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(63, 116, 255, 0.1) 0%, transparent 50%)
-          `
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          msUserSelect: 'none'
         }}
-      />
-
-      {/* Grid pattern overlay */}
-      <div 
-        className="fixed inset-0 opacity-[0.02] pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px'
+        onDragStart={(e) => {
+          if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+          }
         }}
-      />
+        onDrop={(e) => {
+          if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+          }
+        }}
+      >
+        {/* Animated background gradient */}
+        <div 
+          className="fixed inset-0 opacity-30 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(255, 132, 62, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, rgba(63, 116, 255, 0.1) 0%, transparent 50%)
+            `
+          }}
+        />
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 md:pb-32 px-4">
-        <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-orange-500/20 rounded-full blur-[100px] md:blur-[128px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-blue-500/20 rounded-full blur-[100px] md:blur-[128px]" />
-        
-        <div className="relative z-10 max-w-7xl mx-auto text-center">
-          <div className={`transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-6 md:mb-8">
-              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-              <span className="text-xs md:text-sm text-gray-300">The All-in-One Solution for Fitness Studios</span>
-            </div>
+        {/* Grid pattern overlay */}
+        <div 
+          className="fixed inset-0 opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}
+        />
 
-            {/* Main headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-4 md:mb-6 leading-[1.1] tracking-tight">
-              Studio Management
-              <br />
-              <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">
-                Reimagined
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg md:text-2xl text-gray-400 max-w-3xl mx-auto mb-8 md:mb-10 leading-relaxed px-2">
-              OrgaGym combines member management, scheduling, contracts, and finances in one intuitive platform. Focus on what matters most — your members.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
-              <a 
-                href="#demo"
-                className="group w-full sm:w-auto px-6 md:px-8 py-3.5 md:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl md:rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 md:gap-3"
-              >
-                Request Free Demo
-                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
-              <a 
-                href="#features"
-                className="w-full sm:w-auto px-6 md:px-8 py-3.5 md:py-4 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl md:rounded-2xl font-semibold text-base md:text-lg hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2 md:gap-3"
-              >
-                <Play className="w-4 h-4 md:w-5 md:h-5" />
-                Learn More
-              </a>
-            </div>
-          </div>
-
-          {/* Dashboard Preview */}
-          <div className={`relative mt-12 md:mt-20 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 pointer-events-none" />
-            <div className="relative rounded-xl md:rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-blue-500/10" />
-              <img 
-                src={DashboardPng} 
-                alt="OrgaGym Dashboard" 
-                className="w-full h-auto relative z-0"
-              />
-            </div>
-
-            {/* Floating badges - hidden on small mobile, visible on larger screens */}
-            <FloatingBadge className="hidden sm:flex top-4 md:top-10 left-2 md:left-10 animate-bounce" style={{ animationDuration: '3s' }}>
-              <div className="flex items-center gap-1.5 md:gap-2">
-                <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse" />
-                Live Dashboard
+        {/* Hero Section */}
+        <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 md:pb-32 px-4">
+          <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-orange-500/20 rounded-full blur-[100px] md:blur-[128px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-blue-500/20 rounded-full blur-[100px] md:blur-[128px]" />
+          
+          <div className="relative z-10 max-w-7xl mx-auto text-center">
+            <div className={`transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-6 md:mb-8">
+                <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
+                <span className="text-xs md:text-sm text-gray-300">The All-in-One Solution for Fitness Studios</span>
               </div>
-            </FloatingBadge>
-            
-            <FloatingBadge className="hidden sm:flex top-1/4 md:top-1/3 right-2 md:right-10 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
-              <div className="flex items-center gap-1.5 md:gap-2">
-                <Zap className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-                Real-time Updates
-              </div>
-            </FloatingBadge>
 
-            <FloatingBadge className="hidden md:flex bottom-1/4 left-20 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-blue-400" />
-                GDPR Compliant
-              </div>
-            </FloatingBadge>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="relative py-12 md:py-20 border-y border-white/10 bg-black/50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-1 md:mb-2">
-                  <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                </div>
-                <div className="text-gray-400 text-xs md:text-sm font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="relative py-16 md:py-32">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center mb-10 md:mb-16">
-            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-4 md:mb-6">
-              <Settings className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-              <span className="text-xs md:text-sm text-gray-300">Features</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 md:mb-4">
-              Everything Your Studio Needs
-            </h2>
-            <p className="text-base md:text-xl text-gray-400 max-w-2xl mx-auto px-2">
-              One platform. All the tools. From member management to accounting — OrgaGym has you covered.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {features.map((feature, index) => (
-              <FeatureCard 
-                key={index}
-                {...feature}
-                delay={index * 100}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Overview Section */}
-      <section id="overview" className="relative py-16 md:py-32 overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-500/10 to-transparent" />
-        
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-4 md:mb-6">
-                <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-                <span className="text-xs md:text-sm text-gray-300">Why OrgaGym?</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6 leading-tight">
-                Less Administration.
+              {/* Main headline */}
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-4 md:mb-6 leading-[1.1] tracking-tight">
+                Studio Management
                 <br />
-                <span className="text-orange-400">More Time for Members.</span>
-              </h2>
-              <p className="text-base md:text-lg text-gray-400 mb-6 md:mb-8 leading-relaxed">
-                OrgaGym was built by studio owners for studio owners. We understand the daily challenges and created a solution that truly works.
+                <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">
+                  Reimagined
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg md:text-2xl text-gray-400 max-w-3xl mx-auto mb-8 md:mb-10 leading-relaxed px-2">
+                OrgaGym combines member management, scheduling, contracts, and finances in one intuitive platform. Focus on what matters most — your members.
               </p>
 
-              <div className="space-y-3 md:space-y-4">
-                {[
-                  "Intuitive interface — no lengthy training required",
-                  "European servers, fully GDPR compliant",
-                  "Regular updates and new features",
-                  "Personal support via chat and phone"
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-                    </div>
-                    <span className="text-gray-300 text-sm md:text-base">{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
-                <a 
-                  href="#demo"
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 text-center"
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
+                <button
+                  onClick={handleDemoClick}
+                  className="group w-full sm:w-auto px-6 md:px-8 py-3.5 md:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl md:rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 md:gap-3"
                 >
-                  Start Your Demo
+                  Request Free Demo
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <a 
+                  href="#features"
+                  className="w-full sm:w-auto px-6 md:px-8 py-3.5 md:py-4 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl md:rounded-2xl font-semibold text-base md:text-lg hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2 md:gap-3"
+                >
+                  <Play className="w-4 h-4 md:w-5 md:h-5" />
+                  Learn More
                 </a>
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
-                  <Clock className="w-4 h-4" />
-                  Ready in 5 minutes
-                </div>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-blue-500/20 rounded-3xl blur-3xl" />
-              <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl md:rounded-3xl p-5 md:p-8 border border-white/10">
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
+            {/* Dashboard Preview */}
+            <div className={`relative mt-12 md:mt-20 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 pointer-events-none" />
+              <div className="relative rounded-xl md:rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-blue-500/10" />
+                <img 
+                  src={DashboardPng} 
+                  alt="OrgaGym Dashboard" 
+                  className="w-full h-auto relative z-0 pointer-events-none"
+                  draggable="false"
+                  onDragStart={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              </div>
+
+              {/* Floating badges - hidden on small mobile, visible on larger screens */}
+              <FloatingBadge className="hidden sm:flex top-4 md:top-10 left-2 md:left-10 animate-bounce" style={{ animationDuration: '3s' }}>
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse" />
+                  Live Dashboard
+                </div>
+              </FloatingBadge>
+              
+              <FloatingBadge className="hidden sm:flex top-1/4 md:top-1/3 right-2 md:right-10 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <Zap className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
+                  Real-time Updates
+                </div>
+              </FloatingBadge>
+
+              <FloatingBadge className="hidden md:flex bottom-1/4 left-20 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-blue-400" />
+                  GDPR Compliant
+                </div>
+              </FloatingBadge>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Section */}
+        <section className="relative py-12 md:py-20 border-y border-white/10 bg-black/50 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-1 md:mb-2">
+                    <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                  </div>
+                  <div className="text-gray-400 text-xs md:text-sm font-medium">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="relative py-16 md:py-32">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="text-center mb-10 md:mb-16">
+              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-4 md:mb-6">
+                <Settings className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
+                <span className="text-xs md:text-sm text-gray-300">Features</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 md:mb-4">
+                Everything Your Studio Needs
+              </h2>
+              <p className="text-base md:text-xl text-gray-400 max-w-2xl mx-auto px-2">
+                One platform. All the tools. From member management to accounting — OrgaGym has you covered.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {features.map((feature, index) => (
+                <FeatureCard 
+                  key={index}
+                  {...feature}
+                  delay={index * 100}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Overview Section */}
+        <section id="overview" className="relative py-16 md:py-32 overflow-hidden">
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-500/10 to-transparent" />
+          
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-4 md:mb-6">
+                  <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
+                  <span className="text-xs md:text-sm text-gray-300">Why OrgaGym?</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6 leading-tight">
+                  Less Administration.
+                  <br />
+                  <span className="text-orange-400">More Time for Members.</span>
+                </h2>
+                <p className="text-base md:text-lg text-gray-400 mb-6 md:mb-8 leading-relaxed">
+                  OrgaGym was built by studio owners for studio owners. We understand the daily challenges and created a solution that truly works.
+                </p>
+
+                <div className="space-y-3 md:space-y-4">
                   {[
-                    { icon: Building2, label: "Studios", value: "500+" },
-                    { icon: Users, label: "Members", value: "50k+" },
-                    { icon: Calendar, label: "Bookings/Month", value: "100k+" },
-                    { icon: Globe, label: "Regions", value: "DACH" }
+                    "Intuitive interface — no lengthy training required",
+                    "European servers, fully GDPR compliant",
+                    "Regular updates and new features",
+                    "Personal support via chat and phone"
                   ].map((item, index) => (
-                    <div key={index} className="bg-white/5 rounded-xl md:rounded-2xl p-4 md:p-6 text-center hover:bg-white/10 transition-colors">
-                      <item.icon className="w-6 h-6 md:w-8 md:h-8 text-orange-400 mx-auto mb-2 md:mb-3" />
-                      <div className="text-xl md:text-2xl font-bold text-white mb-0.5 md:mb-1">{item.value}</div>
-                      <div className="text-gray-400 text-xs md:text-sm">{item.label}</div>
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
+                      </div>
+                      <span className="text-gray-300 text-sm md:text-base">{item}</span>
                     </div>
                   ))}
                 </div>
+
+                <div className="mt-8 md:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
+                  <button
+                    onClick={handleDemoClick}
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 text-center"
+                  >
+                    Start Your Demo
+                  </button>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm">
+                    <Clock className="w-4 h-4" />
+                    Ready in 5 minutes
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-blue-500/20 rounded-3xl blur-3xl" />
+                <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl md:rounded-3xl p-5 md:p-8 border border-white/10">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    {[
+                      { icon: Building2, label: "Studios", value: "500+" },
+                      { icon: Users, label: "Members", value: "50k+" },
+                      { icon: Calendar, label: "Bookings/Month", value: "100k+" },
+                      { icon: Globe, label: "Regions", value: "DACH" }
+                    ].map((item, index) => (
+                      <div key={index} className="bg-white/5 rounded-xl md:rounded-2xl p-4 md:p-6 text-center hover:bg-white/10 transition-colors">
+                        <item.icon className="w-6 h-6 md:w-8 md:h-8 text-orange-400 mx-auto mb-2 md:mb-3" />
+                        <div className="text-xl md:text-2xl font-bold text-white mb-0.5 md:mb-1">{item.value}</div>
+                        <div className="text-gray-400 text-xs md:text-sm">{item.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* Request Demo Section */}
-      <section id="demo" className="relative py-16 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/5 to-transparent" />
-        
-        <div className="max-w-4xl mx-auto px-4 md:px-6">
-          <div className="relative bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl rounded-2xl md:rounded-3xl p-6 md:p-12 border border-white/10 overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 w-40 md:w-64 h-40 md:h-64 bg-orange-500/20 rounded-full blur-[80px] md:blur-[100px]" />
-            <div className="absolute bottom-0 left-0 w-40 md:w-64 h-40 md:h-64 bg-blue-500/20 rounded-full blur-[80px] md:blur-[100px]" />
-            
-            <div className="relative z-10">
-              <div className="text-center mb-8 md:mb-10">
-                <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 mb-4 md:mb-6">
-                  <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-                  <span className="text-xs md:text-sm text-gray-300">Free & No Obligation</span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 md:mb-4">
-                  Ready for More Efficient Studio Management?
-                </h2>
-                <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto">
-                  Request a personalized demo and discover how OrgaGym can simplify your daily operations.
-                </p>
-              </div>
-
-              <form className="space-y-3 md:space-y-4 max-w-lg mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                  <input
-                    type="text"
-                    placeholder="First Name"
-                    className="w-full px-4 md:px-5 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm md:text-base"
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    className="w-full px-4 md:px-5 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm md:text-base"
-                    required
-                  />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Studio Name"
-                  className="w-full px-4 md:px-5 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm md:text-base"
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="w-full px-4 md:px-5 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm md:text-base"
-                  required
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone Number (optional)"
-                  className="w-full px-4 md:px-5 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm md:text-base"
-                />
-                <select
-                  className="w-full px-4 md:px-5 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-gray-400 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all appearance-none cursor-pointer text-sm md:text-base"
-                  defaultValue=""
-                >
-                  <option value="" disabled>Number of Members</option>
-                  <option value="1-50">1-50 Members</option>
-                  <option value="51-200">51-200 Members</option>
-                  <option value="201-500">201-500 Members</option>
-                  <option value="500+">More than 500 Members</option>
-                </select>
-                <button
-                  type="submit"
-                  className="w-full py-3.5 md:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-base md:text-lg transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2 md:gap-3"
-                >
-                  Request Demo
-                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
-              </form>
-
-              <p className="text-center text-gray-500 text-xs md:text-sm mt-5 md:mt-6">
-                No credit card required • Personal onboarding • Response within 24 hours
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+      {/* Floating Action Button für mobile - Request Demo */}
+      {isMobile && (
+        <button
+          onClick={handleDemoClick}
+          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full p-4 shadow-2xl shadow-orange-500/30 hover:scale-110 transition-all duration-300 animate-bounce"
+          style={{ animationDuration: '2s' }}
+        >
+          <Sparkles className="w-6 h-6" />
+        </button>
+      )}
+    </>
   );
 }

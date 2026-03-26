@@ -1,7 +1,8 @@
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
-import Header from "./landing-page/navbar";
+import Header from "./landing-page/navbar"; // Korrigiert: Großbuchstaben NavBar
+import Demo from "./landing-page/demo";
 import Login from './landing-page/login';
 // Temporary Off
 import { useDispatch, useSelector } from 'react-redux';
@@ -98,10 +99,12 @@ function App() {
 
   const isNative = Capacitor.isNativePlatform()
 
-  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view") || location.pathname.startsWith("/trial-training") || (isNative && location.pathname === "/");
-
-
-
+  const isAuthOrDashboardPage = ["/login", "/register", "/demo"].includes(location.pathname) || 
+    location.pathname.startsWith("/dashboard") || 
+    location.pathname.startsWith("/admin-dashboard") || 
+    location.pathname.startsWith("/member-view") || 
+    location.pathname.startsWith("/trial-training") || 
+    (isNative && location.pathname === "/");
 
 
   // useEffect(() => {
@@ -155,7 +158,10 @@ function App() {
             LOGIN / LANDING — with LoginLayout (header: theme + language)
             Native: "/" → LoginLayout + Login
             Web: "/" → Home (landing page), "/login" → LoginLayout + Login
+            DEMO: Separate Demo-Seite ohne Header/Footer
         ═══════════════════════════════════════════════════════════════════ */}
+        
+        {/* Native App Route */}
         {isNative ? (
           <Route path="/" element={<LoginLayout />}>
             <Route index element={<Login />} />
@@ -164,9 +170,13 @@ function App() {
           <Route path="/" element={<Home />} />
         )}
 
+        {/* Login Route */}
         <Route path="/login" element={<LoginLayout />}>
           <Route index element={<Login />} />
         </Route>
+
+        {/* Demo Route - Separate Landing Page für Demo-Anfragen */}
+        <Route path="/demo" element={<Demo />} />
 
         {/* ═══════════════════════════════════════════════════════════════════
             STANDALONE PUBLIC PAGE — Trial Training Booking
