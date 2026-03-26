@@ -7,6 +7,7 @@ import toast from "react-hot-toast"
 import * as XLSX from 'xlsx'
 import VacationCalendarModal from "./vacation-calendar-modal"
 import ShiftsOverviewModal from "./shifts-overview-modal"
+import { useDispatch, useSelector } from "react-redux"
 
 // Export Confirmation Modal Component
 const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, totalShifts, totalHours, selectedPeriod }) => {
@@ -23,7 +24,7 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, total
         </div>
         <div className="mb-6">
           <p className="text-content-secondary mb-4">Are you sure you want to export the attendance data as Excel?</p>
-          
+
           {/* Export Details */}
           <div className="space-y-2">
             {/* Selected Period Display */}
@@ -34,7 +35,7 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, total
                 <p className="text-content-primary text-sm font-medium">{selectedPeriod || "All Data"}</p>
               </div>
             </div>
-            
+
             {/* Staff Count Display */}
             <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
               <Users className="w-4 h-4 text-content-muted" />
@@ -73,6 +74,9 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, total
 }
 
 function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
+
+  const { shift = [] } = useSelector((state) => state.staff)
+  const dispatch = useDispatch()
   // Core state
   const [activeMenuItem, setActiveMenuItem] = useState("attendance")
   const [showVacationCalendar, setShowVacationCalendar] = useState(false)
@@ -95,7 +99,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   // Collapse all staff by default
   useEffect(() => {
     if (staffMembers?.length) {
-      setCollapsedStaff(new Set(staffMembers.map(s => s.id)))
+      setCollapsedStaff(new Set(staffMembers.map(s => s._id)))
     }
   }, [staffMembers])
 
@@ -139,7 +143,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
     const today = new Date()
     const year = today.getFullYear()
     const month = today.getMonth()
-    
+
     return staffMembersWithColors.map((staff) => {
       const shifts = []
       for (let day = 1; day <= 28; day++) {
@@ -234,7 +238,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   const filteredStaff =
     selectedStaffId === "all"
       ? dummyShiftsData
-      : dummyShiftsData.filter((staff) => staff.id === Number.parseInt(selectedStaffId))
+      : dummyShiftsData.filter((staff) => staff._id === selectedStaffId)
 
   // Get period label for export
   const getExportPeriodLabel = () => {
@@ -256,7 +260,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   const handleExportToExcel = () => {
     // Prepare data for Excel with staff groupings
     const excelData = []
-    
+
     filteredStaff.forEach((staff) => {
       // Add staff header row
       excelData.push({
@@ -267,7 +271,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         "Hours": "",
         "Status": ""
       })
-      
+
       // Add shift rows
       staff.shifts.forEach((shift) => {
         excelData.push({
@@ -279,7 +283,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           "Status": shift.status
         })
       })
-      
+
       // Add total row for this staff member
       const totalHours = calculateTotalHours(staff.shifts)
       excelData.push({
@@ -290,7 +294,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         "Hours": totalHours,
         "Status": `${staff.shifts.length} shifts`
       })
-      
+
       // Add empty row as separator
       excelData.push({
         "Staff Name": "",
@@ -301,11 +305,11 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         "Status": ""
       })
     })
-    
+
     // Add grand total at the end
     const grandTotalHours = filteredStaff.reduce((total, staff) => total + calculateTotalHours(staff.shifts), 0)
     const totalShifts = filteredStaff.reduce((total, staff) => total + staff.shifts.length, 0)
-    
+
     excelData.push({
       "Staff Name": "GRAND TOTAL",
       "Date": `${filteredStaff.length} Staff Members`,
@@ -336,7 +340,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
     const periodLabel = getExportPeriodLabel().replace(/[:\s\/]/g, "_")
     const fileName = `attendance_${periodLabel}_${new Date().toISOString().split("T")[0]}.xlsx`
     XLSX.writeFile(workbook, fileName)
-    
+
     toast.success("Excel file downloaded successfully")
   }
 
@@ -365,11 +369,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               setShowVacationCalendar(false)
               setShowShiftSchedule(false)
             }}
-            className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${
-              activeMenuItem === "attendance" && !showVacationCalendar && !showShiftSchedule
-                ? "bg-primary text-white"
-                : "hover:bg-surface-button-hover text-content-secondary"
-            } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
+            className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${activeMenuItem === "attendance" && !showVacationCalendar && !showShiftSchedule
+              ? "bg-primary text-white"
+              : "hover:bg-surface-button-hover text-content-secondary"
+              } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
             title="Attendance Overview"
           >
             <Users size={16} className="flex-shrink-0" />
@@ -382,9 +385,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               setShowVacationCalendar(false)
               setShowShiftSchedule(true)
             }}
-            className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${
-              showShiftSchedule ? "bg-primary text-white" : "hover:bg-surface-button-hover text-content-secondary"
-            } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
+            className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${showShiftSchedule ? "bg-primary text-white" : "hover:bg-surface-button-hover text-content-secondary"
+              } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
             title="Shift Schedule"
           >
             <Calendar size={16} className="flex-shrink-0" />
@@ -397,9 +399,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               setShowVacationCalendar(true)
               setShowShiftSchedule(false)
             }}
-            className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${
-              showVacationCalendar ? "bg-primary text-white" : "hover:bg-surface-button-hover text-content-secondary"
-            } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
+            className={`w-full p-3 rounded-lg text-sm flex items-center transition-colors ${showVacationCalendar ? "bg-primary text-white" : "hover:bg-surface-button-hover text-content-secondary"
+              } ${sidebarCollapsed ? "justify-center" : "gap-2"}`}
             title="Vacation Calendar"
           >
             <Sun size={16} className="flex-shrink-0" />
@@ -419,11 +420,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           setShowVacationCalendar(false)
           setShowShiftSchedule(false)
         }}
-        className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${
-          activeMenuItem === "attendance" && !showVacationCalendar && !showShiftSchedule
-            ? "bg-primary text-white"
-            : "text-content-muted"
-        }`}
+        className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${activeMenuItem === "attendance" && !showVacationCalendar && !showShiftSchedule
+          ? "bg-primary text-white"
+          : "text-content-muted"
+          }`}
       >
         <Users size={14} />
         <span>Attendance</span>
@@ -435,9 +435,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           setShowVacationCalendar(false)
           setShowShiftSchedule(true)
         }}
-        className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${
-          showShiftSchedule ? "bg-primary text-white" : "text-content-muted"
-        }`}
+        className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${showShiftSchedule ? "bg-primary text-white" : "text-content-muted"
+          }`}
       >
         <Calendar size={14} />
         <span>Shifts</span>
@@ -449,9 +448,8 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           setShowVacationCalendar(true)
           setShowShiftSchedule(false)
         }}
-        className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${
-          showVacationCalendar ? "bg-primary text-white" : "text-content-muted"
-        }`}
+        className={`flex-1 py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors ${showVacationCalendar ? "bg-primary text-white" : "text-content-muted"
+          }`}
       >
         <Sun size={14} />
         <span>Vacation</span>
@@ -603,7 +601,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                     <td colSpan={6} className="py-3 px-2">
                       <div className="flex items-center gap-2 font-semibold">
                         <ChevronDown size={16} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff.id) ? '-rotate-90' : ''}`} />
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: staff.color }}
                         />
@@ -612,7 +610,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                       </div>
                     </td>
                   </tr>
-                  
+
                   {/* Shift Rows - Collapsible */}
                   {!collapsedStaff.has(staff.id) && staff.shifts.map((shift, index) => (
                     <tr key={`${staff.id}-${index}`} className="text-sm border-b border-border">
@@ -623,30 +621,29 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                       <td className="py-2.5">{shift.hoursWorked}h</td>
                       <td className="py-2.5">
                         <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            shift.status === "completed"
-                              ? "bg-primary/20 text-primary"
-                              : shift.status === "scheduled"
-                                ? "bg-secondary/20 text-secondary"
-                                : "bg-surface-button text-content-secondary"
-                          }`}
+                          className={`px-2 py-1 rounded text-xs font-medium ${shift.status === "completed"
+                            ? "bg-primary/20 text-primary"
+                            : shift.status === "scheduled"
+                              ? "bg-secondary/20 text-secondary"
+                              : "bg-surface-button text-content-secondary"
+                            }`}
                         >
                           {shift.status}
                         </span>
                       </td>
                     </tr>
                   ))}
-                  
+
                   {/* Staff Total Row */}
                   {!collapsedStaff.has(staff.id) && (
-                  <tr key={`total-${staff.id}`} className="border-b-2 border-border">
-                    <td className="py-2.5 pl-6"></td>
-                    <td className="py-2.5"></td>
-                    <td className="py-2.5"></td>
-                    <td className="py-2.5 text-right font-medium text-content-muted">Total:</td>
-                    <td className="py-2.5 font-bold text-content-primary">{calculateTotalHours(staff.shifts)}h</td>
-                    <td className="py-2.5 text-content-muted text-sm">{staff.shifts.length} shifts</td>
-                  </tr>
+                    <tr key={`total-${staff.id}`} className="border-b-2 border-border">
+                      <td className="py-2.5 pl-6"></td>
+                      <td className="py-2.5"></td>
+                      <td className="py-2.5"></td>
+                      <td className="py-2.5 text-right font-medium text-content-muted">Total:</td>
+                      <td className="py-2.5 font-bold text-content-primary">{calculateTotalHours(staff.shifts)}h</td>
+                      <td className="py-2.5 text-content-muted text-sm">{staff.shifts.length} shifts</td>
+                    </tr>
                   )}
                 </>
               ))}
@@ -662,7 +659,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               <div className="p-3 border-b border-border flex items-center justify-between cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff.id)}>
                 <div className="flex items-center gap-2">
                   <ChevronDown size={14} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff.id) ? '-rotate-90' : ''}`} />
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: staff.color }}
                   />
@@ -673,38 +670,37 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                   <span className="text-content-muted text-xs ml-1">({staff.shifts.length})</span>
                 </div>
               </div>
-              
+
               {/* Shifts - Collapsible */}
               {!collapsedStaff.has(staff.id) && (
-              <div className="divide-y divide-border">
-                {staff.shifts.slice(0, 5).map((shift, index) => (
-                  <div key={index} className="p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-content-muted">{new Date(shift.date).toLocaleDateString()}</p>
-                      <p className="text-sm">{shift.startTime} - {shift.endTime}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{shift.hoursWorked}h</span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                          shift.status === "completed"
+                <div className="divide-y divide-border">
+                  {staff.shifts.slice(0, 5).map((shift, index) => (
+                    <div key={index} className="p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-content-muted">{new Date(shift.date).toLocaleDateString()}</p>
+                        <p className="text-sm">{shift.startTime} - {shift.endTime}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{shift.hoursWorked}h</span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium ${shift.status === "completed"
                             ? "bg-primary/20 text-primary"
                             : shift.status === "scheduled"
                               ? "bg-secondary/20 text-secondary"
                               : "bg-surface-button text-content-secondary"
-                        }`}
-                      >
-                        {shift.status}
-                      </span>
+                            }`}
+                        >
+                          {shift.status}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {staff.shifts.length > 5 && (
-                  <div className="p-2 text-center text-xs text-content-muted">
-                    +{staff.shifts.length - 5} more shifts
-                  </div>
-                )}
-              </div>
+                  ))}
+                  {staff.shifts.length > 5 && (
+                    <div className="p-2 text-center text-xs text-content-muted">
+                      +{staff.shifts.length - 5} more shifts
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ))}
@@ -763,7 +759,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               <div className="h-full">
                 <VacationCalendarModal
                   staffMember={staffMembersWithColors[0]}
-                  onClose={() => {}}
+                  onClose={() => { }}
                   onSubmit={handleVacationRequest}
                   isEmbedded={true}
                   staffMembers={staffMembersWithColors}
@@ -774,7 +770,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               <div className="h-full">
                 <ShiftsOverviewModal
                   staffMembers={staffMembersWithColors}
-                  onClose={() => {}}
+                  onClose={() => { }}
                   isEmbedded={true}
                   isStaffPlanning={true}
                   currentStaffId={staffMembersWithColors[0]?.id}
