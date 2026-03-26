@@ -214,6 +214,9 @@ const loginMember = async (req, res, next) => {
 /**
  * Update member
  */
+/**
+ * Update member with approval workflow
+ */
 const updateUserById = async (req, res, next) => {
   try {
     const userId = req.user?._id;
@@ -232,7 +235,7 @@ const updateUserById = async (req, res, next) => {
       email,
     } = req.body;
 
-    // Handle image upload if file exists
+    // Build update data object
     let updateData = {
       firstName,
       lastName,
@@ -248,7 +251,7 @@ const updateUserById = async (req, res, next) => {
       email,
     };
 
-    // if image upload
+    // Handle image upload if file exists
     if (req.file) {
       const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
       updateData.img = {
@@ -256,26 +259,54 @@ const updateUserById = async (req, res, next) => {
         public_id: cloudinaryResult.public_id,
       };
     }
-    // if password
+
+    // Handle password update separately
     if (req.body.password) {
-      updateData.password = await hashedPassword(req.body.password)
+      updateData.password = await hashedPassword(req.body.password);
     }
+
     // Remove undefined fields
     Object.keys(updateData).forEach(key =>
       updateData[key] === undefined && delete updateData[key]
     );
 
-    const user = await UserModel.findByIdAndUpdate(
+    // Check if there are actual changes
+    const currentMember = await UserModel.findById(userId).select('-password -refreshToken');
+
+    if (!currentMember) throw new NotFoundError("Member not found");
+
+    // Compare current data with update data to see if there are changes
+    const hasChanges = Object.keys(updateData).some(key => {
+      if (key === 'img') {
+        return JSON.stringify(currentMember.img) !== JSON.stringify(updateData.img);
+      }
+      return currentMember[key] !== updateData[key];
+    });
+
+    if (!hasChanges) {
+      return res.status(200).json({
+        message: "No changes detected",
+        user: currentMember,
+        profileUpdateStatus: currentMember.profileUpdateStatus
+      });
+    }
+
+    // Store pending updates instead of applying directly
+    const updatedMember = await UserModel.findByIdAndUpdate(
       userId,
-      updateData,
+      {
+        pendingUpdates: updateData,
+        profileUpdateStatus: 'pending',
+        profileUpdateRequestedAt: new Date()
+      },
       { new: true, runValidators: true }
     ).select('-password -refreshToken');
 
-    if (!user) throw new NotFoundError("Member not found");
-
     res.status(200).json({
-      message: "Successfully Updated",
-      user: user,
+      message: "Profile update request submitted for approval",
+      user: updatedMember,
+      profileUpdateStatus: 'pending',
+      requiresApproval: true
     });
   } catch (err) {
     next(err);
@@ -598,7 +629,163 @@ const updateMemberByStaff = async (req, res, next) => {
   }
 };
 
-// Add logout function
+/**
+ * Get pending profile updates (for staff/admin)
+ */
+const getPendingProfileUpdates = async (req, res, next) => {
+  try {
+    const studioId = req.user?.studio;
+
+    const members = await MemberModel.find({
+      studio: studioId,
+      profileUpdateStatus: 'pending',
+      pendingUpdates: { $ne: null }
+    }).select('-password -refreshToken');
+
+    return res.status(200).json({
+      success: true,
+      members: members.map(member => ({
+        _id: member._id,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        email: member.email,
+        memberNumber: member.memberNumber,
+        currentData: {
+          firstName: member.firstName,
+          lastName: member.lastName,
+          gender: member.gender,
+          phone: member.phone,
+          city: member.city,
+          country: member.country,
+          houseNumber: member.houseNumber,
+          street: member.street,
+          zipCode: member.zipCode,
+          dateOfBirth: member.dateOfBirth,
+          about: member.about,
+          email: member.email,
+
+        },
+        pendingUpdates: member.pendingUpdates,
+        profileUpdateRequestedAt: member.profileUpdateRequestedAt
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Approve member profile update
+ */
+const approveProfileUpdate = async (req, res, next) => {
+  try {
+    const { memberId } = req.params;
+    const { rejectReason } = req.body;
+
+    const member = await MemberModel.findById(memberId);
+
+    if (!member) throw new NotFoundError('Member not found');
+
+    if (member.profileUpdateStatus !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending update request found'
+      });
+    }
+
+    // Apply pending updates to actual fields
+    const updatedMember = await MemberModel.findByIdAndUpdate(
+      memberId,
+      {
+        $set: {
+          ...member.pendingUpdates,
+          pendingUpdates: null,
+          profileUpdateStatus: 'approved',
+          profileUpdateRejectedReason: null
+        }
+      },
+      { new: true, runValidators: true }
+    ).select('-password -refreshToken');
+
+    // Optional: Send notification email to member
+    // await sendApprovalEmail(member.email, updatedMember);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile update approved successfully',
+      member: updatedMember
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reject member profile update
+ */
+const rejectProfileUpdate = async (req, res, next) => {
+  try {
+    const { memberId } = req.params;
+    const { reason } = req.body;
+
+    const member = await MemberModel.findById(memberId);
+
+    if (!member) throw new NotFoundError('Member not found');
+
+    if (member.profileUpdateStatus !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending update request found'
+      });
+    }
+
+    // Clear pending updates without applying them
+    const updatedMember = await MemberModel.findByIdAndUpdate(
+      memberId,
+      {
+        pendingUpdates: null,
+        profileUpdateStatus: 'rejected',
+        profileUpdateRejectedReason: reason || 'No reason provided'
+      },
+      { new: true }
+    ).select('-password -refreshToken');
+
+    // Optional: Send rejection notification email
+    // await sendRejectionEmail(member.email, reason);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile update rejected',
+      member: updatedMember
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get profile update status for a member
+ */
+const getProfileUpdateStatus = async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+
+    const member = await MemberModel.findById(userId)
+      .select('profileUpdateStatus pendingUpdates profileUpdateRequestedAt profileUpdateRejectedReason');
+
+    if (!member) throw new NotFoundError('Member not found');
+
+    return res.status(200).json({
+      success: true,
+      profileUpdateStatus: member.profileUpdateStatus,
+      pendingUpdates: member.pendingUpdates,
+      requestedAt: member.profileUpdateRequestedAt,
+      rejectedReason: member.profileUpdateRejectedReason
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 module.exports = {
@@ -611,4 +798,8 @@ module.exports = {
   updateMemberCheckIn,
   createTemporaryMember,
   updateMemberByStaff,
+  getPendingProfileUpdates,
+  getProfileUpdateStatus,
+  rejectProfileUpdate,
+  approveProfileUpdate
 };

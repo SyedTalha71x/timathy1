@@ -8,6 +8,22 @@ import { FaCalendarAlt, FaDollarSign, FaUserPlus, FaUsers } from "react-icons/fa
 // Function to process appointments from API
 // =========================================
 export const processAppointmentsData = (appointments) => {
+  // Add validation at the beginning
+  if (!appointments || !Array.isArray(appointments)) {
+    console.warn('Invalid appointments data:', appointments);
+    return {
+      totals: {
+        bookings: 0,
+        checkIns: 0,
+        cancellations: 0,
+        lateCancellations: 0,
+        noShows: 0,
+      },
+      monthlyBreakdown: [],
+      popularTimes: [],
+    };
+  }
+
   // Initialize counters
   const counts = {
     totals: {
@@ -29,9 +45,25 @@ export const processAppointmentsData = (appointments) => {
 
   // Process each real booking
   realBookings.forEach(app => {
+    // Skip if app is invalid
+    if (!app || !app.date) return;
+    
     const date = new Date(app.date);
     const month = date.toLocaleString('default', { month: 'short' });
-    const hour = parseInt(app.timeSlot.start.split(':')[0]);
+    
+    // ✅ FIX: Safely extract hour from timeSlot
+    let hour = 0;
+    if (app.timeSlot && app.timeSlot.start) {
+      hour = parseInt(app.timeSlot.start.split(':')[0]);
+    } else if (app.timeSlot && typeof app.timeSlot === 'string') {
+      // Handle string format like "10:00-12:00"
+      const startTime = app.timeSlot.split('-')[0];
+      hour = parseInt(startTime.split(':')[0]);
+    } else {
+      // Default to noon if no time available
+      hour = 12;
+    }
+    
     const timeSlot = formatTimeSlot(hour);
 
     // Initialize month data if not exists
@@ -91,12 +123,16 @@ export const processAppointmentsData = (appointments) => {
     .map(([time, count]) => ({ time, count }))
     .sort((a, b) => {
       const timeToMinutes = (time) => {
-        const [hours, minutes] = time.split(':')[0].split(' ')[0].split(':');
-        const isPM = time.includes('PM');
-        let hour = parseInt(hours);
-        if (isPM && hour !== 12) hour += 12;
-        if (!isPM && hour === 12) hour = 0;
-        return hour * 60 + (parseInt(minutes) || 0);
+        try {
+          const [hours, minutes] = time.split(':')[0].split(' ')[0].split(':');
+          const isPM = time.includes('PM');
+          let hour = parseInt(hours);
+          if (isPM && hour !== 12) hour += 12;
+          if (!isPM && hour === 12) hour = 0;
+          return hour * 60 + (parseInt(minutes) || 0);
+        } catch (error) {
+          return 0;
+        }
       };
       return timeToMinutes(a.time) - timeToMinutes(b.time);
     });
@@ -127,6 +163,21 @@ export const tabs = [
 // MEMBERS DATA PROCESSING
 // ==============================
 export const processMembersData = (members) => {
+  // Add validation
+  if (!members || !Array.isArray(members)) {
+    console.warn('Invalid members data:', members);
+    return {
+      totalMembers: 0,
+      fullMembers: 0,
+      temporaryMembers: 0,
+      activeMembers: 0,
+      inactiveMembers: 0,
+      pausedMembers: 0,
+      membersByType: [],
+      monthlyNewMembers: {},
+    };
+  }
+
   // Initialize member stats
   const stats = {
     totalMembers: members.length,
@@ -141,6 +192,8 @@ export const processMembersData = (members) => {
 
   // Count by member type and status
   members.forEach(member => {
+    if (!member) return;
+    
     // Count by member type
     if (member.memberType === 'full') {
       stats.fullMembers += 1;
@@ -187,24 +240,30 @@ export const processMembersData = (members) => {
     { type: "Temporary", count: stats.temporaryMembers },
   ];
 
-  // If you have different membership tiers, you'd need to extract that from your data
-  // For now, using the counts we have
-
   return stats;
 };
-
-
-
-
 
 // ==============================
 // LEADS DATA PROCESSING
 // ==============================
-
 export const processLeadsData = (leads) => {
+  // Add validation
+  if (!leads || !Array.isArray(leads)) {
+    console.warn('Invalid leads data:', leads);
+    return {
+      totalLeads: 0,
+      convertedLeads: 0,
+      activeLeads: 0,
+      passiveLeads: 0,
+      conversionRate: 0,
+      bySource: {},
+      monthlyData: [],
+    };
+  }
+
   // Initialize leads stats
   const stats = {
-    totalLeads: leads?.length || 0,
+    totalLeads: leads.length,
     convertedLeads: 0,
     activeLeads: 0,
     passiveLeads: 0,
@@ -214,7 +273,9 @@ export const processLeadsData = (leads) => {
   };
 
   // Process each lead
-  leads?.forEach(lead => {
+  leads.forEach(lead => {
+    if (!lead) return;
+    
     // Count by column (status)
     if (lead.column === 'active') {
       stats.activeLeads += 1;
@@ -318,8 +379,6 @@ export const financesData = {
     { name: "Massage Session", count: 67 },
   ],
 };
-
-
 
 // =================================================
 // APPOINTMENTS CHARTS - These need data parameters
