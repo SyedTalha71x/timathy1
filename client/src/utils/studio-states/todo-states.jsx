@@ -1,4 +1,3 @@
-import Rectangle1 from "../../../public/Rectangle 1.png";
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png";
 
 export const communicationsData = [
@@ -7,14 +6,14 @@ export const communicationsData = [
     name: "John Doe",
     message: "Hey, how's the project going?",
     time: "2 min ago",
-    avatar: Rectangle1,
+    avatar: Avatar,
   },
   {
     id: 2,
     name: "Jane Smith",
     message: "Meeting scheduled for tomorrow",
     time: "10 min ago",
-    avatar: Rectangle1,
+    avatar: Avatar,
   },
 ];
 
