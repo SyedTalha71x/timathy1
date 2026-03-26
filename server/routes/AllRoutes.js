@@ -27,7 +27,7 @@ const TodoRoutes = require('./TodoRoutes')
 const NotesRoutes = require('./NotesRoutes')
 const MedicalHistoryRoutes = require('./MedicalHistoryRoutes')
 const WebsiteRoutes = require('./WebsiteRoutes')
-
+const ShiftRoutes = require('./ShiftRoutes')
 
 
 const router = express.Router();
@@ -86,6 +86,7 @@ router.use('/todos', TodoRoutes)
 router.use('/notes', NotesRoutes)
 router.use('/medical', MedicalHistoryRoutes)
 router.use('/website', WebsiteRoutes)
+router.use('/shift', ShiftRoutes)
 
 
 

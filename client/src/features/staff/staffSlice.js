@@ -56,12 +56,80 @@ export const updateLoggedInStaffThunk = createAsyncThunk('/staff/update', async 
 })
 
 
+// ********************
+// CREATE SHIFT
+// ********************
+
+export const createShiftThunk = createAsyncThunk('/staff/shift/create-shift', async (data, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.createShift(data)
+        return res.shift
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// ********************
+// update SHIFT
+// ********************
+
+export const updateShiftThunk = createAsyncThunk('/staff/shift/update-shift', async ({ id, update }, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.updateShift(id, update)
+        return res.shift
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// ********************
+// Delete SHIFT
+// ********************
+
+export const deleteShiftThunk = createAsyncThunk('/staff/shift/delete-shift', async (id, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.deleteShift(id)
+        return res.message
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// ********************
+// Checked In SHIFT
+// ********************
+
+export const checkedInShiftThunk = createAsyncThunk('/staff/shift/checkedIn-shift', async (id, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.checkedIn(id)
+        return res.message
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// ********************
+// Get SHIFT
+// ********************
+
+export const getShiftThunk = createAsyncThunk('/staff/shift/get-shift', async (_, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.getShift()
+        return res.shift
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
 
 
 const staffSlice = createSlice({
     name: 'staff',
     initialState: {
         staff: [],
+        shift: [],
         loading: false,
         error: null
     },
@@ -127,6 +195,81 @@ const staffSlice = createSlice({
                 state.staff = action.payload;
             })
             .addCase(updateLoggedInStaffThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // ***********************
+            // CREATE SHIFT FOR STAFF
+            // ***********************
+            .addCase(createShiftThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(createShiftThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.shift = action.payload;
+            })
+            .addCase(createShiftThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // ***********************
+            // UPDATE SHIFT FOR STAFF
+            // ***********************
+            .addCase(updateShiftThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateShiftThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.shift = action.payload;
+            })
+            .addCase(updateShiftThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // ***********************
+            // DELETE SHIFT FOR STAFF
+            // ***********************
+            .addCase(deleteShiftThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(deleteShiftThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.shift = action.payload;
+            })
+            .addCase(deleteShiftThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // ***********************
+            // GET SHIFT FOR STAFF
+            // ***********************
+            .addCase(getShiftThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(getShiftThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.shift = Array.isArray(action.payload) ? action.payload : [];
+            })
+            .addCase(getShiftThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // ***********************
+            // CHECKED-IN  SHIFT FOR STAFF
+            // ***********************
+            .addCase(checkedInShiftThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(checkedInShiftThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.shift = action.payload;
+            })
+            .addCase(checkedInShiftThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })

@@ -1398,7 +1398,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                             <div className="lg:hidden">
                               <div
                                 className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
-                                onClick={() => setExpandedMobileRowId(expandedMobileRowId === staff.id ? null : staff.id)}
+                                onClick={() => setExpandedMobileRowId(expandedMobileRowId === staff._id ? null : staff._id)}
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="relative flex-shrink-0">

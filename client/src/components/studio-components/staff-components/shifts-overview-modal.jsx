@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo, useEffect, useRef } from "react"
-import { 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
   Calendar,
   Clock,
   Trash2,
@@ -17,6 +17,8 @@ import {
 } from "lucide-react"
 import toast from "react-hot-toast"
 import DatePickerField from "../../shared/DatePickerField"
+import { useDispatch, useSelector } from "react-redux"
+import { createShiftThunk, deleteShiftThunk, getShiftThunk, updateShiftThunk } from "../../../features/staff/staffSlice"
 
 // Helper to format date
 const formatDateStr = (date) => {
@@ -83,8 +85,8 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 
   if (img) {
     return (
-      <img 
-        src={img} 
+      <img
+        src={img}
         alt={`${firstName} ${lastName}`}
         className={`rounded-xl flex-shrink-0 object-cover ${sizeClasses[size]}`}
       />
@@ -92,7 +94,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
   }
 
   return (
-    <div 
+    <div
       className={`rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 bg-secondary ${sizeClasses[size]}`}
     >
       {getInitials()}
@@ -128,7 +130,7 @@ const ShiftStyles = () => (
   `}</style>
 )
 
-// Tooltip Component - Fixed position portal-style
+// Tooltip Component
 const Tooltip = ({ children, text, className = "", style = {} }) => {
   const [show, setShow] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -153,7 +155,6 @@ const Tooltip = ({ children, text, className = "", style = {} }) => {
     setShow(false)
   }
 
-  // Update position on scroll while tooltip is shown
   useEffect(() => {
     if (show) {
       const handleScroll = () => updatePosition()
@@ -184,7 +185,7 @@ const Tooltip = ({ children, text, className = "", style = {} }) => {
         >
           <div className="bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs whitespace-pre-line max-w-[200px] text-center border border-border shadow-xl">
             {text}
-            <div 
+            <div
               className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
               style={{
                 borderLeft: "6px solid transparent",
@@ -202,7 +203,7 @@ const Tooltip = ({ children, text, className = "", style = {} }) => {
 // Delete Confirmation Modal
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, shiftDate }) => {
   if (!isOpen) return null
-  
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1002] p-4">
       <div className="bg-surface-card rounded-xl max-w-sm w-full p-6">
@@ -222,7 +223,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, shiftDate }) => {
   )
 }
 
-// Shift Bar Component with Tooltip
+// Shift Bar Component
 const ShiftBar = ({ shift, staffColor, onClick, style = {}, className = "", showTime = true, compactTime = false }) => {
   const isPast = isPastDate(shift.endDate)
   const isAbsence = shift.status === "absence"
@@ -231,21 +232,15 @@ const ShiftBar = ({ shift, staffColor, onClick, style = {}, className = "", show
   const compactTimeDisplay = `${shift.startTime.split(":")[0]}-${shift.endTime.split(":")[0]}`
   const tooltipText = hasNotes ? `${timeDisplay}\n${shift.notes}` : timeDisplay
 
-  // Separate positioning styles (for tooltip wrapper) from visual styles (for inner div)
   const { left, top, width, height, position, zIndex, padding, ...visualStyles } = style
   const positionStyles = { left, top, width, height, position, zIndex }
-  
-  // Clean up undefined values
+
   Object.keys(positionStyles).forEach(key => {
     if (positionStyles[key] === undefined) delete positionStyles[key]
   })
 
   return (
-    <Tooltip 
-      text={tooltipText} 
-      className={className}
-      style={positionStyles}
-    >
+    <Tooltip text={tooltipText} className={className} style={positionStyles}>
       <div
         className={`w-full h-full rounded cursor-pointer transition-all hover:brightness-110 hover:scale-[1.02] ${isAbsence ? "hatched-absence border border-red-500/50" : ""} ${isPast ? "opacity-50" : ""}`}
         style={{
@@ -268,10 +263,10 @@ const ShiftBar = ({ shift, staffColor, onClick, style = {}, className = "", show
 }
 
 // Individual Calendar View
-const IndividualCalendarView = ({ 
-  staff, 
-  shifts, 
-  currentMonth, 
+const IndividualCalendarView = ({
+  staff,
+  shifts,
+  currentMonth,
   onViewShift,
   closingDays,
   viewPeriod
@@ -285,7 +280,6 @@ const IndividualCalendarView = ({
   const isClosingDay = (dateStr) => closingDays.includes(dateStr) || isWeekend(parseDate(dateStr))
   const getShiftsForDate = (dateStr) => staffShifts.filter(s => dateStr >= s.startDate && dateStr <= s.endDate)
 
-  // Day View
   if (viewPeriod === "day") {
     const dateStr = formatDateStr(currentMonth)
     const dayShifts = getShiftsForDate(dateStr)
@@ -299,7 +293,7 @@ const IndividualCalendarView = ({
             {currentMonth.toLocaleDateString("en-US", { weekday: "long", month: "long", year: "numeric" })}
           </div>
         </div>
-        
+
         {isClosed ? (
           <div className="text-center py-12 text-content-faint">
             <div className="hatched-closing w-20 h-20 rounded-xl mx-auto mb-4" />
@@ -331,7 +325,6 @@ const IndividualCalendarView = ({
     )
   }
 
-  // Week View
   if (viewPeriod === "week") {
     const startOfWeek = new Date(currentMonth)
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1)
@@ -384,7 +377,6 @@ const IndividualCalendarView = ({
     )
   }
 
-  // Month View
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const firstDayOfMonth = new Date(year, month, 1).getDay()
 
@@ -441,10 +433,10 @@ const IndividualCalendarView = ({
   )
 }
 
-// Group Calendar View with proper absolute positioning
-const GroupCalendarView = ({ 
-  staffMembers, 
-  shifts, 
+// Group Calendar View
+const GroupCalendarView = ({
+  staffMembers,
+  shifts,
   currentMonth,
   onEditShift,
   onAddShift,
@@ -463,7 +455,6 @@ const GroupCalendarView = ({
   const isClosingDay = (dateStr) => closingDays.includes(dateStr) || isWeekend(parseDate(dateStr))
   const getShiftsForDate = (staffId, dateStr) => shifts.filter(s => s.staffId === staffId && dateStr >= s.startDate && dateStr <= s.endDate)
 
-  // Day View
   if (viewPeriod === "day") {
     const dateStr = formatDateStr(currentMonth)
     const isClosed = isClosingDay(dateStr)
@@ -482,7 +473,7 @@ const GroupCalendarView = ({
             const staffColor = staff.color || "var(--color-secondary)"
 
             return (
-              <div 
+              <div
                 key={staff.id}
                 className={`flex flex-col sm:flex-row sm:items-center p-3 sm:p-4 gap-2 sm:gap-4 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""}`}
                 onClick={() => !isClosed && onAddShift({ staffId: staff.id, date: dateStr })}
@@ -523,11 +514,10 @@ const GroupCalendarView = ({
     )
   }
 
-  // Week View
   if (viewPeriod === "week") {
     const startOfWeek = new Date(currentMonth)
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1)
-    
+
     const weekDays = []
     for (let i = 0; i < 7; i++) {
       const d = new Date(startOfWeek)
@@ -545,21 +535,18 @@ const GroupCalendarView = ({
 
     const weekStart = weekDays[0].dateStr
     const weekEnd = weekDays[6].dateStr
-    
-    // Split shifts into segments that skip closing days
+
     const splitShiftIntoSegments = (shift) => {
       const segments = []
       let segmentStart = null
-      
+
       for (let i = 0; i < 7; i++) {
         const { dateStr } = weekDays[i]
         const isInShift = dateStr >= shift.startDate && dateStr <= shift.endDate
         const isClosed = isClosingDay(dateStr)
-        
+
         if (isInShift && !isClosed) {
-          if (segmentStart === null) {
-            segmentStart = i
-          }
+          if (segmentStart === null) segmentStart = i
         } else {
           if (segmentStart !== null) {
             segments.push({ startIdx: segmentStart, endIdx: i - 1, shift })
@@ -567,10 +554,8 @@ const GroupCalendarView = ({
           }
         }
       }
-      
-      // Don't forget the last segment - end at the last active day
+
       if (segmentStart !== null) {
-        // Find the actual last day within the shift
         let lastIdx = segmentStart
         for (let i = segmentStart; i < 7; i++) {
           const { dateStr } = weekDays[i]
@@ -580,36 +565,31 @@ const GroupCalendarView = ({
         }
         segments.push({ startIdx: segmentStart, endIdx: lastIdx, shift })
       }
-      
+
       return segments
     }
-    
-    // Pre-calculate segments with lanes for each staff member
+
     const staffShiftsData = staffMembers.map(staff => {
-      const staffShifts = shifts.filter(s => 
-        s.staffId === staff.id && 
-        s.startDate <= weekEnd && 
+      const staffShifts = shifts.filter(s =>
+        s.staffId === staff._id &&
+        s.startDate <= weekEnd &&
         s.endDate >= weekStart
       )
-      
-      // Get all segments from all shifts
+
       const allSegments = staffShifts.flatMap(shift => splitShiftIntoSegments(shift))
-      
-      // Sort segments by startIdx, then by shift id for consistent ordering
       allSegments.sort((a, b) => {
         if (a.startIdx !== b.startIdx) return a.startIdx - b.startIdx
         return (a.shift.id || "").localeCompare(b.shift.id || "")
       })
-      
-      // Assign lanes to segments (not shifts)
+
       const segmentsWithLanes = []
       const lanes = []
-      
+
       for (const segment of allSegments) {
         let assignedLane = -1
         for (let i = 0; i < lanes.length; i++) {
           const laneSegments = lanes[i]
-          const overlaps = laneSegments.some(s => 
+          const overlaps = laneSegments.some(s =>
             !(segment.endIdx < s.startIdx || segment.startIdx > s.endIdx)
           )
           if (!overlaps) {
@@ -624,7 +604,7 @@ const GroupCalendarView = ({
         lanes[assignedLane].push(segment)
         segmentsWithLanes.push({ ...segment, lane: assignedLane })
       }
-      
+
       const maxLane = segmentsWithLanes.length > 0 ? Math.max(...segmentsWithLanes.map(s => s.lane)) : -1
       const rowHeight = Math.max(MIN_ROW_HEIGHT, PADDING_TOP + (maxLane + 1) * (BAR_HEIGHT + BAR_GAP) + PADDING_BOTTOM)
       return { staff, segmentsWithLanes, rowHeight }
@@ -633,14 +613,13 @@ const GroupCalendarView = ({
     return (
       <div className="bg-surface-card rounded-xl border border-border overflow-auto">
         <div style={{ minWidth: STAFF_COL_WIDTH + 7 * CELL_WIDTH }}>
-          {/* Header */}
           <div className="flex border-b border-border sticky top-0 bg-surface-card z-10">
             <div style={{ width: STAFF_COL_WIDTH }} className="flex-shrink-0 p-4 border-r border-border text-content-faint text-sm font-medium">Staff</div>
             {weekDays.map(({ date, dateStr }, i) => {
               const isClosed = isClosingDay(dateStr)
               const isToday = dateStr === formatDateStr(new Date())
               return (
-                <div 
+                <div
                   key={i}
                   style={{ width: CELL_WIDTH }}
                   className={`flex-shrink-0 text-center py-4 border-r border-border last:border-r-0 ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/10" : ""}`}
@@ -652,21 +631,17 @@ const GroupCalendarView = ({
             })}
           </div>
 
-          {/* Staff Rows */}
           {staffShiftsData.map(({ staff, segmentsWithLanes, rowHeight }) => {
             const staffColor = staff.color || "var(--color-secondary)"
 
             return (
               <div key={staff.id} className="flex border-b border-border last:border-b-0">
-                {/* Staff Name */}
                 <div style={{ width: STAFF_COL_WIDTH, height: rowHeight }} className="flex-shrink-0 flex items-center gap-3 px-4 border-r border-border">
                   <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="md" />
                   <span className="text-sm text-content-secondary truncate">{staff.firstName} {staff.lastName}</span>
                 </div>
 
-                {/* Timeline Container - NO overflow hidden! */}
                 <div style={{ width: 7 * CELL_WIDTH, height: rowHeight }} className="relative flex-shrink-0">
-                  {/* Background Cells */}
                   <div className="absolute inset-0 flex">
                     {weekDays.map(({ dateStr }, i) => {
                       const isClosed = isClosingDay(dateStr)
@@ -675,7 +650,7 @@ const GroupCalendarView = ({
                       const isSelectionStart = selectionStaffId === staff.id && selectionStart === dateStr
 
                       return (
-                        <div 
+                        <div
                           key={i}
                           style={{ width: CELL_WIDTH }}
                           className={`h-full border-r border-border last:border-r-0 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/5" : ""} ${isSelectionStart ? "!bg-secondary/30" : ""} ${isSelected && !isSelectionStart ? "!bg-secondary/20" : ""}`}
@@ -686,10 +661,8 @@ const GroupCalendarView = ({
                     })}
                   </div>
 
-                  {/* Shift Segments - Absolutely Positioned */}
                   {segmentsWithLanes.map((segment, idx) => {
                     const { startIdx, endIdx, shift, lane } = segment
-                    
                     const leftPx = startIdx * CELL_WIDTH + 4
                     const widthPx = (endIdx - startIdx + 1) * CELL_WIDTH - 8
 
@@ -719,7 +692,6 @@ const GroupCalendarView = ({
     )
   }
 
-  // Month View - With spanning bars like Week View
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const monthDays = []
   for (let d = 1; d <= daysInMonth; d++) {
@@ -738,20 +710,17 @@ const GroupCalendarView = ({
   const monthStart = monthDays[0].dateStr
   const monthEnd = monthDays[monthDays.length - 1].dateStr
 
-  // Split shifts into segments that skip closing days (same logic as week view)
   const splitShiftIntoSegments = (shift) => {
     const segments = []
     let segmentStart = null
-    
+
     for (let i = 0; i < daysInMonth; i++) {
       const { dateStr } = monthDays[i]
       const isInShift = dateStr >= shift.startDate && dateStr <= shift.endDate
       const isClosed = isClosingDay(dateStr)
-      
+
       if (isInShift && !isClosed) {
-        if (segmentStart === null) {
-          segmentStart = i
-        }
+        if (segmentStart === null) segmentStart = i
       } else {
         if (segmentStart !== null) {
           segments.push({ startIdx: segmentStart, endIdx: i - 1, shift })
@@ -759,7 +728,7 @@ const GroupCalendarView = ({
         }
       }
     }
-    
+
     if (segmentStart !== null) {
       let lastIdx = segmentStart
       for (let i = segmentStart; i < daysInMonth; i++) {
@@ -770,33 +739,31 @@ const GroupCalendarView = ({
       }
       segments.push({ startIdx: segmentStart, endIdx: lastIdx, shift })
     }
-    
+
     return segments
   }
 
-  // Pre-calculate segments with lanes for each staff member
   const staffShiftsData = staffMembers.map(staff => {
-    const staffShifts = shifts.filter(s => 
-      s.staffId === staff.id && 
-      s.startDate <= monthEnd && 
+    const staffShifts = shifts.filter(s =>
+      s.staffId === staff._id &&
+      s.startDate <= monthEnd &&
       s.endDate >= monthStart
     )
-    
+
     const allSegments = staffShifts.flatMap(shift => splitShiftIntoSegments(shift))
-    
     allSegments.sort((a, b) => {
       if (a.startIdx !== b.startIdx) return a.startIdx - b.startIdx
       return (a.shift.id || "").localeCompare(b.shift.id || "")
     })
-    
+
     const segmentsWithLanes = []
     const lanes = []
-    
+
     for (const segment of allSegments) {
       let assignedLane = -1
       for (let i = 0; i < lanes.length; i++) {
         const laneSegments = lanes[i]
-        const overlaps = laneSegments.some(s => 
+        const overlaps = laneSegments.some(s =>
           !(segment.endIdx < s.startIdx || segment.startIdx > s.endIdx)
         )
         if (!overlaps) {
@@ -811,7 +778,7 @@ const GroupCalendarView = ({
       lanes[assignedLane].push(segment)
       segmentsWithLanes.push({ ...segment, lane: assignedLane })
     }
-    
+
     const maxLane = segmentsWithLanes.length > 0 ? Math.max(...segmentsWithLanes.map(s => s.lane)) : -1
     const rowHeight = Math.max(MIN_ROW_HEIGHT, PADDING_TOP + (maxLane + 1) * (BAR_HEIGHT + BAR_GAP) + PADDING_BOTTOM)
     return { staff, segmentsWithLanes, rowHeight }
@@ -820,14 +787,13 @@ const GroupCalendarView = ({
   return (
     <div className="bg-surface-card rounded-xl border border-border overflow-auto max-h-full">
       <div style={{ minWidth: STAFF_COL_WIDTH + daysInMonth * CELL_WIDTH }}>
-        {/* Header */}
         <div className="flex border-b border-border sticky top-0 bg-surface-card z-10">
           <div style={{ width: STAFF_COL_WIDTH }} className="flex-shrink-0 p-2 border-r border-border text-content-faint text-xs font-medium">Staff</div>
           {monthDays.map(({ date, dateStr, day }) => {
             const isClosed = isClosingDay(dateStr)
             const isToday = dateStr === formatDateStr(new Date())
             return (
-              <div 
+              <div
                 key={day}
                 style={{ width: CELL_WIDTH }}
                 className={`flex-shrink-0 text-center py-1.5 border-r border-border/50 last:border-r-0 ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/10" : ""}`}
@@ -839,30 +805,26 @@ const GroupCalendarView = ({
           })}
         </div>
 
-        {/* Staff Rows */}
         {staffShiftsData.map(({ staff, segmentsWithLanes, rowHeight }) => {
           const staffColor = staff.color || "var(--color-secondary)"
 
           return (
             <div key={staff.id} className="flex border-b border-border/50 last:border-b-0">
-              {/* Staff Name */}
               <div style={{ width: STAFF_COL_WIDTH, height: rowHeight }} className="flex-shrink-0 flex items-center gap-2 px-2 border-r border-border">
                 <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="sm" />
                 <span className="text-xs text-content-secondary truncate">{staff.firstName} {staff.lastName}</span>
               </div>
 
-              {/* Timeline Container */}
               <div style={{ width: daysInMonth * CELL_WIDTH, height: rowHeight }} className="relative flex-shrink-0">
-                {/* Background Cells */}
                 <div className="absolute inset-0 flex">
                   {monthDays.map(({ dateStr, day }) => {
                     const isClosed = isClosingDay(dateStr)
                     const isToday = dateStr === formatDateStr(new Date())
-                    const isSelected = selectionStaffId === staff.id && selectedDates.includes(dateStr)
-                    const isSelectionStart = selectionStaffId === staff.id && selectionStart === dateStr
+                    const isSelected = selectionStaffId === staff._id && selectedDates.includes(dateStr)
+                    const isSelectionStart = selectionStaffId === staff._id && selectionStart === dateStr
 
                     return (
-                      <div 
+                      <div
                         key={day}
                         style={{ width: CELL_WIDTH }}
                         className={`h-full border-r border-border/50 last:border-r-0 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""} ${isToday ? "bg-secondary/5" : ""} ${isSelectionStart ? "!bg-secondary/30" : ""} ${isSelected && !isSelectionStart ? "!bg-secondary/20" : ""}`}
@@ -873,10 +835,8 @@ const GroupCalendarView = ({
                   })}
                 </div>
 
-                {/* Shift Segments - Absolutely Positioned */}
                 {segmentsWithLanes.map((segment, idx) => {
                   const { startIdx, endIdx, shift, lane } = segment
-                  
                   const leftPx = startIdx * CELL_WIDTH + 2
                   const widthPx = (endIdx - startIdx + 1) * CELL_WIDTH - 4
 
@@ -909,12 +869,12 @@ const GroupCalendarView = ({
 }
 
 // Shift Form Modal
-const ShiftFormModal = ({ 
-  isOpen, 
-  onClose, 
-  shift, 
-  staffMembers, 
-  onSave, 
+const ShiftFormModal = ({
+  isOpen,
+  onClose,
+  shift,
+  staffMembers,
+  onSave,
   onDelete,
   fixedStaffId,
   initialStartDate,
@@ -954,30 +914,42 @@ const ShiftFormModal = ({
 
   if (!isOpen) return null
 
-  const selectedStaff = staffMembers.find(s => s.id === Number(formData.staffId))
+  const selectedStaff = staffMembers.find(s => s._id === formData.staffId)
   const hours = formData.startTime && formData.endTime ? calculateHours(formData.startTime, formData.endTime) : 0
   const isClosingDayFn = (dateStr) => closingDays.includes(dateStr) || isWeekend(parseDate(dateStr))
   const isFormValid = formData.staffId && formData.startDate && formData.startTime && formData.endTime
 
   const handleSave = () => {
-    if (!isFormValid) { toast.error("Please fill all required fields"); return }
+    if (!isFormValid) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
     const endDate = formData.endDate || formData.startDate
-    onSave({
-      id: shift?.id || `shift-${Date.now()}`,
-      staffId: Number(formData.staffId),
+    const selectedStaffMember = staffMembers.find(s => s._id === formData.staffId || s.id === formData.staffId)
+
+    if (!selectedStaffMember) {
+      toast.error("Please select a valid staff member");
+      return;
+    }
+
+    const shiftData = {
+      staffId: selectedStaffMember._id,
       startDate: formData.startDate,
       endDate: endDate,
+      type: formData.status === "absence" ? "absence" : "shift",
       startTime: formData.startTime,
       endTime: formData.endTime,
-      status: formData.status,
       notes: formData.notes
-    })
+    }
+
+    onSave(shiftData)
     if (!shift) toast.success("Shift added")
     onClose()
   }
 
   const handleDeleteConfirm = () => {
-    if (shift) { onDelete(shift.id); toast.success("Shift deleted"); setShowDeleteModal(false); onClose() }
+    if (shift) { onDelete(shift._id); toast.success("Shift deleted"); setShowDeleteModal(false); onClose() }
   }
 
   const getDaysCount = () => {
@@ -1008,7 +980,7 @@ const ShiftFormModal = ({
                 <label className="text-sm text-content-secondary block mb-2">Staff Member <span className="text-accent-red">*</span></label>
                 <select value={formData.staffId} onChange={(e) => setFormData({ ...formData, staffId: e.target.value })} className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors">
                   <option value="">Select staff...</option>
-                  {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+                  {staffMembers.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
                 </select>
               </div>
             )}
@@ -1029,14 +1001,14 @@ const ShiftFormModal = ({
                 <div>
                   <label className="text-sm text-content-secondary block mb-2">Start Date <span className="text-accent-red">*</span></label>
                   <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                    <span className={formData.startDate ? "text-content-primary" : "text-content-faint"}>{formData.startDate ? (() => { const [y,m,d] = formData.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    <span className={formData.startDate ? "text-content-primary" : "text-content-faint"}>{formData.startDate ? (() => { const [y, m, d] = formData.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                     {!readOnly && <DatePickerField value={formData.startDate} onChange={(val) => setFormData({ ...formData, startDate: val, endDate: formData.endDate || val })} />}
                   </div>
                 </div>
                 <div>
                   <label className="text-sm text-content-secondary block mb-2">End Date</label>
                   <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
-                    <span className={formData.endDate ? "text-content-primary" : "text-content-faint"}>{formData.endDate ? (() => { const [y,m,d] = formData.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    <span className={formData.endDate ? "text-content-primary" : "text-content-faint"}>{formData.endDate ? (() => { const [y, m, d] = formData.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
                     {!readOnly && <DatePickerField value={formData.endDate} onChange={(val) => setFormData({ ...formData, endDate: val })} />}
                   </div>
                 </div>
@@ -1101,7 +1073,24 @@ const ShiftFormModal = ({
 }
 
 // Main Component
-function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbedded = false }) {
+function ShiftsOverviewModal({ staffMembers: rawStaffMembers, onClose, currentStaffId = null, isEmbedded = false }) {
+  const staffState = useSelector((state) => state.staff)
+  const reduxShifts = staffState?.shift || []
+  const loading = staffState?.loading || false
+  const dispatch = useDispatch()
+
+  const staffMembers = useMemo(() => {
+    if (!rawStaffMembers || !Array.isArray(rawStaffMembers) || rawStaffMembers.length === 0) return []
+    return rawStaffMembers.map(staff => ({
+      ...staff,
+      _id: staff._id || staff.id,
+      id: staff._id || staff.id,
+      firstName: staff.firstName || staff.name?.split(' ')[0] || 'Staff',
+      lastName: staff.lastName || staff.name?.split(' ')[1] || '',
+      color: staff.color || `hsl(${Math.random() * 360}, 70%, 50%)`
+    }))
+  }, [rawStaffMembers])
+
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [viewMode, setViewMode] = useState("team")
   const [viewPeriod, setViewPeriod] = useState("week")
@@ -1118,6 +1107,30 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
   const [selectionStart, setSelectionStart] = useState(null)
   const [selectionStaffId, setSelectionStaffId] = useState(null)
 
+  const shifts = useMemo(() => {
+    if (!reduxShifts || !Array.isArray(reduxShifts) || reduxShifts.length === 0) return []
+    return reduxShifts.map(shift => {
+      const staffId = shift.staff?._id || shift.staff
+      return {
+        ...shift,
+        _id: shift._id,
+        staffId: staffId,
+        startDate: shift.startDate ? formatDateStr(new Date(shift.startDate)) : '',
+        endDate: shift.endDate ? formatDateStr(new Date(shift.endDate)) : '',
+        startTime: shift.startTime || shift.from || '',
+        endTime: shift.endTime || shift.to || '',
+        status: shift.type === 'absence' ? 'absence' : 'scheduled',
+        type: shift.type,
+        notes: shift.notes || '',
+        id: shift._id
+      }
+    })
+  }, [reduxShifts])
+
+  useEffect(() => {
+    dispatch(getShiftThunk())
+  }, [dispatch])
+
   const closingDays = useMemo(() => {
     const days = []
     const year = currentMonth.getFullYear()
@@ -1126,60 +1139,15 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
   }, [currentMonth])
 
   const isClosingDay = (dateStr) => closingDays.includes(dateStr) || isWeekend(parseDate(dateStr))
+  const currentStaff = useMemo(() => {
+    if (!currentStaffId) return staffMembers[0]
+    return staffMembers.find(s => s._id === currentStaffId) || staffMembers[0]
+  }, [staffMembers, currentStaffId])
 
-  const [shifts, setShifts] = useState(() => {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = today.getMonth()
-    
-    return staffMembers.flatMap(staff => {
-      const staffShifts = []
-      let day = 1
-      while (day <= 28) {
-        const date = new Date(year, month, day)
-        const dateStr = formatDateStr(date)
-        if (!isWeekend(date) && Math.random() > 0.4) {
-          const notes = Math.random() > 0.75 ? ["Meeting", "Remote", "Training", "Client"][Math.floor(Math.random() * 4)] : ""
-          const isMultiDay = Math.random() > 0.88
-          let endDay = day
-          let endDateStr = dateStr
-          
-          if (isMultiDay && day <= 25) {
-            const addDays = Math.floor(Math.random() * 2) + 1
-            let tempDay = day
-            for (let i = 0; i < addDays; i++) {
-              tempDay++
-              while (tempDay <= 28 && isWeekend(new Date(year, month, tempDay))) tempDay++
-            }
-            if (tempDay <= 28) {
-              endDay = tempDay
-              endDateStr = formatDateStr(new Date(year, month, endDay))
-            }
-          }
-          
-          staffShifts.push({
-            id: `shift-${staff.id}-${day}`,
-            staffId: staff.id,
-            startDate: dateStr,
-            endDate: endDateStr,
-            startTime: `0${7 + Math.floor(Math.random() * 2)}:00`,
-            endTime: `${14 + Math.floor(Math.random() * 4)}:00`,
-            status: Math.random() > 0.95 ? "absence" : "scheduled",
-            notes
-          })
-          
-          // Skip to the day after this shift ends
-          day = endDay + 1
-        } else {
-          day++
-        }
-      }
-      return staffShifts
-    })
-  })
-
-  const currentStaff = staffMembers.find(s => s.id === currentStaffId) || staffMembers[0]
-  const filteredStaffMembers = useMemo(() => staffFilter === "all" ? staffMembers : staffMembers.filter(s => s.id === Number(staffFilter)), [staffMembers, staffFilter])
+  const filteredStaffMembers = useMemo(() =>
+    staffFilter === "all" ? staffMembers : staffMembers.filter(s => s._id === staffFilter),
+    [staffMembers, staffFilter]
+  )
 
   const goToPrevious = () => {
     if (viewPeriod === "day") setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentMonth.getDate() - 1))
@@ -1209,16 +1177,27 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
     if (isClosingDay(dateStr)) return
     if (isMultiSelectMode) {
       if (!selectionStart || selectionStaffId !== staffId) {
-        setSelectionStart(dateStr); setSelectionStaffId(staffId); setSelectedDates([dateStr])
+        setSelectionStart(dateStr)
+        setSelectionStaffId(staffId)
+        setSelectedDates([dateStr])
       } else {
         const startDate = selectionStart < dateStr ? selectionStart : dateStr
         const endDate = selectionStart < dateStr ? dateStr : selectionStart
-        setModalFixedStaffId(staffId); setModalInitialStartDate(startDate); setModalInitialEndDate(endDate)
-        setEditingShift(null); setIsReadOnlyModal(false); setIsFormModalOpen(true); cancelSelection()
+        setModalFixedStaffId(staffId)
+        setModalInitialStartDate(startDate)
+        setModalInitialEndDate(endDate)
+        setEditingShift(null)
+        setIsReadOnlyModal(false)
+        setIsFormModalOpen(true)
+        cancelSelection()
       }
     } else {
-      setModalFixedStaffId(staffId); setModalInitialStartDate(dateStr); setModalInitialEndDate(dateStr)
-      setEditingShift(null); setIsReadOnlyModal(false); setIsFormModalOpen(true)
+      setModalFixedStaffId(staffId)
+      setModalInitialStartDate(dateStr)
+      setModalInitialEndDate(dateStr)
+      setEditingShift(null)
+      setIsReadOnlyModal(false)
+      setIsFormModalOpen(true)
     }
   }
 
@@ -1227,31 +1206,82 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
     const startDate = selectionStart < dateStr ? selectionStart : dateStr
     const endDate = selectionStart < dateStr ? dateStr : selectionStart
     const range = []
-    const current = parseDate(startDate); const end = parseDate(endDate)
-    while (current <= end) { const ds = formatDateStr(current); if (!isClosingDay(ds)) range.push(ds); current.setDate(current.getDate() + 1) }
+    const current = parseDate(startDate)
+    const end = parseDate(endDate)
+    while (current <= end) {
+      const ds = formatDateStr(current)
+      if (!isClosingDay(ds)) range.push(ds)
+      current.setDate(current.getDate() + 1)
+    }
     setSelectedDates(range)
   }
 
   const handleAddShift = (params) => {
-    setModalFixedStaffId(params?.staffId || null); setModalInitialStartDate(params?.date || ""); setModalInitialEndDate(params?.date || "")
-    setEditingShift(null); setIsReadOnlyModal(false); setIsFormModalOpen(true)
+    setModalFixedStaffId(params?.staffId || null)
+    setModalInitialStartDate(params?.date || "")
+    setModalInitialEndDate(params?.date || "")
+    setEditingShift(null)
+    setIsReadOnlyModal(false)
+    setIsFormModalOpen(true)
   }
 
   const handleEditShift = (shift) => {
-    setEditingShift(shift); setModalFixedStaffId(null); setModalInitialStartDate(""); setModalInitialEndDate("")
-    setIsReadOnlyModal(false); setIsFormModalOpen(true)
+    setEditingShift(shift)
+    setModalFixedStaffId(null)
+    setModalInitialStartDate("")
+    setModalInitialEndDate("")
+    setIsReadOnlyModal(false)
+    setIsFormModalOpen(true)
   }
 
-  const handleViewShift = (shift) => { setEditingShift(shift); setModalFixedStaffId(shift.staffId); setIsReadOnlyModal(true); setIsFormModalOpen(true) }
+  const handleViewShift = (shift) => {
+    setEditingShift(shift)
+    setModalFixedStaffId(shift.staffId)
+    setIsReadOnlyModal(true)
+    setIsFormModalOpen(true)
+  }
 
   const handleSaveShift = (shiftData) => {
-    if (editingShift) setShifts(prev => prev.map(s => s.id === shiftData.id ? shiftData : s))
-    else setShifts(prev => [...prev, shiftData])
+    const apiData = {
+      staffId: shiftData.staffId,
+      startDate: shiftData.startDate,
+      endDate: shiftData.endDate,
+      type: shiftData.type,
+      startTime: shiftData.startTime,
+      endTime: shiftData.endTime,
+      notes: shiftData.notes
+    }
+
+    if (editingShift) {
+      dispatch(updateShiftThunk({ id: editingShift._id, update: apiData })).unwrap()
+        .then(() => {
+          toast.success("Shift updated successfully")
+          dispatch(getShiftThunk())
+        })
+        .catch((error) => {
+          toast.error(error.message || "Failed to update shift")
+        })
+    } else {
+      dispatch(createShiftThunk(apiData)).unwrap()
+        .then(() => {
+          toast.success("Shift created successfully")
+          dispatch(getShiftThunk())
+        })
+        .catch((error) => {
+          toast.error(error.message || "Failed to create shift")
+        })
+    }
+    closeModal()
   }
 
   const closeModal = () => {
-    setIsFormModalOpen(false); setEditingShift(null); setModalInitialStartDate(""); setModalInitialEndDate("")
-    setModalFixedStaffId(null); setIsReadOnlyModal(false); cancelSelection()
+    setIsFormModalOpen(false)
+    setEditingShift(null)
+    setModalInitialStartDate("")
+    setModalInitialEndDate("")
+    setModalFixedStaffId(null)
+    setIsReadOnlyModal(false)
+    cancelSelection()
   }
 
   const containerClass = isEmbedded ? "w-full h-full" : isFullscreen ? "fixed inset-0 z-[1000] bg-surface-base" : "fixed inset-0 bg-black/60 z-[1000] flex items-center justify-center p-0 sm:p-2"
@@ -1261,22 +1291,19 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
     <div className={`${containerClass} shift-modal-wrapper`}>
       <ShiftStyles />
       <div className={`bg-surface-card text-content-primary ${modalClass}`}>
-        {/* Header */}
         <div className="flex-shrink-0 border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-          {/* Row 1: Title + Filter + Close */}
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg sm:rounded-xl flex-shrink-0"><Calendar className="text-primary w-4 h-4 sm:w-5 sm:h-5" /></div>
               <h2 className="font-semibold text-content-primary text-lg sm:text-xl truncate">Shift Schedule</h2>
-              {/* Filter - Mobile: next to title */}
               {viewMode === "team" && (
-                <select 
-                  value={staffFilter} 
-                  onChange={(e) => setStaffFilter(e.target.value)} 
+                <select
+                  value={staffFilter}
+                  onChange={(e) => setStaffFilter(e.target.value)}
                   className="sm:hidden bg-surface-dark border border-border rounded-lg text-content-primary px-2 py-1.5 text-xs ml-auto flex-shrink-0"
                 >
                   <option value="all">All</option>
-                  {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName}</option>)}
+                  {staffMembers.map(s => <option key={s._id} value={s._id}>{s.firstName}</option>)}
                 </select>
               )}
             </div>
@@ -1286,15 +1313,11 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
             </div>
           </div>
 
-          {/* Row 2: Navigation + Controls */}
           <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            {/* Navigation + Period Toggle */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button onClick={goToPrevious} className="p-1.5 sm:p-2 bg-surface-dark hover:bg-surface-hover rounded-lg flex-shrink-0"><ChevronLeft size={16} className="sm:hidden text-content-muted" /><ChevronLeft size={18} className="hidden sm:block text-content-muted" /></button>
               <button onClick={() => setCurrentMonth(new Date())} className="bg-surface-dark hover:bg-surface-hover rounded-lg font-medium text-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[200px] truncate">{getNavigationLabel()}</button>
               <button onClick={goToNext} className="p-1.5 sm:p-2 bg-surface-dark hover:bg-surface-hover rounded-lg flex-shrink-0"><ChevronRight size={16} className="sm:hidden text-content-muted" /><ChevronRight size={18} className="hidden sm:block text-content-muted" /></button>
-
-              {/* Period Toggle - right next to date */}
               <div className="flex bg-surface-dark rounded-lg p-0.5">
                 {["day", "week", "month"].map(p => (
                   <button key={p} onClick={() => setViewPeriod(p)} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm capitalize ${viewPeriod === p ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>{p.charAt(0).toUpperCase()}<span className="hidden sm:inline">{p.slice(1)}</span></button>
@@ -1302,13 +1325,12 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
               </div>
             </div>
 
-            {/* Desktop only: Filter + Multi-Select */}
             {viewMode === "team" && (
               <div className="hidden sm:flex items-center gap-2">
                 <div className="w-px h-6 bg-surface-button mx-1" />
                 <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="bg-surface-dark border border-border rounded-xl text-content-primary px-3 py-2 text-sm">
                   <option value="all">All ({staffMembers.length})</option>
-                  {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+                  {staffMembers.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
                 </select>
                 <div className="w-px h-6 bg-surface-button mx-1" />
                 <button onClick={() => { setIsMultiSelectMode(!isMultiSelectMode); cancelSelection() }} className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm transition-colors ${isMultiSelectMode ? "bg-primary text-white" : "bg-surface-dark text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}>
@@ -1320,16 +1342,12 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
 
             <div className="flex-1 hidden sm:block" />
 
-            {/* New Shift + View Mode */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Desktop: New Shift Button - left of view mode */}
               {viewMode === "team" && (
                 <button onClick={() => handleAddShift(null)} className="hidden sm:flex bg-primary hover:bg-primary-hover text-white rounded-xl items-center gap-2 px-4 py-2 text-sm">
                   <Plus size={16} />New Shift
                 </button>
               )}
-
-              {/* View Mode Toggle */}
               <div className="flex bg-surface-dark rounded-lg p-0.5">
                 <button onClick={() => setViewMode("team")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "team" ? "bg-secondary text-white" : "text-content-muted hover:text-content-primary"}`}><Users size={12} className="sm:hidden" /><Users size={14} className="hidden sm:block" />Team</button>
                 <button onClick={() => setViewMode("individual")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "individual" ? "bg-secondary text-white" : "text-content-muted hover:text-content-primary"}`}><User size={12} className="sm:hidden" /><User size={14} className="hidden sm:block" />My</button>
@@ -1338,28 +1356,30 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-4 bg-surface-card">
-          {viewMode === "individual" && currentStaff ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-content-muted">Loading shifts...</div>
+            </div>
+          ) : viewMode === "individual" && currentStaff ? (
             <IndividualCalendarView staff={currentStaff} shifts={shifts} currentMonth={currentMonth} onViewShift={handleViewShift} closingDays={closingDays} viewPeriod={viewPeriod} />
           ) : (
-            <GroupCalendarView 
-              staffMembers={filteredStaffMembers} shifts={shifts} currentMonth={currentMonth} 
-              onEditShift={handleEditShift} onAddShift={handleAddShift} closingDays={closingDays} viewPeriod={viewPeriod} 
-              isMultiSelectMode={isMultiSelectMode} selectedDates={selectedDates} selectionStart={selectionStart} 
+            <GroupCalendarView
+              staffMembers={filteredStaffMembers} shifts={shifts} currentMonth={currentMonth}
+              onEditShift={handleEditShift} onAddShift={handleAddShift} closingDays={closingDays} viewPeriod={viewPeriod}
+              isMultiSelectMode={isMultiSelectMode} selectedDates={selectedDates} selectionStart={selectionStart}
               selectionStaffId={selectionStaffId} onCellClick={handleCellClick} onCellHover={handleCellHover}
             />
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex-shrink-0 border-t border-border bg-surface-card px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto">
           <div className="flex items-center gap-4 sm:gap-6 h-5 sm:h-6 min-w-max">
             <span className="text-content-faint uppercase tracking-wider text-[10px] sm:text-xs flex-shrink-0">LEGEND:</span>
             {viewMode === "team" ? (
               <div className="flex items-center gap-3 sm:gap-6">
                 {filteredStaffMembers.slice(0, 4).map(s => (
-                  <div key={s.id} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-3 sm:w-4 h-2 sm:h-3 rounded" style={{ backgroundColor: s.color || "var(--color-secondary)" }} /><span className="text-content-muted text-[10px] sm:text-xs">{s.firstName}</span></div>
+                  <div key={s._id} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-3 sm:w-4 h-2 sm:h-3 rounded" style={{ backgroundColor: s.color || "var(--color-secondary)" }} /><span className="text-content-muted text-[10px] sm:text-xs">{s.firstName}</span></div>
                 ))}
                 {filteredStaffMembers.length > 4 && <span className="text-content-faint text-[10px] sm:text-xs hidden sm:inline">+{filteredStaffMembers.length - 4}</span>}
               </div>
@@ -1371,7 +1391,6 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
           </div>
         </div>
 
-        {/* Floating Action Button - Mobile Only */}
         {viewMode === "team" && (
           <button
             onClick={() => handleAddShift(null)}
@@ -1383,9 +1402,18 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
         )}
       </div>
 
-      <ShiftFormModal 
-        isOpen={isFormModalOpen} onClose={closeModal} shift={editingShift} staffMembers={staffMembers} 
-        onSave={handleSaveShift} onDelete={(id) => setShifts(prev => prev.filter(s => s.id !== id))} 
+      <ShiftFormModal
+        isOpen={isFormModalOpen} onClose={closeModal} shift={editingShift} staffMembers={staffMembers}
+        onSave={handleSaveShift} onDelete={(id) => {
+          dispatch(deleteShiftThunk(id)).unwrap()
+            .then(() => {
+              toast.success("Shift deleted successfully")
+              dispatch(getShiftThunk())
+            })
+            .catch((error) => {
+              toast.error(error.message || "Failed to delete shift")
+            })
+        }}
         fixedStaffId={modalFixedStaffId} initialStartDate={modalInitialStartDate} initialEndDate={modalInitialEndDate}
         readOnly={isReadOnlyModal} closingDays={closingDays}
       />

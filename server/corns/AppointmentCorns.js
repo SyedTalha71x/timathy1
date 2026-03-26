@@ -2,6 +2,7 @@
 const cron = require('node-cron');
 const AppointmentModel = require('../models/AppointmentModel');
 const { MemberModel } = require('../models/Discriminators');
+const shiftModel = require('../models/ShiftModel');
 
 // Update past appointments
 const updatePastAppointments = async () => {
@@ -70,42 +71,68 @@ const updateTemporaryMember = async () => {
     }
 };
 
+const updateShifts = async () => {
+    try {
+        const now = new Date()
+        console.log(`running shift updated at:${now.toISOString()}`)
+
+        const result = await shiftModel.updateMany({
+            checkedIn: true,
+            endTime: { $lte: now },
+            status: { $ne: 'scheduled' }
+        }, {
+            $set: {
+                status: 'completed',
+            }
+        })
+        console.log(`completed ${result.modifiedCount} staff shifts`);
+        return { modifiedCount: result.modifiedCount }
+    }
+    catch (error) {
+        console.error("Cron error in updating shifts:", error);
+        return { error: error.message };
+    }
+}
 // Run once immediately on startup
 const runInitialUpdates = async () => {
-    console.log('Running initial updates on startup...');
+    // console.log('Running initial updates on startup...');
     await updatePastAppointments();
     await updateTemporaryMember();
+    await updateShifts()
 };
 
 // Schedule cron jobs
 const startCronJobs = () => {
     // Run every hour at minute 0
-    cron.schedule('0 * * * *', async () => {
-        console.log('=== Hourly Cron Job Started ===');
-        try {
-            await updatePastAppointments();
-            await updateTemporaryMember();
-        } catch (error) {
-            console.error('Cron job execution error:', error);
-        }
-        console.log('=== Hourly Cron Job Completed ===');
-    });
+    // cron.schedule('0 * * * *', async () => {
+    //     console.log('=== Hourly Cron Job Started ===');
+    //     try {
+    //         await updatePastAppointments();
+    //         await updateTemporaryMember();
+    //     } catch (error) {
+    //         console.error('Cron job execution error:', error);
+    //     }
+    //     console.log('=== Hourly Cron Job Completed ===');
+    // });
 
-    // Optional: Run every 5 minutes for more frequent updates
-    cron.schedule('*/5 * * * *', async () => {
-        console.log('=== 5-Minute Cron Job Started ===');
-        try {
-            await updatePastAppointments();
-        } catch (error) {
-            console.error('5-minute cron error:', error);
-        }
-    });
+    // // Optional: Run every 5 minutes for more frequent updates
+    // cron.schedule('*/5 * * * *', async () => {
+    //     console.log('=== 5-Minute Cron Job Started ===');
+    //     try {
+    //         await updatePastAppointments();
+    //     } catch (error) {
+    //         console.error('5-minute cron error:', error);
+    //     }
+    // });
 
     // Run at midnight for daily maintenance
     cron.schedule('0 0 * * *', async () => {
         console.log('=== Daily Maintenance Cron Started ===');
         try {
             await updateTemporaryMember();
+            await updatePastAppointments();
+            await updateShifts()
+
             // Add any other daily cleanup tasks here
         } catch (error) {
             console.error('Daily maintenance cron error:', error);
@@ -118,6 +145,7 @@ const startCronJobs = () => {
 module.exports = {
     updatePastAppointments,
     updateTemporaryMember,
+    updateShifts,
     startCronJobs,
     runInitialUpdates
 };
