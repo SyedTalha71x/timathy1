@@ -39,7 +39,7 @@ const createAppointment = async (req, res, next) => {
         if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
         const today = new Date();
         const selectedDate = new Date(date);
-        let status = "confirmed";
+        let status = "pending";
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
             status = "completed";
             view = 'past';
@@ -134,8 +134,6 @@ const createBlockedAppointment = async (req, res, next) => {
     }
 };
 
-// create Appointment for member by staff
-// const mongoose = require("mongoose");
 
 const createAppointmentByStaff = async (req, res, next) => {
     try {
@@ -456,6 +454,9 @@ const updateAppointmentById = async (req, res, next) => {
 
         const updateData = req.body;
 
+        updateData.view = 'upcoming',
+            updateData.status = 'confirmed'
+
         const appointment = await AppointmentModel.findById(appointmentId)
         if (!appointment) throw new NotFoundError("Invalid appointment Id")
         const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, { $set: updateData }, { new: true })
@@ -501,6 +502,14 @@ const deleteAppointmentById = async (req, res, next) => {
 }
 
 
+const approvedAppointment = async (req, res, next) => {
+    try {
+
+    }
+    catch (error) {
+        next(error)
+    }
+}
 
 
 module.exports = {

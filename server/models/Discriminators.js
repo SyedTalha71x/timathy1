@@ -151,6 +151,26 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'DailyLog'
     },
+    pendingUpdates: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null
+    },
+
+    profileUpdateStatus: {
+        type: String,
+        enum: ['approved', 'pending', 'rejected', null],
+        default: null
+    },
+
+    profileUpdateRequestedAt: {
+        type: Date,
+        default: null
+    },
+
+    profileUpdateRejectedReason: {
+        type: String,
+        default: null
+    }
 
 }))
 

@@ -16,7 +16,19 @@ const feedbackSchema = new mongoose.Schema({
         trim: true,
         required: true
     },
-    star: {
+    rating: {
         type: Number,
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
-})
+}, { timestamps: true })
+
+
+feedbackSchema.index({ type: 1, subject: 1, user: 1 })
+
+
+const FeedbackModel = mongoose.model('feedback', feedbackSchema)
+
+module.exports = FeedbackModel

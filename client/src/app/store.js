@@ -19,7 +19,7 @@ import taskReducer from '../features/todos/todosSlice'
 import noteReducer from '../features/notes/noteSlice'
 import medicalReducer from '../features/medicalHistory/medicalHistorySlice'
 import websiteReducer from '../features/website/websiteSlice'
-
+import supportReducer from '../features/supportCenter/supportSlice'
 
 
 
@@ -48,6 +48,7 @@ export const store = configureStore({
         todos: taskReducer,
         notes: noteReducer,
         medical: medicalReducer,
-        website: websiteReducer
+        website: websiteReducer,
+        support: supportReducer
     }
 })

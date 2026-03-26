@@ -45,6 +45,7 @@ import StaffViewDetailsModal from "../../components/studio-components/staff-comp
 import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
 import { capitalizeWords } from "../../utils/stringUtils";
+import { useSelector } from "react-redux"
 
 const StaffContext = createContext(null)
 
@@ -145,33 +146,35 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
   const [selectedStaffForHistory, setSelectedStaffForHistory] = useState(null)
 
   // Staff history data — replace with real API data later
-  // Previously this was hardcoded inside StaffHistoryModal
-  const [staffHistoryData] = useState({
-    profile: [
-      { id: 1, date: "2024-01-15", time: "14:30", field: "Role", oldValue: "Employee", newValue: "Senior Employee", changedBy: "Admin" },
-      { id: 2, date: "2024-01-10", time: "09:15", field: "Vacation Entitlement", oldValue: "25 days", newValue: "30 days", changedBy: "HR Manager" },
-      { id: 3, date: "2024-01-05", time: "16:45", field: "Phone", oldValue: "+1234567890", newValue: "+1234567891", changedBy: "Self" },
-    ],
-    actions: [
-      { id: 1, date: "2024-01-18", time: "10:30", action: "Moved Appointment", details: "Moved meeting with client from 14:00 to 15:30", target: "Meeting with ABC Corp", performedBy: "System" },
-      { id: 2, date: "2024-01-17", time: "16:20", action: "Changed Member Data", details: "Updated contact information", target: "Member: John Smith", performedBy: "Self" },
-      { id: 3, date: "2024-01-16", time: "11:15", action: "Created To-Do List", details: "Created new project task list", target: "Project Alpha Tasks", performedBy: "Self" },
-      { id: 4, date: "2024-01-15", time: "09:45", action: "Deleted To-Do List", details: "Removed completed task list", target: "Old Project Tasks", performedBy: "Self" },
-      { id: 5, date: "2024-01-14", time: "13:20", action: "Assigned Task", details: "Assigned new client follow-up", target: "Task: Client Follow-up", performedBy: "Manager" },
-    ],
-    login: [
-      { id: 1, date: "2024-01-20", time: "08:30", action: "Login", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
-      { id: 2, date: "2024-01-19", time: "17:45", action: "Logout", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
-      { id: 3, date: "2024-01-19", time: "08:15", action: "Login", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
-      { id: 4, date: "2024-01-18", time: "18:00", action: "Logout", ipAddress: "192.168.1.105", device: "Safari on iPhone" },
-    ],
-    vacation: [
-      { id: 1, startDate: "2023-12-20", endDate: "2023-12-29", days: 8, status: "Approved", requestDate: "2023-11-15", approvedBy: "Manager" },
-      { id: 2, startDate: "2023-08-15", endDate: "2023-08-25", days: 9, status: "Approved", requestDate: "2023-07-10", approvedBy: "Manager" },
-      { id: 3, startDate: "2023-05-01", endDate: "2023-05-05", days: 5, status: "Approved", requestDate: "2023-04-01", approvedBy: "HR Manager" },
-    ],
-    communication: [],
-  })
+  // // Previously this was hardcoded inside StaffHistoryModal
+  // const [staffHistoryData] = useState({
+  //   profile: [
+  //     { id: 1, date: "2024-01-15", time: "14:30", field: "Role", oldValue: "Employee", newValue: "Senior Employee", changedBy: "Admin" },
+  //     { id: 2, date: "2024-01-10", time: "09:15", field: "Vacation Entitlement", oldValue: "25 days", newValue: "30 days", changedBy: "HR Manager" },
+  //     { id: 3, date: "2024-01-05", time: "16:45", field: "Phone", oldValue: "+1234567890", newValue: "+1234567891", changedBy: "Self" },
+  //   ],
+  //   actions: [
+  //     { id: 1, date: "2024-01-18", time: "10:30", action: "Moved Appointment", details: "Moved meeting with client from 14:00 to 15:30", target: "Meeting with ABC Corp", performedBy: "System" },
+  //     { id: 2, date: "2024-01-17", time: "16:20", action: "Changed Member Data", details: "Updated contact information", target: "Member: John Smith", performedBy: "Self" },
+  //     { id: 3, date: "2024-01-16", time: "11:15", action: "Created To-Do List", details: "Created new project task list", target: "Project Alpha Tasks", performedBy: "Self" },
+  //     { id: 4, date: "2024-01-15", time: "09:45", action: "Deleted To-Do List", details: "Removed completed task list", target: "Old Project Tasks", performedBy: "Self" },
+  //     { id: 5, date: "2024-01-14", time: "13:20", action: "Assigned Task", details: "Assigned new client follow-up", target: "Task: Client Follow-up", performedBy: "Manager" },
+  //   ],
+  //   login: [
+  //     { id: 1, date: "2024-01-20", time: "08:30", action: "Login", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
+  //     { id: 2, date: "2024-01-19", time: "17:45", action: "Logout", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
+  //     { id: 3, date: "2024-01-19", time: "08:15", action: "Login", ipAddress: "192.168.1.100", device: "Chrome on Windows" },
+  //     { id: 4, date: "2024-01-18", time: "18:00", action: "Logout", ipAddress: "192.168.1.105", device: "Safari on iPhone" },
+  //   ],
+  //   vacation: [
+  //     { id: 1, startDate: "2023-12-20", endDate: "2023-12-29", days: 8, status: "Approved", requestDate: "2023-11-15", approvedBy: "Manager" },
+  //     { id: 2, startDate: "2023-08-15", endDate: "2023-08-25", days: 9, status: "Approved", requestDate: "2023-07-10", approvedBy: "Manager" },
+  //     { id: 3, startDate: "2023-05-01", endDate: "2023-05-05", days: 5, status: "Approved", requestDate: "2023-04-01", approvedBy: "HR Manager" },
+  //   ],
+  //   communication: [],
+  // })
+
+  const { staff: staffHistoryData = [] } = useSelector((state) => state.staff)
   const [viewMode, setViewMode] = useState("list")
 
   const [isCompactView, setIsCompactView] = useState(false);
