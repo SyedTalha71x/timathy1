@@ -144,21 +144,25 @@ const EditAppointmentModalMain = ({
   const dispatch = useDispatch()
   const { members } = useSelector((state) => state.member || [])
 
-
   useEffect(() => {
     dispatch(fetchAllMember())
   }, [dispatch])
+
   // Parse date from appointment format to YYYY-MM-DD for date input
   const parsedDate = parseDateFromAppointment(selectedAppointmentMain.date);
 
-  // Use startTime instead of time
-  const currentTimeSlot = selectedAppointmentMain.timeSlot || { start: currentTime, end: "" };
+  // FIX: Safely get timeSlot with proper defaults
+  const currentTimeSlot = selectedAppointmentMain.timeSlot?.start
+    ? {
+      start: selectedAppointmentMain.timeSlot.start,
+      end: selectedAppointmentMain.timeSlot.end || ''
+    }
+    : { start: '09:00', end: '' };
 
   // Check if this is a lead for initial state setup
   const isLeadInit = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
 
   // Store original values for change detection
-  // For leads: use trialType, for members: use type
   const originalType = isLeadInit
     ? (selectedAppointmentMain.trialType || selectedAppointmentMain.type)
     : selectedAppointmentMain.type;
@@ -169,7 +173,7 @@ const EditAppointmentModalMain = ({
   // Internal NotifyModal state
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(null);
-  const [notifyAction, setNotifyAction] = useState("change"); // "change" or "cancel"
+  const [notifyAction, setNotifyAction] = useState("change");
 
   // Local state for editing
   const [editDate, setEditDate] = useState(parsedDate);
@@ -183,11 +187,23 @@ const EditAppointmentModalMain = ({
   // Update local state when appointment changes
   useEffect(() => {
     const newParsedDate = parseDateFromAppointment(selectedAppointmentMain.date);
-    const newTime = selectedAppointmentMain.startTime || selectedAppointmentMain.time || "";
+
+    // FIX: Handle both object and string for timeSlot
+    let newTime;
+    if (selectedAppointmentMain.timeSlot && typeof selectedAppointmentMain.timeSlot === 'object') {
+      newTime = {
+        start: selectedAppointmentMain.timeSlot.start || '09:00',
+        end: selectedAppointmentMain.timeSlot.end || ''
+      };
+    } else {
+      newTime = { start: selectedAppointmentMain.startTime || selectedAppointmentMain.time || '09:00', end: '' };
+    }
+
     const isLead = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
     const newType = isLead
       ? (selectedAppointmentMain.trialType || selectedAppointmentMain.type)
       : selectedAppointmentMain.type;
+
     setEditDate(newParsedDate);
     setEditTime(newTime);
     setEditType(newType);
@@ -197,11 +213,12 @@ const EditAppointmentModalMain = ({
 
   // Check if any changes were made
   const hasChanges = editDate !== originalDate ||
-    editTime !== originalTime ||
+    JSON.stringify(editTime) !== JSON.stringify(originalTime) ||
     editType !== originalType;
 
   // Convert 24h -> AM/PM
   const formatAMPM = (time24) => {
+    if (!time24) return '';
     const [hour, min] = time24.split(":").map(Number);
     const ampm = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
@@ -225,7 +242,6 @@ const EditAppointmentModalMain = ({
       const [endHour, endMin] = end.split(":").map(Number);
 
       while (hour < endHour || (hour === endHour && min < endMin)) {
-
         const startTime = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 
         let tempMin = min + duration;
@@ -254,12 +270,13 @@ const EditAppointmentModalMain = ({
     return allSlots;
   };
 
-
   const availableSlots = generateSlots();
+
   const checkAvailability = () => {
     const isAvailable = Math.random() > 0.5;
     if (!isAvailable) {
-      const alternatives = generateAlternativeSlots(editDate, editTime);
+      const timeString = typeof editTime === 'object' ? editTime.start : editTime;
+      const alternatives = generateAlternativeSlots(editDate, timeString);
       setAlternativeSlots(alternatives);
       setShowAlternatives(true);
     } else {
@@ -270,7 +287,7 @@ const EditAppointmentModalMain = ({
   const generateAlternativeSlots = (date, time) => {
     const baseDate = new Date(date);
     const alternatives = [];
-    const duration = 60; // or get from appointment type
+    const duration = 60;
 
     const timeOptions = ["09:00", "11:30", "14:00", "16:30"];
     timeOptions.forEach((startTime) => {
@@ -291,7 +308,6 @@ const EditAppointmentModalMain = ({
       }
     });
 
-    // Next 3 days same time
     for (let i = 1; i <= 3; i++) {
       const nextDay = new Date(baseDate);
       nextDay.setDate(baseDate.getDate() + i);
@@ -320,7 +336,7 @@ const EditAppointmentModalMain = ({
 
   const selectAlternative = (alt) => {
     setEditDate(alt.date);
-    setEditTime(alt.time);
+    setEditTime(alt.timeSlot);
     setShowAlternatives(false);
   };
 
@@ -329,20 +345,22 @@ const EditAppointmentModalMain = ({
     const isLeadAppointment = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
 
     // Calculate end time based on appointment type duration
-    // For leads: use Trial Training duration (60 min), not the trialType duration
     const selectedType = appointmentTypesMain.find(t => t.name === editType);
     const trialTrainingType = appointmentTypesMain.find(t => t.isTrialType || t.name === "Trial Training");
     const duration = isLeadAppointment
       ? (trialTrainingType?.duration || 60)
       : (selectedType?.duration || 30);
 
-    let { start, end } = selectedAppointmentMain.timeSlot
-    // Parse start time and calculate end time
-    if (!end) {
-      const [hours, minutes] = editTime.split(':').map(Number);
+    // FIX: Get start time from editTime object properly
+    let startTime = editTime.start;
+    let endTime = editTime.end;
+
+    // Calculate end time if not provided
+    if (!endTime && startTime) {
+      const [hours, minutes] = startTime.split(':').map(Number);
       const endDate = new Date(2000, 0, 1, hours, minutes + duration);
-      end = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
-    };
+      endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+    }
 
     const updatedAppointment = {
       ...selectedAppointmentMain,
@@ -350,8 +368,13 @@ const EditAppointmentModalMain = ({
       trialType: isLeadAppointment ? editType : selectedAppointmentMain.trialType,
       color: isLeadAppointment ? selectedAppointmentMain.color : (selectedType?.color || selectedAppointmentMain.color),
       colorHex: isLeadAppointment ? selectedAppointmentMain.colorHex : (getColorHex(selectedType) || selectedAppointmentMain.colorHex),
-      date: editDate, // send ISO format
-      timeSlot: { start: editTime.start, end: editTime.end } // proper backend shape
+      date: editDate,
+      timeSlotId: {
+        start: startTime,
+        end: endTime,
+        duration: duration,
+        isBlocked: selectedAppointmentMain.timeSlot?.isBlocked || false
+      }
     };
 
     // Store pending changes and show notify modal
@@ -393,7 +416,6 @@ const EditAppointmentModalMain = ({
     setShowNotifyModal(false);
     setPendingChanges(null);
     setNotifyAction("change");
-    // Don't close the main modal - let user continue editing
   };
 
   const handleClose = () => {

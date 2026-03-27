@@ -116,24 +116,38 @@ const changePassword = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     const userId = req.user?._id; // assuming auth middleware adds user
+
     if (userId) {
+      // Record logout activity in UserModel
+      await UserModel.findByIdAndUpdate(userId, {
+        $push: {
+          loginHistory: {
+            date: new Date(),
+            ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+            device: req.headers['user-agent'],
+            action: 'logout'
+          }
+        }
+      });
+
+      // Clear refresh token
       await UserModel.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
     }
+
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "None",
-      //sameSite: "lax",
-      path: "/", // must match login
+      path: "/",
     });
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "None",
-      //sameSite: "lax",
-      path: "/", // must match login
+      path: "/",
     });
+
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);

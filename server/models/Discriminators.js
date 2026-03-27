@@ -200,8 +200,12 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     },
     vacationEntitlement: {
         type: Number,
-        min: 30,
         default: 30,
+    }, 
+    vacationDays: {
+        type: Number,
+        default: 30,
+        description: "Remaining vacation days"
     },
     appointments: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -254,7 +258,12 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     shifts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'shift'
-    }]
+    }],
+    vacations: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'vacations'
+    }],
+
 }))
 
 module.exports = { AdminModel, MemberModel, StaffModel }

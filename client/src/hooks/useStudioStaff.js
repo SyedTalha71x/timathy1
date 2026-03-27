@@ -104,8 +104,8 @@ function transformStudioData(studioData) {
       email: s?.email || "",
       phone: s?.phone || "",
       telephone: s?.telephone || "",
-      role: s?.role ,
-      staffRole: s?.staffRole ,
+      role: s?.role,
+      staffRole: s?.staffRole,
       title: s?.title || `Staff Member`,
       gender: s?.gender,
       dateOfBirth: s?.dateOfBirth,
@@ -119,7 +119,8 @@ function transformStudioData(studioData) {
       vacationDays: s?.vacationDays,
       remainingDays: s?.remainingDays,
       staffId: s?.staffId,
-      about: s?.about
+      about: s?.about,
+      loginHistory: s?.loginHistory
     })),
     members: members.map(m => ({
       id: m?._id,

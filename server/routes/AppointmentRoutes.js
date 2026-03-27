@@ -22,7 +22,7 @@ router.patch('/:appointmentId/cancel', verifyAccessToken, cancelAppointment)
 router.get('/all-appointments', verifyAccessToken, isStaff, allAppointments);
 router.get('/member/:memberId', verifyAccessToken, appointmentByMemberId);
 router.post('/trial/:leadId', verifyAccessToken, createBookingTrailByStaff);
-router.put("/update/:appointmentId", verifyAccessToken, isStaff, updateAppointmentById)
-router.delete("/delete/:appointmentId", verifyAccessToken, isStaff, deleteAppointmentById)
+router.put("/:appointmentId", verifyAccessToken, isStaff, updateAppointmentById)
+router.delete("/:appointmentId", verifyAccessToken, isStaff, deleteAppointmentById)
 
 module.exports = router

@@ -55,12 +55,12 @@ export const createBookingTrialByStaff = async (leadId, trialData) => {
 // =============================
 
 export const updateAppointment = async (appointmentId, updateData) => {
-    const res = await api.put(`/appointment/update/${appointmentId}`, updateData, { withCredentials: true })
+    const res = await api.put(`/appointment/${appointmentId}`, updateData, { withCredentials: true })
     return res.data
 }
 
 
 export const deleteAppointment = async (appointmentId) => {
-    const res = await api.delete(`/appointment/delete/${appointmentId}`, { withCredentials: true })
+    const res = await api.delete(`/appointment/${appointmentId}`, { withCredentials: true })
     return res.data
 }

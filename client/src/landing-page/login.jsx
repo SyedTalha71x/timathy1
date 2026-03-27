@@ -167,7 +167,7 @@ export default function SignInPage() {
     const config = LOGIN_TYPES[activeLoginType]
     // const currentFormData = formData[activeLoginType]
 
-    // // // STUDIO LOGIN (REAL AUTH - temporarily disabled)
+    // // // // STUDIO LOGIN (REAL AUTH - temporarily disabled)
     // if (activeLoginType === "studio") {
     //   try {
     //     const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
