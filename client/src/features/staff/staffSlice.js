@@ -123,6 +123,78 @@ export const getShiftThunk = createAsyncThunk('/staff/shift/get-shift', async (_
 })
 
 
+// &&&&&&&&&&&&&&&&&&
+// Vacation Thunks
+// &&&&&&&&&&&&&&&&&&&&&
+
+// &&&&&&&
+// Send Vacation Request
+// &&&&&&&&&&&
+
+export const sendVacationRequestThunk = createAsyncThunk('/staff/vacation/send-vacation-request', async (data, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.sendVacationRequestApi(data);
+        return res.vacation
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// &&&&&&&
+// approved Vacation Request
+// &&&&&&&&&&&
+
+export const approvedVacationRequestThunk = createAsyncThunk('/staff/vacation/approved-vacation-request', async (id, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.approvedVacationRequestApi(id);
+        return res.vacation
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// &&&&&&&
+// Rejected Vacation Request
+// &&&&&&&&&&&
+
+export const rejectedVacationRequestThunk = createAsyncThunk('/staff/vacation/reject-vacation-request', async (id, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.rejectVacationRequestApi(id);
+        return res.vacation
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// &&&&&&&
+// get all Vacation 
+// &&&&&&&&&&&
+
+export const fetchVacationThunk = createAsyncThunk('/staff/vacation/fetch-vacation', async (_, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.getVacationRequestsApi();
+        return res.vacation
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// &&&&&&&
+// Get Pending Vacation Request
+// &&&&&&&&&&&
+
+export const fetchPendingVacationRequestThunk = createAsyncThunk('/staff/vacation/pending-vacation-request', async (_, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.getPendingVacationRequestsApi();
+        return res.vacation
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+
 
 
 const staffSlice = createSlice({
@@ -130,6 +202,7 @@ const staffSlice = createSlice({
     initialState: {
         staff: [],
         shift: [],
+        vacations: [],
         loading: false,
         error: null
     },
@@ -273,6 +346,96 @@ const staffSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
+
+            // &&&&&&&&&&&&&&&&&
+            // VACATION SLICE
+            // &&&&&&&&&&&&&&&&&
+
+            .addCase(sendVacationRequestThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(sendVacationRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vacations = action.payload;
+                state.error = null
+            })
+            .addCase(sendVacationRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // &&&&&&&&&&&&&&&&&
+            // APPROVED VACATION  SLICE
+            // &&&&&&&&&&&&&&&&&
+
+            .addCase(approvedVacationRequestThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(approvedVacationRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vacations = action.payload;
+                state.error = null
+            })
+            .addCase(approvedVacationRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // &&&&&&&&&&&&&&&&&
+            // REJECTED VACATION SLICE
+            // &&&&&&&&&&&&&&&&&
+
+            .addCase(rejectedVacationRequestThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(rejectedVacationRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vacations = action.payload;
+                state.error = null
+            })
+            .addCase(rejectedVacationRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // &&&&&&&&&&&&&&&&&
+            // GET VACATION SLICE
+            // &&&&&&&&&&&&&&&&&
+
+            .addCase(fetchVacationThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(fetchVacationThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vacations = action.payload;
+                state.error = null
+            })
+            .addCase(fetchVacationThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // &&&&&&&&&&&&&&&&&
+            // Pending VACATION SLICE
+            // &&&&&&&&&&&&&&&&&
+
+            .addCase(fetchPendingVacationRequestThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(fetchPendingVacationRequestThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vacations = action.payload;
+                state.error = null
+            })
+            .addCase(fetchPendingVacationRequestThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+
+
+
     }
 })
 

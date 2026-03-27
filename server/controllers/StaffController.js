@@ -157,6 +157,18 @@ const loginStaff = async (req, res, next) => {
     const isMatch = await bcrypt.compare(password, staff.password);
     if (!isMatch) throw new UnAuthorizedError("Invalid Password");
 
+
+    staff.loginHistory.push({
+      date: new Date(),
+      ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+      device: req.headers['user-agent'],
+      action: 'login'
+    });
+    // Keep only last 50 records
+    if (staff.loginHistory.length > 50) {
+      staff.loginHistory = staff.loginHistory.slice(-50);
+    }
+
     const { AccessToken, RefreshToken } = GenerateToken({
       _id: staff._id,
       firstName: staff.firstName,
@@ -208,7 +220,7 @@ const loginStaff = async (req, res, next) => {
   }
 };
 
-// update staff/Staff
+// update Staff
 const updateStaffById = async (req, res, next) => {
   try {
     const { staffId } = req.params;
@@ -228,51 +240,53 @@ const updateStaffById = async (req, res, next) => {
       staffColor,
       vacationDays,
       remainingDays,
+      vacationEntitlement,
       about,
       username,
-
       password,
     } = req.body;
-    const updateStaff = {
-      firstName,
-      lastName,
-      email,
-      phone,
-      telephone,
-      gender,
-      dateOfBirth,
-      street,
-      zipCode,
-      city,
-      country,
-      staffRole,
-      staffColor,
-      vacationDays,
-      remainingDays,
-      about,
-      username,
-      password,
-    }
+
+    // Create update object with only the fields that are provided
+    const updateData = {};
+
+    // Only add fields that are actually present in the request
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (telephone !== undefined) updateData.telephone = telephone;
+    if (gender !== undefined) updateData.gender = gender;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+    if (street !== undefined) updateData.street = street;
+    if (zipCode !== undefined) updateData.zipCode = zipCode;
+    if (city !== undefined) updateData.city = city;
+    if (country !== undefined) updateData.country = country;
+    if (staffRole !== undefined) updateData.staffRole = staffRole;
+    if (staffColor !== undefined) updateData.staffColor = staffColor;
+    if (vacationDays !== undefined) updateData.vacationDays = vacationDays;
+    if (vacationEntitlement !== undefined) updateData.vacationEntitlement = vacationEntitlement;
+    if (remainingDays !== undefined) updateData.remainingDays = remainingDays;
+    if (about !== undefined) updateData.about = about;
+    if (username !== undefined) updateData.username = username;
+    if (password !== undefined) updateData.password = await hashedPassword(password);
 
     if (req.file) {
       const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
-
-      // ✅ Save new image URL + public_id into update object
-      updateStaff.img = {
+      updateData.img = {
         url: cloudinaryResult.secure_url,
         public_id: cloudinaryResult.public_id,
       };
     }
 
-    if (req.body.password) {
-      updateStaff.password = await hashedPassword(req.body.password)
-    }
+    // ✅ CORRECT: Update directly without nesting
+    const staff = await StaffModel.findByIdAndUpdate(
+      staffId,
+      { $set: updateData },  // Direct update
+      { new: true, runValidators: true }
+    );
 
-    // Update staff in MongoDB
-    const staff = await StaffModel.findByIdAndUpdate(staffId, updateStaff, { new: true });
     if (!staff) throw new NotFoundError("staff not found");
 
-    // console.log('updated Staff', updateStaff.staffColor)
     res.status(200).json({
       success: true,
       message: "Successfully Updated",

@@ -52,12 +52,12 @@ import DraftModal from "../../components/shared/communication/DraftModal"
 import { membersData, staffData } from "../../utils/studio-states"
 
 // ============================================
-// Sample Data for Activity Monitor (Keep other tabs as is)
+// Sample Data for Activity Monitor
 // ============================================
 const initialVacationRequests = [
   {
     id: "vac-1",
-    staffId: 2, // John Trainer from staffData
+    staffId: 2,
     employeeFirstName: "John",
     employeeLastName: "Trainer",
     department: "Training",
@@ -70,7 +70,7 @@ const initialVacationRequests = [
   },
   {
     id: "vac-2",
-    staffId: 5, // Lisa Reception from staffData
+    staffId: 5,
     employeeFirstName: "Lisa",
     employeeLastName: "Reception",
     department: "Reception",
@@ -83,7 +83,7 @@ const initialVacationRequests = [
   },
   {
     id: "vac-3",
-    staffId: 3, // Sarah Coach from staffData
+    staffId: 3,
     employeeFirstName: "Sarah",
     employeeLastName: "Coach",
     department: "Training",
@@ -99,7 +99,7 @@ const initialVacationRequests = [
 const initialAppointmentRequests = [
   {
     id: "app-1",
-    memberId: 1, // John Doe from membersData
+    memberId: 1,
     memberFirstName: "John",
     memberLastName: "Doe",
     appointmentType: "Trial Training",
@@ -112,7 +112,7 @@ const initialAppointmentRequests = [
   },
   {
     id: "app-2",
-    memberId: 3, // Michael Johnson from membersData
+    memberId: 3,
     memberFirstName: "Michael",
     memberLastName: "Johnson",
     appointmentType: "Nutrition Consultation",
@@ -125,7 +125,7 @@ const initialAppointmentRequests = [
   },
   {
     id: "app-3",
-    memberId: 4, // Sarah Williams from membersData
+    memberId: 4,
     memberFirstName: "Sarah",
     memberLastName: "Williams",
     appointmentType: "Personal Training",
@@ -141,7 +141,7 @@ const initialAppointmentRequests = [
 const initialExpiringContracts = [
   {
     id: "con-1",
-    memberId: 10, // Jennifer Martinez from membersData
+    memberId: 10,
     memberFirstName: "Jennifer",
     memberLastName: "Martinez",
     membershipType: "Premium",
@@ -153,7 +153,7 @@ const initialExpiringContracts = [
   },
   {
     id: "con-2",
-    memberId: 8, // Lisa Garcia from membersData
+    memberId: 8,
     memberFirstName: "Lisa",
     memberLastName: "Garcia",
     membershipType: "Standard",
@@ -165,7 +165,7 @@ const initialExpiringContracts = [
   },
   {
     id: "con-3",
-    memberId: 4, // Sarah Williams from membersData
+    memberId: 4,
     memberFirstName: "Sarah",
     memberLastName: "Williams",
     membershipType: "Premium Plus",
@@ -180,7 +180,7 @@ const initialExpiringContracts = [
 const initialFailedEmails = [
   {
     id: "mail-1",
-    memberId: 5, // David Brown from membersData
+    memberId: 5,
     recipient: "david.brown@example.com",
     recipientFirstName: "David",
     recipientLastName: "Brown",
@@ -193,7 +193,7 @@ const initialFailedEmails = [
   },
   {
     id: "mail-2",
-    memberId: 6, // Emily Davis from membersData
+    memberId: 6,
     recipient: "emily.davis@example.com",
     recipientFirstName: "Emily",
     recipientLastName: "Davis",
@@ -206,7 +206,7 @@ const initialFailedEmails = [
   },
   {
     id: "mail-3",
-    staffId: 2, // John Trainer from staffData
+    staffId: 2,
     recipient: "john.trainer@studio.de",
     recipientFirstName: "John",
     recipientLastName: "Trainer",
@@ -219,7 +219,7 @@ const initialFailedEmails = [
   },
   {
     id: "mail-4",
-    staffId: 3, // Sarah Coach from staffData
+    staffId: 3,
     recipient: "sarah.coach@studio.de",
     recipientFirstName: "Sarah",
     recipientLastName: "Coach",
@@ -232,11 +232,10 @@ const initialFailedEmails = [
   },
 ]
 
-// NEW: Contract Pause Requests
 const initialContractPauseRequests = [
   {
     id: "pause-1",
-    memberId: 2, // Jane Smith from membersData
+    memberId: 2,
     memberFirstName: "Jane",
     memberLastName: "Smith",
     membershipType: "Premium",
@@ -251,7 +250,7 @@ const initialContractPauseRequests = [
   },
   {
     id: "pause-2",
-    memberId: 6, // Emily Davis from membersData
+    memberId: 6,
     memberFirstName: "Emily",
     memberLastName: "Davis",
     membershipType: "Standard",
@@ -266,7 +265,7 @@ const initialContractPauseRequests = [
   },
   {
     id: "pause-3",
-    memberId: 7, // Robert Miller from membersData
+    memberId: 7,
     memberFirstName: "Robert",
     memberLastName: "Miller",
     membershipType: "Premium Plus",
@@ -281,11 +280,10 @@ const initialContractPauseRequests = [
   },
 ]
 
-// NEW: Bank Data Change Requests
 const initialBankDataRequests = [
   {
     id: "bank-1",
-    memberId: 3, // Michael Johnson from membersData
+    memberId: 3,
     memberFirstName: "Michael",
     memberLastName: "Johnson",
     membershipType: "Premium",
@@ -301,7 +299,7 @@ const initialBankDataRequests = [
   },
   {
     id: "bank-2",
-    memberId: 1, // John Doe from membersData
+    memberId: 1,
     memberFirstName: "John",
     memberLastName: "Doe",
     membershipType: "Standard",
@@ -313,7 +311,7 @@ const initialBankDataRequests = [
   },
   {
     id: "bank-3",
-    memberId: 9, // Thomas Anderson from membersData
+    memberId: 9,
     memberFirstName: "Thomas",
     memberLastName: "Anderson",
     membershipType: "Premium Plus",
@@ -329,61 +327,61 @@ const initialBankDataRequests = [
   },
 ]
 
-// NEW: Member Data Change Requests
-// const initialMemberDataRequests = [
-//   {
-//     id: "member-1",
-//     memberId: 4, // Sarah Williams from membersData
-//     memberFirstName: "Sarah",
-//     memberLastName: "Williams",
-//     membershipType: "Premium",
-//     changeType: "address",
-//     fieldLabel: "Address",
-//     oldValue: "Hauptstraße 15, 10115 Berlin",
-//     newValue: "Parkweg 42, 10178 Berlin",
-//     status: "pending",
-//     submittedAt: "2026-01-19T11:30:00",
-//   },
-//   {
-//     id: "member-2",
-//     memberId: 8, // Lisa Garcia from membersData
-//     memberFirstName: "Lisa",
-//     memberLastName: "Garcia",
-//     membershipType: "Standard",
-//     changeType: "lastName",
-//     fieldLabel: "Last Name",
-//     oldValue: "Garcia",
-//     newValue: "Garcia-Rodriguez",
-//     status: "pending",
-//     submittedAt: "2026-01-18T15:00:00",
-//   },
-//   {
-//     id: "member-3",
-//     memberId: 9, // Thomas Anderson from membersData
-//     memberFirstName: "Thomas",
-//     memberLastName: "Anderson",
-//     membershipType: "Premium Plus",
-//     changeType: "email",
-//     fieldLabel: "Email",
-//     oldValue: "t.anderson@oldmail.de",
-//     newValue: "thomas.anderson@newmail.de",
-//     status: "pending",
-//     submittedAt: "2026-01-17T13:15:00",
-//   },
-//   {
-//     id: "member-4",
-//     memberId: 5, // David Brown from membersData
-//     memberFirstName: "David",
-//     memberLastName: "Brown",
-//     membershipType: "Standard",
-//     changeType: "phone",
-//     fieldLabel: "Phone",
-//     oldValue: "+49 170 1234567",
-//     newValue: "+49 151 9876543",
-//     status: "approved",
-//     submittedAt: "2026-01-14T10:00:00",
-//   },
-// ]
+const initialMemberDataRequests = [
+  {
+    id: "member-1",
+    memberId: 4,
+    memberFirstName: "Sarah",
+    memberLastName: "Williams",
+    membershipType: "Premium",
+    changeType: "address",
+    fieldLabel: "Address",
+    oldValue: "Hauptstraße 15, 10115 Berlin",
+    newValue: "Parkweg 42, 10178 Berlin",
+    status: "pending",
+    submittedAt: "2026-01-19T11:30:00",
+  },
+  {
+    id: "member-2",
+    memberId: 8,
+    memberFirstName: "Lisa",
+    memberLastName: "Garcia",
+    membershipType: "Standard",
+    changeType: "lastName",
+    fieldLabel: "Last Name",
+    oldValue: "Garcia",
+    newValue: "Garcia-Rodriguez",
+    status: "pending",
+    submittedAt: "2026-01-18T15:00:00",
+  },
+  {
+    id: "member-3",
+    memberId: 9,
+    memberFirstName: "Thomas",
+    memberLastName: "Anderson",
+    membershipType: "Premium Plus",
+    changeType: "email",
+    fieldLabel: "Email",
+    oldValue: "t.anderson@oldmail.de",
+    newValue: "thomas.anderson@newmail.de",
+    status: "pending",
+    submittedAt: "2026-01-17T13:15:00",
+  },
+  {
+    id: "member-4",
+    memberId: 5,
+    memberFirstName: "David",
+    memberLastName: "Brown",
+    membershipType: "Standard",
+    changeType: "phone",
+    fieldLabel: "Phone",
+    oldValue: "+49 170 1234567",
+    newValue: "+49 151 9876543",
+    status: "approved",
+    submittedAt: "2026-01-14T10:00:00",
+  },
+]
+
 // Helper: Get change type icon
 const getChangeTypeIcon = (changeType) => {
   switch (changeType) {
@@ -527,14 +525,14 @@ export default function ActivityMonitor() {
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const sortDropdownRef = useRef(null)
   
-  // Data States (Keep sample data for other tabs)
+  // Data States - Using initial sample data
   const [vacationRequests, setVacationRequests] = useState(initialVacationRequests)
   const [appointmentRequests, setAppointmentRequests] = useState(initialAppointmentRequests)
   const [expiringContracts, setExpiringContracts] = useState(initialExpiringContracts)
   const [failedEmails, setFailedEmails] = useState(initialFailedEmails)
   const [contractPauseRequests, setContractPauseRequests] = useState(initialContractPauseRequests)
   const [bankDataRequests, setBankDataRequests] = useState(initialBankDataRequests)
-  const [memberDataRequests, setMemberDataRequests] = useState([]) // Will be populated from API
+  const [memberDataRequests, setMemberDataRequests] = useState(initialMemberDataRequests)
   
   // Modal States
   const [selectedItem, setSelectedItem] = useState(null)
@@ -550,90 +548,6 @@ export default function ActivityMonitor() {
   const [showSendEmailModal, setShowSendEmailModal] = useState(false)
   const [showDraftModal, setShowDraftModal] = useState(false)
   const [emailData, setEmailData] = useState({ to: "", subject: "", body: "", recipientName: "" })
-
-  // Fetch pending profile updates from backend
-  useEffect(() => {
-    fetchPendingUpdates()
-  }, [])
-
-  const fetchPendingUpdates = async () => {
-    try {
-      const result = await dispatch(getPendingProfileUpdates()).unwrap()
-      // Transform API data to match component format
-      const transformedData = result.map(member => ({
-        id: member._id,
-        memberId: member._id,
-        memberFirstName: member.firstName,
-        memberLastName: member.lastName,
-        membershipType: member.memberType || "Regular",
-        status: member.profileUpdateStatus || "pending",
-        submittedAt: member.profileUpdateRequestedAt,
-        changeType: getChangeTypeFromFields(member.pendingUpdates),
-        fieldLabel: getFieldLabel(member.pendingUpdates),
-        oldValue: getOldValue(member, member.pendingUpdates),
-        newValue: getNewValue(member.pendingUpdates),
-        pendingUpdates: member.pendingUpdates
-      }))
-      setMemberDataRequests(transformedData)
-    } catch (error) {
-      console.error('Failed to fetch pending updates:', error)
-    }
-  }
-
-  // Helper to determine change type from pending updates
-  const getChangeTypeFromFields = (pendingUpdates) => {
-    if (!pendingUpdates) return "other"
-    if (pendingUpdates.street || pendingUpdates.city || pendingUpdates.zipCode) return "address"
-    if (pendingUpdates.phone || pendingUpdates.telephoneNumber) return "phone"
-    if (pendingUpdates.email) return "email"
-    if (pendingUpdates.firstName || pendingUpdates.lastName) return "lastName"
-    if (pendingUpdates.dateOfBirth) return "dateOfBirth"
-    if (pendingUpdates.gender) return "gender"
-    return "other"
-  }
-
-  // Helper to get field label
-  const getFieldLabel = (pendingUpdates) => {
-    if (!pendingUpdates) return "Profile Update"
-    if (pendingUpdates.firstName) return "First Name"
-    if (pendingUpdates.lastName) return "Last Name"
-    if (pendingUpdates.email) return "Email"
-    if (pendingUpdates.phone) return "Phone"
-    if (pendingUpdates.telephoneNumber) return "Telephone"
-    if (pendingUpdates.city) return "City"
-    if (pendingUpdates.street) return "Street"
-    if (pendingUpdates.zipCode) return "ZIP Code"
-    if (pendingUpdates.country) return "Country"
-    if (pendingUpdates.houseNumber) return "House Number"
-    if (pendingUpdates.dateOfBirth) return "Date of Birth"
-    if (pendingUpdates.about) return "About"
-    if (pendingUpdates.gender) return "Gender"
-    return "Profile Information"
-  }
-
-  // Helper to get old value
-  const getOldValue = (member, pendingUpdates) => {
-    if (!pendingUpdates) return ""
-    const firstKey = Object.keys(pendingUpdates)[0]
-    if (firstKey && member[firstKey]) {
-      if (firstKey === 'dateOfBirth') {
-        return new Date(member[firstKey]).toLocaleDateString()
-      }
-      return member[firstKey]
-    }
-    return "Not set"
-  }
-
-  // Helper to get new value
-  const getNewValue = (pendingUpdates) => {
-    if (!pendingUpdates) return ""
-    const firstKey = Object.keys(pendingUpdates)[0]
-    const value = pendingUpdates[firstKey]
-    if (firstKey === 'dateOfBirth' && value) {
-      return new Date(value).toLocaleDateString()
-    }
-    return value || "New value"
-  }
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -831,7 +745,7 @@ export default function ActivityMonitor() {
   }
 
   // ============================================
-  // Action Handlers - Updated for backend integration
+  // Action Handlers
   // ============================================
   const handleApprove = async (id, type) => {
     if (type === "vacation") {
@@ -855,13 +769,10 @@ export default function ActivityMonitor() {
       )
       toast.success("Bank data change approved")
     } else if (type === "memberData") {
-      try {
-        await dispatch(approveProfileUpdate(id)).unwrap()
-        await fetchPendingUpdates() // Refresh list
-        toast.success("Member data change approved")
-      } catch (error) {
-        toast.error(error || "Failed to approve member data change")
-      }
+      setMemberDataRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
+      )
+      toast.success("Member data change approved")
     }
   }
 
@@ -887,16 +798,10 @@ export default function ActivityMonitor() {
       )
       toast.success("Bank data change rejected")
     } else if (type === "memberData") {
-      try {
-        const reason = prompt("Please provide a reason for rejection:")
-        if (reason) {
-          await dispatch(rejectProfileUpdate({ memberId: id, reason })).unwrap()
-          await fetchPendingUpdates() // Refresh list
-          toast.success("Member data change rejected")
-        }
-      } catch (error) {
-        toast.error(error || "Failed to reject member data change")
-      }
+      setMemberDataRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
+      )
+      toast.success("Member data change rejected")
     }
   }
 
@@ -905,7 +810,7 @@ export default function ActivityMonitor() {
   }
 
   // ============================================
-  // Communication Handlers (keep existing)
+  // Communication Handlers
   // ============================================
   const handleContactMember = (item) => {
     const memberId = item.memberId
@@ -1010,7 +915,6 @@ export default function ActivityMonitor() {
 
   const handleRefresh = () => {
     setLastRefresh(new Date())
-    fetchPendingUpdates()
     toast.success("Data refreshed")
   }
 
@@ -1101,18 +1005,6 @@ export default function ActivityMonitor() {
   ]
 
   const filteredData = getFilteredData()
-
-  // Loading state for member data
-  if (activeTab === "memberData" && loading && memberDataRequests.length === 0) {
-    return (
-      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-content-secondary">Loading member data changes...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <>
@@ -1287,7 +1179,7 @@ export default function ActivityMonitor() {
           </div>
         </div>
 
-        {/* Content Area */}
+        {/* Content Area - Vacation Requests Tab */}
         <div className="space-y-3">
           {filteredData.length === 0 ? (
             <div className="bg-surface-card rounded-2xl p-12 text-center">
@@ -1305,145 +1197,202 @@ export default function ActivityMonitor() {
                 {searchQuery ? "Try a different search term" : "No open requests at the moment"}
               </p>
             </div>
-          ) : (
-            <>
-              {/* ============================================ */}
-              {/* Keep all your existing tab rendering code exactly as is */}
-              {/* The memberData tab will now show real backend data */}
-              {/* ============================================ */}
-              
-              {/* Vacation Requests, Appointment Requests, Contract Pause, Bank Data, Expiring Contracts, Failed Emails sections remain the same */}
-              {/* Just make sure the memberData section uses filteredData which now contains real backend data */}
-              
-              {activeTab === "memberData" && filteredData.map((request) => {
-                const ChangeIcon = getChangeTypeIcon(request.changeType)
-                return (
-                  <div
-                    key={request.id}
-                    className="bg-surface-card rounded-2xl p-4 md:p-5 hover:bg-surface-hover transition-colors"
-                  >
-                    {/* Desktop Layout */}
-                    <div className="hidden md:grid md:grid-cols-[260px_1fr_1fr] gap-4 items-start">
-                      {/* Col 1: Member Info */}
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                          <ChangeIcon size={22} />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-content-primary truncate">{request.memberFirstName} {request.memberLastName}</h3>
-                            {getStatusBadge(request.status)}
-                          </div>
-                          <p className="text-content-muted text-sm mt-0.5 truncate">
-                            {request.fieldLabel} Change
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Col 2: Old/New Values */}
-                      <div className="bg-surface-hover rounded-xl p-4">
-                        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-                          <div className="min-w-0">
-                            <p className="text-content-faint text-xs mb-1">Previous</p>
-                            <p className="text-content-muted text-sm truncate" title={request.oldValue}>
-                              {request.oldValue}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-center">
-                            <ArrowRight size={16} className="text-content-faint" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-content-faint text-xs mb-1">New</p>
-                            <p className="text-content-primary font-medium text-sm truncate" title={request.newValue}>
-                              {request.newValue}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Col 3: Actions */}
-                      <div className="flex items-center gap-2 justify-end">
-                        {request.status === "pending" ? (
-                          <>
-                            <button
-                              onClick={() => handleApprove(request.id, "memberData")}
-                              className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
-                            >
-                              <Check size={16} />
-                              <span>Approve</span>
-                            </button>
-                            <button
-                              onClick={() => handleReject(request.id, "memberData")}
-                              className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
-                            >
-                              <X size={16} />
-                              <span>Reject</span>
-                            </button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-content-faint">
-                            {formatTimeAgo(request.submittedAt)}
-                          </span>
-                        )}
-                      </div>
+          ) : activeTab === "vacation" ? (
+            // Vacation Requests
+            filteredData.map((request) => (
+              <div
+                key={request.id}
+                className="bg-surface-card rounded-2xl p-4 md:p-5 hover:bg-surface-hover transition-colors"
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  {/* Left Section - Staff Info */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <Calendar size={22} />
                     </div>
-
-                    {/* Mobile Layout */}
-                    <div className="md:hidden flex flex-col gap-3">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                          <ChangeIcon size={22} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-content-primary">{request.memberFirstName} {request.memberLastName}</h3>
-                            {getStatusBadge(request.status)}
-                          </div>
-                          <p className="text-content-muted text-sm mt-0.5">{request.fieldLabel} Change</p>
-                        </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-content-primary">
+                          {request.employeeFirstName} {request.employeeLastName}
+                        </h3>
+                        {getStatusBadge(request.status)}
                       </div>
-                      
-                      {/* Old/New Values */}
-                      <div className="bg-surface-hover rounded-xl p-4">
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-content-faint text-xs mb-1">Previous</p>
-                            <p className="text-content-muted text-sm">{request.oldValue}</p>
-                          </div>
-                          <div className="flex justify-center">
-                            <ArrowDown size={16} className="text-content-faint" />
-                          </div>
-                          <div>
-                            <p className="text-content-faint text-xs mb-1">New</p>
-                            <p className="text-content-primary font-medium text-sm">{request.newValue}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {request.status === "pending" && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleApprove(request.id, "memberData")}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
-                          >
-                            <Check size={16} />
-                            <span>Approve</span>
-                          </button>
-                          <button
-                            onClick={() => handleReject(request.id, "memberData")}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
-                          >
-                            <X size={16} />
-                            <span>Reject</span>
-                          </button>
-                        </div>
-                      )}
+                      <p className="text-content-muted text-sm mt-0.5">{request.department}</p>
                     </div>
                   </div>
-                )
-              })}
-            </>
-          )}
+
+                  {/* Middle Section - Dates */}
+                  <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div>
+                      <p className="text-content-faint text-xs">Start Date</p>
+                      <p className="text-content-primary text-sm font-medium">{formatDate(request.startDate)}</p>
+                    </div>
+                    <div>
+                      <p className="text-content-faint text-xs">End Date</p>
+                      <p className="text-content-primary text-sm font-medium">{formatDate(request.endDate)}</p>
+                    </div>
+                    <div className="col-span-2 md:col-span-1">
+                      <p className="text-content-faint text-xs">Duration</p>
+                      <p className="text-content-primary text-sm font-medium">{request.days} days</p>
+                    </div>
+                    {request.reason && (
+                      <div className="col-span-2">
+                        <p className="text-content-faint text-xs">Reason</p>
+                        <p className="text-content-muted text-sm">{request.reason}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Section - Actions */}
+                  <div className="flex items-center gap-2">
+                    {request.status === "pending" ? (
+                      <>
+                        <button
+                          onClick={() => handleApprove(request.id, "vacation")}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span className="hidden sm:inline">Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "vacation")}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span className="hidden sm:inline">Reject</span>
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-content-faint">
+                        {formatTimeAgo(request.submittedAt)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : activeTab === "appointments" ? (
+            // Appointment Requests
+            filteredData.map((request) => (
+              <div
+                key={request.id}
+                className="bg-surface-card rounded-2xl p-4 md:p-5 hover:bg-surface-hover transition-colors"
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <CalendarCheck size={22} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-content-primary">
+                          {request.memberFirstName} {request.memberLastName}
+                        </h3>
+                        {getStatusBadge(request.status)}
+                      </div>
+                      <p className="text-content-muted text-sm mt-0.5">{request.appointmentType} with {request.trainer}</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-content-faint text-xs">Date</p>
+                      <p className="text-content-primary text-sm font-medium">{formatDate(request.requestedDate)}</p>
+                    </div>
+                    <div>
+                      <p className="text-content-faint text-xs">Time</p>
+                      <p className="text-content-primary text-sm font-medium">{request.requestedTimeStart} - {request.requestedTimeEnd}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {request.status === "pending" ? (
+                      <>
+                        <button
+                          onClick={() => handleApprove(request.id, "appointment")}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span className="hidden sm:inline">Confirm</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "appointment")}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span className="hidden sm:inline">Reject</span>
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-content-faint">
+                        {formatTimeAgo(request.submittedAt)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : activeTab === "memberData" && filteredData.map((request) => {
+            const ChangeIcon = getChangeTypeIcon(request.changeType)
+            return (
+              <div
+                key={request.id}
+                className="bg-surface-card rounded-2xl p-4 md:p-5 hover:bg-surface-hover transition-colors"
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                      <ChangeIcon size={22} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-content-primary">
+                          {request.memberFirstName} {request.memberLastName}
+                        </h3>
+                        {getStatusBadge(request.status)}
+                      </div>
+                      <p className="text-content-muted text-sm mt-0.5">{request.fieldLabel} Change</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-surface-hover rounded-xl p-3">
+                    <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
+                      <div>
+                        <p className="text-content-faint text-xs mb-1">Previous</p>
+                        <p className="text-content-muted text-sm truncate">{request.oldValue}</p>
+                      </div>
+                      <ArrowRight size={16} className="text-content-faint flex-shrink-0" />
+                      <div>
+                        <p className="text-content-faint text-xs mb-1">New</p>
+                        <p className="text-content-primary font-medium text-sm truncate">{request.newValue}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {request.status === "pending" ? (
+                      <>
+                        <button
+                          onClick={() => handleApprove(request.id, "memberData")}
+                          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span className="hidden sm:inline">Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "memberData")}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span className="hidden sm:inline">Reject</span>
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-content-faint">
+                        {formatTimeAgo(request.submittedAt)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 

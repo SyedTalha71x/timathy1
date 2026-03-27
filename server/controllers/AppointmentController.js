@@ -447,33 +447,74 @@ const appointmentByMemberId = async (req, res, next) => {
 
 
 // update appointment
+// update appointment
 const updateAppointmentById = async (req, res, next) => {
     try {
         const userId = req.user?._id;
         const { appointmentId } = req.params;
+        const { serviceId, date, timeSlotId } = req.body;
 
-        const updateData = req.body;
+        // Build update data properly
+        const updateData = {
+            view: 'upcoming',
+            status: 'confirmed'
+        };
 
-        updateData.view = 'upcoming',
-            updateData.status = 'confirmed'
+        // Only add fields if they are provided
+        if (serviceId) updateData.serviceId = serviceId;
+        if (date) updateData.date = date;
 
-        const appointment = await AppointmentModel.findById(appointmentId)
-        if (!appointment) throw new NotFoundError("Invalid appointment Id")
-        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, { $set: updateData }, { new: true })
+        // Handle timeSlotId properly - it should be the full timeSlot object
+        if (timeSlotId) {
+            // Ensure timeSlotId has start and end times
+            if (timeSlotId.start && timeSlotId.end) {
+                updateData.timeSlot = {
+                    start: timeSlotId.start,
+                    end: timeSlotId.end,
+                    duration: timeSlotId.duration || 60,
+                    isBlocked: timeSlotId.isBlocked || false
+                };
+            } else if (timeSlotId.start) {
+                // If only start is provided, calculate end time
+                const duration = timeSlotId.duration || 60;
+                const [hours, minutes] = timeSlotId.start.split(':').map(Number);
+                const endDate = new Date(2000, 0, 1, hours, minutes + duration);
+                const end = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
 
+                updateData.timeSlot = {
+                    start: timeSlotId.start,
+                    end: end,
+                    duration: duration,
+                    isBlocked: timeSlotId.isBlocked || false
+                };
+            } else {
+                // If timeSlotId is provided but doesn't have start time, keep existing timeSlot
+                const existingAppointment = await AppointmentModel.findById(appointmentId);
+                if (existingAppointment && existingAppointment.timeSlot) {
+                    updateData.timeSlot = existingAppointment.timeSlot;
+                }
+            }
+        }
 
-        if (!updatedAppointment) throw new BadRequestError("Invalid data")
+        const appointment = await AppointmentModel.findById(appointmentId);
+        if (!appointment) throw new NotFoundError("Invalid appointment Id");
+
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(
+            appointmentId,
+            { $set: updateData },
+            { new: true }
+        );
+
+        if (!updatedAppointment) throw new BadRequestError("Invalid data");
+
         return res.status(200).json({
             success: true,
             appointment: updatedAppointment
-        })
-
-
+        });
+    } catch (error) {
+        next(error);
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
 // delete Appointment
 const deleteAppointmentById = async (req, res, next) => {
@@ -502,14 +543,14 @@ const deleteAppointmentById = async (req, res, next) => {
 }
 
 
-const approvedAppointment = async (req, res, next) => {
-    try {
+// const approvedAppointment = async (req, res, next) => {
+//     try {
 
-    }
-    catch (error) {
-        next(error)
-    }
-}
+//     }
+//     catch (error) {
+//         next(error)
+//     }
+// }
 
 
 module.exports = {

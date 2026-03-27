@@ -17,29 +17,62 @@ const updatePastAppointments = async () => {
         });
 
         let updatedCount = 0;
+        let skippedCount = 0;
 
         for (const appointment of appointments) {
-            // Create appointment end time
-            const appointmentDate = new Date(appointment.date);
-            const [hours, minutes] = appointment.timeSlot.start.split(':');
-            appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            try {
+                // Validate required fields exist
+                if (!appointment.date) {
+                    console.warn(`Skipping appointment ${appointment._id}: missing date`);
+                    skippedCount++;
+                    continue;
+                }
 
-            // Add appointment duration to get end time
-            const duration = appointment.timeSlot.duration || 60; // default 60 minutes
-            const appointmentEndTime = new Date(appointmentDate.getTime() + duration * 60000);
+                if (!appointment.timeSlot) {
+                    console.warn(`Skipping appointment ${appointment._id}: missing timeSlot object`);
+                    skippedCount++;
+                    continue;
+                }
 
-            // Check if appointment has ended
-            if (appointmentEndTime < now) {
-                appointment.status = 'completed';
-                appointment.view = 'past';
-                await appointment.save();
-                updatedCount++;
-                console.log(`Updated appointment ${appointment._id} to completed`);
+                if (!appointment.timeSlot.start) {
+                    console.warn(`Skipping appointment ${appointment._id}: missing timeSlot.start`);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Create appointment end time
+                const appointmentDate = new Date(appointment.date);
+                const [hours, minutes] = appointment.timeSlot.start.split(':');
+
+                // Validate hours and minutes are numbers
+                if (isNaN(parseInt(hours)) || isNaN(parseInt(minutes))) {
+                    console.warn(`Skipping appointment ${appointment._id}: invalid time format "${appointment.timeSlot.start}"`);
+                    skippedCount++;
+                    continue;
+                }
+
+                appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                // Add appointment duration to get end time
+                const duration = appointment.timeSlot.duration || 60; // default 60 minutes
+                const appointmentEndTime = new Date(appointmentDate.getTime() + duration * 60000);
+
+                // Check if appointment has ended
+                if (appointmentEndTime < now) {
+                    appointment.status = 'completed';
+                    appointment.view = 'past';
+                    await appointment.save();
+                    updatedCount++;
+                    console.log(`Updated appointment ${appointment._id} to completed`);
+                }
+            } catch (appointmentError) {
+                console.error(`Error processing appointment ${appointment._id}:`, appointmentError.message);
+                skippedCount++;
             }
         }
 
-        console.log(`Cron ran: checked ${appointments.length} appointments, updated ${updatedCount}`);
-        return { checked: appointments.length, updated: updatedCount };
+        console.log(`Cron ran: checked ${appointments.length} appointments, updated ${updatedCount}, skipped ${skippedCount}`);
+        return { checked: appointments.length, updated: updatedCount, skipped: skippedCount };
     } catch (error) {
         console.error('Cron error in updatePastAppointments:', error);
         return { error: error.message };

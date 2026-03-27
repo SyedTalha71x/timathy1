@@ -45,7 +45,8 @@ import StaffViewDetailsModal from "../../components/studio-components/staff-comp
 import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
 import { capitalizeWords } from "../../utils/stringUtils";
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { sendVacationRequestThunk, updateStaffThunk } from "../../features/staff/staffSlice"
 
 const StaffContext = createContext(null)
 
@@ -125,7 +126,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminMode = mode === "admin" && studioIdProp !== null
-
+  const dispatch = useDispatch()
   // ============================================
   // Load staff data via shared hook
   // ============================================
@@ -227,11 +228,11 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
   });
 
   // Email Templates
-  const emailTemplates = [
-    { id: 1, name: "Welcome", subject: "Welcome to our team!", body: "Hello,\n\nWelcome to our team!" },
-    { id: 2, name: "Reminder", subject: "Reminder for your shift", body: "Hello,\n\nThis is a reminder about your upcoming shift." },
-    { id: 3, name: "Schedule", subject: "Your Schedule", body: "Hello,\n\nPlease find your schedule attached." },
-  ];
+  // const emailTemplates = [
+  //   { id: 1, name: "Welcome", subject: "Welcome to our team!", body: "Hello,\n\nWelcome to our team!" },
+  //   { id: 2, name: "Reminder", subject: "Reminder for your shift", body: "Hello,\n\nThis is a reminder about your upcoming shift." },
+  //   { id: 3, name: "Schedule", subject: "Your Schedule", body: "Hello,\n\nPlease find your schedule attached." },
+  // ];
 
   const [isVacationContingentModalOpen, setIsVacationContingentModalOpen] = useState(false)
   const [selectedStaffForContingent, setSelectedStaffForContingent] = useState(null)
@@ -527,18 +528,29 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
     setIsVacationContingentModalOpen(true)
   }
 
-  const handleUpdateVacationContingent = (staffId, newContingent, notes) => {
-    setStaffMembers(prev => prev.map(staff =>
-      staff.id === staffId
-        ? {
-          ...staff,
-          vacationDays: newContingent,
-          vacationNotes: notes
-        }
-        : staff
-    ))
-    toast.success("Vacation contingent updated successfully")
-  }
+  const handleUpdateVacationContingent = async (staffId, newContingent, notes) => {
+    try {
+      const updateData = {
+        vacationDays: newContingent,
+        // Note: If your schema uses 'vacationEntitlement' instead, use that
+        // vacationEntitlement: newContingent,
+        // vacationNotes: notes,
+      };
+
+      console.log('Sending update:', updateData);
+
+      // Send data directly, not nested
+      await dispatch(updateStaffThunk({
+        staffId: staffId,
+        updateData: updateData  // Spread the data, don't nest it
+      })).unwrap();
+
+      toast.success("Vacation contingent updated successfully");
+    } catch (error) {
+      console.error('Update error:', error);
+      toast.error(error.message || "Failed to update vacation contingent");
+    }
+  };
 
   const handleEdit = (staff) => {
     setSelectedStaff(staff)
@@ -666,7 +678,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
     toast.success("Staff deleted successfully")
   }
 
-  const handleVacationRequest = (staffId, startDate, endDate) => {
+  const handleVacationRequest = async (staffId, startDate, endDate) => {
     console.log(`Vacation request for staff ${staffId} from ${startDate} to ${endDate}`)
     toast.success("Vacation request submitted for approval")
   }

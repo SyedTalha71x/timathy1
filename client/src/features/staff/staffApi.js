@@ -86,3 +86,48 @@ export const checkedIn = async (id) => {
     const res = await api.patch(`/shift/${id}/check-in`, { withCredentials: true })
     return res.data;
 }
+
+
+
+
+// &&&&&&&&&&&&&
+// Vacation Apis
+// &&&&&&&&&&&&&&
+
+export const sendVacationRequestApi = async (data) => {
+    const res = await api.post('/vacation/send', data, { withCredentials: true })
+    return res.data
+}
+
+// &&&&&&&
+// Get All Vacation Request
+// &&&&&&&&&&&&
+
+export const getVacationRequestsApi = async () => {
+    const res = await api.get('/vacation/', { withCredentials: true })
+    return res.data
+}
+// &&&&&&&
+// Get All Pending Vacation Request
+// &&&&&&&&&&&&
+
+export const getPendingVacationRequestsApi = async () => {
+    const res = await api.get('/vacation/pending', { withCredentials: true })
+    return res.data
+}
+
+
+// &&&&&&&&&&&&&
+// Approved Request
+// &&&&&&&&&&&&&
+export const approvedVacationRequestApi = async (id) => {
+    const res = await api.patch(`/vacation/${id}/approved`, { withCredentials: true })
+    return res.data
+}
+// &&&&&&&&&&&&&
+// Rejected Vacation Request
+// &&&&&&&&&&&&&
+export const rejectVacationRequestApi = async (id) => {
+    const res = await api.patch(`/vacation/${id}/rejected`, { withCredentials: true })
+    return res.data
+}
