@@ -336,7 +336,10 @@ const getStaff = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
 
-    const staff = await StaffModel.find({ studio: studioId }).populate('studio', 'studioName studioOwner email phone').skip(skip).limit(limit);
+    const staff = await StaffModel.find({ studio: studioId }).populate('studio', 'studioName studioOwner email phone')
+      .populate('shifts')
+      .populate('vacations')
+      .skip(skip).limit(limit);
 
     const totalstaff = await StaffModel.countDocuments();
     const totalPages = Math.ceil(totalstaff / limit);

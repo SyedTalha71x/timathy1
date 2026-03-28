@@ -8,6 +8,6 @@ router.get('/myPlan', verifyAccessToken, showMyPlan);
 router.put('/update/:planId', verifyAccessToken, updateTrainingPlan);
 router.post('/assign/:memberId', verifyAccessToken, isStaff, assignPlanToMember);
 router.post('/remove/:memberId', verifyAccessToken, isStaff, removeAssignMember);
-router.get('/all', verifyAccessToken, isStaff, fetchAllPlans);
+router.get('/all', verifyAccessToken, fetchAllPlans);
 router.get('/assigned/:memberId', verifyAccessToken, showAssignedPlans);
 module.exports = router;

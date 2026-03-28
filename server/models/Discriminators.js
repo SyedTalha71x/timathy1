@@ -261,7 +261,7 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     }],
     vacations: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'vacations'
+        ref: 'vacation'
     }],
 
 }))

@@ -6,54 +6,15 @@ import { Plus, MoreVertical, Edit, Trash2, Eye, Tag, Pin, PinOff, Filter, X, Arr
 import { Link } from "react-router-dom"
 import NoteModal from "../../shared/notes/NoteModal"
 import DeleteConfirmModal from "../../shared/notes/DeleteConfirmModal"
-
-// Available tags - from notes.jsx
-const AVAILABLE_TAGS = [
-  { id: 'urgent', name: 'Urgent', color: '#ef4444' },
-  { id: 'meeting', name: 'Meeting', color: '#3b82f6' },
-  { id: 'ideas', name: 'Ideas', color: '#8b5cf6' },
-  { id: 'todo', name: 'Todo', color: '#f59e0b' },
-  { id: 'training', name: 'Training', color: '#10b981' },
-  { id: 'member', name: 'Member', color: '#ec4899' },
-]
-
-// Demo notes - from notes.jsx
-const DEMO_NOTES = {
-  personal: [
-    {
-      id: 1,
-      title: "Quarterly Review Meeting Notes",
-      content: "<p>Discussed Q4 goals and performance metrics. Team showed 15% improvement in customer satisfaction.</p><p><strong>Action items:</strong></p><ul><li>Reduce response time in support tickets</li><li>Schedule follow-up meeting</li></ul>",
-      tags: ['meeting', 'urgent'],
-      attachments: [],
-      isPinned: true,
-      createdAt: "2025-12-15T10:30:00",
-      updatedAt: "2025-12-20T14:45:00"
-    },
-    {
-      id: 2,
-      title: "New Member Orientation Checklist",
-      content: "<ol><li>Welcome package preparation</li><li>Training schedule setup</li><li>Facility tour arrangement</li><li>Equipment assignment</li><li>Introduction to team members</li></ol>",
-      tags: ['member', 'todo'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-12-10T09:15:00",
-      updatedAt: "2025-12-10T09:15:00"
-    },
-  ],
-  studio: [
-    {
-      id: 3,
-      title: "Equipment Maintenance Schedule",
-      content: "<h3>Weekly Maintenance</h3><ul><li>Check treadmill belts</li><li>Clean all surfaces</li><li>Test emergency stop buttons</li></ul><h3>Monthly Maintenance</h3><ul><li>Deep clean all equipment</li><li>Inspect cables and pulleys</li><li>Update maintenance log</li></ul>",
-      tags: ['training'],
-      attachments: [],
-      isPinned: true,
-      createdAt: "2025-12-01T08:00:00",
-      updatedAt: "2025-12-18T16:30:00"
-    },
-  ],
-}
+import { useDispatch, useSelector } from "react-redux"
+import { 
+  createPersonalNotesThunk, 
+  createStudioNotesThunk, 
+  getPersonalNotesThunk, 
+  getStudioNotesThunk,
+  deleteNoteThunk,
+  updateNoteThunk
+} from "../../../features/notes/noteSlice"
 
 // Helper function to strip HTML tags for preview
 const stripHtmlTags = (html) => {
@@ -75,33 +36,82 @@ const TAB_CONFIG = {
 }
 
 const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) => {
-  const [notes, setNotes] = useState(DEMO_NOTES)
-  const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS)
-  
+
+  const { personalNotes = [], studioNotes = [] } = useSelector((state) => state.notes || {})
+  const dispatch = useDispatch()
+
   // Tab state
   const [activeTab, setActiveTab] = useState("personal")
-  
+
   // Sort state
   const [sortBy, setSortBy] = useState("recentlyUpdated")
   const [sortOrder, setSortOrder] = useState("desc")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
-  
+
   // Modal states
   const [showNoteModal, setShowNoteModal] = useState(false)
   const [noteModalMode, setNoteModalMode] = useState("add")
   const [selectedNote, setSelectedNote] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [noteToDelete, setNoteToDelete] = useState(null)
-  
+  const [isLoading, setIsLoading] = useState(false)
+
   // Dropdown state
   const [openDropdownId, setOpenDropdownId] = useState(null)
   const [dropdownPosition, setDropdownPosition] = useState({})
-  
+
   const dropdownRef = useRef(null)
   const sortDropdownRef = useRef(null)
   // Measure actual item heights for maxItems constraint
   const listRef = useRef(null)
   const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+
+  // Fetch notes on mount
+  useEffect(() => {
+    dispatch(getPersonalNotesThunk())
+    dispatch(getStudioNotesThunk())
+  }, [dispatch])
+
+  // Get notes based on active tab
+  const getCurrentNotes = () => {
+    let currentNotes = activeTab === "personal" ? personalNotes : studioNotes
+
+    // Sort notes
+    if (sortBy !== "custom" && currentNotes && currentNotes.length) {
+      currentNotes = [...currentNotes].sort((a, b) => {
+        let comparison = 0
+
+        switch (sortBy) {
+          case "title":
+            comparison = (a.title || "").localeCompare(b.title || "")
+            break
+          case "recentlyUpdated":
+            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0
+            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0
+            comparison = dateA - dateB
+            break
+          case "recentlyCreated":
+            const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+            const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+            comparison = createdA - createdB
+            break
+          default:
+            comparison = 0
+            break
+        }
+
+        return sortOrder === "asc" ? comparison : -comparison
+      })
+    }
+
+    return currentNotes || []
+  }
+
+  // Calculate counts for each tab
+  const tabCounts = {
+    personal: personalNotes?.length || 0,
+    studio: studioNotes?.length || 0,
+  }
 
   useEffect(() => {
     if (!maxItems || !listRef.current) {
@@ -119,8 +129,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
       setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
     })
     return () => cancelAnimationFrame(frame)
-  }, [maxItems, notes, activeTab])
-
+  }, [maxItems, personalNotes, studioNotes, activeTab])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -136,73 +145,71 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Calculate counts for each tab
-  const tabCounts = {
-    personal: notes.personal?.length || 0,
-    studio: notes.studio?.length || 0,
-  }
-
-  // Get notes for active tab with sorting
-  const getCurrentNotes = () => {
-    let currentNotes = notes[activeTab] || []
-    
-    // Sort notes
-    if (sortBy !== "custom") {
-      currentNotes = [...currentNotes].sort((a, b) => {
-        let comparison = 0
-        
-        switch (sortBy) {
-          case "title":
-            comparison = (a.title || "").localeCompare(b.title || "")
-            break
-          case "recentlyUpdated":
-            comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-            break
-          case "recentlyCreated":
-            comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            break
-          default:
-            comparison = 0
-            break
-        }
-        
-        return sortOrder === "asc" ? comparison : -comparison
-      })
-    }
-    
-    return currentNotes
-  }
-
   // Handle create note
-  const handleCreateNote = (newNote, category) => {
-    setNotes(prev => ({
-      ...prev,
-      [category]: [newNote, ...(prev[category] || [])],
-    }))
-    setShowNoteModal(false)
+  const handleCreateNote = async (newNote, category) => {
+    setIsLoading(true)
+    try {
+      if (category === 'studio') {
+        await dispatch(createStudioNotesThunk(newNote)).unwrap()
+      } else {
+        await dispatch(createPersonalNotesThunk(newNote)).unwrap()
+      }
+      
+      // Refetch notes after creation
+      await dispatch(getPersonalNotesThunk())
+      await dispatch(getStudioNotesThunk())
+      
+      console.log("Note created successfully:", newNote)
+      setShowNoteModal(false)
+    } catch (error) {
+      console.error("Error creating note:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Handle update note
-  const handleUpdateNote = (updatedNote) => {
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map(note =>
-        note.id === updatedNote.id ? updatedNote : note
-      ),
-    }))
-    setShowNoteModal(false)
-    setSelectedNote(null)
+  const handleUpdateNote = async (updatedNote) => {
+    setIsLoading(true)
+    try {
+      await dispatch(updateNoteThunk({
+        noteId: updatedNote._id,
+        noteData: updatedNote
+      })).unwrap()
+      
+      // Refetch notes after update
+      await dispatch(getPersonalNotesThunk())
+      await dispatch(getStudioNotesThunk())
+      
+      console.log("Note updated successfully:", updatedNote)
+      setShowNoteModal(false)
+      setSelectedNote(null)
+    } catch (error) {
+      console.error("Error updating note:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Handle delete note
-  const handleDeleteNote = () => {
+  const handleDeleteNote = async () => {
     if (noteToDelete) {
-      setNotes(prev => ({
-        ...prev,
-        [activeTab]: prev[activeTab].filter(note => note.id !== noteToDelete.id),
-      }))
-      setNoteToDelete(null)
-      setShowDeleteModal(false)
+      setIsLoading(true)
+      try {
+        await dispatch(deleteNoteThunk(noteToDelete._id)).unwrap()
+        
+        // Refetch notes after deletion
+        await dispatch(getPersonalNotesThunk())
+        await dispatch(getStudioNotesThunk())
+        
+        console.log("Note deleted successfully:", noteToDelete)
+        setNoteToDelete(null)
+        setShowDeleteModal(false)
+      } catch (error) {
+        console.error("Error deleting note:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -250,76 +257,72 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
     setOpenDropdownId(noteId)
   }
 
-  // Get tag by ID
+  // Get tag by ID - handles both string IDs and tag objects
   const getTagById = (tagId) => {
-    return availableTags.find((tag) => tag.id === tagId)
+    // If tagId is an object with name and color, return it directly
+    if (typeof tagId === 'object' && tagId.name && tagId.color) {
+      return tagId
+    }
+    // For now, return a default tag since we don't have the actual tags from backend
+    // You should fetch tags from your backend and use them here
+    return {
+      id: tagId,
+      name: typeof tagId === 'string' ? tagId : 'Tag',
+      color: '#6b7280' // Default gray color
+    }
   }
 
   // Handle tag management
   const handleAddTag = (newTag) => {
-    setAvailableTags([...availableTags, newTag])
+    // This would be implemented when you have tag management
+    console.log("Add tag:", newTag)
   }
 
   const handleDeleteTag = (tagId) => {
-    // Remove tag from all notes
-    setNotes((prev) => {
-      const updatedNotes = {}
-      Object.keys(prev).forEach(tab => {
-        updatedNotes[tab] = prev[tab].map(note => ({
-          ...note,
-          tags: note.tags?.filter(t => t !== tagId) || []
-        }))
-      })
-      return updatedNotes
-    })
-    
-    // Remove from available tags
-    setAvailableTags(availableTags.filter(tag => tag.id !== tagId))
+    // This would be implemented when you have tag management
+    console.log("Delete tag:", tagId)
   }
 
   // Handle pin toggle
-  const handlePinToggle = (noteId) => {
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map(note =>
-        note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
-      ),
-    }))
+  const handlePinToggle = async (noteId) => {
+    const note = currentNotes.find(n => n._id === noteId)
+    if (note) {
+      const updatedNote = { ...note, isPinned: !note.isPinned }
+      await handleUpdateNote(updatedNote)
+    }
   }
 
   // Handle duplicate note
-  const handleDuplicateNote = (note) => {
+  const handleDuplicateNote = async (note) => {
     const duplicatedNote = {
       ...note,
-      id: Date.now(),
       title: `${note.title} (Copy)`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      _id: undefined, // Remove ID so it creates a new one
     }
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: [duplicatedNote, ...(prev[activeTab] || [])],
-    }))
+    await handleCreateNote(duplicatedNote, activeTab)
   }
 
   // Handle move note to other tab
-  const handleMoveNote = (note) => {
+  const handleMoveNote = async (note) => {
     const targetTab = activeTab === 'personal' ? 'studio' : 'personal'
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter(n => n.id !== note.id),
-      [targetTab]: [note, ...(prev[targetTab] || [])],
-    }))
+    // Here you would update the note's category
+    console.log("Move note to:", targetTab, note)
   }
 
   // Handle delete from modal
-  const handleDeleteFromModal = (noteId) => {
-    setNotes(prev => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter(note => note.id !== noteId),
-    }))
-    setShowNoteModal(false)
-    setSelectedNote(null)
+  const handleDeleteFromModal = async (noteId) => {
+    setIsLoading(true)
+    try {
+      await dispatch(deleteNoteThunk(noteId)).unwrap()
+      await dispatch(getPersonalNotesThunk())
+      await dispatch(getStudioNotesThunk())
+      setShowNoteModal(false)
+      setSelectedNote(null)
+    } catch (error) {
+      console.error("Error deleting note:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSortChange = (newSortBy) => {
@@ -351,9 +354,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${
-                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 title="Sort notes"
               >
                 {sortOrder === "asc" ? (
@@ -376,9 +378,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                   ].map((option) => (
                     <div
                       key={option.value}
-                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
-                      }`}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
+                        }`}
                     >
                       <button
                         onClick={() => {
@@ -429,17 +430,15 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all ${
-                  activeTab === tab
-                    ? "bg-surface-dark text-content-primary"
-                    : "text-content-muted hover:text-content-primary"
-                }`}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all ${activeTab === tab
+                  ? "bg-surface-dark text-content-primary"
+                  : "text-content-muted hover:text-content-primary"
+                  }`}
               >
                 <span>{config.label}</span>
                 <span
-                  className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
-                    activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
-                  }`}
+                  className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
+                    }`}
                 >
                   {tabCounts[tab]}
                 </span>
@@ -454,9 +453,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
                 disabled={isSidebarEditing}
-                className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${
-                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 title="Sort notes"
               >
                 {sortOrder === "asc" ? (
@@ -479,9 +477,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                   ].map((option) => (
                     <div
                       key={option.value}
-                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                        sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
-                      }`}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${sortBy === option.value ? "bg-surface-dark text-content-primary" : "text-content-secondary hover:bg-surface-dark"
+                        }`}
                     >
                       <button
                         onClick={() => {
@@ -530,22 +527,27 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
-                activeTab === tab
-                  ? "bg-surface-dark text-content-primary"
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${activeTab === tab
+                ? "bg-surface-dark text-content-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               <span>{config.label}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                  activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
-                }`}
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
+                  }`}
               >
                 {tabCounts[tab]}
               </span>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       )}
 
@@ -555,9 +557,9 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
         className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}
         style={computedMaxHeight ? { maxHeight: `${computedMaxHeight}px` } : undefined}
       >
-        {currentNotes.map((note) => (
+        {!isLoading && currentNotes.map((note) => (
           <div
-            key={note.id}
+            key={note._id || note.id}
             className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-all"
           >
             <div className="flex items-start gap-3">
@@ -571,21 +573,22 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                     <Pin size={12} className="text-primary fill-primary flex-shrink-0" />
                   )}
                 </div>
-                
+
                 {/* Tags */}
                 {note.tags && note.tags.length > 0 && (
                   <div className="flex gap-1 flex-wrap mb-1">
-                    {note.tags.slice(0, 2).map((tagId) => {
-                      const tag = getTagById(tagId)
-                      return tag ? (
+                    {note.tags.slice(0, 2).map((tag, idx) => {
+                      // Handle both populated tag objects and tag IDs
+                      const tagObj = typeof tag === 'object' ? tag : { id: tag, name: 'Tag', color: '#6b7280' }
+                      return (
                         <span
-                          key={tag.id}
+                          key={idx}
                           className="text-[10px] px-1.5 py-0.5 rounded text-white"
-                          style={{ backgroundColor: tag.color }}
+                          style={{ backgroundColor: tagObj.color || '#6b7280' }}
                         >
-                          {tag.name}
+                          {tagObj.name || 'Tag'}
                         </span>
-                      ) : null
+                      )
                     })}
                     {note.tags.length > 2 && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-button text-content-secondary">
@@ -602,11 +605,11 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                 {/* Date and Time */}
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[10px] text-content-faint">
-                    {new Date(note.updatedAt).toLocaleDateString("en-US", {
+                    {new Date(note.updatedAt || note.createdAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                     })}{" "}
-                    {new Date(note.updatedAt).toLocaleTimeString("en-US", {
+                    {new Date(note.updatedAt || note.createdAt).toLocaleTimeString("en-US", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
@@ -615,22 +618,21 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               </div>
 
               {/* Actions Dropdown */}
-              <div className="flex-shrink-0 relative" ref={openDropdownId === note.id ? dropdownRef : null}>
+              <div className="flex-shrink-0 relative" ref={openDropdownId === (note._id || note.id) ? dropdownRef : null}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleDropdownToggle(note.id, e)
+                    handleDropdownToggle(note._id || note.id, e)
                   }}
                   className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary transition-colors"
                 >
                   <MoreVertical size={14} />
                 </button>
 
-                {openDropdownId === note.id && (
-                  <div 
-                    className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
-                      dropdownPosition[note.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
-                    }`}
+                {openDropdownId === (note._id || note.id) && (
+                  <div
+                    className={`absolute right-0 bg-surface-button border border-border rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${dropdownPosition[note._id || note.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
+                      }`}
                   >
                     <button
                       onClick={() => handleEditClick(note)}
@@ -654,7 +656,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
         ))}
 
         {/* Empty State */}
-        {currentNotes.length === 0 && (
+        {!isLoading && currentNotes.length === 0 && (
           <div className="flex flex-col items-center justify-center py-8 text-content-faint">
             <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
               <Edit size={20} className="text-content-faint" />
@@ -684,7 +686,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                 setSelectedNote(null)
               }}
               onSave={noteModalMode === "add" ? handleCreateNote : handleUpdateNote}
-              availableTags={availableTags}
+              availableTags={[]} // Pass empty array for now, or fetch tags from Redux
               onAddTag={handleAddTag}
               onDeleteTag={handleDeleteTag}
               category={activeTab}

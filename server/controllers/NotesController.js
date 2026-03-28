@@ -135,7 +135,7 @@ const getNotesOfStudio = async (req, res, next) => {
         const userId = req.user?._id;
         const studioId = req.user?.studio;
 
-        const notes = await NotesModel.findById({ studio: studioId })
+        const notes = await NotesModel.find({ studio: studioId })
             .populate('tags', 'name color')
             .populate('studio', 'studioName email')
             .populate('createdBy', 'firstName lastName')
@@ -164,7 +164,7 @@ const getNotesOfStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
 
-        const notes = await NotesModel.findById({ createdBy: userId })
+        const notes = await NotesModel.find({ staff: userId })
             .populate('tags', 'name color')
             .populate('studio', 'studioName email')
             .populate('staff', 'firstName lastName')

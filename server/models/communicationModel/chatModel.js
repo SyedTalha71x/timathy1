@@ -14,7 +14,10 @@ const chatSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
-
+    isPinned:{
+        type:Boolean,
+        default:false
+    },
     // For studio chat
     member: {
         type: mongoose.Schema.Types.ObjectId,
