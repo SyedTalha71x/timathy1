@@ -8,6 +8,25 @@ import * as XLSX from 'xlsx'
 import VacationCalendarModal from "./vacation-calendar-modal"
 import ShiftsOverviewModal from "./shifts-overview-modal"
 import { useDispatch, useSelector } from "react-redux"
+import { getShiftThunk } from "../../../features/staff/staffSlice"
+
+// Helper function to determine shift status
+const getShiftStatus = (shiftEndDateTime) => {
+  const now = new Date()
+  const endDateTime = new Date(shiftEndDateTime)
+  return endDateTime <= now ? "completed" : "pending"
+}
+
+// Helper function to format date for display
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString()
+}
+
+// Helper function to format time
+const formatTime = (timeString) => {
+  return timeString
+}
 
 // Export Confirmation Modal Component
 const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, totalShifts, totalHours, selectedPeriod }) => {
@@ -96,6 +115,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [collapsedStaff, setCollapsedStaff] = useState(new Set())
 
+  useEffect(() => {
+    dispatch(getShiftThunk())
+  }, [dispatch])
+
   // Collapse all staff by default
   useEffect(() => {
     if (staffMembers?.length) {
@@ -138,34 +161,100 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
     }))
   }, [staffMembers])
 
-  // Updated dummy data with shifts for current month
-  const dummyShiftsData = useMemo(() => {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = today.getMonth()
+  // Process shift data from Redux and map to staff members
 
-    return staffMembersWithColors.map((staff) => {
-      const shifts = []
-      for (let day = 1; day <= 28; day++) {
-        const date = new Date(year, month, day)
-        const dayOfWeek = date.getDay()
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          if (Math.random() > 0.3) {
-            const startHour = 7 + Math.floor(Math.random() * 3)
-            const endHour = startHour + 8
-            shifts.push({
-              date: `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-              startTime: `${String(startHour).padStart(2, "0")}:00`,
-              endTime: `${String(endHour).padStart(2, "0")}:00`,
-              hoursWorked: 8,
-              status: day < today.getDate() ? "completed" : "scheduled"
-            })
-          }
-        }
+  const shiftsData = useMemo(() => {
+    if (!shift.length || !staffMembersWithColors.length) return []
+
+    // Create a map of staff ID to their shifts
+    const staffShiftsMap = new Map()
+
+    // Initialize all staff members with empty shifts array
+    staffMembersWithColors.forEach(staff => {
+      // CRITICAL FIX: Convert staff._id to string for consistent comparison
+      const staffId = staff.id?.toString()
+      if (!staffId) {
+        // console.warn('Staff missing _id:', staff)
+        return
       }
-      return { ...staff, shifts }
+      staffShiftsMap.set(staffId, {
+        ...staff,
+        shifts: []
+      })
     })
-  }, [staffMembersWithColors])
+
+    // Process each shift
+    shift.forEach(shiftItem => {
+      // CRITICAL FIX: Get staff ID from shift and convert to string
+      const staffId = shiftItem.staff?._id?.toString()
+
+      if (staffId && staffShiftsMap.has(staffId)) {
+        const staffData = staffShiftsMap.get(staffId)
+
+        // Calculate shift end datetime for status determination
+        let shiftEndDateTime
+        if (shiftItem.endDate && shiftItem.endTime) {
+          const endDateStr = new Date(shiftItem.endDate).toISOString().split('T')[0]
+          shiftEndDateTime = new Date(`${endDateStr}T${shiftItem.endTime}`)
+        } else {
+          shiftEndDateTime = new Date(shiftItem.endDate || shiftItem.startDate)
+        }
+
+        // Determine status
+        const status = getShiftStatus(shiftEndDateTime)
+
+        // Calculate hours worked
+        let hoursWorked = 0
+        if (shiftItem.startTime && shiftItem.endTime) {
+          const start = shiftItem.startTime.split(':').map(Number)
+          const end = shiftItem.endTime.split(':').map(Number)
+          let hours = end[0] - start[0]
+          if (hours < 0) hours += 24 // Handle overnight shifts
+          hoursWorked = hours + (end[1] - start[1]) / 60
+        }
+
+        // Format the date properly
+        const shiftDate = shiftItem.startDate ? new Date(shiftItem.startDate) : new Date()
+        const formattedDate = shiftDate.toISOString().split('T')[0]
+
+        staffData.shifts.push({
+          _id: shiftItem._id,
+          date: formattedDate,
+          startTime: shiftItem.startTime,
+          endTime: shiftItem.endTime,
+          hoursWorked: hoursWorked || 8,
+          status: status,
+          type: shiftItem.type,
+          checkedIn: shiftItem.checkedIn,
+          notes: shiftItem.notes,
+          sortDate: shiftDate.getTime()
+        })
+      } else {
+        // Debug: Log when staff ID doesn't match
+        console.log('Shift staff ID not found:', {
+          shiftStaffId: staffId,
+          availableStaffIds: Array.from(staffShiftsMap.keys()),
+          shiftItem: shiftItem
+        })
+      }
+    })
+
+    // Sort shifts by date for each staff member
+    staffShiftsMap.forEach(staff => {
+      staff.shifts.sort((a, b) => a.sortDate - b.sortDate)
+    })
+
+    const result = Array.from(staffShiftsMap.values())
+
+    // Debug: Log the result
+    console.log('Final shifts data:', result.map(staff => ({
+      name: `${staff.firstName} ${staff.lastName}`,
+      shiftCount: staff.shifts.length,
+      shifts: staff.shifts.map(s => ({ date: s.date, status: s.status }))
+    })))
+
+    return result
+  }, [shift, staffMembersWithColors])
 
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period)
@@ -235,10 +324,53 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
     return shifts.reduce((total, shift) => total + shift.hoursWorked, 0)
   }
 
-  const filteredStaff =
-    selectedStaffId === "all"
-      ? dummyShiftsData
-      : dummyShiftsData.filter((staff) => staff._id === selectedStaffId)
+  // Filter shifts based on selected period
+  const filterShiftsByPeriod = (shifts) => {
+    const now = new Date()
+    return shifts.filter(shift => {
+      const shiftDate = new Date(shift.date)
+
+      if (selectedPeriod === "day") {
+        return shiftDate.toDateString() === currentDate.toDateString()
+      } else if (selectedPeriod === "week") {
+        const weekRange = getWeekDateRange(currentWeek)
+        return shiftDate >= weekRange.start && shiftDate <= weekRange.end
+      } else if (selectedPeriod === "month") {
+        return shiftDate.getMonth() === currentOverviewMonth.getMonth() &&
+          shiftDate.getFullYear() === currentOverviewMonth.getFullYear()
+      } else if (selectedPeriod === "year") {
+        return shiftDate.getFullYear() === selectedYear
+      } else if (selectedPeriod === "custom" && customStartDate && customEndDate) {
+        const start = new Date(customStartDate)
+        const end = new Date(customEndDate)
+        return shiftDate >= start && shiftDate <= end
+      }
+      return true
+    })
+  }
+
+  // Apply filters (staff, status, period)
+  const filteredStaff = useMemo(() => {
+    let filtered = selectedStaffId === "all"
+      ? shiftsData
+      : shiftsData.filter((staff) => staff._id === selectedStaffId)
+
+    // Apply period filter to shifts
+    filtered = filtered.map(staff => ({
+      ...staff,
+      shifts: filterShiftsByPeriod(staff.shifts)
+    })).filter(staff => staff.shifts.length > 0)
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.map(staff => ({
+        ...staff,
+        shifts: staff.shifts.filter(shift => shift.status === statusFilter)
+      })).filter(staff => staff.shifts.length > 0)
+    }
+
+    return filtered
+  }, [shiftsData, selectedStaffId, statusFilter, selectedPeriod, currentDate, currentOverviewMonth, currentWeek, selectedYear, customStartDate, customEndDate])
 
   // Get period label for export
   const getExportPeriodLabel = () => {
@@ -280,7 +412,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
           "Check In": shift.startTime,
           "Check Out": shift.endTime,
           "Hours": shift.hoursWorked,
-          "Status": shift.status
+          "Status": shift.status === "completed" ? "Completed" : "Pending"
         })
       })
 
@@ -344,10 +476,45 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
     toast.success("Excel file downloaded successfully")
   }
 
+
+  // ======DEBUG BACKEND DATA==========
+
+  // useEffect(() => {
+  //   console.log('=== Debugging Shifts ===')
+  //   console.log('Total shifts from Redux:', shift.length)
+  //   console.log('Staff members:', staffMembersWithColors.length)
+  //   console.log('Processed shifts data:', shiftsData.length)
+
+  //   if (shift.length > 0 && staffMembersWithColors.length > 0) {
+  //     // Convert both to strings for comparison
+  //     const shiftStaffId = shift[0].staff?._id?.toString()
+  //     const staffId = staffMembersWithColors[0]?.id?.toString()
+
+  //     console.log('First shift staff ID (string):', shiftStaffId)
+  //     console.log('First staff ID (string):', staffId)
+  //     console.log('Do they match?', shiftStaffId === staffId)
+
+  //     // Show all staff IDs for comparison
+  //     console.log('All staff IDs:', staffMembersWithColors.map(s => s.id?.toString()))
+  //     console.log('Shift staff IDs:', shift.map(s => s.staff?._id?.toString()))
+  //   }
+
+  //   // Show which staff have shifts
+  //   if (shiftsData.length > 0) {
+  //     console.log('Staff with shifts:', shiftsData.filter(s => s.shifts.length > 0).map(s => ({
+  //       name: `${s.firstName} ${s.lastName}`,
+  //       shiftCount: s.shifts.length,
+  //       id: s._id?.toString()
+  //     })))
+  //   }
+  // }, [shift, staffMembersWithColors, shiftsData])
+
   const handleVacationRequest = (staffId, startDate, endDate) => {
     console.log(`Vacation request for staff ${staffId} from ${startDate} to ${endDate}`)
     toast.success("Vacation request submitted for approval")
   }
+
+
 
   // ============ Left Menu (Desktop) ============
   const renderLeftMenu = () => (
@@ -571,7 +738,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         >
           <option value="all">All Staff ({staffMembersWithColors.length})</option>
           {staffMembersWithColors.map((staff) => (
-            <option key={staff.id} value={staff.id}>
+            <option key={staff._id} value={staff._id}>
               {staff.firstName} {staff.lastName}
             </option>
           ))}
@@ -597,10 +764,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               {filteredStaff.map((staff) => (
                 <>
                   {/* Staff Header Row - Clickable */}
-                  <tr key={`header-${staff.id}`} className="bg-surface-base cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff.id)}>
+                  <tr key={`header-${staff._id}`} className="bg-surface-base cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff._id)}>
                     <td colSpan={6} className="py-3 px-2">
                       <div className="flex items-center gap-2 font-semibold">
-                        <ChevronDown size={16} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff.id) ? '-rotate-90' : ''}`} />
+                        <ChevronDown size={16} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff._id) ? '-rotate-90' : ''}`} />
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: staff.color }}
@@ -612,34 +779,32 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                   </tr>
 
                   {/* Shift Rows - Collapsible */}
-                  {!collapsedStaff.has(staff.id) && staff.shifts.map((shift, index) => (
-                    <tr key={`${staff.id}-${index}`} className="text-sm border-b border-border">
-                      <td className="py-2.5 pl-6"></td>
-                      <td className="py-2.5">{new Date(shift.date).toLocaleDateString()}</td>
-                      <td className="py-2.5">{shift.startTime}</td>
-                      <td className="py-2.5">{shift.endTime}</td>
+                  {!collapsedStaff.has(staff._id) && staff.shifts.map((shift, index) => (
+                    <tr key={`${staff._id}-${index}`} className="text-sm border-b border-border">
+                      <td className="py-2.5 pl-6"> </td>
+                      <td className="py-2.5">{formatDate(shift.date)}</td>
+                      <td className="py-2.5">{formatTime(shift.startTime)}</td>
+                      <td className="py-2.5">{formatTime(shift.endTime)}</td>
                       <td className="py-2.5">{shift.hoursWorked}h</td>
                       <td className="py-2.5">
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${shift.status === "completed"
                             ? "bg-primary/20 text-primary"
-                            : shift.status === "scheduled"
-                              ? "bg-secondary/20 text-secondary"
-                              : "bg-surface-button text-content-secondary"
+                            : "bg-secondary/20 text-secondary"
                             }`}
                         >
-                          {shift.status}
+                          {shift.status === "completed" ? "Completed" : "Pending"}
                         </span>
                       </td>
                     </tr>
                   ))}
 
                   {/* Staff Total Row */}
-                  {!collapsedStaff.has(staff.id) && (
-                    <tr key={`total-${staff.id}`} className="border-b-2 border-border">
-                      <td className="py-2.5 pl-6"></td>
-                      <td className="py-2.5"></td>
-                      <td className="py-2.5"></td>
+                  {!collapsedStaff.has(staff._id) && (
+                    <tr key={`total-${staff._id}`} className="border-b-2 border-border">
+                      <td className="py-2.5 pl-6"> </td>
+                      <td className="py-2.5"> </td>
+                      <td className="py-2.5"> </td>
                       <td className="py-2.5 text-right font-medium text-content-muted">Total:</td>
                       <td className="py-2.5 font-bold text-content-primary">{calculateTotalHours(staff.shifts)}h</td>
                       <td className="py-2.5 text-content-muted text-sm">{staff.shifts.length} shifts</td>
@@ -654,11 +819,11 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
         {/* Mobile Card View */}
         <div className="sm:hidden space-y-4">
           {filteredStaff.map((staff) => (
-            <div key={staff.id} className="bg-surface-base rounded-xl overflow-hidden">
+            <div key={staff._id} className="bg-surface-base rounded-xl overflow-hidden">
               {/* Staff Header - Clickable */}
-              <div className="p-3 border-b border-border flex items-center justify-between cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff.id)}>
+              <div className="p-3 border-b border-border flex items-center justify-between cursor-pointer hover:bg-surface-hover transition-colors" onClick={() => toggleStaffCollapse(staff._id)}>
                 <div className="flex items-center gap-2">
-                  <ChevronDown size={14} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff.id) ? '-rotate-90' : ''}`} />
+                  <ChevronDown size={14} className={`text-content-muted transition-transform duration-200 ${collapsedStaff.has(staff._id) ? '-rotate-90' : ''}`} />
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: staff.color }}
@@ -672,12 +837,12 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
               </div>
 
               {/* Shifts - Collapsible */}
-              {!collapsedStaff.has(staff.id) && (
+              {!collapsedStaff.has(staff._id) && (
                 <div className="divide-y divide-border">
                   {staff.shifts.slice(0, 5).map((shift, index) => (
                     <div key={index} className="p-3 flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-content-muted">{new Date(shift.date).toLocaleDateString()}</p>
+                        <p className="text-xs text-content-muted">{formatDate(shift.date)}</p>
                         <p className="text-sm">{shift.startTime} - {shift.endTime}</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -685,12 +850,10 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-medium ${shift.status === "completed"
                             ? "bg-primary/20 text-primary"
-                            : shift.status === "scheduled"
-                              ? "bg-secondary/20 text-secondary"
-                              : "bg-surface-button text-content-secondary"
+                            : "bg-secondary/20 text-secondary"
                             }`}
                         >
-                          {shift.status}
+                          {shift.status === "completed" ? "Completed" : "Pending"}
                         </span>
                       </div>
                     </div>
@@ -773,7 +936,7 @@ function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
                   onClose={() => { }}
                   isEmbedded={true}
                   isStaffPlanning={true}
-                  currentStaffId={staffMembersWithColors[0]?.id}
+                  currentStaffId={staffMembersWithColors[0]?._id}
                 />
               </div>
             ) : (

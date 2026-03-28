@@ -2,6 +2,7 @@
 const { BadRequestError } = require('../middleware/error/httpErrors');
 const chatModel = require('../models/communicationModel/chatModel')
 const messageModel = require('../models/communicationModel/messageModel');
+const StudioModel = require('../models/StudioModel')
 const UserModel = require('../models/UserModel');
 // const mongoose = require('mongoose')
 
@@ -105,7 +106,7 @@ const sendMessage = async (req, res, next) => {
         }
 
         if (req.user.role === "staff") {
-            if (chat.studio?.toString() !== req.user.studio.toString()) {
+            if (chat.studio?.toString() !== req.user?.studio.toString()) {
                 throw new BadRequestError("Not authorized");
             }
         }
@@ -202,6 +203,10 @@ const accessStudioChat = async (req, res, next) => {
             });
             chat = await chat.populate('member', 'firstName lastName img')
         }
+
+        await StudioModel.findByIdAndUpdate(studioId, {
+            $push: { chat: chat._id }
+        }, { new: true })
 
         return res.status(200).json({
             success: true,

@@ -79,6 +79,8 @@ export const fetchStudioChatThunk = createAsyncThunk('/chat/studio/fetch-chat', 
 })
 
 
+export const deleteMessageThunk = createAsyncThunk()
+
 
 // ------------------ SLICE ------------------
 

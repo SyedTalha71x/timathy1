@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Clock, Users, ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { staffData } from '../../../utils/studio-states/staff-states';
+import { useDispatch, useSelector } from 'react-redux';
+import { getShiftThunk } from '../../../features/staff/staffSlice';
 
 // ============================================
 // Helper Functions
@@ -34,7 +35,7 @@ const formatDisplayDate = (date) => {
   } else if (formatDateStr(date) === formatDateStr(yesterday)) {
     return `Yesterday, ${dateStr}`;
   }
-  
+
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -47,64 +48,18 @@ const isWeekend = (date) => {
   return day === 0 || day === 6;
 };
 
-// ============================================
-// Generate Mock Shifts Based on Staff Data
-// ============================================
-const generateShiftsForDate = (dateStr, staffMembers) => {
-  // Use date string to create deterministic but varied shifts
-  const dateHash = dateStr.split('-').reduce((a, b) => a + parseInt(b), 0);
-  const date = new Date(dateStr);
-  const dayOfWeek = date.getDay();
+// Calculate shift duration
+const calculateDuration = (startTime, endTime) => {
+  if (!startTime || !endTime) return '0h';
   
-  // Weekend: fewer staff
-  const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+  const start = startTime.split(':').map(Number);
+  const end = endTime.split(':').map(Number);
+  let hours = end[0] - start[0];
+  if (hours < 0) hours += 24; // Handle overnight shifts
+  const minutes = (end[1] - start[1]) / 60;
+  const totalHours = hours + minutes;
   
-  return staffMembers
-    .filter((staff) => {
-      // Filter out some staff based on date hash for variety
-      const staffHash = (staff.id + dateHash) % 10;
-      if (isWeekendDay) {
-        return staffHash < 4; // ~40% work on weekends
-      }
-      return staffHash < 8; // ~80% work on weekdays
-    })
-    .map((staff) => {
-      const staffDateHash = (staff.id * 7 + dateHash) % 24;
-      
-      // Determine shift times based on hash
-      let startHour, endHour;
-      
-      if (staffDateHash < 8) {
-        // Morning shift
-        startHour = 6 + (staffDateHash % 3);
-        endHour = startHour + 8;
-      } else if (staffDateHash < 16) {
-        // Day shift
-        startHour = 9 + (staffDateHash % 3);
-        endHour = startHour + 8;
-      } else {
-        // Evening shift
-        startHour = 14 + (staffDateHash % 4);
-        endHour = Math.min(startHour + 8, 22);
-      }
-      
-      const duration = endHour - startHour;
-      
-      return {
-        id: `${staff.id}-${dateStr}`,
-        staffId: staff.id,
-        staffName: `${staff.firstName} ${staff.lastName}`,
-        firstName: staff.firstName,
-        lastName: staff.lastName,
-        position: staff.role,
-        img: staff.img,
-        date: dateStr,
-        startTime: `${String(startHour).padStart(2, '0')}:00`,
-        endTime: `${String(endHour).padStart(2, '0')}:00`,
-        duration: `${duration}h`,
-      };
-    })
-    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  return `${totalHours}h`;
 };
 
 // ============================================
@@ -125,8 +80,8 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 
   if (img) {
     return (
-      <img 
-        src={img} 
+      <img
+        src={img}
         alt={`${firstName} ${lastName}`}
         className={`rounded-lg flex-shrink-0 object-cover ${sizeClasses[size]}`}
       />
@@ -134,7 +89,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
   }
 
   return (
-    <div 
+    <div
       className={`rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0 bg-secondary ${sizeClasses[size]}`}
     >
       {getInitials()}
@@ -164,7 +119,7 @@ const ShiftCard = ({ shift }) => {
               <h3 className="font-semibold text-sm text-content-primary truncate">
                 {shift.staffName}
               </h3>
-              <p className="text-xs text-content-faint">{shift.position}</p>
+              <p className="text-xs text-content-faint">{shift.position || 'Staff'}</p>
             </div>
           </div>
 
@@ -188,55 +143,94 @@ const ShiftScheduleWidget = ({
   onRemove,
   className = "",
   showHeader = true,
-  maxItems = null
+  maxItems = null,
+  staffMembers = [] // Add staffMembers prop
 }) => {
   const navigate = useNavigate();
+  const { shift = [] } = useSelector((state) => state.staff);
+  const dispatch = useDispatch();
   
   // Initialize with today's date
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStaff, setSelectedStaff] = useState("all");
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false);
   // Measure actual item heights for maxItems constraint
-  const listRef = useRef(null)
-  const [computedMaxHeight, setComputedMaxHeight] = useState(null)
+  const listRef = useRef(null);
+  const [computedMaxHeight, setComputedMaxHeight] = useState(null);
+
+  useEffect(() => {
+    dispatch(getShiftThunk());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!maxItems || !listRef.current) {
-      setComputedMaxHeight(null)
-      return
+      setComputedMaxHeight(null);
+      return;
     }
     const frame = requestAnimationFrame(() => {
-      const el = listRef.current
-      if (!el) return
-      const children = el.children
-      if (children.length === 0) { setComputedMaxHeight(null); return }
-      const count = Math.min(maxItems, children.length)
-      const firstRect = children[0].getBoundingClientRect()
-      const lastRect = children[count - 1].getBoundingClientRect()
-      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4)
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [maxItems, selectedDate, selectedStaff])
+      const el = listRef.current;
+      if (!el) return;
+      const children = el.children;
+      if (children.length === 0) { setComputedMaxHeight(null); return; }
+      const count = Math.min(maxItems, children.length);
+      const firstRect = children[0].getBoundingClientRect();
+      const lastRect = children[count - 1].getBoundingClientRect();
+      setComputedMaxHeight(lastRect.bottom - firstRect.top + 4);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [maxItems, selectedDate, selectedStaff, shift]);
 
+  // Get active staff members from props
+  const activeStaff = useMemo(() => {
+    if (staffMembers && staffMembers.length) {
+      return staffMembers.filter(s => s.isActive !== false && !s.isArchived);
+    }
+    return [];
+  }, [staffMembers]);
 
-  // Get active staff members
-  const activeStaff = useMemo(() => 
-    staffData.filter(s => s.isActive && !s.isArchived),
-    []
-  );
-
-  // Generate shifts for selected date
+  // Process shifts for selected date
   const currentShifts = useMemo(() => {
     const dateStr = formatDateStr(selectedDate);
-    let shifts = generateShiftsForDate(dateStr, activeStaff);
     
+    // Filter shifts for the selected date
+    let shiftsForDate = shift.filter(shiftItem => {
+      const shiftDate = shiftItem.startDate ? new Date(shiftItem.startDate) : null;
+      if (!shiftDate) return false;
+      return formatDateStr(shiftDate) === dateStr;
+    });
+
+    // Map shifts to the format needed for display
+    let processedShifts = shiftsForDate.map(shiftItem => {
+      // Find staff member details
+      const staff = activeStaff.find(s => s._id?.toString() === shiftItem.staff?._id?.toString());
+      
+      return {
+        id: shiftItem._id,
+        staffId: shiftItem.staff?._id,
+        staffName: staff ? `${staff.firstName} ${staff.lastName}` : shiftItem.staff?.firstName ? `${shiftItem.staff.firstName} ${shiftItem.staff.lastName}` : 'Unknown Staff',
+        firstName: staff?.firstName || shiftItem.staff?.firstName || 'Unknown',
+        lastName: staff?.lastName || shiftItem.staff?.lastName || '',
+        position: staff?.role || shiftItem.staff?.role || 'Staff',
+        img: staff?.img?.url || shiftItem.staff?.img?.url,
+        date: dateStr,
+        startTime: shiftItem.startTime,
+        endTime: shiftItem.endTime,
+        duration: calculateDuration(shiftItem.startTime, shiftItem.endTime),
+        status: shiftItem.status,
+        checkedIn: shiftItem.checkedIn
+      };
+    });
+
     // Filter by selected staff if not "all"
     if (selectedStaff !== "all") {
-      shifts = shifts.filter(shift => shift.staffId === parseInt(selectedStaff));
+      processedShifts = processedShifts.filter(shift => shift.staffId?.toString() === selectedStaff);
     }
-    
-    return shifts;
-  }, [selectedDate, selectedStaff, activeStaff]);
+
+    // Sort by start time
+    processedShifts.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    return processedShifts;
+  }, [selectedDate, selectedStaff, shift, activeStaff]);
 
   // Navigation handlers
   const goToPreviousDay = () => {
@@ -251,6 +245,9 @@ const ShiftScheduleWidget = ({
     setSelectedDate(newDate);
   };
 
+  // Check if there are any shifts for today
+  const hasShiftsToday = currentShifts.length > 0;
+
   return (
     <div className={`flex flex-col p-4 rounded-xl bg-surface-button ${className} ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {showHeader && (
@@ -260,59 +257,59 @@ const ShiftScheduleWidget = ({
           </div>
 
           {/* Staff Filter Dropdown */}
-          <div className="relative">
-            <button
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-base rounded-lg text-xs hover:bg-surface-hover transition-colors"
-              onClick={() => setIsStaffDropdownOpen(!isStaffDropdownOpen)}
-            >
-              <Users size={12} className="text-content-muted" />
-              <span className="text-content-secondary">
-                {selectedStaff === "all" 
-                  ? `All (${activeStaff.length})` 
-                  : activeStaff.find(s => s.id === parseInt(selectedStaff))?.firstName || "Staff"
-                }
-              </span>
-              <ChevronDown size={12} className={`text-content-faint transition-transform ${isStaffDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
+          {activeStaff.length > 0 && (
+            <div className="relative">
+              <button
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-base rounded-lg text-xs hover:bg-surface-hover transition-colors"
+                onClick={() => setIsStaffDropdownOpen(!isStaffDropdownOpen)}
+              >
+                <Users size={12} className="text-content-muted" />
+                <span className="text-content-secondary">
+                  {selectedStaff === "all"
+                    ? `All (${activeStaff.length})`
+                    : activeStaff.find(s => s._id?.toString() === selectedStaff)?.firstName || "Staff"
+                  }
+                </span>
+                <ChevronDown size={12} className={`text-content-faint transition-transform ${isStaffDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            {isStaffDropdownOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setIsStaffDropdownOpen(false)}
-                />
-                <div className="absolute top-full right-0 mt-1 w-44 bg-surface-dark rounded-xl shadow-lg border border-border z-20 py-1 max-h-[200px] overflow-y-auto custom-scrollbar">
-                  <button
-                    className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-dark transition-colors flex items-center gap-2 ${
-                      selectedStaff === "all" ? 'bg-secondary/20 text-secondary' : 'text-content-secondary'
-                    }`}
-                    onClick={() => {
-                      setSelectedStaff("all");
-                      setIsStaffDropdownOpen(false);
-                    }}
-                  >
-                    <Users size={12} />
-                    All Staff ({activeStaff.length})
-                  </button>
-                  <div className="border-t border-border my-1" />
-                  {activeStaff.map((staff) => (
+              {isStaffDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setIsStaffDropdownOpen(false)}
+                  />
+                  <div className="absolute top-full right-0 mt-1 w-44 bg-surface-dark rounded-xl shadow-lg border border-border z-20 py-1 max-h-[200px] overflow-y-auto custom-scrollbar">
                     <button
-                      key={staff.id}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-dark transition-colors flex items-center gap-2 ${
-                        selectedStaff === String(staff.id) ? 'bg-secondary/20 text-secondary' : 'text-content-secondary'
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-dark transition-colors flex items-center gap-2 ${selectedStaff === "all" ? 'bg-secondary/20 text-secondary' : 'text-content-secondary'
+                        }`}
                       onClick={() => {
-                        setSelectedStaff(String(staff.id));
+                        setSelectedStaff("all");
                         setIsStaffDropdownOpen(false);
                       }}
                     >
-                      {staff.firstName} {staff.lastName}
+                      <Users size={12} />
+                      All Staff ({activeStaff.length})
                     </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+                    <div className="border-t border-border my-1" />
+                    {activeStaff.map((staff) => (
+                      <button
+                        key={staff._id}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-dark transition-colors flex items-center gap-2 ${selectedStaff === staff._id?.toString() ? 'bg-secondary/20 text-secondary' : 'text-content-secondary'
+                          }`}
+                        onClick={() => {
+                          setSelectedStaff(staff._id?.toString());
+                          setIsStaffDropdownOpen(false);
+                        }}
+                      >
+                        {staff.firstName} {staff.lastName}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -359,7 +356,9 @@ const ShiftScheduleWidget = ({
             </div>
             <p className="text-sm">No shifts scheduled</p>
             <p className="text-xs mt-1 text-content-faint">
-              {isWeekend(selectedDate) ? "Weekend" : "Check another date"}
+              {formatDateStr(selectedDate) === formatDateStr(new Date()) 
+                ? "No shifts available for today" 
+                : isWeekend(selectedDate) ? "Weekend" : "Check another date"}
             </p>
           </div>
         )}
@@ -367,12 +366,12 @@ const ShiftScheduleWidget = ({
 
       {/* Footer Link */}
       <div className="flex justify-center pt-3 border-t border-border mt-3 flex-shrink-0">
-        <button 
-          onClick={() => navigate('/dashboard/staff', { 
-            state: { 
+        <button
+          onClick={() => navigate('/dashboard/staff', {
+            state: {
               openModal: 'shifts-overview',
               initialTab: 'shifts'
-            } 
+            }
           })}
           className="text-xs text-content-muted hover:text-content-primary transition-colors"
         >

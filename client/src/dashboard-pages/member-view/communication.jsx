@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { useSelector, useDispatch } from 'react-redux'
-import { accessChatThunk, fetchMessagesThunk, sendMessageThunk, createGroupThunk, receiveSocketMessage, setActiveChat, clearMessages, accessStudioChatThunk } from '../../features/communication/chatSlice'
+import { accessStudioChatThunk, fetchMessagesThunk, sendMessageThunk, receiveSocketMessage, setActiveChat } from '../../features/communication/chatSlice'
 import { socket } from '../../services/socket'
 import {
   Send,
@@ -13,13 +13,13 @@ import {
   X,
   Check,
   CheckCheck,
+  MessageCircle,
 } from "lucide-react"
 import EmojiPicker from '../../components/shared/EmojiPicker'
-import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { haptic } from '../../utils/haptic'
 
 // ==========================================
-// HIGHLIGHTED TEXT COMPONENT - for dates/times
+// HIGHLIGHTED TEXT COMPONENT
 // ==========================================
 const HighlightedText = ({ text, isUserMessage }) => {
   if (!text) return null;
@@ -58,15 +58,11 @@ const HighlightedText = ({ text, isUserMessage }) => {
   return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{result}</span>;
 };
 
-// Truncate text for reply preview
 const truncateText = (text, maxLength = 50) => {
   if (!text) return '';
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
-
-
-
 
 export default function StudioChat() {
   const { t } = useTranslation()
@@ -74,11 +70,15 @@ export default function StudioChat() {
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios)
   const chatState = useSelector((state) => state.chats) || {}
-  const { messages, activeChat } = chatState
-  const safeMessages = Array.isArray(messages) ? messages : []
-  // const [messages, setMessages] = useState([])
+  const { messages: rawMessages = [], activeChat } = chatState
+  
+  // Ensure messages is always an array
+  const messages = Array.isArray(rawMessages) ? rawMessages : []
+  
   const [messageText, setMessageText] = useState("")
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [isConnected, setIsConnected] = useState(false)
 
   // Message feature states
   const [activeMessageMenu, setActiveMessageMenu] = useState(null)
@@ -104,34 +104,87 @@ export default function StudioChat() {
   const messageMenuRef = useRef(null)
   const reactionPickerRef = useRef(null)
 
-
-  // useEffect to create chat
+  // ==========================================
+  // INITIALIZE STUDIO CHAT
+  // ==========================================
   useEffect(() => {
     dispatch(accessStudioChatThunk());
-    // dispatch(fetchMessagesThunk());
-  }, [dispatch])
+  }, [dispatch]);
 
-  const transformedMessages = safeMessages.map(msg => ({
-    _id: msg._id || msg.id,
-    id: msg._id || msg.id,
-    text: msg.content || msg.text,
-    content: msg.content || msg.text,
-    sender: msg.sender?._id === user?._id ? 'me' : (msg.sender === 'me' ? 'me' : 'other'),
-    senderId: msg.sender?._id,
-    senderName: msg.sender?.firstName
-      ? `${msg.sender.firstName} ${msg.sender.lastName}`
-      : (msg.senderName || 'Unknown'),
-    timestamp: msg.createdAt || msg.timestamp,
-    createdAt: msg.createdAt || msg.timestamp,
-    isDeleted: msg.isDeleted || false,
-    status: msg.status || 'delivered',
-    replyTo: msg.replyTo || null
-  }))
+  // ==========================================
+  // SOCKET.IO SETUP - REAL-TIME
+  // ==========================================
+  useEffect(() => {
+    if (!socket || !user?._id) return;
 
+    console.log('🔌 Setting up socket connection');
+    
+    socket.emit("setup", user._id);
 
+    socket.on("connected", () => {
+      console.log('✅ Socket connected');
+      setIsConnected(true);
+    });
 
+    socket.on("disconnect", () => {
+      console.log('❌ Socket disconnected');
+      setIsConnected(false);
+    });
 
-  // Detect keyboard to expand mobile container to bottom-0 when keyboard opens
+    // Listen for new messages
+    const handleNewMessage = (newMessage) => {
+      console.log('📨 New message received:', newMessage);
+      dispatch(receiveSocketMessage(newMessage));
+    };
+
+    socket.on("new message", handleNewMessage);
+
+    return () => {
+      socket.off("connected");
+      socket.off("disconnect");
+      socket.off("new message", handleNewMessage);
+    };
+  }, [user, dispatch]);
+
+  // ==========================================
+  // JOIN CHAT ROOM & LOAD MESSAGES
+  // ==========================================
+  useEffect(() => {
+    if (!socket || !activeChat?._id) return;
+
+    console.log('🎯 Joining chat room:', activeChat._id);
+    socket.emit("join chat", activeChat._id);
+    
+    // Load messages only when chat changes
+    if (messages.length === 0) {
+      dispatch(fetchMessagesThunk(activeChat._id));
+    }
+
+    return () => {
+      if (socket) {
+        socket.emit("leave chat", activeChat._id);
+      }
+    };
+  }, [activeChat?._id, dispatch]);
+
+  // ==========================================
+  // AUTO-SCROLL TO BOTTOM
+  // ==========================================
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+      if (mobileMessagesContainerRef.current) {
+        mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
+      }
+    };
+    setTimeout(scrollToBottom, 100);
+  }, [messages]);
+
+  // ==========================================
+  // DETECT KEYBOARD (MOBILE)
+  // ==========================================
   useEffect(() => {
     const onFocusIn = (e) => {
       const tag = e.target?.tagName?.toLowerCase()
@@ -155,95 +208,120 @@ export default function StudioChat() {
     }
   }, [])
 
-  // Auto-scroll to bottom when messages change (matching studio standard)
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-    if (mobileMessagesContainerRef.current) {
-      mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
-    }
-  }, [messages])
-
-  // Fallback scroll via messagesEndRef
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      const container = messagesEndRef.current.closest('.overflow-y-auto');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-  }, [messages])
-
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
-    if (typeof timestamp === 'string' && !timestamp.includes('T')) return timestamp;
-    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Transform messages for display
+  const transformedMessages = messages.map(msg => ({
+    _id: msg._id || msg.id,
+    id: msg._id || msg.id,
+    text: msg.content || msg.text,
+    content: msg.content || msg.text,
+    sender: msg.sender?._id === user?._id ? 'me' : (msg.sender === 'me' ? 'me' : 'other'),
+    senderId: msg.sender?._id,
+    senderName: msg.sender?.firstName ? `${msg.sender.firstName} ${msg.sender.lastName}` : (msg.senderName || 'Unknown'),
+    timestamp: msg.createdAt || msg.timestamp,
+    createdAt: msg.createdAt || msg.timestamp,
+    isDeleted: msg.isDeleted || false,
+    status: msg.status || 'sent',
+    replyTo: msg.replyTo || null
+  }));
 
   // ==========================================
-  // WHEN CHAT CHNAGES 
-  //===========================================
-  useEffect(() => {
-    if (activeChat?._id) {
-      dispatch(fetchMessagesThunk(activeChat._id))
-      socket.emit("join chat", activeChat._id)
-    }
-  }, [activeChat, dispatch])
-
-
+  // SEND MESSAGE - REAL-TIME + BACKEND SAVE
   // ==========================================
-  // SEND MESSAGE (with reply support)
-  // ==========================================
-  // Handle sending a message
-  const handleSendMessage = () => {
-    if (!messageText.trim() || !activeChat?._id) return
-    haptic.medium()
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !activeChat?._id || isSending) return;
+    
+    haptic.medium();
+    setIsSending(true);
+
+    const messageContent = messageText.trim();
+    
+    // Create temporary message for optimistic UI
+    const tempMessage = {
+      _id: `temp-${Date.now()}`,
+      id: `temp-${Date.now()}`,
+      content: messageContent,
+      text: messageContent,
+      sender: { _id: user?._id, firstName: user?.firstName, lastName: user?.lastName },
+      senderId: user?._id,
+      createdAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
+      status: 'sending',
+      isDeleted: false,
+      replyTo: replyingTo ? {
+        _id: replyingTo._id,
+        text: replyingTo.text,
+        sender: replyingTo.sender
+      } : null
+    };
+
+    // Add to UI immediately
+    dispatch(receiveSocketMessage(tempMessage));
 
     const messageData = {
       chatId: activeChat._id,
-      content: messageText,
-      replyTo: replyingTo?._id || null
+      content: messageContent,
+      replyTo: replyingTo?._id || null,
+      tempId: tempMessage._id
+    };
+
+    console.log("📤 Sending message:", messageData);
+
+    try {
+      // Emit via socket for real-time
+      if (socket && isConnected) {
+        socket.emit("new message", messageData);
+      }
+      
+      // Save to backend
+      await dispatch(sendMessageThunk(messageData)).unwrap();
+      await dispatch(fetchMessagesThunk(activeChat._id))
+      // Clear input
+      setMessageText("");
+      setReplyingTo(null);
+      setShowEmojiPicker(false);
+      
+      // Reset textarea heights
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height = "40px";
+        textareaRef.current.focus();
+      }
+      if (mobileTextareaRef.current) {
+        mobileTextareaRef.current.style.height = "auto";
+        mobileTextareaRef.current.style.height = "36px";
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsSending(false);
     }
-    console.log("message send", messageData);
-
-    dispatch(sendMessageThunk(messageData))
-    socket.emit("new message", messageData)
-
-    setMessageText("")
-    setReplyingTo(null)
-    setShowEmojiPicker(false)
-
-    // Reset textarea heights
-    if (textareaRef.current) textareaRef.current.style.height = "32px"
-    if (mobileTextareaRef.current) mobileTextareaRef.current.style.height = "20px"
-  }
+  };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
-      // Desktop: Enter sends — Mobile: Enter inserts newline
-      const isMobile = window.innerWidth < 1024
-      if (!isMobile) {
-        e.preventDefault()
-        handleSendMessage()
-      }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
-  }
+  };
 
   // ==========================================
-  // EMOJI
+  // EMOJI HANDLER
   // ==========================================
   const handleEmojiSelect = (emoji) => {
-    setMessageText(prev => prev + emoji.native)
-    textareaRef.current?.focus()
-    mobileTextareaRef.current?.focus()
-  }
+    setMessageText(prev => prev + emoji.native);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      mobileTextareaRef.current?.focus();
+    }, 0);
+  };
 
-  const toggleEmojiPicker = () => {
-    setShowEmojiPicker(prev => !prev)
-  }
+  const toggleEmojiPicker = () => setShowEmojiPicker(prev => !prev);
 
   // ==========================================
   // REACTIONS
@@ -275,11 +353,7 @@ export default function StudioChat() {
   // DELETE MESSAGE
   // ==========================================
   const handleDeleteMessage = (messageId) => {
-    setMessages(prev => prev.map(msg =>
-      msg.id === messageId
-        ? { ...msg, isDeleted: true, text: "" }
-        : msg
-    ));
+    // In a real app, you'd dispatch a delete action here
     setMessageReactions(prev => {
       const newReactions = { ...prev };
       delete newReactions[messageId];
@@ -298,29 +372,22 @@ export default function StudioChat() {
     setActiveMessageMenu(null);
     setMenuPosition(null);
     setMobileContextMenu(null);
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
-    if (mobileTextareaRef.current) {
-      mobileTextareaRef.current.focus();
-    }
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      mobileTextareaRef.current?.focus();
+    }, 100);
   };
 
-  const cancelReply = () => {
-    setReplyingTo(null);
-  };
+  const cancelReply = () => setReplyingTo(null);
 
   // ==========================================
   // COPY MESSAGE
   // ==========================================
   const handleCopyMessage = (msg) => {
     if (msg.isDeleted) return;
-    const textToCopy = msg.text || "";
-    navigator.clipboard.writeText(textToCopy).then(() => {
+    navigator.clipboard.writeText(msg.text).then(() => {
       setShowCopiedToast(true);
       setTimeout(() => setShowCopiedToast(false), 2000);
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
     });
     setActiveMessageMenu(null);
     setMenuPosition(null);
@@ -328,7 +395,7 @@ export default function StudioChat() {
   };
 
   // ==========================================
-  // DESKTOP MESSAGE MENU - Fixed positioning to prevent clipping
+  // MESSAGE MENU
   // ==========================================
   const openMessageMenu = useCallback((messageId, buttonElement, isOwn) => {
     if (activeMessageMenu === messageId) {
@@ -338,8 +405,6 @@ export default function StudioChat() {
     }
 
     const rect = buttonElement.getBoundingClientRect();
-
-    // Position menu: for own messages open to the left, for received open to the right
     const pos = {
       top: rect.top,
       ...(isOwn
@@ -379,136 +444,154 @@ export default function StudioChat() {
     }
   };
 
+  const getMessageById = (messageId) => {
+    return transformedMessages.find(m => m._id === messageId || m.id === messageId);
+  };
+
   return (
     <div className="flex flex-col h-[92vh] bg-surface-base text-content-primary overflow-hidden rounded-t-2xl lg:rounded-3xl select-none">
+      {/* Connection Status */}
+      {!isConnected && (
+        <div className="bg-yellow-500/20 text-yellow-500 text-xs text-center py-1 flex-shrink-0">
+          Connecting to server...
+        </div>
+      )}
+
       {/* ==========================================
-          DESKTOP VIEW - Hidden on mobile
+          DESKTOP VIEW
           ========================================== */}
       <div className="hidden md:flex flex-col flex-1 min-h-0">
         {/* Messages Area */}
         <div
           ref={messagesContainerRef}
-          data-scroll-container
           className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
           style={{ minHeight: 0 }}
         >
-          {transformedMessages.map((message) => (
-            <div
-              key={message._id}
-              className={`flex items-start gap-2 ${message.sender === "me" ? "justify-end" : ""} group`}
-            >
-              {/* Left menu for own messages */}
-              {message.sender === "me" && !message.isDeleted && (
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={(e) => openMessageMenu(message._id, e.currentTarget, true)}
-                    className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
-                  >
-                    <MoreVertical size={18} className="text-content-muted" />
-                  </button>
-                </div>
-              )}
-
-              {/* Message bubble */}
-              <div className={`flex flex-col gap-1 ${message.sender === "me" ? "items-end" : ""} max-w-lg`}>
-                {message.replyTo && !message.isDeleted && (
-                  <div
-                    className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${message.sender === "me" ? "bg-primary/50 border-l-white" : "bg-surface-button border-l-primary"
-                      }`}
-                  >
-                    <p className={`font-semibold mb-0.5 text-xs ${message.sender === "me" ? 'text-white' : 'text-content-primary'}`}>
-                      {message.replyTo.sender === 'me' ? t("chat.you") : studio.name}
-                    </p>
-                    <p className={`${message.sender === 'me' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
-                      {truncateText(message.replyTo.text, 50)}
-                    </p>
+          {transformedMessages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mb-4">
+                <MessageCircle className="w-8 h-8 text-content-faint" />
+              </div>
+              <p className="text-content-faint">No messages yet</p>
+              <p className="text-xs text-content-faint mt-1">Send a message to start the conversation</p>
+            </div>
+          ) : (
+            transformedMessages.map((message) => (
+              <div
+                key={message._id}
+                className={`flex items-start gap-2 ${message.sender === "me" ? "justify-end" : ""} group`}
+              >
+                {/* Menu for own messages */}
+                {message.sender === "me" && !message.isDeleted && (
+                  <div className="relative flex-shrink-0">
+                    <button
+                      onClick={(e) => openMessageMenu(message._id, e.currentTarget, true)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
+                    >
+                      <MoreVertical size={18} className="text-content-muted" />
+                    </button>
                   </div>
                 )}
 
-                <p
-                  className={`text-sm ${message.isDeleted ? "" : message.sender === "me" ? "text-white" : "text-content-primary"
-                    }`}
-                  style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-                >
-                  {message.isDeleted ? (
-                    <span className="flex items-center gap-1.5">
-                      <Trash2 size={14} />
-                      {t("chat.messageDeletedDesktop")}
-                    </span>
-                  ) : (
-                    <HighlightedText text={message.text} isUserMessage={message.sender === 'me'} />
+                <div className={`flex flex-col gap-1 ${message.sender === "me" ? "items-end" : ""} max-w-[70%]`}>
+                  {/* Reply Preview */}
+                  {message.replyTo && !message.isDeleted && (
+                    <div className={`mb-1 p-2 rounded-lg text-xs border-l-2 ${message.sender === "me" ? "bg-primary/30 border-l-white" : "bg-surface-button border-l-primary"}`}>
+                      <p className={`font-semibold mb-0.5 text-xs ${message.sender === "me" ? 'text-white/80' : 'text-content-primary'}`}>
+                        {message.replyTo.sender === 'me' ? t("chat.you") : studio?.studioName || "Studio"}
+                      </p>
+                      <p className={`${message.sender === 'me' ? 'text-white/60' : 'text-content-muted'} text-xs`}>
+                        {truncateText(message.replyTo.text, 50)}
+                      </p>
+                    </div>
                   )}
-                </p>
 
-                {/* Time and status */}
-                <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${message.sender === "me" ? "text-white/70 justify-end" : "text-content-faint"
-                  }`}>
-                  <span>{formatTimestamp(message.timestamp)}</span>
-                  {message.sender === "me" && !message.isDeleted && (
-                    <span className="ml-1">
-                      {message.status === "read" ? <CheckCheck className="w-3.5 h-3.5 text-white" /> :
-                        message.status === "delivered" ? <CheckCheck className="w-3.5 h-3.5" /> :
-                          <Check className="w-3.5 h-3.5" />}
-                    </span>
+                  <div className={`rounded-xl px-4 py-2 ${message.isDeleted ? "bg-surface-hover text-content-faint italic" : message.sender === "me" ? "bg-primary text-white" : "bg-surface-dark text-content-primary"}`}>
+                    <p className="text-sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {message.isDeleted ? (
+                        <span className="flex items-center gap-1.5">
+                          <Trash2 size={14} />
+                          Message deleted
+                        </span>
+                      ) : (
+                        <HighlightedText text={message.text} isUserMessage={message.sender === 'me'} />
+                      )}
+                    </p>
+
+                    <div className={`text-[10px] mt-1 flex items-center gap-1 ${message.sender === "me" ? "text-white/60 justify-end" : "text-content-faint"}`}>
+                      <span>{formatTimestamp(message.timestamp)}</span>
+                      {message.sender === "me" && !message.isDeleted && (
+                        <span>
+                          {message.status === "read" ? <CheckCheck className="w-3 h-3" /> :
+                           message.status === "delivered" ? <CheckCheck className="w-3 h-3" /> :
+                           message.status === "sending" ? <div className="animate-pulse w-3 h-3 rounded-full bg-white/50" /> :
+                           <Check className="w-3 h-3" />}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Reactions */}
+                  {messageReactions[message._id] && !message.isDeleted && (
+                    <div className={`flex gap-1 mt-0.5 ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                      <button onClick={(e) => removeReaction(message._id, e)} className="bg-surface-button/80 rounded-full px-2 py-0.5 text-sm flex items-center gap-1 hover:bg-surface-button">
+                        <span>{messageReactions[message._id]}</span>
+                      </button>
+                    </div>
                   )}
                 </div>
+
+                {/* Menu for received messages */}
+                {message.sender !== "me" && !message.isDeleted && (
+                  <div className="relative flex-shrink-0">
+                    <button
+                      onClick={(e) => openMessageMenu(message._id, e.currentTarget, false)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
+                    >
+                      <MoreVertical size={18} className="text-content-muted" />
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* Right menu for received messages */}
-              {message.sender !== "me" && !message.isDeleted && (
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={(e) => openMessageMenu(message.id, e.currentTarget, false)}
-                    className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
-                  >
-                    <MoreVertical size={18} className="text-content-muted" />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            ))
+          )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Reply Preview */}
+        {/* Reply Preview Bar */}
         {replyingTo && (
-          <div className="px-4 py-3 bg-surface-hover border-t border-border flex-shrink-0">
-            <div className="flex items-center gap-3 bg-surface-button rounded-xl p-3">
-              <div className="w-1 h-10 bg-primary rounded-full"></div>
+          <div className="px-4 py-2 bg-surface-hover border-t border-border flex-shrink-0">
+            <div className="flex items-center gap-3 bg-surface-button rounded-xl p-2">
+              <div className="w-1 h-8 bg-primary rounded-full"></div>
               <div className="flex-1 min-w-0">
                 <p className="text-primary text-xs font-semibold">
-                  Replying to {replyingTo.sender === user ? 'yourself' : studio?.studioName}
+                  Replying to {replyingTo.sender === 'me' ? 'yourself' : studio?.studioName || "Studio"}
                 </p>
-                <p className="text-content-secondary text-sm truncate">{truncateText(replyingTo.text, 50)}</p>
+                <p className="text-content-secondary text-xs truncate">{truncateText(replyingTo.text, 50)}</p>
               </div>
-              <button
-                onClick={cancelReply}
-                className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-              >
-                <X size={16} />
+              <button onClick={cancelReply} className="p-1 text-content-muted hover:text-content-primary">
+                <X size={14} />
               </button>
             </div>
           </div>
         )}
 
         {/* Input Area */}
-        <div className="px-4 pt-4 pb-6 border-t border-border flex-shrink-0 bg-surface-base relative">
+        <div className="px-4 pt-3 pb-4 border-t border-border flex-shrink-0 bg-surface-base relative">
           <EmojiPicker
             isOpen={showEmojiPicker}
-            onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji.native)}
+            onEmojiSelect={handleEmojiSelect}
             onClose={() => setShowEmojiPicker(false)}
             className="absolute bottom-full mb-2 left-4 z-[1020]"
             pickerRef={emojiPickerRef}
-            ignoreCloseSelectors={['button[aria-label="emoji-picker-toggle"]']}
           />
 
           <div className="flex items-end gap-2 bg-surface-dark rounded-xl p-2">
             <button
-              onClick={() => setShowEmojiPicker(prev => !prev)}
-              aria-label="emoji-picker-toggle"
-              className="p-2 hover:bg-surface-button rounded-full flex items-center justify-center flex-shrink-0"
+              onClick={toggleEmojiPicker}
+              className="p-2 hover:bg-surface-button rounded-full flex-shrink-0 transition-colors"
             >
-              <Smile className="w-6 h-6 text-content-secondary" />
+              <Smile className="w-5 h-5 text-content-secondary" />
             </button>
 
             <textarea
@@ -516,126 +599,84 @@ export default function StudioChat() {
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onInput={(e) => {
-                e.target.style.height = "32px";
-                e.target.style.height = Math.min(e.target.scrollHeight, 150) + "px";
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
               }}
               onKeyDown={handleKeyPress}
               placeholder={t("chat.placeholder")}
-              className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-content-secondary placeholder-content-faint max-h-[150px]"
+              className="flex-1 bg-transparent focus:outline-none text-sm resize-none overflow-y-auto leading-5 text-content-secondary placeholder-content-faint max-h-[120px] py-2"
               rows={1}
-              style={{ height: '32px' }}
+              style={{ height: '40px' }}
             />
 
             <button
               onClick={handleSendMessage}
-              disabled={!messageText.trim()}
-              className={`p-2 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${messageText.trim()
-                ? 'bg-primary hover:bg-primary-hover text-white'
-                : 'text-content-faint cursor-not-allowed'
-                }`}
-              aria-label={t("chat.sendMessage")}
+              disabled={!messageText.trim() || isSending}
+              className={`p-2 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                messageText.trim() && !isSending
+                  ? 'bg-primary hover:bg-primary-hover text-white'
+                  : 'bg-surface-button text-content-faint cursor-not-allowed'
+              }`}
             >
-              <Send className="w-6 h-6" />
+              <Send className="w-5 h-5" />
             </button>
           </div>
         </div>
       </div>
 
       {/* ==========================================
-          MOBILE VIEW - No own header, DashboardHeader handles it
+          MOBILE VIEW
           ========================================== */}
       <div className="md:hidden fixed top-[3.5rem] inset-x-0 bottom-0 z-[30] flex flex-col bg-surface-base">
         {/* Mobile Messages Area */}
         <div
           ref={mobileMessagesContainerRef}
-          data-scroll-container
           className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3"
           style={{ minHeight: 0 }}
         >
-          {messages.length === 0 ? (
+          {transformedMessages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-content-faint">
-              <p>{t("chat.noMessages")}</p>
+              <p>No messages yet</p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}>
-                <div className={`flex flex-col ${message.sender === "me" ? "items-end" : "items-start"} max-w-[80%] min-w-0`}>
-                  {/* Message bubble with Long Press */}
+            transformedMessages.map((message) => (
+              <div key={message._id} className={`flex ${message.sender === "me" ? "justify-end" : "justify-start"}`}>
+                <div className={`flex flex-col ${message.sender === "me" ? "items-end" : "items-start"} max-w-[85%]`}>
                   <div
-                    className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${message.isDeleted
-                      ? "bg-surface-hover"
-                      : message.sender === "me"
-                        ? "bg-primary"
-                        : "bg-surface-button"
-                      }`}
-                    style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }}
+                    className={`rounded-xl px-3 py-2 ${message.isDeleted ? "bg-surface-hover" : message.sender === "me" ? "bg-primary" : "bg-surface-dark"}`}
                     onTouchStart={(e) => handleTouchStart(message, e)}
                     onTouchEnd={handleTouchEnd}
                     onTouchMove={handleTouchMove}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (!message.isDeleted) {
-                        setMobileContextMenu({ messageId: message.id, message });
-                      }
-                    }}
                   >
                     {/* Reply preview */}
                     {message.replyTo && !message.isDeleted && (
-                      <div
-                        className={`mb-2 pl-2 border-l-2 ${message.sender === "me"
-                          ? "border-white/40"
-                          : "border-border"
-                          }`}
-                      >
-                        <p className={`text-xs font-medium ${message.sender === "me" ? "text-white/80" : "text-content-muted"}`}>
-                          {message.replyTo.sender === 'me' ? 'You' : studio.studioName}
+                      <div className={`mb-1 pl-2 border-l-2 ${message.sender === "me" ? "border-white/40" : "border-border"}`}>
+                        <p className={`text-[10px] font-medium ${message.sender === "me" ? "text-white/70" : "text-content-muted"}`}>
+                          {message.replyTo.sender === 'me' ? 'You' : studio?.studioName || "Studio"}
                         </p>
-                        <p className={`text-xs truncate max-w-[200px] ${message.sender === "me" ? "text-white/60" : "text-content-faint"}`}>
-                          {message.replyTo.text}
+                        <p className={`text-[10px] truncate max-w-[180px] ${message.sender === "me" ? "text-white/50" : "text-content-faint"}`}>
+                          {truncateText(message.replyTo.text, 40)}
                         </p>
                       </div>
                     )}
-
-                    {/* Message content */}
-                    <p
-                      className={`text-sm ${message.isDeleted
-                        ? "text-content-faint italic"
-                        : message.sender === "me" ? "text-white" : "text-content-primary"
-                        }`}
-                      style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-                    >
-                      {message.isDeleted
-                        ? t("chat.messageDeleted")
-                        : (message.text || "")
-                      }
+                    <p className={`text-sm ${message.isDeleted ? "text-content-faint italic" : message.sender === "me" ? "text-white" : "text-content-primary"}`}>
+                      {message.isDeleted ? "Message deleted" : message.text}
                     </p>
-
-                    {/* Time and status */}
-                    <div className={`text-[11px] mt-1 flex items-center gap-1 ${message.sender === "me" ? "text-white/70 justify-end" : "text-content-faint"
-                      }`}>
+                    <div className={`text-[10px] mt-1 flex items-center gap-1 ${message.sender === "me" ? "text-white/60 justify-end" : "text-content-faint"}`}>
                       <span>{formatTimestamp(message.timestamp)}</span>
                       {message.sender === "me" && !message.isDeleted && (
-                        <span className="ml-1">
-                          {message.status === "read" ? (
-                            <CheckCheck className="w-3 h-3 text-white" />
-                          ) : message.status === "delivered" ? (
-                            <CheckCheck className="w-3 h-3" />
-                          ) : (
-                            <Check className="w-3 h-3" />
-                          )}
+                        <span>
+                          {message.status === "read" ? <CheckCheck className="w-3 h-3" /> :
+                           message.status === "sending" ? <div className="animate-pulse w-3 h-3 rounded-full bg-white/50" /> :
+                           <Check className="w-3 h-3" />}
                         </span>
                       )}
                     </div>
                   </div>
-
-                  {/* Reaction Display */}
-                  {messageReactions[message.id] && !message.isDeleted && (
+                  {messageReactions[message._id] && !message.isDeleted && (
                     <div className={`flex gap-1 mt-1 ${message.sender === "me" ? "justify-end" : ""}`}>
-                      <button
-                        onClick={(e) => removeReaction(message.id, e)}
-                        className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors"
-                      >
-                        <span>{messageReactions[message.id]}</span>
+                      <button onClick={(e) => removeReaction(message._id, e)} className="bg-surface-button/80 rounded-full px-2 py-0.5 text-sm">
+                        <span>{messageReactions[message._id]}</span>
                       </button>
                     </div>
                   )}
@@ -647,265 +688,131 @@ export default function StudioChat() {
 
         {/* Mobile Reply Preview */}
         {replyingTo && (
-          <div className="px-3 py-2 bg-surface-hover border-t border-border flex items-center gap-3 flex-shrink-0">
-            <div className="flex-1 pl-3 border-l-2 border-primary">
+          <div className="px-3 py-2 bg-surface-hover border-t border-border flex items-center gap-2 flex-shrink-0">
+            <div className="flex-1 pl-2 border-l-2 border-primary">
               <p className="text-xs font-medium text-primary">
-                {replyingTo.sender === user ? 'You' : studio?.studioName}
+                Replying to {replyingTo.sender === 'me' ? 'You' : studio?.studioName}
               </p>
-              <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.text, 50)}</p>
+              <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.text, 40)}</p>
             </div>
-            <button
-              onClick={cancelReply}
-              className="text-content-muted hover:text-content-primary p-1"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <button onClick={cancelReply} className="p-1"><X className="w-4 h-4" /></button>
           </div>
         )}
 
         {/* Mobile Input Area */}
-        <div className="px-2 pt-1.5 pb-2.5 bg-surface-base border-t border-border flex-shrink-0 relative">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-surface-dark px-3 py-2 rounded-xl border border-border flex items-center">
-              <textarea
-                ref={mobileTextareaRef}
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onInput={(e) => {
-                  e.target.style.height = "20px";
-                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                }}
-                onKeyDown={handleKeyPress}
-                placeholder={t("chat.placeholderMobile")}
-                className="w-full bg-transparent text-content-primary outline-none text-xs resize-none max-h-[120px] leading-5 placeholder:text-content-faint"
-                rows={1}
-                style={{ height: '20px' }}
-              />
-            </div>
+        <div className="px-3 pt-2 pb-3 bg-surface-base border-t border-border flex-shrink-0">
+          <div className="flex items-center gap-2 bg-surface-dark rounded-xl px-3 py-2">
+            <button onClick={toggleEmojiPicker} className="p-1">
+              <Smile className="w-5 h-5 text-content-secondary" />
+            </button>
+            <textarea
+              ref={mobileTextareaRef}
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onInput={(e) => {
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px";
+              }}
+              onKeyDown={handleKeyPress}
+              placeholder={t("chat.placeholderMobile")}
+              className="flex-1 bg-transparent focus:outline-none text-sm resize-none max-h-[100px] leading-5 py-1"
+              rows={1}
+              style={{ height: '36px' }}
+            />
             <button
-              className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${messageText.trim()
-                ? 'bg-primary hover:bg-primary-hover text-white'
-                : 'bg-surface-button text-content-faint'
-                }`}
-              aria-label={t("chat.sendMessage")}
               onClick={handleSendMessage}
-              disabled={!messageText.trim()}
-              type="button"
+              disabled={!messageText.trim() || isSending}
+              className={`p-2 rounded-xl flex-shrink-0 ${
+                messageText.trim() && !isSending
+                  ? 'bg-primary text-white'
+                  : 'bg-surface-button text-content-faint cursor-not-allowed'
+              }`}
             >
               <Send className="w-4 h-4" />
             </button>
           </div>
         </div>
-
-        {/* Spacer for bottom bar — collapses when keyboard opens */}
-        {!keyboardOpen && (
-          <div className="flex-shrink-0 bg-surface-base" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
-        )}
+        {!keyboardOpen && <div className="flex-shrink-0" style={{ height: "calc(3rem + env(safe-area-inset-bottom, 0px))" }} />}
       </div>
 
-      {/* ==========================================
-          FIXED Desktop Message Menu (prevents overflow clipping)
-          ========================================== */}
+      {/* Message Menu Modal */}
       {activeMessageMenu && menuPosition && (
         <>
-          <div
-            className="fixed inset-0 z-[1099]"
-            onClick={() => {
-              setActiveMessageMenu(null);
-              setMenuPosition(null);
-            }}
-          />
-          <div
-            ref={messageMenuRef}
-            className="fixed z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
-            style={{
-              top: `${menuPosition.top}px`,
-              ...(menuPosition.isOwn
-                ? { right: `${menuPosition.right}px` }
-                : { left: `${menuPosition.left}px` }
-              )
-            }}
-          >
-            <button
-              onClick={() => {
-                const msg = messages.find(m => m._id === activeMessageMenu);
-                if (msg) handleReplyToMessage(msg);
-              }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"
-            >
-              <Reply size={14} />
-              {t("chat.menu.reply")}
+          <div className="fixed inset-0 z-[1099]" onClick={() => { setActiveMessageMenu(null); setMenuPosition(null); }} />
+          <div className="fixed z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border" style={{ top: `${menuPosition.top}px`, ...(menuPosition.isOwn ? { right: `${menuPosition.right}px` } : { left: `${menuPosition.left}px` }) }}>
+            <button onClick={() => { const msg = getMessageById(activeMessageMenu); if (msg) handleReplyToMessage(msg); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg flex items-center gap-2">
+              <Reply size={14} /> {t("chat.menu.reply")}
             </button>
-
-            <button
-              onClick={() => {
-                setShowReactionPicker(activeMessageMenu);
-                setActiveMessageMenu(null);
-                setMenuPosition(null);
-              }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"
-            >
-              <Smile size={14} />
-              {t("chat.menu.react")}
+            <button onClick={() => { setShowReactionPicker(activeMessageMenu); setActiveMessageMenu(null); setMenuPosition(null); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg flex items-center gap-2">
+              <Smile size={14} /> {t("chat.menu.react")}
             </button>
-
-            <button
-              onClick={() => {
-                const msg = messages.find(m => m.id === activeMessageMenu);
-                if (msg) handleCopyMessage(msg);
-              }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-content-primary flex items-center gap-2"
-            >
-              <Copy size={14} />
-              {t("chat.menu.copy")}
+            <button onClick={() => { const msg = getMessageById(activeMessageMenu); if (msg) handleCopyMessage(msg); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg flex items-center gap-2">
+              <Copy size={14} /> {t("chat.menu.copy")}
             </button>
-
             {menuPosition.isOwn && (
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(activeMessageMenu);
-                  setActiveMessageMenu(null);
-                  setMenuPosition(null);
-                }}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-red-400 flex items-center gap-2"
-              >
-                <Trash2 size={14} />
-                {t("chat.menu.delete")}
+              <button onClick={() => setShowDeleteConfirm(activeMessageMenu)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-hover rounded-lg text-red-400 flex items-center gap-2">
+                <Trash2 size={14} /> {t("chat.menu.delete")}
               </button>
             )}
           </div>
         </>
       )}
 
-      {/* ==========================================
-          Mobile Context Menu (Bottom Sheet) - matching studio
-          ========================================== */}
+      {/* Mobile Context Menu */}
       {mobileContextMenu && (
-        <div
-          className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center"
-          onClick={() => setMobileContextMenu(null)}
-        >
+        <div className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center" onClick={() => setMobileContextMenu(null)}>
           <div className="absolute inset-0 bg-black/50" />
-          <div
-            className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Handle bar */}
+          <div className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-6" onClick={(e) => e.stopPropagation()}>
             <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-4" />
-
-            <div className="space-y-1">
-              <button
-                onClick={() => {
-                  handleReplyToMessage(mobileContextMenu.message);
-                  setMobileContextMenu(null);
-                }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3"
-              >
-                <Reply size={20} />
-                {t("chat.menu.reply")}
+            <button onClick={() => { handleReplyToMessage(mobileContextMenu.message); setMobileContextMenu(null); }} className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl flex items-center gap-3">
+              <Reply size={20} /> Reply
+            </button>
+            <button onClick={() => { setShowReactionPicker(mobileContextMenu.messageId); setMobileContextMenu(null); }} className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl flex items-center gap-3">
+              <Smile size={20} /> React
+            </button>
+            <button onClick={() => handleCopyMessage(mobileContextMenu.message)} className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl flex items-center gap-3">
+              <Copy size={20} /> Copy
+            </button>
+            {mobileContextMenu.message?.sender === 'me' && (
+              <button onClick={() => setShowDeleteConfirm(mobileContextMenu.messageId)} className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-red-400 flex items-center gap-3">
+                <Trash2 size={20} /> Delete
               </button>
-
-              <button
-                onClick={() => {
-                  setShowReactionPicker(mobileContextMenu.messageId);
-                  setMobileContextMenu(null);
-                }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3"
-              >
-                <Smile size={20} />
-                {t("chat.menu.react")}
-              </button>
-
-              <button
-                onClick={() => {
-                  handleCopyMessage(mobileContextMenu.message);
-                }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3"
-              >
-                <Copy size={20} />
-                {t("chat.menu.copy")}
-              </button>
-
-              {mobileContextMenu.message?.sender === 'me' && (
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirm(mobileContextMenu.messageId);
-                    setMobileContextMenu(null);
-                  }}
-                  className="w-full text-left px-4 py-3 text-base hover:bg-surface-hover rounded-xl text-red-400 flex items-center gap-3"
-                >
-                  <Trash2 size={20} />
-                  {t("chat.menu.delete")}
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={() => setMobileContextMenu(null)}
-              className="w-full mt-4 px-4 py-3 text-base bg-surface-hover hover:bg-surface-button-hover rounded-xl text-content-primary font-medium"
-            >
-              {t("common.cancel")}
+            )}
+            <button onClick={() => setMobileContextMenu(null)} className="w-full mt-4 px-4 py-3 text-base bg-surface-hover hover:bg-surface-button-hover rounded-xl font-medium">
+              Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* ==========================================
-          Delete Confirmation Modal
-          ========================================== */}
+      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
-          <div className="bg-surface-button rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-border">
-            <h4 className="text-content-primary font-medium mb-2">{t("chat.deleteModal.title")}</h4>
-            <p className="text-content-muted text-sm mb-4">{t("chat.deleteModal.description")}</p>
+          <div className="bg-surface-button rounded-xl p-5 mx-4 max-w-sm w-full">
+            <h4 className="text-content-primary font-medium mb-2">Delete Message?</h4>
+            <p className="text-content-muted text-sm mb-4">This message will be marked as deleted.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2.5 bg-surface-hover text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                onClick={() => handleDeleteMessage(showDeleteConfirm)}
-                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
-              >
-                {t("common.delete")}
-              </button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-surface-hover text-content-primary text-sm rounded-xl">Cancel</button>
+              <button onClick={() => handleDeleteMessage(showDeleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl">Delete</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==========================================
-          Reaction Picker (Global, Desktop + Mobile)
-          ========================================== */}
+      {/* Reaction Picker */}
       {showReactionPicker && (
         <>
-          <div
-            className="fixed inset-0 z-[9998] bg-black/50"
-            onClick={() => setShowReactionPicker(null)}
-          />
-          <div
-            className="fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <EmojiPicker
-              isOpen={true}
-              onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)}
-              onClose={() => setShowReactionPicker(null)}
-              pickerRef={reactionPickerRef}
-            />
+          <div className="fixed inset-0 z-[9998] bg-black/50" onClick={() => setShowReactionPicker(null)} />
+          <div className="fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <EmojiPicker isOpen={true} onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)} onClose={() => setShowReactionPicker(null)} pickerRef={reactionPickerRef} />
           </div>
         </>
       )}
 
-      {/* ==========================================
-          Copied Toast
-          ========================================== */}
+      {/* Copied Toast */}
       {showCopiedToast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-content-primary px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
-          {t("chat.copied")}
+          Copied!
         </div>
       )}
     </div>

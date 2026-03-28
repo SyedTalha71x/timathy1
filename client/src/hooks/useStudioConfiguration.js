@@ -270,9 +270,7 @@ function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       mobile: "",
-      operatorPhone: "",
-      operatorEmail: "",
-      operatorMobile: "",
+ 
     },
     staff: {
       roles: DEFAULT_STAFF_ROLES,

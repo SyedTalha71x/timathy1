@@ -40,7 +40,7 @@ export const accessStudioChat = async (chatData) => {
 
 // fetch all studio chat
 
-export const fetchStudioChat = async () => {
+export const stusfetchStudioChat = async () => {
     const res = await api.get('/chat/studio/chats', { withCredentials: true })
     return res.data;
 }

@@ -123,7 +123,11 @@ const studioSchema = new mongoose.Schema(
     post: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'post'
-    }]
+    }],
+    chat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'chats'
+    }
   },
   { timestamps: true }
 );
