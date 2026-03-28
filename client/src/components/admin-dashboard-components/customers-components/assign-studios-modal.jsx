@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useMemo, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { X, Search, ArrowRight, Check, Building, Network, ChevronDown } from "lucide-react"
 
 // ── Avatars ──
@@ -38,6 +39,7 @@ const AssignStudioModal = ({
   searchQuery: _searchQuery,
   onSearchChange: _onSearchChange,
 }) => {
+  const { t } = useTranslation()
   const [studioSearchTerm, setStudioSearchTerm] = useState("")
   const [franchiseDropdownOpen, setFranchiseDropdownOpen] = useState(false)
   const [franchiseSearch, setFranchiseSearch] = useState("")
@@ -84,7 +86,7 @@ const AssignStudioModal = ({
 
   const handleAssign = (studioId) => {
     if (!selectedFranchiseForAssignment) {
-      toast.error("Please select a franchise first")
+      toast.error(t("admin.customers.assignStudios.selectFirst"))
       return
     }
     setJustAssigned(studioId)
@@ -107,7 +109,7 @@ const AssignStudioModal = ({
         {/* Header + Step 1 */}
         <div className="p-4 md:p-6 pb-4 flex-shrink-0 border-b border-gray-700">
           <div className="flex justify-between items-center mb-5">
-            <h2 className="text-white text-lg font-semibold">Assign Studios to Franchise</h2>
+            <h2 className="text-white text-lg font-semibold">{t("admin.customers.assignStudios.title")}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
@@ -116,7 +118,7 @@ const AssignStudioModal = ({
           {/* Step 1: Select Franchise */}
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold block mb-2">
-              1. Select Franchise
+              {t("admin.customers.assignStudios.selectFranchise")}
             </label>
             <div className="relative" ref={dropdownRef}>
               <button
@@ -133,14 +135,14 @@ const AssignStudioModal = ({
                     <FranchiseAvatar name={selectedFranchiseForAssignment.name} />
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium truncate">{selectedFranchiseForAssignment.name}</p>
-                      <p className="text-xs text-gray-500">{selectedFranchiseForAssignment.city || "No location"}</p>
+                      <p className="text-xs text-gray-500">{selectedFranchiseForAssignment.city || t("admin.customers.assignStudios.noLocation")}</p>
                     </div>
                     <Check size={16} className="text-blue-400 flex-shrink-0" />
                   </>
                 ) : (
                   <>
                     <Network size={18} className="text-gray-500 flex-shrink-0" />
-                    <span className="text-gray-500 text-sm flex-1">Click to select a franchise…</span>
+                    <span className="text-gray-500 text-sm flex-1">{t("admin.customers.assignStudios.clickToSelect")}</span>
                   </>
                 )}
                 <ChevronDown size={16} className={`text-gray-400 transition-transform flex-shrink-0 ${franchiseDropdownOpen ? "rotate-180" : ""}`} />
@@ -153,7 +155,7 @@ const AssignStudioModal = ({
                       <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                       <input
                         type="text"
-                        placeholder="Search franchises…"
+                        placeholder={t("admin.customers.assignStudios.searchFranchises")}
                         value={franchiseSearch}
                         onChange={(e) => setFranchiseSearch(e.target.value)}
                         className="w-full bg-[#141414] text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none border border-[#333]"
@@ -181,7 +183,7 @@ const AssignStudioModal = ({
                         )}
                       </button>
                     )) : (
-                      <div className="px-4 py-4 text-sm text-gray-500 text-center">No franchises found</div>
+                      <div className="px-4 py-4 text-sm text-gray-500 text-center">{t("admin.customers.assignStudios.noFranchises")}</div>
                     )}
                   </div>
                 </div>
@@ -193,7 +195,7 @@ const AssignStudioModal = ({
         {/* Step 2: Studios list */}
         <div className="p-4 md:p-6 pt-4 overflow-y-auto flex-1">
           <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold block mb-3">
-            2. Assign Unassigned Studios
+            {t("admin.customers.assignStudios.assignStudios")}
           </label>
 
           {/* Studio search */}
@@ -201,7 +203,7 @@ const AssignStudioModal = ({
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <input
               type="text"
-              placeholder="Search studios…"
+              placeholder={t("admin.customers.assignStudios.searchStudios")}
               value={studioSearchTerm}
               onChange={(e) => setStudioSearchTerm(e.target.value)}
               className="w-full bg-[#141414] text-white rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-blue-500/40"
@@ -237,9 +239,9 @@ const AssignStudioModal = ({
                       }`}
                     >
                       {isAssigning ? (
-                        <><Check size={12} /> Assigned</>
+                        <><Check size={12} /> {t("admin.customers.assignStudios.assigned")}</>
                       ) : (
-                        <><ArrowRight size={12} /> Assign</>
+                        <><ArrowRight size={12} /> {t("admin.customers.studioMgmt.assign")}</>
                       )}
                     </button>
                   </div>
@@ -248,11 +250,11 @@ const AssignStudioModal = ({
             ) : (unassignedStudios || []).length === 0 ? (
               <div className="text-center py-10 text-gray-400">
                 <Building size={36} className="mx-auto mb-3 opacity-40" />
-                <p className="text-sm">All studios are already assigned to franchises.</p>
+                <p className="text-sm">{t("admin.customers.assignStudios.allAssigned")}</p>
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500 text-sm">
-                No studios match "{studioSearchTerm}"
+                {t("admin.customers.assignStudios.noMatch", { search: studioSearchTerm })}
               </div>
             )}
           </div>

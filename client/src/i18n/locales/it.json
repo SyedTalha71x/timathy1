@@ -44,7 +44,10 @@
       "presets": "Preimpostazioni",
       "custom": "Personalizzato",
       "confirm": "Conferma"
-    }
+    },
+    "copy": "Copia",
+    "no": "No",
+    "yes": "Sì"
   },
   "languages": {
     "en": "Inglese",
@@ -928,7 +931,25 @@
       "avgRevenuePerStudio": "Ricavo medio/Studio",
       "newMembers": "+{{count}} nuovi membri",
       "fromLastMonth": "{{percent}}% rispetto al mese scorso",
-      "growth": "{{percent}}% di crescita"
+      "growth": "{{percent}}% di crescita",
+      "activeFranchises": "Franchise attive",
+      "conversionLabel": "Tasso di conversione",
+      "franchisesAcquired": "Franchise acquisite",
+      "leadsGenerated": "Lead generati",
+      "membershipFees": "Quote associative",
+      "monthlyRevenue": "Ricavi mensili",
+      "newLeadsPerMonth": "Nuovi lead al mese",
+      "revenue": "Ricavi",
+      "stageContacted": "Contattato",
+      "stageConverted": "Convertito",
+      "stageGenerated": "Generato",
+      "stageQualified": "Qualificato",
+      "studiosAcquired": "Studi acquisiti",
+      "successRate": "Tasso di successo",
+      "topPerformerLabel": "Miglior performer",
+      "topSourceLabel": "Fonte principale",
+      "totalStudiosInNetwork": "Totale studi nella rete",
+      "website": "Sito web"
     },
     "marketplace": {
       "title": "Marketplace",
@@ -961,7 +982,8 @@
         "unpinProduct": "Sgancia prodotto",
         "viewInfo": "Vedi info",
         "editProduct": "Modifica prodotto",
-        "deleteProduct": "Elimina prodotto"
+        "deleteProduct": "Elimina prodotto",
+        "articleNo": "N. articolo"
       },
       "empty": {
         "noProducts": "Nessun prodotto aggiunto",
@@ -1061,7 +1083,9 @@
         "runPayment": "Esegui pagamento",
         "checkFunds": "Verifica fondi",
         "showIban": "Mostra IBAN completo",
-        "hideIban": "Nascondi IBAN"
+        "hideIban": "Nascondi IBAN",
+        "continue": "Continua",
+        "paymentRunHistory": "Cronologia pagamenti"
       },
       "empty": "Nessuna transazione trovata per i tuoi criteri.",
       "clearAll": "Cancella tutto",
@@ -1083,7 +1107,9 @@
         "draft": "Bozze",
         "archive": "Archivio",
         "error": "Fallito",
-        "trash": "Cestino"
+        "trash": "Cestino",
+        "drafts": "Bozze",
+        "failed": "Fallite"
       },
       "list": {
         "pinned": "Fissato",
@@ -1091,14 +1117,17 @@
         "selected": "{{count}} selezionato/i",
         "noEmails": "Nessuna e-mail in questa cartella",
         "noSubject": "(Senza oggetto)",
-        "draft": "Bozza"
+        "draft": "Bozza",
+        "nSelected": "{{count}} selezionati"
       },
       "detail": {
         "noSelected": "Nessuna e-mail selezionata",
         "noSelectedDesc": "Seleziona un'e-mail dalla lista per visualizzarne il contenuto",
         "attachments": "Allegati",
         "retrySend": "Riprova invio",
-        "reply": "Rispondi"
+        "reply": "Rispondi",
+        "cc": "CC",
+        "to": "A"
       },
       "actions": {
         "markAsRead": "Segna come letto",
@@ -1108,18 +1137,23 @@
         "deletePermanently": "Elimina definitivamente",
         "retry": "Riprova",
         "pin": "Fissa",
-        "unpin": "Sgancia"
+        "unpin": "Sgancia",
+        "markRead": "Segna come letto",
+        "markUnread": "Segna come non letto"
       },
       "deleteConfirm": {
         "title": "Eliminare definitivamente?",
         "description": "Questa azione non può essere annullata",
         "single": "Sei sicuro di voler eliminare definitivamente questa e-mail?",
-        "multiple": "Sei sicuro di voler eliminare definitivamente {{count}} e-mail?"
+        "multiple": "Sei sicuro di voler eliminare definitivamente {{count}} e-mail?",
+        "confirmMultiple": "Sei sicuro di voler eliminare definitivamente {{count}} e-mail?",
+        "confirmSingle": "Sei sicuro di voler eliminare definitivamente questa e-mail?"
       },
       "toast": {
         "sent": "E-mail inviata con successo!",
         "fillRequired": "Per favore compila tutti i campi obbligatori"
-      }
+      },
+      "noSubject": "(Nessun oggetto)"
     },
     "todo": {
       "title": "Attività",
@@ -1160,7 +1194,14 @@
         "ongoing": "Nessuna attività in corso",
         "completed": "Nessuna attività completata",
         "canceled": "Nessuna attività annullata"
-      }
+      },
+      "backToTasks": "Torna alle attività",
+      "canceledClickRestore": "Annullata — clicca per ripristinare",
+      "clearDateTime": "Cancella data e ora",
+      "moreActions": "Altre azioni",
+      "repeating": "Ricorrente",
+      "setDueDate": "Imposta scadenza",
+      "taskTitlePlaceholder": "Titolo attività..."
     },
     "notes": {
       "title": "Note",
@@ -1173,14 +1214,65 @@
       "empty": {
         "title": "Ancora nessuna nota",
         "description": "Crea la tua prima nota"
-      }
+      },
+      "manageTags": "Gestisci tag",
+      "noNoteSelected": "Nessuna nota selezionata",
+      "pinNote": "Fissa nota",
+      "selectNoteHint": "Seleziona una nota dalla lista per vederne il contenuto",
+      "showLess": "Mostra meno",
+      "showMore": "Mostra di più",
+      "sort": {
+        "custom": "Personalizzato",
+        "date": "Data",
+        "title": "Titolo"
+      },
+      "startWriting": "Inizia a scrivere...",
+      "tags": "Tag",
+      "unpinNote": "Rimuovi fissaggio"
     },
     "leads": {
       "title": "Lead",
       "search": {
-        "placeholder": "Cerca lead..."
+        "placeholder": "Cerca lead...",
+        "addMore": "Aggiungi altri",
+        "clearAll": "Cancella tutto",
+        "noResults": "Nessun lead trovato"
       },
-      "addLead": "Aggiungi lead"
+      "addLead": "Aggiungi lead",
+      "columns": {
+        "activeProspect": "Prospect attivo",
+        "demoAccess": "Accesso demo",
+        "missedCall": "Chiamata persa",
+        "passiveProspect": "Prospect passivo",
+        "uninterested": "Non interessato"
+      },
+      "compactView": "Vista compatta",
+      "createLead": "Crea lead",
+      "deleteModal": {
+        "confirmPrefix": "Sei sicuro di voler eliminare",
+        "confirmSuffix": "?",
+        "title": "Elimina lead"
+      },
+      "demoModal": {
+        "createDemo": "Crea accesso demo",
+        "description": "Vuoi creare un accesso demo per questo lead?",
+        "justMove": "Solo sposta",
+        "title": "Accesso demo"
+      },
+      "detailedView": "Vista dettagliata",
+      "expandColumn": "Espandi colonna",
+      "toast": {
+        "added": "Lead aggiunto con successo!",
+        "columnSaved": "Ordine colonne salvato",
+        "deleted": "Lead eliminato con successo!",
+        "movedTo": "Lead spostato in {{column}}",
+        "movedWithNote": "Lead spostato con nota",
+        "noteAdded": "Nota aggiunta con successo",
+        "noteAddedAndMoved": "Nota aggiunta e lead spostato",
+        "reordered": "Lead riordinati",
+        "updated": "Lead aggiornato con successo!"
+      },
+      "view": "Vista"
     },
     "exercises": {
       "title": "Esercizi",
@@ -1203,13 +1295,37 @@
       "toast": {
         "created": "Esercizio creato con successo!",
         "updated": "Esercizio aggiornato con successo!",
-        "deleted": "Esercizio eliminato con successo!"
-      }
+        "deleted": "Esercizio eliminato con successo!",
+        "equipmentAdded": "Attrezzatura aggiunta",
+        "equipmentExists": "L'attrezzatura esiste già",
+        "equipmentRemoved": "Attrezzatura rimossa",
+        "equipmentUpdated": "Attrezzatura aggiornata",
+        "muscleAdded": "Gruppo muscolare aggiunto",
+        "muscleExists": "Il gruppo muscolare esiste già",
+        "muscleRemoved": "Gruppo muscolare rimosso",
+        "muscleUpdated": "Gruppo muscolare aggiornato",
+        "requiredFields": "Compila tutti i campi obbligatori"
+      },
+      "actions": {
+        "delete": "Elimina",
+        "edit": "Modifica",
+        "view": "Visualizza"
+      },
+      "allLevels": "Tutti i livelli",
+      "noResults": "Nessun esercizio trovato",
+      "translations": "Traduzioni",
+      "uploadExercise": "Carica esercizio"
     },
     "customers": {
-      "title": "Clienti",
+      "title": "Studi",
       "search": {
-        "placeholder": "Cerca clienti..."
+        "placeholder": "Cerca clienti...",
+        "addMore": "Aggiungi altri",
+        "clearAllFilters": "Cancella tutti i filtri",
+        "noFranchisesFound": "Nessuna franchise trovata",
+        "noStudiosFound": "Nessuno studio trovato",
+        "searchFranchises": "Cerca franchise...",
+        "searchStudios": "Cerca studi..."
       },
       "toast": {
         "leadUpdated": "Lead aggiornato con successo!",
@@ -1218,7 +1334,354 @@
         "franchiseUpdated": "Franchising aggiornato con successo",
         "franchiseCreated": "Franchising creato con successo",
         "detailsUpdated": "Dettagli aggiornati con successo",
-        "franchiseArchived": "Franchising archiviato con successo"
+        "franchiseArchived": "Franchising archiviato con successo",
+        "billingPeriodAdded": "Periodo di fatturazione aggiunto",
+        "contingentUpdated": "Contingente aggiornato",
+        "downloading": "Download in corso...",
+        "filesUploaded": "File caricati con successo",
+        "studioAssigned": "Studio assegnato alla franchise",
+        "studioUnassigned": "Studio rimosso dalla franchise",
+        "tempMemberCreated": "Membro temporaneo creato",
+        "trainingPlanAssigned": "Piano di allenamento assegnato",
+        "trainingPlanRemoved": "Piano di allenamento rimosso"
+      },
+      "actions": {
+        "details": "Dettagli",
+        "docs": "Doc",
+        "documents": "Documenti",
+        "edit": "Modifica",
+        "finances": "Finanze",
+        "history": "Cronologia",
+        "payment": "Pagamento",
+        "viewDetails": "Vedi dettagli"
+      },
+      "billing": {
+        "current": "Attuale",
+        "future": "Futuro"
+      },
+      "buttons": {
+        "assignToFranchise": "Assegna a franchise",
+        "createFirstFranchise": "Crea prima franchise",
+        "createFranchise": "Crea franchise"
+      },
+      "empty": {
+        "noActiveStudios": "Nessuno studio attivo",
+        "noFranchises": "Nessuna franchise trovata",
+        "noInactiveStudios": "Nessuno studio inattivo",
+        "noStudios": "Nessuno studio trovato"
+      },
+      "filters": {
+        "active": "Attivo",
+        "all": "Tutti",
+        "archived": "Archiviato",
+        "inactive": "Inattivo",
+        "title": "Filtri"
+      },
+      "franchiseTable": {
+        "actions": "Azioni",
+        "franchise": "Franchise",
+        "login": "Accesso",
+        "owner": "Proprietario",
+        "status": "Stato",
+        "studios": "Studi"
+      },
+      "franchisesTitle": "Franchise",
+      "mobile": {
+        "contractsCount": "{{count}} contratti",
+        "leadsCount": "{{count}} lead",
+        "membersCount": "{{count}} membri",
+        "ownerLabel": "Proprietario",
+        "staffCount": "{{count}} personale",
+        "studiosCount": "{{count}} studi"
+      },
+      "status": {
+        "active": "Attivo",
+        "archived": "Archiviato",
+        "inactive": "Inattivo"
+      },
+      "studioTable": {
+        "accessRole": "Ruolo di accesso",
+        "actions": "Azioni",
+        "number": "Numero",
+        "owner": "Proprietario",
+        "stats": "Statistiche",
+        "status": "Stato",
+        "studioName": "Nome studio"
+      },
+      "tabs": {
+        "franchise": "Franchise",
+        "studios": "Studi"
+      },
+      "shared": {
+        "about": "Informazioni",
+        "details": "Dettagli",
+        "general": "Generale",
+        "email": "E-mail",
+        "phone": "Telefono",
+        "website": "Website",
+        "owner": "Proprietario",
+        "street": "Via",
+        "country": "Paese",
+        "city": "Città",
+        "zipCodeCity": "CAP e città",
+        "zipCode": "CAP",
+        "address": "Indirizzo",
+        "active": "Attivo",
+        "inactive": "Inattivo",
+        "archived": "Archiviato",
+        "status": "Status",
+        "important": "Importante",
+        "note": "Nota",
+        "addNote": "Aggiungi nota",
+        "updateNote": "Aggiorna nota",
+        "enterNote": "Inserisci nota...",
+        "noteAdded": "Nota aggiunta",
+        "noteRemoved": "Nota rimossa",
+        "noteUpdated": "Nota aggiornata",
+        "enterNoteText": "Inserire il testo della nota",
+        "specialNotes": "Note speciali",
+        "specialNotesFor": "Note speciali per",
+        "validFrom": "Valido dal (opzionale)",
+        "validUntil": "Valido fino al (opzionale)",
+        "source": "Fonte",
+        "selectSource": "Seleziona fonte",
+        "accessRole": "Ruolo di accesso",
+        "loginEmail": "E-mail di accesso",
+        "loginCredentials": "Credenziali di accesso",
+        "password": "Password",
+        "confirmPassword": "Conferma password",
+        "logo": "Logo",
+        "uploadLogo": "Carica logo",
+        "changeLogo": "Cambia logo",
+        "archive": "Archivia",
+        "unarchive": "Ripristina",
+        "saveChanges": "Salva modifiche",
+        "contactInfo": "Informazioni di contatto",
+        "credentials": "Credenziali",
+        "created": "Creato",
+        "sources": {
+          "website": "Website",
+          "googleAds": "Google Ads",
+          "socialMedia": "Social Media",
+          "socialMediaAds": "Social Media Ads",
+          "referral": "Referenza",
+          "walkin": "Visita diretta",
+          "emailCampaign": "Campagna e-mail",
+          "inboundCall": "Chiamata in entrata",
+          "coldCall": "Chiamata a freddo (Outbound)",
+          "offlineAd": "Pubblicità offline",
+          "phoneCall": "Telefonata",
+          "event": "Evento",
+          "other": "Altro"
+        },
+        "categories": {
+          "general": "General",
+          "compliance": "Conformità",
+          "contractIssue": "Problema contrattuale",
+          "escalation": "Escalation",
+          "followUp": "Follow-up",
+          "maintenance": "Manutenzione",
+          "onboarding": "Onboarding"
+        },
+        "validRange": "Valido: {{start}} - {{end}}",
+        "validFromDate": "Valido dal: {{date}}",
+        "validUntilDate": "Valido fino al: {{date}}"
+      },
+      "studioOptions": {
+        "title": "Edit Studio Options",
+        "chooseConfig": "Choose configuration type for",
+        "studioConfig": "Studio Configuration",
+        "studioConfigDesc": "Manage studio settings, resources, and appearance",
+        "adminConfig": "Admin Configuration",
+        "adminConfigDesc": "Manage admin settings and system configuration"
+      },
+      "payment": {
+        "title": "Dettagli di pagamento",
+        "accountHolder": "Titolare del conto",
+        "firstName": "Nome",
+        "lastName": "Cognome",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "bankName": "Nome della banca",
+        "sepaMandateNumber": "Numero mandato SEPA",
+        "autoGenerate": "Genera automaticamente il numero di riferimento del mandato SEPA",
+        "sepaWarning": "L'aggiornamento dei dati bancari richiede un nuovo mandato SEPA.",
+        "savePayment": "Salva dettagli di pagamento"
+      },
+      "history": {
+        "title": "Cronologia studio - {{name}}",
+        "generalChanges": "Modifiche generali",
+        "contractChanges": "Modifiche contrattuali",
+        "financeTransactions": "Transazioni finanziarie",
+        "ticketChangelog": "Cronologia ticket",
+        "noData": "Nessun(a) {{title}}"
+      },
+      "studioMgmt": {
+        "title": "Gestisci studi",
+        "assigned": "Assegnati",
+        "available": "Disponibili",
+        "searchAssigned": "Cerca assegnati…",
+        "searchAvailable": "Cerca disponibili…",
+        "assign": "Assegna",
+        "added": "Aggiunto",
+        "remove": "Rimuovi",
+        "removed": "Rimosso",
+        "editStudio": "Modifica studio",
+        "noAssigned": "Nessuno studio assegnato a questa franchise.",
+        "allAssigned": "Tutti gli studi sono assegnati a franchise.",
+        "noMatch": "Nessuno studio corrisponde a \"{{search}}\""
+      },
+      "assignStudios": {
+        "title": "Assegna studi a franchise",
+        "selectFranchise": "1. Seleziona franchise",
+        "clickToSelect": "Clicca per selezionare una franchise…",
+        "noLocation": "Nessuna sede",
+        "searchFranchises": "Cerca franchise…",
+        "noFranchises": "Nessuna franchise trovata",
+        "assignStudios": "2. Assegna studi non assegnati",
+        "searchStudios": "Cerca studi…",
+        "assigned": "Assegnato",
+        "allAssigned": "Tutti gli studi sono già assegnati a franchise.",
+        "noMatch": "Nessuno studio corrisponde a \"{{search}}\"",
+        "selectFirst": "Seleziona prima una franchise"
+      },
+      "adminConfigModal": {
+        "title": "Edit Admin Configuration",
+        "saved": "Admin configuration saved",
+        "additionalInfo": "Additional Information",
+        "enterDetails": "Enter studio details, focus areas, special features...",
+        "basic": "Basic",
+        "basicDesc": "Limited access with essential features only",
+        "standard": "Standard",
+        "standardDesc": "Standard access with core features",
+        "premium": "Premium",
+        "premiumDesc": "Full platform access with all features"
+      },
+      "editConfig": {
+        "configSaved": "Configuration saved successfully!",
+        "studioDesc": "Studio Description",
+        "studioDescPlaceholder": "Describe your studio, its mission, facilities, and what makes it unique...",
+        "specialNotePlaceholder": "Enter special note or announcement...",
+        "noteContent": "Note Content",
+        "markImportant": "Mark as Important",
+        "activePeriod": "Active Period",
+        "studioCategories": "Studio Categories",
+        "addCategory": "Add New Category",
+        "categoryName": "Category name",
+        "deleteCategory": "Delete Category",
+        "deleteCategoryConfirm": "Are you sure you want to delete this category?",
+        "categoryAdded": "Category Added",
+        "categoryAddedDesc": "New studio category has been added.",
+        "categoryDeleted": "Category Deleted",
+        "categoryDeletedDesc": "Studio category has been deleted.",
+        "fitnessStudio": "Fitness Studio",
+        "emsStudio": "EMS Studio",
+        "selfServiceStudio": "Self-service Studio",
+        "navMenuAccess": "Navigation Menu Access",
+        "menuAccess": "Menu Access:",
+        "managePermissions": "Manage Menu Permissions",
+        "permissions": "Permissions",
+        "permissionsUpdated": "Permissions Updated",
+        "permissionsUpdatedDesc": "Role permissions have been updated successfully.",
+        "newRole": "New Role",
+        "deleteRole": "Delete Role",
+        "deleteRoleConfirm": "Are you sure you want to delete this role?",
+        "roleDeleted": "Role Deleted",
+        "roleDeletedDesc": "Role has been successfully deleted.",
+        "noRoles": "No roles created yet",
+        "noRolesDesc": "Add your first role to get started",
+        "saveAsTemplate": "Save as Template",
+        "enterTemplateName": "Enter template name...",
+        "templateSaved": "Template Saved",
+        "templateSavedDesc": "Permission template has been saved successfully."
+      },
+      "franchiseDetails": {
+        "title": "Franchise Details",
+        "info": "Franchise Information",
+        "name": "Franchise Name",
+        "assignedStudios": "Assigned Studios",
+        "noNotes": "No special notes for this franchise.",
+        "noStudios": "No studios assigned to this franchise yet."
+      },
+      "franchiseForm": {
+        "createTitle": "Create New Franchise",
+        "editTitle": "Edit Franchise",
+        "newFranchise": "New Franchise",
+        "basicInfo": "Basic Information",
+        "franchiseName": "Franchise Name",
+        "ownerName": "Owner Name",
+        "enterFullName": "Enter full name",
+        "streetAddress": "Street Address",
+        "selectCountry": "Select Country",
+        "aboutFranchise": "About Franchise",
+        "aboutPlaceholder": "Describe your franchise, mission, values, services offered, etc...",
+        "franchiseLogo": "Franchise Logo",
+        "createFranchise": "Create Franchise",
+        "countries": {
+          "germany": "Germania",
+          "austria": "Austria",
+          "switzerland": "Svizzera",
+          "france": "Francia",
+          "italy": "Italia",
+          "spain": "Spagna",
+          "netherlands": "Paesi Bassi",
+          "belgium": "Belgio",
+          "uk": "Regno Unito",
+          "us": "Stati Uniti"
+        }
+      },
+      "permissionModal": {
+        "title": "Gestisci permessi",
+        "role": "Ruolo",
+        "noPermissions": "No permissions found for role:",
+        "members": "Membri",
+        "staff": "Personale",
+        "leads": "Leads",
+        "contracts": "Contratti",
+        "finances": "Finanze",
+        "appointments": "Appuntamenti",
+        "training": "Allenamento",
+        "analytics": "Analisi",
+        "communication": "Comunicazione",
+        "configuration": "Configuration",
+        "notes": "Note",
+        "todoTags": "Attività e tag",
+        "sellingProducts": "Vendita e prodotti",
+        "activityMonitor": "Monitor attività"
+      },
+      "studioDetails": {
+        "title": "Studio Details",
+        "info": "Studio Information",
+        "name": "Studio Name",
+        "number": "Studio Number",
+        "openingHours": "Orari di apertura",
+        "noHours": "Nessun orario impostato",
+        "paymentSettings": "Impostazioni pagamento",
+        "ibanFull": "International Bank Account Number",
+        "bicFull": "Bank Identifier Code",
+        "sepaCreditor": "SEPA Creditor Identifier",
+        "creditorName": "Nome creditore",
+        "creditorId": "ID creditore",
+        "vatNumber": "Partita IVA",
+        "statistics": "Statistiche",
+        "members": "Members",
+        "contracts": "Contracts",
+        "contract": "Contract",
+        "contractStart": "Contract Start",
+        "contractEnd": "Contract End",
+        "noNotes": "Nessuna nota speciale per questo studio.",
+        "view": "View",
+        "payment": "Payment",
+        "closed": "Chiuso",
+        "days": {
+          "monday": "Lunedì",
+          "tuesday": "Martedì",
+          "wednesday": "Mercoledì",
+          "thursday": "Giovedì",
+          "friday": "Venerdì",
+          "saturday": "Sabato",
+          "sunday": "Domenica"
+        }
       }
     },
     "demoAccess": {
@@ -1233,13 +1696,75 @@
         "deleted": "Account demo eliminato!",
         "activated": "Account attivato!",
         "deactivated": "Account disattivato!",
-        "emailSent": "E-mail inviata con successo!"
+        "emailSent": "E-mail inviata con successo!",
+        "createdWithoutEmail": "Account demo creato (e-mail non inviata)",
+        "reactivated": "Account demo riattivato!"
+      },
+      "card": {
+        "days": "giorni",
+        "daysRemaining": "{{count}} giorni rimanenti",
+        "deactivated": "Disattivato",
+        "edit": "Modifica",
+        "email": "E-mail",
+        "expired": "Scaduto",
+        "features": "Funzionalità",
+        "journal": "Diario",
+        "lastLogin": "Ultimo accesso",
+        "loginsLabel": "Accessi",
+        "unknown": "Sconosciuto"
+      },
+      "createAccess": "Crea accesso",
+      "deleteModal": {
+        "confirmMessage": "Sei sicuro di voler eliminare questo account demo?",
+        "subtitle": "Questa azione non può essere annullata",
+        "thisStudio": "questo studio",
+        "title": "Elimina account demo"
+      },
+      "empty": {
+        "createHint": "Crea il tuo primo account demo",
+        "filterHint": "Prova a modificare la ricerca o i filtri",
+        "title": "Nessun account demo trovato"
+      },
+      "filter": {
+        "active": "Attivo",
+        "all": "Tutti",
+        "inactive": "Inattivo"
+      },
+      "journal": {
+        "accessActivated": "Accesso attivato",
+        "accessCreated": "Accesso creato",
+        "accessDeactivated": "Accesso disattivato",
+        "accessUpdated": "Accesso aggiornato",
+        "createdFor": "Creato per {{name}}",
+        "emailSent": "E-mail inviata",
+        "emailSentTo": "E-mail inviata a {{email}}",
+        "expiredAutoDeactivated": "Scaduto — disattivato automaticamente",
+        "reactivatedFor": "Riattivato per {{name}}",
+        "statusInactive": "Stato: Inattivo",
+        "updatedFor": "Aggiornato per {{name}}"
+      },
+      "reactivateModal": {
+        "confirm": "Riattiva",
+        "durationHint": "Imposta nuova durata per il periodo demo",
+        "durationLabel": "Durata (giorni)",
+        "subtitle": "Riattiva questo account demo",
+        "title": "Riattiva accesso demo"
+      },
+      "sort": {
+        "created": "Creato",
+        "duration": "Durata",
+        "logins": "Accessi",
+        "name": "Nome",
+        "sortBy": "Ordina per",
+        "status": "Stato"
       }
     },
     "contract": {
       "title": "Contratti",
       "search": {
-        "placeholder": "Cerca contratti..."
+        "placeholder": "Cerca contratti...",
+        "addMore": "Aggiungi altri",
+        "noMembers": "Nessun membro trovato"
       },
       "table": {
         "contractNo": "N° contratto",
@@ -1248,7 +1773,9 @@
         "contractType": "Tipo di contratto",
         "status": "Stato",
         "autoRenewal": "Rinnovo automatico",
-        "contractDuration": "Durata del contratto"
+        "contractDuration": "Durata del contratto",
+        "actions": "Azioni",
+        "contract": "Contratto"
       },
       "status": {
         "active": "Attivo",
@@ -1263,7 +1790,17 @@
         "pauseContract": "Pausa contratto",
         "cancelContract": "Annulla contratto",
         "resumeContract": "Riprendi contratto",
-        "deleteContract": "Elimina contratto"
+        "deleteContract": "Elimina contratto",
+        "addBonusTime": "Aggiungi tempo bonus",
+        "change": "Modifica",
+        "changeContract": "Modifica contratto",
+        "editBonus": "Modifica bonus",
+        "editBonusTime": "Modifica tempo bonus",
+        "openDocuments": "Apri documenti",
+        "pause": "Sospendi",
+        "removeBonusTime": "Rimuovi tempo bonus",
+        "renew": "Rinnova",
+        "resume": "Riprendi"
       },
       "toast": {
         "resumed": "Contratto ripreso con successo",
@@ -1271,7 +1808,79 @@
         "deleted": "Contratto eliminato con successo",
         "bonusRemoved": "Tempo bonus rimosso",
         "added": "Contratto aggiunto con successo",
-        "updated": "Contratto aggiornato con successo"
+        "updated": "Contratto aggiornato con successo",
+        "bonusAdded": "Tempo bonus aggiunto con successo",
+        "bonusUpdated": "Tempo bonus aggiornato con successo",
+        "cancelled": "Contratto cancellato con successo",
+        "changeDraft": "Modifica salvata come bozza",
+        "changeScheduled": "Modifica contratto programmata",
+        "changed": "Contratto modificato con successo",
+        "leadConverted": "Lead convertito in contratto",
+        "paused": "Contratto sospeso con successo",
+        "renewDraft": "Rinnovo salvato come bozza",
+        "renewScheduled": "Rinnovo contratto programmato",
+        "renewed": "Contratto rinnovato con successo",
+        "savedAsDraft": "Salvato come bozza"
+      },
+      "autoRenewal": {
+        "enabled": "Attivato",
+        "label": "Rinnovo automatico",
+        "noAutoRenewal": "Nessun rinnovo automatico",
+        "none": "Nessuno",
+        "plusMonths": "+{{count}} mesi",
+        "renewsForMonths": "Si rinnova per {{count}} mesi",
+        "unlimited": "Illimitato",
+        "unlimitedTooltip": "Il contratto si rinnova a tempo indeterminato",
+        "until": "Fino al",
+        "untilTooltip": "Il contratto si rinnova fino alla data specificata"
+      },
+      "createContract": "Crea contratto",
+      "filters": {
+        "clearAll": "Cancella tutto",
+        "title": "Filtri"
+      },
+      "labels": {
+        "bonus": "Bonus",
+        "days": "giorni",
+        "expiring": "In scadenza"
+      },
+      "noContracts": "Nessun contratto trovato",
+      "removeBonusConfirm": {
+        "confirmText": "Rimuovi bonus",
+        "currentBonus": "Bonus attuale",
+        "title": "Rimuovi tempo bonus"
+      },
+      "renewConfirm": {
+        "confirmText": "Conferma rinnovo",
+        "otherContracts": "Altri contratti attivi",
+        "renewAnyway": "Rinnova comunque",
+        "title": "Rinnova contratto"
+      },
+      "resumeConfirm": {
+        "confirmText": "Conferma ripresa",
+        "pauseReason": "Motivo della pausa",
+        "resumeContract": "Riprendi contratto",
+        "title": "Riprendi contratto"
+      },
+      "sort": {
+        "contractType": "Tipo di contratto",
+        "expiring": "Scadenza",
+        "name": "Nome",
+        "recentlyAdded": "Aggiunti di recente",
+        "status": "Stato"
+      },
+      "tooltip": {
+        "cancelled": "Cancellato",
+        "period": "Periodo",
+        "reason": "Motivo",
+        "since": "Dal",
+        "starts": "Inizia"
+      },
+      "view": {
+        "compact": "Compatto",
+        "detailed": "Dettagliato",
+        "grid": "Griglia",
+        "list": "Lista"
       }
     },
     "configuration": {
@@ -1293,7 +1902,11 @@
         "leadSourceDeleted": "Fonte lead eliminata",
         "connectionSuccess": "Connessione riuscita!",
         "testingConnection": "Test connessione...",
-        "noSignatureConfigured": "Nessuna firma e-mail configurata"
+        "noSignatureConfigured": "Nessuna firma e-mail configurata",
+        "changelogAdded": "Voce changelog aggiunta",
+        "changelogDeleted": "Voce changelog eliminata",
+        "contractFormDeleted": "Modulo contratto eliminato",
+        "templateDuplicated": "Modello duplicato"
       },
       "errors": {
         "fillPasswordFields": "Per favore compila correttamente tutti i campi password",
@@ -1304,8 +1917,306 @@
         "selectBillingPeriod": "Per favore seleziona un periodo di fatturazione",
         "createContractFormFirst": "Per favore crea prima un modulo contratto",
         "selectContractForm": "Per favore seleziona un modulo contratto",
-        "enterName": "Per favore inserisci un nome"
+        "enterName": "Per favore inserisci un nome",
+        "fillChangelogFields": "Compila tutti i campi del changelog",
+        "fillSmtpFields": "Compila tutti i campi SMTP"
+      },
+      "accounts": {
+        "addAccount": "Aggiungi account",
+        "additionalAccounts": "Account aggiuntivi",
+        "cannotBeRemoved": "Non può essere rimosso",
+        "changeLogo": "Cambia logo",
+        "changePassword": "Cambia password",
+        "confirm": "Conferma",
+        "confirmNewPassword": "Conferma nuova password",
+        "confirmPassword": "Conferma password",
+        "createAccount": "Crea account",
+        "description": "Gestisci impostazioni account e membri del team",
+        "email": "E-mail",
+        "emailPlaceholder": "Inserisci indirizzo e-mail",
+        "enterNewPassword": "Inserisci nuova password",
+        "firstName": "Nome",
+        "firstNamePlaceholder": "Inserisci nome",
+        "lastName": "Cognome",
+        "lastNamePlaceholder": "Inserisci cognome",
+        "minCharacters": "Minimo 8 caratteri",
+        "name": "Nome",
+        "newAccount": "Nuovo account",
+        "newPassword": "Nuova password",
+        "noTeamAccounts": "Nessun account del team",
+        "noTeamAccountsDesc": "Aggiungi membri del team per collaborare",
+        "passwordFair": "Discreto",
+        "passwordGood": "Buono",
+        "passwordStrong": "Forte",
+        "passwordWeak": "Debole",
+        "passwordsDoNotMatch": "Le password non corrispondono",
+        "platformLogo": "Logo della piattaforma",
+        "primaryAdmin": "Amministratore principale",
+        "profile": "Profilo",
+        "removeAccount": "Rimuovi account",
+        "removeAccountConfirm": "Sei sicuro di voler rimuovere questo account?",
+        "repeatPassword": "Ripeti password",
+        "savePassword": "Salva password",
+        "securityTip1": "Usa almeno 8 caratteri",
+        "securityTip2": "Includi maiuscole e minuscole",
+        "securityTip3": "Includi almeno un numero",
+        "securityTip4": "Includi almeno un carattere speciale",
+        "securityTips": "Suggerimenti di sicurezza",
+        "strength": "Forza",
+        "teamAccounts": "Account del team",
+        "title": "Impostazioni account",
+        "uploadLogo": "Carica logo",
+        "uploadLogoDesc": "Carica il logo della piattaforma (PNG, JPG, SVG)"
+      },
+      "changelog": {
+        "accentColor": "Colore di accento",
+        "addEntry": "Aggiungi voce",
+        "addNewEntry": "Aggiungi nuova voce",
+        "deleteEntry": "Elimina voce",
+        "deleteEntryConfirm": "Sei sicuro di voler eliminare questa voce del changelog?",
+        "description": "Gestisci le voci del changelog della tua piattaforma",
+        "details": "Dettagli",
+        "detailsPlaceholder": "Inserisci dettagli del changelog...",
+        "entries": "Voci",
+        "noDate": "Nessuna data",
+        "noEntries": "Nessuna voce nel changelog",
+        "noEntriesDesc": "Crea la tua prima voce del changelog",
+        "releaseDate": "Data di rilascio",
+        "thisEntry": "questa voce",
+        "title": "Changelog",
+        "version": "Versione"
+      },
+      "communication": {
+        "accessEmail": {
+          "contentPlaceholder": "Inserisci contenuto e-mail di accesso...",
+          "description": "Configura l'e-mail inviata per l'accesso",
+          "linkExpiry": "Scadenza del link",
+          "linkExpiryHelp": "Per quanto tempo il link di accesso resta valido",
+          "subjectPlaceholder": "Inserisci oggetto e-mail...",
+          "title": "E-mail di accesso"
+        },
+        "days": "Giorni",
+        "emailContent": "Contenuto e-mail",
+        "emailSignature": "Firma e-mail",
+        "emailSubject": "Oggetto e-mail",
+        "hours": "Ore",
+        "insert": "Inserisci",
+        "registrationEmail": {
+          "contentPlaceholder": "Inserisci contenuto e-mail di registrazione...",
+          "description": "Configura l'e-mail inviata alla registrazione",
+          "linkExpiry": "Scadenza del link",
+          "linkExpiryHelp": "Per quanto tempo il link di registrazione resta valido",
+          "subjectPlaceholder": "Inserisci oggetto e-mail...",
+          "title": "E-mail di registrazione"
+        },
+        "signature": {
+          "description": "Configura la tua firma e-mail",
+          "helpText": "Questa firma verrà aggiunta a tutte le e-mail in uscita",
+          "placeholder": "Inserisci la tua firma e-mail...",
+          "title": "Firma e-mail"
+        },
+        "smtp": {
+          "commonSettings": "Impostazioni comuni",
+          "description": "Configura il server SMTP per l'invio di e-mail",
+          "emailUsername": "E-mail / Nome utente",
+          "password": "Password",
+          "passwordPlaceholder": "Inserisci password SMTP",
+          "port": "Porta",
+          "sendTestEmail": "Invia e-mail di prova",
+          "senderName": "Nome mittente",
+          "senderNamePlaceholder": "Inserisci nome mittente",
+          "server": "Server",
+          "testConnection": "Testa connessione",
+          "title": "Impostazioni SMTP",
+          "useSSL": "Usa SSL"
+        },
+        "variables": "Variabili"
+      },
+      "contact": {
+        "address": "Indirizzo",
+        "addressPlaceholder": "Inserisci indirizzo azienda",
+        "companyName": "Nome azienda",
+        "companyNamePlaceholder": "Inserisci nome azienda",
+        "description": "Gestisci informazioni di contatto",
+        "phone": "Telefono",
+        "title": "Informazioni di contatto",
+        "website": "Sito web"
+      },
+      "contracts": {
+        "access": "Accesso",
+        "addReason": "Aggiungi motivo",
+        "autoRenew": "Rinnovo automatico",
+        "clickToEditName": "Clicca per modificare il nome",
+        "contractForms": {
+          "description": "Gestisci modelli di moduli contratto",
+          "title": "Moduli contratto"
+        },
+        "contractTypes": {
+          "description": "Definisci i tipi di contratto disponibili",
+          "title": "Tipi di contratto"
+        },
+        "createContractForm": "Crea modulo contratto",
+        "createContractType": "Crea tipo di contratto",
+        "createForm": "Crea modulo",
+        "deleteContractForm": "Elimina modulo contratto",
+        "deleteContractFormConfirm": "Sei sicuro di voler eliminare questo modulo contratto?",
+        "deleteContractType": "Elimina tipo di contratto",
+        "deleteContractTypeConfirm": "Sei sicuro di voler eliminare questo tipo di contratto?",
+        "deletePauseReason": "Elimina motivo di pausa",
+        "deletePauseReasonConfirm": "Sei sicuro di voler eliminare questo motivo di pausa?",
+        "desktopRequired": "Desktop necessario",
+        "desktopRequiredDesc": "L'editor dei moduli è disponibile solo su desktop",
+        "duration": "Durata",
+        "durationMonths": "{{count}} mesi",
+        "form": "Modulo",
+        "month": "Mese",
+        "noContractForms": "Nessun modulo contratto",
+        "noContractFormsDesc": "Crea il tuo primo modulo contratto",
+        "noContractTypes": "Nessun tipo di contratto",
+        "noContractTypesDesc": "Crea il tuo primo tipo di contratto",
+        "noPauseReasons": "Nessun motivo di pausa definito",
+        "none": "Nessuno",
+        "openBuilder": "Apri editor",
+        "pageCount": "{{count}} pagine",
+        "pauseReasons": {
+          "description": "Definisci i motivi per le pause contrattuali",
+          "title": "Motivi di pausa"
+        },
+        "reasonNamePlaceholder": "Inserisci nome del motivo...",
+        "thisContractType": "questo tipo di contratto",
+        "thisReason": "questo motivo",
+        "type": "Tipo",
+        "unknown": "Sconosciuto",
+        "untitled": "Senza titolo",
+        "week": "Settimana",
+        "year": "Anno"
+      },
+      "legal": {
+        "description": "Gestisci documenti legali",
+        "imprint": "Informazioni legali",
+        "imprintPlaceholder": "Inserisci testo informazioni legali...",
+        "privacyPolicy": "Informativa sulla privacy",
+        "privacyPolicyPlaceholder": "Inserisci informativa sulla privacy...",
+        "termsAndConditions": "Termini e condizioni",
+        "termsPlaceholder": "Inserisci termini e condizioni...",
+        "title": "Legale"
+      },
+      "resources": {
+        "deleteLeadSource": "Elimina fonte lead",
+        "deleteLeadSourceConfirm": "Sei sicuro di voler eliminare questa fonte lead?",
+        "leadSources": {
+          "description": "Gestisci fonti lead per il tracciamento",
+          "title": "Fonti lead"
+        },
+        "noLeadSources": "Nessuna fonte lead definita",
+        "source": "Fonte",
+        "sourceNamePlaceholder": "Inserisci nome della fonte...",
+        "thisSource": "questa fonte"
+      },
+      "select": "Seleziona",
+      "selectSection": "Seleziona una sezione",
+      "variables": "Variabili",
+      "templates": {
+        "color": "Colore",
+        "description": "Gestisci modelli di permessi studio",
+        "descriptionPlaceholder": "Inserisci descrizione del modello...",
+        "disableAll": "Disabilita tutto",
+        "enableAll": "Abilita tutto",
+        "memberView": "Vista membri",
+        "memberViewPermissions": "Permessi vista membri",
+        "newTemplate": "Nuovo modello",
+        "noTemplates": "Nessun modello",
+        "noTemplatesDesc": "Crea il tuo primo modello di permessi",
+        "removeTemplate": "Rimuovi modello",
+        "removeTemplateConfirm": "Sei sicuro di voler rimuovere questo modello?",
+        "studioView": "Vista studio",
+        "studioViewPermissions": "Permessi vista studio",
+        "templateDescription": "Descrizione modello",
+        "templateName": "Nome modello",
+        "title": "Modelli di permessi",
+        "togglePermissions": "Attiva/disattiva permessi",
+        "unnamedTemplate": "Modello senza nome"
       }
+    }
+  },
+  "documents": {
+    "title": "Gestione documenti",
+    "manageFor": "Gestisci documenti per",
+    "entityLabel": {
+      "member": "Membro #{{id}}",
+      "lead": "Lead #{{id}}",
+      "staff": "Personale #{{id}}",
+      "studio": "Studio #{{id}}"
+    },
+    "upload": "Carica documento",
+    "uploading": "Caricamento...",
+    "fillMedical": "Compila la storia clinica",
+    "tags": "Tag",
+    "empty": {
+      "general": "Nessun documento caricato per {{name}}",
+      "medical": "Nessuna storia clinica disponibile",
+      "hintGeneral": "Clicca su 'Carica documento' per aggiungere file",
+      "hintMedical": "Clicca su 'Compila la storia clinica' per iniziare"
+    },
+    "supported": "Formati supportati: PDF, JPG, PNG, DOC, DOCX, TXT",
+    "maxSize": "Dimensione max: 10MB per file",
+    "answers": "{{count}} risposte",
+    "signed": "Firmato",
+    "pendingSignature": "Firma in attesa",
+    "delete": {
+      "title": "Elimina documento",
+      "cannotUndo": "Questa azione non può essere annullata",
+      "confirm": "Sei sicuro di voler eliminare questo documento?"
+    },
+    "viewer": {
+      "loading": "Caricamento documento...",
+      "error": "Errore nel caricamento del documento",
+      "downloadInstead": "Scarica invece",
+      "noPreview": "Anteprima non disponibile",
+      "noPreviewDesc": "Scarica il file per visualizzarlo.",
+      "unsupported": "Il tipo .{{type}} non è supportato per l'anteprima",
+      "download": "Scarica",
+      "print": "Stampa"
+    },
+    "toast": {
+      "unsupportedFormat": "{{count}} file hanno formati non supportati",
+      "sizeLimitExceeded": "{{count}} file superano il limite di 10MB",
+      "uploading": "Caricamento di {{count}} documento/i...",
+      "uploaded": "{{count}} documento/i caricato/i con successo",
+      "generatingPdf": "Generazione PDF...",
+      "downloaded": "{{name}} scaricato",
+      "pdfFailed": "Generazione PDF fallita",
+      "downloading": "Download di {{name}}...",
+      "generatingPrint": "Generazione PDF per la stampa...",
+      "printOpened": "Finestra di stampa aperta",
+      "printPdfOpened": "Finestra di stampa PDF aperta",
+      "printFailed": "Generazione PDF per stampa fallita",
+      "noFileForPrint": "Nessun dato file disponibile per la stampa",
+      "preparingPrint": "Preparazione di {{name}} per la stampa...",
+      "printUnsupported": "Stampa non supportata per file .{{type}}",
+      "printError": "Preparazione documento per la stampa fallita",
+      "deleted": "Documento eliminato con successo",
+      "emptyName": "Il nome del documento non può essere vuoto",
+      "renamed": "Documento rinominato con successo",
+      "tagCreated": "Tag creato con successo",
+      "tagDeleted": "Tag eliminato con successo",
+      "noFileData": "Nessun dato file disponibile",
+      "previewFailed": "Generazione anteprima PDF fallita"
+    },
+    "tagManager": {
+      "title": "Gestisci tag",
+      "createNew": "Crea nuovo tag",
+      "tagName": "Nome del tag",
+      "chooseColor": "Scegli colore",
+      "addTag": "Aggiungi tag",
+      "existingTags": "Tag esistenti",
+      "tagCount": "{{count}} tag",
+      "tagCountOne": "{{count}} tag",
+      "noTags": "Nessun tag creato",
+      "noTagsHint": "Aggiungi un tag sopra per iniziare",
+      "deleteTag": "Elimina tag \"{{name}}\"",
+      "done": "Fatto",
+      "tagColor": "Colore del tag"
     }
   }
 }

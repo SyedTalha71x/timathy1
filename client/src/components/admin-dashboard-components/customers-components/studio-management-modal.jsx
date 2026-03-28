@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { X, Search, ArrowRight, ArrowLeft, Edit, Building, Check } from "lucide-react"
 
 // ── Avatars (same as assign-studios-modal) ──
@@ -36,6 +37,7 @@ const StudioManagementModal = ({
   onEditStudio,
   toast,
 }) => {
+  const { t } = useTranslation()
   const [assignedSearch, setAssignedSearch] = useState("")
   const [unassignedSearch, setUnassignedSearch] = useState("")
   const [justAssigned, setJustAssigned] = useState(null)
@@ -92,7 +94,7 @@ const StudioManagementModal = ({
               studio.isActive !== false ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"
             }`}>
               <span className={`w-1 h-1 rounded-full ${studio.isActive !== false ? "bg-green-400" : "bg-red-400"}`} />
-              {studio.isActive !== false ? "Active" : "Inactive"}
+              {studio.isActive !== false ? t("admin.customers.shared.active") : t("admin.customers.shared.inactive")}
             </span>
           </div>
         </div>
@@ -102,7 +104,7 @@ const StudioManagementModal = ({
               <button
                 onClick={() => onEditStudio(studio)}
                 className="p-1.5 text-gray-500 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-                title="Edit Studio"
+                title={t("admin.customers.studioMgmt.editStudio")}
               >
                 <Edit size={14} />
               </button>
@@ -116,7 +118,7 @@ const StudioManagementModal = ({
                 }`}
               >
                 {isAnimatingUnassign ? <Check size={12} /> : <ArrowRight size={12} />}
-                {isAnimatingUnassign ? "Removed" : "Remove"}
+                {isAnimatingUnassign ? t("admin.customers.studioMgmt.removed") : t("admin.customers.studioMgmt.remove")}
               </button>
             </>
           )}
@@ -131,7 +133,7 @@ const StudioManagementModal = ({
               }`}
             >
               {isAnimatingAssign ? <Check size={12} /> : <ArrowLeft size={12} />}
-              {isAnimatingAssign ? "Added" : "Assign"}
+              {isAnimatingAssign ? t("admin.customers.studioMgmt.added") : t("admin.customers.studioMgmt.assign")}
             </button>
           )}
         </div>
@@ -157,7 +159,7 @@ const StudioManagementModal = ({
             <div className="flex items-center gap-3">
               <FranchiseAvatar name={franchise.name} />
               <div>
-                <h2 className="text-white text-lg font-semibold">Manage Studios</h2>
+                <h2 className="text-white text-lg font-semibold">{t("admin.customers.studioMgmt.title")}</h2>
                 <p className="text-sm text-gray-400">{franchise.name}</p>
               </div>
             </div>
@@ -175,7 +177,7 @@ const StudioManagementModal = ({
             <div className="p-4 md:px-6 md:pt-5 md:pb-3 flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Assigned</span>
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.customers.studioMgmt.assigned")}</span>
                   <span className="text-xs px-1.5 py-0.5 rounded-md bg-blue-500/15 text-blue-400 font-medium">{assignedStudios.length}</span>
                 </div>
               </div>
@@ -183,7 +185,7 @@ const StudioManagementModal = ({
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Search assigned…"
+                  placeholder={t("admin.customers.studioMgmt.searchAssigned")}
                   value={assignedSearch}
                   onChange={(e) => setAssignedSearch(e.target.value)}
                   className="w-full bg-[#141414] text-white rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-blue-500/40"
@@ -196,10 +198,10 @@ const StudioManagementModal = ({
                   <StudioCard key={studio.id} studio={studio} type="assigned" />
                 ))
               ) : assignedStudios.length === 0 ? (
-                <EmptyState message="No studios assigned to this franchise yet." />
+                <EmptyState message={t("admin.customers.studioMgmt.noAssigned")} />
               ) : (
                 <div className="text-center py-8 text-gray-500 text-sm">
-                  No studios match "{assignedSearch}"
+                  {t("admin.customers.studioMgmt.noMatch", { search: assignedSearch })}
                 </div>
               )}
             </div>
@@ -210,7 +212,7 @@ const StudioManagementModal = ({
             <div className="p-4 md:px-6 md:pt-5 md:pb-3 flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Available</span>
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.customers.studioMgmt.available")}</span>
                   <span className="text-xs px-1.5 py-0.5 rounded-md bg-gray-500/15 text-gray-400 font-medium">{unassignedStudios.length}</span>
                 </div>
               </div>
@@ -218,7 +220,7 @@ const StudioManagementModal = ({
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Search available…"
+                  placeholder={t("admin.customers.studioMgmt.searchAvailable")}
                   value={unassignedSearch}
                   onChange={(e) => setUnassignedSearch(e.target.value)}
                   className="w-full bg-[#141414] text-white rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-blue-500/40"
@@ -231,10 +233,10 @@ const StudioManagementModal = ({
                   <StudioCard key={studio.id} studio={studio} type="unassigned" />
                 ))
               ) : unassignedStudios.length === 0 ? (
-                <EmptyState message="All studios are assigned to franchises." />
+                <EmptyState message={t("admin.customers.studioMgmt.allAssigned")} />
               ) : (
                 <div className="text-center py-8 text-gray-500 text-sm">
-                  No studios match "{unassignedSearch}"
+                  {t("admin.customers.studioMgmt.noMatch", { search: unassignedSearch })}
                 </div>
               )}
             </div>

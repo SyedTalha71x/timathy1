@@ -51,7 +51,7 @@ import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
 import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
 import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
-import LanguageTabs, { emptyTranslations } from "../../components/admin-dashboard-components/shared/LanguageTabs"
+import LanguageTabs, { emptyTranslations } from "../../components/shared/LanguageTabs"
 
 import { useTranslation } from "react-i18next"
 import DatePickerField from "../../components/shared/DatePickerField"

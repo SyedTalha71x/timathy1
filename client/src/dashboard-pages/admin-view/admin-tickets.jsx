@@ -16,7 +16,7 @@ import toast from "../../components/shared/SharedToast"
 import { haptic } from "../../utils/haptic"
 import PullToRefresh from "../../components/shared/PullToRefresh"
 
-import AdminTicketView from "../../components/admin-dashboard-components/tickets-component/admin-ticket-view-modal"
+import AdminTicketView from "../../components/admin-dashboard-components/tickets-components/admin-ticket-view-modal"
 import { adminTickets } from "../../utils/admin-panel-states/tickets-states"
 
 const AdminTicketsSystem = () => {

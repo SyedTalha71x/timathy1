@@ -10,7 +10,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import LanguageTabs, { getTranslation, getOptionName } from "../shared/LanguageTabs";
+import LanguageTabs, { getTranslation, getOptionName } from "../../shared/LanguageTabs";
 
 export default function ViewExerciseModal({
   isOpen,

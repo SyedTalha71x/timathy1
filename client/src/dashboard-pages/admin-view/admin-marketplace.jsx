@@ -7,7 +7,7 @@ import { ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLin
 import ProductModal from '../../components/admin-dashboard-components/marketplace-components/ProductModal';
 import DeleteConfirmationModal from '../../components/admin-dashboard-components/marketplace-components/DeleteConfirmationModal';
 import ProductInfoModal from '../../components/admin-dashboard-components/marketplace-components/ProductInfoModal';
-import { getTranslation, emptyTranslations } from '../../components/admin-dashboard-components/shared/LanguageTabs';
+import { getTranslation, emptyTranslations } from '../../components/shared/LanguageTabs';
 
 import { useTranslation } from "react-i18next"
 import { haptic } from "../../utils/haptic"

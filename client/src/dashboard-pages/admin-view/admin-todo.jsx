@@ -12,7 +12,7 @@ import CalendarModal from "../../components/admin-dashboard-components/todo-comp
 import { todosTaskData, configuredTagsData } from "../../utils/admin-panel-states/todo-states"
 import DeleteModal from "../../components/admin-dashboard-components/todo-components/delete-task"
 import { OptimizedTextarea } from "../../components/admin-dashboard-components/todo-components/optimized-text-area"
-import TagManagerModal from "../../components/admin-dashboard-components/shared/TagManagerModal"
+import TagManagerModal from "../../components/shared/TagManagerModal"
 
 // @dnd-kit imports
 import {

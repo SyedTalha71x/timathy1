@@ -23,6 +23,7 @@
     Filter,
     BadgeDollarSign,
     FileText,
+    File,
     Shield,
     CreditCard,
   } from "lucide-react"
@@ -53,14 +54,14 @@
   import toast from "../../components/shared/SharedToast"
 import { RiContractLine } from "react-icons/ri"
 
-  import FranchiseModal from "../../components/admin-dashboard-components/studios-modal/franchise-modal"
-  import AssignStudioModal from "../../components/admin-dashboard-components/studios-modal/assign-studios-modal"
-  import StudioManagementModal from "../../components/admin-dashboard-components/studios-modal/studio-management-modal"
-  import FranchiseDetailsModal from "../../components/admin-dashboard-components/studios-modal/franchise-details-modal"
+  import FranchiseModal from "../../components/admin-dashboard-components/customers-components/franchise-modal"
+  import AssignStudioModal from "../../components/admin-dashboard-components/customers-components/assign-studios-modal"
+  import StudioManagementModal from "../../components/admin-dashboard-components/customers-components/studio-management-modal"
+  import FranchiseDetailsModal from "../../components/admin-dashboard-components/customers-components/franchise-details-modal"
 
-  import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
+  import StudioDetailsModal from "../../components/admin-dashboard-components/customers-components/studios-detail-modal"
 
-  import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
+  import StudioHistoryModalMain from "../../components/admin-dashboard-components/customers-components/studio-history"
 
   import { FaPersonRays } from "react-icons/fa6";
   import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states"
@@ -79,12 +80,12 @@ import { RiContractLine } from "react-icons/ri"
     RELATION_OPTIONS,
     ACCESS_ROLE_COLORS,
   } from "../../utils/admin-panel-states/customers-states";
-  import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
-  import EditAdminConfigModal from "../../components/admin-dashboard-components/studios-modal/EditAdminConfigModal";
+  import EditStudioOptionsModal from "../../components/admin-dashboard-components/customers-components/edit-studio-options-modal";
+  import EditAdminConfigModal from "../../components/admin-dashboard-components/customers-components/EditAdminConfigModal";
   import { useNavigate } from "react-router-dom";
   import { LeadSpecialNoteIcon } from "../../components/admin-dashboard-components/shared/special-note/shared-special-note-icon";
-  import StudioDocumentManagementModal from "../../components/admin-dashboard-components/shared/StudioDocumentManagementModal";
-  import PaymentDetailsModal from "../../components/admin-dashboard-components/studios-modal/PaymentDetailsModal";
+  import DocumentManagementModal from "../../components/shared/DocumentManagementModal";
+  import PaymentDetailsModal from "../../components/admin-dashboard-components/customers-components/PaymentDetailsModal";
 
 import { useTranslation } from "react-i18next"
 import { haptic } from "../../utils/haptic"
@@ -921,8 +922,9 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
         <AssignStudioModal isOpen={isAssignStudioModalOpen} onClose={handleAssignStudioCloseModal} franchises={franchises} selectedFranchiseForAssignment={selectedFranchiseForAssignment} onFranchiseSelect={setSelectedFranchiseForAssignment} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} toast={toast} />
         <StudioManagementModal isOpen={isStudioManagementModalOpen} onClose={handleStudioManagementCloseModal} franchise={selectedFranchiseForManagement} assignedStudios={selectedFranchiseForManagement ? getStudiosByFranchise(selectedFranchiseForManagement.id) : []} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} onUnassignStudio={handleUnassignStudio} onEditStudio={handleEditStudio} toast={toast} />
 
-        <StudioDocumentManagementModal
-          studio={selectedStudioForModal}
+        <DocumentManagementModal
+          entity={selectedStudioForModal}
+          entityType="studio"
           isOpen={isStudioDocumentModalOpen}
           onClose={() => {
             setIsStudioDocumentModalOpen(false)
@@ -931,6 +933,9 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
           onDocumentsUpdate={(studioId, documents) => {
             setStudios(prev => prev.map(s => s.id === studioId ? { ...s, documents } : s))
           }}
+          sections={[
+            { id: "general", label: t("admin.customers.shared.general"), icon: File },
+          ]}
         />
         {showPaymentModal && selectedStudioForPayment && (
           <PaymentDetailsModal

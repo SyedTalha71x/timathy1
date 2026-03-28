@@ -6,7 +6,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
-import TagManagerModal from "../../components/admin-dashboard-components/shared/TagManagerModal"
+import TagManagerModal from "../../components/shared/TagManagerModal"
 import DeleteConfirmModal from "../../components/admin-dashboard-components/notes-components/DeleteConfirmModal"
 import { demoNotes, notesTagsData } from "../../utils/admin-panel-states/notes-states"
 

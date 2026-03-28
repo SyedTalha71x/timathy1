@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import { Trash2, X, Plus, ChevronDown, ChevronUp, Pencil, Shield, Check } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import toast from "react-hot-toast"
 
 // Note Status Options (studio-context)
@@ -61,6 +62,49 @@ const getSourceColor = (source) => {
 }
 
 const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "details" }) => {
+  const { t } = useTranslation()
+
+  // Translation helpers for data display
+  const sourceLabels = {
+    "Website": t("admin.customers.shared.sources.website"),
+    "Google Ads": t("admin.customers.shared.sources.googleAds"),
+    "Social Media Ads": t("admin.customers.shared.sources.socialMediaAds"),
+    "Email Campaign": t("admin.customers.shared.sources.emailCampaign"),
+    "Cold Call (Outbound)": t("admin.customers.shared.sources.coldCall"),
+    "Inbound Call": t("admin.customers.shared.sources.inboundCall"),
+    "Referral": t("admin.customers.shared.sources.referral"),
+    "Social Media": t("admin.customers.shared.sources.socialMedia"),
+    "Walk-in": t("admin.customers.shared.sources.walkin"),
+    "Phone Call": t("admin.customers.shared.sources.phoneCall"),
+    "Email": t("admin.customers.shared.email"),
+    "Event": t("admin.customers.shared.sources.event"),
+    "Offline Advertising": t("admin.customers.shared.sources.offlineAd"),
+    "Other": t("admin.customers.shared.sources.other"),
+  }
+  const tSource = (s) => sourceLabels[s] || s
+
+  const noteStatusLabels = {
+    "general": t("admin.customers.shared.categories.general"),
+    "contract_issue": t("admin.customers.shared.categories.contractIssue"),
+    "onboarding": t("admin.customers.shared.categories.onboarding"),
+    "follow_up": t("admin.customers.shared.categories.followUp"),
+    "compliance": t("admin.customers.shared.categories.compliance"),
+    "maintenance": t("admin.customers.shared.categories.maintenance"),
+    "escalation": t("admin.customers.shared.categories.escalation"),
+  }
+  const tNoteStatus = (id) => noteStatusLabels[id] || id
+
+  const roleLabels = {
+    "Premium": t("admin.customers.adminConfigModal.premium"),
+    "Standard": t("admin.customers.adminConfigModal.standard"),
+    "Basic": t("admin.customers.adminConfigModal.basic"),
+  }
+  const roleDescLabels = {
+    "Premium": t("admin.customers.adminConfigModal.premiumDesc"),
+    "Standard": t("admin.customers.adminConfigModal.standardDesc"),
+    "Basic": t("admin.customers.adminConfigModal.basicDesc"),
+  }
+
   const [activeTab, setActiveTab] = useState("details")
   const specialNoteTextareaRef = useRef(null)
 
@@ -128,7 +172,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
   const handleAddNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!newNote.text.trim()) { toast.error("Please enter note text"); return }
+    if (!newNote.text.trim()) { toast.error(t("admin.customers.shared.enterNoteText")); return }
     const note = {
       id: Date.now(),
       status: newNote.status,
@@ -141,14 +185,14 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
     setLocalNotes(prev => [note, ...prev])
     setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" })
     setIsAddingNote(false)
-    toast.success("Note added")
+    toast.success(t("admin.customers.shared.noteAdded"))
   }
 
   const handleDeleteNote = (noteId, e) => {
     e.preventDefault()
     e.stopPropagation()
     setLocalNotes(prev => prev.filter(n => n.id !== noteId))
-    toast.success("Note removed")
+    toast.success(t("admin.customers.shared.noteRemoved"))
   }
 
   const handleEditNoteClick = (note, e) => {
@@ -162,7 +206,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
   const handleUpdateNote = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!newNote.text.trim()) { toast.error("Please enter note text"); return }
+    if (!newNote.text.trim()) { toast.error(t("admin.customers.shared.enterNoteText")); return }
     setLocalNotes(prev => prev.map(n =>
       n.id === editingNoteId
         ? { ...n, status: newNote.status, text: newNote.text.trim(), isImportant: newNote.isImportant, startDate: newNote.startDate || "", endDate: newNote.endDate || "" }
@@ -171,7 +215,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
     setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" })
     setEditingNoteId(null)
     setIsAddingNote(false)
-    toast.success("Note updated")
+    toast.success(t("admin.customers.shared.noteUpdated"))
   }
 
   const getStatusInfo = (statusId) => {
@@ -200,7 +244,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
       noteEndDate: primaryNote?.endDate || "",
     })
     onClose()
-    toast.success("Admin configuration saved")
+    toast.success(t("admin.customers.adminConfigModal.saved"))
   }
 
   const handleTabClick = (tabName, e) => {
@@ -217,7 +261,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl text-white font-bold">Edit Admin Configuration</h2>
+            <h2 className="text-xl text-white font-bold">{t("admin.customers.adminConfigModal.title")}</h2>
             <p className="text-sm text-gray-500 mt-0.5">{studio.name}</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -257,7 +301,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
               <>
                 {/* Access Role – configuration.jsx template card style */}
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">Access Role</label>
+                  <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.accessRole")}</label>
                   <div className="space-y-2">
                     {ACCESS_ROLES.map((role) => {
                       const isSelected = accessRole === role.value
@@ -281,8 +325,8 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                               <Shield className="w-4 h-4" style={{ color: role.color }} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className={`font-medium text-sm ${isSelected ? role.textClass : "text-white"}`}>{role.label}</h3>
-                              <p className="text-xs text-gray-500 mt-0.5">{role.desc}</p>
+                              <h3 className={`font-medium text-sm ${isSelected ? role.textClass : "text-white"}`}>{roleLabels[role.value] || role.label}</h3>
+                              <p className="text-xs text-gray-500 mt-0.5">{roleDescLabels[role.value] || role.desc}</p>
                             </div>
                             {isSelected && (
                               <div
@@ -301,7 +345,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
 
                 {/* Source – colored pill dropdown matching edit-lead-modal */}
                 <div className="pt-4 border-t border-gray-700">
-                  <label className="text-sm text-gray-200 block mb-2">Source</label>
+                  <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.source")}</label>
                   <div className="relative">
                     <button
                       type="button"
@@ -313,7 +357,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                           {leadSource}
                         </span>
                       ) : (
-                        <span className="text-gray-500">Select Source</span>
+                        <span className="text-gray-500">{t("admin.customers.shared.selectSource")}</span>
                       )}
                       <svg
                         className={`w-4 h-4 transition-transform ${isSourceDropdownOpen ? 'rotate-180' : ''}`}
@@ -334,7 +378,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                         <div className="absolute z-20 w-full mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto">
                           {SOURCE_OPTIONS.map(option => (
                             <button
-                              key={option}
+                              key={tSource(option)}
                               type="button"
                               onClick={() => {
                                 setLeadSource(option)
@@ -343,7 +387,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                               className="w-full text-left px-4 py-3 hover:bg-gray-800 text-white text-sm transition-colors"
                             >
                               <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getSourceColor(option)}`}>
-                                {option}
+                                {tSource(option)}
                               </span>
                             </button>
                           ))}
@@ -355,14 +399,14 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
 
                 {/* About */}
                 <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Additional Information</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.customers.adminConfigModal.additionalInfo")}</div>
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.about")}</label>
                     <textarea
                       value={about}
                       onChange={(e) => setAbout(e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
-                      placeholder="Enter studio details, focus areas, special features..."
+                      placeholder={t("admin.customers.adminConfigModal.enterDetails")}
                     />
                   </div>
                 </div>
@@ -375,7 +419,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                 {/* Studio Name Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">{t("admin.customers.shared.specialNotesFor")}</p>
                     <p className="text-white font-medium">{studio.name}</p>
                   </div>
                   <button
@@ -391,7 +435,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                       isAddingNote ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
                     }`}
                   >
-                    {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
+                    {isAddingNote ? <>{t("common.cancel")}</> : <><Plus size={14} /> Add Note</>}
                   </button>
                 </div>
 
@@ -400,27 +444,27 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                   <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
                     {/* Status */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                      <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.status")}</label>
                       <select
                         value={newNote.status}
                         onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
                         className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                       >
                         {NOTE_STATUSES.map((status) => (
-                          <option key={status.id} value={status.id}>{status.label}</option>
+                          <option key={status.id} value={status.id}>{tNoteStatus(status.id)}</option>
                         ))}
                       </select>
                     </div>
 
                     {/* Text */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.note")}</label>
                       <textarea
                         ref={specialNoteTextareaRef}
                         value={newNote.text}
                         onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
                         className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
-                        placeholder="Enter note..."
+                        placeholder={t("admin.customers.shared.enterNote")}
                       />
                     </div>
 
@@ -433,14 +477,14 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                           onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
                           className="h-4 w-4 accent-blue-500"
                         />
-                        <span className="text-sm text-gray-300">Important</span>
+                        <span className="text-sm text-gray-300">{t("admin.customers.shared.important")}</span>
                       </label>
                     </div>
 
                     {/* Date Range */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
+                        <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.validFrom")}</label>
                         <input
                           type="date"
                           value={newNote.startDate}
@@ -449,7 +493,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
+                        <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.validUntil")}</label>
                         <input
                           type="date"
                           value={newNote.endDate}

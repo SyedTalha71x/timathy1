@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { getTranslation } from '../shared/LanguageTabs';
+import { getTranslation } from '../../shared/LanguageTabs';
 
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productToDelete }) => {
   if (!isOpen) return null;

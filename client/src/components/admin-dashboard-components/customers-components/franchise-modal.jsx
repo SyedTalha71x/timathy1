@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { X, Upload, Plus, Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react"
 import toast from "react-hot-toast"
 
@@ -29,6 +30,7 @@ const FranchiseModal = ({
   const isEdit = isEditModalOpen
 
   // Tab state
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("details")
 
   // Notes state (matching EditAdminConfigModal)
@@ -88,7 +90,7 @@ const FranchiseModal = ({
 
   // ── Note CRUD (matching EditAdminConfigModal) ──
   const handleAddNote = () => {
-    if (!newNote.text.trim()) { toast.error("Please enter note text"); return }
+    if (!newNote.text.trim()) { toast.error(t("admin.customers.shared.enterNoteText")); return }
     const note = {
       id: Date.now(),
       status: newNote.status,
@@ -101,12 +103,12 @@ const FranchiseModal = ({
     setLocalNotes(prev => [note, ...prev])
     setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" })
     setIsAddingNote(false)
-    toast.success("Note added")
+    toast.success(t("admin.customers.shared.noteAdded"))
   }
 
   const handleDeleteNote = (noteId) => {
     setLocalNotes(prev => prev.filter(n => n.id !== noteId))
-    toast.success("Note removed")
+    toast.success(t("admin.customers.shared.noteRemoved"))
   }
 
   const handleEditNoteClick = (note) => {
@@ -116,7 +118,7 @@ const FranchiseModal = ({
   }
 
   const handleUpdateNote = () => {
-    if (!newNote.text.trim()) { toast.error("Please enter note text"); return }
+    if (!newNote.text.trim()) { toast.error(t("admin.customers.shared.enterNoteText")); return }
     setLocalNotes(prev => prev.map(n =>
       n.id === editingNoteId
         ? { ...n, status: newNote.status, text: newNote.text.trim(), isImportant: newNote.isImportant, startDate: newNote.startDate || "", endDate: newNote.endDate || "" }
@@ -125,7 +127,7 @@ const FranchiseModal = ({
     setNewNote({ status: "general", text: "", isImportant: false, startDate: "", endDate: "" })
     setEditingNoteId(null)
     setIsAddingNote(false)
-    toast.success("Note updated")
+    toast.success(t("admin.customers.shared.noteUpdated"))
   }
 
   const getStatusInfo = (statusId) => {
@@ -195,7 +197,7 @@ const FranchiseModal = ({
             <div className="space-y-6">
               {/* Logo Upload */}
               <div className="bg-[#161616] rounded-xl p-4">
-                <h3 className="text-white font-medium mb-4">Franchise Logo</h3>
+                <h3 className="text-white font-medium mb-4">{t("admin.customers.franchiseForm.franchiseLogo")}</h3>
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                     {franchiseForm.logo ? (
@@ -213,16 +215,16 @@ const FranchiseModal = ({
 
               {/* Basic Information */}
               <div className="bg-[#161616] rounded-xl p-4">
-                <h3 className="text-white font-medium mb-4">Basic Information</h3>
+                <h3 className="text-white font-medium mb-4">{t("admin.customers.franchiseForm.basicInfo")}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Franchise Name</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.franchiseForm.franchiseName")}</label>
                     <input type="text" name="name" value={franchiseForm.name} onChange={onInputChange}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" required />
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Owner Name</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.franchiseForm.ownerName")}</label>
                     <input
                       type="text" name="ownerFirstName"
                       value={`${franchiseForm.ownerFirstName} ${franchiseForm.ownerLastName}`.trim()}
@@ -233,18 +235,18 @@ const FranchiseModal = ({
                         onInputChange({ target: { name: "ownerLastName", value: nameParts.slice(1).join(" ") || "" } })
                       }}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50"
-                      placeholder="Enter full name"
+                      placeholder={t("admin.customers.franchiseForm.enterFullName")}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Email</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.email")}</label>
                       <input type="email" name="email" value={franchiseForm.email} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" required />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Phone</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.phone")}</label>
                       <input type="tel" name="phone" value={franchiseForm.phone} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" required />
                     </div>
@@ -252,42 +254,42 @@ const FranchiseModal = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Website</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.website")}</label>
                       <input type="text" name="website" value={franchiseForm.website} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Country</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.country")}</label>
                       <select name="country" value={franchiseForm.country} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50">
-                        <option value="">Select Country</option>
-                        <option value="Germany">Germany</option>
-                        <option value="Austria">Austria</option>
-                        <option value="Switzerland">Switzerland</option>
-                        <option value="Netherlands">Netherlands</option>
-                        <option value="Belgium">Belgium</option>
-                        <option value="France">France</option>
-                        <option value="Italy">Italy</option>
-                        <option value="Spain">Spain</option>
-                        <option value="United Kingdom">United Kingdom</option>
-                        <option value="United States">United States</option>
+                        <option value="">{t("admin.customers.franchiseForm.selectCountry")}</option>
+                        <option value="Germany">{t("admin.customers.franchiseForm.countries.germany")}</option>
+                        <option value="Austria">{t("admin.customers.franchiseForm.countries.austria")}</option>
+                        <option value="Switzerland">{t("admin.customers.franchiseForm.countries.switzerland")}</option>
+                        <option value="Netherlands">{t("admin.customers.franchiseForm.countries.netherlands")}</option>
+                        <option value="Belgium">{t("admin.customers.franchiseForm.countries.belgium")}</option>
+                        <option value="France">{t("admin.customers.franchiseForm.countries.france")}</option>
+                        <option value="Italy">{t("admin.customers.franchiseForm.countries.italy")}</option>
+                        <option value="Spain">{t("admin.customers.franchiseForm.countries.spain")}</option>
+                        <option value="United Kingdom">{t("admin.customers.franchiseForm.countries.uk")}</option>
+                        <option value="United States">{t("admin.customers.franchiseForm.countries.us")}</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street Address</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.franchiseForm.streetAddress")}</label>
                     <input type="text" name="street" value={franchiseForm.street} onChange={onInputChange}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.zipCode")}</label>
                       <input type="text" name="zipCode" value={franchiseForm.zipCode} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.city")}</label>
                       <input type="text" name="city" value={franchiseForm.city} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" />
                     </div>
@@ -297,7 +299,7 @@ const FranchiseModal = ({
 
               {/* About */}
               <div className="bg-[#161616] rounded-xl p-4">
-                <h3 className="text-white font-medium mb-4">About Franchise</h3>
+                <h3 className="text-white font-medium mb-4">{t("admin.customers.franchiseForm.aboutFranchise")}</h3>
                 <textarea name="about" value={franchiseForm.about} onChange={onInputChange}
                   className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2.5 text-white outline-none text-sm min-h-[120px] border border-[#333333] focus:border-orange-500/50"
                   placeholder="Describe your franchise, mission, values, services offered, etc..." />
@@ -305,21 +307,21 @@ const FranchiseModal = ({
 
               {/* Login Credentials */}
               <div className="bg-[#161616] rounded-xl p-4">
-                <h3 className="text-white font-medium mb-4">Login Credentials</h3>
+                <h3 className="text-white font-medium mb-4">{t("admin.customers.shared.loginCredentials")}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Login Email</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.loginEmail")}</label>
                     <input type="email" name="loginEmail" value={franchiseForm.loginEmail} onChange={onInputChange}
                       className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" required />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Password</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.password")}</label>
                       <input type="password" name="loginPassword" value={franchiseForm.loginPassword} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" required />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Confirm Password</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.customers.shared.confirmPassword")}</label>
                       <input type="password" name="confirmPassword" value={franchiseForm.confirmPassword} onChange={onInputChange}
                         className="w-full bg-[#101010] rounded-xl px-4 py-2.5 text-white outline-none text-sm border border-[#333333] focus:border-orange-500/50" required />
                     </div>
@@ -335,8 +337,8 @@ const FranchiseModal = ({
               {/* Header */}
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
-                  <p className="text-white font-medium">{isEdit ? selectedFranchise?.name || "Franchise" : franchiseForm.name || "New Franchise"}</p>
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">{t("admin.customers.shared.specialNotesFor")}</p>
+                  <p className="text-white font-medium">{isEdit ? selectedFranchise?.name || "Franchise" : franchiseForm.name || t("admin.customers.franchiseForm.newFranchise")}</p>
                 </div>
                 <button
                   type="button"
@@ -360,7 +362,7 @@ const FranchiseModal = ({
                 <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
                   {/* Status */}
                   <div>
-                    <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                    <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.status")}</label>
                     <select
                       value={newNote.status}
                       onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
@@ -374,13 +376,13 @@ const FranchiseModal = ({
 
                   {/* Text */}
                   <div>
-                    <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                    <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.note")}</label>
                     <textarea
                       ref={specialNoteTextareaRef}
                       value={newNote.text}
                       onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
                       className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
-                      placeholder="Enter note..."
+                      placeholder={t("admin.customers.shared.enterNote")}
                     />
                   </div>
 
@@ -393,7 +395,7 @@ const FranchiseModal = ({
                         onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
                         className="h-4 w-4 accent-blue-500"
                       />
-                      <span className="text-sm text-gray-300">Important</span>
+                      <span className="text-sm text-gray-300">{t("admin.customers.shared.important")}</span>
                     </label>
                   </div>
 

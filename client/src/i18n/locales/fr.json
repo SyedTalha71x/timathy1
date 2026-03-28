@@ -44,7 +44,10 @@
       "presets": "Préréglages",
       "custom": "Personnalisé",
       "confirm": "Confirmer"
-    }
+    },
+    "copy": "Copier",
+    "no": "Non",
+    "yes": "Oui"
   },
   "languages": {
     "en": "Anglais",
@@ -928,7 +931,25 @@
       "avgRevenuePerStudio": "Revenu moy./Studio",
       "newMembers": "+{{count}} nouveaux membres",
       "fromLastMonth": "{{percent}}% par rapport au mois dernier",
-      "growth": "{{percent}}% de croissance"
+      "growth": "{{percent}}% de croissance",
+      "activeFranchises": "Franchises actives",
+      "conversionLabel": "Taux de conversion",
+      "franchisesAcquired": "Franchises acquises",
+      "leadsGenerated": "Leads générés",
+      "membershipFees": "Cotisations",
+      "monthlyRevenue": "Revenus mensuels",
+      "newLeadsPerMonth": "Nouveaux leads par mois",
+      "revenue": "Revenus",
+      "stageContacted": "Contacté",
+      "stageConverted": "Converti",
+      "stageGenerated": "Généré",
+      "stageQualified": "Qualifié",
+      "studiosAcquired": "Studios acquis",
+      "successRate": "Taux de réussite",
+      "topPerformerLabel": "Meilleur performeur",
+      "topSourceLabel": "Source principale",
+      "totalStudiosInNetwork": "Total des studios du réseau",
+      "website": "Site web"
     },
     "marketplace": {
       "title": "Marketplace",
@@ -961,7 +982,8 @@
         "unpinProduct": "Désépingler le produit",
         "viewInfo": "Voir les infos",
         "editProduct": "Modifier le produit",
-        "deleteProduct": "Supprimer le produit"
+        "deleteProduct": "Supprimer le produit",
+        "articleNo": "N° d'article"
       },
       "empty": {
         "noProducts": "Aucun produit ajouté",
@@ -1061,7 +1083,9 @@
         "runPayment": "Exécuter le paiement",
         "checkFunds": "Vérifier les fonds",
         "showIban": "Afficher l'IBAN complet",
-        "hideIban": "Masquer l'IBAN"
+        "hideIban": "Masquer l'IBAN",
+        "continue": "Continuer",
+        "paymentRunHistory": "Historique des paiements"
       },
       "empty": "Aucune transaction trouvée pour vos critères.",
       "clearAll": "Tout effacer",
@@ -1083,7 +1107,9 @@
         "draft": "Brouillons",
         "archive": "Archive",
         "error": "Échoué",
-        "trash": "Corbeille"
+        "trash": "Corbeille",
+        "drafts": "Brouillons",
+        "failed": "Échoués"
       },
       "list": {
         "pinned": "Épinglé",
@@ -1091,14 +1117,17 @@
         "selected": "{{count}} sélectionné(s)",
         "noEmails": "Aucun e-mail dans ce dossier",
         "noSubject": "(Sans objet)",
-        "draft": "Brouillon"
+        "draft": "Brouillon",
+        "nSelected": "{{count}} sélectionné(s)"
       },
       "detail": {
         "noSelected": "Aucun e-mail sélectionné",
         "noSelectedDesc": "Sélectionnez un e-mail dans la liste pour voir son contenu",
         "attachments": "Pièces jointes",
         "retrySend": "Renvoyer",
-        "reply": "Répondre"
+        "reply": "Répondre",
+        "cc": "CC",
+        "to": "À"
       },
       "actions": {
         "markAsRead": "Marquer comme lu",
@@ -1108,18 +1137,23 @@
         "deletePermanently": "Supprimer définitivement",
         "retry": "Réessayer",
         "pin": "Épingler",
-        "unpin": "Désépingler"
+        "unpin": "Désépingler",
+        "markRead": "Marquer comme lu",
+        "markUnread": "Marquer comme non lu"
       },
       "deleteConfirm": {
         "title": "Supprimer définitivement ?",
         "description": "Cette action est irréversible",
         "single": "Voulez-vous vraiment supprimer cet e-mail définitivement ?",
-        "multiple": "Voulez-vous vraiment supprimer {{count}} e-mails définitivement ?"
+        "multiple": "Voulez-vous vraiment supprimer {{count}} e-mails définitivement ?",
+        "confirmMultiple": "Êtes-vous sûr de vouloir supprimer définitivement {{count}} e-mails ?",
+        "confirmSingle": "Êtes-vous sûr de vouloir supprimer définitivement cet e-mail ?"
       },
       "toast": {
         "sent": "E-mail envoyé avec succès !",
         "fillRequired": "Veuillez remplir tous les champs obligatoires"
-      }
+      },
+      "noSubject": "(Sans objet)"
     },
     "todo": {
       "title": "Tâches",
@@ -1160,7 +1194,14 @@
         "ongoing": "Aucune tâche en cours",
         "completed": "Aucune tâche terminée",
         "canceled": "Aucune tâche annulée"
-      }
+      },
+      "backToTasks": "Retour aux tâches",
+      "canceledClickRestore": "Annulée — cliquer pour restaurer",
+      "clearDateTime": "Effacer date et heure",
+      "moreActions": "Plus d'actions",
+      "repeating": "Récurrente",
+      "setDueDate": "Définir la date d'échéance",
+      "taskTitlePlaceholder": "Titre de la tâche..."
     },
     "notes": {
       "title": "Notes",
@@ -1173,14 +1214,65 @@
       "empty": {
         "title": "Pas encore de notes",
         "description": "Créez votre première note"
-      }
+      },
+      "manageTags": "Gérer les étiquettes",
+      "noNoteSelected": "Aucune note sélectionnée",
+      "pinNote": "Épingler la note",
+      "selectNoteHint": "Sélectionnez une note dans la liste pour voir son contenu",
+      "showLess": "Voir moins",
+      "showMore": "Voir plus",
+      "sort": {
+        "custom": "Personnalisé",
+        "date": "Date",
+        "title": "Titre"
+      },
+      "startWriting": "Commencez à écrire...",
+      "tags": "Étiquettes",
+      "unpinNote": "Désépingler la note"
     },
     "leads": {
       "title": "Leads",
       "search": {
-        "placeholder": "Rechercher des leads..."
+        "placeholder": "Rechercher des leads...",
+        "addMore": "Ajouter plus",
+        "clearAll": "Tout effacer",
+        "noResults": "Aucun lead trouvé"
       },
-      "addLead": "Ajouter un lead"
+      "addLead": "Ajouter un lead",
+      "columns": {
+        "activeProspect": "Prospect actif",
+        "demoAccess": "Accès démo",
+        "missedCall": "Appel manqué",
+        "passiveProspect": "Prospect passif",
+        "uninterested": "Non intéressé"
+      },
+      "compactView": "Vue compacte",
+      "createLead": "Créer un lead",
+      "deleteModal": {
+        "confirmPrefix": "Êtes-vous sûr de vouloir supprimer",
+        "confirmSuffix": "?",
+        "title": "Supprimer le lead"
+      },
+      "demoModal": {
+        "createDemo": "Créer un accès démo",
+        "description": "Souhaitez-vous créer un accès démo pour ce lead ?",
+        "justMove": "Juste déplacer",
+        "title": "Accès démo"
+      },
+      "detailedView": "Vue détaillée",
+      "expandColumn": "Développer la colonne",
+      "toast": {
+        "added": "Lead ajouté avec succès !",
+        "columnSaved": "Ordre des colonnes enregistré",
+        "deleted": "Lead supprimé avec succès !",
+        "movedTo": "Lead déplacé vers {{column}}",
+        "movedWithNote": "Lead déplacé avec note",
+        "noteAdded": "Note ajoutée avec succès",
+        "noteAddedAndMoved": "Note ajoutée et lead déplacé",
+        "reordered": "Leads réordonnés",
+        "updated": "Lead mis à jour avec succès !"
+      },
+      "view": "Vue"
     },
     "exercises": {
       "title": "Exercices",
@@ -1203,13 +1295,37 @@
       "toast": {
         "created": "Exercice créé avec succès !",
         "updated": "Exercice mis à jour avec succès !",
-        "deleted": "Exercice supprimé avec succès !"
-      }
+        "deleted": "Exercice supprimé avec succès !",
+        "equipmentAdded": "Équipement ajouté",
+        "equipmentExists": "L'équipement existe déjà",
+        "equipmentRemoved": "Équipement supprimé",
+        "equipmentUpdated": "Équipement mis à jour",
+        "muscleAdded": "Groupe musculaire ajouté",
+        "muscleExists": "Le groupe musculaire existe déjà",
+        "muscleRemoved": "Groupe musculaire supprimé",
+        "muscleUpdated": "Groupe musculaire mis à jour",
+        "requiredFields": "Veuillez remplir tous les champs obligatoires"
+      },
+      "actions": {
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "view": "Voir"
+      },
+      "allLevels": "Tous les niveaux",
+      "noResults": "Aucun exercice trouvé",
+      "translations": "Traductions",
+      "uploadExercise": "Télécharger un exercice"
     },
     "customers": {
-      "title": "Clients",
+      "title": "Studios",
       "search": {
-        "placeholder": "Rechercher des clients..."
+        "placeholder": "Rechercher des clients...",
+        "addMore": "Ajouter plus",
+        "clearAllFilters": "Effacer tous les filtres",
+        "noFranchisesFound": "Aucune franchise trouvée",
+        "noStudiosFound": "Aucun studio trouvé",
+        "searchFranchises": "Rechercher des franchises...",
+        "searchStudios": "Rechercher des studios..."
       },
       "toast": {
         "leadUpdated": "Lead mis à jour avec succès !",
@@ -1218,7 +1334,354 @@
         "franchiseUpdated": "Franchise mise à jour avec succès",
         "franchiseCreated": "Franchise créée avec succès",
         "detailsUpdated": "Détails mis à jour avec succès",
-        "franchiseArchived": "Franchise archivée avec succès"
+        "franchiseArchived": "Franchise archivée avec succès",
+        "billingPeriodAdded": "Période de facturation ajoutée",
+        "contingentUpdated": "Contingent mis à jour",
+        "downloading": "Téléchargement...",
+        "filesUploaded": "Fichiers téléchargés avec succès",
+        "studioAssigned": "Studio assigné à la franchise",
+        "studioUnassigned": "Studio retiré de la franchise",
+        "tempMemberCreated": "Membre temporaire créé",
+        "trainingPlanAssigned": "Plan d'entraînement assigné",
+        "trainingPlanRemoved": "Plan d'entraînement supprimé"
+      },
+      "actions": {
+        "details": "Détails",
+        "docs": "Docs",
+        "documents": "Documents",
+        "edit": "Modifier",
+        "finances": "Finances",
+        "history": "Historique",
+        "payment": "Paiement",
+        "viewDetails": "Voir les détails"
+      },
+      "billing": {
+        "current": "Actuelle",
+        "future": "Future"
+      },
+      "buttons": {
+        "assignToFranchise": "Assigner à une franchise",
+        "createFirstFranchise": "Créer la première franchise",
+        "createFranchise": "Créer une franchise"
+      },
+      "empty": {
+        "noActiveStudios": "Aucun studio actif",
+        "noFranchises": "Aucune franchise trouvée",
+        "noInactiveStudios": "Aucun studio inactif",
+        "noStudios": "Aucun studio trouvé"
+      },
+      "filters": {
+        "active": "Actif",
+        "all": "Tous",
+        "archived": "Archivé",
+        "inactive": "Inactif",
+        "title": "Filtres"
+      },
+      "franchiseTable": {
+        "actions": "Actions",
+        "franchise": "Franchise",
+        "login": "Connexion",
+        "owner": "Propriétaire",
+        "status": "Statut",
+        "studios": "Studios"
+      },
+      "franchisesTitle": "Franchises",
+      "mobile": {
+        "contractsCount": "{{count}} contrats",
+        "leadsCount": "{{count}} leads",
+        "membersCount": "{{count}} membres",
+        "ownerLabel": "Propriétaire",
+        "staffCount": "{{count}} personnel",
+        "studiosCount": "{{count}} studios"
+      },
+      "status": {
+        "active": "Actif",
+        "archived": "Archivé",
+        "inactive": "Inactif"
+      },
+      "studioTable": {
+        "accessRole": "Rôle d'accès",
+        "actions": "Actions",
+        "number": "Numéro",
+        "owner": "Propriétaire",
+        "stats": "Statistiques",
+        "status": "Statut",
+        "studioName": "Nom du studio"
+      },
+      "tabs": {
+        "franchise": "Franchise",
+        "studios": "Studios"
+      },
+      "shared": {
+        "about": "À propos",
+        "details": "Détails",
+        "general": "Général",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "website": "Website",
+        "owner": "Propriétaire",
+        "street": "Rue",
+        "country": "Pays",
+        "city": "Ville",
+        "zipCodeCity": "Code postal et ville",
+        "zipCode": "Code postal",
+        "address": "Adresse",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "archived": "Archivé",
+        "status": "Status",
+        "important": "Important",
+        "note": "Note",
+        "addNote": "Ajouter une note",
+        "updateNote": "Mettre à jour la note",
+        "enterNote": "Saisir une note...",
+        "noteAdded": "Note ajoutée",
+        "noteRemoved": "Note supprimée",
+        "noteUpdated": "Note mise à jour",
+        "enterNoteText": "Veuillez saisir le texte de la note",
+        "specialNotes": "Notes spéciales",
+        "specialNotesFor": "Notes spéciales pour",
+        "validFrom": "Valide à partir de (optionnel)",
+        "validUntil": "Valide jusqu'au (optionnel)",
+        "source": "Source",
+        "selectSource": "Sélectionner la source",
+        "accessRole": "Rôle d'accès",
+        "loginEmail": "E-mail de connexion",
+        "loginCredentials": "Identifiants de connexion",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "logo": "Logo",
+        "uploadLogo": "Télécharger le logo",
+        "changeLogo": "Changer le logo",
+        "archive": "Archiver",
+        "unarchive": "Désarchiver",
+        "saveChanges": "Enregistrer les modifications",
+        "contactInfo": "Coordonnées",
+        "credentials": "Identifiants",
+        "created": "Créé",
+        "sources": {
+          "website": "Website",
+          "googleAds": "Google Ads",
+          "socialMedia": "Social Media",
+          "socialMediaAds": "Social Media Ads",
+          "referral": "Recommandation",
+          "walkin": "Visite spontanée",
+          "emailCampaign": "Campagne e-mail",
+          "inboundCall": "Appel entrant",
+          "coldCall": "Démarchage téléphonique",
+          "offlineAd": "Publicité hors ligne",
+          "phoneCall": "Appel téléphonique",
+          "event": "Événement",
+          "other": "Autre"
+        },
+        "categories": {
+          "general": "General",
+          "compliance": "Conformité",
+          "contractIssue": "Problème de contrat",
+          "escalation": "Escalade",
+          "followUp": "Suivi",
+          "maintenance": "Maintenance",
+          "onboarding": "Intégration"
+        },
+        "validRange": "Valide : {{start}} - {{end}}",
+        "validFromDate": "Valide à partir de : {{date}}",
+        "validUntilDate": "Valide jusqu'au : {{date}}"
+      },
+      "studioOptions": {
+        "title": "Edit Studio Options",
+        "chooseConfig": "Choose configuration type for",
+        "studioConfig": "Studio Configuration",
+        "studioConfigDesc": "Manage studio settings, resources, and appearance",
+        "adminConfig": "Admin Configuration",
+        "adminConfigDesc": "Manage admin settings and system configuration"
+      },
+      "payment": {
+        "title": "Détails de paiement",
+        "accountHolder": "Titulaire du compte",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "bankName": "Nom de la banque",
+        "sepaMandateNumber": "Numéro de mandat SEPA",
+        "autoGenerate": "Générer automatiquement le numéro de référence du mandat SEPA",
+        "sepaWarning": "La mise à jour des coordonnées bancaires nécessite un nouveau mandat SEPA.",
+        "savePayment": "Enregistrer les détails de paiement"
+      },
+      "history": {
+        "title": "Historique du studio - {{name}}",
+        "generalChanges": "Modifications générales",
+        "contractChanges": "Modifications de contrat",
+        "financeTransactions": "Transactions financières",
+        "ticketChangelog": "Historique des tickets",
+        "noData": "Aucun(e) {{title}}"
+      },
+      "studioMgmt": {
+        "title": "Gérer les studios",
+        "assigned": "Assignés",
+        "available": "Disponibles",
+        "searchAssigned": "Rechercher assignés…",
+        "searchAvailable": "Rechercher disponibles…",
+        "assign": "Assigner",
+        "added": "Ajouté",
+        "remove": "Retirer",
+        "removed": "Retiré",
+        "editStudio": "Modifier le studio",
+        "noAssigned": "Aucun studio assigné à cette franchise.",
+        "allAssigned": "Tous les studios sont assignés à des franchises.",
+        "noMatch": "Aucun studio ne correspond à \"{{search}}\""
+      },
+      "assignStudios": {
+        "title": "Assigner des studios à une franchise",
+        "selectFranchise": "1. Sélectionner une franchise",
+        "clickToSelect": "Cliquer pour sélectionner une franchise…",
+        "noLocation": "Pas de lieu",
+        "searchFranchises": "Rechercher des franchises…",
+        "noFranchises": "Aucune franchise trouvée",
+        "assignStudios": "2. Assigner les studios non assignés",
+        "searchStudios": "Rechercher des studios…",
+        "assigned": "Assigné",
+        "allAssigned": "Tous les studios sont déjà assignés à des franchises.",
+        "noMatch": "Aucun studio ne correspond à \"{{search}}\"",
+        "selectFirst": "Veuillez d'abord sélectionner une franchise"
+      },
+      "adminConfigModal": {
+        "title": "Edit Admin Configuration",
+        "saved": "Admin configuration saved",
+        "additionalInfo": "Additional Information",
+        "enterDetails": "Enter studio details, focus areas, special features...",
+        "basic": "Basic",
+        "basicDesc": "Limited access with essential features only",
+        "standard": "Standard",
+        "standardDesc": "Standard access with core features",
+        "premium": "Premium",
+        "premiumDesc": "Full platform access with all features"
+      },
+      "editConfig": {
+        "configSaved": "Configuration saved successfully!",
+        "studioDesc": "Studio Description",
+        "studioDescPlaceholder": "Describe your studio, its mission, facilities, and what makes it unique...",
+        "specialNotePlaceholder": "Enter special note or announcement...",
+        "noteContent": "Note Content",
+        "markImportant": "Mark as Important",
+        "activePeriod": "Active Period",
+        "studioCategories": "Studio Categories",
+        "addCategory": "Add New Category",
+        "categoryName": "Category name",
+        "deleteCategory": "Delete Category",
+        "deleteCategoryConfirm": "Are you sure you want to delete this category?",
+        "categoryAdded": "Category Added",
+        "categoryAddedDesc": "New studio category has been added.",
+        "categoryDeleted": "Category Deleted",
+        "categoryDeletedDesc": "Studio category has been deleted.",
+        "fitnessStudio": "Fitness Studio",
+        "emsStudio": "EMS Studio",
+        "selfServiceStudio": "Self-service Studio",
+        "navMenuAccess": "Navigation Menu Access",
+        "menuAccess": "Menu Access:",
+        "managePermissions": "Manage Menu Permissions",
+        "permissions": "Permissions",
+        "permissionsUpdated": "Permissions Updated",
+        "permissionsUpdatedDesc": "Role permissions have been updated successfully.",
+        "newRole": "New Role",
+        "deleteRole": "Delete Role",
+        "deleteRoleConfirm": "Are you sure you want to delete this role?",
+        "roleDeleted": "Role Deleted",
+        "roleDeletedDesc": "Role has been successfully deleted.",
+        "noRoles": "No roles created yet",
+        "noRolesDesc": "Add your first role to get started",
+        "saveAsTemplate": "Save as Template",
+        "enterTemplateName": "Enter template name...",
+        "templateSaved": "Template Saved",
+        "templateSavedDesc": "Permission template has been saved successfully."
+      },
+      "franchiseDetails": {
+        "title": "Franchise Details",
+        "info": "Franchise Information",
+        "name": "Franchise Name",
+        "assignedStudios": "Assigned Studios",
+        "noNotes": "No special notes for this franchise.",
+        "noStudios": "No studios assigned to this franchise yet."
+      },
+      "franchiseForm": {
+        "createTitle": "Create New Franchise",
+        "editTitle": "Edit Franchise",
+        "newFranchise": "New Franchise",
+        "basicInfo": "Basic Information",
+        "franchiseName": "Franchise Name",
+        "ownerName": "Owner Name",
+        "enterFullName": "Enter full name",
+        "streetAddress": "Street Address",
+        "selectCountry": "Select Country",
+        "aboutFranchise": "About Franchise",
+        "aboutPlaceholder": "Describe your franchise, mission, values, services offered, etc...",
+        "franchiseLogo": "Franchise Logo",
+        "createFranchise": "Create Franchise",
+        "countries": {
+          "germany": "Allemagne",
+          "austria": "Autriche",
+          "switzerland": "Suisse",
+          "france": "France",
+          "italy": "Italie",
+          "spain": "Espagne",
+          "netherlands": "Pays-Bas",
+          "belgium": "Belgique",
+          "uk": "Royaume-Uni",
+          "us": "États-Unis"
+        }
+      },
+      "permissionModal": {
+        "title": "Gérer les permissions",
+        "role": "Rôle",
+        "noPermissions": "No permissions found for role:",
+        "members": "Membres",
+        "staff": "Personnel",
+        "leads": "Leads",
+        "contracts": "Contrats",
+        "finances": "Finances",
+        "appointments": "Rendez-vous",
+        "training": "Entraînement",
+        "analytics": "Analytique",
+        "communication": "Communication",
+        "configuration": "Configuration",
+        "notes": "Notes",
+        "todoTags": "Tâches et tags",
+        "sellingProducts": "Ventes et produits",
+        "activityMonitor": "Moniteur d'activité"
+      },
+      "studioDetails": {
+        "title": "Studio Details",
+        "info": "Studio Information",
+        "name": "Studio Name",
+        "number": "Studio Number",
+        "openingHours": "Heures d'ouverture",
+        "noHours": "Pas d'horaires définis",
+        "paymentSettings": "Paramètres de paiement",
+        "ibanFull": "International Bank Account Number",
+        "bicFull": "Bank Identifier Code",
+        "sepaCreditor": "SEPA Creditor Identifier",
+        "creditorName": "Nom du créancier",
+        "creditorId": "ID du créancier",
+        "vatNumber": "Numéro de TVA",
+        "statistics": "Statistiques",
+        "members": "Members",
+        "contracts": "Contracts",
+        "contract": "Contract",
+        "contractStart": "Contract Start",
+        "contractEnd": "Contract End",
+        "noNotes": "Aucune note spéciale pour ce studio.",
+        "view": "View",
+        "payment": "Payment",
+        "closed": "Fermé",
+        "days": {
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        }
       }
     },
     "demoAccess": {
@@ -1233,13 +1696,75 @@
         "deleted": "Compte démo supprimé !",
         "activated": "Compte activé !",
         "deactivated": "Compte désactivé !",
-        "emailSent": "E-mail envoyé avec succès !"
+        "emailSent": "E-mail envoyé avec succès !",
+        "createdWithoutEmail": "Compte démo créé (e-mail non envoyé)",
+        "reactivated": "Compte démo réactivé !"
+      },
+      "card": {
+        "days": "jours",
+        "daysRemaining": "{{count}} jours restants",
+        "deactivated": "Désactivé",
+        "edit": "Modifier",
+        "email": "E-mail",
+        "expired": "Expiré",
+        "features": "Fonctionnalités",
+        "journal": "Journal",
+        "lastLogin": "Dernière connexion",
+        "loginsLabel": "Connexions",
+        "unknown": "Inconnu"
+      },
+      "createAccess": "Créer un accès",
+      "deleteModal": {
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer ce compte démo ?",
+        "subtitle": "Cette action est irréversible",
+        "thisStudio": "ce studio",
+        "title": "Supprimer le compte démo"
+      },
+      "empty": {
+        "createHint": "Créez votre premier compte démo",
+        "filterHint": "Essayez d'ajuster votre recherche ou vos filtres",
+        "title": "Aucun compte démo trouvé"
+      },
+      "filter": {
+        "active": "Actif",
+        "all": "Tous",
+        "inactive": "Inactif"
+      },
+      "journal": {
+        "accessActivated": "Accès activé",
+        "accessCreated": "Accès créé",
+        "accessDeactivated": "Accès désactivé",
+        "accessUpdated": "Accès mis à jour",
+        "createdFor": "Créé pour {{name}}",
+        "emailSent": "E-mail envoyé",
+        "emailSentTo": "E-mail envoyé à {{email}}",
+        "expiredAutoDeactivated": "Expiré — désactivé automatiquement",
+        "reactivatedFor": "Réactivé pour {{name}}",
+        "statusInactive": "Statut : Inactif",
+        "updatedFor": "Mis à jour pour {{name}}"
+      },
+      "reactivateModal": {
+        "confirm": "Réactiver",
+        "durationHint": "Définir une nouvelle durée pour la période démo",
+        "durationLabel": "Durée (jours)",
+        "subtitle": "Réactiver ce compte démo",
+        "title": "Réactiver l'accès démo"
+      },
+      "sort": {
+        "created": "Créé",
+        "duration": "Durée",
+        "logins": "Connexions",
+        "name": "Nom",
+        "sortBy": "Trier par",
+        "status": "Statut"
       }
     },
     "contract": {
       "title": "Contrats",
       "search": {
-        "placeholder": "Rechercher des contrats..."
+        "placeholder": "Rechercher des contrats...",
+        "addMore": "Ajouter plus",
+        "noMembers": "Aucun membre trouvé"
       },
       "table": {
         "contractNo": "N° de contrat",
@@ -1248,7 +1773,9 @@
         "contractType": "Type de contrat",
         "status": "Statut",
         "autoRenewal": "Renouvellement auto.",
-        "contractDuration": "Durée du contrat"
+        "contractDuration": "Durée du contrat",
+        "actions": "Actions",
+        "contract": "Contrat"
       },
       "status": {
         "active": "Actif",
@@ -1263,7 +1790,17 @@
         "pauseContract": "Mettre en pause",
         "cancelContract": "Résilier le contrat",
         "resumeContract": "Reprendre le contrat",
-        "deleteContract": "Supprimer le contrat"
+        "deleteContract": "Supprimer le contrat",
+        "addBonusTime": "Ajouter du temps bonus",
+        "change": "Modifier",
+        "changeContract": "Modifier le contrat",
+        "editBonus": "Modifier le bonus",
+        "editBonusTime": "Modifier le temps bonus",
+        "openDocuments": "Ouvrir les documents",
+        "pause": "Suspendre",
+        "removeBonusTime": "Supprimer le temps bonus",
+        "renew": "Renouveler",
+        "resume": "Reprendre"
       },
       "toast": {
         "resumed": "Contrat repris avec succès",
@@ -1271,7 +1808,79 @@
         "deleted": "Contrat supprimé avec succès",
         "bonusRemoved": "Temps bonus supprimé",
         "added": "Contrat ajouté avec succès",
-        "updated": "Contrat mis à jour avec succès"
+        "updated": "Contrat mis à jour avec succès",
+        "bonusAdded": "Temps bonus ajouté avec succès",
+        "bonusUpdated": "Temps bonus mis à jour avec succès",
+        "cancelled": "Contrat résilié avec succès",
+        "changeDraft": "Modification enregistrée comme brouillon",
+        "changeScheduled": "Modification du contrat programmée",
+        "changed": "Contrat modifié avec succès",
+        "leadConverted": "Lead converti en contrat",
+        "paused": "Contrat suspendu avec succès",
+        "renewDraft": "Renouvellement enregistré comme brouillon",
+        "renewScheduled": "Renouvellement du contrat programmé",
+        "renewed": "Contrat renouvelé avec succès",
+        "savedAsDraft": "Enregistré comme brouillon"
+      },
+      "autoRenewal": {
+        "enabled": "Activé",
+        "label": "Renouvellement automatique",
+        "noAutoRenewal": "Pas de renouvellement automatique",
+        "none": "Aucun",
+        "plusMonths": "+{{count}} mois",
+        "renewsForMonths": "Se renouvelle pour {{count}} mois",
+        "unlimited": "Illimité",
+        "unlimitedTooltip": "Le contrat se renouvelle indéfiniment",
+        "until": "Jusqu'au",
+        "untilTooltip": "Le contrat se renouvelle jusqu'à la date spécifiée"
+      },
+      "createContract": "Créer un contrat",
+      "filters": {
+        "clearAll": "Tout effacer",
+        "title": "Filtres"
+      },
+      "labels": {
+        "bonus": "Bonus",
+        "days": "jours",
+        "expiring": "Expire bientôt"
+      },
+      "noContracts": "Aucun contrat trouvé",
+      "removeBonusConfirm": {
+        "confirmText": "Supprimer le bonus",
+        "currentBonus": "Bonus actuel",
+        "title": "Supprimer le temps bonus"
+      },
+      "renewConfirm": {
+        "confirmText": "Confirmer le renouvellement",
+        "otherContracts": "Autres contrats actifs",
+        "renewAnyway": "Renouveler quand même",
+        "title": "Renouveler le contrat"
+      },
+      "resumeConfirm": {
+        "confirmText": "Confirmer la reprise",
+        "pauseReason": "Motif de pause",
+        "resumeContract": "Reprendre le contrat",
+        "title": "Reprendre le contrat"
+      },
+      "sort": {
+        "contractType": "Type de contrat",
+        "expiring": "Expiration",
+        "name": "Nom",
+        "recentlyAdded": "Ajoutés récemment",
+        "status": "Statut"
+      },
+      "tooltip": {
+        "cancelled": "Résilié",
+        "period": "Période",
+        "reason": "Motif",
+        "since": "Depuis",
+        "starts": "Commence"
+      },
+      "view": {
+        "compact": "Compact",
+        "detailed": "Détaillé",
+        "grid": "Grille",
+        "list": "Liste"
       }
     },
     "configuration": {
@@ -1293,7 +1902,11 @@
         "leadSourceDeleted": "Source de lead supprimée",
         "connectionSuccess": "Connexion réussie !",
         "testingConnection": "Test de connexion...",
-        "noSignatureConfigured": "Aucune signature e-mail configurée"
+        "noSignatureConfigured": "Aucune signature e-mail configurée",
+        "changelogAdded": "Entrée de changelog ajoutée",
+        "changelogDeleted": "Entrée de changelog supprimée",
+        "contractFormDeleted": "Formulaire de contrat supprimé",
+        "templateDuplicated": "Modèle dupliqué"
       },
       "errors": {
         "fillPasswordFields": "Veuillez remplir tous les champs de mot de passe correctement",
@@ -1304,8 +1917,306 @@
         "selectBillingPeriod": "Veuillez sélectionner une période de facturation",
         "createContractFormFirst": "Veuillez d'abord créer un formulaire de contrat",
         "selectContractForm": "Veuillez sélectionner un formulaire de contrat",
-        "enterName": "Veuillez entrer un nom"
+        "enterName": "Veuillez entrer un nom",
+        "fillChangelogFields": "Veuillez remplir tous les champs du changelog",
+        "fillSmtpFields": "Veuillez remplir tous les champs SMTP"
+      },
+      "accounts": {
+        "addAccount": "Ajouter un compte",
+        "additionalAccounts": "Comptes supplémentaires",
+        "cannotBeRemoved": "Ne peut pas être supprimé",
+        "changeLogo": "Changer le logo",
+        "changePassword": "Changer le mot de passe",
+        "confirm": "Confirmer",
+        "confirmNewPassword": "Confirmer le nouveau mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "createAccount": "Créer un compte",
+        "description": "Gérer les paramètres du compte et les membres de l'équipe",
+        "email": "E-mail",
+        "emailPlaceholder": "Saisir l'adresse e-mail",
+        "enterNewPassword": "Saisir le nouveau mot de passe",
+        "firstName": "Prénom",
+        "firstNamePlaceholder": "Saisir le prénom",
+        "lastName": "Nom",
+        "lastNamePlaceholder": "Saisir le nom",
+        "minCharacters": "Minimum 8 caractères",
+        "name": "Nom",
+        "newAccount": "Nouveau compte",
+        "newPassword": "Nouveau mot de passe",
+        "noTeamAccounts": "Aucun compte d'équipe",
+        "noTeamAccountsDesc": "Ajoutez des membres d'équipe pour collaborer",
+        "passwordFair": "Correct",
+        "passwordGood": "Bon",
+        "passwordStrong": "Fort",
+        "passwordWeak": "Faible",
+        "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+        "platformLogo": "Logo de la plateforme",
+        "primaryAdmin": "Administrateur principal",
+        "profile": "Profil",
+        "removeAccount": "Supprimer le compte",
+        "removeAccountConfirm": "Êtes-vous sûr de vouloir supprimer ce compte ?",
+        "repeatPassword": "Répéter le mot de passe",
+        "savePassword": "Enregistrer le mot de passe",
+        "securityTip1": "Utiliser au moins 8 caractères",
+        "securityTip2": "Inclure des majuscules et des minuscules",
+        "securityTip3": "Inclure au moins un chiffre",
+        "securityTip4": "Inclure au moins un caractère spécial",
+        "securityTips": "Conseils de sécurité",
+        "strength": "Force",
+        "teamAccounts": "Comptes d'équipe",
+        "title": "Paramètres du compte",
+        "uploadLogo": "Télécharger le logo",
+        "uploadLogoDesc": "Télécharger le logo de la plateforme (PNG, JPG, SVG)"
+      },
+      "changelog": {
+        "accentColor": "Couleur d'accentuation",
+        "addEntry": "Ajouter une entrée",
+        "addNewEntry": "Ajouter une nouvelle entrée",
+        "deleteEntry": "Supprimer l'entrée",
+        "deleteEntryConfirm": "Êtes-vous sûr de vouloir supprimer cette entrée du changelog ?",
+        "description": "Gérer les entrées du changelog de votre plateforme",
+        "details": "Détails",
+        "detailsPlaceholder": "Saisir les détails du changelog...",
+        "entries": "Entrées",
+        "noDate": "Pas de date",
+        "noEntries": "Aucune entrée de changelog",
+        "noEntriesDesc": "Créez votre première entrée de changelog",
+        "releaseDate": "Date de publication",
+        "thisEntry": "cette entrée",
+        "title": "Changelog",
+        "version": "Version"
+      },
+      "communication": {
+        "accessEmail": {
+          "contentPlaceholder": "Saisir le contenu de l'e-mail d'accès...",
+          "description": "Configurer l'e-mail envoyé lors de l'octroi d'accès",
+          "linkExpiry": "Expiration du lien",
+          "linkExpiryHelp": "Durée de validité du lien d'accès",
+          "subjectPlaceholder": "Saisir l'objet de l'e-mail...",
+          "title": "E-mail d'accès"
+        },
+        "days": "Jours",
+        "emailContent": "Contenu de l'e-mail",
+        "emailSignature": "Signature d'e-mail",
+        "emailSubject": "Objet de l'e-mail",
+        "hours": "Heures",
+        "insert": "Insérer",
+        "registrationEmail": {
+          "contentPlaceholder": "Saisir le contenu de l'e-mail d'inscription...",
+          "description": "Configurer l'e-mail envoyé lors de l'inscription",
+          "linkExpiry": "Expiration du lien",
+          "linkExpiryHelp": "Durée de validité du lien d'inscription",
+          "subjectPlaceholder": "Saisir l'objet de l'e-mail...",
+          "title": "E-mail d'inscription"
+        },
+        "signature": {
+          "description": "Configurer votre signature d'e-mail",
+          "helpText": "Cette signature sera ajoutée à tous les e-mails sortants",
+          "placeholder": "Saisir votre signature d'e-mail...",
+          "title": "Signature d'e-mail"
+        },
+        "smtp": {
+          "commonSettings": "Paramètres courants",
+          "description": "Configurer le serveur SMTP pour l'envoi d'e-mails",
+          "emailUsername": "E-mail / Nom d'utilisateur",
+          "password": "Mot de passe",
+          "passwordPlaceholder": "Saisir le mot de passe SMTP",
+          "port": "Port",
+          "sendTestEmail": "Envoyer un e-mail test",
+          "senderName": "Nom de l'expéditeur",
+          "senderNamePlaceholder": "Saisir le nom de l'expéditeur",
+          "server": "Serveur",
+          "testConnection": "Tester la connexion",
+          "title": "Paramètres SMTP",
+          "useSSL": "Utiliser SSL"
+        },
+        "variables": "Variables"
+      },
+      "contact": {
+        "address": "Adresse",
+        "addressPlaceholder": "Saisir l'adresse de l'entreprise",
+        "companyName": "Nom de l'entreprise",
+        "companyNamePlaceholder": "Saisir le nom de l'entreprise",
+        "description": "Gérer les informations de contact",
+        "phone": "Téléphone",
+        "title": "Informations de contact",
+        "website": "Site web"
+      },
+      "contracts": {
+        "access": "Accès",
+        "addReason": "Ajouter un motif",
+        "autoRenew": "Renouvellement automatique",
+        "clickToEditName": "Cliquer pour modifier le nom",
+        "contractForms": {
+          "description": "Gérer les modèles de formulaires de contrat",
+          "title": "Formulaires de contrat"
+        },
+        "contractTypes": {
+          "description": "Définir les types de contrats disponibles",
+          "title": "Types de contrats"
+        },
+        "createContractForm": "Créer un formulaire de contrat",
+        "createContractType": "Créer un type de contrat",
+        "createForm": "Créer un formulaire",
+        "deleteContractForm": "Supprimer le formulaire de contrat",
+        "deleteContractFormConfirm": "Êtes-vous sûr de vouloir supprimer ce formulaire de contrat ?",
+        "deleteContractType": "Supprimer le type de contrat",
+        "deleteContractTypeConfirm": "Êtes-vous sûr de vouloir supprimer ce type de contrat ?",
+        "deletePauseReason": "Supprimer le motif de pause",
+        "deletePauseReasonConfirm": "Êtes-vous sûr de vouloir supprimer ce motif de pause ?",
+        "desktopRequired": "Bureau requis",
+        "desktopRequiredDesc": "L'éditeur de formulaires n'est disponible que sur bureau",
+        "duration": "Durée",
+        "durationMonths": "{{count}} mois",
+        "form": "Formulaire",
+        "month": "Mois",
+        "noContractForms": "Aucun formulaire de contrat",
+        "noContractFormsDesc": "Créez votre premier formulaire de contrat",
+        "noContractTypes": "Aucun type de contrat",
+        "noContractTypesDesc": "Créez votre premier type de contrat",
+        "noPauseReasons": "Aucun motif de pause défini",
+        "none": "Aucun",
+        "openBuilder": "Ouvrir l'éditeur",
+        "pageCount": "{{count}} pages",
+        "pauseReasons": {
+          "description": "Définir les motifs de pause de contrat",
+          "title": "Motifs de pause"
+        },
+        "reasonNamePlaceholder": "Saisir le nom du motif...",
+        "thisContractType": "ce type de contrat",
+        "thisReason": "ce motif",
+        "type": "Type",
+        "unknown": "Inconnu",
+        "untitled": "Sans titre",
+        "week": "Semaine",
+        "year": "Année"
+      },
+      "legal": {
+        "description": "Gérer les documents juridiques",
+        "imprint": "Mentions légales",
+        "imprintPlaceholder": "Saisir le texte des mentions légales...",
+        "privacyPolicy": "Politique de confidentialité",
+        "privacyPolicyPlaceholder": "Saisir la politique de confidentialité...",
+        "termsAndConditions": "Conditions générales",
+        "termsPlaceholder": "Saisir les conditions générales...",
+        "title": "Juridique"
+      },
+      "resources": {
+        "deleteLeadSource": "Supprimer la source de leads",
+        "deleteLeadSourceConfirm": "Êtes-vous sûr de vouloir supprimer cette source de leads ?",
+        "leadSources": {
+          "description": "Gérer les sources de leads pour le suivi",
+          "title": "Sources de leads"
+        },
+        "noLeadSources": "Aucune source de leads définie",
+        "source": "Source",
+        "sourceNamePlaceholder": "Saisir le nom de la source...",
+        "thisSource": "cette source"
+      },
+      "select": "Sélectionner",
+      "selectSection": "Sélectionner une section",
+      "variables": "Variables",
+      "templates": {
+        "color": "Couleur",
+        "description": "Gérer les modèles de permissions de studio",
+        "descriptionPlaceholder": "Saisir la description du modèle...",
+        "disableAll": "Tout désactiver",
+        "enableAll": "Tout activer",
+        "memberView": "Vue membres",
+        "memberViewPermissions": "Permissions de la vue membres",
+        "newTemplate": "Nouveau modèle",
+        "noTemplates": "Aucun modèle",
+        "noTemplatesDesc": "Créez votre premier modèle de permissions",
+        "removeTemplate": "Supprimer le modèle",
+        "removeTemplateConfirm": "Êtes-vous sûr de vouloir supprimer ce modèle ?",
+        "studioView": "Vue studio",
+        "studioViewPermissions": "Permissions de la vue studio",
+        "templateDescription": "Description du modèle",
+        "templateName": "Nom du modèle",
+        "title": "Modèles de permissions",
+        "togglePermissions": "Basculer les permissions",
+        "unnamedTemplate": "Modèle sans nom"
       }
+    }
+  },
+  "documents": {
+    "title": "Gestion des documents",
+    "manageFor": "Gérer les documents de",
+    "entityLabel": {
+      "member": "Membre #{{id}}",
+      "lead": "Lead #{{id}}",
+      "staff": "Personnel #{{id}}",
+      "studio": "Studio #{{id}}"
+    },
+    "upload": "Télécharger un document",
+    "uploading": "Téléchargement...",
+    "fillMedical": "Remplir le questionnaire médical",
+    "tags": "Tags",
+    "empty": {
+      "general": "Aucun document téléchargé pour {{name}}",
+      "medical": "Aucun dossier médical",
+      "hintGeneral": "Cliquez sur 'Télécharger un document' pour ajouter des fichiers",
+      "hintMedical": "Cliquez sur 'Remplir le questionnaire médical' pour commencer"
+    },
+    "supported": "Formats acceptés : PDF, JPG, PNG, DOC, DOCX, TXT",
+    "maxSize": "Taille max. : 10 Mo par fichier",
+    "answers": "{{count}} réponses",
+    "signed": "Signé",
+    "pendingSignature": "Signature en attente",
+    "delete": {
+      "title": "Supprimer le document",
+      "cannotUndo": "Cette action est irréversible",
+      "confirm": "Êtes-vous sûr de vouloir supprimer ce document ?"
+    },
+    "viewer": {
+      "loading": "Chargement du document...",
+      "error": "Erreur de chargement du document",
+      "downloadInstead": "Télécharger à la place",
+      "noPreview": "Aperçu non disponible",
+      "noPreviewDesc": "Veuillez télécharger le fichier pour le consulter.",
+      "unsupported": "Le type .{{type}} n'est pas pris en charge pour l'aperçu",
+      "download": "Télécharger",
+      "print": "Imprimer"
+    },
+    "toast": {
+      "unsupportedFormat": "{{count}} fichier(s) ont des formats non pris en charge",
+      "sizeLimitExceeded": "{{count}} fichier(s) dépassent la limite de 10 Mo",
+      "uploading": "Téléchargement de {{count}} document(s)...",
+      "uploaded": "{{count}} document(s) téléchargé(s) avec succès",
+      "generatingPdf": "Génération du PDF...",
+      "downloaded": "{{name}} téléchargé",
+      "pdfFailed": "Échec de la génération du PDF",
+      "downloading": "Téléchargement de {{name}}...",
+      "generatingPrint": "Génération du PDF pour impression...",
+      "printOpened": "Boîte de dialogue d'impression ouverte",
+      "printPdfOpened": "Dialogue d'impression PDF ouvert",
+      "printFailed": "Échec de la génération du PDF pour impression",
+      "noFileForPrint": "Aucune donnée de fichier disponible pour l'impression",
+      "preparingPrint": "Préparation de {{name}} pour l'impression...",
+      "printUnsupported": "Impression non prise en charge pour les fichiers .{{type}}",
+      "printError": "Échec de la préparation du document pour l'impression",
+      "deleted": "Document supprimé avec succès",
+      "emptyName": "Le nom du document ne peut pas être vide",
+      "renamed": "Document renommé avec succès",
+      "tagCreated": "Tag créé avec succès",
+      "tagDeleted": "Tag supprimé avec succès",
+      "noFileData": "Aucune donnée de fichier disponible",
+      "previewFailed": "Échec de la génération de l'aperçu PDF"
+    },
+    "tagManager": {
+      "title": "Gérer les tags",
+      "createNew": "Créer un nouveau tag",
+      "tagName": "Nom du tag",
+      "chooseColor": "Choisir la couleur",
+      "addTag": "Ajouter un tag",
+      "existingTags": "Tags existants",
+      "tagCount": "{{count}} tags",
+      "tagCountOne": "{{count}} tag",
+      "noTags": "Aucun tag créé",
+      "noTagsHint": "Ajoutez un tag ci-dessus pour commencer",
+      "deleteTag": "Supprimer le tag \"{{name}}\"",
+      "done": "Terminé",
+      "tagColor": "Couleur du tag"
     }
   }
 }

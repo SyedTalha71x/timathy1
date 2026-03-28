@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { X, Upload, Trash2, Link, Image } from 'lucide-react';
-import LanguageTabs, { LANGUAGES, emptyTranslations } from '../shared/LanguageTabs';
+import LanguageTabs, { LANGUAGES, emptyTranslations } from '../../shared/LanguageTabs';
 
 const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, handleInputChange, handleImageUpload, handleRemovePicture, handleSubmit, triggerFileInput, fileInputRef }) => {
   const [formLang, setFormLang] = useState("en");
