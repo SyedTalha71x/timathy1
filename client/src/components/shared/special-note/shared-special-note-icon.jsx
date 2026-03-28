@@ -3,6 +3,7 @@
 import { AlertTriangle, Calendar, Edit, Info, StickyNote, X } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 
 // Note Status Options - Shared constant
 export const NOTE_STATUSES = [
@@ -16,7 +17,12 @@ export const NOTE_STATUSES = [
   { id: "general", label: "General" },
 ]
 
-export const getStatusLabel = (statusId) => {
+export const getStatusLabel = (statusId, t = null) => {
+  if (t) {
+    const key = `admin.customers.shared.noteStatuses.${statusId}`
+    const translated = t(key)
+    if (translated !== key) return translated
+  }
   const status = NOTE_STATUSES.find(s => s.id === statusId)
   return status ? status.label : "General"
 }
@@ -82,6 +88,7 @@ const SharedSpecialNoteIcon = ({
   maxVisibleNotes = 5,
   onColoredBackground = false,
 }) => {
+  const { t } = useTranslation()
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
@@ -287,7 +294,7 @@ const SharedSpecialNoteIcon = ({
             } rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
           onClick={handleNoteClick}
           onPointerDown={(e) => e.stopPropagation()}
-          title="Add special note"
+          title={t("admin.customers.shared.addSpecialNoteTitle")}
         >
           <StickyNote size={iconSize} className={`${onColoredBackground
               ? "text-white/60 group-hover:text-white"
@@ -314,13 +321,13 @@ const SharedSpecialNoteIcon = ({
             {/* Header */}
             <div className="bg-surface-dark p-2 sm:p-3 rounded-t-lg border-b border-border flex items-center gap-2 flex-shrink-0">
               <h4 className="text-content-primary flex gap-2 items-center font-medium text-sm">
-                <span>Special Notes</span>
+                <span>{t("admin.customers.shared.specialNotes")}</span>
                 <span className="text-xs text-content-faint">({entityNotes.length})</span>
               </h4>
               <button
                 onClick={handleEditNote}
                 className="ml-auto text-content-muted p-1 hover:text-content-primary"
-                title="Edit notes"
+                title={t("admin.customers.shared.editNotes")}
               >
                 <Edit size={14} />
               </button>
@@ -360,26 +367,26 @@ const SharedSpecialNoteIcon = ({
                   <div key={note.id || index} className="bg-surface-dark/50 rounded-lg p-2.5">
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <span className="text-xs font-medium px-2 py-0.5 rounded border border-border text-content-secondary">
-                        {getStatusLabel(note.status)}
+                        {getStatusLabel(note.status, t)}
                       </span>
                       {note.isImportant && (
                         <span className="text-xs font-medium px-2 py-0.5 rounded border border-accent-red/30 text-accent-red">
-                          Important
+                          {t("admin.customers.shared.important")}
                         </span>
                       )}
                     </div>
                     <p className="text-content-primary text-xs leading-relaxed whitespace-pre-wrap">
-                      {note.note}
+                      {note.text}
                     </p>
-                    {(note.valid.from || note.valid.until) && (
+                    {(note.startDate || note.endDate) && (
                       <p className="text-content-faint text-xs mt-1.5 flex items-center gap-1">
                         <Calendar size={10} />
-                        {note.valid.from && note.valid.until ? (
-                          <>Valid: {new Date(note.valid.from).toLocaleDateString()} - {new Date(note.valid.until).toLocaleDateString()}</>
+                        {note.startDate && note.endDate ? (
+                          <>{t("admin.customers.shared.validRange", { start: new Date(note.startDate).toLocaleDateString(), end: new Date(note.endDate).toLocaleDateString() })}</>
                         ) : note.startDate ? (
-                          <>Valid from: {new Date(note.valid.from).toLocaleDateString()}</>
+                          <>{t("admin.customers.shared.validFromDate", { date: new Date(note.startDate).toLocaleDateString() })}</>
                         ) : (
-                          <>Valid until: {new Date(note.valid.until).toLocaleDateString()}</>
+                          <>{t("admin.customers.shared.validUntilDate", { date: new Date(note.endDate).toLocaleDateString() })}</>
                         )}
                       </p>
                     )}
@@ -390,7 +397,7 @@ const SharedSpecialNoteIcon = ({
                   onClick={handleEditNote}
                   className="w-full text-center text-xs text-primary py-1"
                 >
-                  +{entityNotes.length - maxVisibleNotes} more notes...
+                  {t("admin.customers.shared.moreNotes", { count: entityNotes.length - maxVisibleNotes })}
                 </button>
               )}
             </div>

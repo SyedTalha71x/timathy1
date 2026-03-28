@@ -279,7 +279,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Details
+            {t("admin.customers.shared.details")}
           </button>
           <button
             onClick={(e) => handleTabClick("note", e)}
@@ -289,7 +289,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Special Notes
+            {t("admin.customers.shared.specialNotes")}
           </button>
         </div>
 
@@ -354,7 +354,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                     >
                       {leadSource ? (
                         <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getSourceColor(leadSource)}`}>
-                          {leadSource}
+                          {tSource(leadSource)}
                         </span>
                       ) : (
                         <span className="text-gray-500">{t("admin.customers.shared.selectSource")}</span>
@@ -435,7 +435,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                       isAddingNote ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
                     }`}
                   >
-                    {isAddingNote ? <>{t("common.cancel")}</> : <><Plus size={14} /> Add Note</>}
+                    {isAddingNote ? <>{t("common.cancel")}</> : <><Plus size={14} /> {t("admin.customers.shared.addNote")}</>}
                   </button>
                 </div>
 
@@ -513,7 +513,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                           : "bg-blue-600 text-white"
                       }`}
                     >
-                      {editingNoteId ? "Update Note" : "Add Note"}
+                      {editingNoteId ? t("admin.customers.shared.updateNote") : t("admin.customers.shared.addNote")}
                     </button>
                   </div>
                 )}
@@ -537,11 +537,11 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                               >
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                   <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
-                                    {statusInfo.label}
+                                    {tNoteStatus(note.status)}
                                   </span>
                                   {note.isImportant && (
                                     <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
-                                      Important
+                                      {t("admin.customers.shared.important")}
                                     </span>
                                   )}
                                 </div>
@@ -575,11 +575,11 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                                   {(note.startDate || note.endDate) && (
                                     <p className="text-xs text-gray-600 mt-1">
                                       {note.startDate && note.endDate ? (
-                                        <>Valid: {note.startDate} - {note.endDate}</>
+                                        <>{t("admin.customers.shared.validRange", { start: note.startDate, end: note.endDate })}</>
                                       ) : note.startDate ? (
-                                        <>Valid from: {note.startDate}</>
+                                        <>{t("admin.customers.shared.validFromDate", { date: note.startDate })}</>
                                       ) : (
-                                        <>Valid until: {note.endDate}</>
+                                        <>{t("admin.customers.shared.validUntilDate", { date: note.endDate })}</>
                                       )}
                                     </p>
                                   )}
@@ -593,11 +593,11 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                                   {(note.startDate || note.endDate) && (
                                     <div className="mt-2 text-xs text-gray-500">
                                       {note.startDate && note.endDate ? (
-                                        <>Valid: {note.startDate} - {note.endDate}</>
+                                        <>{t("admin.customers.shared.validRange", { start: note.startDate, end: note.endDate })}</>
                                       ) : note.startDate ? (
-                                        <>Valid from: {note.startDate}</>
+                                        <>{t("admin.customers.shared.validFromDate", { date: note.startDate })}</>
                                       ) : (
-                                        <>Valid until: {note.endDate}</>
+                                        <>{t("admin.customers.shared.validUntilDate", { date: note.endDate })}</>
                                       )}
                                     </div>
                                   )}
@@ -608,7 +608,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
                         })
                     ) : (
                       <div className="text-gray-500 text-sm text-center py-8">
-                        No special notes yet. Click &quot;Add Note&quot; to create one.
+                        {t("admin.customers.shared.noNotesYet")}
                       </div>
                     )}
                   </div>
@@ -624,13 +624,13 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
               onClick={onClose}
               className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               className="px-4 py-2 text-sm text-white rounded-xl bg-orange-500 hover:bg-orange-600"
             >
-              Save Changes
+              {t("admin.customers.shared.saveChanges")}
             </button>
           </div>
         </form>

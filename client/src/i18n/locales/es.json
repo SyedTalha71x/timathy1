@@ -1485,7 +1485,25 @@
         },
         "validRange": "Válido: {{start}} - {{end}}",
         "validFromDate": "Válido desde: {{date}}",
-        "validUntilDate": "Válido hasta: {{date}}"
+        "validUntilDate": "Válido hasta: {{date}}",
+        "addSpecialNote": "Añadir nota especial",
+        "addSpecialNoteTitle": "Añadir nota especial",
+        "editNotes": "Editar notas",
+        "moreNotes": "+{{count}} notas más...",
+        "endBeforeStartError": "La fecha de fin no puede ser anterior a la fecha de inicio",
+        "entityLead": "Prospecto",
+        "entityMember": "Miembro",
+        "noteStatuses": {
+          "contact_attempt": "Intento de contacto",
+          "callback_requested": "Devolución de llamada solicitada",
+          "interest": "Interés",
+          "objection": "Objeción",
+          "personal_info": "Info personal",
+          "health": "Salud",
+          "follow_up": "Seguimiento",
+          "general": "General"
+        },
+        "noNotesYet": "No hay notas especiales aún. Haz clic en \"Añadir nota\" para crear una."
       },
       "studioOptions": {
         "title": "Opciones del studio",

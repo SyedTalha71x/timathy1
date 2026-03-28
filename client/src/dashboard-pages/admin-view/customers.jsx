@@ -61,7 +61,7 @@ import { RiContractLine } from "react-icons/ri"
 
   import StudioDetailsModal from "../../components/admin-dashboard-components/customers-components/studios-detail-modal"
 
-  import StudioHistoryModalMain from "../../components/admin-dashboard-components/customers-components/studio-history"
+  import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
 
   import { FaPersonRays } from "react-icons/fa6";
   import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states"
@@ -83,7 +83,7 @@ import { RiContractLine } from "react-icons/ri"
   import EditStudioOptionsModal from "../../components/admin-dashboard-components/customers-components/edit-studio-options-modal";
   import EditAdminConfigModal from "../../components/admin-dashboard-components/customers-components/EditAdminConfigModal";
   import { useNavigate } from "react-router-dom";
-  import { LeadSpecialNoteIcon } from "../../components/admin-dashboard-components/shared/special-note/shared-special-note-icon";
+  import { LeadSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon";
   import DocumentManagementModal from "../../components/shared/DocumentManagementModal";
   import PaymentDetailsModal from "../../components/admin-dashboard-components/customers-components/PaymentDetailsModal";
 
@@ -235,7 +235,6 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
     const [studios, setStudios] = useState(studioDataNew)
 
     const [showHistory, setShowHistory] = useState(false)
-    const [historyTabMain, setHistoryTabMain] = useState("general")
 
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [memberHistory, setMemberHistory] = useState(studiomemberHistoryNew)
@@ -445,6 +444,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
     const handleEditStudio = (studio) => { setSelectedStudio(studio); setIsEditOptionsModalOpen(true) }
     const handleAdminConfig = (studio) => { setIsEditOptionsModalOpen(false); setSelectedStudio(studio); setAdminConfigInitialTab("details"); setIsAdminConfigModalOpen(true) }
     const handleEditSpecialNote = (studio) => { setSelectedStudio(studio); setAdminConfigInitialTab("note"); setIsAdminConfigModalOpen(true) }
+
     const handleSaveAdminConfig = (updatedStudio) => { setStudios(prev => prev.map(s => s.id === updatedStudio.id ? { ...s, ...updatedStudio } : s)) }
     const handleStudioConfig = (studio) => { navigate(`/admin-dashboard/edit-studio-configuration/${studio.id}`); setIsEditOptionsModalOpen(false) }
     const handleEditFranchise = (franchise) => { setSelectedFranchise(franchise); setIsEditFranchiseModalOpen(true) }
@@ -916,7 +916,19 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
         <StudioDetailsModal isOpen={isViewDetailsModalOpen} onClose={() => setIsViewDetailsModalOpen(false)} studio={selectedStudio} franchises={franchises} studioStats={studioStats} DefaultStudioImage={DefaultStudioImage} isContractExpiringSoon={isContractExpiringSoon} onEditStudio={handleEditStudio} onViewFranchiseDetails={handleViewFranchiseDetails} />
-        <StudioHistoryModalMain show={showHistory} studio={selectedStudio} studioHistoryMain={studioHistoryMainData} historyTabMain={historyTabMain} setHistoryTabMain={setHistoryTabMain} onClose={() => { setShowHistory(false); setSelectedStudio(null) }} />
+        {showHistory && selectedStudio && (
+          <SharedHistoryModal
+            variant="studio"
+            person={selectedStudio}
+            history={{
+              general: studioHistoryMainData[selectedStudio.id]?.general || [],
+              contracts: studioHistoryMainData[selectedStudio.id]?.contract || [],
+              finance: studioHistoryMainData[selectedStudio.id]?.finance || [],
+              tickets: studioHistoryMainData[selectedStudio.id]?.tickets || [],
+            }}
+            onClose={() => { setShowHistory(false); setSelectedStudio(null) }}
+          />
+        )}
         <FranchiseModal isCreateModalOpen={isCreateFranchiseModalOpen} isEditModalOpen={isEditFranchiseModalOpen} onClose={handleCloseModal} franchiseForm={franchiseForm} onInputChange={handleFranchiseInputChange} onSave={handleFranchiseSubmit} onLogoUpload={handleLogoUpload} onArchive={handleArchiveFranchise} selectedFranchise={selectedFranchise} />
         <FranchiseDetailsModal isOpen={isFranchiseDetailsModalOpen} onClose={() => setIsFranchiseDetailsModalOpen(false)} franchise={selectedFranchise} onEditFranchise={handleEditFranchise} assignedStudios={selectedFranchise ? getStudiosByFranchise(selectedFranchise.id) : []} onArchiveFranchise={handleArchiveFranchise} />
         <AssignStudioModal isOpen={isAssignStudioModalOpen} onClose={handleAssignStudioCloseModal} franchises={franchises} selectedFranchiseForAssignment={selectedFranchiseForAssignment} onFranchiseSelect={setSelectedFranchiseForAssignment} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} toast={toast} />
@@ -951,6 +963,8 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
         )}
         <EditStudioOptionsModal isOpen={isEditOptionsModalOpen} onClose={() => setIsEditOptionsModalOpen(false)} studio={selectedStudio} onAdminConfig={handleAdminConfig} onStudioConfig={handleStudioConfig} />
         <EditAdminConfigModal isOpen={isAdminConfigModalOpen} onClose={() => setIsAdminConfigModalOpen(false)} studio={selectedStudio} onSave={handleSaveAdminConfig} initialTab={adminConfigInitialTab} />
+        
+        
       </>
     )
   }

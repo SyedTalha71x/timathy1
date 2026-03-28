@@ -27,7 +27,8 @@ import ViewLeadDetailsModal from "../../components/admin-dashboard-components/le
 import EditColumnModal from "../../components/admin-dashboard-components/lead-components/edit-column-modal"
 import LeadHistoryModal from "../../components/admin-dashboard-components/lead-components/lead-history-modal"
 import DeleteConfirmationModal from "../../components/admin-dashboard-components/lead-components/delete-confirmation-modal"
-import { LeadSpecialNoteModal } from '../../components/admin-dashboard-components/shared/special-note/shared-special-note-modal'
+import { LeadSpecialNoteModal } from '../../components/shared/special-note/shared-special-note-modal'
+import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 
 // New DnD components
 import SortableColumn from "../../components/admin-dashboard-components/lead-components/sortable-column"
@@ -633,6 +634,10 @@ export default function LeadManagement() {
   const handleOpenDocuments = (lead) => {
     setSelectedLeadForDocuments(lead)
     setIsDocumentModalOpen(true)
+  }
+
+  const handleLeadDocumentsUpdate = (leadId, documents) => {
+    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, documents } : l))
   }
 
   const handleSaveLead = (data) => {
@@ -1277,6 +1282,21 @@ export default function LeadManagement() {
           </div>
         </div>
       )}
+
+      {/* Document Management Modal */}
+      <DocumentManagementModal
+        entity={selectedLeadForDocuments}
+        entityType="lead"
+        isOpen={isDocumentModalOpen}
+        onClose={() => {
+          setIsDocumentModalOpen(false)
+          setSelectedLeadForDocuments(null)
+        }}
+        onDocumentsUpdate={handleLeadDocumentsUpdate}
+        sections={[
+          { id: "general", label: t("admin.customers.shared.general"), icon: File },
+        ]}
+      />
 
       {/* Floating Action Button - Mobile Only */}
       <button

@@ -394,6 +394,35 @@ const TrialCard = ({ item }) => (
 )
 
 
+// Used by: studio (tickets)
+const TicketCard = ({ item }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <FileText size={18} className="text-primary" />
+        </div>
+        <div>
+          <h4 className="font-medium text-content-primary">{item.title}</h4>
+          <p className="text-xs text-content-faint mt-0.5">{item.date}</p>
+        </div>
+      </div>
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border ${
+        item.status === "resolved" || item.status === "closed"
+          ? "bg-primary/10 text-primary border-primary/20"
+          : item.status === "open"
+            ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+            : "bg-surface-button text-content-muted border-border"
+      }`}>
+        {(item.status === "resolved" || item.status === "closed") && <CheckCircle size={12} />}
+        {item.status}
+      </span>
+    </div>
+    <p className="text-sm text-content-secondary">{item.description}</p>
+  </div>
+)
+
+
 // ─── Communication Tab (with filter logic) ───────────────────────────────────
 
 const CommunicationTab = ({ data, hidePush = false }) => {
@@ -444,6 +473,8 @@ const TAB_REGISTRY = {
   vacation:      { label: "Vacation",        icon: Calendar,  Card: VacationCard,       emptyTitle: "No Vacation History",  emptyDesc: "No vacation bookings have been recorded yet." },
   // Lead tabs
   trial:         { label: "Trial Training",  icon: Activity,  Card: TrialCard,          emptyTitle: "No Trial Training",    emptyDesc: "No trial training activities have been recorded yet." },
+  // Studio tabs
+  tickets:       { label: "Tickets",         icon: FileText,  Card: TicketCard,         emptyTitle: "No Tickets",           emptyDesc: "No ticket history has been recorded yet." },
 }
 
 const VARIANT_TABS = {
@@ -451,6 +482,7 @@ const VARIANT_TABS = {
   staff:    ["profile", "communication", "actions", "login", "vacation"],
   lead:     ["general", "communication", "trial"],
   contract: ["contracts"],
+  studio:   ["general", "contracts", "finance", "tickets"],
 }
 
 const VARIANT_SUBTITLES = {
@@ -458,6 +490,7 @@ const VARIANT_SUBTITLES = {
   staff:    "Activity History",
   lead:     "Lead History",
   contract: "Contract History",
+  studio:   "Studio History",
 }
 
 const VARIANT_ACCENT = {
@@ -465,6 +498,7 @@ const VARIANT_ACCENT = {
   staff:    "secondary",
   lead:     "primary",
   contract: "primary",
+  studio:   "primary",
 }
 
 
@@ -494,8 +528,8 @@ export default function SharedHistoryModal({
   const accent = VARIANT_ACCENT[variant] || "primary"
 
   // Resolve person name
-  const firstName = person?.firstName || person?.memberName?.split(" ")[0] || ""
-  const lastName = person?.lastName || person?.surname || person?.memberName?.split(" ").slice(1).join(" ") || ""
+  const firstName = person?.firstName || person?.name || person?.memberName?.split(" ")[0] || ""
+  const lastName = person?.lastName || person?.surname || (person?.firstName ? "" : "") || person?.memberName?.split(" ").slice(1).join(" ") || ""
 
   // Build tabs for this variant
   const variantTabIds = VARIANT_TABS[variant] || []

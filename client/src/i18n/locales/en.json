@@ -1485,7 +1485,25 @@
         },
         "validRange": "Valid: {{start}} - {{end}}",
         "validFromDate": "Valid from: {{date}}",
-        "validUntilDate": "Valid until: {{date}}"
+        "validUntilDate": "Valid until: {{date}}",
+        "addSpecialNote": "Add Special Note",
+        "addSpecialNoteTitle": "Add special note",
+        "editNotes": "Edit notes",
+        "moreNotes": "+{{count}} more notes...",
+        "endBeforeStartError": "End date cannot be before start date",
+        "entityLead": "Lead",
+        "entityMember": "Member",
+        "noteStatuses": {
+          "contact_attempt": "Contact Attempt",
+          "callback_requested": "Callback Requested",
+          "interest": "Interest",
+          "objection": "Objection",
+          "personal_info": "Personal Info",
+          "health": "Health",
+          "follow_up": "Follow-up",
+          "general": "General"
+        },
+        "noNotesYet": "No special notes yet. Click \"Add Note\" to create one."
       },
       "studioOptions": {
         "title": "Edit Studio Options",
