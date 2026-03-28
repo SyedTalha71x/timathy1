@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Building2 } from "lucide-react"
 
 /**
@@ -19,6 +20,7 @@ import { Building2 } from "lucide-react"
  */
 const StudioProfileDropdown = ({ isMobile = false, fullName, studioName, onOpenPrivacy, onOpenTerms, onOpenChangelog }) => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
 
@@ -86,21 +88,21 @@ const StudioProfileDropdown = ({ isMobile = false, fullName, studioName, onOpenP
 
           <div className={isMobile ? "py-1" : "py-2"} role="menu">
             <button onClick={handleEditProfile} className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-content-primary hover:bg-surface-button text-left`}>
-              Edit Profile
+              {t("studio.profile.editProfile")}
             </button>
             <hr className="border-border-subtle my-1" />
             <button onClick={handlePrivacyPolicy} className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-content-primary hover:bg-surface-button text-left`}>
-              Privacy Policy
+              {t("studio.profile.privacyPolicy")}
             </button>
             <button onClick={handleTermsOfUse} className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-content-primary hover:bg-surface-button text-left`}>
-              Terms & Conditions
+              {t("studio.profile.termsConditions")}
             </button>
             <button onClick={handleChangelog} className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-content-primary hover:bg-surface-button text-left`}>
-              Changelog
+              {t("studio.profile.changelog")}
             </button>
             <hr className="border-border-subtle my-1" />
             <button onClick={handleLogout} className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-xs"} text-content-primary hover:bg-surface-button text-left`}>
-              Logout
+              {t("common.logout")}
             </button>
           </div>
         </div>

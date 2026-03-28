@@ -1003,39 +1003,23 @@
       }
     },
     "feedback": {
-      "title": "Feedback",
-      "description": "Feedback aller Studios anzeigen und verwalten",
-      "refresh": "Aktualisieren",
-      "search": {
-        "placeholder": "Suche nach Betreff, Studio oder Person..."
-      },
-      "filters": {
-        "title": "Filter"
-      },
-      "stats": {
-        "total": "Gesamt",
-        "new": "Neu",
-        "review": "Prüfung",
-        "resolved": "Gelöst"
-      },
-      "sort": {
-        "sortBy": "Sortieren nach",
-        "newest": "Neueste zuerst",
-        "oldest": "Älteste zuerst",
-        "rating": "Höchste Bewertung"
-      },
-      "allTypes": "Alle Typen",
-      "detail": {
-        "submittedBy": "Eingereicht von",
-        "message": "Nachricht",
-        "rating": "Bewertung",
-        "status": "Status"
-      },
-      "empty": {
-        "title": "Kein Feedback gefunden",
-        "description": "Versuche deine Suche oder Filter anzupassen"
-      },
-      "results": "{{filtered}} von {{total}} Einträgen"
+      "title": "Feedback senden",
+      "subtitle": "Hilf uns OrgaGym zu verbessern",
+      "thankYou": "Vielen Dank!",
+      "successMessage": "Dein Feedback wurde erfolgreich übermittelt. Wir schätzen es, dass du dir die Zeit nimmst, uns bei der Verbesserung von OrgaGym zu helfen.",
+      "feedbackType": "Feedback-Art",
+      "suggestion": "Vorschlag",
+      "bugReport": "Fehlerbericht",
+      "praise": "Lob",
+      "other": "Sonstiges",
+      "subject": "Betreff",
+      "subjectPlaceholder": "Kurze Zusammenfassung deines Feedbacks",
+      "message": "Nachricht",
+      "messagePlaceholder": "Erzähl uns mehr über dein Feedback...",
+      "ratingLabel": "Wie bewertest du deine Erfahrung?",
+      "optional": "optional",
+      "clearRating": "Löschen",
+      "sendFeedback": "Feedback senden"
     },
     "finances": {
       "title": "Finanzen",
@@ -1700,6 +1684,14 @@
           "saturday": "Samstag",
           "sunday": "Sonntag"
         }
+      },
+      "sort": {
+        "alphabetical": "Name",
+        "memberCount": "Mitglieder",
+        "staffCount": "Mitarbeiter",
+        "contractCount": "Verträge",
+        "leadCount": "Leads",
+        "studioCount": "Studios"
       }
     },
     "demoAccess": {
@@ -2155,6 +2147,63 @@
         "togglePermissions": "Berechtigungen umschalten",
         "unnamedTemplate": "Unbenannte Vorlage"
       }
+    },
+    "header": {
+      "toggleSidebar": "Seitenleiste umschalten",
+      "activityLog": "Aktivitätsprotokoll",
+      "toggleCollapse": "Seitenleiste ein-/ausklappen"
+    },
+    "profile": {
+      "accountManagement": "Kontoverwaltung"
+    },
+    "activityLog": {
+      "title": "Aktivitätsprotokoll",
+      "activitiesCount": "{{count}} von {{total}} Aktivitäten",
+      "filters": "Filter",
+      "clearAll": "Alle zurücksetzen",
+      "from": "Von",
+      "to": "Bis",
+      "staff": "Mitarbeiter",
+      "allStaff": "Alle Mitarbeiter",
+      "noActivities": "Keine Aktivitäten gefunden",
+      "noActivitiesHint": "Versuche die Filter anzupassen",
+      "change": "{{count}} Änderung",
+      "changes": "{{count}} Änderungen",
+      "showingOf": "{{count}} von {{total}} angezeigt",
+      "loadMore": "Mehr laden",
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "categories": {
+        "all": "Alle",
+        "customers": "Kunden",
+        "contracts": "Verträge",
+        "leads": "Leads",
+        "demoAccess": "Demo-Zugang",
+        "support": "Support",
+        "email": "E-Mail",
+        "finances": "Finanzen",
+        "notes": "Notizen",
+        "exercises": "Übungen",
+        "marketplace": "Marktplatz",
+        "configuration": "Konfiguration"
+      }
+    },
+    "sidebar": {
+      "customers": "Kunden",
+      "contracts": "Verträge",
+      "leads": "Leads",
+      "demoAccess": "Demo-Zugang",
+      "supportArea": "Support-Bereich",
+      "tickets": "Tickets",
+      "feedback": "Feedback",
+      "email": "E-Mail",
+      "finances": "Finanzen",
+      "todo": "To-Do",
+      "notes": "Notizen",
+      "trainingExercises": "Trainingsübungen",
+      "marketplace": "Marktplatz",
+      "analytics": "Analytik",
+      "configuration": "Konfiguration"
     }
   },
   "documents": {
@@ -2235,6 +2284,232 @@
       "deleteTag": "Tag \"{{name}}\" löschen",
       "done": "Fertig",
       "tagColor": "Tag-Farbe"
+    }
+  },
+  "shared": {
+    "history": {
+      "tabs": {
+        "general": "Allgemein",
+        "communication": "Kommunikation",
+        "appointments": "Termine",
+        "checkins": "Check-ins",
+        "finance": "Finanzen",
+        "contracts": "Verträge",
+        "actions": "Aktionen",
+        "loginActivity": "Login-Aktivität",
+        "vacation": "Urlaub",
+        "trialTraining": "Probetraining",
+        "tickets": "Tickets"
+      },
+      "empty": {
+        "noGeneralChanges": "Keine allgemeinen Änderungen",
+        "noGeneralChangesDesc": "Es wurden noch keine Profiländerungen aufgezeichnet.",
+        "noMessages": "Keine Nachrichten",
+        "noMessagesDesc": "Es wurde noch keine Kommunikation aufgezeichnet.",
+        "noAppointments": "Keine Termine",
+        "noAppointmentsDesc": "Es wurden noch keine Termine aufgezeichnet.",
+        "noCheckins": "Keine Check-ins",
+        "noCheckinsDesc": "Es wurden noch keine Check-in-Aktivitäten aufgezeichnet.",
+        "noTransactions": "Keine Transaktionen",
+        "noTransactionsDesc": "Es wurden noch keine Finanztransaktionen aufgezeichnet.",
+        "noContractChanges": "Keine Vertragsänderungen",
+        "noContractChangesDesc": "Es wurden noch keine Vertragsänderungen aufgezeichnet.",
+        "noActions": "Keine Aktionen",
+        "noActionsDesc": "Es wurden noch keine Aktionen aufgezeichnet.",
+        "noLoginActivity": "Keine Login-Aktivität",
+        "noLoginActivityDesc": "Es wurde noch keine Login-Aktivität aufgezeichnet.",
+        "noVacation": "Kein Urlaubsverlauf",
+        "noVacationDesc": "Es wurden noch keine Urlaubsbuchungen aufgezeichnet.",
+        "noTrialTraining": "Kein Probetraining",
+        "noTrialTrainingDesc": "Es wurden noch keine Probetrainings aufgezeichnet.",
+        "noTickets": "Keine Tickets",
+        "noTicketsDesc": "Es wurde noch kein Ticketverlauf aufgezeichnet.",
+        "noFilterMessages": "Keine {{filter}}-Nachrichten gefunden."
+      },
+      "subtitles": {
+        "activityHistory": "Aktivitätsverlauf",
+        "leadHistory": "Lead-Verlauf",
+        "contractHistory": "Vertragsverlauf",
+        "studioHistory": "Studio-Verlauf"
+      },
+      "labels": {
+        "changed": "Geändert",
+        "changedBy": "Geändert von {{name}}",
+        "type": "Typ",
+        "date": "Datum",
+        "by": "Von",
+        "at": "um",
+        "location": "Standort",
+        "target": "Ziel",
+        "sentBy": "Gesendet von {{name}}",
+        "approvedBy": "Genehmigt von {{name}}",
+        "trialDate": "Probetermin",
+        "to": "An",
+        "noContent": "Kein Inhalt verfügbar.",
+        "all": "Alle",
+        "emails": "E-Mails",
+        "push": "Push",
+        "days": "{{count}} Tage",
+        "requested": "Angefragt am {{date}}"
+      }
+    },
+    "activityLog": {
+      "actionTypes": {
+        "appointment_created": "Termin erstellt",
+        "member_updated": "Mitglied aktualisiert",
+        "contract_created": "Vertrag erstellt",
+        "lead_converted": "Lead konvertiert",
+        "payment_processed": "Zahlung verarbeitet",
+        "demo_access_granted": "Demo-Zugang gewährt",
+        "exercise_uploaded": "Übung hochgeladen",
+        "contract_renewed": "Vertrag verlängert",
+        "ticket_resolved": "Ticket gelöst",
+        "product_added": "Produkt hinzugefügt",
+        "email_campaign_sent": "E-Mail-Kampagne gesendet",
+        "configuration_updated": "Konfiguration aktualisiert",
+        "payment_failed": "Zahlung fehlgeschlagen",
+        "note_created": "Notiz erstellt",
+        "class_rescheduled": "Kurs verschoben",
+        "staff_schedule_updated": "Mitarbeiterplan aktualisiert",
+        "product_sold": "Produkt verkauft",
+        "training_plan_created": "Trainingsplan erstellt",
+        "message_sent": "Nachricht gesendet",
+        "opening_hours_updated": "Öffnungszeiten aktualisiert"
+      },
+      "descriptions": {
+        "appointment_created": "Neuen Termin für {{name}} erstellt",
+        "member_updated": "Profilinformationen von {{name}} aktualisiert",
+        "contract_created": "Neuen Vertrag für {{name}} erstellt",
+        "lead_converted": "Lead {{name}} zu Vollmitglied konvertiert",
+        "payment_processed": "Monatliche Zahlung für {{name}} verarbeitet",
+        "demo_access_granted": "Demo-Zugang für {{name}} gewährt",
+        "exercise_uploaded": "Neue Übung hochgeladen: {{name}}",
+        "contract_renewed": "Vertrag für {{name}} verlängert",
+        "ticket_resolved": "Support-Ticket {{ticket}} für {{name}} gelöst",
+        "product_added": "Neues Produkt im Marktplatz hinzugefügt: {{name}}",
+        "email_campaign_sent": "Newsletter-Kampagne an {{count}} Empfänger gesendet",
+        "configuration_updated": "{{setting}}-Einstellungen für {{purpose}} aktualisiert",
+        "payment_failed": "Monatliche Zahlung für {{name}} fehlgeschlagen",
+        "note_created": "Interne Notiz über {{topic}} erstellt",
+        "class_rescheduled": "{{name}} für {{group}} verschoben",
+        "staff_schedule_updated": "Arbeitsplan für {{role}} {{name}} aktualisiert",
+        "product_sold": "{{product}} an {{name}} verkauft",
+        "training_plan_created": "Neuen Trainingsplan für {{name}} erstellt",
+        "message_sent": "Gruppennachricht an {{recipients}} gesendet",
+        "opening_hours_updated": "{{type}} Öffnungszeiten aktualisiert"
+      },
+      "fields": {
+        "service": "Leistung",
+        "date": "Datum",
+        "duration": "Dauer",
+        "trainer": "Trainer",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "type": "Typ",
+        "monthlyFee": "Monatsbeitrag",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "status": "Status",
+        "contract": "Vertrag",
+        "source": "Quelle",
+        "amount": "Betrag",
+        "method": "Methode",
+        "invoice": "Rechnung",
+        "studio": "Studio",
+        "template": "Vorlage",
+        "expires": "Läuft ab",
+        "name": "Name",
+        "difficulty": "Schwierigkeit",
+        "muscles": "Muskeln",
+        "resolution": "Lösung",
+        "price": "Preis",
+        "brand": "Marke",
+        "subject": "Betreff",
+        "recipients": "Empfänger",
+        "smtpServer": "SMTP-Server",
+        "port": "Port",
+        "encryption": "Verschlüsselung",
+        "error": "Fehler",
+        "retry": "Wiederholung",
+        "title": "Titel",
+        "tags": "Tags",
+        "time": "Uhrzeit",
+        "room": "Raum",
+        "product": "Produkt",
+        "payment": "Zahlung",
+        "plan": "Plan",
+        "sessionsPerWeek": "Einheiten/Woche",
+        "focus": "Schwerpunkt"
+      }
+    }
+  },
+  "studio": {
+    "sidebar": {
+      "myArea": "Mein Bereich",
+      "appointments": "Termine",
+      "classes": "Kurse",
+      "communication": "Kommunikation",
+      "messenger": "Messenger",
+      "bulletinBoard": "Schwarzes Brett",
+      "activityMonitor": "Aktivitätsmonitor",
+      "productivityArea": "Produktivität",
+      "todo": "To-Do",
+      "notes": "Notizen",
+      "mediaLibrary": "Mediathek",
+      "memberArea": "Mitgliederbereich",
+      "members": "Mitglieder",
+      "checkIn": "Check-In",
+      "contracts": "Verträge",
+      "leads": "Leads",
+      "staff": "Mitarbeiter",
+      "selling": "Verkauf",
+      "fitnessArea": "Fitnessbereich",
+      "training": "Training",
+      "medicalHistory": "Anamnese Bogen",
+      "finances": "Finanzen",
+      "analytics": "Analytik",
+      "configuration": "Konfiguration",
+      "marketplace": "Marktplatz",
+      "supportArea": "Support-Bereich",
+      "helpCenter": "Hilfecenter",
+      "tickets": "Tickets",
+      "feedback": "Feedback"
+    },
+    "header": {
+      "switchToLight": "Zum hellen Modus wechseln",
+      "switchToDark": "Zum dunklen Modus wechseln",
+      "toggleSidebar": "Seitenleiste umschalten",
+      "activityLog": "Aktivitätsprotokoll"
+    },
+    "profile": {
+      "editProfile": "Profil bearbeiten",
+      "privacyPolicy": "Datenschutzrichtlinie",
+      "termsConditions": "AGB",
+      "changelog": "Änderungsprotokoll"
+    },
+    "activityLog": {
+      "categories": {
+        "all": "Alle",
+        "appointments": "Termine",
+        "classes": "Kurse",
+        "members": "Mitglieder",
+        "contracts": "Verträge",
+        "leads": "Leads",
+        "staff": "Mitarbeiter",
+        "selling": "Verkauf",
+        "finances": "Finanzen",
+        "communication": "Kommunikation",
+        "notes": "Notizen",
+        "training": "Training",
+        "marketplace": "Marktplatz",
+        "configuration": "Konfiguration"
+      }
+    },
+    "layout": {
+      "deleteTask": "Aufgabe löschen",
+      "deleteTaskConfirm": "Bist du sicher, dass du diese Aufgabe löschen möchtest?",
+      "cancelTask": "Aufgabe abbrechen",
+      "cancelTaskConfirm": "Bist du sicher, dass du diese Aufgabe abbrechen möchtest?"
     }
   }
 }

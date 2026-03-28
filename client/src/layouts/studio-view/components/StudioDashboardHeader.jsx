@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { Building2, History, ShoppingCart, Sun, Moon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import { useSelector, useDispatch } from 'react-redux'
 import { me } from '../../../features/auth/authSlice'
@@ -33,6 +34,7 @@ const DashboardHeader = ({
 }) => {
   const { user } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
+  const { t } = useTranslation()
 
   // Fetch user data on mount
   useEffect(() => {
@@ -83,7 +85,7 @@ const DashboardHeader = ({
     <button
       onClick={toggleTheme}
       className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"}`}
-      aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label={isDarkMode ? t("studio.header.switchToLight") : t("studio.header.switchToDark")}
     >
       {isDarkMode ? <Sun size={18} className="text-content-muted" /> : <Moon size={18} className="text-content-muted" />}
     </button>
@@ -130,7 +132,7 @@ const DashboardHeader = ({
           <div className="bg-primary p-2 rounded-md">
             <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
           </div>
-          <button onClick={onToggleSidebar} className="p-2 px-3 rounded-xl bg-surface-card text-content-primary" aria-label="Toggle Sidebar">
+          <button onClick={onToggleSidebar} className="p-2 px-3 rounded-xl bg-surface-card text-content-primary" aria-label={t("studio.header.toggleSidebar")}>
             {isSidebarOpen ? (
               <img draggable="false" key="open" src="/icon.svg" className="theme-icon h-[18px] w-[18px]" alt="Close sidebar" />
             ) : (
@@ -141,7 +143,7 @@ const DashboardHeader = ({
 
         <div className="flex gap-1 items-center relative">
           <ThemeToggle isMobile />
-          <button onClick={() => setIsActivityLogOpen(true)} className="p-2 px-3 rounded-xl text-content-muted bg-surface-card cursor-pointer flex items-center gap-1" aria-label="Activity Log">
+          <button onClick={() => setIsActivityLogOpen(true)} className="p-2 px-3 rounded-xl text-content-muted bg-surface-card cursor-pointer flex items-center gap-1" aria-label={t("studio.header.activityLog")}>
             <History size={18} />
           </button>
           <div className="mr-1">
@@ -182,7 +184,7 @@ const DashboardHeader = ({
               <p className="text-sm font-bold text-content-primary">{studioName}</p>
             </div>
             <ThemeToggle />
-            <button onClick={() => setIsActivityLogOpen(true)} className="p-1.5 px-2.5 rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1" aria-label="Activity Log">
+            <button onClick={() => setIsActivityLogOpen(true)} className="p-1.5 px-2.5 rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1" aria-label={t("studio.header.activityLog")}>
               <History size={18} />
             </button>
           </div>

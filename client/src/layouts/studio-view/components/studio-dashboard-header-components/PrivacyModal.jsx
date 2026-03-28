@@ -1,14 +1,16 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const PrivacyModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation()
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center sm:p-4 z-[9999]">
       <div className="bg-surface-hover rounded-t-2xl sm:rounded-2xl w-full sm:max-w-4xl sm:mx-auto h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden border-t sm:border border-border shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-5 sm:p-6 border-b border-border-subtle flex-shrink-0 rounded-t-2xl">
-          <h2 className="text-lg sm:text-xl font-bold text-content-primary">Privacy Policy</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-content-primary">{t("studio.profile.privacyPolicy")}</h2>
           <button onClick={onClose} className="p-2 hover:bg-surface-button rounded-lg transition-colors">
             <X size={20} className="text-content-primary" />
           </button>

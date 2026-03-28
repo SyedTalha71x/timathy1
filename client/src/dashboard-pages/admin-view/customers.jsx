@@ -307,7 +307,8 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
     // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sort options (matching members.jsx pattern) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const currentSortOptions = viewMode === "studios" ? STUDIO_SORT_OPTIONS : FRANCHISE_SORT_OPTIONS
-    const currentSortLabel = currentSortOptions.find((opt) => opt.value === sortBy)?.label || "Name"
+    const tSort = (value) => t(`admin.customers.sort.${value}`, value)
+    const currentSortLabel = tSort(sortBy)
     const getSortIcon = () => sortDirection === "asc" ? <ArrowUp size={14} className="text-white" /> : <ArrowDown size={14} className="text-white" />
     const handleSortOptionClick = (newSortBy) => { if (sortBy === newSortBy) { setSortDirection(sortDirection === "asc" ? "desc" : "asc") } else { setSortBy(newSortBy); setSortDirection("asc") } }
     const handleMobileSortOptionClick = (newSortBy) => { handleSortOptionClick(newSortBy); setShowMobileSortDropdown(false) }
@@ -529,7 +530,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                         <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
                           <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleMobileSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
-                            <span>{opt.label}</span>
+                            <span>{tSort(opt.value)}</span>
                             {sortBy === opt.value && <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                           </button>
                         ))}
@@ -666,7 +667,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                         <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
                           <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
-                            <span>{opt.label}</span>
+                            <span>{tSort(opt.value)}</span>
                             {sortBy === opt.value && <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                           </button>
                         ))}

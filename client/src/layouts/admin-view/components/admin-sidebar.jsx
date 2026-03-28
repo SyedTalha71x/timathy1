@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { MdOutlineHelpCenter, MdOutlineSupportAgent, MdOutlineLocalActivity } from "react-icons/md"
 import { FaNotesMedical } from "react-icons/fa6"
 import { FaPersonRays } from "react-icons/fa6"
@@ -35,10 +36,10 @@ import { DUMMY_FEEDBACK } from "../../../utils/admin-panel-states/feedback-state
 // Feedback Modal Component (same as main sidebar)
 // ============================================
 const feedbackTypes = [
-  { id: 'suggestion', label: 'Suggestion', icon: Lightbulb },
-  { id: 'bug', label: 'Bug Report', icon: Bug },
-  { id: 'praise', label: 'Praise', icon: Star },
-  { id: 'other', label: 'Other', icon: MessageCircle },
+  { id: 'suggestion', tKey: 'admin.feedback.suggestion', icon: Lightbulb },
+  { id: 'bug', tKey: 'admin.feedback.bugReport', icon: Bug },
+  { id: 'praise', tKey: 'admin.feedback.praise', icon: Star },
+  { id: 'other', tKey: 'admin.feedback.other', icon: MessageCircle },
 ]
 
 const FeedbackModal = ({ 
@@ -49,6 +50,7 @@ const FeedbackModal = ({
   onSubmit, 
   onClose 
 }) => {
+  const { t } = useTranslation()
   if (!isOpen) return null
   
   // Success State
@@ -63,9 +65,9 @@ const FeedbackModal = ({
           <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={32} className="text-orange-500" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Thank You!</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">{t("admin.feedback.thankYou")}</h2>
           <p className="text-zinc-400">
-            Your feedback has been submitted successfully. We appreciate you taking the time to help us improve OrgaGym.
+            {t("admin.feedback.successMessage")}
           </p>
         </div>
       </div>
@@ -89,8 +91,8 @@ const FeedbackModal = ({
               <MessageSquarePlus size={20} className="text-orange-500" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Send Feedback</h2>
-              <p className="text-sm text-zinc-400">Help us improve OrgaGym</p>
+              <h2 className="text-lg font-semibold text-white">{t("admin.feedback.title")}</h2>
+              <p className="text-sm text-zinc-400">{t("admin.feedback.subtitle")}</p>
             </div>
           </div>
           <button 
@@ -105,7 +107,7 @@ const FeedbackModal = ({
         <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
           {/* Feedback Type */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Feedback Type</label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t("admin.feedback.feedbackType")}</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {feedbackTypes.map((type) => {
                 const IconComponent = type.icon
@@ -120,7 +122,7 @@ const FeedbackModal = ({
                     }`}
                   >
                     <IconComponent size={20} className={`mx-auto mb-1 ${feedbackData.type === type.id ? 'text-orange-500' : ''}`} />
-                    <span className="text-xs">{type.label}</span>
+                    <span className="text-xs">{t(type.tKey)}</span>
                   </button>
                 )
               })}
@@ -129,25 +131,25 @@ const FeedbackModal = ({
           
           {/* Subject */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Subject</label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t("admin.feedback.subject")}</label>
             <input
               type="text"
               value={feedbackData.subject}
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, subject: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
-              placeholder="Brief summary of your feedback"
+              placeholder={t("admin.feedback.subjectPlaceholder")}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           
           {/* Message */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Message</label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t("admin.feedback.message")}</label>
             <textarea
               value={feedbackData.message}
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, message: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
-              placeholder="Tell us more about your feedback..."
+              placeholder={t("admin.feedback.messagePlaceholder")}
               rows={4}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
             />
@@ -156,7 +158,7 @@ const FeedbackModal = ({
           {/* Rating (optional) */}
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-2">
-              How would you rate your experience? <span className="text-zinc-500">(optional)</span>
+              {t("admin.feedback.ratingLabel")} <span className="text-zinc-500">({t("admin.feedback.optional")})</span>
             </label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -176,7 +178,7 @@ const FeedbackModal = ({
                   onClick={() => onFeedbackDataChange({ ...feedbackData, rating: 0 })}
                   className="text-xs text-zinc-500 hover:text-zinc-400 ml-2"
                 >
-                  Clear
+                  {t("admin.feedback.clearRating")}
                 </button>
               )}
             </div>
@@ -189,14 +191,14 @@ const FeedbackModal = ({
             onClick={onClose}
             className="flex-1 px-4 py-2.5 sm:py-3 bg-zinc-700 text-white rounded-xl hover:bg-zinc-600 transition-colors font-medium text-sm sm:text-base"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onSubmit}
             disabled={!feedbackData.subject.trim() || !feedbackData.message.trim()}
             className="flex-1 px-4 py-2.5 sm:py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
-            Send Feedback
+            {t("admin.feedback.sendFeedback")}
           </button>
         </div>
       </div>
@@ -267,6 +269,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
 
   const location = useLocation()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const toggleCollapse = onToggleCollapse || (() => setInternalIsCollapsed(!internalIsCollapsed))
 
@@ -299,30 +302,31 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
   const newFeedbackCount = DUMMY_FEEDBACK.filter((fb) => fb.status === "new").length
 
   const menuItems = [
-    { icon: Users, label: "Customers", to: "/admin-dashboard/customers" },
-    { icon: RiContractLine, label: "Contracts", to: "/admin-dashboard/contract" },
-    { icon: FaPersonRays, label: "Leads", to: "/admin-dashboard/leads" },
-    { icon: RiAccountPinCircleLine, label: "Demo Access", to: "/admin-dashboard/demo-access" },
+    { icon: Users, label: t("admin.sidebar.customers"), to: "/admin-dashboard/customers" },
+    { icon: RiContractLine, label: t("admin.sidebar.contracts"), to: "/admin-dashboard/contract" },
+    { icon: FaPersonRays, label: t("admin.sidebar.leads"), to: "/admin-dashboard/leads" },
+    { icon: RiAccountPinCircleLine, label: t("admin.sidebar.demoAccess"), to: "/admin-dashboard/demo-access" },
     {
       icon: MdOutlineSupportAgent,
-      label: "Support Area",
+      label: t("admin.sidebar.supportArea"),
+      id: "support",
       to: "#",
       hasSubmenu: true,
       hasNotification: newFeedbackCount > 0,
       notificationCount: newFeedbackCount,
       submenu: [
-        { label: "Tickets", to: "/admin-dashboard/tickets", icon: MdOutlineLocalActivity },
-        { label: "Feedback", to: "/admin-dashboard/feedback", icon: MessageSquarePlus, hasNotification: newFeedbackCount > 0, notificationCount: newFeedbackCount },
+        { label: t("admin.sidebar.tickets"), to: "/admin-dashboard/tickets", icon: MdOutlineLocalActivity },
+        { label: t("admin.sidebar.feedback"), to: "/admin-dashboard/feedback", icon: MessageSquarePlus, hasNotification: newFeedbackCount > 0, notificationCount: newFeedbackCount },
       ],
     },
-    { icon: MdEmail, label: "Email", to: "/admin-dashboard/email", indicatorCount: 3 },
-    { icon: BadgeDollarSign, label: "Finances", to: "/admin-dashboard/finances" },
-    { icon: CheckSquare, label: "To-Do", to: "/admin-dashboard/to-do" },
-    { icon: FaNotesMedical, label: "Notes", to: "/admin-dashboard/notes" },
-    { icon: CgGym, label: "Training Exercises", to: "/admin-dashboard/training-exercises" },
-    { icon: FaCartPlus, label: "Marketplace", to: "/admin-dashboard/marketplace" },
-    { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/admin-dashboard/analytics" },
-    { icon: Settings, label: "Configuration", to: "/admin-dashboard/configuration" },
+    { icon: MdEmail, label: t("admin.sidebar.email"), to: "/admin-dashboard/email", indicatorCount: 3 },
+    { icon: BadgeDollarSign, label: t("admin.sidebar.finances"), to: "/admin-dashboard/finances" },
+    { icon: CheckSquare, label: t("admin.sidebar.todo"), to: "/admin-dashboard/to-do" },
+    { icon: FaNotesMedical, label: t("admin.sidebar.notes"), to: "/admin-dashboard/notes" },
+    { icon: CgGym, label: t("admin.sidebar.trainingExercises"), to: "/admin-dashboard/training-exercises" },
+    { icon: FaCartPlus, label: t("admin.sidebar.marketplace"), to: "/admin-dashboard/marketplace" },
+    { icon: TbBrandGoogleAnalytics, label: t("admin.sidebar.analytics"), to: "/admin-dashboard/analytics" },
+    { icon: Settings, label: t("admin.sidebar.configuration"), to: "/admin-dashboard/configuration" },
   ]
 
   // Helper function to check if any submenu item is active
@@ -331,17 +335,17 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
   }
 
   // Toggle submenu handlers
-  const toggleSubmenu = (label) => {
-    switch (label) {
-      case "Support Area":
+  const toggleSubmenu = (id) => {
+    switch (id) {
+      case "support":
         setIsSupportAreaOpen(!isSupportAreaOpen)
         break
     }
   }
 
-  const isSubmenuOpen = (label) => {
-    switch (label) {
-      case "Support Area":
+  const isSubmenuOpen = (id) => {
+    switch (id) {
+      case "support":
         return isSupportAreaOpen
       default:
         return false
@@ -415,7 +419,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                   return (
                     <li key={item.label}>
                       <button
-                        onClick={() => toggleSubmenu(item.label)}
+                        onClick={() => toggleSubmenu(item.id)}
                         className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font relative w-full ${
                           isCollapsed ? "justify-center" : "text-left"
                         } group transition-all duration-300 ${
@@ -429,7 +433,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                             size={24}
                             className={`cursor-pointer ${hasActiveSubmenu ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
                           />
-                          {item.notificationCount > 0 && !isSubmenuOpen(item.label) && (
+                          {item.notificationCount > 0 && !isSubmenuOpen(item.id) && (
                             <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                               {item.notificationCount}
                             </span>
@@ -440,14 +444,14 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                             <span>{item.label}</span>
                             <ChevronRight
                               size={16}
-                              className={`transition-transform ${isSubmenuOpen(item.label) ? "rotate-90" : ""}`}
+                              className={`transition-transform ${isSubmenuOpen(item.id) ? "rotate-90" : ""}`}
                             />
                           </div>
                         )}
                       </button>
 
                       {/* Submenu */}
-                      {isSubmenuOpen(item.label) && (
+                      {isSubmenuOpen(item.id) && (
                         <ul className={`${isCollapsed ? 'ml-0 mt-1 relative' : 'ml-3 mt-1 relative'} space-y-0`}>
                           {/* Vertical line connector for expanded */}
                           {!isCollapsed && (
@@ -568,7 +572,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
               } transition-all duration-300`}
             >
               <LogOut size={20} />
-              {!isCollapsed && <span>Logout</span>}
+              {!isCollapsed && <span>{t("common.logout")}</span>}
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
 import { logout } from "../../../features/auth/authSlice"
 import { MdOutlineHelpCenter, MdOutlineSupportAgent, MdOutlineLocalActivity } from "react-icons/md"
@@ -115,6 +116,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
   const location = useLocation()
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const { t } = useTranslation()
 
   const toggleCollapse = onToggleCollapse || (() => setInternalIsCollapsed(!internalIsCollapsed))
 
@@ -147,70 +149,75 @@ const handleLogout = () => {
   // Menu Items Configuration
   // ============================================
   const menuItems = [
-    { icon: Home, label: "My Area", to: "/dashboard/my-area" },
-    { icon: Calendar, label: "Appointments", to: "/dashboard/appointments" },
-    { icon: Timer, label: "Classes", to: "/dashboard/classes" },
+    { icon: Home, label: t("studio.sidebar.myArea"), to: "/dashboard/my-area" },
+    { icon: Calendar, label: t("studio.sidebar.appointments"), to: "/dashboard/appointments" },
+    { icon: Timer, label: t("studio.sidebar.classes"), to: "/dashboard/classes" },
     {
       icon: MessageCircle,
-      label: "Communication",
+      label: t("studio.sidebar.communication"),
+      id: "communication",
       to: "/dashboard/communication",
       hasSubmenu: true,
       submenu: [
-        { label: "Messenger", to: "/dashboard/communication", icon: TbMessage },
-        { label: "Bulletin Board", to: "/dashboard/bulletin-board", icon: ClipboardList },
-        { label: "Activity Monitor", to: "/dashboard/activity-monitor", icon: CiMonitor },
+        { label: t("studio.sidebar.messenger"), to: "/dashboard/communication", icon: TbMessage, id: "messenger" },
+        { label: t("studio.sidebar.bulletinBoard"), to: "/dashboard/bulletin-board", icon: ClipboardList },
+        { label: t("studio.sidebar.activityMonitor"), to: "/dashboard/activity-monitor", icon: CiMonitor, id: "activity-monitor" },
       ],
     },
     {
       icon: FaTasks,
-      label: "Productivity Area",
+      label: t("studio.sidebar.productivityArea"),
+      id: "productivity",
       to: "#",
       hasSubmenu: true,
       submenu: [
-        { label: "To-Do", to: "/dashboard/to-do", icon: CheckSquare },
-        { label: "Notes", to: "/dashboard/notes", icon: FaNotesMedical },
-        { label: "Media Library", to: "/dashboard/media-library", icon: Image },
+        { label: t("studio.sidebar.todo"), to: "/dashboard/to-do", icon: CheckSquare },
+        { label: t("studio.sidebar.notes"), to: "/dashboard/notes", icon: FaNotesMedical },
+        { label: t("studio.sidebar.mediaLibrary"), to: "/dashboard/media-library", icon: Image },
       ],
     },
     {
       icon: Users,
-      label: "Member Area",
+      label: t("studio.sidebar.memberArea"),
+      id: "members",
       to: "#",
       hasSubmenu: true,
       submenu: [
-        { label: "Members", to: "/dashboard/members", icon: HiOutlineUsers },
-        { label: "Check-In", to: "/dashboard/members-checkin", icon: IoIosCheckmarkCircleOutline },
-        { label: "Contracts", to: "/dashboard/contract", icon: RiContractLine },
+        { label: t("studio.sidebar.members"), to: "/dashboard/members", icon: HiOutlineUsers },
+        { label: t("studio.sidebar.checkIn"), to: "/dashboard/members-checkin", icon: IoIosCheckmarkCircleOutline },
+        { label: t("studio.sidebar.contracts"), to: "/dashboard/contract", icon: RiContractLine },
       ],
     },
-    { icon: FaPersonRays, label: "Leads", to: "/dashboard/leads" },
-    { icon: BsPersonWorkspace, label: "Staff", to: "/dashboard/staff" },
-    { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
+    { icon: FaPersonRays, label: t("studio.sidebar.leads"), to: "/dashboard/leads" },
+    { icon: BsPersonWorkspace, label: t("studio.sidebar.staff"), to: "/dashboard/staff" },
+    { icon: ShoppingCart, label: t("studio.sidebar.selling"), to: "/dashboard/selling" },
     {
       icon: IoFitnessOutline,
-      label: "Fitness Area",
+      label: t("studio.sidebar.fitnessArea"),
+      id: "fitness",
       to: "#",
       hasSubmenu: true,
       submenu: [
-        { label: "Training", to: "/dashboard/training", icon: CgGym },
-        { label: "Medical History", to: "/dashboard/medical-history", icon: BsFillClipboard2HeartFill },
+        { label: t("studio.sidebar.training"), to: "/dashboard/training", icon: CgGym },
+        { label: t("studio.sidebar.medicalHistory"), to: "/dashboard/medical-history", icon: BsFillClipboard2HeartFill },
       ],
     },
-    { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
-    { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/dashboard/analytics" },
-    { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
-    { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
+    { icon: BadgeDollarSign, label: t("studio.sidebar.finances"), to: "/dashboard/finances" },
+    { icon: TbBrandGoogleAnalytics, label: t("studio.sidebar.analytics"), to: "/dashboard/analytics" },
+    { icon: Settings, label: t("studio.sidebar.configuration"), to: "/dashboard/configuration" },
+    { icon: FaCartPlus, label: t("studio.sidebar.marketplace"), to: "/dashboard/market-place" },
     {
       icon: MdOutlineSupportAgent,
-      label: "Support Area",
+      label: t("studio.sidebar.supportArea"),
+      id: "support",
       to: "#",
       hasSubmenu: true,
       hasNotification: true,
       notificationCount: 3,
       submenu: [
-        { label: "Help Center", to: "/dashboard/help-center", icon: MdOutlineHelpCenter },
-        { label: "Tickets", to: "/dashboard/tickets", icon: MdOutlineLocalActivity, hasNotification: true, notificationCount: 3 },
-        { label: "Feedback", to: "#feedback", icon: MessageSquarePlus },
+        { label: t("studio.sidebar.helpCenter"), to: "/dashboard/help-center", icon: MdOutlineHelpCenter },
+        { label: t("studio.sidebar.tickets"), to: "/dashboard/tickets", icon: MdOutlineLocalActivity, hasNotification: true, notificationCount: 3 },
+        { label: t("studio.sidebar.feedback"), to: "#feedback", icon: MessageSquarePlus },
       ],
     },
   ]
@@ -221,37 +228,37 @@ const handleLogout = () => {
   }
 
   // Toggle submenu handlers
-  const toggleSubmenu = (label) => {
-    switch (label) {
-      case "Communication":
+  const toggleSubmenu = (id) => {
+    switch (id) {
+      case "communication":
         setIsCommunicationOpen(!isCommunicationOpen)
         break
-      case "Member Area":
+      case "members":
         setIsMemberAreaOpen(!isMemberAreaOpen)
         break
-      case "Productivity Area":
+      case "productivity":
         setIsProductivityHubOpen(!isProductivityHubOpen)
         break
-      case "Fitness Area":
+      case "fitness":
         setIsFitnessHubOpen(!isFitnessHubOpen)
         break
-      case "Support Area":
+      case "support":
         setIsSupportAreaOpen(!isSupportAreaOpen)
         break
     }
   }
 
-  const isSubmenuOpen = (label) => {
-    switch (label) {
-      case "Communication":
+  const isSubmenuOpen = (id) => {
+    switch (id) {
+      case "communication":
         return isCommunicationOpen
-      case "Member Area":
+      case "members":
         return isMemberAreaOpen
-      case "Productivity Area":
+      case "productivity":
         return isProductivityHubOpen
-      case "Fitness Area":
+      case "fitness":
         return isFitnessHubOpen
-      case "Support Area":
+      case "support":
         return isSupportAreaOpen
       default:
         return false
@@ -324,7 +331,7 @@ const handleLogout = () => {
                 return (
                   <li key={item.label}>
                     <button
-                      onClick={() => toggleSubmenu(item.label)}
+                      onClick={() => toggleSubmenu(item.id)}
                       className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font relative w-full ${
                         isCollapsed ? "justify-center" : "text-left"
                       } group transition-all duration-300 ${
@@ -338,12 +345,12 @@ const handleLogout = () => {
                           size={24}
                           className={`cursor-pointer ${hasActiveSubmenu ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
                         />
-                        {item.label === "Communication" && unreadMessages > 0 && !isCommunicationOpen && (
+                        {item.id === "communication" && unreadMessages > 0 && !isCommunicationOpen && (
                           <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                             {unreadMessages}
                           </span>
                         )}
-                        {item.label === "Support Area" && item.notificationCount > 0 && !isSupportAreaOpen && (
+                        {item.id === "support" && item.notificationCount > 0 && !isSupportAreaOpen && (
                           <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                             {item.notificationCount}
                           </span>
@@ -354,14 +361,14 @@ const handleLogout = () => {
                           <span>{item.label}</span>
                           <ChevronRight
                             size={16}
-                            className={`transition-transform ${isSubmenuOpen(item.label) ? "rotate-90" : ""}`}
+                            className={`transition-transform ${isSubmenuOpen(item.id) ? "rotate-90" : ""}`}
                           />
                         </div>
                       )}
                     </button>
 
                     {/* Submenu */}
-                    {isSubmenuOpen(item.label) && (
+                    {isSubmenuOpen(item.id) && (
                       <ul className={`${isCollapsed ? 'ml-0 mt-1 relative' : 'ml-3 mt-1 relative'} space-y-0`}>
                         {/* Vertical line connector for expanded */}
                         {!isCollapsed && (
@@ -408,17 +415,17 @@ const handleLogout = () => {
                                       className={`cursor-pointer transition-colors ${isActive ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
                                     />
                                     
-                                    {subItem.label === "Messenger" && unreadMessages > 0 && (
+                                    {subItem.id === "messenger" && unreadMessages > 0 && (
                                       <span className="absolute -top-1 left-10 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                         {unreadMessages}
                                       </span>
                                     )}
-                                    {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
+                                    {subItem.id === "activity-monitor" && unreadMessages > 0 && (
                                       <span className="absolute -top-1 left-10 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                         {unreadMessages}
                                       </span>
                                     )}
-                                    {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
+                                    {subItem.hasNotification && subItem.notificationCount > 0 && (
                                       <span className="absolute -top-1 left-10 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                         {subItem.notificationCount}
                                       </span>
@@ -433,17 +440,17 @@ const handleLogout = () => {
                                       size={18}
                                       className={`cursor-pointer ${isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"}`}
                                     />
-                                    {subItem.label === "Messenger" && unreadMessages > 0 && (
+                                    {subItem.id === "messenger" && unreadMessages > 0 && (
                                       <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                         {unreadMessages}
                                       </span>
                                     )}
-                                    {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
+                                    {subItem.id === "activity-monitor" && unreadMessages > 0 && (
                                       <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                         {unreadMessages}
                                       </span>
                                     )}
-                                    {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
+                                    {subItem.hasNotification && subItem.notificationCount > 0 && (
                                       <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                         {subItem.notificationCount}
                                       </span>
@@ -484,7 +491,7 @@ const handleLogout = () => {
                   </button>
 
                   {/* Divider after Configuration */}
-                  {item.label === "Configuration" && <hr className="border-zinc-700 my-2" />}
+                  {item.to === "/dashboard/configuration" && <hr className="border-zinc-700 my-2" />}
                 </li>
               )
             })}
@@ -500,7 +507,7 @@ const handleLogout = () => {
             } transition-all duration-300`}
           >
             <LogOut size={20} />
-            {!isCollapsed && <span>Logout</span>}
+            {!isCollapsed && <span>{t("common.logout")}</span>}
           </button>
         </div>
       </div>
