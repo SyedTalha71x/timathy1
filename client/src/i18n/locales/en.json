@@ -1361,6 +1361,14 @@
         "inactive": "Inactive",
         "title": "Filters"
       },
+      "sort": {
+        "alphabetical": "Alphabetical",
+        "memberCount": "Member Count",
+        "staffCount": "Staff Count",
+        "contractCount": "Contract Count",
+        "leadCount": "Lead Count",
+        "studioCount": "Studio Count"
+      },
       "franchiseTable": {
         "actions": "Actions",
         "franchise": "Franchise",
@@ -1619,6 +1627,7 @@
         "aboutPlaceholder": "Describe your franchise, mission, values, services offered, etc...",
         "franchiseLogo": "Franchise Logo",
         "createFranchise": "Create Franchise",
+        "archiveConfirm": "Are you sure you want to {{action}} \"{{name}}\"?",
         "countries": {
           "germany": "Germany",
           "austria": "Austria",

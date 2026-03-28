@@ -223,12 +223,15 @@ const ACTIVITY_LOGS = [
 // ============================================
 // Helpers
 // ============================================
-const formatTime = (timestamp) => {
+const LOCALE_MAP = { en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES", it: "it-IT" }
+const getLocale = (lang) => LOCALE_MAP[lang] || LOCALE_MAP.en
+
+const formatTime = (timestamp, locale) => {
   const date = new Date(timestamp)
-  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+  return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit", hour12: false })
 }
 
-const formatDateLabel = (dateStr, t) => {
+const formatDateLabel = (dateStr, t, locale) => {
   const date = new Date(dateStr)
   const today = new Date()
   const yesterday = new Date(today)
@@ -236,7 +239,7 @@ const formatDateLabel = (dateStr, t) => {
 
   if (date.toDateString() === today.toDateString()) return t("admin.activityLog.today")
   if (date.toDateString() === yesterday.toDateString()) return t("admin.activityLog.yesterday")
-  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })
+  return date.toLocaleDateString(locale, { weekday: "long", month: "short", day: "numeric", year: "numeric" })
 }
 
 const formatInputDate = (date) => {
@@ -246,7 +249,7 @@ const formatInputDate = (date) => {
   return `${y}-${m}-${d}`
 }
 
-const groupByDate = (logs, t) => {
+const groupByDate = (logs, t, locale) => {
   const groups = {}
   logs.forEach((log) => {
     const dateKey = new Date(log.timestamp).toDateString()
@@ -256,7 +259,7 @@ const groupByDate = (logs, t) => {
   return Object.entries(groups)
     .map(([dateKey, items]) => ({
       dateKey,
-      label: formatDateLabel(dateKey, t),
+      label: formatDateLabel(dateKey, t, locale),
       items: items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
     }))
     .sort((a, b) => new Date(b.items[0].timestamp) - new Date(a.items[0].timestamp))
@@ -270,7 +273,8 @@ const getUserInitials = (name) => {
 // ActivityLogModal Component
 // ============================================
 const ActivityLogModal = ({ isOpen, onClose }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = getLocale(i18n.language)
   const [activeCategory, setActiveCategory] = useState("all")
   const [activeStaff, setActiveStaff] = useState("all")
   const [dateFrom, setDateFrom] = useState("")
@@ -298,7 +302,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null
 
-  const grouped = groupByDate(filtered, t)
+  const grouped = groupByDate(filtered, t, locale)
 
   const toggleExpanded = (id) => {
     setExpandedIds((prev) => {
@@ -472,7 +476,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                               <span className="text-sm font-medium text-white">{t(`shared.activityLog.actionTypes.${activity.actionType}`, activity.actionType)}</span>
                               <div className="flex items-center gap-1.5 text-zinc-500 flex-shrink-0">
                                 <Clock size={12} />
-                                <span className="text-xs">{formatTime(activity.timestamp)}</span>
+                                <span className="text-xs">{formatTime(activity.timestamp, locale)}</span>
                               </div>
                             </div>
 

@@ -1361,8 +1361,15 @@
         "inactive": "Inaktiv",
         "title": "Filter"
       },
+      "sort": {
+        "alphabetical": "Alphabetisch",
+        "memberCount": "Mitgliederanzahl",
+        "staffCount": "Mitarbeiteranzahl",
+        "contractCount": "Vertragsanzahl",
+        "leadCount": "Lead-Anzahl",
+        "studioCount": "Studioanzahl"
+      },
       "franchiseTable": {
-        "actions": "Aktionen",
         "franchise": "Franchise",
         "login": "Login",
         "owner": "Inhaber",
@@ -1529,23 +1536,23 @@
         "remove": "Entfernen",
         "removed": "Entfernt",
         "editStudio": "Studio bearbeiten",
-        "noAssigned": "Noch keine Studios dieser Franchise zugewiesen.",
+        "noAssigned": "Noch keine Studios diesem Franchise zugewiesen.",
         "allAssigned": "Alle Studios sind Franchises zugewiesen.",
         "noMatch": "Keine Studios gefunden für \"{{search}}\""
       },
       "assignStudios": {
-        "title": "Studios einer Franchise zuweisen",
+        "title": "Studios einem Franchise zuweisen",
         "selectFranchise": "1. Franchise auswählen",
-        "clickToSelect": "Klicken, um eine Franchise auszuwählen…",
+        "clickToSelect": "Klicken, um ein Franchise auszuwählen…",
         "noLocation": "Kein Standort",
         "searchFranchises": "Franchises suchen…",
-        "noFranchises": "Keine Franchises gefunden",
+        "noFranchises": "Kein Franchises gefunden",
         "assignStudios": "2. Nicht zugewiesene Studios zuweisen",
         "searchStudios": "Studios suchen…",
         "assigned": "Zugewiesen",
         "allAssigned": "Alle Studios sind bereits Franchises zugewiesen.",
         "noMatch": "Keine Studios gefunden für \"{{search}}\"",
-        "selectFirst": "Bitte zuerst eine Franchise auswählen"
+        "selectFirst": "Bitte zuerst ein Franchise auswählen"
       },
       "adminConfigModal": {
         "title": "Admin-Konfiguration bearbeiten",
@@ -1619,6 +1626,7 @@
         "aboutPlaceholder": "Beschreiben Sie Ihre Franchise, Mission, Werte, angebotene Dienste, etc...",
         "franchiseLogo": "Franchise-Logo",
         "createFranchise": "Franchise erstellen",
+        "archiveConfirm": "Möchten Sie \"{{name}}\" wirklich {{action}}?",
         "countries": {
           "germany": "Deutschland",
           "austria": "Österreich",
@@ -1684,14 +1692,6 @@
           "saturday": "Samstag",
           "sunday": "Sonntag"
         }
-      },
-      "sort": {
-        "alphabetical": "Name",
-        "memberCount": "Mitglieder",
-        "staffCount": "Mitarbeiter",
-        "contractCount": "Verträge",
-        "leadCount": "Leads",
-        "studioCount": "Studios"
       }
     },
     "demoAccess": {

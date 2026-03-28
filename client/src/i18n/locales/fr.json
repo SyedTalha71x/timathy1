@@ -1361,6 +1361,14 @@
         "inactive": "Inactif",
         "title": "Filtres"
       },
+      "sort": {
+        "alphabetical": "Alphabétique",
+        "memberCount": "Nombre de membres",
+        "staffCount": "Nombre d'employés",
+        "contractCount": "Nombre de contrats",
+        "leadCount": "Nombre de leads",
+        "studioCount": "Nombre de studios"
+      },
       "franchiseTable": {
         "actions": "Actions",
         "franchise": "Franchise",
@@ -1606,19 +1614,20 @@
         "noStudios": "No studios assigned to this franchise yet."
       },
       "franchiseForm": {
-        "createTitle": "Create New Franchise",
-        "editTitle": "Edit Franchise",
-        "newFranchise": "New Franchise",
-        "basicInfo": "Basic Information",
-        "franchiseName": "Franchise Name",
-        "ownerName": "Owner Name",
-        "enterFullName": "Enter full name",
-        "streetAddress": "Street Address",
-        "selectCountry": "Select Country",
-        "aboutFranchise": "About Franchise",
-        "aboutPlaceholder": "Describe your franchise, mission, values, services offered, etc...",
-        "franchiseLogo": "Franchise Logo",
-        "createFranchise": "Create Franchise",
+        "createTitle": "Créer une nouvelle franchise",
+        "editTitle": "Modifier la franchise",
+        "newFranchise": "Nouvelle franchise",
+        "basicInfo": "Informations de base",
+        "franchiseName": "Nom de la franchise",
+        "ownerName": "Nom du propriétaire",
+        "enterFullName": "Saisir le nom complet",
+        "streetAddress": "Adresse",
+        "selectCountry": "Sélectionner le pays",
+        "aboutFranchise": "À propos de la franchise",
+        "aboutPlaceholder": "Décrivez votre franchise, sa mission, ses valeurs, les services proposés, etc...",
+        "franchiseLogo": "Logo de la franchise",
+        "createFranchise": "Créer la franchise",
+        "archiveConfirm": "Êtes-vous sûr de vouloir {{action}} \"{{name}}\" ?",
         "countries": {
           "germany": "Allemagne",
           "austria": "Autriche",

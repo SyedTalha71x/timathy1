@@ -5,14 +5,14 @@ import { useTranslation } from "react-i18next"
 import { X, Upload, Plus, Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react"
 import toast from "react-hot-toast"
 
-// Note Status Options (franchise-context)
+// Note Status Options (franchise-context) — labels are i18n keys
 const NOTE_STATUSES = [
-  { id: "general", label: "General" },
-  { id: "contract_issue", label: "Contract Issue" },
-  { id: "onboarding", label: "Onboarding" },
-  { id: "follow_up", label: "Follow-up" },
-  { id: "compliance", label: "Compliance" },
-  { id: "escalation", label: "Escalation" },
+  { id: "general", labelKey: "admin.customers.shared.categories.general" },
+  { id: "contract_issue", labelKey: "admin.customers.shared.categories.contractIssue" },
+  { id: "onboarding", labelKey: "admin.customers.shared.categories.onboarding" },
+  { id: "follow_up", labelKey: "admin.customers.shared.categories.followUp" },
+  { id: "compliance", labelKey: "admin.customers.shared.categories.compliance" },
+  { id: "escalation", labelKey: "admin.customers.shared.categories.escalation" },
 ]
 
 const FranchiseModal = ({
@@ -161,7 +161,7 @@ const FranchiseModal = ({
         <div className="p-6 pb-0 flex-shrink-0">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-              {isEdit ? "Edit Franchise" : "Create New Franchise"}
+              {isEdit ? t("admin.customers.franchiseForm.editTitle") : t("admin.customers.franchiseForm.createTitle")}
             </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
@@ -176,7 +176,7 @@ const FranchiseModal = ({
                 activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
               }`}
             >
-              Details
+              {t("admin.customers.shared.details")}
             </button>
             <button
               onClick={() => setActiveTab("notes")}
@@ -184,7 +184,7 @@ const FranchiseModal = ({
                 activeTab === "notes" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
               }`}
             >
-              Special Notes{localNotes.length > 0 ? ` (${localNotes.length})` : ""}
+              {t("admin.customers.shared.specialNotes")}{localNotes.length > 0 ? ` (${localNotes.length})` : ""}
             </button>
           </div>
         </div>
@@ -201,14 +201,14 @@ const FranchiseModal = ({
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                     {franchiseForm.logo ? (
-                      <img src={franchiseForm.logo || "/placeholder.svg"} alt="Franchise Logo" className="w-full h-full object-cover" />
+                      <img src={franchiseForm.logo || "/placeholder.svg"} alt={t("admin.customers.franchiseForm.franchiseLogo")} className="w-full h-full object-cover" />
                     ) : (
                       <Upload size={24} className="text-white" />
                     )}
                   </div>
                   <input type="file" id="franchiseLogo" className="hidden" accept="image/*" onChange={onLogoUpload} />
                   <label htmlFor="franchiseLogo" className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-6 py-2 rounded-xl text-sm cursor-pointer text-white transition-colors">
-                    {franchiseForm.logo ? "Change Logo" : "Upload Logo"}
+                    {franchiseForm.logo ? t("admin.customers.shared.changeLogo") : t("admin.customers.shared.uploadLogo")}
                   </label>
                 </div>
               </div>
@@ -302,7 +302,7 @@ const FranchiseModal = ({
                 <h3 className="text-white font-medium mb-4">{t("admin.customers.franchiseForm.aboutFranchise")}</h3>
                 <textarea name="about" value={franchiseForm.about} onChange={onInputChange}
                   className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2.5 text-white outline-none text-sm min-h-[120px] border border-[#333333] focus:border-orange-500/50"
-                  placeholder="Describe your franchise, mission, values, services offered, etc..." />
+                  placeholder={t("admin.customers.franchiseForm.aboutPlaceholder")} />
               </div>
 
               {/* Login Credentials */}
@@ -353,7 +353,7 @@ const FranchiseModal = ({
                     isAddingNote ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
                   }`}
                 >
-                  {isAddingNote ? "Cancel" : <><Plus size={14} /> Add Note</>}
+                  {isAddingNote ? t("common.cancel") : <><Plus size={14} /> {t("admin.customers.shared.addNote")}</>}
                 </button>
               </div>
 
@@ -369,7 +369,7 @@ const FranchiseModal = ({
                       className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                     >
                       {NOTE_STATUSES.map((status) => (
-                        <option key={status.id} value={status.id}>{status.label}</option>
+                        <option key={status.id} value={status.id}>{t(status.labelKey)}</option>
                       ))}
                     </select>
                   </div>
@@ -402,7 +402,7 @@ const FranchiseModal = ({
                   {/* Date Range */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
+                      <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.validFrom")}</label>
                       <input
                         type="date"
                         value={newNote.startDate}
@@ -411,7 +411,7 @@ const FranchiseModal = ({
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
+                      <label className="text-xs text-gray-400 block mb-1.5">{t("admin.customers.shared.validUntil")}</label>
                       <input
                         type="date"
                         value={newNote.endDate}
@@ -431,7 +431,7 @@ const FranchiseModal = ({
                         : "bg-blue-600 text-white"
                     }`}
                   >
-                    {editingNoteId ? "Update Note" : "Add Note"}
+                    {editingNoteId ? t("admin.customers.shared.updateNote") : t("admin.customers.shared.addNote")}
                   </button>
                 </div>
               )}
@@ -455,11 +455,11 @@ const FranchiseModal = ({
                             >
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
-                                  {statusInfo.label}
+                                  {t(statusInfo.labelKey)}
                                 </span>
                                 {note.isImportant && (
                                   <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
-                                    Important
+                                    {t("admin.customers.shared.important")}
                                   </span>
                                 )}
                               </div>
@@ -493,11 +493,11 @@ const FranchiseModal = ({
                                 {(note.startDate || note.endDate) && (
                                   <p className="text-xs text-gray-600 mt-1">
                                     {note.startDate && note.endDate ? (
-                                      <>Valid: {note.startDate} – {note.endDate}</>
+                                      <>{t("admin.customers.shared.validRange", { start: note.startDate, end: note.endDate })}</>
                                     ) : note.startDate ? (
-                                      <>Valid from: {note.startDate}</>
+                                      <>{t("admin.customers.shared.validFromDate", { date: note.startDate })}</>
                                     ) : (
-                                      <>Valid until: {note.endDate}</>
+                                      <>{t("admin.customers.shared.validUntilDate", { date: note.endDate })}</>
                                     )}
                                   </p>
                                 )}
@@ -511,11 +511,11 @@ const FranchiseModal = ({
                                 {(note.startDate || note.endDate) && (
                                   <div className="mt-2 text-xs text-gray-500">
                                     {note.startDate && note.endDate ? (
-                                      <>Valid: {note.startDate} – {note.endDate}</>
+                                      <>{t("admin.customers.shared.validRange", { start: note.startDate, end: note.endDate })}</>
                                     ) : note.startDate ? (
-                                      <>Valid from: {note.startDate}</>
+                                      <>{t("admin.customers.shared.validFromDate", { date: note.startDate })}</>
                                     ) : (
-                                      <>Valid until: {note.endDate}</>
+                                      <>{t("admin.customers.shared.validUntilDate", { date: note.endDate })}</>
                                     )}
                                   </div>
                                 )}
@@ -526,7 +526,7 @@ const FranchiseModal = ({
                       })
                   ) : (
                     <div className="text-gray-500 text-sm text-center py-8">
-                      No special notes yet. Click &quot;Add Note&quot; to create one.
+                      {t("admin.customers.shared.noNotesYet")}
                     </div>
                   )}
                 </div>
@@ -543,22 +543,22 @@ const FranchiseModal = ({
               onClick={onClose}
               className="flex-1 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl py-2.5 text-sm cursor-pointer transition-colors"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             {isEdit && (
               <button
                 type="button"
                 onClick={() => {
                   const isArchived = selectedFranchise?.isArchived
-                  const action = isArchived ? "unarchive" : "archive"
-                  if (window.confirm(`Are you sure you want to ${action} "${selectedFranchise?.name}"?`)) {
+                  const actionKey = isArchived ? "admin.customers.shared.unarchive" : "admin.customers.shared.archive"
+                  if (window.confirm(t("admin.customers.franchiseForm.archiveConfirm", { action: t(actionKey).toLowerCase(), name: selectedFranchise?.name }))) {
                     onArchive(selectedFranchise.id, !isArchived)
                     onClose()
                   }
                 }}
                 className={`flex-1 ${selectedFranchise?.isArchived ? "bg-[#2F2F2F] hover:bg-[#3F3F3F]" : "bg-red-600 hover:bg-red-700"} text-white rounded-xl py-2.5 text-sm cursor-pointer transition-colors`}
               >
-                {selectedFranchise?.isArchived ? "Unarchive" : "Archive"}
+                {selectedFranchise?.isArchived ? t("admin.customers.shared.unarchive") : t("admin.customers.shared.archive")}
               </button>
             )}
             <button
@@ -566,7 +566,7 @@ const FranchiseModal = ({
               onClick={handleSave}
               className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-2.5 text-sm cursor-pointer transition-colors"
             >
-              {isEdit ? "Save Changes" : "Create Franchise"}
+              {isEdit ? t("admin.customers.shared.saveChanges") : t("admin.customers.franchiseForm.createFranchise")}
             </button>
           </div>
         </div>

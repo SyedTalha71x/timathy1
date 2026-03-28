@@ -1361,6 +1361,14 @@
         "inactive": "Inattivo",
         "title": "Filtri"
       },
+      "sort": {
+        "alphabetical": "Alfabetico",
+        "memberCount": "Numero di membri",
+        "staffCount": "Numero di personale",
+        "contractCount": "Numero di contratti",
+        "leadCount": "Numero di lead",
+        "studioCount": "Numero di studi"
+      },
       "franchiseTable": {
         "actions": "Azioni",
         "franchise": "Franchise",
@@ -1606,19 +1614,20 @@
         "noStudios": "No studios assigned to this franchise yet."
       },
       "franchiseForm": {
-        "createTitle": "Create New Franchise",
-        "editTitle": "Edit Franchise",
-        "newFranchise": "New Franchise",
-        "basicInfo": "Basic Information",
-        "franchiseName": "Franchise Name",
-        "ownerName": "Owner Name",
-        "enterFullName": "Enter full name",
-        "streetAddress": "Street Address",
-        "selectCountry": "Select Country",
-        "aboutFranchise": "About Franchise",
-        "aboutPlaceholder": "Describe your franchise, mission, values, services offered, etc...",
-        "franchiseLogo": "Franchise Logo",
-        "createFranchise": "Create Franchise",
+        "createTitle": "Crea nuova franchise",
+        "editTitle": "Modifica franchise",
+        "newFranchise": "Nuova franchise",
+        "basicInfo": "Informazioni di base",
+        "franchiseName": "Nome della franchise",
+        "ownerName": "Nome del proprietario",
+        "enterFullName": "Inserisci il nome completo",
+        "streetAddress": "Indirizzo",
+        "selectCountry": "Seleziona il paese",
+        "aboutFranchise": "Informazioni sulla franchise",
+        "aboutPlaceholder": "Descrivi la tua franchise, la missione, i valori, i servizi offerti, ecc...",
+        "franchiseLogo": "Logo della franchise",
+        "createFranchise": "Crea franchise",
+        "archiveConfirm": "Sei sicuro di voler {{action}} \"{{name}}\"?",
         "countries": {
           "germany": "Germania",
           "austria": "Austria",

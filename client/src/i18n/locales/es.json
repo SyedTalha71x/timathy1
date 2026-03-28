@@ -1361,6 +1361,14 @@
         "inactive": "Inactivo",
         "title": "Filtros"
       },
+      "sort": {
+        "alphabetical": "Alfabético",
+        "memberCount": "Cantidad de miembros",
+        "staffCount": "Cantidad de personal",
+        "contractCount": "Cantidad de contratos",
+        "leadCount": "Cantidad de leads",
+        "studioCount": "Cantidad de studios"
+      },
       "franchiseTable": {
         "actions": "Acciones",
         "franchise": "Franquicia",
@@ -1606,19 +1614,20 @@
         "noStudios": "No studios assigned to this franchise yet."
       },
       "franchiseForm": {
-        "createTitle": "Create New Franchise",
-        "editTitle": "Edit Franchise",
-        "newFranchise": "New Franchise",
-        "basicInfo": "Basic Information",
-        "franchiseName": "Franchise Name",
-        "ownerName": "Owner Name",
-        "enterFullName": "Enter full name",
-        "streetAddress": "Street Address",
-        "selectCountry": "Select Country",
-        "aboutFranchise": "About Franchise",
-        "aboutPlaceholder": "Describe your franchise, mission, values, services offered, etc...",
-        "franchiseLogo": "Franchise Logo",
-        "createFranchise": "Create Franchise",
+        "createTitle": "Crear nueva franquicia",
+        "editTitle": "Editar franquicia",
+        "newFranchise": "Nueva franquicia",
+        "basicInfo": "Información básica",
+        "franchiseName": "Nombre de la franquicia",
+        "ownerName": "Nombre del propietario",
+        "enterFullName": "Introducir nombre completo",
+        "streetAddress": "Dirección",
+        "selectCountry": "Seleccionar país",
+        "aboutFranchise": "Sobre la franquicia",
+        "aboutPlaceholder": "Describa su franquicia, misión, valores, servicios ofrecidos, etc...",
+        "franchiseLogo": "Logo de la franquicia",
+        "createFranchise": "Crear franquicia",
+        "archiveConfirm": "¿Está seguro de que desea {{action}} \"{{name}}\"?",
         "countries": {
           "germany": "Alemania",
           "austria": "Austria",
