@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Tag, Pencil, Printer, ClipboardList, AlertCircle, CreditCard, RefreshCw } from "lucide-react"
 import { toast } from "react-hot-toast"
 import TagManagerModal from "./TagManagerModal"
@@ -80,6 +81,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
 
 // ============================================
 // Document Viewer Modal (supports all formats locally)
+// Supported: PDF, JPG, PNG, GIF, DOCX, DOC, XLSX, XLS, TXT
 // ============================================
 function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint }) {
   const { t } = useTranslation()
@@ -105,7 +107,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
 
   const loadDocument = async () => {
     if (!document?.url && !document?.file) {
-      setError("No file data available")
+      setError(t("documents.toast.noFileData"))
       setIsLoading(false)
       return
     }
@@ -181,6 +183,9 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
           })
         }
         const result = await mammoth.convertToHtml(options)
+        if (result.messages && result.messages.length > 0) {
+          console.log("Mammoth conversion messages:", result.messages)
+        }
         setContent({ type: 'html', html: result.value })
         break
       case 'xls':
@@ -194,7 +199,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
         setTotalPages(sheets.length)
         break
       default:
-        setError(`File type .${type} is not supported for preview`)
+        setError(t("documents.viewer.unsupported", { type }))
     }
   }
 
@@ -229,7 +234,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
             className="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
           >
             <Download className="w-5 h-5" />
-            Download Instead
+            {t("documents.viewer.downloadInstead", "Download Instead")}
           </button>
         </div>
       )
@@ -261,7 +266,71 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       case 'html':
         return (
           <div className="p-4 sm:p-6 overflow-auto" style={{ maxHeight: 'calc(95vh - 140px)' }}>
-            <div className="docx-preview max-w-none p-6 rounded-lg" dangerouslySetInnerHTML={{ __html: content.html }} />
+            <div
+              className="docx-preview max-w-none p-6 rounded-lg"
+              dangerouslySetInnerHTML={{ __html: content.html }}
+              style={{
+                backgroundColor: '#ffffff',
+                color: '#1f2937',
+                lineHeight: '1.6',
+                fontSize: '14px',
+              }}
+            />
+            <style>{`
+              .docx-preview,
+              .docx-preview * {
+                color: #1f2937 !important;
+              }
+              .docx-preview h1, .docx-preview h2, .docx-preview h3,
+              .docx-preview h4, .docx-preview h5, .docx-preview h6 {
+                color: #111827 !important;
+                font-weight: 600;
+                margin-top: 1.5em;
+                margin-bottom: 0.5em;
+              }
+              .docx-preview h1 { font-size: 2em; }
+              .docx-preview h2 { font-size: 1.5em; }
+              .docx-preview h3 { font-size: 1.25em; }
+              .docx-preview p {
+                color: #1f2937 !important;
+                margin-bottom: 1em;
+              }
+              .docx-preview span {
+                color: #1f2937 !important;
+              }
+              .docx-preview ul, .docx-preview ol {
+                color: #1f2937 !important;
+                padding-left: 1.5em;
+                margin-bottom: 1em;
+              }
+              .docx-preview li {
+                margin-bottom: 0.25em;
+                color: #1f2937 !important;
+              }
+              .docx-preview table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 1em;
+              }
+              .docx-preview td, .docx-preview th {
+                border: 1px solid #d1d5db;
+                padding: 8px;
+                color: #1f2937 !important;
+              }
+              .docx-preview th {
+                background-color: #f3f4f6;
+                font-weight: 600;
+              }
+              .docx-preview a { color: #3b82f6 !important; }
+              .docx-preview strong, .docx-preview b { font-weight: 600; }
+              .docx-preview em, .docx-preview i { font-style: italic; }
+              .docx-preview img {
+                max-width: 100%;
+                height: auto;
+                margin: 1em 0;
+                border-radius: 4px;
+              }
+            `}</style>
           </div>
         )
       case 'excel':
@@ -315,6 +384,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4">
       <div className="bg-surface-card rounded-xl w-full max-w-7xl h-[95vh] overflow-hidden flex flex-col">
+        {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <h3 className="text-content-primary text-lg font-medium truncate">{document.name}</h3>
@@ -326,13 +396,25 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
             <X size={24} />
           </button>
         </div>
+
+        {/* Viewer Content */}
         <div className="flex-1 overflow-auto bg-surface-dark">{renderContent()}</div>
+
+        {/* Footer Actions */}
         <div className="p-4 border-t border-border flex gap-3 flex-shrink-0">
-          <button onClick={() => onDownload && onDownload(document)} className="flex-1 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
-            <Download className="w-4 h-4" /> Download
+          <button
+            onClick={() => onDownload && onDownload(document)}
+            className="flex-1 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {t("documents.viewer.download", "Download")}
           </button>
-          <button onClick={() => onPrint && onPrint(document)} className="flex-1 py-2.5 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2">
-            <Printer className="w-4 h-4" /> Print
+          <button
+            onClick={() => onPrint && onPrint(document)}
+            className="flex-1 py-2.5 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
+          >
+            <Printer className="w-4 h-4" />
+            {t("documents.viewer.print", "Print")}
           </button>
         </div>
       </div>
@@ -357,6 +439,7 @@ export default function DocumentManagementModal({
   ],
   assessmentTemplates = null,
 }) {
+  const { t } = useTranslation()
   const dispatch = useDispatch();
 
   // Redux Selectors
@@ -573,13 +656,13 @@ export default function DocumentManagementModal({
       if (result.success && result.documents) {
         // Refresh documents immediately after upload
         await refreshDocuments();
-        toast.success(`${files.length} document(s) uploaded successfully`)
+        toast.success(t("documents.toast.uploaded", { count: files.length }))
       } else {
-        toast.error('Upload failed: Invalid response from server')
+        toast.error(t("documents.toast.uploadFailed", "Upload failed: Invalid response from server"))
       }
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error(error.message || 'Failed to upload documents')
+      toast.error(error.message || t("documents.toast.uploadError", "Failed to upload documents"))
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) {
@@ -598,12 +681,12 @@ export default function DocumentManagementModal({
 
   const handleFormSubmit = async () => {
     if (!selectedForm) {
-      toast.error('Please select a form template')
+      toast.error(t("documents.toast.selectForm", "Please select a form template"))
       return
     }
 
     if (!signature) {
-      toast.error('Please provide a signature')
+      toast.error(t("documents.toast.signatureRequired", "Please provide a signature"))
       return
     }
 
@@ -637,7 +720,7 @@ export default function DocumentManagementModal({
         }
 
         setMedicalHistories(prev => [newHistory, ...prev])
-        toast.success('Medical history submitted successfully')
+        toast.success(t("documents.toast.medicalSubmitted", "Medical history submitted successfully"))
         setShowFormModal(false)
         setSelectedForm(null)
         setFormAnswers({})
@@ -645,7 +728,7 @@ export default function DocumentManagementModal({
       }
     } catch (error) {
       console.error('Form submission error:', error)
-      toast.error('Failed to submit medical history')
+      toast.error(t("documents.toast.medicalFailed", "Failed to submit medical history"))
     }
   }
 
@@ -677,17 +760,18 @@ export default function DocumentManagementModal({
           })).unwrap();
           setDocuments(prev => prev.filter((doc) => doc.id !== documentToDelete.id));
         }
-        toast.success("Document deleted successfully");
+        toast.success(t("documents.toast.deleted"));
       } catch (error) {
         console.error('Delete error:', error);
-        toast.error('Failed to delete document');
+        toast.error(t("documents.toast.deleteFailed", "Failed to delete document"));
       }
       setDocumentToDelete(null);
     }
   };
 
   const startEditing = (doc) => {
-    if (doc.type === "medicalHistory") {
+    // sepaMandate and medicalHistory don't have file extensions
+    if (doc.type === "medicalHistory" || doc.type === "sepaMandate") {
       setEditingDocId(doc.id)
       setNewDocName(doc.name)
     } else {
@@ -701,7 +785,7 @@ export default function DocumentManagementModal({
 
   const saveDocName = async (docId) => {
     if (newDocName.trim() === "") {
-      toast.error("Document name cannot be empty");
+      toast.error(t("documents.toast.emptyName", "Document name cannot be empty"));
       return;
     }
 
@@ -722,8 +806,6 @@ export default function DocumentManagementModal({
           displayName: newDocName.trim()
         };
 
-        console.log('Sending update:', updateData);
-
         await dispatch(updateDocumentMetadataThunk({
           documentId: docId,
           updates: updateData
@@ -733,10 +815,10 @@ export default function DocumentManagementModal({
           doc.id === docId ? { ...doc, name: `${newDocName.trim()}.${doc.name.split('.').pop()}` } : doc
         ));
       }
-      toast.success("Document renamed successfully");
+      toast.success(t("documents.toast.renamed"));
     } catch (error) {
       console.error('Rename error:', error);
-      toast.error(error.message || 'Failed to rename document');
+      toast.error(error.message || t("documents.toast.renameFailed", "Failed to rename document"));
     }
     setEditingDocId(null);
   };
@@ -772,15 +854,15 @@ export default function DocumentManagementModal({
           d.id === docId ? { ...d, tags: newTags } : d
         ))
       }
-      toast.success(tagExists ? 'Tag removed' : 'Tag added')
+      toast.success(tagExists ? t("documents.toast.tagRemoved", "Tag removed") : t("documents.toast.tagAdded", "Tag added"))
     } catch (error) {
       console.error('Tag update error:', error)
-      toast.error('Failed to update tags')
+      toast.error(t("documents.toast.tagFailed", "Failed to update tags"))
     }
   }
 
   // ============================================
-  // PDF Generation for Medical History
+  // PDF Generation for Medical History (enhanced from V2)
   // ============================================
   const generateMedicalHistoryPDF = async (doc) => {
     const pdf = new jsPDF('p', 'mm', 'a4')
@@ -790,95 +872,415 @@ export default function DocumentManagementModal({
     const contentWidth = pageWidth - (margin * 2)
     let yPos = margin
 
-    const primaryColor = [249, 115, 22]
+    // Colors
+    const primaryColor = [249, 115, 22] // Orange-500
     const textColor = [51, 51, 51]
     const grayColor = [100, 100, 100]
 
+    // Parse document name to get form title and member name
+    const nameParts = (doc.name || 'Medical History Form').split(' - ')
+    const formTitle = nameParts[0] || 'Medical History Form'
+    const memberName = nameParts[1] || entityName || ''
+
+    // Helper to add new page if needed
+    const checkPageBreak = (neededHeight) => {
+      if (yPos + neededHeight > pageHeight - 20) {
+        pdf.addPage()
+        yPos = margin
+        return true
+      }
+      return false
+    }
+
+    // Compact Header
     pdf.setFillColor(...primaryColor)
     pdf.rect(0, 0, pageWidth, 30, 'F')
+
     pdf.setTextColor(255, 255, 255)
     pdf.setFontSize(16)
     pdf.setFont('helvetica', 'bold')
-    pdf.text(doc.name, margin, 14)
+    pdf.text(formTitle, margin, 14)
 
-    if (entityName) {
+    // Member name below title
+    if (memberName) {
       pdf.setFontSize(11)
       pdf.setFont('helvetica', 'normal')
-      pdf.text(`For: ${entityName}`, margin, 22)
+      pdf.text(`For: ${memberName}`, margin, 22)
     }
+
+    // Date and status in header (right side)
+    pdf.setFontSize(9)
+    pdf.setFont('helvetica', 'normal')
+    const headerInfo = `${doc.uploadDate || 'N/A'} • ${doc.signed ? 'Signed' : 'Unsigned'}`
+    pdf.text(headerInfo, pageWidth - margin, 14, { align: 'right' })
 
     yPos = 40
 
+    // Sample sections structure (matching the form modal)
+    const sampleAssessmentSections = [
+      {
+        id: 1,
+        name: "Questions before trial training",
+        items: [
+          { id: 1, text: "How did you hear about us?", number: 1 },
+          { id: 2, text: "Are you ready for your EMS training today?", number: 2 },
+          { id: 3, text: "Are you 'sport healthy'?", number: 3 },
+          { id: 4, text: "What goals are you pursuing?", number: 4 }
+        ]
+      },
+      {
+        id: 2,
+        name: "Contraindications: Checklist",
+        items: [
+          { id: 6, text: "Arteriosclerosis, arterial circulation disorders", number: 5 },
+          { id: 7, text: "Abdominal wall and inguinal hernias", number: 6 },
+          { id: 8, text: "Cancer diseases", number: 7 },
+          { id: 9, text: "Stents and bypasses that have been active for less than 6 months", number: 8 }
+        ]
+      }
+    ]
+
+    // Render answers
     if (doc.answers && Object.keys(doc.answers).length > 0) {
-      pdf.setFillColor(240, 240, 240)
-      pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
-      pdf.setTextColor(...textColor)
-      pdf.setFontSize(10)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('Responses', margin + 3, yPos + 5)
-      yPos += 15
+      // Try to match answers to known questions
+      sampleAssessmentSections.forEach(section => {
+        const sectionAnswers = section.items.filter(item => doc.answers[item.id] !== undefined)
 
-      Object.entries(doc.answers).forEach(([key, value]) => {
-        if (yPos > pageHeight - 50) {
-          pdf.addPage()
-          yPos = margin
+        if (sectionAnswers.length > 0) {
+          checkPageBreak(15)
+
+          // Section header - compact
+          pdf.setFillColor(240, 240, 240)
+          pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
+          pdf.setTextColor(...textColor)
+          pdf.setFontSize(10)
+          pdf.setFont('helvetica', 'bold')
+          pdf.text(section.name, margin + 3, yPos + 5)
+          yPos += 10
+
+          sectionAnswers.forEach(item => {
+            const answer = doc.answers[item.id]
+            const displayAnswer = answer === true || answer === 'yes' ? 'Yes' :
+                                  answer === false || answer === 'no' ? 'No' :
+                                  answer === 'dontknow' ? "Don't know" : String(answer)
+
+            checkPageBreak(12)
+
+            // Compact Q&A line
+            pdf.setDrawColor(...primaryColor)
+            pdf.setLineWidth(0.5)
+            pdf.line(margin, yPos, margin, yPos + 8)
+
+            pdf.setTextColor(...textColor)
+            pdf.setFontSize(8)
+            pdf.setFont('helvetica', 'bold')
+            const questionText = `${item.number}. ${item.text}`
+            const splitQuestion = pdf.splitTextToSize(questionText, contentWidth - 50)
+            pdf.text(splitQuestion, margin + 3, yPos + 4)
+
+            // Answer on same line or next if question wraps
+            pdf.setFont('helvetica', 'normal')
+            pdf.setTextColor(...grayColor)
+            const answerX = contentWidth - 30
+            pdf.text(displayAnswer, margin + answerX, yPos + 4)
+
+            yPos += 6 + (splitQuestion.length > 1 ? (splitQuestion.length - 1) * 3 : 0)
+          })
+
+          yPos += 4
         }
-
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(...textColor)
-        pdf.text(key, margin, yPos)
-        yPos += 6
-
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(...grayColor)
-        const answerText = typeof value === 'object' ? JSON.stringify(value) : String(value)
-        const splitAnswer = pdf.splitTextToSize(answerText, contentWidth - 10)
-        pdf.text(splitAnswer, margin + 5, yPos)
-        yPos += splitAnswer.length * 5 + 5
       })
+
+      // Add any answers not matched to known questions
+      const knownIds = sampleAssessmentSections.flatMap(s => s.items.map(i => i.id))
+      const unknownAnswers = Object.entries(doc.answers).filter(([id]) => !knownIds.includes(parseInt(id)))
+
+      if (unknownAnswers.length > 0) {
+        checkPageBreak(15)
+
+        pdf.setFillColor(240, 240, 240)
+        pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
+        pdf.setTextColor(...textColor)
+        pdf.setFontSize(10)
+        pdf.setFont('helvetica', 'bold')
+        pdf.text('Additional Information', margin + 3, yPos + 5)
+        yPos += 10
+
+        unknownAnswers.forEach(([id, answer], idx) => {
+          const displayAnswer = answer === true || answer === 'yes' ? 'Yes' :
+                                answer === false || answer === 'no' ? 'No' :
+                                answer === 'dontknow' ? "Don't know" : String(answer)
+
+          checkPageBreak(10)
+
+          pdf.setDrawColor(...primaryColor)
+          pdf.setLineWidth(0.5)
+          pdf.line(margin, yPos, margin, yPos + 6)
+
+          pdf.setTextColor(...textColor)
+          pdf.setFontSize(8)
+          pdf.setFont('helvetica', 'bold')
+          pdf.text(`Q${idx + 1}`, margin + 3, yPos + 4)
+
+          pdf.setFont('helvetica', 'normal')
+          pdf.setTextColor(...grayColor)
+          pdf.text(displayAnswer, margin + contentWidth - 30, yPos + 4)
+
+          yPos += 8
+        })
+      }
     }
 
+    // Signature section - compact with image support
     if (doc.signature) {
-      yPos += 10
+      checkPageBreak(45)
+
+      yPos += 5
+
+      // Signature line
       pdf.setDrawColor(...primaryColor)
       pdf.setLineWidth(0.3)
       pdf.line(margin, yPos, pageWidth - margin, yPos)
       yPos += 5
+
       pdf.setTextColor(...textColor)
       pdf.setFontSize(10)
       pdf.setFont('helvetica', 'bold')
       pdf.text('Signature', margin, yPos)
-      yPos += 8
-      pdf.setFont('helvetica', 'normal')
+      yPos += 5
+
+      // Try to add signature as image (base64), fallback to text
+      try {
+        const signatureData = doc.signature
+
+        if (signatureData.startsWith && signatureData.startsWith('data:image')) {
+          // Detect image format from data URL
+          let format = 'PNG'
+          if (signatureData.includes('data:image/jpeg') || signatureData.includes('data:image/jpg')) {
+            format = 'JPEG'
+          } else if (signatureData.includes('data:image/png')) {
+            format = 'PNG'
+          }
+
+          // Draw white background rectangle for signature
+          pdf.setFillColor(255, 255, 255)
+          pdf.setDrawColor(200, 200, 200)
+          pdf.setLineWidth(0.2)
+          pdf.roundedRect(margin, yPos, 55, 28, 2, 2, 'FD')
+
+          // Add signature image to PDF
+          pdf.addImage(signatureData, format, margin + 2, yPos + 1, 50, 25)
+          yPos += 32
+
+          pdf.setTextColor(...grayColor)
+          pdf.setFontSize(7)
+          pdf.setFont('helvetica', 'italic')
+          pdf.text(`Signed: ${doc.uploadDate || 'N/A'}`, margin, yPos)
+        } else {
+          // Text signature fallback
+          pdf.setFont('helvetica', 'normal')
+          pdf.setTextColor(...grayColor)
+          pdf.text(String(signatureData), margin, yPos)
+        }
+      } catch (err) {
+        console.error('Error adding signature:', err)
+        pdf.setTextColor(...grayColor)
+        pdf.setFontSize(8)
+        pdf.text('[Signature attached]', margin, yPos)
+      }
+    }
+
+    // Footer on each page - minimal
+    const pageCount = pdf.internal.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i)
+      pdf.setFontSize(7)
       pdf.setTextColor(...grayColor)
-      pdf.text(doc.signature, margin, yPos)
+      pdf.text(
+        `Page ${i}/${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 8,
+        { align: 'center' }
+      )
     }
 
     return pdf
   }
 
+  // ============================================
+  // PDF Generation for SEPA Mandate (enhanced from V2)
+  // ============================================
   const generateSepaMandatePDF = async (doc) => {
     const pdf = new jsPDF('p', 'mm', 'a4')
     const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
     const margin = 15
+    const contentWidth = pageWidth - (margin * 2)
     let yPos = margin
 
+    // Colors
     const primaryColor = [249, 115, 22]
+    const textColor = [51, 51, 51]
+    const grayColor = [100, 100, 100]
 
+    const paymentDetails = doc.paymentDetails || {}
+    const memberName = doc.memberName || entityName || ''
+    const mandateNumber = paymentDetails.sepaMandateNumber || 'N/A'
+
+    // Header bar
     pdf.setFillColor(...primaryColor)
     pdf.rect(0, 0, pageWidth, 30, 'F')
+
     pdf.setTextColor(255, 255, 255)
     pdf.setFontSize(16)
     pdf.setFont('helvetica', 'bold')
     pdf.text('SEPA Direct Debit Mandate', margin, 14)
 
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text(`For: ${memberName}`, margin, 22)
+
+    // Date and status (right side)
+    pdf.setFontSize(9)
+    const headerInfo = `${doc.uploadDate || 'N/A'} • ${doc.signed ? 'Signed' : 'Unsigned'}`
+    pdf.text(headerInfo, pageWidth - margin, 14, { align: 'right' })
+
+    yPos = 40
+
+    // Mandate reference
+    pdf.setFillColor(240, 240, 240)
+    pdf.roundedRect(margin, yPos, contentWidth, 10, 1, 1, 'F')
+    pdf.setTextColor(...textColor)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Mandate Reference', margin + 3, yPos + 4)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setTextColor(...grayColor)
+    pdf.text(mandateNumber, margin + 3, yPos + 8)
+    yPos += 16
+
+    // Payment details section
+    pdf.setFillColor(240, 240, 240)
+    pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
+    pdf.setTextColor(...textColor)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Payment Details', margin + 3, yPos + 5)
+    yPos += 12
+
+    const details = [
+      { label: 'Account Holder', value: `${paymentDetails.accountHolderFirstName || ''} ${paymentDetails.accountHolderLastName || ''}`.trim() },
+      { label: 'IBAN', value: paymentDetails.iban || 'N/A' },
+      { label: 'BIC', value: paymentDetails.bic || 'N/A' },
+      { label: 'Bank Name', value: paymentDetails.bankName || 'N/A' },
+    ]
+
+    details.forEach(({ label, value }) => {
+      pdf.setDrawColor(...primaryColor)
+      pdf.setLineWidth(0.5)
+      pdf.line(margin, yPos, margin, yPos + 8)
+
+      pdf.setTextColor(...textColor)
+      pdf.setFontSize(8)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(label, margin + 3, yPos + 3)
+
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(...grayColor)
+      pdf.text(value || 'N/A', margin + 3, yPos + 7)
+
+      yPos += 12
+    })
+
+    yPos += 4
+
+    // Authorization text
+    pdf.setFillColor(240, 240, 240)
+    pdf.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F')
+    pdf.setTextColor(...textColor)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text('Authorization', margin + 3, yPos + 5)
+    yPos += 12
+
+    pdf.setTextColor(...grayColor)
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'normal')
+    const authText = `By signing this mandate form, I authorize the creditor to send instructions to my bank to debit my account in accordance with the instructions from the creditor. As part of my rights, I am entitled to a refund from my bank under the terms and conditions of my agreement with my bank. A refund must be claimed within 8 weeks starting from the date on which my account was debited.`
+    const splitAuth = pdf.splitTextToSize(authText, contentWidth - 6)
+    pdf.text(splitAuth, margin + 3, yPos)
+    yPos += splitAuth.length * 4 + 8
+
+    // Signature
+    if (doc.signature) {
+      pdf.setDrawColor(...primaryColor)
+      pdf.setLineWidth(0.3)
+      pdf.line(margin, yPos, pageWidth - margin, yPos)
+      yPos += 5
+
+      pdf.setTextColor(...textColor)
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Signature', margin, yPos)
+      yPos += 5
+
+      try {
+        const signatureData = doc.signature
+
+        if (signatureData.startsWith && signatureData.startsWith('data:image')) {
+          let format = 'PNG'
+          if (signatureData.includes('data:image/jpeg') || signatureData.includes('data:image/jpg')) {
+            format = 'JPEG'
+          }
+
+          pdf.setFillColor(255, 255, 255)
+          pdf.setDrawColor(200, 200, 200)
+          pdf.setLineWidth(0.2)
+          pdf.roundedRect(margin, yPos, 55, 28, 2, 2, 'FD')
+
+          pdf.addImage(signatureData, format, margin + 2, yPos + 1, 50, 25)
+          yPos += 32
+
+          pdf.setTextColor(...grayColor)
+          pdf.setFontSize(7)
+          pdf.setFont('helvetica', 'italic')
+          pdf.text(`Signed: ${doc.uploadDate || 'N/A'}`, margin, yPos)
+        } else {
+          pdf.setFont('helvetica', 'normal')
+          pdf.setTextColor(...grayColor)
+          pdf.text(String(signatureData), margin, yPos)
+        }
+      } catch (err) {
+        console.error('Error adding signature:', err)
+        pdf.setTextColor(...grayColor)
+        pdf.setFontSize(8)
+        pdf.text('[Signature attached]', margin, yPos)
+      }
+    }
+
+    // Footer
+    const pageCount = pdf.internal.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i)
+      pdf.setFontSize(7)
+      pdf.setTextColor(...grayColor)
+      pdf.text(
+        `Page ${i}/${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 8,
+        { align: 'center' }
+      )
+    }
+
     return pdf
   }
 
+  // ============================================
+  // Download Handler
+  // ============================================
   const handleDownload = async (doc) => {
     if (doc.type === "medicalHistory") {
-      toast.loading(`Generating PDF...`, { id: 'download' })
+      toast.loading(t("documents.toast.generatingPdf", "Generating PDF..."), { id: 'download' })
       try {
         const pdf = await generateMedicalHistoryPDF(doc)
         const fileName = `${doc.name.replace(/\s+/g, '_')}.pdf`
@@ -894,7 +1296,7 @@ export default function DocumentManagementModal({
     }
 
     if (doc.type === "sepaMandate") {
-      toast.loading(`Generating PDF...`, { id: 'download' })
+      toast.loading(t("documents.toast.generatingPdf", "Generating PDF..."), { id: 'download' })
       try {
         const pdf = await generateSepaMandatePDF(doc)
         const fileName = `${doc.name.replace(/\s+/g, '_')}.pdf`
@@ -923,9 +1325,13 @@ export default function DocumentManagementModal({
     }
   }
 
+  // ============================================
+  // Print Handler (enhanced from V2 with full format support)
+  // ============================================
   const handlePrint = async (doc) => {
+    // Medical history forms - generate PDF and print
     if (doc.type === "medicalHistory") {
-      toast.loading(`Preparing for printing...`, { id: 'print' })
+      toast.loading(t("documents.toast.generatingPrint", "Preparing for printing..."), { id: 'print' })
       try {
         const pdf = await generateMedicalHistoryPDF(doc)
         const pdfBlob = pdf.output('blob')
@@ -933,23 +1339,22 @@ export default function DocumentManagementModal({
         const printWindow = window.open(pdfUrl, '_blank')
         if (printWindow) {
           printWindow.onload = () => {
-            setTimeout(() => {
-              printWindow.print()
-            }, 500)
+            setTimeout(() => { printWindow.print() }, 500)
           }
         }
         toast.dismiss('print')
-        toast.success("Print dialog opened")
+        toast.success(t("documents.toast.printPdfOpened", "Print dialog opened"))
       } catch (err) {
         console.error("Print error:", err)
         toast.dismiss('print')
-        toast.error("Failed to prepare document for printing")
+        toast.error(t("documents.toast.printFailed", "Failed to prepare document for printing"))
       }
       return
     }
 
+    // SEPA mandate - generate PDF and print
     if (doc.type === "sepaMandate") {
-      toast.loading(`Preparing for printing...`, { id: 'print' })
+      toast.loading(t("documents.toast.generatingPrint", "Preparing for printing..."), { id: 'print' })
       try {
         const pdf = await generateSepaMandatePDF(doc)
         const pdfBlob = pdf.output('blob')
@@ -957,61 +1362,234 @@ export default function DocumentManagementModal({
         const printWindow = window.open(pdfUrl, '_blank')
         if (printWindow) {
           printWindow.onload = () => {
-            setTimeout(() => {
-              printWindow.print()
-            }, 500)
+            setTimeout(() => { printWindow.print() }, 500)
           }
         }
         toast.dismiss('print')
-        toast.success("Print dialog opened")
+        toast.success(t("documents.toast.printPdfOpened", "Print dialog opened"))
       } catch (err) {
         console.error("Print error:", err)
         toast.dismiss('print')
-        toast.error("Failed to prepare document for printing")
+        toast.error(t("documents.toast.printFailed", "Failed to prepare document for printing"))
       }
       return
     }
 
+    // For documents with a URL (from server/Cloudinary)
     if (doc.url) {
-      const printWindow = window.open(doc.url, '_blank')
-      if (printWindow) {
-        printWindow.onload = () => {
-          setTimeout(() => {
-            printWindow.print()
-          }, 500)
+      const fileTypeLower = (doc.type || doc.url.split('.').pop()).toLowerCase()
+
+      // PDF and images can be opened directly
+      if (fileTypeLower === 'pdf' || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileTypeLower)) {
+        const printWindow = window.open(doc.url, '_blank')
+        if (printWindow) {
+          printWindow.onload = () => {
+            setTimeout(() => { printWindow.print() }, 500)
+          }
         }
+        return
       }
-    } else if (doc.file) {
-      const url = URL.createObjectURL(doc.file)
+
+      // For other formats with URL, fetch and process
+      toast.loading(t("documents.toast.preparingPrint", { name: doc.name }), { id: 'print' })
+      try {
+        const response = await fetch(doc.url)
+        const blob = await response.blob()
+        await printFileBlob(blob, fileTypeLower, doc.name)
+        toast.dismiss('print')
+        toast.success(t("documents.toast.printOpened", "Print dialog opened"))
+      } catch (err) {
+        console.error("Print error:", err)
+        toast.dismiss('print')
+        toast.error(t("documents.toast.printError", "Failed to print document"))
+      }
+      return
+    }
+
+    // For local files (doc.file)
+    if (doc.file) {
+      toast.loading(t("documents.toast.preparingPrint", { name: doc.name }), { id: 'print' })
+      try {
+        await printFileBlob(doc.file, doc.type?.toLowerCase(), doc.name)
+        toast.dismiss('print')
+        toast.success(t("documents.toast.printOpened", "Print dialog opened"))
+      } catch (err) {
+        console.error("Print error:", err)
+        toast.dismiss('print')
+        toast.error(t("documents.toast.printError", "Failed to print document"))
+      }
+      return
+    }
+
+    toast.error(t("documents.toast.noFileForPrint", "No file available to print"))
+  }
+
+  // Helper: print a file blob based on type
+  const printFileBlob = async (file, fileType, fileName) => {
+    // PDF and images - open in new window and print
+    if (fileType === 'pdf' || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileType)) {
+      const url = URL.createObjectURL(file)
       const printWindow = window.open(url, '_blank')
       if (printWindow) {
         printWindow.onload = () => {
           setTimeout(() => {
             printWindow.print()
+            URL.revokeObjectURL(url)
           }, 500)
         }
       }
+      return
     }
+
+    // DOCX - convert to HTML and print (with images)
+    if (fileType === 'doc' || fileType === 'docx') {
+      const arrayBuffer = await file.arrayBuffer()
+      const options = {
+        arrayBuffer,
+        convertImage: mammoth.images.imgElement(function (image) {
+          return image.read("base64").then(function (imageBuffer) {
+            return {
+              src: "data:" + image.contentType + ";base64," + imageBuffer
+            }
+          })
+        })
+      }
+      const result = await mammoth.convertToHtml(options)
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>${fileName}</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                padding: 40px;
+                max-width: 800px;
+                margin: 0 auto;
+                color: #000;
+                line-height: 1.6;
+              }
+              h1, h2, h3, h4, h5, h6 { margin-top: 1.5em; margin-bottom: 0.5em; }
+              p { margin-bottom: 1em; }
+              img { max-width: 100%; height: auto; }
+              table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+              td, th { border: 1px solid #ccc; padding: 8px; }
+              @media print {
+                body { padding: 20px; }
+                img { max-width: 100%; }
+              }
+            </style>
+          </head>
+          <body>
+            ${result.value}
+          </body>
+          </html>
+        `)
+        printWindow.document.close()
+        setTimeout(() => { printWindow.print() }, 500)
+      }
+      return
+    }
+
+    // Excel - convert to HTML table and print
+    if (fileType === 'xls' || fileType === 'xlsx') {
+      const arrayBuffer = await file.arrayBuffer()
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+
+      let htmlContent = ''
+      workbook.SheetNames.forEach((sheetName, idx) => {
+        const sheet = workbook.Sheets[sheetName]
+        const html = XLSX.utils.sheet_to_html(sheet)
+        htmlContent += `<h2>${sheetName}</h2>${html}`
+        if (idx < workbook.SheetNames.length - 1) {
+          htmlContent += '<div style="page-break-after: always;"></div>'
+        }
+      })
+
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>${fileName}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+              table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+              td, th { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+              th { background: #f5f5f5; font-weight: bold; }
+              h2 { margin-top: 2em; }
+              @media print { h2 { page-break-before: auto; } }
+            </style>
+          </head>
+          <body>
+            ${htmlContent}
+          </body>
+          </html>
+        `)
+        printWindow.document.close()
+        setTimeout(() => { printWindow.print() }, 500)
+      }
+      return
+    }
+
+    // Text files
+    if (fileType === 'txt' || fileType === 'csv') {
+      const text = await file.text()
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>${fileName}</title>
+            <style>
+              body { font-family: monospace; padding: 20px; white-space: pre-wrap; color: #000; }
+            </style>
+          </head>
+          <body>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</body>
+          </html>
+        `)
+        printWindow.document.close()
+        setTimeout(() => { printWindow.print() }, 500)
+      }
+      return
+    }
+
+    toast.error(t("documents.toast.printUnsupported", { type: fileType }))
   }
 
-
-
-  const handleViewDocument = (doc) => {
-    console.log('Viewing document:', doc);
-
+  // ============================================
+  // View Document Handler (enhanced with SEPA PDF on-the-fly)
+  // ============================================
+  const handleViewDocument = async (doc) => {
     if (doc.type === "medicalHistory") {
       if (onViewAssessment) {
         onViewAssessment(doc);
       } else {
         setViewingDocument(doc);
       }
+    } else if (doc.type === "sepaMandate") {
+      // Generate PDF on-the-fly and open in viewer
+      try {
+        const pdf = await generateSepaMandatePDF(doc)
+        const pdfBlob = pdf.output('blob')
+        const pdfFile = new window.File([pdfBlob], `${doc.name}.pdf`, { type: 'application/pdf' })
+        setViewingDocument({ ...doc, file: pdfFile, type: 'pdf' })
+      } catch (err) {
+        console.error('Error generating SEPA PDF for preview:', err)
+        toast.error(t("documents.toast.previewFailed", "Failed to generate preview"))
+      }
     } else if (doc.url) {
-      // Open the Cloudinary URL directly - now it will work!
+      // Open the Cloudinary URL directly
       window.open(doc.url, '_blank');
     } else {
-      toast.error('No document URL available');
+      toast.error(t("documents.toast.noUrl", "No document URL available"));
     }
   };
+
   // ============================================
   // UI Helpers
   // ============================================
@@ -1038,6 +1616,8 @@ export default function DocumentManagementModal({
       case "jpeg":
       case "png":
         return <File className="w-5 h-5 text-purple-500" />
+      case "txt":
+        return <FileText className="w-5 h-5 text-content-faint" />
       default:
         return <File className="w-5 h-5 text-content-muted" />
     }
@@ -1074,7 +1654,7 @@ export default function DocumentManagementModal({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4">
           <div className="bg-surface-card rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-border">
-              <h3 className="text-content-primary text-xl font-bold">Medical History Form</h3>
+              <h3 className="text-content-primary text-xl font-bold">{t("documents.medicalForm.title", "Medical History Form")}</h3>
               <button onClick={() => setShowFormModal(false)} className="text-content-muted hover:text-content-primary">
                 <X size={24} />
               </button>
@@ -1083,7 +1663,7 @@ export default function DocumentManagementModal({
             <div className="flex-1 overflow-y-auto p-4">
               {!selectedForm ? (
                 <div className="space-y-3">
-                  <h4 className="text-content-primary font-medium mb-3">Select a Form Template</h4>
+                  <h4 className="text-content-primary font-medium mb-3">{t("documents.medicalForm.selectTemplate", "Select a Form Template")}</h4>
                   {availableForms.map(form => (
                     <button
                       key={form._id}
@@ -1092,7 +1672,7 @@ export default function DocumentManagementModal({
                     >
                       <h5 className="text-content-primary font-medium">{form.title}</h5>
                       <p className="text-content-muted text-sm mt-1">
-                        {form.sections?.length || 0} sections
+                        {form.sections?.length || 0} {t("documents.medicalForm.sections", "sections")}
                       </p>
                     </button>
                   ))}
@@ -1103,7 +1683,7 @@ export default function DocumentManagementModal({
                     onClick={() => setSelectedForm(null)}
                     className="text-primary text-sm flex items-center gap-1 mb-4"
                   >
-                    ← Back to forms
+                    ← {t("documents.medicalForm.backToForms", "Back to forms")}
                   </button>
 
                   <h4 className="text-content-primary font-medium">{selectedForm.title}</h4>
@@ -1121,11 +1701,11 @@ export default function DocumentManagementModal({
                             <div className="flex gap-4">
                               <label className="flex items-center gap-2">
                                 <input type="radio" name={`question-${item.id}`} value="yes" onChange={(e) => setFormAnswers(prev => ({ ...prev, [item.id]: e.target.value }))} />
-                                <span>Yes</span>
+                                <span>{t("common.yes", "Yes")}</span>
                               </label>
                               <label className="flex items-center gap-2">
                                 <input type="radio" name={`question-${item.id}`} value="no" onChange={(e) => setFormAnswers(prev => ({ ...prev, [item.id]: e.target.value }))} />
-                                <span>No</span>
+                                <span>{t("common.no", "No")}</span>
                               </label>
                             </div>
                           )}
@@ -1142,11 +1722,11 @@ export default function DocumentManagementModal({
                   ))}
 
                   <div className="bg-surface-dark p-4 rounded-xl">
-                    <label className="block text-content-secondary text-sm mb-2">Signature</label>
+                    <label className="block text-content-secondary text-sm mb-2">{t("documents.medicalForm.signature", "Signature")}</label>
                     <input
                       type="text"
                       className="w-full p-2 bg-surface-card border border-border rounded-lg text-content-primary"
-                      placeholder="Type your full name as signature"
+                      placeholder={t("documents.medicalForm.signaturePlaceholder", "Type your full name as signature")}
                       onChange={(e) => setSignature(e.target.value)}
                     />
                   </div>
@@ -1155,7 +1735,7 @@ export default function DocumentManagementModal({
                     onClick={handleFormSubmit}
                     className="w-full py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
                   >
-                    Submit Form
+                    {t("documents.medicalForm.submit", "Submit Form")}
                   </button>
                 </div>
               )}
@@ -1167,7 +1747,7 @@ export default function DocumentManagementModal({
       {/* Main Modal */}
       <div className="bg-surface-card rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b border-border">
-          <h3 className="text-content-primary text-xl font-bold">Document Management</h3>
+          <h3 className="text-content-primary text-xl font-bold">{t("documents.title")}</h3>
           <button onClick={onClose} className="text-content-muted hover:text-content-primary p-1">
             <X size={24} />
           </button>
@@ -1178,7 +1758,7 @@ export default function DocumentManagementModal({
             <p className="text-content-secondary">
               {t("documents.manageFor")} <span className="font-medium text-content-primary">{entityName}</span>
               <span className="text-content-faint text-sm block sm:inline sm:ml-2">
-                {entityType === "lead" ? `Lead #${entityId}` : entityType === "staff" ? `Staff #${entityId}` : `Member #${entityId}`}
+                {t(`documents.entityLabel.${entityType}`, { id: entityId })}
               </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full justify-between">
@@ -1194,10 +1774,10 @@ export default function DocumentManagementModal({
                 <button
                   onClick={refreshDocuments}
                   className="text-sm gap-2 px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors w-full sm:w-auto flex items-center justify-center"
-                  title="Refresh Documents"
+                  title={t("documents.refresh", "Refresh Documents")}
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh
+                  {t("documents.refresh", "Refresh")}
                 </button>
                 {activeSection === "medicalHistory" && onCreateAssessment && (
                   <button
@@ -1214,7 +1794,7 @@ export default function DocumentManagementModal({
                 className="text-sm gap-2 px-4 py-2 bg-surface-dark text-content-primary rounded-xl hover:bg-surface-button transition-colors w-full sm:w-auto flex items-center justify-center border border-border"
               >
                 <Tag className="w-4 h-4 mr-2" />
-                Manage Tags ({tags.length})
+                {t("documents.tags", "Manage Tags")} ({tags.length})
               </button>
             </div>
             <input
@@ -1268,8 +1848,8 @@ export default function DocumentManagementModal({
                 <File className="w-12 h-12 text-content-faint mx-auto mb-4" />
                 <p className="text-content-muted mb-4">
                   {activeSection === "general"
-                    ? `No documents uploaded yet for ${entityName}`
-                    : "No medical history records yet"
+                    ? t("documents.empty.general", { name: entityName })
+                    : t("documents.empty.medical")
                   }
                 </p>
                 <p className="text-content-faint text-sm">
@@ -1305,7 +1885,7 @@ export default function DocumentManagementModal({
                                 }}
                               />
                               {doc.type !== "medicalHistory" && doc.type !== "sepaMandate" && (
-                                <span className="text-content-faint text-sm">.{doc.name.split('.').pop()}</span>
+                                <span className="text-content-faint text-sm">.{getFileExtension(doc.name)}</span>
                               )}
                             </div>
                             <div className="flex gap-2">
@@ -1325,7 +1905,12 @@ export default function DocumentManagementModal({
                               <span className="text-content-faint">-</span>
                               <p className="text-content-muted text-xs">{doc.uploadDate}</p>
                               {doc.type === "medicalHistory" && doc.answers && (
-                                <span className="text-content-muted text-xs">• {Object.keys(doc.answers).length} answers</span>
+                                <span className="text-content-muted text-xs">• {Object.keys(doc.answers).length} {t("documents.answers", "answers")}</span>
+                              )}
+                              {doc.type === "sepaMandate" && (
+                                <span className={`text-xs ${doc.signed ? 'text-accent-green' : 'text-amber-500'}`}>
+                                  • {doc.signed ? t("documents.signed", "Signed") : t("documents.pendingSignature", "Pending signature")}
+                                </span>
                               )}
                             </div>
 
@@ -1348,6 +1933,7 @@ export default function DocumentManagementModal({
                                           toggleDocumentTag(doc.id, tagId)
                                         }}
                                         className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                        title={t("documents.removeTag", "Remove tag")}
                                       >
                                         <X size={10} />
                                       </button>
@@ -1372,6 +1958,7 @@ export default function DocumentManagementModal({
                               }
                             }}
                             className="p-2 bg-surface-dark text-content-secondary rounded-md text-xs border border-border hover:bg-surface-button hover:border-primary transition-colors cursor-pointer"
+                            title={t("documents.addTag", "Add tag")}
                           >
                             <option value="">+ Tag</option>
                             {tags
@@ -1384,19 +1971,19 @@ export default function DocumentManagementModal({
                           </select>
                         </div>
 
-                        <button onClick={() => handleViewDocument(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title="View">
+                        <button onClick={() => handleViewDocument(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title={t("documents.view", "View")}>
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDownload(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title="Download">
+                        <button onClick={() => handleDownload(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title={t("documents.download", "Download")}>
                           <Download className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handlePrint(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title="Print">
+                        <button onClick={() => handlePrint(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title={t("documents.print", "Print")}>
                           <Printer className="w-4 h-4" />
                         </button>
-                        <button onClick={() => startEditing(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title="Rename">
+                        <button onClick={() => startEditing(doc)} className="p-2 bg-surface-dark text-content-secondary rounded-md hover:bg-surface-button transition-colors" title={t("documents.rename", "Rename")}>
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(doc.id)} className="p-2 bg-surface-dark text-accent-red rounded-md hover:bg-surface-button transition-colors" title="Delete">
+                        <button onClick={() => handleDelete(doc.id)} className="p-2 bg-surface-dark text-accent-red rounded-md hover:bg-surface-button transition-colors" title={t("documents.delete.action", "Delete")}>
                           <Trash className="w-4 h-4" />
                         </button>
                       </div>
@@ -1415,7 +2002,7 @@ export default function DocumentManagementModal({
               <p>{t("documents.maxSize")}</p>
             </div>
             <button onClick={onClose} className="px-6 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors w-full sm:w-auto">
-              Close
+              {t("common.close", "Close")}
             </button>
           </div>
         </div>
