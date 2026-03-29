@@ -895,7 +895,9 @@
         "high": "Alta",
         "medium": "Media",
         "low": "Baja",
-        "label": "Prioridad {{level}}"
+        "labelHigh": "Prioridad alta",
+        "labelMedium": "Prioridad media",
+        "labelLow": "Prioridad baja"
       },
       "list": {
         "created": "Creado",
@@ -904,6 +906,28 @@
       "empty": {
         "title": "No se encontraron tickets",
         "description": "Intenta ajustar tu búsqueda o criterios de filtro."
+      },
+      "view": {
+        "ticketClosed": "Este ticket está cerrado",
+        "reopenHint": "Puede reabrirlo cambiando el estado en la barra lateral.",
+        "attachImages": "Adjuntar imágenes",
+        "replyPlaceholder": "Escriba su respuesta al cliente...",
+        "sendReply": "Enviar respuesta",
+        "updateTicket": "Actualizar ticket",
+        "attachment": "Adjunto",
+        "preview": "Vista previa",
+        "viewImage": "Ver",
+        "previousImage": "Imagen anterior",
+        "nextImage": "Imagen siguiente",
+        "sidebar": {
+          "studio": "Estudio",
+          "topic": "Tema",
+          "subject": "Asunto",
+          "reason": "Motivo",
+          "manage": "Gestionar",
+          "timeline": "Cronología",
+          "lastUpdated": "Última actualización"
+        }
       }
     },
     "analytics": {
@@ -1003,7 +1027,7 @@
       }
     },
     "feedback": {
-      "title": "Enviar feedback",
+      "title": "Feedback",
       "subtitle": "Ayúdanos a mejorar OrgaGym",
       "thankYou": "¡Gracias!",
       "successMessage": "Tu feedback se ha enviado correctamente. Agradecemos que te tomes el tiempo para ayudarnos a mejorar OrgaGym.",
@@ -1019,7 +1043,59 @@
       "ratingLabel": "¿Cómo calificarías tu experiencia?",
       "optional": "opcional",
       "clearRating": "Limpiar",
-      "sendFeedback": "Enviar feedback"
+      "sendFeedback": "Enviar feedback",
+      "description": "Gestionar comentarios de sus estudios",
+      "allTypes": "Todos los tipos",
+      "types": {
+        "suggestion": "Sugerencia",
+        "bugReport": "Reporte de error",
+        "praise": "Elogio",
+        "other": "Otro",
+        "general": "General",
+        "feature": "Solicitud de función"
+      },
+      "statuses": {
+        "new": "Nuevo",
+        "inReview": "En revisión",
+        "resolved": "Resuelto",
+        "dismissed": "Rechazado"
+      },
+      "detail": {
+        "submittedBy": "Enviado por",
+        "message": "Mensaje",
+        "rating": "Calificación",
+        "status": "Estado"
+      },
+      "stats": {
+        "total": "Total",
+        "new": "Nuevo",
+        "review": "En revisión",
+        "resolved": "Resuelto"
+      },
+      "sort": {
+        "sortBy": "Ordenar por",
+        "newest": "Más reciente",
+        "oldest": "Más antiguo",
+        "rating": "Mejor calificación"
+      },
+      "search": {
+        "placeholder": "Buscar feedback..."
+      },
+      "filters": {
+        "title": "Filtros"
+      },
+      "empty": {
+        "title": "Sin feedback encontrado",
+        "description": "Intente ajustar su búsqueda o filtros."
+      },
+      "results": "{{filtered}} de {{total}} resultados",
+      "roles": {
+        "owner": "Propietario",
+        "manager": "Gerente",
+        "admin": "Administrador",
+        "staff": "Personal",
+        "trainer": "Entrenador"
+      }
     },
     "finances": {
       "title": "Finanzas",
@@ -1137,7 +1213,104 @@
         "sent": "¡Correo enviado con éxito!",
         "fillRequired": "Por favor completa todos los campos obligatorios"
       },
-      "noSubject": "(Sin asunto)"
+      "noSubject": "(Sin asunto)",
+      "compose": {
+        "title": "Enviar correo",
+        "template": "Plantilla",
+        "selectTemplate": "Seleccionar plantilla (opcional)",
+        "clearTemplate": "Borrar plantilla",
+        "noTemplates": "No hay plantillas disponibles",
+        "variableWarning": "La plantilla contiene variables",
+        "variables": "Variables",
+        "variablesLabel": "Variables",
+        "searchRecipients": "Buscar por nombre o escribir correo...",
+        "to": "Para",
+        "cc": "CC",
+        "bcc": "CCO",
+        "addMore": "Añadir más...",
+        "staff": "Personal",
+        "subject": "Asunto",
+        "subjectPlaceholder": "Asunto del correo",
+        "message": "Mensaje",
+        "insertSignature": "Insertar firma",
+        "messagePlaceholder": "Escriba su mensaje aquí...",
+        "attachments": "Adjuntos",
+        "addAttachment": "Añadir adjunto",
+        "tapToAddAttachments": "Toque para añadir adjuntos",
+        "sendEmail": "Enviar correo"
+      },
+      "reply": {
+        "title": "Responder a {{sender}}",
+        "placeholder": "Escriba su respuesta...",
+        "originalMessage": "Mensaje original",
+        "from": "De",
+        "date": "Fecha",
+        "subjectLabel": "Asunto"
+      },
+      "draftModal": {
+        "title": "¿Guardar como borrador?",
+        "subtitle": "Sus cambios serán guardados",
+        "message": "Tiene contenido sin enviar. ¿Desea guardarlo como borrador?",
+        "discard": "Descartar",
+        "saveDraft": "Guardar borrador"
+      },
+      "deleteItemModal": {
+        "title": "Eliminar {{type}}",
+        "confirmMessage": "¿Está seguro de que desea eliminar este {{type}}?",
+        "cannotUndo": "Esta acción no se puede deshacer.",
+        "toDelete": "{{type}} a eliminar",
+        "untitled": "{{type}} sin título",
+        "deleteBtn": "Eliminar {{type}}",
+        "types": {
+          "folder": "Carpeta",
+          "template": "Plantilla",
+          "message": "Mensaje",
+          "item": "Elemento"
+        }
+      },
+      "templateEditor": {
+        "editEmail": "Editar plantilla de correo",
+        "editPush": "Editar plantilla push",
+        "createEmail": "Crear plantilla de correo",
+        "createPush": "Crear plantilla push",
+        "templateName": "Nombre de plantilla",
+        "untitled": "Plantilla sin título",
+        "folder": "Carpeta",
+        "selectFolder": "Seleccionar carpeta...",
+        "subjectLine": "Línea de asunto",
+        "notificationTitle": "Título de notificación",
+        "subjectPlaceholder": "Ingrese asunto...",
+        "titlePlaceholder": "Ingrese título de notificación...",
+        "emailBody": "Cuerpo del correo",
+        "messageContent": "Contenido del mensaje",
+        "insert": "Insertar",
+        "signature": "Firma",
+        "composePlaceholder": "Redacte su correo...",
+        "pushPlaceholder": "Ingrese su notificación push...",
+        "clickToAddAttachments": "Haga clic para añadir adjuntos",
+        "updateTemplate": "Actualizar plantilla",
+        "createTemplate": "Crear plantilla",
+        "validation": {
+          "subject": "Ingrese un asunto",
+          "body": "Ingrese contenido",
+          "title": "Ingrese un título",
+          "message": "Ingrese un mensaje",
+          "folder": "Seleccione una carpeta"
+        }
+      },
+      "broadcast": {
+        "untitledTemplate": "Plantilla sin título",
+        "allFolders": "Todas las carpetas",
+        "createNewTemplate": "Crear nueva plantilla",
+        "newTemplate": "Nueva plantilla",
+        "newFolder": "Nueva carpeta",
+        "selected": "seleccionado(s)",
+        "selectRecipient": "Seleccione al menos un destinatario",
+        "selectTemplate": "Seleccione una plantilla de correo",
+        "searchStudios": "Buscar estudios...",
+        "searchTemplates": "Buscar plantillas...",
+        "sendConfirmMessage": "Esto enviará un correo a {{count}} destinatario(s)."
+      }
     },
     "todo": {
       "title": "Tareas",

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { flushSync } from "react-dom"
 import { 
   X, FolderPlus, Search, Send, Plus, Edit, Trash2, Mail, 
@@ -62,7 +63,7 @@ export default function BroadcastModal({
       ...msg,
       subject: msg.subject || msg.title || "",
       body: msg.body || msg.message || "",
-      name: msg.name || msg.title || "Untitled template",
+      name: msg.name || msg.title || t("admin.email.broadcast.untitledTemplate"),
     }))
   )
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
@@ -75,6 +76,7 @@ export default function BroadcastModal({
   const [itemToDelete, setItemToDelete] = useState(null)
   const [deleteType, setDeleteType] = useState("")
   const [showSendConfirmModal, setShowSendConfirmModal] = useState(false)
+  const { t } = useTranslation()
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [lastSentInfo, setLastSentInfo] = useState(null)
 
@@ -211,8 +213,8 @@ export default function BroadcastModal({
   }
 
   const handleBroadcastClick = () => {
-    if (!selectedRecipients.length) { alert("Please select at least one recipient"); return }
-    if (!selectedEmailTemplate) { alert("Please select an email template"); return }
+    if (!selectedRecipients.length) { alert(t("admin.email.broadcast.selectRecipient")); return }
+    if (!selectedEmailTemplate) { alert(t("admin.email.broadcast.selectTemplate")); return }
     setShowSendConfirmModal(true)
   }
 
@@ -531,7 +533,7 @@ export default function BroadcastModal({
                       className="w-full flex items-center justify-center gap-2 py-3 bg-[#1a1a1a] hover:bg-[#222] text-orange-400 rounded-xl text-sm font-medium transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Create New Template
+                      {t("admin.email.broadcast.createNewTemplate")}
                     </button>
                   </div>
 
@@ -541,7 +543,7 @@ export default function BroadcastModal({
                       <div className="space-y-2">
                         {currentTemplates.map((template) => {
                           const isSelected = selectedTemplate?.id === template.id
-                          const templateName = template.name || "Untitled template"
+                          const templateName = template.name || t("admin.email.broadcast.untitledTemplate")
                           const subtitle = template.subject
                           const previewText = stripHtmlTags(template.body)
                           return (
@@ -653,7 +655,7 @@ export default function BroadcastModal({
                       <p className="text-sm font-medium text-white mb-3">Template</p>
                       <div className="bg-[#0E0E0E] rounded-xl p-3">
                         <p className="text-sm font-medium text-white mb-1">
-                          {selectedTemplate?.name || "Untitled template"}
+                          {selectedTemplate?.name || t("admin.email.broadcast.untitledTemplate")}
                         </p>
                         <p className="text-xs text-gray-400 mb-2">
                           {selectedTemplate?.subject}
@@ -715,7 +717,7 @@ export default function BroadcastModal({
               {currentTemplates.length > 0 ? (
                 <div className="space-y-3">
                   {currentTemplates.map((template) => {
-                    const templateName = template.name || "Untitled template"
+                    const templateName = template.name || t("admin.email.broadcast.untitledTemplate")
                     const subtitle = template.subject
                     const previewText = stripHtmlTags(template.body)
                     const folder = currentFolders.find(f => f.id === template.folderId)
@@ -986,7 +988,7 @@ export default function BroadcastModal({
                         setSelectedEmailFolder(folder || null); setSelectedEmailTemplate(null)
                       }
                     }} className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-orange-500/50">
-                      <option value="">All Folders</option>
+                      <option value="">{t("admin.email.broadcast.allFolders")}</option>
                       {currentFolders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
                     </select>
                   </div>
@@ -999,7 +1001,7 @@ export default function BroadcastModal({
                     <div ref={templateListRef} className="bg-[#1a1a1a] rounded-xl max-h-64 overflow-y-auto">
                       {currentTemplates.length > 0 ? currentTemplates.map((template) => {
                         const isSelected = selectedTemplate?.id === template.id
-                        const templateName = template.name || "Untitled template"
+                        const templateName = template.name || t("admin.email.broadcast.untitledTemplate")
                         const subtitle = template.subject
                         const previewText = stripHtmlTags(template.body)
                         return (
@@ -1071,13 +1073,13 @@ export default function BroadcastModal({
                       setSelectedEmailFolder(folder || null);
                     }
                   }} className="bg-[#1a1a1a] text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-orange-500/50">
-                    <option value="">All Folders</option>
+                    <option value="">{t("admin.email.broadcast.allFolders")}</option>
                     {currentFolders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
                   </select>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {currentTemplates.map((template) => {
-                    const templateName = template.name || "Untitled template"
+                    const templateName = template.name || t("admin.email.broadcast.untitledTemplate")
                     const subtitle = template.subject
                     const previewText = stripHtmlTags(template.body)
                     const folder = currentFolders.find(f => f.id === template.folderId)
@@ -1207,13 +1209,13 @@ export default function BroadcastModal({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Template</span>
                   <span className="text-sm text-white font-medium truncate max-w-[200px]">
-                    {selectedTemplate?.name || selectedTemplate?.subject || "Untitled"}
+                    {selectedTemplate?.name || selectedTemplate?.subject || t("admin.email.broadcast.untitledTemplate")}
                   </span>
                 </div>
               </div>
               
               <p className="text-xs text-gray-500">
-                This will send an email to {selectedRecipients.length} recipient{selectedRecipients.length > 1 ? 's' : ''}.
+                {t("admin.email.broadcast.sendConfirmMessage", { count: selectedRecipients.length })}
               </p>
             </div>
 

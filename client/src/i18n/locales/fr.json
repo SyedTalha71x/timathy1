@@ -895,7 +895,9 @@
         "high": "Haute",
         "medium": "Moyenne",
         "low": "Basse",
-        "label": "Priorité {{level}}"
+        "labelHigh": "Priorité haute",
+        "labelMedium": "Priorité moyenne",
+        "labelLow": "Priorité basse"
       },
       "list": {
         "created": "Créé",
@@ -904,6 +906,28 @@
       "empty": {
         "title": "Aucun ticket trouvé",
         "description": "Essayez d'ajuster votre recherche ou vos critères de filtre."
+      },
+      "view": {
+        "ticketClosed": "Ce ticket est fermé",
+        "reopenHint": "Vous pouvez le rouvrir en modifiant le statut dans la barre latérale.",
+        "attachImages": "Joindre des images",
+        "replyPlaceholder": "Tapez votre réponse au client...",
+        "sendReply": "Envoyer la réponse",
+        "updateTicket": "Mettre à jour le ticket",
+        "attachment": "Pièce jointe",
+        "preview": "Aperçu",
+        "viewImage": "Voir",
+        "previousImage": "Image précédente",
+        "nextImage": "Image suivante",
+        "sidebar": {
+          "studio": "Studio",
+          "topic": "Sujet",
+          "subject": "Objet",
+          "reason": "Raison",
+          "manage": "Gérer",
+          "timeline": "Chronologie",
+          "lastUpdated": "Dernière mise à jour"
+        }
       }
     },
     "analytics": {
@@ -1003,7 +1027,7 @@
       }
     },
     "feedback": {
-      "title": "Envoyer un feedback",
+      "title": "Feedback",
       "subtitle": "Aidez-nous à améliorer OrgaGym",
       "thankYou": "Merci !",
       "successMessage": "Votre feedback a été soumis avec succès. Nous apprécions que vous preniez le temps de nous aider à améliorer OrgaGym.",
@@ -1019,7 +1043,59 @@
       "ratingLabel": "Comment évaluez-vous votre expérience ?",
       "optional": "optionnel",
       "clearRating": "Effacer",
-      "sendFeedback": "Envoyer le feedback"
+      "sendFeedback": "Envoyer le feedback",
+      "description": "Gérer les retours de vos studios",
+      "allTypes": "Tous les types",
+      "types": {
+        "suggestion": "Suggestion",
+        "bugReport": "Rapport de bug",
+        "praise": "Éloge",
+        "other": "Autre",
+        "general": "Général",
+        "feature": "Demande de fonctionnalité"
+      },
+      "statuses": {
+        "new": "Nouveau",
+        "inReview": "En cours",
+        "resolved": "Résolu",
+        "dismissed": "Rejeté"
+      },
+      "detail": {
+        "submittedBy": "Soumis par",
+        "message": "Message",
+        "rating": "Note",
+        "status": "Statut"
+      },
+      "stats": {
+        "total": "Total",
+        "new": "Nouveau",
+        "review": "En cours",
+        "resolved": "Résolu"
+      },
+      "sort": {
+        "sortBy": "Trier par",
+        "newest": "Plus récent",
+        "oldest": "Plus ancien",
+        "rating": "Meilleure note"
+      },
+      "search": {
+        "placeholder": "Rechercher un feedback..."
+      },
+      "filters": {
+        "title": "Filtres"
+      },
+      "empty": {
+        "title": "Aucun feedback trouvé",
+        "description": "Essayez d'ajuster votre recherche ou vos filtres."
+      },
+      "results": "{{filtered}} sur {{total}} résultats",
+      "roles": {
+        "owner": "Propriétaire",
+        "manager": "Gérant",
+        "admin": "Administrateur",
+        "staff": "Personnel",
+        "trainer": "Entraîneur"
+      }
     },
     "finances": {
       "title": "Finances",
@@ -1137,7 +1213,104 @@
         "sent": "E-mail envoyé avec succès !",
         "fillRequired": "Veuillez remplir tous les champs obligatoires"
       },
-      "noSubject": "(Sans objet)"
+      "noSubject": "(Sans objet)",
+      "compose": {
+        "title": "Envoyer un e-mail",
+        "template": "Modèle",
+        "selectTemplate": "Sélectionner un modèle (optionnel)",
+        "clearTemplate": "Effacer le modèle",
+        "noTemplates": "Aucun modèle disponible",
+        "variableWarning": "Le modèle contient des variables",
+        "variables": "Variables",
+        "variablesLabel": "Variables",
+        "searchRecipients": "Rechercher par nom ou saisir un e-mail...",
+        "to": "À",
+        "cc": "CC",
+        "bcc": "CCI",
+        "addMore": "Ajouter...",
+        "staff": "Personnel",
+        "subject": "Objet",
+        "subjectPlaceholder": "Objet de l'e-mail",
+        "message": "Message",
+        "insertSignature": "Insérer la signature",
+        "messagePlaceholder": "Saisissez votre message ici...",
+        "attachments": "Pièces jointes",
+        "addAttachment": "Ajouter une pièce jointe",
+        "tapToAddAttachments": "Appuyez pour ajouter des pièces jointes",
+        "sendEmail": "Envoyer l'e-mail"
+      },
+      "reply": {
+        "title": "Répondre à {{sender}}",
+        "placeholder": "Écrire votre réponse...",
+        "originalMessage": "Message original",
+        "from": "De",
+        "date": "Date",
+        "subjectLabel": "Objet"
+      },
+      "draftModal": {
+        "title": "Enregistrer comme brouillon ?",
+        "subtitle": "Vos modifications seront enregistrées",
+        "message": "Vous avez du contenu non envoyé. Souhaitez-vous l'enregistrer comme brouillon ?",
+        "discard": "Supprimer",
+        "saveDraft": "Enregistrer le brouillon"
+      },
+      "deleteItemModal": {
+        "title": "Supprimer {{type}}",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer ce {{type}} ?",
+        "cannotUndo": "Cette action est irréversible.",
+        "toDelete": "{{type}} à supprimer",
+        "untitled": "{{type}} sans titre",
+        "deleteBtn": "Supprimer {{type}}",
+        "types": {
+          "folder": "Dossier",
+          "template": "Modèle",
+          "message": "Message",
+          "item": "Élément"
+        }
+      },
+      "templateEditor": {
+        "editEmail": "Modifier le modèle e-mail",
+        "editPush": "Modifier le modèle push",
+        "createEmail": "Créer un modèle e-mail",
+        "createPush": "Créer un modèle push",
+        "templateName": "Nom du modèle",
+        "untitled": "Modèle sans titre",
+        "folder": "Dossier",
+        "selectFolder": "Sélectionner un dossier...",
+        "subjectLine": "Ligne d'objet",
+        "notificationTitle": "Titre de notification",
+        "subjectPlaceholder": "Saisir l'objet...",
+        "titlePlaceholder": "Saisir le titre de notification...",
+        "emailBody": "Corps de l'e-mail",
+        "messageContent": "Contenu du message",
+        "insert": "Insérer",
+        "signature": "Signature",
+        "composePlaceholder": "Rédigez votre e-mail...",
+        "pushPlaceholder": "Saisir votre notification push...",
+        "clickToAddAttachments": "Cliquez pour ajouter des pièces jointes",
+        "updateTemplate": "Mettre à jour le modèle",
+        "createTemplate": "Créer le modèle",
+        "validation": {
+          "subject": "Veuillez saisir un objet",
+          "body": "Veuillez saisir le contenu",
+          "title": "Veuillez saisir un titre",
+          "message": "Veuillez saisir un message",
+          "folder": "Veuillez sélectionner un dossier"
+        }
+      },
+      "broadcast": {
+        "untitledTemplate": "Modèle sans titre",
+        "allFolders": "Tous les dossiers",
+        "createNewTemplate": "Créer un nouveau modèle",
+        "newTemplate": "Nouveau modèle",
+        "newFolder": "Nouveau dossier",
+        "selected": "sélectionné(s)",
+        "selectRecipient": "Veuillez sélectionner au moins un destinataire",
+        "selectTemplate": "Veuillez sélectionner un modèle",
+        "searchStudios": "Rechercher des studios...",
+        "searchTemplates": "Rechercher des modèles...",
+        "sendConfirmMessage": "Ceci enverra un e-mail à {{count}} destinataire(s)."
+      }
     },
     "todo": {
       "title": "Tâches",

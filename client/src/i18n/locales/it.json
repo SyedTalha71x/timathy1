@@ -895,7 +895,9 @@
         "high": "Alta",
         "medium": "Media",
         "low": "Bassa",
-        "label": "Priorità {{level}}"
+        "labelHigh": "Priorità alta",
+        "labelMedium": "Priorità media",
+        "labelLow": "Priorità bassa"
       },
       "list": {
         "created": "Creato",
@@ -904,6 +906,28 @@
       "empty": {
         "title": "Nessun ticket trovato",
         "description": "Prova a modificare la ricerca o i criteri di filtro."
+      },
+      "view": {
+        "ticketClosed": "Questo ticket è chiuso",
+        "reopenHint": "Puoi riaprirlo modificando lo stato nella barra laterale.",
+        "attachImages": "Allega immagini",
+        "replyPlaceholder": "Scrivi la tua risposta al cliente...",
+        "sendReply": "Invia risposta",
+        "updateTicket": "Aggiorna ticket",
+        "attachment": "Allegato",
+        "preview": "Anteprima",
+        "viewImage": "Visualizza",
+        "previousImage": "Immagine precedente",
+        "nextImage": "Immagine successiva",
+        "sidebar": {
+          "studio": "Studio",
+          "topic": "Argomento",
+          "subject": "Oggetto",
+          "reason": "Motivo",
+          "manage": "Gestisci",
+          "timeline": "Cronologia",
+          "lastUpdated": "Ultimo aggiornamento"
+        }
       }
     },
     "analytics": {
@@ -1003,7 +1027,7 @@
       }
     },
     "feedback": {
-      "title": "Invia feedback",
+      "title": "Feedback",
       "subtitle": "Aiutaci a migliorare OrgaGym",
       "thankYou": "Grazie!",
       "successMessage": "Il tuo feedback è stato inviato con successo. Apprezziamo che tu ti prenda il tempo per aiutarci a migliorare OrgaGym.",
@@ -1019,7 +1043,59 @@
       "ratingLabel": "Come valuti la tua esperienza?",
       "optional": "opzionale",
       "clearRating": "Cancella",
-      "sendFeedback": "Invia feedback"
+      "sendFeedback": "Invia feedback",
+      "description": "Gestisci i feedback dei tuoi studi",
+      "allTypes": "Tutti i tipi",
+      "types": {
+        "suggestion": "Suggerimento",
+        "bugReport": "Segnalazione bug",
+        "praise": "Elogio",
+        "other": "Altro",
+        "general": "Generale",
+        "feature": "Richiesta funzionalità"
+      },
+      "statuses": {
+        "new": "Nuovo",
+        "inReview": "In revisione",
+        "resolved": "Risolto",
+        "dismissed": "Rifiutato"
+      },
+      "detail": {
+        "submittedBy": "Inviato da",
+        "message": "Messaggio",
+        "rating": "Valutazione",
+        "status": "Stato"
+      },
+      "stats": {
+        "total": "Totale",
+        "new": "Nuovo",
+        "review": "In revisione",
+        "resolved": "Risolto"
+      },
+      "sort": {
+        "sortBy": "Ordina per",
+        "newest": "Più recente",
+        "oldest": "Più vecchio",
+        "rating": "Migliore valutazione"
+      },
+      "search": {
+        "placeholder": "Cerca feedback..."
+      },
+      "filters": {
+        "title": "Filtri"
+      },
+      "empty": {
+        "title": "Nessun feedback trovato",
+        "description": "Prova a modificare la ricerca o i filtri."
+      },
+      "results": "{{filtered}} di {{total}} risultati",
+      "roles": {
+        "owner": "Proprietario",
+        "manager": "Gestore",
+        "admin": "Amministratore",
+        "staff": "Personale",
+        "trainer": "Allenatore"
+      }
     },
     "finances": {
       "title": "Finanze",
@@ -1137,7 +1213,104 @@
         "sent": "E-mail inviata con successo!",
         "fillRequired": "Per favore compila tutti i campi obbligatori"
       },
-      "noSubject": "(Nessun oggetto)"
+      "noSubject": "(Nessun oggetto)",
+      "compose": {
+        "title": "Invia email",
+        "template": "Modello",
+        "selectTemplate": "Seleziona un modello (opzionale)",
+        "clearTemplate": "Cancella modello",
+        "noTemplates": "Nessun modello disponibile",
+        "variableWarning": "Il modello contiene variabili",
+        "variables": "Variabili",
+        "variablesLabel": "Variabili",
+        "searchRecipients": "Cerca per nome o inserisci email...",
+        "to": "A",
+        "cc": "CC",
+        "bcc": "CCN",
+        "addMore": "Aggiungi altri...",
+        "staff": "Personale",
+        "subject": "Oggetto",
+        "subjectPlaceholder": "Oggetto dell'email",
+        "message": "Messaggio",
+        "insertSignature": "Inserisci firma",
+        "messagePlaceholder": "Scrivi il tuo messaggio qui...",
+        "attachments": "Allegati",
+        "addAttachment": "Aggiungi allegato",
+        "tapToAddAttachments": "Tocca per aggiungere allegati",
+        "sendEmail": "Invia email"
+      },
+      "reply": {
+        "title": "Rispondi a {{sender}}",
+        "placeholder": "Scrivi la tua risposta...",
+        "originalMessage": "Messaggio originale",
+        "from": "Da",
+        "date": "Data",
+        "subjectLabel": "Oggetto"
+      },
+      "draftModal": {
+        "title": "Salvare come bozza?",
+        "subtitle": "Le modifiche verranno salvate",
+        "message": "Hai contenuto non inviato. Vuoi salvarlo come bozza?",
+        "discard": "Scarta",
+        "saveDraft": "Salva bozza"
+      },
+      "deleteItemModal": {
+        "title": "Elimina {{type}}",
+        "confirmMessage": "Sei sicuro di voler eliminare questo {{type}}?",
+        "cannotUndo": "Questa azione non può essere annullata.",
+        "toDelete": "{{type}} da eliminare",
+        "untitled": "{{type}} senza titolo",
+        "deleteBtn": "Elimina {{type}}",
+        "types": {
+          "folder": "Cartella",
+          "template": "Modello",
+          "message": "Messaggio",
+          "item": "Elemento"
+        }
+      },
+      "templateEditor": {
+        "editEmail": "Modifica modello email",
+        "editPush": "Modifica modello push",
+        "createEmail": "Crea modello email",
+        "createPush": "Crea modello push",
+        "templateName": "Nome modello",
+        "untitled": "Modello senza titolo",
+        "folder": "Cartella",
+        "selectFolder": "Seleziona cartella...",
+        "subjectLine": "Riga oggetto",
+        "notificationTitle": "Titolo notifica",
+        "subjectPlaceholder": "Inserisci oggetto...",
+        "titlePlaceholder": "Inserisci titolo notifica...",
+        "emailBody": "Corpo email",
+        "messageContent": "Contenuto messaggio",
+        "insert": "Inserisci",
+        "signature": "Firma",
+        "composePlaceholder": "Componi il contenuto email...",
+        "pushPlaceholder": "Inserisci notifica push...",
+        "clickToAddAttachments": "Clicca per aggiungere allegati",
+        "updateTemplate": "Aggiorna modello",
+        "createTemplate": "Crea modello",
+        "validation": {
+          "subject": "Inserisci un oggetto",
+          "body": "Inserisci il contenuto",
+          "title": "Inserisci un titolo",
+          "message": "Inserisci un messaggio",
+          "folder": "Seleziona una cartella"
+        }
+      },
+      "broadcast": {
+        "untitledTemplate": "Modello senza titolo",
+        "allFolders": "Tutte le cartelle",
+        "createNewTemplate": "Crea nuovo modello",
+        "newTemplate": "Nuovo modello",
+        "newFolder": "Nuova cartella",
+        "selected": "selezionato/i",
+        "selectRecipient": "Seleziona almeno un destinatario",
+        "selectTemplate": "Seleziona un modello email",
+        "searchStudios": "Cerca studi...",
+        "searchTemplates": "Cerca modelli...",
+        "sendConfirmMessage": "Questo invierà un'email a {{count}} destinatario/i."
+      }
     },
     "todo": {
       "title": "Attività",

@@ -895,7 +895,9 @@
         "high": "High",
         "medium": "Medium",
         "low": "Low",
-        "label": "{{level}} Priority"
+        "labelHigh": "High Priority",
+        "labelMedium": "Medium Priority",
+        "labelLow": "Low Priority"
       },
       "list": {
         "created": "Created",
@@ -904,6 +906,28 @@
       "empty": {
         "title": "No tickets found",
         "description": "Try adjusting your search or filter criteria."
+      },
+      "view": {
+        "ticketClosed": "This ticket is closed",
+        "reopenHint": "You can reopen it by changing the status in the sidebar.",
+        "attachImages": "Attach Images",
+        "replyPlaceholder": "Type your reply to the customer...",
+        "sendReply": "Send Reply",
+        "updateTicket": "Update Ticket",
+        "attachment": "Attachment",
+        "preview": "Preview",
+        "viewImage": "View",
+        "previousImage": "Previous image",
+        "nextImage": "Next image",
+        "sidebar": {
+          "studio": "Studio",
+          "topic": "Topic",
+          "subject": "Subject",
+          "reason": "Reason",
+          "manage": "Manage",
+          "timeline": "Timeline",
+          "lastUpdated": "Last updated"
+        }
       }
     },
     "analytics": {
@@ -1003,7 +1027,7 @@
       }
     },
     "feedback": {
-      "title": "Send Feedback",
+      "title": "Feedback",
       "subtitle": "Help us improve OrgaGym",
       "thankYou": "Thank You!",
       "successMessage": "Your feedback has been submitted successfully. We appreciate you taking the time to help us improve OrgaGym.",
@@ -1019,7 +1043,59 @@
       "ratingLabel": "How would you rate your experience?",
       "optional": "optional",
       "clearRating": "Clear",
-      "sendFeedback": "Send Feedback"
+      "sendFeedback": "Send Feedback",
+      "description": "Manage feedback from your studios",
+      "allTypes": "All Types",
+      "types": {
+        "suggestion": "Suggestion",
+        "bugReport": "Bug Report",
+        "praise": "Praise",
+        "other": "Other",
+        "general": "General",
+        "feature": "Feature Request"
+      },
+      "statuses": {
+        "new": "New",
+        "inReview": "In Review",
+        "resolved": "Resolved",
+        "dismissed": "Dismissed"
+      },
+      "detail": {
+        "submittedBy": "Submitted By",
+        "message": "Message",
+        "rating": "Rating",
+        "status": "Status"
+      },
+      "stats": {
+        "total": "Total",
+        "new": "New",
+        "review": "In Review",
+        "resolved": "Resolved"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "rating": "Highest rating"
+      },
+      "search": {
+        "placeholder": "Search feedback..."
+      },
+      "filters": {
+        "title": "Filters"
+      },
+      "empty": {
+        "title": "No feedback found",
+        "description": "Try adjusting your search or filters."
+      },
+      "results": "{{filtered}} of {{total}} results",
+      "roles": {
+        "owner": "Owner",
+        "manager": "Manager",
+        "admin": "Admin",
+        "staff": "Staff",
+        "trainer": "Trainer"
+      }
     },
     "finances": {
       "title": "Finances",
@@ -1137,7 +1213,104 @@
         "sent": "Email sent successfully!",
         "fillRequired": "Please fill in all required email fields"
       },
-      "noSubject": "(No subject)"
+      "noSubject": "(No subject)",
+      "compose": {
+        "title": "Send Email",
+        "template": "Template",
+        "selectTemplate": "Select a template (optional)",
+        "clearTemplate": "Clear template",
+        "noTemplates": "No templates available",
+        "variableWarning": "Template contains variables",
+        "variables": "Variables",
+        "variablesLabel": "Variables",
+        "searchRecipients": "Search by name, or type email...",
+        "to": "To",
+        "cc": "CC",
+        "bcc": "BCC",
+        "addMore": "Add more...",
+        "staff": "Staff",
+        "subject": "Subject",
+        "subjectPlaceholder": "Email subject",
+        "message": "Message",
+        "insertSignature": "Insert Signature",
+        "messagePlaceholder": "Type your email message here...",
+        "attachments": "Attachments",
+        "addAttachment": "Add Attachment",
+        "tapToAddAttachments": "Tap to add attachments",
+        "sendEmail": "Send Email"
+      },
+      "reply": {
+        "title": "Reply to {{sender}}",
+        "placeholder": "Write your reply...",
+        "originalMessage": "Original Message",
+        "from": "From",
+        "date": "Date",
+        "subjectLabel": "Subject"
+      },
+      "draftModal": {
+        "title": "Save as Draft?",
+        "subtitle": "Your changes will be saved",
+        "message": "You have unsent content. Would you like to save it as a draft?",
+        "discard": "Discard",
+        "saveDraft": "Save Draft"
+      },
+      "deleteItemModal": {
+        "title": "Delete {{type}}",
+        "confirmMessage": "Are you sure you want to delete this {{type}}?",
+        "cannotUndo": "This action cannot be undone.",
+        "toDelete": "{{type}} to delete",
+        "untitled": "Untitled {{type}}",
+        "deleteBtn": "Delete {{type}}",
+        "types": {
+          "folder": "Folder",
+          "template": "Template",
+          "message": "Message",
+          "item": "Item"
+        }
+      },
+      "templateEditor": {
+        "editEmail": "Edit Email Template",
+        "editPush": "Edit Push Template",
+        "createEmail": "Create Email Template",
+        "createPush": "Create Push Template",
+        "templateName": "Template Name",
+        "untitled": "Untitled template",
+        "folder": "Folder",
+        "selectFolder": "Select folder...",
+        "subjectLine": "Subject Line",
+        "notificationTitle": "Notification Title",
+        "subjectPlaceholder": "Enter email subject...",
+        "titlePlaceholder": "Enter notification title...",
+        "emailBody": "Email Body",
+        "messageContent": "Message Content",
+        "insert": "Insert",
+        "signature": "Signature",
+        "composePlaceholder": "Compose your email content...",
+        "pushPlaceholder": "Enter your push notification message...",
+        "clickToAddAttachments": "Click to add attachments",
+        "updateTemplate": "Update Template",
+        "createTemplate": "Create Template",
+        "validation": {
+          "subject": "Please enter a subject",
+          "body": "Please enter email content",
+          "title": "Please enter a title",
+          "message": "Please enter a message",
+          "folder": "Please select a folder"
+        }
+      },
+      "broadcast": {
+        "untitledTemplate": "Untitled template",
+        "allFolders": "All Folders",
+        "createNewTemplate": "Create New Template",
+        "newTemplate": "New Template",
+        "newFolder": "New Folder",
+        "selected": "selected",
+        "selectRecipient": "Please select at least one recipient",
+        "selectTemplate": "Please select an email template",
+        "searchStudios": "Search studios...",
+        "searchTemplates": "Search templates...",
+        "sendConfirmMessage": "This will send an email to {{count}} recipient(s)."
+      }
     },
     "todo": {
       "title": "To-Do",

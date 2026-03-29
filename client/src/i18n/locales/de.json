@@ -895,7 +895,9 @@
         "high": "Hoch",
         "medium": "Mittel",
         "low": "Niedrig",
-        "label": "{{level}} Priorität"
+        "labelHigh": "Hohe Priorität",
+        "labelMedium": "Mittlere Priorität",
+        "labelLow": "Niedrige Priorität"
       },
       "list": {
         "created": "Erstellt",
@@ -904,6 +906,28 @@
       "empty": {
         "title": "Keine Tickets gefunden",
         "description": "Versuche deine Suche oder Filterkriterien anzupassen."
+      },
+      "view": {
+        "ticketClosed": "Dieses Ticket ist geschlossen",
+        "reopenHint": "Sie können es über den Status in der Seitenleiste wieder öffnen.",
+        "attachImages": "Bilder anhängen",
+        "replyPlaceholder": "Antwort an den Kunden eingeben...",
+        "sendReply": "Antwort senden",
+        "updateTicket": "Ticket aktualisieren",
+        "attachment": "Anhang",
+        "preview": "Vorschau",
+        "viewImage": "Ansehen",
+        "previousImage": "Vorheriges Bild",
+        "nextImage": "Nächstes Bild",
+        "sidebar": {
+          "studio": "Studio",
+          "topic": "Thema",
+          "subject": "Betreff",
+          "reason": "Grund",
+          "manage": "Verwalten",
+          "timeline": "Zeitverlauf",
+          "lastUpdated": "Zuletzt aktualisiert"
+        }
       }
     },
     "analytics": {
@@ -1003,7 +1027,7 @@
       }
     },
     "feedback": {
-      "title": "Feedback senden",
+      "title": "Feedback",
       "subtitle": "Hilf uns OrgaGym zu verbessern",
       "thankYou": "Vielen Dank!",
       "successMessage": "Dein Feedback wurde erfolgreich übermittelt. Wir schätzen es, dass du dir die Zeit nimmst, uns bei der Verbesserung von OrgaGym zu helfen.",
@@ -1019,7 +1043,59 @@
       "ratingLabel": "Wie bewertest du deine Erfahrung?",
       "optional": "optional",
       "clearRating": "Löschen",
-      "sendFeedback": "Feedback senden"
+      "sendFeedback": "Feedback senden",
+      "description": "Feedback Ihrer Studios verwalten",
+      "allTypes": "Alle Typen",
+      "types": {
+        "suggestion": "Vorschlag",
+        "bugReport": "Fehlerbericht",
+        "praise": "Lob",
+        "other": "Sonstiges",
+        "general": "Allgemein",
+        "feature": "Funktionswunsch"
+      },
+      "statuses": {
+        "new": "Neu",
+        "inReview": "In Bearbeitung",
+        "resolved": "Erledigt",
+        "dismissed": "Abgelehnt"
+      },
+      "detail": {
+        "submittedBy": "Eingereicht von",
+        "message": "Nachricht",
+        "rating": "Bewertung",
+        "status": "Status"
+      },
+      "stats": {
+        "total": "Gesamt",
+        "new": "Neu",
+        "review": "In Bearbeitung",
+        "resolved": "Erledigt"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "newest": "Neueste zuerst",
+        "oldest": "Älteste zuerst",
+        "rating": "Beste Bewertung"
+      },
+      "search": {
+        "placeholder": "Feedback suchen..."
+      },
+      "filters": {
+        "title": "Filter"
+      },
+      "empty": {
+        "title": "Kein Feedback gefunden",
+        "description": "Versuchen Sie Ihre Suche oder Filter anzupassen."
+      },
+      "results": "{{filtered}} von {{total}} Ergebnissen",
+      "roles": {
+        "owner": "Inhaber",
+        "manager": "Manager",
+        "admin": "Administrator",
+        "staff": "Mitarbeiter",
+        "trainer": "Trainer"
+      }
     },
     "finances": {
       "title": "Finanzen",
@@ -1137,7 +1213,104 @@
         "sent": "E-Mail erfolgreich gesendet!",
         "fillRequired": "Bitte fülle alle erforderlichen E-Mail-Felder aus"
       },
-      "noSubject": "(Kein Betreff)"
+      "noSubject": "(Kein Betreff)",
+      "compose": {
+        "title": "E-Mail senden",
+        "template": "Vorlage",
+        "selectTemplate": "Vorlage auswählen (optional)",
+        "clearTemplate": "Vorlage entfernen",
+        "noTemplates": "Keine Vorlagen verfügbar",
+        "variableWarning": "Vorlage enthält Variablen",
+        "variables": "Variablen",
+        "variablesLabel": "Variablen",
+        "searchRecipients": "Nach Name suchen oder E-Mail eingeben...",
+        "to": "An",
+        "cc": "CC",
+        "bcc": "BCC",
+        "addMore": "Weitere hinzufügen...",
+        "staff": "Mitarbeiter",
+        "subject": "Betreff",
+        "subjectPlaceholder": "E-Mail-Betreff",
+        "message": "Nachricht",
+        "insertSignature": "Signatur einfügen",
+        "messagePlaceholder": "E-Mail-Nachricht hier eingeben...",
+        "attachments": "Anhänge",
+        "addAttachment": "Anhang hinzufügen",
+        "tapToAddAttachments": "Tippen um Anhänge hinzuzufügen",
+        "sendEmail": "E-Mail senden"
+      },
+      "reply": {
+        "title": "Antwort an {{sender}}",
+        "placeholder": "Antwort schreiben...",
+        "originalMessage": "Ursprüngliche Nachricht",
+        "from": "Von",
+        "date": "Datum",
+        "subjectLabel": "Betreff"
+      },
+      "draftModal": {
+        "title": "Als Entwurf speichern?",
+        "subtitle": "Ihre Änderungen werden gespeichert",
+        "message": "Sie haben ungesendete Inhalte. Möchten Sie diese als Entwurf speichern?",
+        "discard": "Verwerfen",
+        "saveDraft": "Entwurf speichern"
+      },
+      "deleteItemModal": {
+        "title": "{{type}} löschen",
+        "confirmMessage": "Möchten Sie diesen {{type}} wirklich löschen?",
+        "cannotUndo": "Diese Aktion kann nicht rückgängig gemacht werden.",
+        "toDelete": "{{type}} zum Löschen",
+        "untitled": "Unbenannter {{type}}",
+        "deleteBtn": "{{type}} löschen",
+        "types": {
+          "folder": "Ordner",
+          "template": "Vorlage",
+          "message": "Nachricht",
+          "item": "Element"
+        }
+      },
+      "templateEditor": {
+        "editEmail": "E-Mail-Vorlage bearbeiten",
+        "editPush": "Push-Vorlage bearbeiten",
+        "createEmail": "E-Mail-Vorlage erstellen",
+        "createPush": "Push-Vorlage erstellen",
+        "templateName": "Vorlagenname",
+        "untitled": "Unbenannte Vorlage",
+        "folder": "Ordner",
+        "selectFolder": "Ordner auswählen...",
+        "subjectLine": "Betreffzeile",
+        "notificationTitle": "Benachrichtigungstitel",
+        "subjectPlaceholder": "E-Mail-Betreff eingeben...",
+        "titlePlaceholder": "Benachrichtigungstitel eingeben...",
+        "emailBody": "E-Mail-Inhalt",
+        "messageContent": "Nachrichteninhalt",
+        "insert": "Einfügen",
+        "signature": "Signatur",
+        "composePlaceholder": "E-Mail-Inhalt verfassen...",
+        "pushPlaceholder": "Push-Nachricht eingeben...",
+        "clickToAddAttachments": "Klicken um Anhänge hinzuzufügen",
+        "updateTemplate": "Vorlage aktualisieren",
+        "createTemplate": "Vorlage erstellen",
+        "validation": {
+          "subject": "Bitte Betreff eingeben",
+          "body": "Bitte E-Mail-Inhalt eingeben",
+          "title": "Bitte Titel eingeben",
+          "message": "Bitte Nachricht eingeben",
+          "folder": "Bitte Ordner auswählen"
+        }
+      },
+      "broadcast": {
+        "untitledTemplate": "Unbenannte Vorlage",
+        "allFolders": "Alle Ordner",
+        "createNewTemplate": "Neue Vorlage erstellen",
+        "newTemplate": "Neue Vorlage",
+        "newFolder": "Neuer Ordner",
+        "selected": "ausgewählt",
+        "selectRecipient": "Bitte mindestens einen Empfänger auswählen",
+        "selectTemplate": "Bitte eine E-Mail-Vorlage auswählen",
+        "searchStudios": "Studios suchen...",
+        "searchTemplates": "Vorlagen suchen...",
+        "sendConfirmMessage": "Dies sendet eine E-Mail an {{count}} Empfänger."
+      }
     },
     "todo": {
       "title": "Aufgaben",
