@@ -37,6 +37,10 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
     archivedAt: {
         type: Date,
     },
+    isArchived: {
+        type: Boolean,
+        default: false
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -201,11 +205,19 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     vacationEntitlement: {
         type: Number,
         default: 30,
-    }, 
+    },
     vacationDays: {
         type: Number,
         default: 30,
         description: "Remaining vacation days"
+    },
+    documents: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Document'
+    }],
+    document: {
+        url: String,
+        public_id: String
     },
     appointments: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -262,6 +274,15 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
     vacations: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'vacation'
+    }],
+    MedicalHistoryResponse: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MedicalHistoryResponse'
+    }],
+
+    sepaMandates: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SepaMandate'
     }],
 
 }))

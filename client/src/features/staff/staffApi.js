@@ -131,3 +131,34 @@ export const rejectVacationRequestApi = async (id) => {
     const res = await api.patch(`/vacation/${id}/rejected`, { withCredentials: true })
     return res.data
 }
+
+
+
+// ^^^^^^^^^^^
+// Document APIs
+// ^^^^^^^^^^^
+
+export const uploadDocumentApi = async (entityType, entityId, formData) => {
+    const res = await api.post(`/staff/${entityType}/${entityId}/upload`, formData, { withCredentials: true })
+    return res.data
+}
+
+export const deleteDocumentApi = async (entityType, entityId, documentId) => {
+    const res = await api.delete(`/staff/${entityType}/${entityId}/${documentId}`, { withCredentials: true })
+    return res.data
+}
+
+export const updateDocumentApi = async (documentId, updateData) => {
+    const res = await api.patch(`/staff/${documentId}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+export const getDocumentByIdApi = async (documentId) => {
+    const res = await api.get(`/staff/details/${documentId}`, { withCredentials: true })
+    return res.data
+}
+
+export const getAllDocumentsByEntityApi = async (entityType, entityId) => {
+    const res = await api.get(`/staff/${entityType}/${entityId}`, { withCredentials: true })
+    return res.data
+}   

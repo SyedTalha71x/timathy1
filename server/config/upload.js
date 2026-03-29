@@ -19,6 +19,10 @@ const uploadImage = multer({
   storage: memoryStorage,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
 });
+const uploadDocument = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
+});
 
 /**
  * DiskStorage for large videos
@@ -40,4 +44,5 @@ const uploadVideo = multer({
 module.exports = {
   uploadImage,
   uploadVideo,
+  uploadDocument
 };

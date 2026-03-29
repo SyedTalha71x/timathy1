@@ -195,6 +195,63 @@ export const fetchPendingVacationRequestThunk = createAsyncThunk('/staff/vacatio
 
 
 
+// ^^^^^^^^^^^^^^^^^^
+// Document Upload and Management Thunks
+// ^^^^^^^^^^^^^^^^^^
+
+export const uploadDocumentThunk = createAsyncThunk('/staff/document/upload', async ({ entityType, entityId, formData }, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.uploadDocumentApi(entityType, entityId, formData);
+        return res.document
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+export const deleteDocumentThunk = createAsyncThunk(
+    '/staff/document/delete',
+    async ({ entityType, entityId, documentId }, { rejectWithValue }) => {
+        try {
+            const res = await staffApi.deleteDocumentApi(entityType, entityId, documentId);
+            return { success: true, message: res.message, documentId };
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const updateDocumentMetadataThunk = createAsyncThunk('/staff/document/update', async ({ documentId, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.updateDocumentApi(documentId, updateData);
+        return res.document
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+export const getDocumentByIdThunk = createAsyncThunk('/staff/document/get-by-id', async (documentId, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.getDocumentByIdApi(documentId);
+        return res.document
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+export const getDocumentsByEntityThunk = createAsyncThunk('/staff/document/get-by-entity', async ({ entityType, entityId }, { rejectWithValue }) => {
+    try {
+        const res = await staffApi.getAllDocumentsByEntityApi(entityType, entityId);
+        return res.documents
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
 
 
 const staffSlice = createSlice({
@@ -203,6 +260,7 @@ const staffSlice = createSlice({
         staff: [],
         shift: [],
         vacations: [],
+        documents: [],
         loading: false,
         error: null
     },
@@ -433,7 +491,88 @@ const staffSlice = createSlice({
                 state.error = action.payload?.message
             })
 
+            // ^^^^^^^^^^^^^^^^^
+            // Document Upload and Management Reducers
+            // ^^^^^^^^^^^^^^^^^
 
+            // Upload Document
+            .addCase(uploadDocumentThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(uploadDocumentThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.documents.push(action.payload);
+                state.error = null
+            })
+            .addCase(uploadDocumentThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // Delete Document
+            .addCase(deleteDocumentThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(deleteDocumentThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.documents = state.documents.filter(doc => doc._id !== action.payload.documentId);
+                state.error = null
+            })
+            .addCase(deleteDocumentThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // update document metadata
+            .addCase(updateDocumentMetadataThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateDocumentMetadataThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.documents.findIndex(doc => doc._id === action.payload._id);
+                if (index !== -1) {
+                    state.documents[index] = action.payload;
+                }
+                state.error = null
+            })
+            .addCase(updateDocumentMetadataThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // get document by id
+            .addCase(getDocumentByIdThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(getDocumentByIdThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.documents.findIndex(doc => doc._id === action.payload._id);
+                if (index !== -1) {
+                    state.documents[index] = action.payload;
+                } else {
+                    state.documents.push(action.payload);
+                }
+                state.error = null
+            })
+            .addCase(getDocumentByIdThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // get documents by entity
+            .addCase(getDocumentsByEntityThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(getDocumentsByEntityThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.documents = action.payload;
+                state.error = null
+            })
+            .addCase(getDocumentsByEntityThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
 
 
     }

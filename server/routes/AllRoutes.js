@@ -31,7 +31,7 @@ const ShiftRoutes = require('./ShiftRoutes')
 const FeedbackRoutes = require('./FeedbackRoutes')
 const TicketRoutes = require('./TicketRoutes')
 const VacationRoutes = require('./VacationRoutes')
-
+const MedicalHistoryResponseRoutes = require('./MedicalResponseRoutes')
 
 const router = express.Router();
 
@@ -93,6 +93,7 @@ router.use('/shift', ShiftRoutes)
 router.use('/feedback', FeedbackRoutes)
 router.use('/ticket', TicketRoutes)
 router.use('/vacation', VacationRoutes)
+router.use('/history', MedicalHistoryResponseRoutes)
 
 
 

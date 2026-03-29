@@ -1,4 +1,4 @@
-const MedicalHistoryModel = require("../models/MedicalHistoryModel");
+const MedicalHistoryModel = require("../models/documents/MedicalHistoryModel");
 
 // Create Form
 const createForm = async (req, res) => {

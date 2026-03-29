@@ -92,7 +92,7 @@ const updateTemporaryMember = async () => {
                 status: { $ne: "archived" }
             },
             {
-                $set: { status: "archived", memberType: 'archived' }
+                $set: { status: "archived", memberType: 'archived',isArchived: true }
             }
         );
 
