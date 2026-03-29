@@ -27,9 +27,8 @@ const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
   <button
     onClick={onClick}
     data-active={active}
-    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-      active ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
-    }`}
+    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${active ? "text-primary border-b-2 border-primary" : "text-content-muted hover:text-content-primary"
+      }`}
   >
     <Icon size={16} />
     <span>{label}</span>
@@ -44,9 +43,8 @@ const TabButton = ({ active, onClick, icon: Icon, label, count }) => (
 const FilterPill = ({ active, onClick, label, count }) => (
   <button
     onClick={onClick}
-    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-      active ? "bg-primary text-white" : "bg-surface-button text-content-muted hover:text-content-primary"
-    }`}
+    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${active ? "bg-primary text-white" : "bg-surface-button text-content-muted hover:text-content-primary"
+      }`}
   >
     {label}{count !== undefined ? ` (${count})` : ""}
   </button>
@@ -242,13 +240,12 @@ const CommunicationCard = ({ item }) => {
           </div>
           <div className="flex items-center gap-2">
             {item.status && (
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border ${
-                item.status === "sent" || item.status === "delivered"
-                  ? "bg-primary/10 text-primary border-primary/20"
-                  : item.status === "failed"
-                    ? "bg-red-500/10 text-red-500 border-red-500/20"
-                    : "bg-surface-button text-content-muted border-border"
-              }`}>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border ${item.status === "sent" || item.status === "delivered"
+                ? "bg-primary/10 text-primary border-primary/20"
+                : item.status === "failed"
+                  ? "bg-red-500/10 text-red-500 border-red-500/20"
+                  : "bg-surface-button text-content-muted border-border"
+                }`}>
                 {(item.status === "sent" || item.status === "delivered") && <CheckCircle size={12} />}
                 {item.status === "failed" && <XCircle size={12} />}
                 {item.status}
@@ -317,6 +314,7 @@ const LoginCard = ({ item }) => {
     return <Globe size={14} />
   }
 
+  // console.log('Staff History', staffHistoryData.loginHistory);
   return (
     <div className="bg-surface-dark rounded-xl p-4">
       <div className="flex items-start justify-between gap-3">
@@ -503,9 +501,9 @@ const TAB_REGISTRY = (t) => ({
 })
 
 const VARIANT_TABS = {
-  member:   ["general", "communication", "appointments", "checkins", "finance", "contracts"],
-  staff:    ["profile", "communication", "actions", "login", "vacation"],
-  lead:     ["general", "demoAccess"],
+  member: ["general", "communication", "appointments", "checkins", "finance", "contracts"],
+  staff: ["profile", "communication", "actions", "login", "vacation"],
+  lead: ["general", "communication", "trial"],
   contract: ["contracts"],
   studio:   ["general", "contracts", "finance", "tickets"],
 }
@@ -519,9 +517,9 @@ const VARIANT_SUBTITLES = (t) => ({
 })
 
 const VARIANT_ACCENT = {
-  member:   "primary",
-  staff:    "secondary",
-  lead:     "primary",
+  member: "primary",
+  staff: "secondary",
+  lead: "primary",
   contract: "primary",
   studio:   "primary",
 }
@@ -661,7 +659,7 @@ export default function SharedHistoryModal({
             return (
               <div key={tab.id} className="space-y-3">
                 {data.length > 0 ? (
-                  data.map((item) => <CardComponent key={item.id} item={item} change={item} />)
+                  data.map((item) => <CardComponent key={item.id} item={item} change={item} history={history} />)
                 ) : (
                   <EmptyState icon={tab.icon} title={tab.emptyTitle} description={tab.emptyDesc} />
                 )}

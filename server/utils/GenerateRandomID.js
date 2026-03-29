@@ -37,5 +37,15 @@ async function generateStaffId(prefix = "ORGA-Staff") {
     const formattedNumber = String(counter.value).padStart(3, "0");
     return `${prefix}-${new Date().getFullYear()}-${formattedNumber}`;
 }
+async function generateContractNo(prefix = "ORGA-Contract") {
+    const counter = await Counter.findOneAndUpdate(
+        { name: "contractNo" },
+        { $inc: { value: 1 } },
+        { new: true, upsert: true }
+    );
 
-module.exports = { generateLeadId, generateMemberNo, generateStaffId };
+    const formattedNumber = String(counter.value).padStart(3, "0");
+    return `${prefix}-${new Date().getFullYear()}-${formattedNumber}`;
+}
+
+module.exports = { generateLeadId, generateMemberNo, generateStaffId, generateContractNo };

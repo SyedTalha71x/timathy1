@@ -116,9 +116,17 @@ const getStudioByMemberId = async (req, res, next) => {
     const studioId = req.user?.studio;
     const studio = await StudioModel
       .findOne(studioId)
-      .populate("users")
-      .populate('services')
-      .populate('leads')
+      .populate({
+        path: "users",
+        select: "firstName lastName email phone role staffRole gender img username about vacations documents medicalResponse sepaMandates loginHistory updatedAt staffColor",
+        populate: [
+          { path: "vacations", select: 'startDate endDate reason status approvedBy rejectedBy createdAt' }, // 👈 ADD THIS
+          { path: "appointments", select: "date timeSlotStart timeSlotEnd" },
+          { path: "documents", select: 'displayName' },
+        ]
+      })
+      .populate('services', 'img name description price duration')
+      .populate('leads', "firstName lastName email phone role staffRole gender img username about")
 
     if (!studio) throw new NotFoundError("Studio not found");
 

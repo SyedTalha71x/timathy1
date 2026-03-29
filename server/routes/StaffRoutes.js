@@ -22,14 +22,18 @@ const { isAdmin, isStaff } = require('../middleware/RoleCheck');
 const { uploadImage, uploadDocument } = require('../config/upload')
 const router = express.Router();
 
-
-router.get('/all', verifyAccessToken, isStaff || isAdmin, getStaff)
-router.get('/:staffId', verifyAccessToken, getStaffById)
-router.post('/create', uploadImage.single('img'), verifyAccessToken, isStaff || isAdmin, createStaff)
+router.post('/create', uploadImage.single('img'), isStaff || isAdmin, createStaff)
 router.post('/login', loginStaff)
-router.put('/update', uploadImage.single('img'), verifyAccessToken, updateById)
-router.put('/:staffId', uploadImage.single('img'), verifyAccessToken, updateStaffById)
-router.delete('/:staffId', verifyAccessToken, deleteStaffById)
+
+
+
+router.use(verifyAccessToken) // Apply token verification middleware to all routes below
+
+router.get('/all', isStaff || isAdmin, getStaff)
+router.get('/:staffId', getStaffById)
+router.put('/update', uploadImage.single('img'), updateById)
+router.put('/:staffId', uploadImage.single('img'), updateStaffById)
+router.delete('/:staffId', deleteStaffById)
 
 
 router.get('/view/:documentId', viewDocumentById);

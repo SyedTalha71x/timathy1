@@ -120,7 +120,11 @@ function transformStudioData(studioData) {
       remainingDays: s?.remainingDays,
       staffId: s?.staffId,
       about: s?.about,
-      loginHistory: s?.loginHistory
+      loginHistory: s?.loginHistory,
+      vacation: s?.vacation || [],
+      documents: s?.documents,
+      medicalResponse:s?.medicalResponse,
+      sepaMandates:s?.sepaMandates,
     })),
     members: members.map(m => ({
       id: m?._id,

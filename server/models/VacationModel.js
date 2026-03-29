@@ -32,8 +32,21 @@ const vacationSchema = new mongoose.Schema({
     isRejected: {
         type: Boolean,
         default: false
+    },
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    rejectedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now()
     }
-})
+
+}, { timestamps: true })
 
 
 vacationSchema.index({ staff: 1, reason: 1, startDate: 1 })

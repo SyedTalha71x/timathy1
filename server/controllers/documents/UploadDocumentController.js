@@ -153,41 +153,45 @@ const deleteDocument = async (req, res, next) => {
 // Update document metadata
 const updateDocument = async (req, res, next) => {
     try {
+        const userId = req.user?._id;
+        const studioId = req.user?.studio;
         const { documentId } = req.params;
         const { displayName, tagsId, section } = req.body;
-        
-        console.log('Update request:', { documentId, displayName, tagsId, section });
-        
+        // console.log('Update request:', { documentId, displayName, tagsId, section });
+
         // Get studioId from authenticated user
-        const studioId = req.user?.studio;
-        
+        // console.log("studioId", studioId)
         let tagsArray = [];
         if (tagsId && tagsId.length > 0) {
             const tagsIdArray = Array.isArray(tagsId) ? tagsId : [tagsId];
-            
+
             // Validate all tags exist and belong to this studio
             const validTags = await TagsModel.find({
                 _id: { $in: tagsIdArray },
                 studioId: studioId
             });
-            
+
             if (validTags.length !== tagsIdArray.length) {
                 throw new BadRequestError("One or more tag IDs are invalid or don't belong to this studio");
             }
-            
+
             tagsArray = validTags.map(tag => tag._id);
         }
-        
+
+
+        // console.log('Validated tags:', tagsArray);
         const document = await DocumentModel.findById(documentId);
         if (!document) throw new NotFoundError("Document not found");
-        
+
         // Update only the fields that are provided
         if (displayName) document.displayName = displayName;
-        if (tagsArray.length > 0) document.tags = tagsArray;
-        if (section) document.section = section;
-        
+        if (tagsId !== undefined) {
+            document.tags = tagsArray; // allow empty []
+        }
+        if (section !== undefined) document.section = section;
+
         await document.save();
-        
+
         res.status(200).json({
             success: true,
             message: "Document updated successfully",

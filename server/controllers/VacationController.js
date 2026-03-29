@@ -18,6 +18,7 @@ const sendVacationRequest = async (req, res, next) => {
             endDate,
             reason,
             studioId: studioId,
+            createdAt: new Date()
         })
 
         await StaffModel.findByIdAndUpdate(staffId, {
@@ -43,7 +44,8 @@ const approvedVacationRequest = async (req, res, next) => {
 
         const updatedVacation = await VacationModel.findByIdAndUpdate(id, {
             status: 'approved',
-            isApproved: true
+            isApproved: true,
+            approvedBy: userId
         },
             { new: true })
 
@@ -67,7 +69,8 @@ const rejectedVacationRequest = async (req, res, next) => {
 
         const updatedVacation = await VacationModel.findByIdAndUpdate(id, {
             status: 'rejected',
-            isRejected: true
+            isRejected: true,
+            rejectedBy: userId
         },
             { new: true })
 
