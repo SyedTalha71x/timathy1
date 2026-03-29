@@ -1,17 +1,18 @@
 /* eslint-disable react/prop-types */
 import { X, Copy, Check, ChevronDown, ChevronUp, Globe } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
-// Note Status Options
-const NOTE_STATUSES = [
-  { id: "contact_attempt", label: "Contact Attempt" },
-  { id: "callback_requested", label: "Callback Requested" },
-  { id: "interest", label: "Interest" },
-  { id: "objection", label: "Objection" },
-  { id: "personal_info", label: "Personal Info" },
-  { id: "health", label: "Health" },
-  { id: "follow_up", label: "Follow-up" },
-  { id: "general", label: "General" },
+// Note Status Keys (translated via t() in component)
+const NOTE_STATUS_KEYS = [
+  { id: "contact_attempt", labelKey: "admin.leads.noteStatuses.contactAttempt" },
+  { id: "callback_requested", labelKey: "admin.leads.noteStatuses.callbackRequested" },
+  { id: "interest", labelKey: "admin.leads.noteStatuses.interest" },
+  { id: "objection", labelKey: "admin.leads.noteStatuses.objection" },
+  { id: "personal_info", labelKey: "admin.leads.noteStatuses.personalInfo" },
+  { id: "health", labelKey: "admin.leads.noteStatuses.health" },
+  { id: "follow_up", labelKey: "admin.leads.noteStatuses.followUp" },
+  { id: "general", labelKey: "admin.leads.noteStatuses.general" },
 ]
 
 const ViewLeadDetailsModal = ({
@@ -22,6 +23,7 @@ const ViewLeadDetailsModal = ({
   columns = [],
   initialTab = "details",
 }) => {
+  const { t, i18n } = useTranslation()
   const [activeTab, setActiveTab] = useState(initialTab)
   const [expandedNoteId, setExpandedNoteId] = useState(null)
   const [copiedEmail, setCopiedEmail] = useState(false)
@@ -39,13 +41,17 @@ const ViewLeadDetailsModal = ({
   const [copiedStudioName, setCopiedStudioName] = useState(false)
   const [copiedWebsite, setCopiedWebsite] = useState(false)
 
+  // Translate note statuses
+  const NOTE_STATUSES = NOTE_STATUS_KEYS.map(s => ({ id: s.id, label: t(s.labelKey) }))
+
   const getStatusInfo = (statusId) => {
     return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
   }
   
   const formatNoteDate = (dateString) => {
     if (!dateString) return ""
-    return new Date(dateString).toLocaleDateString("de-DE", {
+    const locale = i18n.language === "de" ? "de-DE" : i18n.language === "fr" ? "fr-FR" : i18n.language === "es" ? "es-ES" : i18n.language === "it" ? "it-IT" : "en-US"
+    return new Date(dateString).toLocaleDateString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -125,12 +131,21 @@ const ViewLeadDetailsModal = ({
     return sourceColors[source] || "bg-gray-900 text-gray-300"
   }
 
+  const getLocale = () => {
+    const lang = i18n.language
+    if (lang === "de") return "de-DE"
+    if (lang === "fr") return "fr-FR"
+    if (lang === "es") return "es-ES"
+    if (lang === "it") return "it-IT"
+    return "en-US"
+  }
+
   const CopyButton = ({ value, copied, onCopy }) => (
     value ? (
       <button
         onClick={() => onCopy()}
         className="p-1 hover:bg-gray-700 rounded transition-colors"
-        title="Copy"
+        title={t("common.copy")}
       >
         {copied ? (
           <Check size={14} className="text-green-500" />
@@ -147,7 +162,7 @@ const ViewLeadDetailsModal = ({
         {/* Sticky Header */}
         <div className="p-4 md:p-6 pb-0 flex-shrink-0">
           <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h2 className="text-white text-lg font-semibold">Lead Details</h2>
+            <h2 className="text-white text-lg font-semibold">{t("admin.leads.form.leadDetails")}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
@@ -161,7 +176,7 @@ const ViewLeadDetailsModal = ({
                 activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
               }`}
             >
-              Details
+              {t("admin.leads.form.tabs.details")}
             </button>
             <button
               onClick={() => setActiveTab("note")}
@@ -169,7 +184,7 @@ const ViewLeadDetailsModal = ({
                 activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
               }`}
             >
-              Special Notes
+              {t("admin.leads.form.tabs.specialNotes")}
             </button>
           </div>
         </div>
@@ -181,10 +196,10 @@ const ViewLeadDetailsModal = ({
             <div className="space-y-4 text-white">
               {/* Studio Information */}
               <div className="space-y-4">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Information</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.studioInfo")}</div>
                 
                 <div>
-                  <p className="text-sm text-gray-400">Studio Name</p>
+                  <p className="text-sm text-gray-400">{t("admin.leads.form.fields.studioName")}</p>
                   <div className="flex items-center gap-3">
                     <p className="font-bold text-lg">{leadData.studioName || "-"}</p>
                     <CopyButton value={leadData.studioName} copied={copiedStudioName} onCopy={() => handleCopy(leadData.studioName, setCopiedStudioName)} />
@@ -193,7 +208,7 @@ const ViewLeadDetailsModal = ({
 
                 {leadData.websiteLink && (
                   <div>
-                    <p className="text-sm text-gray-400">Website</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.websiteLink")}</p>
                     <div className="flex items-center gap-3">
                       <a 
                         href={leadData.websiteLink} 
@@ -210,25 +225,25 @@ const ViewLeadDetailsModal = ({
                 )}
 
                 <div>
-                  <p className="text-sm text-gray-400">Number of Members</p>
+                  <p className="text-sm text-gray-400">{t("admin.leads.form.fields.numberOfMembers")}</p>
                   <p>{leadData.numberOfMembers || "-"}</p>
                 </div>
               </div>
 
               {/* Operator Information */}
               <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Owner</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.studioOwner")}</div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Studio Owner First Name</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.ownerFirstName")}</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.firstName || "-"}</p>
                       <CopyButton value={leadData.firstName} copied={copiedFirstName} onCopy={() => handleCopy(leadData.firstName, setCopiedFirstName)} />
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Studio Owner Last Name</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.ownerLastName")}</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.surname || "-"}</p>
                       <CopyButton value={leadData.surname} copied={copiedLastName} onCopy={() => handleCopy(leadData.surname, setCopiedLastName)} />
@@ -238,11 +253,11 @@ const ViewLeadDetailsModal = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Gender</p>
-                    <p className="capitalize">{leadData.gender || "-"}</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.gender")}</p>
+                    <p>{leadData.gender ? t(`admin.leads.form.genderOptions.${leadData.gender}`) : "-"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Birthday</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.birthday")}</p>
                     <div className="flex items-center gap-3">
                       <p>
                         {leadData.birthday 
@@ -254,7 +269,7 @@ const ViewLeadDetailsModal = ({
                               if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
                                 age--
                               }
-                              return `${birthDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Age: ${age})`
+                              return `${birthDate.toLocaleDateString(getLocale(), { month: 'short', day: 'numeric', year: 'numeric' })} (${t("admin.leads.form.fields.age")}: ${age})`
                             })()
                           : "-"}
                       </p>
@@ -266,10 +281,10 @@ const ViewLeadDetailsModal = ({
 
               {/* Contact Information */}
               <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.contactInfo")}</div>
                 
                 <div>
-                  <p className="text-sm text-gray-400">Email</p>
+                  <p className="text-sm text-gray-400">{t("admin.leads.form.fields.email")}</p>
                   <div className="flex items-center gap-3">
                     <p>{leadData.email || "-"}</p>
                     <CopyButton value={leadData.email} copied={copiedEmail} onCopy={() => handleCopy(leadData.email, setCopiedEmail)} />
@@ -278,14 +293,14 @@ const ViewLeadDetailsModal = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Mobile Number</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.mobileNumber")}</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.phoneNumber || "-"}</p>
                       <CopyButton value={leadData.phoneNumber} copied={copiedPhone} onCopy={() => handleCopy(leadData.phoneNumber, setCopiedPhone)} />
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Telephone Number</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.telephoneNumber")}</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.telephoneNumber || "-"}</p>
                       <CopyButton value={leadData.telephoneNumber} copied={copiedTelephone} onCopy={() => handleCopy(leadData.telephoneNumber, setCopiedTelephone)} />
@@ -296,10 +311,10 @@ const ViewLeadDetailsModal = ({
 
               {/* Address Information */}
               <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.address")}</div>
                 
                 <div>
-                  <p className="text-sm text-gray-400">Street & Number</p>
+                  <p className="text-sm text-gray-400">{t("admin.leads.form.fields.streetNumber")}</p>
                   <div className="flex items-center gap-3">
                     <p>{leadData.street || "-"}</p>
                     <CopyButton value={leadData.street} copied={copiedStreet} onCopy={() => handleCopy(leadData.street, setCopiedStreet)} />
@@ -308,14 +323,14 @@ const ViewLeadDetailsModal = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">ZIP Code & City</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.zipCodeCity")}</p>
                     <div className="flex items-center gap-3">
                       <p>{`${leadData.zipCode || ""} ${leadData.city || ""}`.trim() || "-"}</p>
                       <CopyButton value={`${leadData.zipCode || ""} ${leadData.city || ""}`.trim()} copied={copiedZipCity} onCopy={() => handleCopy(`${leadData.zipCode || ""} ${leadData.city || ""}`.trim(), setCopiedZipCity)} />
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Country</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.country")}</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.country || "-"}</p>
                       <CopyButton value={leadData.country} copied={copiedCountry} onCopy={() => handleCopy(leadData.country, setCopiedCountry)} />
@@ -326,11 +341,11 @@ const ViewLeadDetailsModal = ({
 
               {/* Lead Information */}
               <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lead Information</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.leadInfo")}</div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Lead Source</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.leadSource")}</p>
                     {leadData.leadSource ? (
                       <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getSourceColor(leadData.leadSource)}`}>
                         {leadData.leadSource}
@@ -340,7 +355,7 @@ const ViewLeadDetailsModal = ({
                     )}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Status</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.status")}</p>
                     {(() => {
                       const column = getColumnWithColor(leadData.columnId)
                       return column ? (
@@ -361,7 +376,7 @@ const ViewLeadDetailsModal = ({
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-400">Details / Notes</p>
+                  <p className="text-sm text-gray-400">{t("admin.leads.form.fields.about")}</p>
                   <div className="flex items-start gap-3">
                     <p className="text-gray-200 whitespace-pre-wrap">{leadData.details || "-"}</p>
                     <CopyButton value={leadData.details} copied={copiedDetails} onCopy={() => handleCopy(leadData.details, setCopiedDetails)} />
@@ -370,17 +385,17 @@ const ViewLeadDetailsModal = ({
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Lead ID</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.leadId")}</p>
                     <div className="flex items-center gap-3">
                       <p className="text-gray-400 text-sm">{leadData.id || "-"}</p>
                       <CopyButton value={leadData.id} copied={copiedLeadId} onCopy={() => handleCopy(leadData.id, setCopiedLeadId)} />
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Created Date</p>
+                    <p className="text-sm text-gray-400">{t("admin.leads.form.fields.createdDate")}</p>
                     <p>
                       {leadData.createdAt 
-                        ? new Date(leadData.createdAt).toLocaleDateString('en-US', { 
+                        ? new Date(leadData.createdAt).toLocaleDateString(getLocale(), { 
                             month: 'short', 
                             day: 'numeric', 
                             year: 'numeric' 
@@ -397,7 +412,7 @@ const ViewLeadDetailsModal = ({
             <div className="space-y-4 text-white pb-16">
               {/* Lead Name Header */}
               <div className="mb-2 pb-3 border-b border-slate-700">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider">{t("admin.leads.form.notes.specialNotesFor")}</p>
                 <p className="text-white font-bold">{leadData.studioName || `${leadData.firstName} ${leadData.surname}`}</p>
                 {leadData.studioName && (
                   <p className="text-gray-400 text-sm">{leadData.firstName} {leadData.surname}</p>
@@ -428,7 +443,7 @@ const ViewLeadDetailsModal = ({
                             </span>
                             {note.isImportant && (
                               <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
-                                Important
+                                {t("admin.leads.form.notes.important")}
                               </span>
                             )}
                           </div>
@@ -449,11 +464,11 @@ const ViewLeadDetailsModal = ({
                             {(note.startDate || note.endDate) && (
                               <p className="text-xs text-gray-600 mt-1">
                                 {note.startDate && note.endDate ? (
-                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                  <>{t("admin.leads.form.notes.validRange")}: {note.startDate} - {note.endDate}</>
                                 ) : note.startDate ? (
-                                  <>Valid from: {note.startDate}</>
+                                  <>{t("admin.leads.form.notes.validFromLabel")}: {note.startDate}</>
                                 ) : (
-                                  <>Valid until: {note.endDate}</>
+                                  <>{t("admin.leads.form.notes.validUntilLabel")}: {note.endDate}</>
                                 )}
                               </p>
                             )}
@@ -468,11 +483,11 @@ const ViewLeadDetailsModal = ({
                             {(note.startDate || note.endDate) && (
                               <div className="mt-2 text-xs text-gray-500">
                                 {note.startDate && note.endDate ? (
-                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                  <>{t("admin.leads.form.notes.validRange")}: {note.startDate} - {note.endDate}</>
                                 ) : note.startDate ? (
-                                  <>Valid from: {note.startDate}</>
+                                  <>{t("admin.leads.form.notes.validFromLabel")}: {note.startDate}</>
                                 ) : (
-                                  <>Valid until: {note.endDate}</>
+                                  <>{t("admin.leads.form.notes.validUntilLabel")}: {note.endDate}</>
                                 )}
                               </div>
                             )}
@@ -482,7 +497,7 @@ const ViewLeadDetailsModal = ({
                     )
                   })
                 ) : (
-                  <div className="text-gray-400 text-center py-8">No special notes for this lead.</div>
+                  <div className="text-gray-400 text-center py-8">{t("admin.leads.form.notes.noNotesForLead")}</div>
                 )}
               </div>
             </div>
@@ -500,7 +515,7 @@ const ViewLeadDetailsModal = ({
                 }}
                 className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
               >
-                Edit Lead
+                {t("admin.leads.form.editLead")}
               </button>
             )}
             {activeTab === "note" && (
@@ -508,7 +523,7 @@ const ViewLeadDetailsModal = ({
                 onClick={handleEditNote}
                 className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl"
               >
-                Edit Special Notes
+                {t("admin.leads.form.editSpecialNotes")}
               </button>
             )}
           </div>

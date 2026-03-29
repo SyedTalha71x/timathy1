@@ -2,6 +2,8 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef, useCallback } from "react"
+import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 import {
   X,
   ChevronLeft,
@@ -181,7 +183,7 @@ const SignaturePad = ({ value, onChange, width = 300, height = 80 }) => {
           type="button"
           onClick={clearSignature}
           className="absolute top-1 right-1 p-1 bg-accent-red/20 hover:bg-accent-red/30 rounded text-accent-red"
-          title="Clear signature"
+          title={t("admin.contract.formFill.clearSignature")}
         >
           <Trash2 size={14} />
         </button>
@@ -316,11 +318,11 @@ const RenderElement = ({
                 value={currentValue}
                 onChange={(e) => setUserValue(userVariable, e.target.value)}
                 options={[
-                  { value: "Mr.", label: "Mr." },
-                  { value: "Mrs.", label: "Mrs." },
-                  { value: "Ms.", label: "Ms." },
+                  { value: "Mr.", label: t("admin.contract.salutation.mr") },
+                  { value: "Mrs.", label: t("admin.contract.salutation.mrs") },
+                  { value: "Ms.", label: t("admin.contract.salutation.ms") },
                 ]}
-                placeholder="Select salutation..."
+                placeholder={t("admin.contract.formFill.selectSalutation")}
                 className="flex-1 w-full !bg-white !text-black !border-border !rounded"
               />
             ) : userVariable === 'Date of Birth' ? (
@@ -335,7 +337,7 @@ const RenderElement = ({
                     color: currentValue ? (inputColor || '#374151') : '#9ca3af',
                   }}
                 >
-                  {currentValue ? new Date(currentValue + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date...'}
+                  {currentValue ? new Date(currentValue + 'T00:00').toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : t("admin.contract.contractModal.selectDate") + '...'}
                 </span>
                 <DatePickerField
                   value={currentValue}
@@ -601,7 +603,7 @@ const RenderElement = ({
       const signatureValue = formValues?.[`signature_${element.id}`] || null;
       
       const today = new Date();
-      const dateFormat = element.dateFormat || 'de-DE';
+      const dateFormat = element.dateFormat || i18n.language;
       let currentDate;
       if (dateFormat === 'iso') {
         currentDate = today.toISOString().split('T')[0];
@@ -909,10 +911,10 @@ const MobileFormElement = ({
               className="w-full border border-[#d1d5db] rounded bg-white px-2 focus:outline-none focus:ring-2 focus:ring-[#f97316]"
               style={{ fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily, color: inputColor, minHeight: '32px' }}
             >
-              <option value="">Select...</option>
-              <option value="Mr.">Mr.</option>
-              <option value="Mrs.">Mrs.</option>
-              <option value="Ms.">Ms.</option>
+              <option value="">{t("admin.contract.salutation.select")}</option>
+              <option value="Mr.">{t("admin.contract.salutation.mr")}</option>
+              <option value="Mrs.">{t("admin.contract.salutation.mrs")}</option>
+              <option value="Ms.">{t("admin.contract.salutation.ms")}</option>
             </select>
           ) : userVariable === 'Date of Birth' ? (
             <div className="flex items-center border border-[#d1d5db] rounded bg-white px-2" style={{ minHeight: '32px' }}>
@@ -920,7 +922,7 @@ const MobileFormElement = ({
                 fontSize: `${inputFontSize}px`, fontFamily: inputFontFamily,
                 color: currentValue ? inputColor : '#9ca3af',
               }}>
-                {currentValue ? new Date(currentValue + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date...'}
+                {currentValue ? new Date(currentValue + 'T00:00').toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : t("admin.contract.contractModal.selectDate") + '...'}
               </span>
               <DatePickerField value={currentValue} onChange={(val) => setUserValue(userVariable, val)} iconSize={14} />
             </div>
@@ -1131,7 +1133,7 @@ const MobileFormElement = ({
     case 'signature': {
       const signatureValue = formValues?.[`signature_${element.id}`] || null;
       const today = new Date();
-      const dateFormat = element.dateFormat || 'de-DE';
+      const dateFormat = element.dateFormat || i18n.language;
       let currentDate = dateFormat === 'iso' 
         ? today.toISOString().split('T')[0] 
         : today.toLocaleDateString(dateFormat, { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -1217,6 +1219,7 @@ export function AdminContractFormFillModal({
   leadData = {},
   existingFormData = null,
 }) {
+  const { t, i18n } = useTranslation()
   const [contractForm, setContractForm] = useState(null);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [formValues, setFormValues] = useState({});
@@ -1461,7 +1464,7 @@ export function AdminContractFormFillModal({
     
     // Generate PDF using @react-pdf/renderer (same as contract-management.jsx)
     if (contractForm) {
-      toast.loading('Preparing for print...', { id: 'pdf-print' });
+      toast.loading(t("admin.contract.formFill.preparingPrint"), { id: 'pdf-print' });
       try {
         const pdfBlob = await pdf(
           <AdminContractPDFDocument
@@ -1484,7 +1487,7 @@ export function AdminContractFormFillModal({
         toast.dismiss('pdf-print');
       } catch (error) {
         toast.dismiss('pdf-print');
-        toast.error('Failed to generate PDF for printing');
+        toast.error(t("admin.contract.formFill.pdfPrintFailed"));
         console.error(error);
       }
     }
@@ -1595,7 +1598,7 @@ export function AdminContractFormFillModal({
   // No contract form linked
   if (!contractForm) {
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1001] p-4">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[2000] p-4">
         <div className="bg-surface-card rounded-2xl w-full max-w-md shadow-xl border border-border">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -1614,8 +1617,8 @@ export function AdminContractFormFillModal({
     );
   }
 
-  return (
-    <div className={`fixed inset-0 z-[1001] bg-black/70 sm:flex sm:items-center sm:justify-center ${
+  return createPortal(
+    <div className={`fixed inset-0 z-[2000] bg-black/70 sm:flex sm:items-center sm:justify-center ${
       isFullscreen ? '' : 'sm:p-4'
     }`}>
       <style>{`
@@ -1660,32 +1663,32 @@ export function AdminContractFormFillModal({
       
       {/* Generate Contract Confirmation Prompt */}
       {showGeneratePrompt && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002]">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[2001]">
           <div className="bg-surface-card rounded-2xl w-full max-w-md p-6 mx-4 shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
                 <FileText className="text-orange-500" size={24} />
               </div>
               <div>
-                <h3 className="text-content-primary text-lg font-semibold">Generate Contract</h3>
-                <p className="text-content-muted text-sm">Confirm contract generation</p>
+                <h3 className="text-content-primary text-lg font-semibold">{t("admin.contract.formFill.generateTitle")}</h3>
+                <p className="text-content-muted text-sm">{t("admin.contract.formFill.generateSubtitle")}</p>
               </div>
             </div>
             <p className="text-content-secondary mb-6">
-              Are you sure you want to generate this contract? The contract will be created with all the information you have entered.
+              {t("admin.contract.formFill.generateConfirm")}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleGenerateCancel}
                 className="flex-1 px-4 py-3 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleGenerateConfirm}
                 className="flex-1 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
               >
-                Yes, Generate
+                {t("admin.contract.formFill.yesGenerate")}
               </button>
             </div>
           </div>
@@ -1694,32 +1697,32 @@ export function AdminContractFormFillModal({
 
       {/* Print Contract Prompt */}
       {showPrintPrompt && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002]">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[2001]">
           <div className="bg-surface-card rounded-2xl w-full max-w-md p-6 mx-4 shadow-xl border border-border">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
                 <Printer className="text-primary" size={24} />
               </div>
               <div>
-                <h3 className="text-content-primary text-lg font-semibold">Print Contract</h3>
-                <p className="text-content-muted text-sm">Would you like to print?</p>
+                <h3 className="text-content-primary text-lg font-semibold">{t("admin.contract.formFill.printTitle")}</h3>
+                <p className="text-content-muted text-sm">{t("admin.contract.formFill.printSubtitle")}</p>
               </div>
             </div>
             <p className="text-content-secondary mb-6">
-              Would you like to print the contract now? You can also print it later from the contract management.
+              {t("admin.contract.formFill.printConfirm")}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handlePrintSkip}
                 className="flex-1 px-4 py-3 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button transition-colors"
               >
-                No, Skip
+                {t("admin.contract.formFill.noSkip")}
               </button>
               <button
                 onClick={handlePrintConfirm}
                 className="flex-1 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
               >
-                Yes, Print
+                {t("admin.contract.formFill.yesPrint")}
               </button>
             </div>
           </div>
@@ -1728,7 +1731,7 @@ export function AdminContractFormFillModal({
 
       {/* Exit Prompt - Save as Draft or Discard */}
       {showExitPrompt && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002]">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[2001]">
           <div className="bg-surface-card rounded-2xl w-full max-w-md p-6 mx-4 shadow-xl border border-border relative">
             {/* X Button to continue editing */}
             <button
@@ -1743,25 +1746,25 @@ export function AdminContractFormFillModal({
                 <AlertCircle className="text-yellow-500" size={24} />
               </div>
               <div>
-                <h3 className="text-content-primary text-lg font-semibold">Unsaved Changes</h3>
-                <p className="text-content-muted text-sm">What would you like to do?</p>
+                <h3 className="text-content-primary text-lg font-semibold">{t("admin.contract.formFill.unsavedTitle")}</h3>
+                <p className="text-content-muted text-sm">{t("admin.contract.formFill.unsavedSubtitle")}</p>
               </div>
             </div>
             <p className="text-content-secondary mb-6">
-              You have unsaved changes in this contract form. Would you like to save it as a draft (Pending) to continue later, or discard all changes?
+              {t("admin.contract.formFill.unsavedConfirm")}
             </p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleSaveAsDraft}
                 className="w-full px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
               >
-                Save as Draft (Pending)
+                {t("admin.contract.formFill.saveAsDraft")}
               </button>
               <button
                 onClick={handleDiscard}
                 className="w-full px-4 py-3 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button transition-colors"
               >
-                Discard Changes
+                {t("admin.contract.formFill.discardChanges")}
               </button>
             </div>
           </div>
@@ -1778,7 +1781,7 @@ export function AdminContractFormFillModal({
             <div className="min-w-0">
               <h2 className="text-sm sm:text-lg font-semibold text-content-primary truncate">{contractForm.name}</h2>
               <p className="text-xs sm:text-sm text-content-muted">
-                Page {currentPageIndex + 1} of {totalPages}
+                {t("admin.contract.formFill.pageOf", { current: currentPageIndex + 1, total: totalPages })}
                 {currentPage?.title && <span className="hidden sm:inline"> — {currentPage.title}</span>}
               </p>
             </div>
@@ -1788,11 +1791,11 @@ export function AdminContractFormFillModal({
             {/* Zoom controls - desktop only */}
             {!isMobile && (
               <div className="flex items-center gap-1 bg-surface-hover rounded-lg px-2 py-1">
-                <button onClick={zoomOut} className="p-1 hover:bg-surface-button-hover rounded" title="Zoom out">
+                <button onClick={zoomOut} className="p-1 hover:bg-surface-button-hover rounded" title={t("admin.contract.formFill.zoomOut")}>
                   <ZoomOut size={18} className="text-content-muted" />
                 </button>
                 <span className="text-sm text-content-muted w-12 text-center">{Math.round(zoom * 100)}%</span>
-                <button onClick={zoomIn} className="p-1 hover:bg-surface-button-hover rounded" title="Zoom in">
+                <button onClick={zoomIn} className="p-1 hover:bg-surface-button-hover rounded" title={t("admin.contract.formFill.zoomIn")}>
                   <ZoomIn size={18} className="text-content-muted" />
                 </button>
               </div>
@@ -1825,7 +1828,7 @@ export function AdminContractFormFillModal({
                       : 'bg-surface-hover text-content-muted hover:bg-surface-button-hover'
                   }`}
                 >
-                  {page.title || `Page ${index + 1}`}
+                  {page.title || t("admin.contract.formFill.page", { number: index + 1 })}
                   {pageErrors.length > 0 && (
                     <span className="w-5 h-5 bg-secondary rounded-full text-xs flex items-center justify-center text-white">
                       {pageErrors.length}
@@ -2042,7 +2045,7 @@ export function AdminContractFormFillModal({
             <div className="flex items-center gap-2 text-accent-red text-xs sm:text-sm">
               <AlertCircle size={16} />
               <span>
-                {errors.length} field{errors.length > 1 ? 's' : ''} need{errors.length === 1 ? 's' : ''} attention
+                {t("admin.contract.formFill.fieldsAttention", { count: errors.length })}
               </span>
             </div>
           </div>
@@ -2051,7 +2054,7 @@ export function AdminContractFormFillModal({
         {/* Footer */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-t border-border flex-shrink-0">
           <button onClick={handleCloseAttempt} className="px-3 sm:px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button">
-            Cancel
+            {t("common.cancel")}
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -2062,22 +2065,23 @@ export function AdminContractFormFillModal({
                 currentPageIndex === 0 ? 'bg-surface-button text-content-faint cursor-not-allowed' : 'bg-surface-hover text-content-primary hover:bg-surface-button-hover'
               }`}
             >
-              <ChevronLeft size={18} /> <span className="hidden sm:inline">Previous</span>
+              <ChevronLeft size={18} /> <span className="hidden sm:inline">{t("admin.contract.formFill.previous")}</span>
             </button>
 
             {currentPageIndex < totalPages - 1 ? (
               <button onClick={goToNextPage} className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover">
-                Next <ChevronRight size={18} />
+                {t("admin.contract.formFill.next")} <ChevronRight size={18} />
               </button>
             ) : (
               <button onClick={handleGenerateClick} className="flex items-center gap-1.5 px-3 sm:px-6 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600">
-                <Check size={18} /> <span className="hidden sm:inline">Generate Contract</span><span className="sm:hidden">Generate</span>
+                <Check size={18} /> <span className="hidden sm:inline">{t("admin.contract.formFill.generateContract")}</span><span className="sm:hidden">{t("admin.contract.formFill.generate")}</span>
               </button>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

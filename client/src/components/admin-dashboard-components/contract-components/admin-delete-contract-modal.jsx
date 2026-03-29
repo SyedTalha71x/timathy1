@@ -1,8 +1,10 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { AlertTriangle, Trash2, X } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 export const AdminDeleteContractModal = ({ isOpen, onClose, onDelete, contract }) => {
+  const { t } = useTranslation()
   if (!isOpen) return null
 
   return (
@@ -14,14 +16,11 @@ export const AdminDeleteContractModal = ({ isOpen, onClose, onDelete, contract }
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div>
-                <h3 className="text-content-primary font-semibold text-lg">Delete Ongoing Contract</h3>
-                <p className="text-content-muted text-sm">This action cannot be undone</p>
+                <h3 className="text-content-primary font-semibold text-lg">{t("admin.contract.deleteModal.title")}</h3>
+                <p className="text-content-muted text-sm">{t("admin.contract.deleteModal.subtitle")}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-surface-button rounded-xl transition-colors"
-            >
+            <button onClick={onClose} className="p-2 hover:bg-surface-button rounded-xl transition-colors">
               <X className="w-5 h-5 text-content-muted" />
             </button>
           </div>
@@ -31,11 +30,10 @@ export const AdminDeleteContractModal = ({ isOpen, onClose, onDelete, contract }
         <div className="p-6">
           <div className="mb-6 p-4 bg-accent-red/5 border border-accent-red/20 rounded-xl">
             <p className="text-accent-red text-sm font-medium">
-              You are about to delete an ongoing contract{contract?.studioName ? ` for ${contract.studioName}` : ''}.
+              {t("admin.contract.deleteModal.warning", { name: contract?.studioName ? ` ${contract.studioName}` : '' })}
             </p>
             <p className="text-content-secondary text-sm mt-2">
-              This contract has not been fully executed and may have legal implications if deleted.
-              The studio will be notified about this change.
+              {t("admin.contract.deleteModal.warningDetail")}
             </p>
           </div>
         </div>
@@ -43,18 +41,12 @@ export const AdminDeleteContractModal = ({ isOpen, onClose, onDelete, contract }
         {/* Footer */}
         <div className="p-6 border-t border-border">
           <div className="flex md:flex-row flex-col gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 py-3 px-4 bg-surface-button text-sm hover:bg-surface-button text-content-primary rounded-xl font-medium transition-colors"
-            >
-              Cancel
+            <button onClick={onClose} className="flex-1 py-3 px-4 bg-surface-button text-sm hover:bg-surface-button text-content-primary rounded-xl font-medium transition-colors">
+              {t("common.cancel")}
             </button>
-            <button
-              onClick={onDelete}
-              className="flex-1 py-3 px-4 text-sm bg-accent-red hover:bg-accent-red/80 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-            >
+            <button onClick={onDelete} className="flex-1 py-3 px-4 text-sm bg-accent-red hover:bg-accent-red/80 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
               <Trash2 className="w-4 h-4" />
-              Delete Contract
+              {t("admin.contract.deleteModal.deleteBtn")}
             </button>
           </div>
         </div>

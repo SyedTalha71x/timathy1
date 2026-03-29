@@ -1,13 +1,16 @@
 /* eslint-disable react/prop-types */
 import { X, AlertTriangle } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const DeleteConfirmationModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = "Delete",
-  message = "Are you sure? This action cannot be undone.",
+  title,
+  message,
 }) => {
+  const { t } = useTranslation()
+  
   if (!isOpen) return null
 
   return (
@@ -16,7 +19,7 @@ const DeleteConfirmationModal = ({
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <AlertTriangle size={20} className="text-red-400" />
-            {title}
+            {title || t("common.delete")}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
             <X size={20} />
@@ -24,7 +27,7 @@ const DeleteConfirmationModal = ({
         </div>
 
         <div className="px-6 py-6">
-          <p className="text-gray-300 text-sm leading-relaxed">{message}</p>
+          <p className="text-gray-300 text-sm leading-relaxed">{message || t("admin.leads.deleteModal.defaultMessage")}</p>
         </div>
 
         <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2">
@@ -32,13 +35,13 @@ const DeleteConfirmationModal = ({
             onClick={onClose}
             className="w-full sm:w-auto px-5 py-2.5 bg-gray-600 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onConfirm}
             className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-sm font-medium text-white rounded-xl hover:bg-red-700 transition-colors"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>

@@ -25,7 +25,7 @@ import AddLeadModal from "../../components/admin-dashboard-components/lead-compo
 import EditLeadModal from "../../components/admin-dashboard-components/lead-components/edit-lead-modal"
 import ViewLeadDetailsModal from "../../components/admin-dashboard-components/lead-components/view-lead-details-modal"
 import EditColumnModal from "../../components/admin-dashboard-components/lead-components/edit-column-modal"
-import LeadHistoryModal from "../../components/admin-dashboard-components/lead-components/lead-history-modal"
+import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
 import DeleteConfirmationModal from "../../components/admin-dashboard-components/lead-components/delete-confirmation-modal"
 import { LeadSpecialNoteModal } from '../../components/shared/special-note/shared-special-note-modal'
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
@@ -821,6 +821,82 @@ export default function LeadManagement() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Build lead history data for SharedHistoryModal
+  // In production, this data would come from the backend/API
+  const getLeadHistory = useCallback((lead) => {
+    if (!lead) return { general: [], demoAccess: [] }
+    
+    // General changes (field changes like status, phone, email)
+    const general = lead.historyGeneral || [
+      {
+        id: 1,
+        date: "2024-01-15",
+        time: "14:30",
+        field: "Status",
+        oldValue: t("admin.leads.columns.activeProspect"),
+        newValue: t("admin.leads.columns.passiveProspect"),
+        changedBy: "Admin",
+      },
+      {
+        id: 2,
+        date: "2024-01-10",
+        time: "09:15",
+        field: t("admin.leads.form.fields.telephoneNumber"),
+        oldValue: "+1234567890",
+        newValue: "+1234567891",
+        changedBy: "Self",
+      },
+      {
+        id: 3,
+        date: "2024-01-05",
+        time: "16:45",
+        field: t("admin.leads.form.fields.email"),
+        oldValue: "old@email.com",
+        newValue: "new@email.com",
+        changedBy: "Admin",
+      },
+    ]
+
+    // Demo access history
+    const demoAccess = lead.historyDemoAccess || [
+      {
+        id: 1,
+        date: "2024-01-20",
+        time: "10:00",
+        action: "Demo Access Booked",
+        trialType: "Cardio",
+        trialDate: "2024-01-25",
+        trialTime: "14:00",
+        status: "Scheduled",
+        bookedBy: "Admin",
+      },
+      {
+        id: 2,
+        date: "2024-01-18",
+        time: "15:30",
+        action: "Demo Access Completed",
+        trialType: "Strength",
+        trialDate: "2024-01-18",
+        trialTime: "15:00",
+        status: "Completed",
+        bookedBy: "Admin",
+      },
+      {
+        id: 3,
+        date: "2024-01-15",
+        time: "11:00",
+        action: "Demo Access Cancelled",
+        trialType: "Flexibility",
+        trialDate: "2024-01-16",
+        trialTime: "09:00",
+        status: "Cancelled",
+        bookedBy: "Admin",
+      },
+    ]
+
+    return { general, demoAccess }
+  }, [t])
+
   // Get leads for each column
   const getColumnLeads = useCallback(
     (columnId) => {
@@ -840,7 +916,6 @@ export default function LeadManagement() {
           
           {/* Compact/Detailed View Toggle - Desktop only */}
           <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
-            <span className="text-xs text-gray-400 px-2 hidden sm:inline">{t("admin.leads.view")}</span>
             <button
               onClick={() => setIsCompactView(!isCompactView)}
               className="p-2 rounded-lg transition-colors flex items-center gap-1 text-[#FF843E]"
@@ -856,9 +931,6 @@ export default function LeadManagement() {
                   <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
                 </div>
               </div>
-              <span className="text-xs ml-1 hidden sm:inline">
-          
-              </span>
             </button>
           </div>
         </div>
@@ -1198,7 +1270,14 @@ export default function LeadManagement() {
             
          
 
-      {showHistoryModalLead && <LeadHistoryModal lead={selectedLead} onClose={() => setShowHistoryModalLead(false)} />}
+      {showHistoryModalLead && selectedLead && (
+        <SharedHistoryModal
+          variant="lead"
+          person={selectedLead}
+          history={getLeadHistory(selectedLead)}
+          onClose={() => setShowHistoryModalLead(false)}
+        />
+      )}
 
       <EditColumnModal
         isVisible={isEditColumnModalOpen}

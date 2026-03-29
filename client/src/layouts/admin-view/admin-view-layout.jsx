@@ -75,6 +75,7 @@ const AdminDashboardLayout = () => {
             <div
               key={location.pathname}
               className={`${hasOwnScroll ? 'page-transition-none' : 'page-transition'} h-full`}
+              onAnimationEnd={(e) => { e.currentTarget.style.animation = 'none'; }}
             >
               <Outlet />
             </div>

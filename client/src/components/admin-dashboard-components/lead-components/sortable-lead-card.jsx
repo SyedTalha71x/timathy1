@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { MdHistory } from "react-icons/md"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { useTranslation } from "react-i18next"
 
 // Import shared special note icon component
 import { LeadSpecialNoteIcon, extractNotes } from '../../shared/special-note/shared-special-note-icon'
@@ -30,6 +31,7 @@ const SortableLeadCard = ({
   expandedLeadId = null,
   setExpandedLeadId = () => {},
 }) => {
+  const { t, i18n } = useTranslation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef(null)
 
@@ -72,9 +74,18 @@ const SortableLeadCard = ({
     }
   }, [isMenuOpen])
 
+  const getLocale = () => {
+    const lang = i18n.language
+    if (lang === "de") return "de-DE"
+    if (lang === "fr") return "fr-FR"
+    if (lang === "es") return "es-ES"
+    if (lang === "it") return "it-IT"
+    return "en-US"
+  }
+
   const formatDate = (timestamp) => {
     const date = new Date(timestamp)
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(getLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -197,7 +208,7 @@ const SortableLeadCard = ({
                 setExpandedLeadId(lead.id)
               }}
               className="p-1 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
-              title="Expand"
+              title={t("admin.leads.card.expand")}
             >
               <ChevronDown className="w-3 h-3 text-gray-400" />
             </button>
@@ -222,7 +233,7 @@ const SortableLeadCard = ({
                   setExpandedLeadId(null)
                 }}
                 className="p-1 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors"
-                title="Collapse"
+                title={t("admin.leads.card.collapse")}
               >
                 <ChevronUp className="w-3 h-3 text-gray-400" />
               </button>
@@ -267,7 +278,7 @@ const SortableLeadCard = ({
               </div>
             )}
             <p className="text-gray-500 text-xs mt-1">
-              Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
+              {t("admin.leads.card.created")}: {lead.createdAt ? formatDate(lead.createdAt) : t("admin.leads.card.unknownDate")}
             </p>
           </div>
           
@@ -296,7 +307,7 @@ const SortableLeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <Info size={14} /> View Details
+                  <Info size={14} /> {t("admin.leads.card.menu.viewDetails")}
                 </button>
                 <button
                   onClick={() => {
@@ -305,7 +316,7 @@ const SortableLeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <Edit size={14} /> Edit
+                  <Edit size={14} /> {t("common.edit")}
                 </button>
                 <button
                   onClick={(e) => {
@@ -317,7 +328,7 @@ const SortableLeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <FileText size={14} /> Documents
+                  <FileText size={14} /> {t("admin.leads.card.menu.documents")}
                 </button>
                 <button
                   onClick={() => {
@@ -327,7 +338,7 @@ const SortableLeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                 >
-                  <MdHistory size={18} /> View History
+                  <MdHistory size={18} /> {t("admin.leads.card.menu.viewHistory")}
                 </button>
                 <button
                   onClick={() => {
@@ -336,7 +347,7 @@ const SortableLeadCard = ({
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
                 >
-                  <Trash2 size={14} /> Delete
+                  <Trash2 size={14} /> {t("common.delete")}
                 </button>
               </div>
             )}
@@ -354,7 +365,7 @@ const SortableLeadCard = ({
               }}
               className="bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform flex items-center justify-center gap-1"
             >
-              <Plus size={14} /> Create Contract
+              <Plus size={14} /> {t("admin.leads.card.createContract")}
             </button>
           ) : (
             // Other columns: show Create Demo Access button
@@ -365,7 +376,7 @@ const SortableLeadCard = ({
               }}
               className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform flex items-center justify-center gap-1"
             >
-              <Plus size={14} /> Create Demo Access
+              <Plus size={14} /> {t("admin.leads.card.createDemoAccess")}
             </button>
           )}
         </div>

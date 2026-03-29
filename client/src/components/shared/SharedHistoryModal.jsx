@@ -497,6 +497,7 @@ const TAB_REGISTRY = (t) => ({
   vacation:      { label: t("shared.history.tabs.vacation"),         icon: Calendar,  Card: VacationCard,       emptyTitle: t("shared.history.empty.noVacation"),         emptyDesc: t("shared.history.empty.noVacationDesc") },
   // Lead tabs
   trial:         { label: t("shared.history.tabs.trialTraining"),    icon: Activity,  Card: TrialCard,          emptyTitle: t("shared.history.empty.noTrialTraining"),    emptyDesc: t("shared.history.empty.noTrialTrainingDesc") },
+  demoAccess:    { label: t("shared.history.tabs.demoAccess"),       icon: Activity,  Card: TrialCard,          emptyTitle: t("shared.history.empty.noDemoAccess"),       emptyDesc: t("shared.history.empty.noDemoAccessDesc") },
   // Studio tabs
   tickets:       { label: t("shared.history.tabs.tickets"),          icon: FileText,  Card: TicketCard,         emptyTitle: t("shared.history.empty.noTickets"),           emptyDesc: t("shared.history.empty.noTicketsDesc") },
 })
@@ -504,7 +505,7 @@ const TAB_REGISTRY = (t) => ({
 const VARIANT_TABS = {
   member:   ["general", "communication", "appointments", "checkins", "finance", "contracts"],
   staff:    ["profile", "communication", "actions", "login", "vacation"],
-  lead:     ["general", "communication", "trial"],
+  lead:     ["general", "demoAccess"],
   contract: ["contracts"],
   studio:   ["general", "contracts", "finance", "tickets"],
 }
