@@ -41,6 +41,7 @@ import { getTagsThunk } from '../../features/todos/todosSlice'
 // Delete Confirmation Modal
 // ============================================
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
+  const { t } = useTranslation()
   if (!isOpen) return null
 
   return (
@@ -48,13 +49,13 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
       <div className="bg-surface-card rounded-xl w-full max-w-md p-6 mx-4">
         <div className="flex items-center gap-3 mb-4">
           <div>
-            <h3 className="text-content-primary text-xl font-bold">Delete Document</h3>
-            <p className="text-content-muted text-sm">This action cannot be undone</p>
+            <h3 className="text-content-primary text-xl font-bold">{t("documents.delete.title")}</h3>
+            <p className="text-content-muted text-sm">{t("documents.delete.cannotUndo")}</p>
           </div>
         </div>
 
         <div className="bg-surface-dark p-4 rounded-xl mb-6">
-          <p className="text-content-secondary mb-2">Are you sure you want to delete this document?</p>
+          <p className="text-content-secondary mb-2">{t("documents.delete.confirm")}</p>
           <p className="text-content-primary font-medium truncate">{documentName}</p>
         </div>
 
@@ -63,13 +64,13 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
             onClick={onClose}
             className="flex-1 px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onConfirm}
             className="flex-1 px-4 py-2 text-sm bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -81,6 +82,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
 // Document Viewer Modal (supports all formats locally)
 // ============================================
 function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint }) {
+  const { t } = useTranslation()
   const [content, setContent] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -211,7 +213,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       return (
         <div className="flex flex-col items-center justify-center h-full">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-          <p className="text-content-muted">Loading document...</p>
+          <p className="text-content-muted">{t("documents.viewer.loading")}</p>
         </div>
       )
     }
@@ -220,7 +222,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
           <AlertCircle className="w-16 h-16 text-accent-red mb-4" />
-          <p className="text-content-primary text-lg mb-2">Error Loading Document</p>
+          <p className="text-content-primary text-lg mb-2">{t("documents.viewer.error")}</p>
           <p className="text-content-muted mb-6">{error}</p>
           <button
             onClick={() => onDownload && onDownload(document)}
@@ -303,8 +305,8 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <File className="w-16 h-16 text-content-faint mb-4" />
-            <p className="text-content-primary text-lg mb-2">Preview not available</p>
-            <p className="text-content-muted">Please download the file to view it.</p>
+            <p className="text-content-primary text-lg mb-2">{t("documents.viewer.noPreview")}</p>
+            <p className="text-content-muted">{t("documents.viewer.noPreviewDesc")}</p>
           </div>
         )
     }
@@ -540,18 +542,18 @@ export default function DocumentManagementModal({
 
     const invalidFiles = files.filter((file) => !validTypes.includes(file.type))
     if (invalidFiles.length > 0) {
-      toast.error(`${invalidFiles.length} file(s) have unsupported formats`)
+      toast.error(t("documents.toast.unsupportedFormat", { count: invalidFiles.length }))
       return
     }
 
     const largeFiles = files.filter((file) => file.size > 10 * 1024 * 1024)
     if (largeFiles.length > 0) {
-      toast.error(`${largeFiles.length} file(s) exceed the 10MB size limit`)
+      toast.error(t("documents.toast.sizeLimitExceeded", { count: largeFiles.length }))
       return
     }
 
     setIsUploading(true)
-    toast.loading(`Uploading ${files.length} document(s)...`)
+    toast.loading(t("documents.toast.uploading", { count: files.length }))
 
     try {
       const formData = new FormData()
@@ -882,11 +884,11 @@ export default function DocumentManagementModal({
         const fileName = `${doc.name.replace(/\s+/g, '_')}.pdf`
         pdf.save(fileName)
         toast.dismiss('download')
-        toast.success(`${fileName} downloaded`)
+        toast.success(t("documents.toast.downloaded", { name: fileName }))
       } catch (err) {
         console.error('PDF generation error:', err)
         toast.dismiss('download')
-        toast.error('Failed to generate PDF')
+        toast.error(t("documents.toast.pdfFailed"))
       }
       return
     }
@@ -898,11 +900,11 @@ export default function DocumentManagementModal({
         const fileName = `${doc.name.replace(/\s+/g, '_')}.pdf`
         pdf.save(fileName)
         toast.dismiss('download')
-        toast.success(`${fileName} downloaded`)
+        toast.success(t("documents.toast.downloaded", { name: fileName }))
       } catch (err) {
         console.error('PDF generation error:', err)
         toast.dismiss('download')
-        toast.error('Failed to generate PDF')
+        toast.error(t("documents.toast.pdfFailed"))
       }
       return
     }
@@ -1174,7 +1176,7 @@ export default function DocumentManagementModal({
         <div className="p-4 border-b border-border">
           <div className="flex flex-col sm:items-start gap-3">
             <p className="text-content-secondary">
-              Manage documents for <span className="font-medium text-content-primary">{entityName}</span>
+              {t("documents.manageFor")} <span className="font-medium text-content-primary">{entityName}</span>
               <span className="text-content-faint text-sm block sm:inline sm:ml-2">
                 {entityType === "lead" ? `Lead #${entityId}` : entityType === "staff" ? `Staff #${entityId}` : `Member #${entityId}`}
               </span>
@@ -1187,7 +1189,7 @@ export default function DocumentManagementModal({
                   className="text-sm gap-2 px-4 py-2 bg-primary text-white rounded-xl transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  {isUploading ? "Uploading..." : "Upload Document"}
+                  {isUploading ? t("documents.uploading") : t("documents.upload")}
                 </button>
                 <button
                   onClick={refreshDocuments}
@@ -1203,7 +1205,7 @@ export default function DocumentManagementModal({
                     className="text-sm gap-2 px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors w-full sm:w-auto flex items-center justify-center"
                   >
                     <Pencil className="w-4 h-4 mr-2" />
-                    Fill Out Medical History
+                    {t("documents.fillMedical")}
                   </button>
                 )}
               </div>
@@ -1272,8 +1274,8 @@ export default function DocumentManagementModal({
                 </p>
                 <p className="text-content-faint text-sm">
                   {activeSection === "general"
-                    ? "Click 'Upload Document' to add files"
-                    : "Click 'Fill Out Medical History' to get started"
+                    ? t("documents.empty.hintGeneral")
+                    : t("documents.empty.hintMedical")
                   }
                 </p>
               </div>
@@ -1409,8 +1411,8 @@ export default function DocumentManagementModal({
         <div className="p-4 border-t border-border">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="text-xs text-content-faint">
-              <p>Supported: PDF, JPG, PNG, DOC, DOCX, TXT</p>
-              <p>Max size: 10MB per file</p>
+              <p>{t("documents.supported")}</p>
+              <p>{t("documents.maxSize")}</p>
             </div>
             <button onClick={onClose} className="px-6 py-2 bg-primary text-sm text-white rounded-xl hover:bg-primary-hover transition-colors w-full sm:w-auto">
               Close

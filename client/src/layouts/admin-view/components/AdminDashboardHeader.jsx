@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
 import { History, Menu } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import ActivityLogModal from './admin-dashboard-header-components/ActivityLogModal'
 import LanguageDropdown from '../../LanguageDropdown'
@@ -26,6 +27,7 @@ const AdminDashboardHeader = ({
   toggleLeftSidebarCollapse,
 }) => {
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
+  const { t } = useTranslation()
 
   return (
     <>
@@ -50,7 +52,7 @@ const AdminDashboardHeader = ({
           <button
             onClick={onToggleSidebar}
             className="p-1.5 rounded-lg text-white hover:bg-zinc-700"
-            aria-label="Toggle Sidebar"
+            aria-label={t("admin.header.toggleSidebar")}
           >
             <Menu size={20} />
           </button>
@@ -61,7 +63,7 @@ const AdminDashboardHeader = ({
           <button
             onClick={() => setIsActivityLogModalOpen(true)}
             className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1 hover:text-white transition-colors"
-            aria-label="Activity Log"
+            aria-label={t("admin.header.activityLog")}
           >
             <History size={20} />
           </button>
@@ -77,11 +79,10 @@ const AdminDashboardHeader = ({
           <button
             onClick={toggleLeftSidebarCollapse}
             className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer hover:text-white transition-colors"
-            aria-label="Toggle Sidebar Collapse"
+            aria-label={t("admin.header.toggleCollapse")}
           >
             <Menu size={20} />
           </button>
-          <h2 className="font-semibold text-white text-md leading-tight">Admin Panel</h2>
         </div>
 
         {/* Right: Activity Log + Language + Profile */}
@@ -89,7 +90,7 @@ const AdminDashboardHeader = ({
           <button
             onClick={() => setIsActivityLogModalOpen(true)}
             className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1 hover:text-white transition-colors"
-            aria-label="Activity Log"
+            aria-label={t("admin.header.activityLog")}
           >
             <History size={20} />
           </button>

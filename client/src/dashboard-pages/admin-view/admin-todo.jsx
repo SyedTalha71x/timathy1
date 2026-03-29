@@ -12,7 +12,7 @@ import CalendarModal from "../../components/admin-dashboard-components/todo-comp
 import { todosTaskData, configuredTagsData } from "../../utils/admin-panel-states/todo-states"
 import DeleteModal from "../../components/admin-dashboard-components/todo-components/delete-task"
 import { OptimizedTextarea } from "../../components/admin-dashboard-components/todo-components/optimized-text-area"
-import TagManagerModal from "../../components/admin-dashboard-components/shared/TagManagerModal"
+import TagManagerModal from "../../components/shared/TagManagerModal"
 
 // @dnd-kit imports
 import {
@@ -32,6 +32,10 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import SortableTaskColumn from "../../components/admin-dashboard-components/todo-components/sortable-task-column"
 import SortableTaskCard from "../../components/admin-dashboard-components/todo-components/sortable-task-card"
 
+import { useTranslation } from "react-i18next"
+import PullToRefresh from "../../components/shared/PullToRefresh"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
+import { haptic } from "../../utils/haptic"
 // ============================================
 // Mobile Create Task Modal Component
 // ============================================
@@ -45,6 +49,7 @@ const MobileCreateTaskModal = ({
   newTaskData,
   setNewTaskData,
 }) => {
+  const { t } = useTranslation()
   const [taskTitle, setTaskTitle] = useState("")
   const titleInputRef = useRef(null)
 
@@ -104,7 +109,7 @@ const MobileCreateTaskModal = ({
       const formattedHour = hour % 12 || 12
       display += display ? ` at ${formattedHour}:${minutes} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`
     }
-    return display || "No due date"
+    return display || t("admin.todo.noDate")
   }
 
   if (!isOpen) return null
@@ -119,7 +124,7 @@ const MobileCreateTaskModal = ({
         >
           <X size={24} />
         </button>
-        <h2 className="text-lg font-semibold text-white">New Task</h2>
+        <h2 className="text-lg font-semibold text-white">{t("admin.todo.newTask")}</h2>
         <button
           onClick={handleCreate}
           disabled={!taskTitle.trim()}
@@ -129,7 +134,7 @@ const MobileCreateTaskModal = ({
               : "bg-gray-700 text-gray-500"
           }`}
         >
-          Create
+          {t("admin.todo.create")}
         </button>
       </div>
 
@@ -144,7 +149,7 @@ const MobileCreateTaskModal = ({
               setTaskTitle(e.target.value)
               setNewTaskData(prev => ({ ...prev, title: e.target.value }))
             }}
-            placeholder="What needs to be done?"
+            placeholder={t("admin.todo.placeholder")}
             className="w-full bg-transparent text-xl font-semibold text-white placeholder-gray-500 outline-none resize-none min-h-[80px]"
             rows={3}
           />
@@ -160,7 +165,7 @@ const MobileCreateTaskModal = ({
               <Calendar size={18} className="text-gray-400" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-gray-300">Due Date & Time</p>
+              <p className="text-sm font-medium text-gray-300">{t("admin.todo.dueDateTime")}</p>
               <p className={`text-sm ${newTaskData.dueDate ? 'text-white' : 'text-gray-500'}`}>
                 {formatDateTime()}
               </p>
@@ -176,7 +181,7 @@ const MobileCreateTaskModal = ({
               <Bell size={18} className="text-gray-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-300">Reminder</p>
+              <p className="text-sm font-medium text-gray-300">{t("admin.todo.reminder")}</p>
               <p className="text-sm text-white">{newTaskData.reminder}</p>
             </div>
           </div>
@@ -192,7 +197,7 @@ const MobileCreateTaskModal = ({
               <Tag size={18} className="text-gray-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-300">Tags</p>
+              <p className="text-sm font-medium text-gray-300">{t("admin.todo.tags")}</p>
               {newTaskData.tags && newTaskData.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newTaskData.tags.map((tag, idx) => (
@@ -206,12 +211,13 @@ const MobileCreateTaskModal = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No tags</p>
+                <p className="text-sm text-gray-500">{t("admin.todo.noTags")}</p>
               )}
             </div>
             <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
           </div>
         </button>
+        <KeyboardSpacer />
       </div>
     </div>
   )
@@ -234,6 +240,7 @@ const MobileTaskDetail = ({
   onOpenTagsModal,
   repeatConfigs
 }) => {
+  const { t } = useTranslation()
   const [showActionsMenu, setShowActionsMenu] = useState(false)
   const [editedTitle, setEditedTitle] = useState(task.title || "")
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -286,7 +293,7 @@ const MobileTaskDetail = ({
       const formattedHour = hour % 12 || 12
       display += display ? ` at ${formattedHour}:${minutes} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`
     }
-    return display || "No due date"
+    return display || t("admin.todo.noDate")
   }
 
   const getTagColor = (tagName) => {
@@ -305,7 +312,7 @@ const MobileTaskDetail = ({
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
-          aria-label="Back to tasks"
+          aria-label={t("admin.todo.backToTasks")}
         >
           <ChevronLeft size={24} />
         </button>
@@ -317,7 +324,7 @@ const MobileTaskDetail = ({
             isCanceled ? 'bg-red-500/20 text-red-400' :
             'bg-amber-500/20 text-amber-400'
           }`}>
-            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+            {t(`admin.todo.status.${task.status}`)}
           </span>
           
           {/* Actions Menu */}
@@ -325,7 +332,7 @@ const MobileTaskDetail = ({
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
               className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
-              aria-label="More actions"
+              aria-label={t("admin.todo.moreActions")}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -345,7 +352,7 @@ const MobileTaskDetail = ({
                       className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                     >
                       <Check size={16} />
-                      <span>Mark Complete</span>
+                      <span>{t("admin.todo.actions.markComplete")}</span>
                     </button>
                   )}
                   
@@ -358,7 +365,7 @@ const MobileTaskDetail = ({
                       className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                     >
                       <Edit size={16} />
-                      <span>Set Ongoing</span>
+                      <span>{t("admin.todo.actions.setOngoing")}</span>
                     </button>
                   )}
 
@@ -372,7 +379,7 @@ const MobileTaskDetail = ({
                       className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                     >
                       <X size={16} />
-                      <span>Cancel Task</span>
+                      <span>{t("admin.todo.actions.cancelTask")}</span>
                     </button>
                   )}
                   
@@ -386,7 +393,7 @@ const MobileTaskDetail = ({
                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                       >
                         <Edit size={16} />
-                        <span>Set Ongoing</span>
+                        <span>{t("admin.todo.actions.setOngoing")}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -397,7 +404,7 @@ const MobileTaskDetail = ({
                         className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                       >
                         <Check size={16} />
-                        <span>Mark Complete</span>
+                        <span>{t("admin.todo.actions.markComplete")}</span>
                       </button>
                     </>
                   )}
@@ -412,7 +419,7 @@ const MobileTaskDetail = ({
                     className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                   >
                     {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
-                    <span>{task.isPinned ? 'Unpin Task' : 'Pin Task'}</span>
+                    <span>{task.isPinned ? t("admin.todo.actions.unpinTask") : t("admin.todo.actions.pinTask")}</span>
                   </button>
                   
                   <button
@@ -424,7 +431,7 @@ const MobileTaskDetail = ({
                     className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                   >
                     <Copy size={16} />
-                    <span>Duplicate</span>
+                    <span>{t("admin.todo.actions.duplicate")}</span>
                   </button>
                   
                   <button
@@ -435,7 +442,7 @@ const MobileTaskDetail = ({
                     className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
                   >
                     <Repeat size={16} />
-                    <span>Set Repeat</span>
+                    <span>{t("admin.todo.actions.setRepeat")}</span>
                   </button>
 
                   <div className="border-t border-gray-700 my-1"></div>
@@ -448,7 +455,7 @@ const MobileTaskDetail = ({
                     className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500 active:bg-gray-700"
                   >
                     <Trash2 size={16} />
-                    <span>Delete</span>
+                    <span>{t("admin.todo.actions.delete")}</span>
                   </button>
                 </div>
               </div>
@@ -469,7 +476,7 @@ const MobileTaskDetail = ({
               setHasUnsavedChanges(true)
             }}
             onBlur={handleSaveTitle}
-            placeholder="Task title..."
+            placeholder={t("admin.todo.taskTitlePlaceholder")}
             className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-blue-500 transition-all pb-2 resize-none ${
               isCompleted ? 'text-gray-500' : 
               isCanceled ? 'text-gray-600 line-through italic' : 
@@ -483,7 +490,7 @@ const MobileTaskDetail = ({
           />
           {task.createdAt && (
             <p className="text-xs text-gray-500 mt-2">
-              Created: {new Date(task.createdAt).toLocaleDateString('en-US', {
+              {t("common.created")}: {new Date(task.createdAt).toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric',
@@ -511,12 +518,12 @@ const MobileTaskDetail = ({
               <Calendar size={18} className="text-gray-400" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-gray-300">Due Date & Time</p>
+              <p className="text-sm font-medium text-gray-300">{t("admin.todo.dueDateTime")}</p>
               <p className={`text-sm ${task.dueDate ? 'text-white' : 'text-gray-500'}`}>
                 {formatDateTime()}
                 {hasRepeat && (
                   <span className="ml-2 text-gray-400">
-                    <Repeat size={12} className="inline" /> Repeating
+                    <Repeat size={12} className="inline" /> {t("admin.todo.repeating")}
                   </span>
                 )}
               </p>
@@ -534,7 +541,7 @@ const MobileTaskDetail = ({
               <Bell size={18} className="text-gray-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-300">Reminder</p>
+              <p className="text-sm font-medium text-gray-300">{t("admin.todo.reminder")}</p>
               <p className="text-sm text-white">{task.reminder}</p>
             </div>
           </div>
@@ -557,7 +564,7 @@ const MobileTaskDetail = ({
               <Tag size={18} className="text-gray-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-300">Tags</p>
+              <p className="text-sm font-medium text-gray-300">{t("admin.todo.tags")}</p>
               {task.tags && task.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {task.tags.map((tag, idx) => (
@@ -571,7 +578,7 @@ const MobileTaskDetail = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No tags</p>
+                <p className="text-sm text-gray-500">{t("admin.todo.noTags")}</p>
               )}
             </div>
             {!isCompleted && !isCanceled && (
@@ -579,6 +586,7 @@ const MobileTaskDetail = ({
             )}
           </div>
         </button>
+        <KeyboardSpacer />
       </div>
     </div>
   )
@@ -625,7 +633,7 @@ const MobileTaskCard = ({
               onStatusChange(task.id, "ongoing")
             }}
             className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-600 border border-gray-500"
-            title="Canceled - Click to restore"
+            title={t("admin.todo.canceledClickRestore")}
           >
             <X size={12} className="text-gray-400" />
           </button>
@@ -717,7 +725,7 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
         {date && time && " • "}
         {time && formatTime(time)}
       </span>
-      <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title="Clear date and time">
+      <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title={t("admin.todo.clearDateTime")}>
         <X size={14} />
       </button>
     </div>
@@ -725,14 +733,15 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 }
 
 export default function TodoApp() {
+  const { t } = useTranslation()
   
   // ============================================
   // Column Configuration
   // ============================================
   const [columns] = useState([
-    { id: "ongoing", title: "Ongoing", color: "#f59e0b" },
-    { id: "completed", title: "Completed", color: "#10b981" },
-    { id: "canceled", title: "Canceled", color: "#ef4444" },
+    { id: "ongoing", title: t("admin.todo.columns.ongoing"), color: "#f59e0b" },
+    { id: "completed", title: t("admin.todo.columns.completed"), color: "#10b981" },
+    { id: "canceled", title: t("admin.todo.columns.canceled"), color: "#ef4444" },
   ])
   
   const [collapsedColumns, setCollapsedColumns] = useState({
@@ -1228,6 +1237,8 @@ export default function TodoApp() {
   // Task CRUD Operations
   // ============================================
   const handleTaskStatusChange = (taskId, newStatus) => {
+    haptic.light()
+
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId
@@ -1262,6 +1273,8 @@ export default function TodoApp() {
   }
 
   const handleTaskPinToggle = (taskId) => {
+    haptic.light()
+
     setTasks((prevTasks) =>
       prevTasks.map((task) => (task.id === taskId ? { ...task, isPinned: !task.isPinned } : task))
     )
@@ -1271,11 +1284,15 @@ export default function TodoApp() {
   }
 
   const handleDeleteRequest = (taskId) => {
+    haptic.warning()
+
     setSelectedTask(tasks.find((t) => t.id === taskId))
     setIsDeleteModalOpen(true)
   }
 
   const confirmDeleteTask = () => {
+    haptic.success()
+
     if (selectedTask) {
       handleTaskRemove(selectedTask.id)
       setIsDeleteModalOpen(false)
@@ -1284,6 +1301,8 @@ export default function TodoApp() {
   }
 
   const handleDuplicateTask = (taskToDuplicate) => {
+    haptic.light()
+
     const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
     setTasks((prevTasks) => [
       ...prevTasks,
@@ -1319,6 +1338,8 @@ export default function TodoApp() {
   }
 
   const handleMobileCreateTask = (taskData) => {
+    haptic.success()
+
     const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
     const newTask = {
       id: newId,
@@ -1357,6 +1378,8 @@ export default function TodoApp() {
   }
 
   const handleAddTask = useCallback((inputValue) => {
+    haptic.light()
+
     const titleToUse = inputValue || newTaskInput
     if (titleToUse.trim() !== "") {
       const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
@@ -1429,14 +1452,14 @@ export default function TodoApp() {
           {/* ============================================ */}
           <div className="flex-shrink-0 p-4 md:p-6 pb-0">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-xl md:text-2xl font-bold text-white">To-Do</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-white">{t("admin.todo.title")}</h1>
               
               <div className="flex items-center gap-2">
                 {/* Mobile: Tags Button */}
                 <button
                   onClick={() => setIsTagManagerOpen(true)}
                   className="md:hidden bg-[#2F2F2F] text-gray-300 p-2 rounded-lg hover:bg-[#3F3F3F] transition-colors active:scale-95"
-                  title="Manage Tags (T)"
+                  title={t("admin.todo.manageTags")}
                 >
                   <Tag size={18} />
                 </button>
@@ -1451,7 +1474,7 @@ export default function TodoApp() {
                   value={newTaskInput}
                   onChange={handleTextareaChange}
                   onEnter={handleAddTask}
-                  placeholder="New task… (Press Enter to add)"
+                  placeholder={t("admin.todo.inputPlaceholder")}
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
                 
@@ -1471,7 +1494,7 @@ export default function TodoApp() {
                       })
                     }}
                     className="text-gray-400 hover:text-white p-1"
-                    title="Set due date"
+                    title={t("admin.todo.setDueDate")}
                   >
                     <Calendar size={18} />
                   </button>
@@ -1483,7 +1506,7 @@ export default function TodoApp() {
                     type="button"
                     onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
                     className="text-gray-400 hover:text-white ml-2 p-1"
-                    title="Add tags"
+                    title={t("admin.todo.addTags")}
                   >
                     <ChevronDown size={18} />
                   </button>
@@ -1493,7 +1516,7 @@ export default function TodoApp() {
                         <div>
                           <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
                             <Tag size={14} />
-                            Add Tags
+                            {t("admin.todo.addTags")}
                           </h4>
                           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
                             {configuredTags.map((tag) => {
@@ -1525,7 +1548,7 @@ export default function TodoApp() {
                           onClick={() => setIsTagDropdownOpen(false)}
                           className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
                         >
-                          Close
+                          {t("common.close")}
                         </button>
                       </div>
                     </div>
@@ -1540,12 +1563,12 @@ export default function TodoApp() {
                   className="bg-[#2F2F2F] text-white px-4 py-3 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap transition-colors"
                 >
                   <Tag size={16} />
-                  <span>Tags</span>
+                  <span>{t("admin.todo.tags")}</span>
                 </button>
                 
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Manage Tags</span>
+                  <span className="font-medium">{t("admin.todo.manageTags")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     T
                   </span>
@@ -1638,7 +1661,7 @@ export default function TodoApp() {
                       className={`text-gray-400 transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                    <span className="font-medium text-white text-xs">Ongoing</span>
+                    <span className="font-medium text-white text-xs">{t("admin.todo.columns.ongoing")}</span>
                     <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.ongoing.length}
                     </span>
@@ -1656,12 +1679,12 @@ export default function TodoApp() {
                     </button>
                     {mobileSortMenuOpen === 'ongoing' && (
                       <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
-                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">{t("common.sortBy")}</div>
                         {[
-                          { value: 'custom', label: 'Custom' },
-                          { value: 'title', label: 'Title' },
-                          { value: 'dueDate', label: 'Due Date' },
-                          { value: 'recentlyAdded', label: 'Recent' },
+                          { value: 'custom', label: t('admin.todo.sort.custom') },
+                          { value: 'title', label: t('admin.todo.sort.title') },
+                          { value: 'dueDate', label: t('admin.todo.sort.dueDate') },
+                          { value: 'recentlyAdded', label: t('admin.todo.sort.recent') },
                         ].map((option) => (
                           <div
                             key={option.value}
@@ -1707,7 +1730,7 @@ export default function TodoApp() {
                             }}
                             className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
                           >
-                            Close
+                            {t("common.close")}
                           </button>
                         </div>
                       </div>
@@ -1758,7 +1781,7 @@ export default function TodoApp() {
                             </>
                           )}
                           {filteredTasks.ongoing.length === 0 && (
-                            <p className="text-center text-gray-500 py-4 text-sm">No ongoing tasks</p>
+                            <p className="text-center text-gray-500 py-4 text-sm">{t("admin.todo.empty.ongoing")}</p>
                           )}
                         </>
                       )
@@ -1782,7 +1805,7 @@ export default function TodoApp() {
                       className={`text-gray-400 transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`} 
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                    <span className="font-medium text-white text-xs">Completed</span>
+                    <span className="font-medium text-white text-xs">{t("admin.todo.columns.completed")}</span>
                     <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.completed.length}
                     </span>
@@ -1800,12 +1823,12 @@ export default function TodoApp() {
                     </button>
                     {mobileSortMenuOpen === 'completed' && (
                       <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
-                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">{t("common.sortBy")}</div>
                         {[
-                          { value: 'custom', label: 'Custom' },
-                          { value: 'title', label: 'Title' },
-                          { value: 'dueDate', label: 'Due Date' },
-                          { value: 'recentlyAdded', label: 'Recent' },
+                          { value: 'custom', label: t('admin.todo.sort.custom') },
+                          { value: 'title', label: t('admin.todo.sort.title') },
+                          { value: 'dueDate', label: t('admin.todo.sort.dueDate') },
+                          { value: 'recentlyAdded', label: t('admin.todo.sort.recent') },
                         ].map((option) => (
                           <div
                             key={option.value}
@@ -1851,7 +1874,7 @@ export default function TodoApp() {
                             }}
                             className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
                           >
-                            Close
+                            {t("common.close")}
                           </button>
                         </div>
                       </div>
@@ -1871,7 +1894,7 @@ export default function TodoApp() {
                         />
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4 text-sm">No completed tasks</p>
+                      <p className="text-center text-gray-500 py-4 text-sm">{t("admin.todo.empty.completed")}</p>
                     )}
                   </div>
                 )}
@@ -1892,7 +1915,7 @@ export default function TodoApp() {
                       className={`text-gray-400 transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`} 
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                    <span className="font-medium text-white text-xs">Canceled</span>
+                    <span className="font-medium text-white text-xs">{t("admin.todo.columns.canceled")}</span>
                     <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.canceled.length}
                     </span>
@@ -1910,12 +1933,12 @@ export default function TodoApp() {
                     </button>
                     {mobileSortMenuOpen === 'canceled' && (
                       <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
-                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">{t("common.sortBy")}</div>
                         {[
-                          { value: 'custom', label: 'Custom' },
-                          { value: 'title', label: 'Title' },
-                          { value: 'dueDate', label: 'Due Date' },
-                          { value: 'recentlyAdded', label: 'Recent' },
+                          { value: 'custom', label: t('admin.todo.sort.custom') },
+                          { value: 'title', label: t('admin.todo.sort.title') },
+                          { value: 'dueDate', label: t('admin.todo.sort.dueDate') },
+                          { value: 'recentlyAdded', label: t('admin.todo.sort.recent') },
                         ].map((option) => (
                           <div
                             key={option.value}
@@ -1961,7 +1984,7 @@ export default function TodoApp() {
                             }}
                             className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
                           >
-                            Close
+                            {t("common.close")}
                           </button>
                         </div>
                       </div>
@@ -1981,7 +2004,7 @@ export default function TodoApp() {
                         />
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4 text-sm">No canceled tasks</p>
+                      <p className="text-center text-gray-500 py-4 text-sm">{t("admin.todo.empty.canceled")}</p>
                     )}
                   </div>
                 )}
@@ -2035,7 +2058,7 @@ export default function TodoApp() {
         <button
           onClick={() => setShowMobileCreateModal(true)}
           className="md:hidden fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-2xl shadow-lg transition-all active:scale-95 z-30"
-          aria-label="Add Task"
+          aria-label={t("admin.todo.newTask")}
         >
           <Plus size={24} />
         </button>

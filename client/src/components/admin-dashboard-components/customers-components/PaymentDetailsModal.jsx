@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { X, AlertTriangle, CreditCard, Loader2, CheckCircle2, FileText } from "lucide-react"
 
 // ============================================
 // Payment Details Modal – Customer / Studio
 // ============================================
 export default function PaymentDetailsModal({ studio, onClose, onSave }) {
+  const { t } = useTranslation()
   const paymentData = studio?.paymentDetails || {}
 
   const initialForm = useRef({
@@ -121,7 +123,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
                 <CreditCard className="text-primary" size={20} />
               </div>
               <div>
-                <h3 className="text-xl text-content-primary font-semibold">Payment Details</h3>
+                <h3 className="text-xl text-content-primary font-semibold">{t("admin.customers.payment.title")}</h3>
                 <p className="text-xs text-content-muted">{studioName}</p>
               </div>
             </div>
@@ -133,20 +135,20 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Account Holder */}
             <div>
-              <label className="block text-content-secondary text-sm mb-2">Account Holder</label>
+              <label className="block text-content-secondary text-sm mb-2">{t("admin.customers.payment.accountHolder")}</label>
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="text"
                   value={form.accountHolderFirstName}
                   onChange={(e) => setForm({ ...form, accountHolderFirstName: e.target.value })}
-                  placeholder="First Name"
+                  placeholder={t("admin.customers.payment.firstName")}
                   className="bg-surface-dark text-content-primary text-sm px-3 py-2.5 rounded-xl border border-border w-full focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <input
                   type="text"
                   value={form.accountHolderLastName}
                   onChange={(e) => setForm({ ...form, accountHolderLastName: e.target.value })}
-                  placeholder="Last Name"
+                  placeholder={t("admin.customers.payment.lastName")}
                   className="bg-surface-dark text-content-primary text-sm px-3 py-2.5 rounded-xl border border-border w-full focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -154,7 +156,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
 
             {/* IBAN */}
             <div>
-              <label className="block text-content-secondary text-sm mb-2">IBAN</label>
+              <label className="block text-content-secondary text-sm mb-2">{t("admin.customers.payment.iban")}</label>
               <input
                 type="text"
                 value={form.iban}
@@ -171,7 +173,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
 
             {/* BIC */}
             <div>
-              <label className="block text-content-secondary text-sm mb-2">BIC</label>
+              <label className="block text-content-secondary text-sm mb-2">{t("admin.customers.payment.bic")}</label>
               <div className="relative">
                 <input
                   type="text"
@@ -192,7 +194,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
 
             {/* Bank Name */}
             <div>
-              <label className="block text-content-secondary text-sm mb-2">Bank Name</label>
+              <label className="block text-content-secondary text-sm mb-2">{t("admin.customers.payment.bankName")}</label>
               <div className="relative">
                 <input
                   type="text"
@@ -213,7 +215,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
 
             {/* SEPA Mandate */}
             <div>
-              <label className="block text-content-secondary text-sm mb-2">SEPA Mandate Number</label>
+              <label className="block text-content-secondary text-sm mb-2">{t("admin.customers.payment.sepaMandateNumber")}</label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -221,7 +223,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
                   onChange={() => setAutoGenerateMandate(!autoGenerateMandate)}
                   className="primary-check"
                 />
-                <span className="text-content-secondary text-xs">Automatically generate SEPA mandate reference number</span>
+                <span className="text-content-secondary text-xs">{t("admin.customers.payment.autoGenerate")}</span>
               </label>
               {!autoGenerateMandate && (
                 <input
@@ -235,7 +237,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
               <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mt-3">
                 <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
                 <span className="text-xs text-content-secondary leading-relaxed">
-                  Updating bank details requires a new SEPA mandate to be issued.
+                  {t("admin.customers.payment.sepaWarning")}
                 </span>
               </div>
             </div>
@@ -247,7 +249,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
                 onClick={onClose}
                 className="px-4 py-2 bg-surface-dark text-sm text-content-primary rounded-xl border border-border hover:bg-surface-card transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
@@ -255,7 +257,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
                 className={`px-4 py-2 text-sm rounded-xl transition-colors flex items-center gap-2 ${canSave ? "bg-primary text-white hover:bg-primary-hover" : "bg-surface-dark text-content-muted border border-border cursor-not-allowed"}`}
               >
                 <FileText size={14} />
-                Save Payment Details
+                {t("admin.customers.payment.savePayment")}
               </button>
             </div>
           </form>

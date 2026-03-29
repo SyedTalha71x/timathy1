@@ -20,14 +20,16 @@ import {
   Dumbbell,
   Settings,
 } from "lucide-react"
-import toast from "react-hot-toast";
-
+import toast from "../../components/shared/SharedToast"
 import ManageOptionsModal from "../../components/admin-dashboard-components/training-components/ManageOptionsModal";
 import ExerciseFormModal from "../../components/admin-dashboard-components/training-components/ExerciseFormModal";
 import ViewExerciseModal from "../../components/admin-dashboard-components/training-components/ViewExerciseModal";
 import DeleteExerciseModal from "../../components/admin-dashboard-components/training-components/DeleteExerciseModal";
-import { getTranslation, getOptionName, emptyTranslations } from '../../components/admin-dashboard-components/shared/LanguageTabs';
+import { getTranslation, getOptionName, emptyTranslations } from '../../components/shared/LanguageTabs';
 
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import {
   initialTrainingVideos,
   initialMuscleOptions,
@@ -38,6 +40,7 @@ import {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function AdminTrainingManagement() {
+  const { t } = useTranslation()
   const [trainingVideos, setTrainingVideos] = useState(initialTrainingVideos)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDifficulty, setSelectedDifficulty] = useState("all")
@@ -123,7 +126,7 @@ export default function AdminTrainingManagement() {
 
   const handleCreate = () => {
     if (!formData.name?.en || !formData.description?.en || formData.targetMuscles.length === 0) {
-      alert("Please fill in all required fields (English name and description are required)")
+      toast.error(t("admin.exercises.toast.requiredFields"))
       return
     }
 
@@ -148,7 +151,7 @@ export default function AdminTrainingManagement() {
 
   const handleEdit = () => {
     if (!selectedVideo || !formData.name?.en || !formData.description?.en || formData.targetMuscles.length === 0) {
-      alert("Please fill in all required fields (English name and description are required)")
+      toast.error(t("admin.exercises.toast.requiredFields"))
       return
     }
 
@@ -262,7 +265,7 @@ export default function AdminTrainingManagement() {
         m.translations[lang]?.toLowerCase() === newMuscleGroup.trim().toLowerCase()
       )
       if (duplicate) {
-        toast.error("This muscle group already exists")
+        haptic.warning(); toast.error(t("admin.exercises.toast.muscleExists"))
         return
       }
       const newOption = {
@@ -271,7 +274,7 @@ export default function AdminTrainingManagement() {
       }
       setMuscleOptions([...muscleOptions, newOption])
       setNewMuscleGroup("")
-      toast.success("Muscle group added successfully")
+      haptic.success(); toast.success(t("admin.exercises.toast.muscleAdded"))
     }
   }
 
@@ -285,7 +288,7 @@ export default function AdminTrainingManagement() {
         targetMuscles: v.targetMuscles.filter(id => id !== removed.id)
       })))
     }
-    toast.success("Muscle group removed successfully")
+    haptic.success(); toast.success(t("admin.exercises.toast.muscleRemoved"))
   }
 
   const startEditingMuscle = (index, value) => {
@@ -306,7 +309,7 @@ export default function AdminTrainingManagement() {
       setMuscleOptions(updated)
       setEditingMuscleIndex(null)
       setEditingMuscleValue("")
-      toast.success("Muscle group updated successfully")
+      haptic.success(); toast.success(t("admin.exercises.toast.muscleUpdated"))
     }
   }
 
@@ -318,7 +321,7 @@ export default function AdminTrainingManagement() {
         e.translations[lang]?.toLowerCase() === newEquipment.trim().toLowerCase()
       )
       if (duplicate) {
-        toast.error("This equipment already exists")
+        haptic.warning(); toast.error(t("admin.exercises.toast.equipmentExists"))
         return
       }
       const newOption = {
@@ -327,7 +330,7 @@ export default function AdminTrainingManagement() {
       }
       setEquipmentOptions([...equipmentOptions, newOption])
       setNewEquipment("")
-      toast.success("Equipment added successfully")
+      haptic.success(); toast.success(t("admin.exercises.toast.equipmentAdded"))
     }
   }
 
@@ -341,7 +344,7 @@ export default function AdminTrainingManagement() {
         equipment: v.equipment.filter(id => id !== removed.id)
       })))
     }
-    toast.success("Equipment removed successfully")
+    haptic.success(); toast.success(t("admin.exercises.toast.equipmentRemoved"))
   }
 
   const startEditingEquipment = (index, value) => {
@@ -362,7 +365,7 @@ export default function AdminTrainingManagement() {
       setEquipmentOptions(updated)
       setEditingEquipmentIndex(null)
       setEditingEquipmentValue("")
-      toast.success("Equipment updated successfully")
+      haptic.success(); toast.success(t("admin.exercises.toast.equipmentUpdated"))
     }
   }
 
@@ -385,11 +388,11 @@ export default function AdminTrainingManagement() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex justify-between items-center gap-2 w-full md:w-auto">
-            <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training Exercises</h1>
+            <h1 className="text-white text-xl md:text-2xl font-bold mb-2">{t("admin.exercises.title")}</h1>
             <button
               onClick={() => setIsManageOptionsModalOpen(true)}
               className="md:hidden p-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white transition-colors"
-              aria-label="Manage Options"
+              aria-label={t("admin.exercises.manageOptions")}
             >
               <Settings size={18} />
             </button>
@@ -400,14 +403,14 @@ export default function AdminTrainingManagement() {
               className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-gray-600 hover:bg-gray-700 rounded-xl text-white font-medium transition-colors"
             >
               <Settings size={18} />
-              Manage Options
+              {t("admin.exercises.manageOptions")}
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors"
             >
               <Plus size={18} />
-              Upload Exercise
+              {t("admin.exercises.uploadExercise")}
             </button>
           </div>
         </div>
@@ -418,7 +421,7 @@ export default function AdminTrainingManagement() {
             <Search className="absolute left-3 text-sm top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search exercises (all languages)..."
+              placeholder={t("admin.exercises.search.placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
@@ -431,7 +434,7 @@ export default function AdminTrainingManagement() {
             >
               <Filter size={16} />
               <span className="truncate">
-                {selectedDifficulty === "all" ? "All Levels" : selectedDifficulty}
+                {selectedDifficulty === "all" ? t("admin.exercises.allLevels") : selectedDifficulty}
               </span>
               <ChevronDown
                 size={16}
@@ -444,7 +447,7 @@ export default function AdminTrainingManagement() {
                   onClick={() => { setSelectedDifficulty("all"); setIsDifficultyDropdownOpen(false) }}
                   className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors ${selectedDifficulty === "all" ? "bg-[#3F3F3F]" : ""}`}
                 >
-                  <span className="text-white">All Levels</span>
+                  <span className="text-white">{t("admin.exercises.allLevels")}</span>
                 </button>
                 {difficultyOptions.map((difficulty) => (
                   <button
@@ -460,6 +463,7 @@ export default function AdminTrainingManagement() {
           </div>
         </div>
 
+        <PullToRefresh onRefresh={async () => { haptic.success() }} className="flex-1 overflow-y-auto">
         {/* Exercise Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredVideos.map((video) => (
@@ -502,7 +506,7 @@ export default function AdminTrainingManagement() {
 
                 {/* Translation status indicator */}
                 <div className="flex items-center gap-1 mb-3">
-                  <span className="text-gray-600 text-xs mr-1">Translations:</span>
+                  <span className="text-gray-600 text-xs mr-1">{t("admin.exercises.translations")}</span>
                   {["en", "de", "fr", "it", "es"].map((lang) => (
                     <span
                       key={lang}
@@ -524,21 +528,21 @@ export default function AdminTrainingManagement() {
                     <button
                       onClick={() => { setSelectedVideo(video); setIsViewModalOpen(true) }}
                       className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                      title="View"
+                      title={t("admin.exercises.actions.view")}
                     >
                       <Eye size={14} className="text-gray-400" />
                     </button>
                     <button
                       onClick={() => openEditModal(video)}
                       className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                      title="Edit"
+                      title={t("admin.exercises.actions.edit")}
                     >
                       <Edit size={14} className="text-gray-400" />
                     </button>
                     <button
                       onClick={() => { setVideoToDelete(video); setIsDeleteModalOpen(true) }}
                       className="p-2 bg-[#2F2F2F] hover:bg-red-600/20 rounded-lg transition-colors"
-                      title="Delete"
+                      title={t("admin.exercises.actions.delete")}
                     >
                       <Trash2 size={14} className="text-red-400" />
                     </button>
@@ -553,10 +557,11 @@ export default function AdminTrainingManagement() {
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Dumbbell size={48} className="mx-auto mb-4" />
-              <p>No exercises found matching your criteria</p>
+              <p>{t("admin.exercises.noResults")}</p>
             </div>
           </div>
         )}
+        </PullToRefresh>
       </div>
 
       {/* Manage Options Modal */}
@@ -631,7 +636,7 @@ export default function AdminTrainingManagement() {
       <button
         onClick={() => setIsCreateModalOpen(true)}
         className="md:hidden fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Upload Exercise"
+        aria-label={t("admin.exercises.uploadExercise")}
       >
         <Plus size={22} />
       </button>

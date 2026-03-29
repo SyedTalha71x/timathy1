@@ -609,8 +609,8 @@ const StudioMenu = () => {
 
       {/* ===== TAB NAVIGATION — sticky ===== */}
       <div className="flex-shrink-0 px-2 md:px-6 pt-2 md:pt-6">
-        <div ref={tabBarRef} className="flex border-b border-border overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-          <div className="flex min-w-max w-full">
+        <div ref={tabBarRef} className="flex border-b border-border">
+          <div className="flex w-full">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -619,8 +619,8 @@ const StudioMenu = () => {
                   if (tab.key === activeSection) return
                   animateToTab(tab.key)
                 }}
-                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                className={`flex-1 min-w-[80px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base whitespace-nowrap transition-colors duration-150 ${activeSection === tab.key
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', flex: '1 1 auto' }}
+                className={`py-2.5 sm:py-3 px-2 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base whitespace-nowrap transition-colors duration-150 ${activeSection === tab.key
                     ? "text-content-primary border-b-2 border-primary"
                     : "text-content-muted hover:text-content-primary active:text-content-primary"
                   }`}

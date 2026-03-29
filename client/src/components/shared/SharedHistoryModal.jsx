@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
   X, UserCog, Calendar, Activity, CreditCard, FileText,
   ArrowRight, Clock, CheckCircle, XCircle, Mail, Bell,
@@ -65,12 +66,14 @@ const EmptyState = ({ icon: Icon, title, description }) => (
 // ─── Card Components ─────────────────────────────────────────────────────────
 
 // Used by: member (general), staff (profile), lead (general)
-const ChangeCard = ({ change }) => (
+const ChangeCard = ({ change }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
       <div className="flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-primary" />
-        <h4 className="font-medium text-content-primary">{change.field}{change.field && !change.field.includes("Changed") ? " Changed" : ""}</h4>
+        <h4 className="font-medium text-content-primary">{change.field}{change.field && !change.field.includes("Changed") ? ` ${t("shared.history.labels.changed")}` : ""}</h4>
       </div>
       <div className="flex items-center gap-2 text-xs text-content-faint">
         <Clock size={12} />
@@ -89,13 +92,16 @@ const ChangeCard = ({ change }) => (
       </div>
     </div>
     <p className="text-xs text-content-faint">
-      Changed by <span className="text-content-secondary">{change.changedBy}</span>
+      {t("shared.history.labels.changedBy", { name: change.changedBy })}
     </p>
   </div>
-)
+  )
+}
 
 // Used by: member (appointments)
-const AppointmentCard = ({ item }) => (
+const AppointmentCard = ({ item }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
       <div className="flex items-center gap-3">
@@ -112,15 +118,18 @@ const AppointmentCard = ({ item }) => (
       </span>
     </div>
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-content-faint">
-      <span>Type: <span className="text-content-muted">{item.appointmentType}</span></span>
-      <span>Date: <span className="text-content-muted">{item.appointmentDate} at {item.appointmentTime}</span></span>
-      <span>By: <span className="text-content-muted">{item.bookedBy}</span></span>
+      <span>{t("shared.history.labels.type")}: <span className="text-content-muted">{item.appointmentType}</span></span>
+      <span>{t("shared.history.labels.date")}: <span className="text-content-muted">{item.appointmentDate} {t("shared.history.labels.at")} {item.appointmentTime}</span></span>
+      <span>{t("shared.history.labels.by")}: <span className="text-content-muted">{item.bookedBy}</span></span>
     </div>
   </div>
-)
+  )
+}
 
 // Used by: member (check-ins)
-const CheckinCard = ({ item }) => (
+const CheckinCard = ({ item }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-3">
@@ -139,10 +148,11 @@ const CheckinCard = ({ item }) => (
       </div>
     </div>
     <div className="mt-3 pt-3 border-t border-border text-xs text-content-faint">
-      Location: <span className="text-content-muted">{item.location}</span>
+      {t("shared.history.labels.location")}: <span className="text-content-muted">{item.location}</span>
     </div>
   </div>
-)
+  )
+}
 
 // Used by: member (finance)
 const FinanceCard = ({ item }) => (
@@ -167,7 +177,9 @@ const FinanceCard = ({ item }) => (
 )
 
 // Used by: member (contracts tab), contract variant
-const ContractChangeCard = ({ item }) => (
+const ContractChangeCard = ({ item }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
       <div className="flex items-center gap-3">
@@ -195,14 +207,16 @@ const ContractChangeCard = ({ item }) => (
       </div>
     )}
     <p className="text-xs text-content-faint">
-      By <span className="text-content-secondary">{item.user || item.performedBy}</span>
+      {t("shared.history.labels.by")}: <span className="text-content-secondary">{item.user || item.performedBy}</span>
     </p>
   </div>
-)
+  )
+}
 
 // Used by: member (communication)
 const CommunicationCard = ({ item }) => {
   const [expanded, setExpanded] = useState(false)
+  const { t } = useTranslation()
   const isEmail = item.channel === "email"
 
   return (
@@ -220,7 +234,7 @@ const CommunicationCard = ({ item }) => {
               <div className="flex items-center gap-2">
                 <h4 className="font-medium text-content-primary">{item.subject || item.title}</h4>
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium ${isEmail ? "bg-primary/10 text-primary" : "bg-amber-500/10 text-amber-500"}`}>
-                  {isEmail ? "Email" : "Push"}
+                  {isEmail ? t("shared.history.labels.emails") : t("shared.history.labels.push")}
                 </span>
               </div>
               <p className="text-xs text-content-faint mt-0.5">{item.date} • {item.time}</p>
@@ -253,16 +267,16 @@ const CommunicationCard = ({ item }) => {
           {isEmail && item.to && (
             <div className="flex items-center gap-2 text-xs text-content-faint pt-3 pb-2">
               <Send size={12} />
-              <span>To: <span className="text-content-muted">{item.to}</span></span>
+              <span>{t("shared.history.labels.to")}: <span className="text-content-muted">{item.to}</span></span>
             </div>
           )}
           <div
             className="text-sm text-content-secondary leading-relaxed pt-2 prose-sm max-w-none [&_a]:text-primary [&_a]:underline"
-            dangerouslySetInnerHTML={{ __html: item.body || item.content || "<p>No content available.</p>" }}
+            dangerouslySetInnerHTML={{ __html: item.body || item.content || `<p>${t("shared.history.labels.noContent")}</p>` }}
           />
           {item.sentBy && (
             <p className="text-xs text-content-faint mt-3 pt-3 border-t border-border">
-              Sent by <span className="text-content-secondary">{item.sentBy}</span>
+              {t("shared.history.labels.sentBy", { name: item.sentBy })}
             </p>
           )}
         </div>
@@ -272,7 +286,9 @@ const CommunicationCard = ({ item }) => {
 }
 
 // Used by: staff (actions)
-const ActionCard = ({ item }) => (
+const ActionCard = ({ item }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
       <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20">
@@ -285,11 +301,12 @@ const ActionCard = ({ item }) => (
     </div>
     <p className="text-sm text-content-secondary mb-2">{item.details}</p>
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-      <span className="text-content-faint">Target: <span className="text-content-muted">{item.target}</span></span>
-      <span className="text-content-faint">By: <span className="text-content-muted">{item.performedBy}</span></span>
+      <span className="text-content-faint">{t("shared.history.labels.target")}: <span className="text-content-muted">{item.target}</span></span>
+      <span className="text-content-faint">{t("shared.history.labels.by")}: <span className="text-content-muted">{item.performedBy}</span></span>
     </div>
   </div>
-)
+  )
+}
 
 // Used by: staff (login activity)
 const LoginCard = ({ item }) => {
@@ -333,7 +350,9 @@ const LoginCard = ({ item }) => {
 }
 
 // Used by: staff (vacation)
-const VacationCard = ({ item }) => (
+const VacationCard = ({ item }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
       <div className="flex items-center gap-3">
@@ -345,7 +364,7 @@ const VacationCard = ({ item }) => (
             {new Date(item.startDate).toLocaleDateString("de-DE", { day: "2-digit", month: "short" })} - {new Date(item.endDate).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" })}
           </p>
           <p className="text-xs text-content-faint mt-0.5">
-            {item.days} days • Requested {new Date(item.requestDate).toLocaleDateString("de-DE")}
+            {t("shared.history.labels.days", { count: item.days })} • {t("shared.history.labels.requested", { date: new Date(item.requestDate).toLocaleDateString("de-DE") })}
           </p>
         </div>
       </div>
@@ -355,13 +374,16 @@ const VacationCard = ({ item }) => (
       </span>
     </div>
     <p className="text-xs text-content-faint">
-      Approved by <span className="text-content-muted">{item.approvedBy}</span>
+      {t("shared.history.labels.approvedBy", { name: item.approvedBy })}
     </p>
   </div>
-)
+  )
+}
 
 // Used by: lead (trial training)
-const TrialCard = ({ item }) => (
+const TrialCard = ({ item }) => {
+  const { t } = useTranslation()
+  return (
   <div className="bg-surface-dark rounded-xl p-4">
     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
       <div className="flex items-center gap-3">
@@ -382,14 +404,44 @@ const TrialCard = ({ item }) => (
     </div>
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
       <span className="text-content-faint">
-        Type: <span className="text-content-muted">{item.trialType}</span>
+        {t("shared.history.labels.type")}: <span className="text-content-muted">{item.trialType}</span>
         {" • "}
-        Trial Date: <span className="text-content-muted">{item.trialDate} at {item.trialTime}</span>
+        {t("shared.history.labels.trialDate")}: <span className="text-content-muted">{item.trialDate} {t("shared.history.labels.at")} {item.trialTime}</span>
       </span>
       <span className="text-content-faint">
-        By: <span className="text-content-muted">{item.bookedBy}</span>
+        {t("shared.history.labels.by")}: <span className="text-content-muted">{item.bookedBy}</span>
       </span>
     </div>
+  </div>
+  )
+}
+
+
+// Used by: studio (tickets)
+const TicketCard = ({ item }) => (
+  <div className="bg-surface-dark rounded-xl p-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <FileText size={18} className="text-primary" />
+        </div>
+        <div>
+          <h4 className="font-medium text-content-primary">{item.title}</h4>
+          <p className="text-xs text-content-faint mt-0.5">{item.date}</p>
+        </div>
+      </div>
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border ${
+        item.status === "resolved" || item.status === "closed"
+          ? "bg-primary/10 text-primary border-primary/20"
+          : item.status === "open"
+            ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+            : "bg-surface-button text-content-muted border-border"
+      }`}>
+        {(item.status === "resolved" || item.status === "closed") && <CheckCircle size={12} />}
+        {item.status}
+      </span>
+    </div>
+    <p className="text-sm text-content-secondary">{item.description}</p>
   </div>
 )
 
@@ -397,6 +449,7 @@ const TrialCard = ({ item }) => (
 // ─── Communication Tab (with filter logic) ───────────────────────────────────
 
 const CommunicationTab = ({ data, hidePush = false }) => {
+  const { t } = useTranslation()
   const [filter, setFilter] = useState("all")
   const filteredData = hidePush ? data.filter(m => m.channel !== "push") : data
   const filtered = filter === "all" ? filteredData : filteredData.filter(m => m.channel === filter)
@@ -406,10 +459,10 @@ const CommunicationTab = ({ data, hidePush = false }) => {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <FilterPill active={filter === "all"} onClick={() => setFilter("all")} label="All" count={filteredData.length} />
-        <FilterPill active={filter === "email"} onClick={() => setFilter("email")} label="Emails" count={emailCount} />
+        <FilterPill active={filter === "all"} onClick={() => setFilter("all")} label={t("shared.history.labels.all")} count={filteredData.length} />
+        <FilterPill active={filter === "email"} onClick={() => setFilter("email")} label={t("shared.history.labels.emails")} count={emailCount} />
         {!hidePush && (
-          <FilterPill active={filter === "push"} onClick={() => setFilter("push")} label="Push" count={pushCount} />
+          <FilterPill active={filter === "push"} onClick={() => setFilter("push")} label={t("shared.history.labels.push")} count={pushCount} />
         )}
       </div>
       {filtered.length > 0 ? (
@@ -417,8 +470,8 @@ const CommunicationTab = ({ data, hidePush = false }) => {
       ) : (
         <EmptyState
           icon={Mail}
-          title="No Messages"
-          description={filter === "all" ? "No communication history has been recorded yet." : `No ${filter} messages found.`}
+          title={t("shared.history.empty.noMessages")}
+          description={filter === "all" ? t("shared.history.empty.noMessagesDesc") : t("shared.history.empty.noFilterMessages", { filter })}
         />
       )}
     </div>
@@ -429,42 +482,47 @@ const CommunicationTab = ({ data, hidePush = false }) => {
 // ─── Tab & Variant Configuration ─────────────────────────────────────────────
 
 // Each tab definition: { id, label, icon, dataKey, Card, emptyTitle, emptyDesc, custom? }
-const TAB_REGISTRY = {
+const TAB_REGISTRY = (t) => ({
   // Member tabs
-  general:       { label: "General",       icon: UserCog,    Card: ChangeCard,         emptyTitle: "No General Changes",   emptyDesc: "No profile changes have been recorded yet." },
-  communication: { label: "Communication", icon: Mail,       Card: null,               emptyTitle: "No Messages",          emptyDesc: "No communication history has been recorded yet.", custom: true },
-  appointments:  { label: "Appointments",  icon: Calendar,   Card: AppointmentCard,    emptyTitle: "No Appointments",      emptyDesc: "No appointment history has been recorded yet." },
-  checkins:      { label: "Check-ins",     icon: Activity,   Card: CheckinCard,        emptyTitle: "No Check-ins",         emptyDesc: "No check-in activity has been recorded yet." },
-  finance:       { label: "Finance",       icon: CreditCard, Card: FinanceCard,        emptyTitle: "No Transactions",      emptyDesc: "No finance transactions have been recorded yet." },
-  contracts:     { label: "Contracts",     icon: FileText,   Card: ContractChangeCard,  emptyTitle: "No Contract Changes",  emptyDesc: "No contract changes have been recorded yet." },
+  general:       { label: t("shared.history.tabs.general"),        icon: UserCog,    Card: ChangeCard,         emptyTitle: t("shared.history.empty.noGeneralChanges"),   emptyDesc: t("shared.history.empty.noGeneralChangesDesc") },
+  communication: { label: t("shared.history.tabs.communication"),  icon: Mail,       Card: null,               emptyTitle: t("shared.history.empty.noMessages"),          emptyDesc: t("shared.history.empty.noMessagesDesc"), custom: true },
+  appointments:  { label: t("shared.history.tabs.appointments"),   icon: Calendar,   Card: AppointmentCard,    emptyTitle: t("shared.history.empty.noAppointments"),      emptyDesc: t("shared.history.empty.noAppointmentsDesc") },
+  checkins:      { label: t("shared.history.tabs.checkins"),       icon: Activity,   Card: CheckinCard,        emptyTitle: t("shared.history.empty.noCheckins"),          emptyDesc: t("shared.history.empty.noCheckinsDesc") },
+  finance:       { label: t("shared.history.tabs.finance"),        icon: CreditCard, Card: FinanceCard,        emptyTitle: t("shared.history.empty.noTransactions"),      emptyDesc: t("shared.history.empty.noTransactionsDesc") },
+  contracts:     { label: t("shared.history.tabs.contracts"),      icon: FileText,   Card: ContractChangeCard,  emptyTitle: t("shared.history.empty.noContractChanges"),  emptyDesc: t("shared.history.empty.noContractChangesDesc") },
   // Staff tabs
-  profile:       { label: "General",         icon: UserCog,  Card: ChangeCard,         emptyTitle: "No General Changes",   emptyDesc: "No profile changes have been recorded yet." },
-  actions:       { label: "Actions",         icon: Activity,  Card: ActionCard,         emptyTitle: "No Actions",           emptyDesc: "No actions have been recorded yet." },
-  login:         { label: "Login Activity",  icon: LogIn,     Card: LoginCard,          emptyTitle: "No Login Activity",    emptyDesc: "No login activity has been recorded yet." },
-  vacation:      { label: "Vacation",        icon: Calendar,  Card: VacationCard,       emptyTitle: "No Vacation History",  emptyDesc: "No vacation bookings have been recorded yet." },
+  profile:       { label: t("shared.history.tabs.general"),          icon: UserCog,  Card: ChangeCard,         emptyTitle: t("shared.history.empty.noGeneralChanges"),   emptyDesc: t("shared.history.empty.noGeneralChangesDesc") },
+  actions:       { label: t("shared.history.tabs.actions"),          icon: Activity,  Card: ActionCard,         emptyTitle: t("shared.history.empty.noActions"),           emptyDesc: t("shared.history.empty.noActionsDesc") },
+  login:         { label: t("shared.history.tabs.loginActivity"),    icon: LogIn,     Card: LoginCard,          emptyTitle: t("shared.history.empty.noLoginActivity"),    emptyDesc: t("shared.history.empty.noLoginActivityDesc") },
+  vacation:      { label: t("shared.history.tabs.vacation"),         icon: Calendar,  Card: VacationCard,       emptyTitle: t("shared.history.empty.noVacation"),         emptyDesc: t("shared.history.empty.noVacationDesc") },
   // Lead tabs
-  trial:         { label: "Trial Training",  icon: Activity,  Card: TrialCard,          emptyTitle: "No Trial Training",    emptyDesc: "No trial training activities have been recorded yet." },
-}
+  trial:         { label: t("shared.history.tabs.trialTraining"),    icon: Activity,  Card: TrialCard,          emptyTitle: t("shared.history.empty.noTrialTraining"),    emptyDesc: t("shared.history.empty.noTrialTrainingDesc") },
+  // Studio tabs
+  tickets:       { label: t("shared.history.tabs.tickets"),          icon: FileText,  Card: TicketCard,         emptyTitle: t("shared.history.empty.noTickets"),           emptyDesc: t("shared.history.empty.noTicketsDesc") },
+})
 
 const VARIANT_TABS = {
   member:   ["general", "communication", "appointments", "checkins", "finance", "contracts"],
   staff:    ["profile", "communication", "actions", "login", "vacation"],
   lead:     ["general", "communication", "trial"],
   contract: ["contracts"],
+  studio:   ["general", "contracts", "finance", "tickets"],
 }
 
-const VARIANT_SUBTITLES = {
-  member:   "Activity History",
-  staff:    "Activity History",
-  lead:     "Lead History",
-  contract: "Contract History",
-}
+const VARIANT_SUBTITLES = (t) => ({
+  member:   t("shared.history.subtitles.activityHistory"),
+  staff:    t("shared.history.subtitles.activityHistory"),
+  lead:     t("shared.history.subtitles.leadHistory"),
+  contract: t("shared.history.subtitles.contractHistory"),
+  studio:   t("shared.history.subtitles.studioHistory"),
+})
 
 const VARIANT_ACCENT = {
   member:   "primary",
   staff:    "secondary",
   lead:     "primary",
   contract: "primary",
+  studio:   "primary",
 }
 
 
@@ -490,12 +548,13 @@ export default function SharedHistoryModal({
   initialTab,
   onTabChange,
 }) {
+  const { t } = useTranslation()
   const isTemporary = person?.memberType === "temporary"
   const accent = VARIANT_ACCENT[variant] || "primary"
 
   // Resolve person name
-  const firstName = person?.firstName || person?.memberName?.split(" ")[0] || ""
-  const lastName = person?.lastName || person?.surname || person?.memberName?.split(" ").slice(1).join(" ") || ""
+  const firstName = person?.firstName || person?.name || person?.memberName?.split(" ")[0] || ""
+  const lastName = person?.lastName || person?.surname || (person?.firstName ? "" : "") || person?.memberName?.split(" ").slice(1).join(" ") || ""
 
   // Build tabs for this variant
   const variantTabIds = VARIANT_TABS[variant] || []
@@ -507,7 +566,7 @@ export default function SharedHistoryModal({
     })
     .map(id => ({
       id,
-      ...TAB_REGISTRY[id],
+      ...TAB_REGISTRY(t)[id],
       count: (history?.[id] || []).length,
     }))
 
@@ -560,7 +619,7 @@ export default function SharedHistoryModal({
                 <h2 className="text-xl text-content-primary font-bold">
                   {firstName} {lastName}
                 </h2>
-                <p className="text-sm text-content-muted">{VARIANT_SUBTITLES[variant]}</p>
+                <p className="text-sm text-content-muted">{VARIANT_SUBTITLES(t)[variant]}</p>
               </div>
             </div>
             <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
@@ -616,7 +675,7 @@ export default function SharedHistoryModal({
             onClick={onClose}
             className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </div>

@@ -23,6 +23,7 @@
     Filter,
     BadgeDollarSign,
     FileText,
+    File,
     Shield,
     CreditCard,
   } from "lucide-react"
@@ -50,17 +51,17 @@
   } from "../../utils/admin-panel-states/customers-states"
 
   import DefaultStudioImage from "../../../public/gray-avatar-fotor-20250912192528.png"
-  import toast, { Toaster } from "react-hot-toast"
-  import { RiContractLine } from "react-icons/ri"
+  import toast from "../../components/shared/SharedToast"
+import { RiContractLine } from "react-icons/ri"
 
-  import FranchiseModal from "../../components/admin-dashboard-components/studios-modal/franchise-modal"
-  import AssignStudioModal from "../../components/admin-dashboard-components/studios-modal/assign-studios-modal"
-  import StudioManagementModal from "../../components/admin-dashboard-components/studios-modal/studio-management-modal"
-  import FranchiseDetailsModal from "../../components/admin-dashboard-components/studios-modal/franchise-details-modal"
+  import FranchiseModal from "../../components/admin-dashboard-components/customers-components/franchise-modal"
+  import AssignStudioModal from "../../components/admin-dashboard-components/customers-components/assign-studios-modal"
+  import StudioManagementModal from "../../components/admin-dashboard-components/customers-components/studio-management-modal"
+  import FranchiseDetailsModal from "../../components/admin-dashboard-components/customers-components/franchise-details-modal"
 
-  import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
+  import StudioDetailsModal from "../../components/admin-dashboard-components/customers-components/studios-detail-modal"
 
-  import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
+  import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
 
   import { FaPersonRays } from "react-icons/fa6";
   import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states"
@@ -79,24 +80,29 @@
     RELATION_OPTIONS,
     ACCESS_ROLE_COLORS,
   } from "../../utils/admin-panel-states/customers-states";
-  import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
-  import EditAdminConfigModal from "../../components/admin-dashboard-components/studios-modal/EditAdminConfigModal";
+  import EditStudioOptionsModal from "../../components/admin-dashboard-components/customers-components/edit-studio-options-modal";
+  import EditAdminConfigModal from "../../components/admin-dashboard-components/customers-components/EditAdminConfigModal";
   import { useNavigate } from "react-router-dom";
-  import { LeadSpecialNoteIcon } from "../../components/admin-dashboard-components/shared/special-note/shared-special-note-icon";
-  import StudioDocumentManagementModal from "../../components/admin-dashboard-components/shared/StudioDocumentManagementModal";
-  import PaymentDetailsModal from "../../components/admin-dashboard-components/studios-modal/PaymentDetailsModal";
+  import { LeadSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon";
+  import DocumentManagementModal from "../../components/shared/DocumentManagementModal";
+  import PaymentDetailsModal from "../../components/admin-dashboard-components/customers-components/PaymentDetailsModal";
 
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
   // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Reusable StatusTag (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const StatusTag = ({ isActive, isArchived, compact = false }) => {
+  const StatusTag = ({
+ isActive, isArchived, compact = false, t }) => {
     const getColor = () => {
       if (isArchived) return 'bg-red-600';
       if (isActive) return 'bg-green-600';
       return 'bg-red-500';
     };
     const getText = () => {
-      if (isArchived) return 'Archived';
-      if (isActive) return 'Active';
-      return 'Inactive';
+      if (isArchived) return t("admin.customers.status.archived");
+      if (isActive) return t("admin.customers.status.active");
+      return t("admin.customers.status.inactive");
     };
     if (compact) {
       return (
@@ -154,6 +160,7 @@
     const navigate = useNavigate();
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const { t } = useTranslation()
     const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
     const [selectedStudio, setSelectedStudio] = useState(null)
     const [searchQuery, setSearchQuery] = useState("")
@@ -228,7 +235,6 @@
     const [studios, setStudios] = useState(studioDataNew)
 
     const [showHistory, setShowHistory] = useState(false)
-    const [historyTabMain, setHistoryTabMain] = useState("general")
 
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [memberHistory, setMemberHistory] = useState(studiomemberHistoryNew)
@@ -276,8 +282,8 @@
 
     const getBillingPeriodsMain = (memberId) => {
       const memberData = memberContingent[memberId]; if (!memberData) return []
-      const periods = [{ id: "current", label: `Current (${currentBillingPeriodMain})`, data: memberData.current }]
-      if (memberData.future) { Object.entries(memberData.future).forEach(([period, data]) => { periods.push({ id: period, label: `Future (${period})`, data }) }) }
+      const periods = [{ id: "current", label: t("admin.customers.billing.current", { period: currentBillingPeriodMain }), data: memberData.current }]
+      if (memberData.future) { Object.entries(memberData.future).forEach(([period, data]) => { periods.push({ id: period, label: t("admin.customers.billing.future", { period }), data }) }) }
       return periods
     }
 
@@ -301,7 +307,8 @@
 
     // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sort options (matching members.jsx pattern) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const currentSortOptions = viewMode === "studios" ? STUDIO_SORT_OPTIONS : FRANCHISE_SORT_OPTIONS
-    const currentSortLabel = currentSortOptions.find((opt) => opt.value === sortBy)?.label || "Name"
+    const tSort = (value) => t(`admin.customers.sort.${value}`, value)
+    const currentSortLabel = tSort(sortBy)
     const getSortIcon = () => sortDirection === "asc" ? <ArrowUp size={14} className="text-white" /> : <ArrowDown size={14} className="text-white" />
     const handleSortOptionClick = (newSortBy) => { if (sortBy === newSortBy) { setSortDirection(sortDirection === "asc" ? "desc" : "asc") } else { setSortBy(newSortBy); setSortDirection("asc") } }
     const handleMobileSortOptionClick = (newSortBy) => { handleSortOptionClick(newSortBy); setShowMobileSortDropdown(false) }
@@ -311,9 +318,9 @@
     const getFilteredLeads = () => { if (!selectedStudioForModal || !studioLeads[selectedStudioForModal.id]) return []; return studioLeads[selectedStudioForModal.id].filter((lead) => `${lead.firstName} ${lead.surname}`.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.email.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.phoneNumber.includes(leadSearchQuery) || lead.about?.toLowerCase().includes(leadSearchQuery.toLowerCase())) }
     const handleViewLead = (lead) => { setSelectedLead(lead); setIsViewLeadModalOpen(true) }
     const handleEditLead = (lead) => { setSelectedLead(lead); setIsEditLeadModalOpen(true) }
-    const handleSaveEditedLead = (updatedLeadData) => { if (!selectedStudioForModal || !selectedLead) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map(lead => lead.id === selectedLead.id ? updatedLeadData : lead) })); toast.success("Lead updated successfully!"); setIsEditLeadModalOpen(false); setSelectedLead(null) }
+    const handleSaveEditedLead = (updatedLeadData) => { if (!selectedStudioForModal || !selectedLead) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map(lead => lead.id === selectedLead.id ? updatedLeadData : lead) })); haptic.success(); toast.success(t("admin.customers.toast.leadUpdated")); setIsEditLeadModalOpen(false); setSelectedLead(null) }
     const handleAddLead = () => { setIsAddLeadModalOpen(true) }
-    const handleSaveLead = (newLeadData) => { if (!selectedStudioForModal) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), { ...newLeadData, trialPeriod: newLeadData.hasTrialTraining ? "Trial Period" : "", avatar: "", source: newLeadData.source || "hardcoded" }] })); toast.success("Lead added successfully!") }
+    const handleSaveLead = (newLeadData) => { if (!selectedStudioForModal) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), { ...newLeadData, trialPeriod: newLeadData.hasTrialTraining ? "Trial Period" : "", avatar: "", source: newLeadData.source || "hardcoded" }] })); haptic.success(); toast.success(t("admin.customers.toast.leadAdded")) }
     const handleCloseModal = () => { setIsEditFranchiseModalOpen(false); setIsCreateFranchiseModalOpen(false) }
     const handleAssignStudioCloseModal = () => { setIsAssignStudioModalOpen(false); setSelectedFranchiseForAssignment(null) }
     const handleStudioManagementCloseModal = () => { setIsStudioManagementModalOpen(false); setSelectedFranchiseForManagement(null) }
@@ -381,20 +388,20 @@
     const handleLogoUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { setFranchiseForm((prev) => ({ ...prev, logo: e.target.result })) }; reader.readAsDataURL(file) } }
 
     const handleFranchiseSubmit = (formData) => {
-      if (formData.loginPassword !== formData.confirmPassword) { toast.error("Passwords do not match"); return }
+      if (formData.loginPassword !== formData.confirmPassword) { haptic.warning(); toast.error(t("admin.customers.toast.passwordMismatch")); return }
       if (selectedFranchise) {
         setFranchises(franchises.map((f) => f.id === selectedFranchise.id ? { ...f, ...formData } : f))
-        setIsEditFranchiseModalOpen(false); setSelectedFranchise(null); toast.success("Franchise updated successfully")
+        setIsEditFranchiseModalOpen(false); setSelectedFranchise(null); haptic.success(); toast.success(t("admin.customers.toast.franchiseUpdated"))
       } else {
         setFranchises([...franchises, { id: Math.max(...franchises.map((f) => f.id), 0) + 1, ...formData, createdDate: new Date().toISOString().split("T")[0], studioCount: 0 }])
-        setIsCreateFranchiseModalOpen(false); toast.success("Franchise created successfully")
+        setIsCreateFranchiseModalOpen(false); haptic.success(); toast.success(t("admin.customers.toast.franchiseCreated"))
       }
       setFranchiseForm({ ...DEFAULT_FRANCHISE_FORM })
     }
 
    const handleMemberEditSubmit = (e, formData) => {
   e.preventDefault()
-  setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); toast.success("Details updated successfully")
+  setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); haptic.success(); toast.success(t("admin.customers.toast.detailsUpdated"))
 }
 
     const handleViewMemberDetails = (member) => { setSelectedItemForDetails(member); setIsMemberDetailsModalOpen(true) }
@@ -438,25 +445,26 @@
     const handleEditStudio = (studio) => { setSelectedStudio(studio); setIsEditOptionsModalOpen(true) }
     const handleAdminConfig = (studio) => { setIsEditOptionsModalOpen(false); setSelectedStudio(studio); setAdminConfigInitialTab("details"); setIsAdminConfigModalOpen(true) }
     const handleEditSpecialNote = (studio) => { setSelectedStudio(studio); setAdminConfigInitialTab("note"); setIsAdminConfigModalOpen(true) }
+
     const handleSaveAdminConfig = (updatedStudio) => { setStudios(prev => prev.map(s => s.id === updatedStudio.id ? { ...s, ...updatedStudio } : s)) }
     const handleStudioConfig = (studio) => { navigate(`/admin-dashboard/edit-studio-configuration/${studio.id}`); setIsEditOptionsModalOpen(false) }
     const handleEditFranchise = (franchise) => { setSelectedFranchise(franchise); setIsEditFranchiseModalOpen(true) }
     const handleViewDetails = (studio) => { setSelectedStudio(studio); setIsViewDetailsModalOpen(true) }
     const handleViewFranchiseDetails = (franchise) => { setSelectedFranchise(franchise); setIsFranchiseDetailsModalOpen(true) }
     const handleGoToContract = (studio) => { setSelectedStudioForModal(studio); setIsContractsModalOpen(true); setIsViewDetailsModalOpen(false) }
-    const handleArchiveFranchise = (fId) => { setFranchises(franchises.map((f) => f.id === fId ? { ...f, isArchived: !f.isArchived } : f)); toast.success("Franchise archived successfully") }
+    const handleArchiveFranchise = (fId) => { setFranchises(franchises.map((f) => f.id === fId ? { ...f, isArchived: !f.isArchived } : f)); haptic.success(); toast.success(t("admin.customers.toast.franchiseArchived")) }
 
     const handleAssignStudio = (franchiseId, studioId) => {
       setStudios(studios.map((s) => s.id === studioId ? { ...s, franchiseId } : s))
       setFranchises(franchises.map((f) => f.id === franchiseId ? { ...f, studioCount: f.studioCount + 1 } : f))
-      toast.success("Studio assigned to franchise successfully")
+      haptic.success(); toast.success(t("admin.customers.toast.studioAssigned"))
     }
 
     const handleUnassignStudio = (studioId) => {
       const studio = studios.find((s) => s.id === studioId)
       setStudios(studios.map((s) => s.id === studioId ? { ...s, franchiseId: null } : s))
       if (studio.franchiseId) { setFranchises(franchises.map((f) => f.id === studio.franchiseId ? { ...f, studioCount: Math.max(0, f.studioCount - 1) } : f)) }
-      toast.success("Studio unassigned from franchise")
+      haptic.success(); toast.success(t("admin.customers.toast.studioUnassigned"))
     }
 
     const handleOpenStudioManagement = (franchise) => { setSelectedFranchiseForManagement(franchise); setIsStudioManagementModalOpen(true) }
@@ -464,8 +472,8 @@
     const handleOpenStaffsModal = (studio) => { navigate(`/admin-dashboard/studio-staff/${studio.id}`) }
     const handleOpenContractsModal = (studio) => { navigate(`/admin-dashboard/studio-contracts/${studio.id}`) }
 
-    const handleDownloadFile = (fileName) => { toast.success(`Downloading ${fileName}`) }
-    const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); toast.success(`${newFiles.length} file(s) uploaded successfully`) } }
+    const handleDownloadFile = (fileName) => { haptic.success(); toast.success(t("admin.customers.toast.downloading", { fileName })) }
+    const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); haptic.success(); toast.success(t("admin.customers.toast.filesUploaded", { count: newFiles.length })) } }
     const handleHistoryFromOverview = (member) => { setSelectedMemberForEdit(member); setShowHistoryModal(true) }
     const handleDocumentFromOverview = (member) => { setSelectedMemberForEdit(member); setShowDocumentModal(true) }
     const handleCalendarFromOverview = (member) => { setSelectedMemberForEdit(member); setShowAppointmentModalMain(true) }
@@ -475,8 +483,8 @@
     const handleCreateNewAppointmentMain = () => { setShowCreateAppointmentModalMain(true); setShowAppointmentModalMain(false) }
     const handleManageContingentMain = (memberId) => { const d = memberContingent[memberId]; if (d) { setTempContingentMain(d.current); setSelectedBillingPeriodMain("current") } else { setTempContingentMain({ used: 0, total: 0 }) }; setShowContingentModalMain(true) }
     const handleBillingPeriodChange = (periodId) => { setSelectedBillingPeriodMain(periodId); const d = memberContingent[selectedMemberForEdit.id]; if (periodId === "current") setTempContingentMain(d.current); else setTempContingentMain(d.future[periodId] || { used: 0, total: 0 }) }
-    const handleSaveContingentMain = () => { if (selectedMemberForEdit) { const u = { ...memberContingent }; if (selectedBillingPeriodMain === "current") u[selectedMemberForEdit.id].current = { ...tempContingentMain }; else { if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[selectedBillingPeriodMain] = { ...tempContingentMain } }; setMemberContingent(u); toast.success("Contingent updated successfully") }; setShowContingentModalMain(false) }
-    const handleAddBillingPeriodMain = () => { if (newBillingPeriodMain.trim() && selectedMemberForEdit) { const u = { ...memberContingent }; if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[newBillingPeriodMain] = { used: 0, total: 0 }; setMemberContingent(u); setNewBillingPeriodMain(""); setShowAddBillingPeriodModalMain(false); toast.success("New billing period added successfully") } }
+    const handleSaveContingentMain = () => { if (selectedMemberForEdit) { const u = { ...memberContingent }; if (selectedBillingPeriodMain === "current") u[selectedMemberForEdit.id].current = { ...tempContingentMain }; else { if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[selectedBillingPeriodMain] = { ...tempContingentMain } }; setMemberContingent(u); haptic.success(); toast.success(t("admin.customers.toast.contingentUpdated")) }; setShowContingentModalMain(false) }
+    const handleAddBillingPeriodMain = () => { if (newBillingPeriodMain.trim() && selectedMemberForEdit) { const u = { ...memberContingent }; if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[newBillingPeriodMain] = { used: 0, total: 0 }; setMemberContingent(u); setNewBillingPeriodMain(""); setShowAddBillingPeriodModalMain(false); haptic.success(); toast.success(t("admin.customers.toast.billingPeriodAdded")) } }
     const handleAddAppointmentSubmit = (data) => { setAppointmentsMain([...appointmentsMain, { id: Math.max(0, ...appointmentsMain.map((a) => a.id)) + 1, ...data, memberId: selectedMemberForEdit?.id }]); setShowCreateAppointmentModalMain(false) }
     const handleAppointmentChange = (changes) => { if (selectedAppointmentDataMain) setSelectedAppointmentDataMain({ ...selectedAppointmentDataMain, ...changes }) }
     const handleViewContractHistory = (contract) => { setSelectedContractForHistory(contract); setIsContractHistoryModalOpen(true) }
@@ -486,31 +494,29 @@
       const newTempMember = { id: Math.max(0, ...(studioMembers[selectedStudioForModal.id] || []).map(m => m.id)) + 1, firstName: tempMemberForm.firstName, lastName: tempMemberForm.lastName, email: tempMemberForm.email, phone: tempMemberForm.phone, gender: tempMemberForm.gender, country: tempMemberForm.country, street: tempMemberForm.street, zipCode: tempMemberForm.zipCode, city: tempMemberForm.city, dateOfBirth: tempMemberForm.dateOfBirth, about: tempMemberForm.about, joinDate: new Date().toISOString().split('T')[0], status: "active", isTemporary: true, note: tempMemberForm.note, noteImportance: tempMemberForm.noteImportance, noteStartDate: tempMemberForm.noteStartDate, noteEndDate: tempMemberForm.noteEndDate, autoArchiveDate: tempMemberForm.autoArchivePeriod ? new Date(Date.now() + tempMemberForm.autoArchivePeriod * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null }
       setStudioMembers(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newTempMember] }))
       setTempMemberForm({ ...DEFAULT_TEMP_MEMBER_FORM })
-      setTempMemberModalTab("details"); setIsCreateTempMemberModalOpen(false); toast.success("Temporary member created successfully!")
+      setTempMemberModalTab("details"); setIsCreateTempMemberModalOpen(false); haptic.success(); toast.success(t("admin.customers.toast.tempMemberCreated"))
     }
 
     const handleTempMemberInputChange = (e) => { const { name, value } = e.target; setTempMemberForm(prev => ({ ...prev, [name]: value })) }
     const handleImgUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => { setTempMemberForm(prev => ({ ...prev, img: ev.target.result })) }; reader.readAsDataURL(file) } }
     const relationOptionsMain = RELATION_OPTIONS
     const handleTrainingPlanFromOverview = (member) => { setSelectedMemberForEdit(member); setShowTrainingPlansModalMain(true) }
-    const handleAssignPlanMain = (memberId, planId) => { const plan = availableTrainingPlansMain.find(p => p.id === parseInt(planId)); if (!plan) return; setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: [...(prev[memberId] || []), { ...plan, assignedDate: new Date().toISOString().split('T')[0] }] })); toast.success("Training plan assigned successfully!"); setShowTrainingPlansModalMain(false) }
-    const handleRemovePlanMain = (memberId, planId) => { setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: (prev[memberId] || []).filter(p => p.id !== planId) })); toast.success("Training plan removed successfully!") }
+    const handleAssignPlanMain = (memberId, planId) => { const plan = availableTrainingPlansMain.find(p => p.id === parseInt(planId)); if (!plan) return; setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: [...(prev[memberId] || []), { ...plan, assignedDate: new Date().toISOString().split('T')[0] }] })); haptic.success(); toast.success(t("admin.customers.toast.trainingPlanAssigned")); setShowTrainingPlansModalMain(false) }
+    const handleRemovePlanMain = (memberId, planId) => { setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: (prev[memberId] || []).filter(p => p.id !== planId) })); haptic.success(); toast.success(t("admin.customers.toast.trainingPlanRemoved")) }
 
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     // RENDER
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     return (
       <>
-        <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
-
-        <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
+<div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
           <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
 
             {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Header (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-white oxanium_font text-xl md:text-2xl">
-                  {viewMode === "studios" ? "Studios" : "Franchises"}
+                  {viewMode === "studios" ? t("admin.customers.title") : t("admin.customers.franchisesTitle")}
                 </h1>
 
                 {/* Sort Button - Mobile */}
@@ -521,10 +527,10 @@
                   {showMobileSortDropdown && (
                     <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
                           <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleMobileSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
-                            <span>{opt.label}</span>
+                            <span>{tSort(opt.value)}</span>
                             {sortBy === opt.value && <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                           </button>
                         ))}
@@ -537,9 +543,9 @@
 
               <div className="flex items-center gap-2">
                 {viewMode === "studios" ? (
-                  <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Network size={14} /><span className="hidden sm:inline">Assign to Franchise</span></button>
+                  <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Network size={14} /><span className="hidden sm:inline">{t("admin.customers.buttons.assignToFranchise")}</span></button>
                 ) : (
-                  <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Plus size={14} /><span className="hidden sm:inline">Create Franchise</span></button>
+                  <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Plus size={14} /><span className="hidden sm:inline">{t("admin.customers.buttons.createFranchise")}</span></button>
                 )}
               </div>
             </div>
@@ -577,7 +583,7 @@
                     <input
                       ref={searchInputRef}
                       type="text"
-                      placeholder={(viewMode === "studios" ? studioFilters : franchiseFilters).length > 0 ? "Add more..." : `Search ${viewMode === "studios" ? "studios" : "franchises"}...`}
+                      placeholder={(viewMode === "studios" ? studioFilters : franchiseFilters).length > 0 ? t("admin.customers.search.addMore") : viewMode === "studios" ? t("admin.customers.search.searchStudios") : t("admin.customers.search.searchFranchises")}
                       value={viewMode === "studios" ? searchQuery : franchiseSearchQuery}
                       onChange={(e) => {
                         if (viewMode === "studios") setSearchQuery(e.target.value)
@@ -598,7 +604,7 @@
                           else setFranchiseFilters([])
                         }}
                         className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
-                        title="Clear all filters"
+                        title={t("admin.customers.search.clearAllFilters")}
                       >
                         <X size={14} className="text-gray-400 hover:text-white" />
                       </button>
@@ -632,13 +638,13 @@
                   {/* No results message */}
                   {showSearchDropdown && (viewMode === "studios" ? searchQuery : franchiseSearchQuery).trim() && getSearchSuggestions().length === 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                      <p className="text-sm text-gray-500 text-center">No {viewMode === "studios" ? "studios" : "franchises"} found</p>
+                      <p className="text-sm text-gray-500 text-center">{viewMode === "studios" ? t("admin.customers.search.noStudiosFound") : t("admin.customers.search.noFranchisesFound")}</p>
                     </div>
                   )}
                 </div>
                 <div className="flex bg-black rounded-xl border border-[#333333] p-1">
-                  <button onClick={() => { setViewMode("studios"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Building size={16} /><span className="hidden sm:inline">Studios</span></button>
-                  <button onClick={() => { setViewMode("franchise"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Network size={16} /><span className="hidden sm:inline">Franchise</span></button>
+                  <button onClick={() => { setViewMode("studios"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Building size={16} /><span className="hidden sm:inline">{t("admin.customers.tabs.studios")}</span></button>
+                  <button onClick={() => { setViewMode("franchise"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Network size={16} /><span className="hidden sm:inline">{t("admin.customers.tabs.franchise")}</span></button>
                 </div>
               </div>
             </div>
@@ -647,7 +653,7 @@
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2">
                 <button onClick={() => setFiltersExpanded(!filtersExpanded)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-                  <Filter size={14} /><span className="text-xs sm:text-sm font-medium">Filters</span>
+                  <Filter size={14} /><span className="text-xs sm:text-sm font-medium">{t("admin.customers.filters.title")}</span>
                   <ChevronDown size={14} className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} />
                   {!filtersExpanded && filterStatus !== 'all' && <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">1</span>}
                 </button>
@@ -658,10 +664,10 @@
                   {showSortDropdown && (
                     <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
                           <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
-                            <span>{opt.label}</span>
+                            <span>{tSort(opt.value)}</span>
                             {sortBy === opt.value && <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                           </button>
                         ))}
@@ -673,13 +679,13 @@
               <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="flex flex-wrap gap-1.5 sm:gap-3">
                   <button onClick={() => setFilterStatus('all')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
-                    All ({viewMode === "studios" ? studios.length : franchises.length})
+                    {t("admin.customers.filters.all")} ({viewMode === "studios" ? studios.length : franchises.length})
                   </button>
                   <button onClick={() => setFilterStatus('active')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
-                    Active ({viewMode === "studios" ? studios.filter((s) => s.isActive).length : franchises.filter((f) => !f.isArchived).length})
+                    {t("admin.customers.filters.active")} ({viewMode === "studios" ? studios.filter((s) => s.isActive).length : franchises.filter((f) => !f.isArchived).length})
                   </button>
                   <button onClick={() => setFilterStatus('archived')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'archived' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
-                    {viewMode === "studios" ? "Inactive" : "Archived"} ({viewMode === "studios" ? studios.filter((s) => !s.isActive).length : franchises.filter((f) => f.isArchived).length})
+                    {viewMode === "studios" ? t("admin.customers.filters.inactive") : t("admin.customers.filters.archived")} ({viewMode === "studios" ? studios.filter((s) => !s.isActive).length : franchises.filter((f) => f.isArchived).length})
                   </button>
                 </div>
               </div>
@@ -691,13 +697,13 @@
                   /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â STUDIOS LIST VIEW Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
                   <div className="bg-[#141414] rounded-xl overflow-hidden">
                     <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium py-3">
-                      <div className="col-span-3">Studio Name</div>
-                      <div className="col-span-1">No.</div>
-                      <div className="col-span-2">Owner</div>
-                      <div className="col-span-1">Status</div>
-                      <div className="col-span-1">Access Role</div>
-                      <div className="col-span-2">Stats</div>
-                      <div className="col-span-2 text-right">Actions</div>
+                      <div className="col-span-3">{t("admin.customers.studioTable.studioName")}</div>
+                      <div className="col-span-1">{t("admin.customers.studioTable.number")}</div>
+                      <div className="col-span-2">{t("admin.customers.studioTable.owner")}</div>
+                      <div className="col-span-1">{t("admin.customers.studioTable.status")}</div>
+                      <div className="col-span-1">{t("admin.customers.studioTable.accessRole")}</div>
+                      <div className="col-span-2">{t("admin.customers.studioTable.stats")}</div>
+                      <div className="col-span-2 text-right">{t("admin.customers.studioTable.actions")}</div>
                     </div>
                     {filteredAndSortedStudios().length > 0 ? filteredAndSortedStudios().map((studio, i) => {
                       const total = filteredAndSortedStudios().length
@@ -728,7 +734,7 @@
                             <div className="col-span-2">
                               <span className="text-sm text-gray-400 truncate block">{studio.ownerName || '-'}</span>
                             </div>
-                            <div className="col-span-1"><StatusTag isActive={studio.isActive} /></div>
+                            <div className="col-span-1"><StatusTag isActive={studio.isActive} t={t} /></div>
                             <div className="col-span-1">
                               {(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (
                                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border ${colors}`}>
@@ -748,12 +754,12 @@
                               <button onClick={() => { navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BadgeDollarSign size={14} /></button>
                             </div>
                             <div className="col-span-2 flex items-center justify-end gap-0.5">
-                              <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Documents"><FileText size={18} /></button>
-                              <button onClick={() => handlePaymentClick(studio)} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Payment"><CreditCard size={18} /></button>
-                              <button onClick={() => { setSelectedStudio(studio); setShowHistory(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="History"><HistoryIcon size={18} /></button>
+                              <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.documents")}><FileText size={18} /></button>
+                              <button onClick={() => handlePaymentClick(studio)} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.payment")}><CreditCard size={18} /></button>
+                              <button onClick={() => { setSelectedStudio(studio); setShowHistory(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.history")}><HistoryIcon size={18} /></button>
                               <div className="w-px h-5 bg-gray-700/50 mx-1" />
-                              <button onClick={() => handleViewDetails(studio)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors" title="View Details"><Eye size={18} /></button>
-                              <button onClick={() => handleEditStudio(studio)} className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors" title="Edit"><Pencil size={18} /></button>
+                              <button onClick={() => handleViewDetails(studio)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.viewDetails")}><Eye size={18} /></button>
+                              <button onClick={() => handleEditStudio(studio)} className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.edit")}><Pencil size={18} /></button>
                             </div>
                           </div>
                           {/* Mobile Row */}
@@ -776,7 +782,7 @@
                                     <span className="text-white font-medium text-base truncate">{studio.name}</span>
                                     <span className="text-gray-500 text-xs font-mono flex-shrink-0">#{String(studio.studioNumber || studio.id).padStart(5, '0')}</span>
                                   </div>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={studio.isActive} compact={true} />{(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (<span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border ${colors}`}><Shield size={9} />{role}</span>) })()}<span className="text-xs text-gray-500">{studio.city}</span></div>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={studio.isActive} compact={true} t={t} />{(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (<span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border ${colors}`}><Shield size={9} />{role}</span>) })()}<span className="text-xs text-gray-500">{studio.city}</span></div>
                                 </div>
                                 <ChevronDown size={18} className={`text-gray-500 transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === studio.id ? 'rotate-180' : ''}`} />
                               </div>
@@ -785,18 +791,18 @@
                               <div className="px-3 pb-3 pt-1">
                                 <div className="bg-[#0f0f0f] rounded-xl p-2">
                                   <div className="grid grid-cols-4 gap-1 mb-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenMembersModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><HiOutlineUsers size={18} /><span className="text-[10px]">{studioStats[studio.id]?.members || 0} Members</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStaffsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BsPersonWorkspace size={18} /><span className="text-[10px]">{studioStats[studio.id]?.trainers || 0} Staff</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><RiContractLine size={18} /><span className="text-[10px]">{studioStats[studio.id]?.contracts || 0} Contracts</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{studioLeads[studio.id]?.length || 0} Leads</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenMembersModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><HiOutlineUsers size={18} /><span className="text-[10px]">{t("admin.customers.mobile.membersCount", { count: studioStats[studio.id]?.members || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStaffsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BsPersonWorkspace size={18} /><span className="text-[10px]">{t("admin.customers.mobile.staffCount", { count: studioStats[studio.id]?.trainers || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><RiContractLine size={18} /><span className="text-[10px]">{t("admin.customers.mobile.contractsCount", { count: studioStats[studio.id]?.contracts || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{t("admin.customers.mobile.leadsCount", { count: studioLeads[studio.id]?.length || 0 })}</span></button>
                                   </div>
                                   <div className="grid grid-cols-6 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">Finances</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">Docs</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handlePaymentClick(studio) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><CreditCard size={18} /><span className="text-[10px]">Payment</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">History</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleViewDetails(studio) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">Details</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleEditStudio(studio) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">Edit</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">{t("admin.customers.actions.finances")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">{t("admin.customers.actions.docs")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePaymentClick(studio) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><CreditCard size={18} /><span className="text-[10px]">{t("admin.customers.actions.payment")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">{t("admin.customers.actions.history")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewDetails(studio) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">{t("admin.customers.actions.details")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEditStudio(studio) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">{t("admin.customers.actions.edit")}</span></button>
                                   </div>
                                 </div>
                               </div>
@@ -805,19 +811,19 @@
                         </div>
                       )
                     }) : (
-                      <div className="text-center py-8"><p className="text-gray-400 text-sm">{filterStatus === "active" ? "No active studios found." : filterStatus === "archived" ? "No inactive studios found." : "No studios found."}</p></div>
+                      <div className="text-center py-8"><p className="text-gray-400 text-sm">{filterStatus === "active" ? t("admin.customers.empty.noActiveStudios") : filterStatus === "archived" ? t("admin.customers.empty.noInactiveStudios") : t("admin.customers.empty.noStudios")}</p></div>
                     )}
                   </div>
               ) : (
                 /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FRANCHISES VIEW Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
                   <div className="bg-[#141414] rounded-xl overflow-hidden">
                     <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium py-3`}>
-                      <div className="col-span-3">Franchise</div>
-                      <div className="col-span-1">Status</div>
-                      <div className="col-span-2">Owner</div>
-                      <div className="col-span-1">Studios</div>
-                      <div className="col-span-2">Login</div>
-                      <div className="col-span-3 text-right">Actions</div>
+                      <div className="col-span-3">{t("admin.customers.franchiseTable.franchise")}</div>
+                      <div className="col-span-1">{t("admin.customers.franchiseTable.status")}</div>
+                      <div className="col-span-2">{t("admin.customers.franchiseTable.owner")}</div>
+                      <div className="col-span-1">{t("admin.customers.franchiseTable.studios")}</div>
+                      <div className="col-span-2">{t("admin.customers.franchiseTable.login")}</div>
+                      <div className="col-span-3 text-right">{t("admin.customers.franchiseTable.actions")}</div>
                     </div>
                     {filteredAndSortedFranchises().length > 0 ? filteredAndSortedFranchises().map((franchise, i) => {
                       const total = filteredAndSortedFranchises().length
@@ -843,13 +849,13 @@
                                 <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-gray-500 flex-shrink-0" /><span className={`text-sm text-gray-500 truncate`}>{franchise.city}, {franchise.zipCode}</span></div>
                               </div>
                             </div>
-                            <div className="col-span-1"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} /></div>
+                            <div className="col-span-1"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} t={t} /></div>
                             <div className="col-span-2"><span className={`text-sm text-gray-400`}>{franchise.ownerFirstName} {franchise.ownerLastName}</span></div>
                             <div className="col-span-1"><button onClick={() => handleOpenStudioManagement(franchise)} className={`text-sm text-blue-400 hover:text-blue-300 inline-flex items-center gap-1`}><Building size={14} />{getStudiosByFranchise(franchise.id).length}</button></div>
                             <div className="col-span-2"><span className={`text-sm text-gray-500 truncate block`}>{franchise.loginEmail}</span></div>
                             <div className="col-span-3 flex items-center justify-end gap-0.5">
-                              <button onClick={() => handleViewFranchiseDetails(franchise)} className={`p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`} title="Details"><Eye size={18} /></button>
-                              <button onClick={() => handleEditFranchise(franchise)} className={`p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors`} title="Edit"><Pencil size={18} /></button>
+                              <button onClick={() => handleViewFranchiseDetails(franchise)} className={`p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`} title={t("admin.customers.actions.details")}><Eye size={18} /></button>
+                              <button onClick={() => handleEditFranchise(franchise)} className={`p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors`} title={t("admin.customers.actions.edit")}><Pencil size={18} /></button>
                             </div>
                           </div>
                           {/* Mobile Row */}
@@ -871,7 +877,7 @@
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <span className={`text-white font-medium text-base truncate block`}>{franchise.name}</span>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} compact={true} /><span className="text-xs text-gray-500">{franchise.city}</span></div>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} compact={true} t={t} /><span className="text-xs text-gray-500">{franchise.city}</span></div>
                                 </div>
                                 <ChevronDown size={18} className={`text-gray-500 transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === `f-${franchise.id}` ? 'rotate-180' : ''}`} />
                               </div>
@@ -880,12 +886,12 @@
                               <div className="px-3 pb-3 pt-1">
                                 <div className="bg-[#0f0f0f] rounded-xl p-2">
                                   <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">Owner: {franchise.ownerFirstName} {franchise.ownerLastName}</span>
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">{getStudiosByFranchise(franchise.id).length} Studios</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">{t("admin.customers.mobile.ownerLabel", { name: `${franchise.ownerFirstName} ${franchise.ownerLastName}` })}</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">{t("admin.customers.mobile.studiosCount", { count: getStudiosByFranchise(franchise.id).length })}</span>
                                   </div>
                                   <div className="grid grid-cols-2 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleViewFranchiseDetails(franchise) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">Details</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleEditFranchise(franchise) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">Edit</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewFranchiseDetails(franchise) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">{t("admin.customers.actions.details")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEditFranchise(franchise) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">{t("admin.customers.actions.edit")}</span></button>
                                   </div>
                                 </div>
                               </div>
@@ -894,7 +900,7 @@
                         </div>
                       )
                     }) : (
-                      <div className="text-center py-8"><Building2 size={48} className="mx-auto mb-4 text-gray-600" /><p className="text-gray-400">No franchises found.</p><button onClick={() => setIsCreateFranchiseModalOpen(true)} className="mt-4 bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl text-sm">Create Your First Franchise</button></div>
+                      <div className="text-center py-8"><Building2 size={48} className="mx-auto mb-4 text-gray-600" /><p className="text-gray-400">{t("admin.customers.empty.noFranchises")}</p><button onClick={() => setIsCreateFranchiseModalOpen(true)} className="mt-4 bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl text-sm">{t("admin.customers.buttons.createFirstFranchise")}</button></div>
                     )}
                   </div>
               )}
@@ -904,21 +910,34 @@
 
         {/* Floating Action Button - Mobile */}
         {viewMode === "studios" ? (
-          <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Assign to Franchise"><Network size={22} /></button>
+          <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.customers.buttons.assignToFranchise")}><Network size={22} /></button>
         ) : (
-          <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Franchise"><Plus size={22} /></button>
+          <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.customers.buttons.createFranchise")}><Plus size={22} /></button>
         )}
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
         <StudioDetailsModal isOpen={isViewDetailsModalOpen} onClose={() => setIsViewDetailsModalOpen(false)} studio={selectedStudio} franchises={franchises} studioStats={studioStats} DefaultStudioImage={DefaultStudioImage} isContractExpiringSoon={isContractExpiringSoon} onEditStudio={handleEditStudio} onViewFranchiseDetails={handleViewFranchiseDetails} />
-        <StudioHistoryModalMain show={showHistory} studio={selectedStudio} studioHistoryMain={studioHistoryMainData} historyTabMain={historyTabMain} setHistoryTabMain={setHistoryTabMain} onClose={() => { setShowHistory(false); setSelectedStudio(null) }} />
+        {showHistory && selectedStudio && (
+          <SharedHistoryModal
+            variant="studio"
+            person={selectedStudio}
+            history={{
+              general: studioHistoryMainData[selectedStudio.id]?.general || [],
+              contracts: studioHistoryMainData[selectedStudio.id]?.contract || [],
+              finance: studioHistoryMainData[selectedStudio.id]?.finance || [],
+              tickets: studioHistoryMainData[selectedStudio.id]?.tickets || [],
+            }}
+            onClose={() => { setShowHistory(false); setSelectedStudio(null) }}
+          />
+        )}
         <FranchiseModal isCreateModalOpen={isCreateFranchiseModalOpen} isEditModalOpen={isEditFranchiseModalOpen} onClose={handleCloseModal} franchiseForm={franchiseForm} onInputChange={handleFranchiseInputChange} onSave={handleFranchiseSubmit} onLogoUpload={handleLogoUpload} onArchive={handleArchiveFranchise} selectedFranchise={selectedFranchise} />
         <FranchiseDetailsModal isOpen={isFranchiseDetailsModalOpen} onClose={() => setIsFranchiseDetailsModalOpen(false)} franchise={selectedFranchise} onEditFranchise={handleEditFranchise} assignedStudios={selectedFranchise ? getStudiosByFranchise(selectedFranchise.id) : []} onArchiveFranchise={handleArchiveFranchise} />
         <AssignStudioModal isOpen={isAssignStudioModalOpen} onClose={handleAssignStudioCloseModal} franchises={franchises} selectedFranchiseForAssignment={selectedFranchiseForAssignment} onFranchiseSelect={setSelectedFranchiseForAssignment} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} toast={toast} />
         <StudioManagementModal isOpen={isStudioManagementModalOpen} onClose={handleStudioManagementCloseModal} franchise={selectedFranchiseForManagement} assignedStudios={selectedFranchiseForManagement ? getStudiosByFranchise(selectedFranchiseForManagement.id) : []} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} onUnassignStudio={handleUnassignStudio} onEditStudio={handleEditStudio} toast={toast} />
 
-        <StudioDocumentManagementModal
-          studio={selectedStudioForModal}
+        <DocumentManagementModal
+          entity={selectedStudioForModal}
+          entityType="studio"
           isOpen={isStudioDocumentModalOpen}
           onClose={() => {
             setIsStudioDocumentModalOpen(false)
@@ -927,6 +946,9 @@
           onDocumentsUpdate={(studioId, documents) => {
             setStudios(prev => prev.map(s => s.id === studioId ? { ...s, documents } : s))
           }}
+          sections={[
+            { id: "general", label: t("admin.customers.shared.general"), icon: File },
+          ]}
         />
         {showPaymentModal && selectedStudioForPayment && (
           <PaymentDetailsModal
@@ -942,6 +964,8 @@
         )}
         <EditStudioOptionsModal isOpen={isEditOptionsModalOpen} onClose={() => setIsEditOptionsModalOpen(false)} studio={selectedStudio} onAdminConfig={handleAdminConfig} onStudioConfig={handleStudioConfig} />
         <EditAdminConfigModal isOpen={isAdminConfigModalOpen} onClose={() => setIsAdminConfigModalOpen(false)} studio={selectedStudio} onSave={handleSaveAdminConfig} initialTab={adminConfigInitialTab} />
+        
+        
       </>
     )
   }

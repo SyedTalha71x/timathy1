@@ -2,7 +2,7 @@
 import React from "react"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Search, Plus, X, ChevronLeft, ChevronRight, File, ClipboardList } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "../../components/shared/SharedToast"
 import { useNavigate, useLocation } from "react-router-dom"
 
 // @dnd-kit imports
@@ -27,7 +27,8 @@ import ViewLeadDetailsModal from "../../components/admin-dashboard-components/le
 import EditColumnModal from "../../components/admin-dashboard-components/lead-components/edit-column-modal"
 import LeadHistoryModal from "../../components/admin-dashboard-components/lead-components/lead-history-modal"
 import DeleteConfirmationModal from "../../components/admin-dashboard-components/lead-components/delete-confirmation-modal"
-import { LeadSpecialNoteModal } from '../../components/admin-dashboard-components/shared/special-note/shared-special-note-modal'
+import { LeadSpecialNoteModal } from '../../components/shared/special-note/shared-special-note-modal'
+import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 
 // New DnD components
 import SortableColumn from "../../components/admin-dashboard-components/lead-components/sortable-column"
@@ -42,17 +43,22 @@ import {
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads, appointmentTypesData, freeAppointmentsData, leadsData as leadsDataMain } from "../../utils/studio-states"
 
+import { useTranslation } from "react-i18next"
+import PullToRefresh from "../../components/shared/PullToRefresh"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
+import { haptic } from "../../utils/haptic"
 export default function LeadManagement() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
 
   const [columns, setColumns] = useState([
-    { id: "active", title: "Active prospect", color: "#10b981" },
-    { id: "passive", title: "Passive prospect", color: "#f59e0b" },
-    { id: "uninterested", title: "Uninterested", color: "#ef4444" },
-    { id: "missed", title: "Missed Call", color: "#8b5cf6" },
-    { id: "trial", title: "Demo Access", color: "#3b82f6", isFixed: true },
+    { id: "active", title: t("admin.leads.columns.activeProspect"), color: "#10b981" },
+    { id: "passive", title: t("admin.leads.columns.passiveProspect"), color: "#f59e0b" },
+    { id: "uninterested", title: t("admin.leads.columns.uninterested"), color: "#ef4444" },
+    { id: "missed", title: t("admin.leads.columns.missedCall"), color: "#8b5cf6" },
+    { id: "trial", title: t("admin.leads.columns.demoAccess"), color: "#3b82f6", isFixed: true },
   ])
 
   // ============================================
@@ -242,7 +248,7 @@ export default function LeadManagement() {
         
         setLeads(newLeads)
         updateLocalStorage(newLeads)
-        toast.success("Lead reordered")
+        haptic.success(); toast.success(t("admin.leads.toast.reordered"))
       }
       return
     }
@@ -293,7 +299,7 @@ export default function LeadManagement() {
     updateLocalStorage(newLeads)
     
     const targetColumn = columns.find((c) => c.id === targetColumnId)
-    toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
+    haptic.success(); toast.success(t("admin.leads.toast.movedTo", { column: targetColumn?.title || targetColumnId }))
   }
 
   // Demo access confirmation handlers (drag to trial column)
@@ -579,7 +585,7 @@ export default function LeadManagement() {
     }
     setIsDeleteConfirmationModalOpen(false)
     setLeadToDelete(null)
-    toast.success("Lead has been deleted")
+    haptic.success(); toast.success(t("admin.leads.toast.deleted"))
   }
 
   const handleEditLeadNote = (lead, targetColumnId = null) => {
@@ -619,15 +625,19 @@ export default function LeadManagement() {
     
     if (targetColumnId) {
       const targetColumn = columns.find((c) => c.id === targetColumnId)
-      toast.success(`Special note added and lead moved to ${targetColumn?.title || targetColumnId}`)
+      haptic.success(); toast.success(t("admin.leads.toast.noteAddedAndMoved", { column: targetColumn?.title || targetColumnId }))
     } else {
-      toast.success("Special note added successfully")
+      haptic.success(); toast.success(t("admin.leads.toast.noteAdded"))
     }
   }
 
   const handleOpenDocuments = (lead) => {
     setSelectedLeadForDocuments(lead)
     setIsDocumentModalOpen(true)
+  }
+
+  const handleLeadDocumentsUpdate = (leadId, documents) => {
+    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, documents } : l))
   }
 
   const handleSaveLead = (data) => {
@@ -672,7 +682,7 @@ export default function LeadManagement() {
     const updatedLeads = [...leads, newLead]
     setLeads(updatedLeads)
     updateLocalStorage(updatedLeads)
-    toast.success("Lead has been added")
+    haptic.success(); toast.success(t("admin.leads.toast.added"))
   }
 
   const handleSaveEdit = (data) => {
@@ -730,9 +740,9 @@ export default function LeadManagement() {
     if (pendingMove && pendingMove.leadId === data.id) {
       sessionStorage.removeItem('pendingLeadMove')
       const targetColumn = columns.find((c) => c.id === pendingMove.targetColumnId)
-      toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId} with note`)
+      haptic.success(); toast.success(t("admin.leads.toast.movedWithNote", { column: targetColumn?.title || pendingMove.targetColumnId }))
     } else {
-      toast.success("Lead has been updated")
+      haptic.success(); toast.success(t("admin.leads.toast.updated"))
     }
   }
 
@@ -748,7 +758,7 @@ export default function LeadManagement() {
     setColumns(updatedColumns)
     setIsEditColumnModalOpen(false)
     setSelectedColumn(null)
-    toast.success("Column saved successfully")
+    haptic.success(); toast.success(t("admin.leads.toast.columnSaved"))
   }
 
   // Filter leads based on search
@@ -823,29 +833,18 @@ export default function LeadManagement() {
 
   return (
     <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-
-      {/* Header */}
+{/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
+          <h1 className="text-xl sm:text-2xl text-white font-bold">{t("admin.leads.title")}</h1>
           
           {/* Compact/Detailed View Toggle - Desktop only */}
           <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
-            <span className="text-xs text-gray-400 px-2 hidden sm:inline">View</span>
+            <span className="text-xs text-gray-400 px-2 hidden sm:inline">{t("admin.leads.view")}</span>
             <button
               onClick={() => setIsCompactView(!isCompactView)}
               className="p-2 rounded-lg transition-colors flex items-center gap-1 text-[#FF843E]"
-              title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
+              title={isCompactView ? t("admin.leads.compactView") : t("admin.leads.detailedView")}
             >
               <div className="flex flex-col gap-0.5">
                 <div className="flex gap-0.5">
@@ -872,12 +871,12 @@ export default function LeadManagement() {
               className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
             >
               <Plus size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Create Lead</span>
+              <span className="hidden sm:inline">{t("admin.leads.createLead")}</span>
             </button>
             
             {/* Tooltip */}
             <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-              <span className="font-medium">Create Lead</span>
+              <span className="font-medium">{t("admin.leads.createLead")}</span>
               <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                 C
               </span>
@@ -919,7 +918,7 @@ export default function LeadManagement() {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder={leadFilters.length > 0 ? "Add more..." : "Search leads..."}
+              placeholder={leadFilters.length > 0 ? t("admin.leads.search.addMore") : t("admin.leads.search.placeholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -938,7 +937,7 @@ export default function LeadManagement() {
                   setLeadFilters([]);
                 }}
                 className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
-                title="Clear all filters"
+                title={t("admin.leads.search.clearAll")}
               >
                 <X size={14} className="text-gray-400 hover:text-white" />
               </button>
@@ -967,7 +966,7 @@ export default function LeadManagement() {
           {/* No results message */}
           {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-              <p className="text-sm text-gray-500 text-center">No leads found</p>
+              <p className="text-sm text-gray-500 text-center">{t("admin.leads.search.noResults")}</p>
             </div>
           )}
         </div>
@@ -1056,7 +1055,7 @@ export default function LeadManagement() {
                         <ChevronRight size={16} className="text-gray-400" />
                       </button>
                       <div className="absolute left-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
-                        <span className="font-medium">Expand column</span>
+                        <span className="font-medium">{t("admin.leads.expandColumn")}</span>
                         <div className="absolute -top-1 left-2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
                       </div>
                     </div>
@@ -1230,10 +1229,10 @@ export default function LeadManagement() {
           setLeadToDelete(null)
         }}
         onConfirm={confirmDeleteLead}
-        title="Delete Lead"
+        title={t("admin.leads.deleteModal.title")}
         message={leadToDelete ? (
           <>
-            Are you sure you want to delete <span className="font-semibold">{leadToDelete.studioName || `${leadToDelete.firstName} ${leadToDelete.surname}`}</span>? This action cannot be undone.
+            {t("admin.leads.deleteModal.confirmPrefix")} <span className="font-semibold">{leadToDelete.studioName || `${leadToDelete.firstName} ${leadToDelete.surname}`}</span>{t("admin.leads.deleteModal.confirmSuffix")}
           </>
         ) : ''}
       />
@@ -1248,7 +1247,7 @@ export default function LeadManagement() {
                   <ClipboardList size={20} className="text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Create Demo Access?</h2>
+                  <h2 className="text-xl font-bold text-white">{t("admin.leads.demoModal.title")}</h2>
                   <p className="text-gray-400 text-sm mt-1">
                     {pendingDemoLead.studioName || `${pendingDemoLead.firstName} ${pendingDemoLead.surname}`}
                   </p>
@@ -1263,20 +1262,20 @@ export default function LeadManagement() {
             </div>
             <div className="p-6">
               <p className="text-gray-300 text-sm mb-6">
-                Would you like to create a demo access for this lead? You will be redirected to configure the demo setup.
+                {t("admin.leads.demoModal.description")}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleDemoConfirmNoCreate}
                   className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium text-sm"
                 >
-                  No, just move
+                  {t("admin.leads.demoModal.justMove")}
                 </button>
                 <button
                   onClick={handleDemoConfirmCreate}
                   className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm"
                 >
-                  Yes, create demo
+                  {t("admin.leads.demoModal.createDemo")}
                 </button>
               </div>
             </div>
@@ -1284,11 +1283,26 @@ export default function LeadManagement() {
         </div>
       )}
 
+      {/* Document Management Modal */}
+      <DocumentManagementModal
+        entity={selectedLeadForDocuments}
+        entityType="lead"
+        isOpen={isDocumentModalOpen}
+        onClose={() => {
+          setIsDocumentModalOpen(false)
+          setSelectedLeadForDocuments(null)
+        }}
+        onDocumentsUpdate={handleLeadDocumentsUpdate}
+        sections={[
+          { id: "general", label: t("admin.customers.shared.general"), icon: File },
+        ]}
+      />
+
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setIsModalOpen(true)}
         className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Lead"
+        aria-label={t("admin.leads.createLead")}
       >
         <Plus size={22} />
       </button>

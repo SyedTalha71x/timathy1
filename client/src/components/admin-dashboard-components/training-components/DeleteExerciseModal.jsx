@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Trash2 } from "lucide-react";
-import { getTranslation } from "../shared/LanguageTabs";
+import { getTranslation } from "../../shared/LanguageTabs";
 
 export default function DeleteExerciseModal({
   isOpen,

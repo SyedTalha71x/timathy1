@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { X, StickyNote } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 
 // Note Status Options - Shared between Leads and Members
 export const NOTE_STATUSES = [
@@ -16,8 +17,12 @@ export const NOTE_STATUSES = [
   { id: "general", label: "General" },
 ]
 
-// Helper function to get status label
-export const getStatusLabel = (statusId) => {
+export const getStatusLabel = (statusId, t = null) => {
+  if (t) {
+    const key = `admin.customers.shared.noteStatuses.${statusId}`
+    const translated = t(key)
+    if (translated !== key) return translated
+  }
   const status = NOTE_STATUSES.find(s => s.id === statusId)
   return status ? status.label : "General"
 }
@@ -40,6 +45,7 @@ export const SpecialNoteModal = ({
   entityType = "member",
   extraData = null 
 }) => {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     status: "general",
     note: "",
@@ -70,7 +76,7 @@ export const SpecialNoteModal = ({
 
   const handleSave = () => {
     if (!formData.note.trim()) {
-      toast.error("Please enter a note")
+      toast.error(t("admin.customers.shared.enterNoteText"))
       return
     }
 
@@ -79,7 +85,7 @@ export const SpecialNoteModal = ({
       const endDate = new Date(formData.noteEndDate)
 
       if (endDate < startDate) {
-        toast.error("End date cannot be before start date")
+        toast.error(t("admin.customers.shared.endBeforeStartError"))
         return
       }
     }
@@ -142,10 +148,10 @@ export const SpecialNoteModal = ({
                 <StickyNote size={20} className="text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-content-primary">Add Special Note</h2>
+                <h2 className="text-lg font-semibold text-content-primary">{t("admin.customers.shared.addSpecialNote")}</h2>
                 {getEntityName() && (
                   <p className="text-sm text-content-muted">
-                    {entityType === "lead" ? "Lead" : "Member"}: {getEntityName()}
+                    {entityType === "lead" ? t("admin.customers.shared.entityLead") : t("admin.customers.shared.entityMember")}: {getEntityName()}
                   </p>
                 )}
               </div>
@@ -162,7 +168,7 @@ export const SpecialNoteModal = ({
           <div className="border border-border rounded-xl p-4 space-y-4">
             {/* Status Selection */}
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Status</label>
+              <label className="text-sm text-content-secondary block mb-2">{t("common.status")}</label>
               <select
                 value={formData.status}
                 onChange={(e) => updateFormData("status", e.target.value)}
@@ -170,7 +176,7 @@ export const SpecialNoteModal = ({
               >
                 {NOTE_STATUSES.map((status) => (
                   <option key={status.id} value={status.id}>
-                    {status.label}
+                    {getStatusLabel(status.id, t)}
                   </option>
                 ))}
               </select>
@@ -179,7 +185,7 @@ export const SpecialNoteModal = ({
             {/* Note Text */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm text-content-secondary">Note</label>
+                <label className="text-sm text-content-secondary">{t("admin.customers.shared.note")}</label>
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -191,7 +197,7 @@ export const SpecialNoteModal = ({
                     className="mr-2 h-4 w-4 accent-primary"
                   />
                   <label htmlFor="noteImportance" className="text-sm text-content-secondary">
-                    Important
+                    {t("admin.customers.shared.important")}
                   </label>
                 </div>
               </div>
@@ -199,14 +205,14 @@ export const SpecialNoteModal = ({
                 value={formData.note}
                 onChange={(e) => updateFormData("note", e.target.value)}
                 className="w-full bg-surface-dark resize-none rounded-xl px-4 py-2 text-content-primary outline-none text-sm min-h-[100px] border border-transparent focus:border-primary transition-colors"
-                placeholder="Enter note..."
+                placeholder={t("admin.customers.shared.enterNote")}
               />
             </div>
 
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Valid From (optional)</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("admin.customers.shared.validFrom")}</label>
                 <input
                   type="date"
                   value={formData.noteStartDate}
@@ -215,7 +221,7 @@ export const SpecialNoteModal = ({
                 />
               </div>
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Valid Until (optional)</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("admin.customers.shared.validUntil")}</label>
                 <input
                   type="date"
                   value={formData.noteEndDate}
@@ -232,13 +238,13 @@ export const SpecialNoteModal = ({
               onClick={handleClose} 
               className="px-4 py-2 text-sm rounded-xl text-content-secondary hover:text-content-primary hover:bg-surface-button-hover transition-colors"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleSave}
               className="px-4 py-2 text-sm rounded-xl bg-primary hover:bg-primary-hover text-white transition-colors"
             >
-              Add Note
+              {t("admin.customers.shared.addNote")}
             </button>
           </div>
         </div>

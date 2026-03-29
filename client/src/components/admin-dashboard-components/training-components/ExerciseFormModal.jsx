@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
 import { X, Save, Upload } from "lucide-react";
-import LanguageTabs, { LANGUAGES, getOptionName } from "../shared/LanguageTabs";
+import LanguageTabs, { LANGUAGES, getOptionName } from "../../shared/LanguageTabs";
 
 export default function ExerciseFormModal({
   isCreateModalOpen,

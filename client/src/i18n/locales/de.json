@@ -17,7 +17,37 @@
     "today": "Heute",
     "clear": "Löschen",
     "noOptions": "Keine Optionen gefunden",
-    "nSelected": "{{count}} ausgewählt"
+    "nSelected": "{{count}} ausgewählt",
+    "refresh": "Aktualisieren",
+    "confirm": "Bestätigen",
+    "apply": "Anwenden",
+    "filters": "Filter",
+    "sortBy": "Sortieren nach",
+    "noResults": "Keine Ergebnisse gefunden",
+    "created": "Erstellt",
+    "updated": "Aktualisiert",
+    "status": "Status",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "actions": "Aktionen",
+    "back": "Zurück",
+    "create": "Erstellen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "duplicate": "Duplizieren",
+    "pin": "Anheften",
+    "unpin": "Lösen",
+    "reply": "Antworten",
+    "send": "Senden",
+    "colorPicker": {
+      "title": "Farbe wählen",
+      "presets": "Voreinstellungen",
+      "custom": "Benutzerdefiniert",
+      "confirm": "Bestätigen"
+    },
+    "copy": "Kopieren",
+    "no": "Nein",
+    "yes": "Ja"
   },
   "languages": {
     "en": "Englisch",
@@ -162,60 +192,60 @@
     "aria": {
       "createPlan": "Trainingsplan erstellen"
     },
-    "categories": {
-      "cardio": "Cardio",
-      "flexibility": "Flexibilität",
-      "fullBody": "Ganzkörper",
-      "lowerBody": "Unterkörper",
-      "strength": "Kraft",
-      "upperBody": "Oberkörper"
-    },
-    "difficulty": {
-      "advanced": "Fortgeschritten",
-      "beginner": "Anfänger",
-      "intermediate": "Mittelstufe"
-    },
     "modal": {
-      "addFromLibrary": "Übungen aus der Bibliothek hinzufügen",
-      "addToPlan": "Zum Trainingsplan hinzufügen",
-      "allSelected": "Alle Übungen sind bereits ausgewählt",
-      "category": "Kategorie",
-      "createNewWithExercise": "Neuen Plan mit dieser Übung erstellen",
       "createTitle": "Trainingsplan erstellen",
-      "createdBy": "Erstellt von",
-      "description": "Beschreibung",
-      "descriptionPlaceholder": "Beschreibe deinen Trainingsplan...",
-      "difficulty": "Schwierigkeit",
-      "duration": "Dauer",
-      "durationPlaceholder": "z. B. 4 Wochen",
       "editTitle": "Trainingsplan bearbeiten",
-      "exerciseCount": "{{count}} Übungen",
-      "exerciseLibrary": "Übungsbibliothek",
-      "exercises": "Übungen ({{count}})",
-      "noExercises": "Keine Übungen verfügbar",
-      "noSelected": "Noch keine Übungen ausgewählt",
-      "orCreateNew": "Oder neuen Plan erstellen",
-      "planDetails": "Plandetails",
+      "addToPlan": "Zum Trainingsplan hinzufügen",
       "planName": "Planname",
       "planNamePlaceholder": "Planname eingeben...",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibe deinen Trainingsplan...",
+      "duration": "Dauer",
+      "durationPlaceholder": "z. B. 4 Wochen",
+      "workoutsPerWeek": "Einheiten/Woche",
+      "difficulty": "Schwierigkeit",
+      "category": "Kategorie",
       "select": "Auswählen",
-      "selectExistingPlan": "Bestehenden Plan auswählen",
+      "exerciseLibrary": "Übungsbibliothek",
+      "noExercises": "Keine Übungen verfügbar",
+      "allSelected": "Alle Übungen sind bereits ausgewählt",
       "selectedExercises": "Ausgewählte Übungen ({{count}})",
+      "noSelected": "Noch keine Übungen ausgewählt",
+      "addFromLibrary": "Übungen aus der Bibliothek hinzufügen",
+      "updatePlan": "Plan aktualisieren",
       "tabDetails": "Details",
       "tabLibrary": "Bibliothek ({{count}})",
       "tabSelected": "Ausgewählt ({{count}})",
-      "updatePlan": "Plan aktualisieren",
-      "workoutsPerWeek": "Einheiten/Woche"
+      "planDetails": "Plandetails",
+      "createdBy": "Erstellt von",
+      "exercises": "Übungen ({{count}})",
+      "exerciseCount": "{{count}} Übungen",
+      "selectExistingPlan": "Bestehenden Plan auswählen",
+      "orCreateNew": "Oder neuen Plan erstellen",
+      "createNewWithExercise": "Neuen Plan mit dieser Übung erstellen"
     },
     "video": {
       "aboutExercise": "Über diese Übung",
-      "back10s": "10s zurück",
-      "browserNotSupported": "Dein Browser unterstützt das Video-Tag nicht.",
-      "equipmentNeeded": "Benötigtes Equipment",
       "exerciseDetails": "Übungsdetails",
+      "targetMuscles": "Zielmuskeln",
+      "equipmentNeeded": "Benötigtes Equipment",
+      "back10s": "10s zurück",
       "forward10s": "10s vor",
       "fullscreen": "Vollbild (f)",
-      "targetMuscles": "Zielmuskeln"
+      "browserNotSupported": "Dein Browser unterstützt das Video-Tag nicht."
+    },
+    "difficulty": {
+      "beginner": "Anfänger",
+      "intermediate": "Mittelstufe",
+      "advanced": "Fortgeschritten"
+    },
+    "categories": {
+      "fullBody": "Ganzkörper",
+      "upperBody": "Oberkörper",
+      "lowerBody": "Unterkörper",
+      "cardio": "Cardio",
+      "strength": "Kraft",
+      "flexibility": "Flexibilität"
     }
   },
   "appointments": {
@@ -285,7 +315,7 @@
     "tabs": {
       "studioInfo": "Studio-Info",
       "checkin": "Check-in",
-      "bulletin": "Pinnwand",
+      "bulletin": "Schwarzes Brett",
       "selfService": "Self-Service"
     },
     "info": {
@@ -550,10 +580,10 @@
       "email": "E-Mail",
       "push": "Push",
       "generalTitle": "Allgemeine Benachrichtigungen",
-      "generalSubtitle": "Verwalte Push-Benachrichtigungen für Pinnwand-Beiträge und Studio-Mitteilungen.",
+      "generalSubtitle": "Verwalte Push-Benachrichtigungen für Schwarzes Brett-Beiträge und Studio-Mitteilungen.",
       "generalHint": "Diese Einstellungen steuern Push-Benachrichtigungen auf deinem Gerät. Das Deaktivieren einer Kategorie stoppt alle Push-Benachrichtigungen dafür.",
-      "bulletinBoard": "Pinnwand",
-      "bulletinBoardDesc": "Neue Beiträge und Aktualisierungen auf der Pinnwand",
+      "bulletinBoard": "Schwarzes Brett",
+      "bulletinBoardDesc": "Neue Beiträge und Aktualisierungen auf der Schwarzes Brett",
       "studioBroadcast": "Studio-Mitteilungen",
       "studioBroadcastDesc": "Mitteilungen und Ankündigungen deines Studios"
     },
@@ -626,6 +656,12 @@
       "carbs": "Kohlenhydrate",
       "fat": "Fett"
     },
+    "meals": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snacks": "Snacks"
+    },
     "diary": {
       "eaten": "{{amount}} gegessen",
       "kcalGoal": "{{amount}} kcal Ziel",
@@ -671,12 +707,6 @@
       "week2": "Woche 2",
       "week3": "Woche 3",
       "thisWeek": "Diese Woche"
-    },
-    "meals": {
-      "breakfast": "Frühstück",
-      "lunch": "Mittagessen",
-      "dinner": "Abendessen",
-      "snacks": "Snacks"
     },
     "customFood": {
       "editTitle": "Eigenes Lebensmittel bearbeiten",
@@ -837,5 +867,1649 @@
     "forgotPassword": "Passwort vergessen?",
     "signingIn": "Anmeldung...",
     "signInAs": "Anmelden als {{type}}"
+  },
+  "admin": {
+    "tickets": {
+      "title": "Tickets",
+      "refresh": "Aktualisieren",
+      "search": {
+        "placeholder": "Suche nach Betreff, Studio oder E-Mail..."
+      },
+      "filters": {
+        "title": "Filter",
+        "sortBy": "Sortieren nach"
+      },
+      "sort": {
+        "date": "Datum",
+        "subject": "Betreff",
+        "status": "Status",
+        "priority": "Priorität"
+      },
+      "status": {
+        "all": "Alle",
+        "open": "Offen",
+        "awaitingReply": "Wartet auf deine Antwort",
+        "closed": "Geschlossen"
+      },
+      "priority": {
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig",
+        "label": "{{level}} Priorität"
+      },
+      "list": {
+        "created": "Erstellt",
+        "updated": "Aktualisiert"
+      },
+      "empty": {
+        "title": "Keine Tickets gefunden",
+        "description": "Versuche deine Suche oder Filterkriterien anzupassen."
+      }
+    },
+    "analytics": {
+      "title": "Analytik",
+      "currentValue": "Aktueller Wert (Dez 2024)",
+      "monthlyGrowth": "Monatliches Wachstum",
+      "leadFunnel": "Lead-Konversionstrichter",
+      "overallConversion": "Gesamtkonversionsrate",
+      "totalLeads": "Leads gesamt",
+      "conversion": "Konversion",
+      "leads": "Leads",
+      "financialInsights": "Finanzielle Einblicke",
+      "totalRevenue": "Gesamtumsatz",
+      "totalExpenses": "Gesamtausgaben",
+      "profitMargin": "Gewinnmarge",
+      "topPerformingStudios": "Top-Studios",
+      "topPerformers": "Top-Performer",
+      "topStudiosByRevenue": "Top-Studios nach Umsatz",
+      "topFranchises": "Top-Franchises",
+      "members": "Mitglieder",
+      "studios": "Studios",
+      "growthTrends": "Wachstumstrends",
+      "memberGrowth": "Mitgliederwachstum",
+      "retentionRate": "Bindungsrate",
+      "avgRevenuePerStudio": "Durchschn. Umsatz/Studio",
+      "newMembers": "+{{count}} neue Mitglieder",
+      "fromLastMonth": "{{percent}}% gegenüber Vormonat",
+      "growth": "{{percent}}% Wachstum",
+      "activeFranchises": "Aktive Franchises",
+      "conversionLabel": "Konversionsrate",
+      "franchisesAcquired": "Gewonnene Franchises",
+      "leadsGenerated": "Generierte Leads",
+      "membershipFees": "Mitgliedsbeiträge",
+      "monthlyRevenue": "Monatlicher Umsatz",
+      "newLeadsPerMonth": "Neue Leads pro Monat",
+      "revenue": "Umsatz",
+      "stageContacted": "Kontaktiert",
+      "stageConverted": "Konvertiert",
+      "stageGenerated": "Generiert",
+      "stageQualified": "Qualifiziert",
+      "studiosAcquired": "Gewonnene Studios",
+      "successRate": "Erfolgsquote",
+      "topPerformerLabel": "Top-Performer",
+      "topSourceLabel": "Top-Quelle",
+      "totalStudiosInNetwork": "Studios im Netzwerk gesamt",
+      "website": "Website"
+    },
+    "marketplace": {
+      "title": "Marktplatz",
+      "addProduct": "Produkt hinzufügen",
+      "search": {
+        "placeholder": "Suche nach Name, Marke oder Artikelnummer (alle Sprachen)..."
+      },
+      "filter": {
+        "all": "Alle",
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "pinned": "Angeheftet"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "name": "Name",
+        "price": "Preis",
+        "brand": "Marke",
+        "articleNo": "Artikelnr."
+      },
+      "sections": {
+        "featured": "Empfohlen",
+        "moreProducts": "Weitere Produkte"
+      },
+      "card": {
+        "status": "Status",
+        "translations": "Übersetzungen",
+        "viewProduct": "Produkt ansehen",
+        "pinProduct": "Produkt anheften",
+        "unpinProduct": "Produkt lösen",
+        "viewInfo": "Info anzeigen",
+        "editProduct": "Produkt bearbeiten",
+        "deleteProduct": "Produkt löschen",
+        "articleNo": "Artikelnr."
+      },
+      "empty": {
+        "noProducts": "Noch keine Produkte hinzugefügt",
+        "noActive": "Keine aktiven Produkte gefunden.",
+        "noInactive": "Keine inaktiven Produkte gefunden.",
+        "noPinned": "Noch keine angehefteten Produkte. Klicke auf das Pin-Symbol, um Produkte hervorzuheben.",
+        "noSearch": "Keine Produkte für deine Suche gefunden."
+      },
+      "toast": {
+        "pinned": "Produkt angeheftet!",
+        "unpinned": "Produkt gelöst",
+        "activated": "Produkt aktiviert!",
+        "deactivated": "Produkt deaktiviert",
+        "updated": "Produkt erfolgreich aktualisiert!",
+        "added": "Produkt erfolgreich hinzugefügt!",
+        "deleted": "Produkt erfolgreich gelöscht!"
+      }
+    },
+    "feedback": {
+      "title": "Feedback senden",
+      "subtitle": "Hilf uns OrgaGym zu verbessern",
+      "thankYou": "Vielen Dank!",
+      "successMessage": "Dein Feedback wurde erfolgreich übermittelt. Wir schätzen es, dass du dir die Zeit nimmst, uns bei der Verbesserung von OrgaGym zu helfen.",
+      "feedbackType": "Feedback-Art",
+      "suggestion": "Vorschlag",
+      "bugReport": "Fehlerbericht",
+      "praise": "Lob",
+      "other": "Sonstiges",
+      "subject": "Betreff",
+      "subjectPlaceholder": "Kurze Zusammenfassung deines Feedbacks",
+      "message": "Nachricht",
+      "messagePlaceholder": "Erzähl uns mehr über dein Feedback...",
+      "ratingLabel": "Wie bewertest du deine Erfahrung?",
+      "optional": "optional",
+      "clearRating": "Löschen",
+      "sendFeedback": "Feedback senden"
+    },
+    "finances": {
+      "title": "Finanzen",
+      "search": {
+        "placeholder": "Suche nach Studio, Kontoinhaber, IBAN oder Mandat..."
+      },
+      "period": {
+        "selectPeriod": "Zeitraum wählen",
+        "customPeriod": "Benutzerdefinierter Zeitraum",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "apply": "Anwenden"
+      },
+      "stats": {
+        "totalRevenue": "Gesamtumsatz",
+        "successful": "Erfolgreich",
+        "pending": "Ausstehend",
+        "checkFunds": "Zahlungseingang prüfen",
+        "failed": "Fehlgeschlagen"
+      },
+      "status": {
+        "successful": "Erfolgreich",
+        "pending": "Ausstehend",
+        "failed": "Fehlgeschlagen",
+        "checkFunds": "Zahlungseingang prüfen"
+      },
+      "table": {
+        "studioName": "Studioname",
+        "studio": "Studio",
+        "accountHolder": "Kontoinhaber",
+        "holder": "Inhaber",
+        "amount": "Betrag",
+        "amt": "Betr.",
+        "services": "Leistungen",
+        "svc": "Lstg.",
+        "status": "Status",
+        "st": "St.",
+        "iban": "IBAN",
+        "mandateNumber": "Mandatsnummer",
+        "mandate": "Mandat",
+        "date": "Datum",
+        "type": "Typ"
+      },
+      "actions": {
+        "runPayment": "Zahlung ausführen",
+        "checkFunds": "Zahlungseingang prüfen",
+        "showIban": "Vollständige IBAN anzeigen",
+        "hideIban": "IBAN verbergen",
+        "continue": "Weiter",
+        "paymentRunHistory": "Zahlungslauf-Verlauf"
+      },
+      "empty": "Keine Transaktionen für deine Kriterien gefunden.",
+      "clearAll": "Alle löschen",
+      "deletePermanently": "Endgültig löschen?",
+      "cannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden",
+      "toast": {
+        "statusUpdated": "Transaktionsstatus erfolgreich aktualisiert!"
+      }
+    },
+    "email": {
+      "title": "E-Mail",
+      "search": {
+        "placeholder": "E-Mails suchen..."
+      },
+      "sendEmail": "E-Mail senden",
+      "folders": {
+        "inbox": "Posteingang",
+        "sent": "Gesendet",
+        "draft": "Entwürfe",
+        "archive": "Archiv",
+        "error": "Fehlgeschlagen",
+        "trash": "Papierkorb",
+        "drafts": "Entwürfe",
+        "failed": "Fehlgeschlagen"
+      },
+      "list": {
+        "pinned": "Angeheftet",
+        "selectAll": "Alle auswählen",
+        "selected": "{{count}} ausgewählt",
+        "noEmails": "Keine E-Mails in diesem Ordner",
+        "noSubject": "(Kein Betreff)",
+        "draft": "Entwurf",
+        "nSelected": "{{count}} ausgewählt"
+      },
+      "detail": {
+        "noSelected": "Keine E-Mail ausgewählt",
+        "noSelectedDesc": "Wähle eine E-Mail aus der Liste, um den Inhalt anzuzeigen",
+        "attachments": "Anhänge",
+        "retrySend": "Erneut senden",
+        "reply": "Antworten",
+        "cc": "CC",
+        "to": "An"
+      },
+      "actions": {
+        "markAsRead": "Als gelesen markieren",
+        "markAsUnread": "Als ungelesen markieren",
+        "archive": "Archivieren",
+        "delete": "Löschen",
+        "deletePermanently": "Endgültig löschen",
+        "retry": "Wiederholen",
+        "pin": "Anheften",
+        "unpin": "Lösen",
+        "markRead": "Als gelesen markieren",
+        "markUnread": "Als ungelesen markieren"
+      },
+      "deleteConfirm": {
+        "title": "Endgültig löschen?",
+        "description": "Diese Aktion kann nicht rückgängig gemacht werden",
+        "single": "Möchtest du diese E-Mail wirklich endgültig löschen?",
+        "multiple": "Möchtest du wirklich {{count}} E-Mails endgültig löschen?",
+        "confirmMultiple": "Sind Sie sicher, dass Sie {{count}} E-Mails endgültig löschen möchten?",
+        "confirmSingle": "Sind Sie sicher, dass Sie diese E-Mail endgültig löschen möchten?"
+      },
+      "toast": {
+        "sent": "E-Mail erfolgreich gesendet!",
+        "fillRequired": "Bitte fülle alle erforderlichen E-Mail-Felder aus"
+      },
+      "noSubject": "(Kein Betreff)"
+    },
+    "todo": {
+      "title": "Aufgaben",
+      "newTask": "Neue Aufgabe",
+      "create": "Erstellen",
+      "placeholder": "Was muss erledigt werden?",
+      "inputPlaceholder": "Neue Aufgabe… (Enter zum Hinzufügen)",
+      "noDate": "Kein Fälligkeitsdatum",
+      "noTags": "Keine Tags",
+      "dueDateTime": "Fälligkeitsdatum & Uhrzeit",
+      "reminder": "Erinnerung",
+      "tags": "Tags",
+      "addTags": "Tags hinzufügen",
+      "manageTags": "Tags verwalten",
+      "columns": {
+        "ongoing": "Laufend",
+        "completed": "Abgeschlossen",
+        "canceled": "Abgebrochen"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "custom": "Benutzerdefiniert",
+        "title": "Titel",
+        "dueDate": "Fälligkeitsdatum",
+        "recent": "Neueste"
+      },
+      "actions": {
+        "markComplete": "Als erledigt markieren",
+        "setOngoing": "Auf Laufend setzen",
+        "cancelTask": "Aufgabe abbrechen",
+        "pinTask": "Aufgabe anheften",
+        "unpinTask": "Aufgabe lösen",
+        "duplicate": "Duplizieren",
+        "setRepeat": "Wiederholung einstellen",
+        "delete": "Löschen"
+      },
+      "empty": {
+        "ongoing": "Keine laufenden Aufgaben",
+        "completed": "Keine abgeschlossenen Aufgaben",
+        "canceled": "Keine abgebrochenen Aufgaben"
+      },
+      "backToTasks": "Zurück zu Aufgaben",
+      "canceledClickRestore": "Abgebrochen — klicken zum Wiederherstellen",
+      "clearDateTime": "Datum & Uhrzeit löschen",
+      "moreActions": "Weitere Aktionen",
+      "repeating": "Wiederholend",
+      "setDueDate": "Fälligkeitsdatum setzen",
+      "taskTitlePlaceholder": "Aufgabentitel..."
+    },
+    "notes": {
+      "title": "Notizen",
+      "newNote": "Neue Notiz",
+      "search": {
+        "placeholder": "Notizen suchen..."
+      },
+      "untitled": "Unbenannte Notiz",
+      "noContent": "Kein Inhalt",
+      "empty": {
+        "title": "Noch keine Notizen",
+        "description": "Erstelle deine erste Notiz"
+      },
+      "manageTags": "Tags verwalten",
+      "noNoteSelected": "Keine Notiz ausgewählt",
+      "pinNote": "Notiz anheften",
+      "selectNoteHint": "Wählen Sie eine Notiz aus der Liste, um den Inhalt anzuzeigen",
+      "showLess": "Weniger anzeigen",
+      "showMore": "Mehr anzeigen",
+      "sort": {
+        "custom": "Benutzerdefiniert",
+        "date": "Datum",
+        "title": "Titel"
+      },
+      "startWriting": "Beginnen Sie zu schreiben...",
+      "tags": "Tags",
+      "unpinNote": "Notiz lösen"
+    },
+    "leads": {
+      "title": "Leads",
+      "search": {
+        "placeholder": "Leads suchen...",
+        "addMore": "Weitere hinzufügen",
+        "clearAll": "Alle löschen",
+        "noResults": "Keine Leads gefunden"
+      },
+      "addLead": "Lead hinzufügen",
+      "columns": {
+        "activeProspect": "Aktiver Interessent",
+        "demoAccess": "Demozugang",
+        "missedCall": "Verpasster Anruf",
+        "passiveProspect": "Passiver Interessent",
+        "uninterested": "Kein Interesse"
+      },
+      "compactView": "Kompaktansicht",
+      "createLead": "Lead erstellen",
+      "deleteModal": {
+        "confirmPrefix": "Sind Sie sicher, dass Sie",
+        "confirmSuffix": "löschen möchten?",
+        "title": "Lead löschen"
+      },
+      "demoModal": {
+        "createDemo": "Demozugang erstellen",
+        "description": "Möchten Sie einen Demozugang für diesen Lead erstellen?",
+        "justMove": "Nur verschieben",
+        "title": "Demozugang"
+      },
+      "detailedView": "Detailansicht",
+      "expandColumn": "Spalte erweitern",
+      "toast": {
+        "added": "Lead erfolgreich hinzugefügt!",
+        "columnSaved": "Spaltenreihenfolge gespeichert",
+        "deleted": "Lead erfolgreich gelöscht!",
+        "movedTo": "Lead verschoben nach {{column}}",
+        "movedWithNote": "Lead mit Vermerk verschoben",
+        "noteAdded": "Vermerk erfolgreich hinzugefügt",
+        "noteAddedAndMoved": "Vermerk hinzugefügt und Lead verschoben",
+        "reordered": "Leads neu sortiert",
+        "updated": "Lead erfolgreich aktualisiert!"
+      },
+      "view": "Ansicht"
+    },
+    "exercises": {
+      "title": "Übungen",
+      "search": {
+        "placeholder": "Übungen suchen..."
+      },
+      "addExercise": "Übung hinzufügen",
+      "manageOptions": "Optionen verwalten",
+      "filters": {
+        "title": "Filter",
+        "allTypes": "Alle Typen"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach"
+      },
+      "empty": {
+        "title": "Keine Übungen gefunden",
+        "description": "Versuche deine Suche oder Filter anzupassen"
+      },
+      "toast": {
+        "created": "Übung erfolgreich erstellt!",
+        "updated": "Übung erfolgreich aktualisiert!",
+        "deleted": "Übung erfolgreich gelöscht!",
+        "equipmentAdded": "Gerät hinzugefügt",
+        "equipmentExists": "Gerät existiert bereits",
+        "equipmentRemoved": "Gerät entfernt",
+        "equipmentUpdated": "Gerät aktualisiert",
+        "muscleAdded": "Muskelgruppe hinzugefügt",
+        "muscleExists": "Muskelgruppe existiert bereits",
+        "muscleRemoved": "Muskelgruppe entfernt",
+        "muscleUpdated": "Muskelgruppe aktualisiert",
+        "requiredFields": "Bitte füllen Sie alle Pflichtfelder aus"
+      },
+      "actions": {
+        "delete": "Löschen",
+        "edit": "Bearbeiten",
+        "view": "Ansehen"
+      },
+      "allLevels": "Alle Stufen",
+      "noResults": "Keine Übungen gefunden",
+      "translations": "Übersetzungen",
+      "uploadExercise": "Übung hochladen"
+    },
+    "customers": {
+      "title": "Studios",
+      "search": {
+        "placeholder": "Kunden suchen...",
+        "addMore": "Weitere hinzufügen",
+        "clearAllFilters": "Alle Filter löschen",
+        "noFranchisesFound": "Keine Franchises gefunden",
+        "noStudiosFound": "Keine Studios gefunden",
+        "searchFranchises": "Franchises suchen...",
+        "searchStudios": "Studios suchen..."
+      },
+      "toast": {
+        "leadUpdated": "Lead erfolgreich aktualisiert!",
+        "leadAdded": "Lead erfolgreich hinzugefügt!",
+        "passwordMismatch": "Passwörter stimmen nicht überein",
+        "franchiseUpdated": "Franchise erfolgreich aktualisiert",
+        "franchiseCreated": "Franchise erfolgreich erstellt",
+        "detailsUpdated": "Details erfolgreich aktualisiert",
+        "franchiseArchived": "Franchise erfolgreich archiviert",
+        "billingPeriodAdded": "Abrechnungszeitraum hinzugefügt",
+        "contingentUpdated": "Kontingent aktualisiert",
+        "downloading": "Wird heruntergeladen...",
+        "filesUploaded": "Dateien erfolgreich hochgeladen",
+        "studioAssigned": "Studio der Franchise zugewiesen",
+        "studioUnassigned": "Studio von Franchise entfernt",
+        "tempMemberCreated": "Temporäres Mitglied erstellt",
+        "trainingPlanAssigned": "Trainingsplan zugewiesen",
+        "trainingPlanRemoved": "Trainingsplan entfernt"
+      },
+      "actions": {
+        "details": "Details",
+        "docs": "Doks",
+        "documents": "Dokumente",
+        "edit": "Bearbeiten",
+        "finances": "Finanzen",
+        "history": "Verlauf",
+        "payment": "Zahlung",
+        "viewDetails": "Details anzeigen"
+      },
+      "billing": {
+        "current": "Aktuell",
+        "future": "Zukünftig"
+      },
+      "buttons": {
+        "assignToFranchise": "Franchise zuweisen",
+        "createFirstFranchise": "Erste Franchise erstellen",
+        "createFranchise": "Franchise erstellen"
+      },
+      "empty": {
+        "noActiveStudios": "Keine aktiven Studios",
+        "noFranchises": "Keine Franchises gefunden",
+        "noInactiveStudios": "Keine inaktiven Studios",
+        "noStudios": "Keine Studios gefunden"
+      },
+      "filters": {
+        "active": "Aktiv",
+        "all": "Alle",
+        "archived": "Archiviert",
+        "inactive": "Inaktiv",
+        "title": "Filter"
+      },
+      "sort": {
+        "alphabetical": "Alphabetisch",
+        "memberCount": "Mitgliederanzahl",
+        "staffCount": "Mitarbeiteranzahl",
+        "contractCount": "Vertragsanzahl",
+        "leadCount": "Lead-Anzahl",
+        "studioCount": "Studioanzahl"
+      },
+      "franchiseTable": {
+        "franchise": "Franchise",
+        "login": "Login",
+        "owner": "Inhaber",
+        "status": "Status",
+        "studios": "Studios"
+      },
+      "franchisesTitle": "Franchises",
+      "mobile": {
+        "contractsCount": "{{count}} Verträge",
+        "leadsCount": "{{count}} Leads",
+        "membersCount": "{{count}} Mitglieder",
+        "ownerLabel": "Inhaber",
+        "staffCount": "{{count}} Mitarbeiter",
+        "studiosCount": "{{count}} Studios"
+      },
+      "status": {
+        "active": "Aktiv",
+        "archived": "Archiviert",
+        "inactive": "Inaktiv"
+      },
+      "studioTable": {
+        "accessRole": "Zugriffsrolle",
+        "actions": "Aktionen",
+        "number": "Nummer",
+        "owner": "Inhaber",
+        "stats": "Statistiken",
+        "status": "Status",
+        "studioName": "Studioname"
+      },
+      "tabs": {
+        "franchise": "Franchise",
+        "studios": "Studios"
+      },
+      "shared": {
+        "about": "Über",
+        "details": "Details",
+        "general": "Allgemein",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "website": "Website",
+        "owner": "Inhaber",
+        "street": "Straße",
+        "country": "Land",
+        "city": "Stadt",
+        "zipCodeCity": "PLZ & Stadt",
+        "zipCode": "PLZ",
+        "address": "Adresse",
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "archived": "Archiviert",
+        "status": "Status",
+        "important": "Wichtig",
+        "note": "Vermerk",
+        "addNote": "Vermerk hinzufügen",
+        "updateNote": "Vermerk aktualisieren",
+        "enterNote": "Vermerk eingeben...",
+        "noteAdded": "Vermerk hinzugefügt",
+        "noteRemoved": "Vermerk entfernt",
+        "noteUpdated": "Vermerk aktualisiert",
+        "enterNoteText": "Bitte Vermerktext eingeben",
+        "specialNotes": "Besondere Vermerke",
+        "specialNotesFor": "Besondere Vermerke für",
+        "validFrom": "Gültig ab (optional)",
+        "validUntil": "Gültig bis (optional)",
+        "source": "Quelle",
+        "selectSource": "Quelle auswählen",
+        "accessRole": "Zugriffsrolle",
+        "loginEmail": "Login-E-Mail",
+        "loginCredentials": "Anmeldedaten",
+        "password": "Passwort",
+        "confirmPassword": "Passwort bestätigen",
+        "logo": "Logo",
+        "uploadLogo": "Logo hochladen",
+        "changeLogo": "Logo ändern",
+        "archive": "Archivieren",
+        "unarchive": "Dearchivieren",
+        "saveChanges": "Änderungen speichern",
+        "contactInfo": "Kontaktinformationen",
+        "credentials": "Zugangsdaten",
+        "created": "Erstellt",
+        "sources": {
+          "website": "Website",
+          "googleAds": "Google Ads",
+          "socialMedia": "Social Media",
+          "socialMediaAds": "Social Media Ads",
+          "referral": "Empfehlung",
+          "walkin": "Laufkundschaft",
+          "emailCampaign": "E-Mail-Kampagne",
+          "inboundCall": "Eingehender Anruf",
+          "coldCall": "Kaltakquise (Outbound)",
+          "offlineAd": "Offline-Werbung",
+          "phoneCall": "Telefonanruf",
+          "event": "Veranstaltung",
+          "other": "Sonstiges"
+        },
+        "categories": {
+          "general": "Allgemein",
+          "compliance": "Compliance",
+          "contractIssue": "Vertragsproblem",
+          "escalation": "Eskalation",
+          "followUp": "Nachverfolgung",
+          "maintenance": "Wartung",
+          "onboarding": "Einarbeitung"
+        },
+        "validRange": "Gültig: {{start}} - {{end}}",
+        "validFromDate": "Gültig ab: {{date}}",
+        "validUntilDate": "Gültig bis: {{date}}",
+        "addSpecialNote": "Vermerk hinzufügen",
+        "addSpecialNoteTitle": "Vermerk hinzufügen",
+        "editNotes": "Vermerke bearbeiten",
+        "moreNotes": "+{{count}} weitere Vermerke...",
+        "endBeforeStartError": "Enddatum kann nicht vor dem Startdatum liegen",
+        "entityLead": "Lead",
+        "entityMember": "Mitglied",
+        "noteStatuses": {
+          "contact_attempt": "Kontaktversuch",
+          "callback_requested": "Rückruf erbeten",
+          "interest": "Interesse",
+          "objection": "Einwand",
+          "personal_info": "Persönliche Info",
+          "health": "Gesundheit",
+          "follow_up": "Nachfassen",
+          "general": "Allgemein"
+        },
+        "noNotesYet": "Noch keine Vermerke vorhanden. Klicke auf \"Vermerk hinzufügen\" um einen zu erstellen."
+      },
+      "studioOptions": {
+        "title": "Studio-Optionen bearbeiten",
+        "chooseConfig": "Konfigurationstyp wählen für",
+        "studioConfig": "Studio-Konfiguration",
+        "studioConfigDesc": "Studioeinstellungen, Ressourcen und Erscheinungsbild verwalten",
+        "adminConfig": "Admin-Konfiguration",
+        "adminConfigDesc": "Admin-Einstellungen und Systemkonfiguration verwalten"
+      },
+      "payment": {
+        "title": "Zahlungsdetails",
+        "accountHolder": "Kontoinhaber",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "bankName": "Bankname",
+        "sepaMandateNumber": "SEPA-Mandatsnummer",
+        "autoGenerate": "SEPA-Mandatsreferenznummer automatisch generieren",
+        "sepaWarning": "Bei Änderung der Bankdaten muss ein neues SEPA-Mandat erstellt werden.",
+        "savePayment": "Zahlungsdetails speichern"
+      },
+      "history": {
+        "title": "Studio-Verlauf - {{name}}",
+        "generalChanges": "Allgemeine Änderungen",
+        "contractChanges": "Vertragsänderungen",
+        "financeTransactions": "Finanztransaktionen",
+        "ticketChangelog": "Ticket-Verlauf",
+        "noData": "Keine {{title}}"
+      },
+      "studioMgmt": {
+        "title": "Studios verwalten",
+        "assigned": "Zugewiesen",
+        "available": "Verfügbar",
+        "searchAssigned": "Zugewiesene suchen…",
+        "searchAvailable": "Verfügbare suchen…",
+        "assign": "Zuweisen",
+        "added": "Hinzugefügt",
+        "remove": "Entfernen",
+        "removed": "Entfernt",
+        "editStudio": "Studio bearbeiten",
+        "noAssigned": "Noch keine Studios diesem Franchise zugewiesen.",
+        "allAssigned": "Alle Studios sind Franchises zugewiesen.",
+        "noMatch": "Keine Studios gefunden für \"{{search}}\""
+      },
+      "assignStudios": {
+        "title": "Studios einem Franchise zuweisen",
+        "selectFranchise": "1. Franchise auswählen",
+        "clickToSelect": "Klicken, um ein Franchise auszuwählen…",
+        "noLocation": "Kein Standort",
+        "searchFranchises": "Franchises suchen…",
+        "noFranchises": "Kein Franchises gefunden",
+        "assignStudios": "2. Nicht zugewiesene Studios zuweisen",
+        "searchStudios": "Studios suchen…",
+        "assigned": "Zugewiesen",
+        "allAssigned": "Alle Studios sind bereits Franchises zugewiesen.",
+        "noMatch": "Keine Studios gefunden für \"{{search}}\"",
+        "selectFirst": "Bitte zuerst ein Franchise auswählen"
+      },
+      "adminConfigModal": {
+        "title": "Admin-Konfiguration bearbeiten",
+        "saved": "Admin-Konfiguration gespeichert",
+        "additionalInfo": "Zusätzliche Informationen",
+        "enterDetails": "Studiodetails, Schwerpunkte, Besonderheiten eingeben...",
+        "basic": "Basic",
+        "basicDesc": "Eingeschränkter Zugang mit grundlegenden Funktionen",
+        "standard": "Standard",
+        "standardDesc": "Standardzugang mit Kernfunktionen",
+        "premium": "Premium",
+        "premiumDesc": "Vollzugang mit allen Funktionen"
+      },
+      "editConfig": {
+        "configSaved": "Konfiguration erfolgreich gespeichert!",
+        "studioDesc": "Studio-Beschreibung",
+        "studioDescPlaceholder": "Beschreiben Sie Ihr Studio, seine Mission, Einrichtungen und Besonderheiten...",
+        "specialNotePlaceholder": "Besonderen Vermerk oder Ankündigung eingeben...",
+        "noteContent": "Vermerkinhalt",
+        "markImportant": "Als wichtig markieren",
+        "activePeriod": "Aktiver Zeitraum",
+        "studioCategories": "Studio-Kategorien",
+        "addCategory": "Neue Kategorie hinzufügen",
+        "categoryName": "Kategoriename",
+        "deleteCategory": "Kategorie löschen",
+        "deleteCategoryConfirm": "Sind Sie sicher, dass Sie diese Kategorie löschen möchten?",
+        "categoryAdded": "Kategorie hinzugefügt",
+        "categoryAddedDesc": "Neue Studio-Kategorie wurde hinzugefügt.",
+        "categoryDeleted": "Kategorie gelöscht",
+        "categoryDeletedDesc": "Studio-Kategorie wurde gelöscht.",
+        "fitnessStudio": "Fitnessstudio",
+        "emsStudio": "EMS-Studio",
+        "selfServiceStudio": "Self-Service-Studio",
+        "navMenuAccess": "Navigationsmenü-Zugang",
+        "menuAccess": "Menüzugang:",
+        "managePermissions": "Menüberechtigungen verwalten",
+        "permissions": "Berechtigungen",
+        "permissionsUpdated": "Berechtigungen aktualisiert",
+        "permissionsUpdatedDesc": "Rollenberechtigungen wurden erfolgreich aktualisiert.",
+        "newRole": "Neue Rolle",
+        "deleteRole": "Rolle löschen",
+        "deleteRoleConfirm": "Sind Sie sicher, dass Sie diese Rolle löschen möchten?",
+        "roleDeleted": "Rolle gelöscht",
+        "roleDeletedDesc": "Rolle wurde erfolgreich gelöscht.",
+        "noRoles": "Noch keine Rollen erstellt",
+        "noRolesDesc": "Fügen Sie Ihre erste Rolle hinzu",
+        "saveAsTemplate": "Als Vorlage speichern",
+        "enterTemplateName": "Vorlagennamen eingeben...",
+        "templateSaved": "Vorlage gespeichert",
+        "templateSavedDesc": "Berechtigungsvorlage wurde erfolgreich gespeichert."
+      },
+      "franchiseDetails": {
+        "title": "Franchise-Details",
+        "info": "Franchise-Informationen",
+        "name": "Franchise-Name",
+        "assignedStudios": "Zugewiesene Studios",
+        "noNotes": "Keine besonderen Vermerke für diese Franchise.",
+        "noStudios": "Noch keine Studios dieser Franchise zugewiesen."
+      },
+      "franchiseForm": {
+        "createTitle": "Neue Franchise erstellen",
+        "editTitle": "Franchise bearbeiten",
+        "newFranchise": "Neue Franchise",
+        "basicInfo": "Grundinformationen",
+        "franchiseName": "Franchise-Name",
+        "ownerName": "Inhabername",
+        "enterFullName": "Vollständigen Namen eingeben",
+        "streetAddress": "Straße",
+        "selectCountry": "Land auswählen",
+        "aboutFranchise": "Über die Franchise",
+        "aboutPlaceholder": "Beschreiben Sie Ihre Franchise, Mission, Werte, angebotene Dienste, etc...",
+        "franchiseLogo": "Franchise-Logo",
+        "createFranchise": "Franchise erstellen",
+        "archiveConfirm": "Möchten Sie \"{{name}}\" wirklich {{action}}?",
+        "countries": {
+          "germany": "Deutschland",
+          "austria": "Österreich",
+          "switzerland": "Schweiz",
+          "france": "Frankreich",
+          "italy": "Italien",
+          "spain": "Spanien",
+          "netherlands": "Niederlande",
+          "belgium": "Belgien",
+          "uk": "Vereinigtes Königreich",
+          "us": "Vereinigte Staaten"
+        }
+      },
+      "permissionModal": {
+        "title": "Berechtigungen verwalten",
+        "role": "Rolle",
+        "noPermissions": "Keine Berechtigungen gefunden für Rolle:",
+        "members": "Mitglieder",
+        "staff": "Mitarbeiter",
+        "leads": "Leads",
+        "contracts": "Verträge",
+        "finances": "Finanzen",
+        "appointments": "Termine",
+        "training": "Training",
+        "analytics": "Analysen",
+        "communication": "Kommunikation",
+        "configuration": "Konfiguration",
+        "notes": "Notizen",
+        "todoTags": "To-Do & Tags",
+        "sellingProducts": "Verkauf & Produkte",
+        "activityMonitor": "Aktivitätsmonitor"
+      },
+      "studioDetails": {
+        "title": "Studio-Details",
+        "info": "Studio-Informationen",
+        "name": "Studioname",
+        "number": "Studionummer",
+        "openingHours": "Öffnungszeiten",
+        "noHours": "Keine Öffnungszeiten festgelegt",
+        "paymentSettings": "Zahlungseinstellungen",
+        "ibanFull": "Internationale Bankkontonummer",
+        "bicFull": "Bankidentifikationscode",
+        "sepaCreditor": "SEPA-Gläubigerkennung",
+        "creditorName": "Gläubigername",
+        "creditorId": "Gläubiger-ID",
+        "vatNumber": "USt-IdNr.",
+        "statistics": "Statistiken",
+        "members": "Mitglieder",
+        "contracts": "Verträge",
+        "contract": "Vertrag",
+        "contractStart": "Vertragsbeginn",
+        "contractEnd": "Vertragsende",
+        "noNotes": "Keine besonderen Vermerke für dieses Studio.",
+        "view": "Ansehen",
+        "payment": "Zahlung",
+        "closed": "Geschlossen",
+        "days": {
+          "monday": "Montag",
+          "tuesday": "Dienstag",
+          "wednesday": "Mittwoch",
+          "thursday": "Donnerstag",
+          "friday": "Freitag",
+          "saturday": "Samstag",
+          "sunday": "Sonntag"
+        }
+      }
+    },
+    "demoAccess": {
+      "title": "Demo-Zugang",
+      "search": {
+        "placeholder": "Demo-Konten suchen..."
+      },
+      "addDemo": "Demo hinzufügen",
+      "toast": {
+        "created": "Demo-Konto erstellt!",
+        "updated": "Demo-Konto aktualisiert!",
+        "deleted": "Demo-Konto gelöscht!",
+        "activated": "Konto aktiviert!",
+        "deactivated": "Konto deaktiviert!",
+        "emailSent": "E-Mail erfolgreich gesendet!",
+        "createdWithoutEmail": "Demokonto erstellt (E-Mail nicht gesendet)",
+        "reactivated": "Demokonto reaktiviert!"
+      },
+      "card": {
+        "days": "Tage",
+        "daysRemaining": "{{count}} Tage verbleibend",
+        "deactivated": "Deaktiviert",
+        "edit": "Bearbeiten",
+        "email": "E-Mail",
+        "expired": "Abgelaufen",
+        "features": "Funktionen",
+        "journal": "Journal",
+        "lastLogin": "Letzter Login",
+        "loginsLabel": "Anmeldungen",
+        "unknown": "Unbekannt"
+      },
+      "createAccess": "Zugang erstellen",
+      "deleteModal": {
+        "confirmMessage": "Sind Sie sicher, dass Sie dieses Demokonto löschen möchten?",
+        "subtitle": "Diese Aktion kann nicht rückgängig gemacht werden",
+        "thisStudio": "dieses Studio",
+        "title": "Demokonto löschen"
+      },
+      "empty": {
+        "createHint": "Erstellen Sie Ihr erstes Demokonto",
+        "filterHint": "Versuchen Sie, Suche oder Filter anzupassen",
+        "title": "Keine Demokonten gefunden"
+      },
+      "filter": {
+        "active": "Aktiv",
+        "all": "Alle",
+        "inactive": "Inaktiv"
+      },
+      "journal": {
+        "accessActivated": "Zugang aktiviert",
+        "accessCreated": "Zugang erstellt",
+        "accessDeactivated": "Zugang deaktiviert",
+        "accessUpdated": "Zugang aktualisiert",
+        "createdFor": "Erstellt für {{name}}",
+        "emailSent": "E-Mail gesendet",
+        "emailSentTo": "E-Mail gesendet an {{email}}",
+        "expiredAutoDeactivated": "Abgelaufen — automatisch deaktiviert",
+        "reactivatedFor": "Reaktiviert für {{name}}",
+        "statusInactive": "Status: Inaktiv",
+        "updatedFor": "Aktualisiert für {{name}}"
+      },
+      "reactivateModal": {
+        "confirm": "Reaktivieren",
+        "durationHint": "Neue Dauer für den Demozeitraum festlegen",
+        "durationLabel": "Dauer (Tage)",
+        "subtitle": "Dieses Demokonto reaktivieren",
+        "title": "Demozugang reaktivieren"
+      },
+      "sort": {
+        "created": "Erstellt",
+        "duration": "Dauer",
+        "logins": "Anmeldungen",
+        "name": "Name",
+        "sortBy": "Sortieren nach",
+        "status": "Status"
+      }
+    },
+    "contract": {
+      "title": "Verträge",
+      "search": {
+        "placeholder": "Verträge suchen...",
+        "addMore": "Weitere hinzufügen",
+        "noMembers": "Keine Mitglieder gefunden"
+      },
+      "table": {
+        "contractNo": "Vertragsnr.",
+        "studioName": "Studioname",
+        "owner": "Inhaber",
+        "contractType": "Vertragsart",
+        "status": "Status",
+        "autoRenewal": "Automatische Verlängerung",
+        "contractDuration": "Vertragslaufzeit",
+        "actions": "Aktionen",
+        "contract": "Vertrag"
+      },
+      "status": {
+        "active": "Aktiv",
+        "paused": "Vertrag pausiert",
+        "cancelled": "Vertrag gekündigt",
+        "scheduled": "Vertrag geplant",
+        "pending": "Ausstehend"
+      },
+      "actions": {
+        "addContract": "Vertrag hinzufügen",
+        "editContract": "Vertrag bearbeiten",
+        "pauseContract": "Vertrag pausieren",
+        "cancelContract": "Vertrag kündigen",
+        "resumeContract": "Vertrag fortsetzen",
+        "deleteContract": "Vertrag löschen",
+        "addBonusTime": "Bonuszeit hinzufügen",
+        "change": "Ändern",
+        "changeContract": "Vertrag ändern",
+        "editBonus": "Bonus bearbeiten",
+        "editBonusTime": "Bonuszeit bearbeiten",
+        "openDocuments": "Dokumente öffnen",
+        "pause": "Pausieren",
+        "removeBonusTime": "Bonuszeit entfernen",
+        "renew": "Verlängern",
+        "resume": "Fortsetzen"
+      },
+      "toast": {
+        "resumed": "Vertrag erfolgreich fortgesetzt",
+        "scheduledCancelled": "Geplanter Vertrag gekündigt",
+        "deleted": "Vertrag erfolgreich gelöscht",
+        "bonusRemoved": "Bonuszeit entfernt",
+        "added": "Vertrag erfolgreich hinzugefügt",
+        "updated": "Vertrag erfolgreich aktualisiert",
+        "bonusAdded": "Bonuszeit erfolgreich hinzugefügt",
+        "bonusUpdated": "Bonuszeit erfolgreich aktualisiert",
+        "cancelled": "Vertrag erfolgreich gekündigt",
+        "changeDraft": "Änderung als Entwurf gespeichert",
+        "changeScheduled": "Vertragsänderung geplant",
+        "changed": "Vertrag erfolgreich geändert",
+        "leadConverted": "Lead in Vertrag umgewandelt",
+        "paused": "Vertrag erfolgreich pausiert",
+        "renewDraft": "Verlängerung als Entwurf gespeichert",
+        "renewScheduled": "Vertragsverlängerung geplant",
+        "renewed": "Vertrag erfolgreich verlängert",
+        "savedAsDraft": "Als Entwurf gespeichert"
+      },
+      "autoRenewal": {
+        "enabled": "Aktiviert",
+        "label": "Automatische Verlängerung",
+        "noAutoRenewal": "Keine automatische Verlängerung",
+        "none": "Keine",
+        "plusMonths": "+{{count}} Monate",
+        "renewsForMonths": "Verlängert sich um {{count}} Monate",
+        "unlimited": "Unbegrenzt",
+        "unlimitedTooltip": "Vertrag verlängert sich unbegrenzt",
+        "until": "Bis",
+        "untilTooltip": "Vertrag verlängert sich bis zum angegebenen Datum"
+      },
+      "createContract": "Vertrag erstellen",
+      "filters": {
+        "clearAll": "Alle löschen",
+        "title": "Filter"
+      },
+      "labels": {
+        "bonus": "Bonus",
+        "days": "Tage",
+        "expiring": "Läuft ab"
+      },
+      "noContracts": "Keine Verträge gefunden",
+      "removeBonusConfirm": {
+        "confirmText": "Bonus entfernen",
+        "currentBonus": "Aktueller Bonus",
+        "title": "Bonuszeit entfernen"
+      },
+      "renewConfirm": {
+        "confirmText": "Verlängerung bestätigen",
+        "otherContracts": "Andere aktive Verträge",
+        "renewAnyway": "Trotzdem verlängern",
+        "title": "Vertrag verlängern"
+      },
+      "resumeConfirm": {
+        "confirmText": "Fortsetzung bestätigen",
+        "pauseReason": "Pausengrund",
+        "resumeContract": "Vertrag fortsetzen",
+        "title": "Vertrag fortsetzen"
+      },
+      "sort": {
+        "contractType": "Vertragstyp",
+        "expiring": "Ablaufdatum",
+        "name": "Name",
+        "recentlyAdded": "Kürzlich hinzugefügt",
+        "status": "Status"
+      },
+      "tooltip": {
+        "cancelled": "Gekündigt",
+        "period": "Zeitraum",
+        "reason": "Grund",
+        "since": "Seit",
+        "starts": "Beginnt"
+      },
+      "view": {
+        "compact": "Kompakt",
+        "detailed": "Detailliert",
+        "grid": "Raster",
+        "list": "Liste"
+      }
+    },
+    "configuration": {
+      "title": "Konfiguration",
+      "search": {
+        "placeholder": "Einstellungen suchen..."
+      },
+      "toast": {
+        "logoUploaded": "Logo erfolgreich hochgeladen",
+        "passwordChanged": "Passwort erfolgreich geändert",
+        "accountCreated": "Konto erfolgreich erstellt",
+        "accountRemoved": "Konto entfernt",
+        "contractTypeCreated": "Vertragsart erstellt",
+        "contractTypeUpdated": "Vertragsart aktualisiert",
+        "contractTypeDeleted": "Vertragsart gelöscht",
+        "pauseReasonDeleted": "Pausengrund gelöscht",
+        "contractFormCreated": "Vertragsformular erstellt",
+        "leadSourceAdded": "Lead-Quelle hinzugefügt",
+        "leadSourceDeleted": "Lead-Quelle gelöscht",
+        "connectionSuccess": "Verbindung erfolgreich!",
+        "testingConnection": "Verbindung wird getestet...",
+        "noSignatureConfigured": "Keine E-Mail-Signatur konfiguriert",
+        "changelogAdded": "Changelog-Eintrag hinzugefügt",
+        "changelogDeleted": "Changelog-Eintrag gelöscht",
+        "contractFormDeleted": "Vertragsformular gelöscht",
+        "templateDuplicated": "Vorlage dupliziert"
+      },
+      "errors": {
+        "fillPasswordFields": "Bitte alle Passwortfelder korrekt ausfüllen",
+        "fillNameEmail": "Bitte Name und E-Mail ausfüllen",
+        "primaryAdminCannotRemove": "Primäres Admin-Konto kann nicht entfernt werden",
+        "enterContractName": "Bitte einen Vertragsnamen eingeben",
+        "enterValidDuration": "Bitte eine gültige Laufzeit eingeben",
+        "selectBillingPeriod": "Bitte einen Abrechnungszeitraum auswählen",
+        "createContractFormFirst": "Bitte zuerst ein Vertragsformular erstellen",
+        "selectContractForm": "Bitte ein Vertragsformular auswählen",
+        "enterName": "Bitte einen Namen eingeben",
+        "fillChangelogFields": "Bitte füllen Sie alle Changelog-Felder aus",
+        "fillSmtpFields": "Bitte füllen Sie alle SMTP-Felder aus"
+      },
+      "accounts": {
+        "addAccount": "Konto hinzufügen",
+        "additionalAccounts": "Weitere Konten",
+        "cannotBeRemoved": "Kann nicht entfernt werden",
+        "changeLogo": "Logo ändern",
+        "changePassword": "Passwort ändern",
+        "confirm": "Bestätigen",
+        "confirmNewPassword": "Neues Passwort bestätigen",
+        "confirmPassword": "Passwort bestätigen",
+        "createAccount": "Konto erstellen",
+        "description": "Kontoeinstellungen und Teammitglieder verwalten",
+        "email": "E-Mail",
+        "emailPlaceholder": "E-Mail-Adresse eingeben",
+        "enterNewPassword": "Neues Passwort eingeben",
+        "firstName": "Vorname",
+        "firstNamePlaceholder": "Vorname eingeben",
+        "lastName": "Nachname",
+        "lastNamePlaceholder": "Nachname eingeben",
+        "minCharacters": "Mindestens 8 Zeichen",
+        "name": "Name",
+        "newAccount": "Neues Konto",
+        "newPassword": "Neues Passwort",
+        "noTeamAccounts": "Keine Teamkonten",
+        "noTeamAccountsDesc": "Fügen Sie Teammitglieder hinzu",
+        "passwordFair": "Ausreichend",
+        "passwordGood": "Gut",
+        "passwordStrong": "Stark",
+        "passwordWeak": "Schwach",
+        "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
+        "platformLogo": "Plattform-Logo",
+        "primaryAdmin": "Hauptadministrator",
+        "profile": "Profil",
+        "removeAccount": "Konto entfernen",
+        "removeAccountConfirm": "Sind Sie sicher, dass Sie dieses Konto entfernen möchten?",
+        "repeatPassword": "Passwort wiederholen",
+        "savePassword": "Passwort speichern",
+        "securityTip1": "Mindestens 8 Zeichen verwenden",
+        "securityTip2": "Groß- und Kleinbuchstaben verwenden",
+        "securityTip3": "Mindestens eine Zahl verwenden",
+        "securityTip4": "Mindestens ein Sonderzeichen verwenden",
+        "securityTips": "Sicherheitstipps",
+        "strength": "Stärke",
+        "teamAccounts": "Teamkonten",
+        "title": "Kontoeinstellungen",
+        "uploadLogo": "Logo hochladen",
+        "uploadLogoDesc": "Plattform-Logo hochladen (PNG, JPG, SVG)"
+      },
+      "changelog": {
+        "accentColor": "Akzentfarbe",
+        "addEntry": "Eintrag hinzufügen",
+        "addNewEntry": "Neuen Eintrag hinzufügen",
+        "deleteEntry": "Eintrag löschen",
+        "deleteEntryConfirm": "Sind Sie sicher, dass Sie diesen Changelog-Eintrag löschen möchten?",
+        "description": "Changelog-Einträge für Ihre Plattform verwalten",
+        "details": "Details",
+        "detailsPlaceholder": "Changelog-Details eingeben...",
+        "entries": "Einträge",
+        "noDate": "Kein Datum",
+        "noEntries": "Keine Changelog-Einträge",
+        "noEntriesDesc": "Erstellen Sie Ihren ersten Changelog-Eintrag",
+        "releaseDate": "Veröffentlichungsdatum",
+        "thisEntry": "diesen Eintrag",
+        "title": "Changelog",
+        "version": "Version"
+      },
+      "communication": {
+        "accessEmail": {
+          "contentPlaceholder": "Zugangs-E-Mail-Inhalt eingeben...",
+          "description": "E-Mail konfigurieren, die bei Zugangsvergabe gesendet wird",
+          "linkExpiry": "Link-Ablauf",
+          "linkExpiryHelp": "Wie lange der Zugangslink gültig bleibt",
+          "subjectPlaceholder": "E-Mail-Betreff eingeben...",
+          "title": "Zugangs-E-Mail"
+        },
+        "days": "Tage",
+        "emailContent": "E-Mail-Inhalt",
+        "emailSignature": "E-Mail-Signatur",
+        "emailSubject": "E-Mail-Betreff",
+        "hours": "Stunden",
+        "insert": "Einfügen",
+        "registrationEmail": {
+          "contentPlaceholder": "Registrierungs-E-Mail-Inhalt eingeben...",
+          "description": "E-Mail konfigurieren, die bei Registrierung gesendet wird",
+          "linkExpiry": "Link-Ablauf",
+          "linkExpiryHelp": "Wie lange der Registrierungslink gültig bleibt",
+          "subjectPlaceholder": "E-Mail-Betreff eingeben...",
+          "title": "Registrierungs-E-Mail"
+        },
+        "signature": {
+          "description": "E-Mail-Signatur konfigurieren",
+          "helpText": "Diese Signatur wird an alle ausgehenden E-Mails angehängt",
+          "placeholder": "E-Mail-Signatur eingeben...",
+          "title": "E-Mail-Signatur"
+        },
+        "smtp": {
+          "commonSettings": "Gängige Einstellungen",
+          "description": "SMTP-Server für den E-Mail-Versand konfigurieren",
+          "emailUsername": "E-Mail / Benutzername",
+          "password": "Passwort",
+          "passwordPlaceholder": "SMTP-Passwort eingeben",
+          "port": "Port",
+          "sendTestEmail": "Test-E-Mail senden",
+          "senderName": "Absendername",
+          "senderNamePlaceholder": "Absendername eingeben",
+          "server": "Server",
+          "testConnection": "Verbindung testen",
+          "title": "SMTP-Einstellungen",
+          "useSSL": "SSL verwenden"
+        },
+        "variables": "Variablen"
+      },
+      "contact": {
+        "address": "Adresse",
+        "addressPlaceholder": "Firmenadresse eingeben",
+        "companyName": "Firmenname",
+        "companyNamePlaceholder": "Firmennamen eingeben",
+        "description": "Kontaktinformationen verwalten",
+        "phone": "Telefon",
+        "title": "Kontaktinformationen",
+        "website": "Website"
+      },
+      "contracts": {
+        "access": "Zugang",
+        "addReason": "Grund hinzufügen",
+        "autoRenew": "Automatische Verlängerung",
+        "clickToEditName": "Klicken zum Bearbeiten",
+        "contractForms": {
+          "description": "Vertragsformularvorlagen verwalten",
+          "title": "Vertragsformulare"
+        },
+        "contractTypes": {
+          "description": "Verfügbare Vertragstypen definieren",
+          "title": "Vertragstypen"
+        },
+        "createContractForm": "Vertragsformular erstellen",
+        "createContractType": "Vertragstyp erstellen",
+        "createForm": "Formular erstellen",
+        "deleteContractForm": "Vertragsformular löschen",
+        "deleteContractFormConfirm": "Sind Sie sicher, dass Sie dieses Vertragsformular löschen möchten?",
+        "deleteContractType": "Vertragstyp löschen",
+        "deleteContractTypeConfirm": "Sind Sie sicher, dass Sie diesen Vertragstyp löschen möchten?",
+        "deletePauseReason": "Pausengrund löschen",
+        "deletePauseReasonConfirm": "Sind Sie sicher, dass Sie diesen Pausengrund löschen möchten?",
+        "desktopRequired": "Desktop erforderlich",
+        "desktopRequiredDesc": "Der Vertragsformular-Editor ist nur auf dem Desktop verfügbar",
+        "duration": "Laufzeit",
+        "durationMonths": "{{count}} Monate",
+        "form": "Formular",
+        "month": "Monat",
+        "noContractForms": "Keine Vertragsformulare",
+        "noContractFormsDesc": "Erstellen Sie Ihr erstes Vertragsformular",
+        "noContractTypes": "Keine Vertragstypen",
+        "noContractTypesDesc": "Erstellen Sie Ihren ersten Vertragstyp",
+        "noPauseReasons": "Keine Pausengründe definiert",
+        "none": "Keine",
+        "openBuilder": "Editor öffnen",
+        "pageCount": "{{count}} Seiten",
+        "pauseReasons": {
+          "description": "Gründe für Vertragspausen definieren",
+          "title": "Pausengründe"
+        },
+        "reasonNamePlaceholder": "Grundbezeichnung eingeben...",
+        "thisContractType": "diesen Vertragstyp",
+        "thisReason": "diesen Grund",
+        "type": "Typ",
+        "unknown": "Unbekannt",
+        "untitled": "Ohne Titel",
+        "week": "Woche",
+        "year": "Jahr"
+      },
+      "legal": {
+        "description": "Rechtliche Dokumente verwalten",
+        "imprint": "Impressum",
+        "imprintPlaceholder": "Impressum-Text eingeben...",
+        "privacyPolicy": "Datenschutzerklärung",
+        "privacyPolicyPlaceholder": "Datenschutzerklärung eingeben...",
+        "termsAndConditions": "Allgemeine Geschäftsbedingungen",
+        "termsPlaceholder": "AGB eingeben...",
+        "title": "Rechtliches"
+      },
+      "resources": {
+        "deleteLeadSource": "Lead-Quelle löschen",
+        "deleteLeadSourceConfirm": "Sind Sie sicher, dass Sie diese Lead-Quelle löschen möchten?",
+        "leadSources": {
+          "description": "Lead-Quellen für das Tracking verwalten",
+          "title": "Lead-Quellen"
+        },
+        "noLeadSources": "Keine Lead-Quellen definiert",
+        "source": "Quelle",
+        "sourceNamePlaceholder": "Quellenname eingeben...",
+        "thisSource": "diese Quelle"
+      },
+      "select": "Auswählen",
+      "selectSection": "Bereich auswählen",
+      "variables": "Variablen",
+      "templates": {
+        "color": "Farbe",
+        "description": "Studio-Berechtigungsvorlagen verwalten",
+        "descriptionPlaceholder": "Vorlagenbeschreibung eingeben...",
+        "disableAll": "Alle deaktivieren",
+        "enableAll": "Alle aktivieren",
+        "memberView": "Mitglieder-Ansicht",
+        "memberViewPermissions": "Mitglieder-Ansicht Berechtigungen",
+        "newTemplate": "Neue Vorlage",
+        "noTemplates": "Keine Vorlagen",
+        "noTemplatesDesc": "Erstellen Sie Ihre erste Berechtigungsvorlage",
+        "removeTemplate": "Vorlage entfernen",
+        "removeTemplateConfirm": "Sind Sie sicher, dass Sie diese Vorlage entfernen möchten?",
+        "studioView": "Studio-Ansicht",
+        "studioViewPermissions": "Studio-Ansicht Berechtigungen",
+        "templateDescription": "Vorlagenbeschreibung",
+        "templateName": "Vorlagenname",
+        "title": "Berechtigungsvorlagen",
+        "togglePermissions": "Berechtigungen umschalten",
+        "unnamedTemplate": "Unbenannte Vorlage"
+      }
+    },
+    "header": {
+      "toggleSidebar": "Seitenleiste umschalten",
+      "activityLog": "Aktivitätsprotokoll",
+      "toggleCollapse": "Seitenleiste ein-/ausklappen"
+    },
+    "profile": {
+      "accountManagement": "Kontoverwaltung"
+    },
+    "activityLog": {
+      "title": "Aktivitätsprotokoll",
+      "activitiesCount": "{{count}} von {{total}} Aktivitäten",
+      "filters": "Filter",
+      "clearAll": "Alle zurücksetzen",
+      "from": "Von",
+      "to": "Bis",
+      "staff": "Mitarbeiter",
+      "allStaff": "Alle Mitarbeiter",
+      "noActivities": "Keine Aktivitäten gefunden",
+      "noActivitiesHint": "Versuche die Filter anzupassen",
+      "change": "{{count}} Änderung",
+      "changes": "{{count}} Änderungen",
+      "showingOf": "{{count}} von {{total}} angezeigt",
+      "loadMore": "Mehr laden",
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "categories": {
+        "all": "Alle",
+        "customers": "Kunden",
+        "contracts": "Verträge",
+        "leads": "Leads",
+        "demoAccess": "Demo-Zugang",
+        "support": "Support",
+        "email": "E-Mail",
+        "finances": "Finanzen",
+        "notes": "Notizen",
+        "exercises": "Übungen",
+        "marketplace": "Marktplatz",
+        "configuration": "Konfiguration"
+      }
+    },
+    "sidebar": {
+      "customers": "Kunden",
+      "contracts": "Verträge",
+      "leads": "Leads",
+      "demoAccess": "Demo-Zugang",
+      "supportArea": "Support-Bereich",
+      "tickets": "Tickets",
+      "feedback": "Feedback",
+      "email": "E-Mail",
+      "finances": "Finanzen",
+      "todo": "To-Do",
+      "notes": "Notizen",
+      "trainingExercises": "Trainingsübungen",
+      "marketplace": "Marktplatz",
+      "analytics": "Analytik",
+      "configuration": "Konfiguration"
+    }
+  },
+  "documents": {
+    "title": "Dokumentenverwaltung",
+    "manageFor": "Dokumente verwalten für",
+    "entityLabel": {
+      "member": "Mitglied #{{id}}",
+      "lead": "Lead #{{id}}",
+      "staff": "Mitarbeiter #{{id}}",
+      "studio": "Studio #{{id}}"
+    },
+    "upload": "Dokument hochladen",
+    "uploading": "Wird hochgeladen...",
+    "fillMedical": "Gesundheitsfragebogen ausfüllen",
+    "tags": "Tags",
+    "empty": {
+      "general": "Noch keine Dokumente hochgeladen für {{name}}",
+      "medical": "Noch keine Gesundheitsdaten vorhanden",
+      "hintGeneral": "Klicken Sie auf 'Dokument hochladen' um Dateien hinzuzufügen",
+      "hintMedical": "Klicken Sie auf 'Gesundheitsfragebogen ausfüllen' um zu starten"
+    },
+    "supported": "Unterstützt: PDF, JPG, PNG, DOC, DOCX, TXT",
+    "maxSize": "Max. Größe: 10MB pro Datei",
+    "answers": "{{count}} Antworten",
+    "signed": "Unterschrieben",
+    "pendingSignature": "Unterschrift ausstehend",
+    "delete": {
+      "title": "Dokument löschen",
+      "cannotUndo": "Diese Aktion kann nicht rückgängig gemacht werden",
+      "confirm": "Sind Sie sicher, dass Sie dieses Dokument löschen möchten?"
+    },
+    "viewer": {
+      "loading": "Dokument wird geladen...",
+      "error": "Fehler beim Laden des Dokuments",
+      "downloadInstead": "Stattdessen herunterladen",
+      "noPreview": "Vorschau nicht verfügbar",
+      "noPreviewDesc": "Bitte laden Sie die Datei herunter, um sie anzusehen.",
+      "unsupported": "Dateityp .{{type}} wird für die Vorschau nicht unterstützt",
+      "download": "Herunterladen",
+      "print": "Drucken"
+    },
+    "toast": {
+      "unsupportedFormat": "{{count}} Datei(en) haben nicht unterstützte Formate",
+      "sizeLimitExceeded": "{{count}} Datei(en) überschreiten das 10MB-Limit",
+      "uploading": "{{count}} Dokument(e) werden hochgeladen...",
+      "uploaded": "{{count}} Dokument(e) erfolgreich hochgeladen",
+      "generatingPdf": "PDF wird erstellt...",
+      "downloaded": "{{name}} heruntergeladen",
+      "pdfFailed": "PDF-Erstellung fehlgeschlagen",
+      "downloading": "{{name}} wird heruntergeladen...",
+      "generatingPrint": "PDF für den Druck wird erstellt...",
+      "printOpened": "Druckdialog geöffnet",
+      "printPdfOpened": "PDF-Druckdialog geöffnet",
+      "printFailed": "PDF für den Druck konnte nicht erstellt werden",
+      "noFileForPrint": "Keine Dateidaten für den Druck verfügbar",
+      "preparingPrint": "{{name}} wird für den Druck vorbereitet...",
+      "printUnsupported": "Drucken wird für .{{type}}-Dateien nicht unterstützt",
+      "printError": "Dokument konnte nicht für den Druck vorbereitet werden",
+      "deleted": "Dokument erfolgreich gelöscht",
+      "emptyName": "Dokumentname darf nicht leer sein",
+      "renamed": "Dokument erfolgreich umbenannt",
+      "tagCreated": "Tag erfolgreich erstellt",
+      "tagDeleted": "Tag erfolgreich gelöscht",
+      "noFileData": "Keine Dateidaten verfügbar",
+      "previewFailed": "PDF-Vorschau konnte nicht erstellt werden"
+    },
+    "tagManager": {
+      "title": "Tags verwalten",
+      "createNew": "Neuen Tag erstellen",
+      "tagName": "Tag-Name",
+      "chooseColor": "Farbe wählen",
+      "addTag": "Tag hinzufügen",
+      "existingTags": "Vorhandene Tags",
+      "tagCount": "{{count}} Tags",
+      "tagCountOne": "{{count}} Tag",
+      "noTags": "Noch keine Tags erstellt",
+      "noTagsHint": "Fügen Sie oben einen Tag hinzu",
+      "deleteTag": "Tag \"{{name}}\" löschen",
+      "done": "Fertig",
+      "tagColor": "Tag-Farbe"
+    }
+  },
+  "shared": {
+    "history": {
+      "tabs": {
+        "general": "Allgemein",
+        "communication": "Kommunikation",
+        "appointments": "Termine",
+        "checkins": "Check-ins",
+        "finance": "Finanzen",
+        "contracts": "Verträge",
+        "actions": "Aktionen",
+        "loginActivity": "Login-Aktivität",
+        "vacation": "Urlaub",
+        "trialTraining": "Probetraining",
+        "tickets": "Tickets"
+      },
+      "empty": {
+        "noGeneralChanges": "Keine allgemeinen Änderungen",
+        "noGeneralChangesDesc": "Es wurden noch keine Profiländerungen aufgezeichnet.",
+        "noMessages": "Keine Nachrichten",
+        "noMessagesDesc": "Es wurde noch keine Kommunikation aufgezeichnet.",
+        "noAppointments": "Keine Termine",
+        "noAppointmentsDesc": "Es wurden noch keine Termine aufgezeichnet.",
+        "noCheckins": "Keine Check-ins",
+        "noCheckinsDesc": "Es wurden noch keine Check-in-Aktivitäten aufgezeichnet.",
+        "noTransactions": "Keine Transaktionen",
+        "noTransactionsDesc": "Es wurden noch keine Finanztransaktionen aufgezeichnet.",
+        "noContractChanges": "Keine Vertragsänderungen",
+        "noContractChangesDesc": "Es wurden noch keine Vertragsänderungen aufgezeichnet.",
+        "noActions": "Keine Aktionen",
+        "noActionsDesc": "Es wurden noch keine Aktionen aufgezeichnet.",
+        "noLoginActivity": "Keine Login-Aktivität",
+        "noLoginActivityDesc": "Es wurde noch keine Login-Aktivität aufgezeichnet.",
+        "noVacation": "Kein Urlaubsverlauf",
+        "noVacationDesc": "Es wurden noch keine Urlaubsbuchungen aufgezeichnet.",
+        "noTrialTraining": "Kein Probetraining",
+        "noTrialTrainingDesc": "Es wurden noch keine Probetrainings aufgezeichnet.",
+        "noTickets": "Keine Tickets",
+        "noTicketsDesc": "Es wurde noch kein Ticketverlauf aufgezeichnet.",
+        "noFilterMessages": "Keine {{filter}}-Nachrichten gefunden."
+      },
+      "subtitles": {
+        "activityHistory": "Aktivitätsverlauf",
+        "leadHistory": "Lead-Verlauf",
+        "contractHistory": "Vertragsverlauf",
+        "studioHistory": "Studio-Verlauf"
+      },
+      "labels": {
+        "changed": "Geändert",
+        "changedBy": "Geändert von {{name}}",
+        "type": "Typ",
+        "date": "Datum",
+        "by": "Von",
+        "at": "um",
+        "location": "Standort",
+        "target": "Ziel",
+        "sentBy": "Gesendet von {{name}}",
+        "approvedBy": "Genehmigt von {{name}}",
+        "trialDate": "Probetermin",
+        "to": "An",
+        "noContent": "Kein Inhalt verfügbar.",
+        "all": "Alle",
+        "emails": "E-Mails",
+        "push": "Push",
+        "days": "{{count}} Tage",
+        "requested": "Angefragt am {{date}}"
+      }
+    },
+    "activityLog": {
+      "actionTypes": {
+        "appointment_created": "Termin erstellt",
+        "member_updated": "Mitglied aktualisiert",
+        "contract_created": "Vertrag erstellt",
+        "lead_converted": "Lead konvertiert",
+        "payment_processed": "Zahlung verarbeitet",
+        "demo_access_granted": "Demo-Zugang gewährt",
+        "exercise_uploaded": "Übung hochgeladen",
+        "contract_renewed": "Vertrag verlängert",
+        "ticket_resolved": "Ticket gelöst",
+        "product_added": "Produkt hinzugefügt",
+        "email_campaign_sent": "E-Mail-Kampagne gesendet",
+        "configuration_updated": "Konfiguration aktualisiert",
+        "payment_failed": "Zahlung fehlgeschlagen",
+        "note_created": "Notiz erstellt",
+        "class_rescheduled": "Kurs verschoben",
+        "staff_schedule_updated": "Mitarbeiterplan aktualisiert",
+        "product_sold": "Produkt verkauft",
+        "training_plan_created": "Trainingsplan erstellt",
+        "message_sent": "Nachricht gesendet",
+        "opening_hours_updated": "Öffnungszeiten aktualisiert"
+      },
+      "descriptions": {
+        "appointment_created": "Neuen Termin für {{name}} erstellt",
+        "member_updated": "Profilinformationen von {{name}} aktualisiert",
+        "contract_created": "Neuen Vertrag für {{name}} erstellt",
+        "lead_converted": "Lead {{name}} zu Vollmitglied konvertiert",
+        "payment_processed": "Monatliche Zahlung für {{name}} verarbeitet",
+        "demo_access_granted": "Demo-Zugang für {{name}} gewährt",
+        "exercise_uploaded": "Neue Übung hochgeladen: {{name}}",
+        "contract_renewed": "Vertrag für {{name}} verlängert",
+        "ticket_resolved": "Support-Ticket {{ticket}} für {{name}} gelöst",
+        "product_added": "Neues Produkt im Marktplatz hinzugefügt: {{name}}",
+        "email_campaign_sent": "Newsletter-Kampagne an {{count}} Empfänger gesendet",
+        "configuration_updated": "{{setting}}-Einstellungen für {{purpose}} aktualisiert",
+        "payment_failed": "Monatliche Zahlung für {{name}} fehlgeschlagen",
+        "note_created": "Interne Notiz über {{topic}} erstellt",
+        "class_rescheduled": "{{name}} für {{group}} verschoben",
+        "staff_schedule_updated": "Arbeitsplan für {{role}} {{name}} aktualisiert",
+        "product_sold": "{{product}} an {{name}} verkauft",
+        "training_plan_created": "Neuen Trainingsplan für {{name}} erstellt",
+        "message_sent": "Gruppennachricht an {{recipients}} gesendet",
+        "opening_hours_updated": "{{type}} Öffnungszeiten aktualisiert"
+      },
+      "fields": {
+        "service": "Leistung",
+        "date": "Datum",
+        "duration": "Dauer",
+        "trainer": "Trainer",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "type": "Typ",
+        "monthlyFee": "Monatsbeitrag",
+        "startDate": "Startdatum",
+        "endDate": "Enddatum",
+        "status": "Status",
+        "contract": "Vertrag",
+        "source": "Quelle",
+        "amount": "Betrag",
+        "method": "Methode",
+        "invoice": "Rechnung",
+        "studio": "Studio",
+        "template": "Vorlage",
+        "expires": "Läuft ab",
+        "name": "Name",
+        "difficulty": "Schwierigkeit",
+        "muscles": "Muskeln",
+        "resolution": "Lösung",
+        "price": "Preis",
+        "brand": "Marke",
+        "subject": "Betreff",
+        "recipients": "Empfänger",
+        "smtpServer": "SMTP-Server",
+        "port": "Port",
+        "encryption": "Verschlüsselung",
+        "error": "Fehler",
+        "retry": "Wiederholung",
+        "title": "Titel",
+        "tags": "Tags",
+        "time": "Uhrzeit",
+        "room": "Raum",
+        "product": "Produkt",
+        "payment": "Zahlung",
+        "plan": "Plan",
+        "sessionsPerWeek": "Einheiten/Woche",
+        "focus": "Schwerpunkt"
+      }
+    }
+  },
+  "studio": {
+    "sidebar": {
+      "myArea": "Mein Bereich",
+      "appointments": "Termine",
+      "classes": "Kurse",
+      "communication": "Kommunikation",
+      "messenger": "Messenger",
+      "bulletinBoard": "Schwarzes Brett",
+      "activityMonitor": "Aktivitätsmonitor",
+      "productivityArea": "Produktivität",
+      "todo": "To-Do",
+      "notes": "Notizen",
+      "mediaLibrary": "Mediathek",
+      "memberArea": "Mitgliederbereich",
+      "members": "Mitglieder",
+      "checkIn": "Check-In",
+      "contracts": "Verträge",
+      "leads": "Leads",
+      "staff": "Mitarbeiter",
+      "selling": "Verkauf",
+      "fitnessArea": "Fitnessbereich",
+      "training": "Training",
+      "medicalHistory": "Anamnese Bogen",
+      "finances": "Finanzen",
+      "analytics": "Analytik",
+      "configuration": "Konfiguration",
+      "marketplace": "Marktplatz",
+      "supportArea": "Support-Bereich",
+      "helpCenter": "Hilfecenter",
+      "tickets": "Tickets",
+      "feedback": "Feedback"
+    },
+    "header": {
+      "switchToLight": "Zum hellen Modus wechseln",
+      "switchToDark": "Zum dunklen Modus wechseln",
+      "toggleSidebar": "Seitenleiste umschalten",
+      "activityLog": "Aktivitätsprotokoll"
+    },
+    "profile": {
+      "editProfile": "Profil bearbeiten",
+      "privacyPolicy": "Datenschutzrichtlinie",
+      "termsConditions": "AGB",
+      "changelog": "Änderungsprotokoll"
+    },
+    "activityLog": {
+      "categories": {
+        "all": "Alle",
+        "appointments": "Termine",
+        "classes": "Kurse",
+        "members": "Mitglieder",
+        "contracts": "Verträge",
+        "leads": "Leads",
+        "staff": "Mitarbeiter",
+        "selling": "Verkauf",
+        "finances": "Finanzen",
+        "communication": "Kommunikation",
+        "notes": "Notizen",
+        "training": "Training",
+        "marketplace": "Marktplatz",
+        "configuration": "Konfiguration"
+      }
+    },
+    "layout": {
+      "deleteTask": "Aufgabe löschen",
+      "deleteTaskConfirm": "Bist du sicher, dass du diese Aufgabe löschen möchtest?",
+      "cancelTask": "Aufgabe abbrechen",
+      "cancelTaskConfirm": "Bist du sicher, dass du diese Aufgabe abbrechen möchtest?"
+    }
   }
 }

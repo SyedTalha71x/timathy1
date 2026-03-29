@@ -42,7 +42,7 @@ import {
   Clock,
 } from "lucide-react"
 import { RiContractLine } from "react-icons/ri"
-import { Modal, notification, ColorPicker } from "antd"
+import { Modal, ColorPicker } from "antd"
 import dayjs from "dayjs"
 
 
@@ -51,8 +51,13 @@ import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
 import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
 import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
-import LanguageTabs, { emptyTranslations } from "../../components/admin-dashboard-components/shared/LanguageTabs"
+import LanguageTabs, { emptyTranslations } from "../../components/shared/LanguageTabs"
 
+import { useTranslation } from "react-i18next"
+import DatePickerField from "../../components/shared/DatePickerField"
+import toast from "../../components/shared/SharedToast"
+import { haptic } from "../../utils/haptic"
+import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 // Import configuration defaults from admin-panel-states (Single Source of Truth)
 import {
   DEFAULT_COMMUNICATION_SETTINGS,
@@ -92,6 +97,7 @@ const SectionHeader = ({ title, description, action }) => (
 
 // Collapsible Variables Row — collapsed on mobile, always visible on desktop
 const VariablesRow = ({ children }) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   return (
     <div className="mb-2">
@@ -101,7 +107,7 @@ const VariablesRow = ({ children }) => {
         className="md:hidden flex items-center gap-1.5 text-xs text-gray-500 mb-1.5 hover:text-gray-400 transition-colors"
       >
         <ChevronRight className={`w-3 h-3 transition-transform ${open ? "rotate-90" : ""}`} />
-        Variables
+        {t("admin.configuration.variables")}
       </button>
       <div className={`flex-wrap items-center gap-2 ${open ? "flex" : "hidden"} md:flex`}>
         {children}
@@ -176,6 +182,7 @@ const InputField = ({
 
 // Select Component
 const SelectField = ({ label, value, onChange, options, placeholder, required, searchable = false }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState("")
   const ref = useRef(null)
@@ -213,7 +220,7 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
           className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] flex items-center justify-between"
         >
           <span className={selectedOption ? "text-white" : "text-gray-500"}>
-            {selectedOption?.label || placeholder || "Select..."}
+            {selectedOption?.label || placeholder || t("admin.configuration.select")}
           </span>
           <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
@@ -226,7 +233,7 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search..."
+                  placeholder={t("common.search")}
                   className="w-full bg-[#141414] text-white rounded-lg px-3 py-2 text-sm outline-none border border-[#333333]"
                   autoFocus
                 />
@@ -250,7 +257,7 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
                 </button>
               ))}
               {filteredOptions.length === 0 && (
-                <div className="px-4 py-3 text-sm text-gray-500 text-center">No results found</div>
+                <div className="px-4 py-3 text-sm text-gray-500 text-center">{t("common.noResults")}</div>
               )}
             </div>
           </div>
@@ -362,6 +369,7 @@ const ConfigurationPage = () => {
 
   // Navigation State
   const [activeCategory, setActiveCategory] = useState("account")
+  const { t } = useTranslation()
   const [activeSection, setActiveSection] = useState("accounts")
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileShowContent, setMobileShowContent] = useState(false)
@@ -507,6 +515,17 @@ const ConfigurationPage = () => {
     }
   }
 
+  const getPasswordStrengthLabel = (password) => {
+    const strength = getPasswordStrength(password)
+    switch (strength) {
+      case "Strong": return t("admin.configuration.accounts.passwordStrong")
+      case "Good": return t("admin.configuration.accounts.passwordGood")
+      case "Fair": return t("admin.configuration.accounts.passwordFair")
+      case "Weak": return t("admin.configuration.accounts.passwordWeak")
+      default: return ""
+    }
+  }
+
   const isPasswordFormValid = () => {
     if (!newPassword || newPassword.length < 8) return false
     if (newPassword !== confirmPassword) return false
@@ -524,6 +543,8 @@ const ConfigurationPage = () => {
   }
 
   const toggleCategory = (categoryId) => {
+    haptic.light()
+
     setExpandedCategories(prev =>
       prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
     )
@@ -552,7 +573,7 @@ const ConfigurationPage = () => {
       const section = cat.sections.find(s => s.id === activeSection)
       if (section) return section.label
     }
-    return "Settings"
+    return t("nav.settings")
   }
 
   // Search filter
@@ -610,16 +631,16 @@ const ConfigurationPage = () => {
       const url = URL.createObjectURL(file)
       setLogoUrl(url)
       setLogo([file])
-      notification.success({ message: "Logo uploaded successfully" })
+      toast.success(t("admin.configuration.toast.logoUploaded"))
     }
   }
 
   const handleChangePassword = (accountId) => {
     if (!isPasswordFormValid()) {
-      notification.error({ message: "Please fill in all password fields correctly" })
+      toast.error(t("admin.configuration.errors.fillPasswordFields"))
       return
     }
-    notification.success({ message: "Password changed successfully" })
+    toast.success(t("admin.configuration.toast.passwordChanged"))
     setNewPassword("")
     setConfirmPassword("")
     setChangingPasswordId(null)
@@ -628,8 +649,10 @@ const ConfigurationPage = () => {
   }
 
   const handleAddAccount = () => {
+    haptic.light()
+
     if (!newAccount.firstName.trim() || !newAccount.email.trim()) {
-      notification.error({ message: "Please fill in name and email" })
+      toast.error(t("admin.configuration.errors.fillNameEmail"))
       return
     }
     setAccounts([...accounts, {
@@ -643,7 +666,7 @@ const ConfigurationPage = () => {
     }])
     setNewAccount({ firstName: "", lastName: "", email: "", password: "" })
     setAddingAccount(false)
-    notification.success({ message: "Account created successfully" })
+    toast.success(t("admin.configuration.toast.accountCreated"))
   }
 
   const handleUpdateAccount = (id, field, value) => {
@@ -651,25 +674,29 @@ const ConfigurationPage = () => {
   }
 
   const handleRemoveAccount = (id) => {
+    haptic.warning()
+
     const account = accounts.find(a => a.id === id)
     if (account?.isPrimary) {
-      notification.error({ message: "Primary admin account cannot be removed" })
+      toast.error(t("admin.configuration.errors.primaryAdminCannotRemove"))
       return
     }
     Modal.confirm({
-      title: "Remove Account",
-      content: `Are you sure you want to remove ${account?.firstName} ${account?.lastName}? This cannot be undone.`,
-      okText: "Remove",
+      title: t("admin.configuration.accounts.removeAccount"),
+      content: t("admin.configuration.accounts.removeAccountConfirm", { name: `${account?.firstName} ${account?.lastName}` }),
+      okText: t("common.remove"),
       okType: "danger",
       onOk: () => {
         setAccounts(accounts.filter(a => a.id !== id))
         if (editingAccountId === id) setEditingAccountId(null)
-        notification.success({ message: "Account removed" })
+        toast.success(t("admin.configuration.toast.accountRemoved"))
       },
     })
   }
 
   const handleAddContractType = () => {
+    haptic.light()
+
     setEditingContractType({
       id: Date.now(),
       name: "",
@@ -695,24 +722,26 @@ const ConfigurationPage = () => {
   }
 
   const handleSaveContractType = () => {
+    haptic.success()
+
     if (!editingContractType.name.trim()) {
-      notification.error({ message: "Please enter a contract name" })
+      toast.error(t("admin.configuration.errors.enterContractName"))
       return
     }
     if (!editingContractType.duration || editingContractType.duration < 1) {
-      notification.error({ message: "Please enter a valid duration" })
+      toast.error(t("admin.configuration.errors.enterValidDuration"))
       return
     }
     if (!editingContractType.billingPeriod) {
-      notification.error({ message: "Please select a billing period" })
+      toast.error(t("admin.configuration.errors.selectBillingPeriod"))
       return
     }
     if (contractForms.length === 0) {
-      notification.error({ message: "Please create a contract form first" })
+      toast.error(t("admin.configuration.errors.createContractFormFirst"))
       return
     }
     if (!editingContractType.contractFormId) {
-      notification.error({ message: "Please select a contract form" })
+      toast.error(t("admin.configuration.errors.selectContractForm"))
       return
     }
     
@@ -720,10 +749,10 @@ const ConfigurationPage = () => {
       const updated = [...contractTypes]
       updated[editingContractTypeIndex] = editingContractType
       setContractTypes(updated)
-      notification.success({ message: "Contract type updated" })
+      toast.success(t("admin.configuration.toast.contractTypeUpdated"))
     } else {
       setContractTypes([...contractTypes, editingContractType])
-      notification.success({ message: "Contract type created" })
+      toast.success(t("admin.configuration.toast.contractTypeCreated"))
     }
     
     setContractTypeModalVisible(false)
@@ -732,40 +761,48 @@ const ConfigurationPage = () => {
   }
 
   const handleDeleteContractType = (index) => {
+    haptic.warning()
+
     const type = contractTypes[index]
     Modal.confirm({
-      title: "Delete Contract Type",
-      content: `Are you sure you want to delete "${type.name || "this contract type"}"? This cannot be undone.`,
-      okText: "Delete",
+      title: t("admin.configuration.contracts.deleteContractType"),
+      content: t("admin.configuration.contracts.deleteContractTypeConfirm", { name: type.name || t("admin.configuration.contracts.thisContractType") }),
+      okText: t("common.delete"),
       okType: "danger",
       onOk: () => {
         setContractTypes(contractTypes.filter((_, i) => i !== index))
-        notification.success({ message: "Contract type deleted" })
+        toast.success(t("admin.configuration.toast.contractTypeDeleted"))
       }
     })
   }
 
   const handleAddPauseReason = () => {
+    haptic.light()
+
     setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
   }
 
   const handleRemovePauseReason = (index) => {
+    haptic.warning()
+
     const reason = contractPauseReasons[index]
     Modal.confirm({
-      title: "Delete Pause Reason",
-      content: `Are you sure you want to delete "${reason?.name || "this reason"}"? This cannot be undone.`,
+      title: t("admin.configuration.contracts.deletePauseReason"),
+      content: t("admin.configuration.contracts.deletePauseReasonConfirm", { name: reason?.name || t("admin.configuration.contracts.thisReason") }),
       okText: "Delete",
       okType: "danger",
       onOk: () => {
         setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
-        notification.success({ message: "Pause reason deleted" })
+        toast.success(t("admin.configuration.toast.pauseReasonDeleted"))
       }
     })
   }
 
   const handleCreateContractForm = () => {
+    haptic.light()
+
     if (!newContractFormName.trim()) {
-      notification.error({ message: "Please enter a name" })
+      toast.error(t("admin.configuration.errors.enterName"))
       return
     }
     const newForm = {
@@ -779,10 +816,12 @@ const ConfigurationPage = () => {
     setNewContractFormName("")
     setShowCreateFormModal(false)
     setContractBuilderModalVisible(true)
-    notification.success({ message: "Contract form created" })
+    toast.success(t("admin.configuration.toast.contractFormCreated"))
   }
 
   const handleAddLeadSource = () => {
+    haptic.light()
+
     setLeadSources([
       ...leadSources,
       {
@@ -791,19 +830,21 @@ const ConfigurationPage = () => {
         color: "#3B82F6",
       },
     ])
-    notification.success({ message: "Lead source added" })
+    toast.success(t("admin.configuration.toast.leadSourceAdded"))
   }
 
   const handleRemoveLeadSource = (id) => {
+    haptic.warning()
+
     const source = leadSources.find(s => s.id === id)
     Modal.confirm({
-      title: "Delete Lead Source",
-      content: `Are you sure you want to delete "${source?.name || "this source"}"? This cannot be undone.`,
+      title: t("admin.configuration.resources.deleteLeadSource"),
+      content: t("admin.configuration.resources.deleteLeadSourceConfirm", { name: source?.name || t("admin.configuration.resources.thisSource") }),
       okText: "Delete",
       okType: "danger",
       onOk: () => {
         setLeadSources(leadSources.filter(s => s.id !== id))
-        notification.success({ message: "Lead source deleted" })
+        toast.success(t("admin.configuration.toast.leadSourceDeleted"))
       }
     })
   }
@@ -814,40 +855,36 @@ const ConfigurationPage = () => {
 
   const testEmailConnection = () => {
     if (!smtpConfig.smtpServer || !smtpConfig.smtpUser) {
-      notification.error({ message: "Please fill in SMTP server and username" })
+      toast.error(t("admin.configuration.errors.fillSmtpFields"))
       return
     }
-    notification.loading({ message: "Testing connection...", key: "smtp-test" })
+    toast.info(t("admin.configuration.toast.testingConnection"))
     setTimeout(() => {
-      notification.success({ 
-        message: "Connection successful!", 
-        description: `Connected to ${smtpConfig.smtpServer}:${smtpConfig.smtpPort}`,
-        key: "smtp-test"
-      })
+      toast.success(t("admin.configuration.toast.connectionSuccess"))
     }, 1500)
   }
 
   const addChangelogEntry = () => {
     const hasContent = Object.values(newChangelog.content).some(v => v?.trim())
     if (!newChangelog.version || !newChangelog.date || !hasContent) {
-      notification.warning({ message: "Please fill in version, date, and content in at least one language" })
+      toast.error(t("admin.configuration.errors.fillChangelogFields"))
       return
     }
     setChangelog([{ ...newChangelog, content: { ...newChangelog.content }, id: Date.now() }, ...changelog])
     setNewChangelog({ version: "", date: "", color: newChangelog.color, content: { en: "", de: "", fr: "", it: "", es: "" } })
-    notification.success({ message: "Changelog entry added" })
+    toast.success(t("admin.configuration.toast.changelogAdded"))
   }
 
   const removeChangelogEntry = (index) => {
     const entry = changelog[index]
     Modal.confirm({
-      title: "Delete Changelog Entry",
-      content: `Are you sure you want to delete version "${entry?.version || "this entry"}"? This cannot be undone.`,
+      title: t("admin.configuration.changelog.deleteEntry"),
+      content: t("admin.configuration.changelog.deleteEntryConfirm", { version: entry?.version || t("admin.configuration.changelog.thisEntry") }),
       okText: "Delete",
       okType: "danger",
       onOk: () => {
         setChangelog(changelog.filter((_, i) => i !== index))
-        notification.success({ message: "Changelog entry deleted" })
+        toast.success(t("admin.configuration.toast.changelogDeleted"))
       }
     })
   }
@@ -856,6 +893,8 @@ const ConfigurationPage = () => {
   // Access Template Handlers
   // ============================================
   const handleAddDemoTemplate = () => {
+    haptic.light()
+
     const newTemplate = {
       id: Date.now(),
       name: "",
@@ -888,10 +927,12 @@ const ConfigurationPage = () => {
   }
 
   const handleRemoveDemoTemplate = (id) => {
+    haptic.warning()
+
     Modal.confirm({
-      title: "Remove Template",
-      content: "Are you sure you want to remove this template? This cannot be undone.",
-      okText: "Remove",
+      title: t("admin.configuration.templates.removeTemplate"),
+      content: t("admin.configuration.templates.removeTemplateConfirm"),
+      okText: t("common.remove"),
       okType: "danger",
       onOk: () => {
         setDemoTemplates(demoTemplates.filter(t => t.id !== id))
@@ -904,13 +945,13 @@ const ConfigurationPage = () => {
     const duplicate = {
       ...template,
       id: Date.now(),
-      name: `${template.name} (Copy)`,
+      name: `${template.name} (${t("common.copy")})`,
       studioPermissions: { ...template.studioPermissions },
       memberViewPermissions: { ...template.memberViewPermissions },
     }
     setDemoTemplates([...demoTemplates, duplicate])
     setEditingTemplate(duplicate.id)
-    notification.success({ message: "Template duplicated" })
+    toast.success(t("admin.configuration.toast.templateDuplicated"))
   }
 
   // ============================================
@@ -924,7 +965,7 @@ const ConfigurationPage = () => {
       case "accounts":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Accounts" description="Manage admin accounts for your platform" />
+            <SectionHeader title={t("admin.configuration.accounts.title")} description={t("admin.configuration.accounts.description")} />
 
             {/* Logo Upload */}
             <SettingsCard>
@@ -932,18 +973,18 @@ const ConfigurationPage = () => {
                 <div className="w-28 h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0 shadow-lg">
                   <img 
                     src={logoUrl || defaultLogoUrl} 
-                    alt="Profile" 
+                    alt={t("admin.configuration.accounts.profile")} 
                     className="w-full h-full object-cover"
                     onError={(e) => { e.target.src = defaultLogoUrl }}
                   />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-white font-medium mb-2">Platform Logo</h3>
-                  <p className="text-sm text-gray-400 mb-4">Upload your company or studio logo</p>
+                  <h3 className="text-white font-medium mb-2">{t("admin.configuration.accounts.platformLogo")}</h3>
+                  <p className="text-sm text-gray-400 mb-4">{t("admin.configuration.accounts.uploadLogoDesc")}</p>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                     <label className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors flex items-center gap-2">
                       <Upload className="w-4 h-4" />
-                      {logo.length > 0 ? "Change Logo" : "Upload Logo"}
+                      {logo.length > 0 ? t("admin.configuration.accounts.changeLogo") : t("admin.configuration.accounts.uploadLogo")}
                       <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                     </label>
                     {logo.length > 0 && (
@@ -951,7 +992,7 @@ const ConfigurationPage = () => {
                         onClick={() => { setLogo([]); setLogoUrl("") }}
                         className="px-4 py-2 text-red-400 text-sm hover:bg-red-500/10 rounded-xl transition-colors"
                       >
-                        Remove
+                        {t("common.remove")}
                       </button>
                     )}
                   </div>
@@ -971,8 +1012,8 @@ const ConfigurationPage = () => {
                         <Shield className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-white font-medium">Primary Admin</h3>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 font-medium">Cannot be removed</span>
+                        <h3 className="text-white font-medium">{t("admin.configuration.accounts.primaryAdmin")}</h3>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 font-medium">{t("admin.configuration.accounts.cannotBeRemoved")}</span>
                       </div>
                     </div>
                     <button
@@ -986,22 +1027,22 @@ const ConfigurationPage = () => {
                   {isEditing ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <InputField
-                        label="First Name"
+                        label={t("admin.configuration.accounts.firstName")}
                         value={account.firstName}
                         onChange={(v) => handleUpdateAccount(account.id, "firstName", v)}
-                        placeholder="First name"
+                        placeholder={t("admin.configuration.accounts.firstNamePlaceholder")}
                         icon={User}
                       />
                       <InputField
-                        label="Last Name"
+                        label={t("admin.configuration.accounts.lastName")}
                         value={account.lastName}
                         onChange={(v) => handleUpdateAccount(account.id, "lastName", v)}
-                        placeholder="Last name"
+                        placeholder={t("admin.configuration.accounts.lastNamePlaceholder")}
                         icon={User}
                       />
                       <div className="sm:col-span-2">
                         <InputField
-                          label="Email"
+                          label={t("admin.configuration.accounts.email")}
                           value={account.email}
                           onChange={(v) => handleUpdateAccount(account.id, "email", v)}
                           placeholder="admin@company.com"
@@ -1013,15 +1054,15 @@ const ConfigurationPage = () => {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <span className="text-xs text-gray-500 uppercase tracking-wider">Name</span>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider">{t("admin.configuration.accounts.name")}</span>
                         <p className="text-white text-sm mt-1">{account.firstName} {account.lastName}</p>
                       </div>
                       <div>
-                        <span className="text-xs text-gray-500 uppercase tracking-wider">Email</span>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider">{t("admin.configuration.accounts.email")}</span>
                         <p className="text-white text-sm mt-1">{account.email}</p>
                       </div>
                       <div>
-                        <span className="text-xs text-gray-500 uppercase tracking-wider">Created</span>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider">{t("common.created")}</span>
                         <p className="text-white text-sm mt-1">{account.createdAt ? dayjs(account.createdAt).format("MMM D, YYYY") : "—"}</p>
                       </div>
                     </div>
@@ -1031,16 +1072,16 @@ const ConfigurationPage = () => {
                   <div className="mt-4 pt-4 border-t border-[#2F2F2F]">
                     {isChangingPw ? (
                       <div className="max-w-md space-y-3">
-                        <h4 className="text-sm font-medium text-gray-300">Change Password</h4>
+                        <h4 className="text-sm font-medium text-gray-300">{t("admin.configuration.accounts.changePassword")}</h4>
                         <div className="space-y-1.5">
-                          <label className="text-sm font-medium text-gray-300">New Password</label>
+                          <label className="text-sm font-medium text-gray-300">{t("admin.configuration.accounts.newPassword")}</label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                             <input
                               type={showNewPassword ? "text" : "password"}
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
-                              placeholder="Enter new password"
+                              placeholder={t("admin.configuration.accounts.enterNewPassword")}
                               className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                             />
                             <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
@@ -1049,14 +1090,14 @@ const ConfigurationPage = () => {
                           </div>
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-sm font-medium text-gray-300">Confirm Password</label>
+                          <label className="text-sm font-medium text-gray-300">{t("admin.configuration.accounts.confirmPassword")}</label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                             <input
                               type={showConfirmPassword ? "text" : "password"}
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
-                              placeholder="Confirm new password"
+                              placeholder={t("admin.configuration.accounts.confirmNewPassword")}
                               className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                             />
                             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
@@ -1067,8 +1108,8 @@ const ConfigurationPage = () => {
                         {newPassword && (
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs text-gray-400">
-                              <span>Strength:</span>
-                              <span>{getPasswordStrength(newPassword)}</span>
+                              <span>{t("admin.configuration.accounts.strength")}:</span>
+                              <span>{getPasswordStrengthLabel(newPassword)}</span>
                             </div>
                             <div className="w-full bg-gray-700 rounded-full h-1.5">
                               <div className={`h-1.5 rounded-full transition-all ${getPasswordStrengthColor(newPassword)}`} style={{ width: `${getPasswordStrengthPercent(newPassword)}%` }} />
@@ -1076,7 +1117,7 @@ const ConfigurationPage = () => {
                           </div>
                         )}
                         {confirmPassword && newPassword !== confirmPassword && (
-                          <p className="text-xs text-red-400">Passwords do not match</p>
+                          <p className="text-xs text-red-400">{t("admin.configuration.accounts.passwordsDoNotMatch")}</p>
                         )}
                         <div className="flex items-center gap-2">
                           <button
@@ -1084,13 +1125,13 @@ const ConfigurationPage = () => {
                             disabled={!isPasswordFormValid()}
                             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isPasswordFormValid() ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-[#333333] text-gray-500 cursor-not-allowed"}`}
                           >
-                            Save Password
+                            {t("admin.configuration.accounts.savePassword")}
                           </button>
                           <button
                             onClick={() => { setChangingPasswordId(null); setNewPassword(""); setConfirmPassword(""); setShowNewPassword(false); setShowConfirmPassword(false) }}
                             className="px-4 py-2 text-gray-400 text-sm hover:text-white transition-colors"
                           >
-                            Cancel
+                            {t("common.cancel")}
                           </button>
                         </div>
                       </div>
@@ -1100,7 +1141,7 @@ const ConfigurationPage = () => {
                         className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                       >
                         <Lock className="w-4 h-4" />
-                        Change Password
+                        {t("admin.configuration.accounts.changePassword")}
                       </button>
                     )}
                   </div>
@@ -1112,42 +1153,42 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-white font-medium">Team Accounts</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">{accounts.filter(a => !a.isPrimary).length} additional account{accounts.filter(a => !a.isPrimary).length !== 1 ? "s" : ""}</p>
+                  <h3 className="text-white font-medium">{t("admin.configuration.accounts.teamAccounts")}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{t("admin.configuration.accounts.additionalAccounts", { count: accounts.filter(a => !a.isPrimary).length })}</p>
                 </div>
                 <button
                   onClick={() => setAddingAccount(true)}
                   className="px-3 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Account
+                  {t("admin.configuration.accounts.addAccount")}
                 </button>
               </div>
 
               {/* Add Account Form */}
               {addingAccount && (
                 <div className="p-4 mb-4 bg-[#141414] rounded-xl border border-orange-500/20 space-y-3">
-                  <h4 className="text-sm font-medium text-white">New Account</h4>
+                  <h4 className="text-sm font-medium text-white">{t("admin.configuration.accounts.newAccount")}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InputField
-                      label="First Name"
+                      label={t("admin.configuration.accounts.firstName")}
                       value={newAccount.firstName}
                       onChange={(v) => setNewAccount({ ...newAccount, firstName: v })}
-                      placeholder="First name"
+                      placeholder={t("admin.configuration.accounts.firstNamePlaceholder")}
                       required
                     />
                     <InputField
-                      label="Last Name"
+                      label={t("admin.configuration.accounts.lastName")}
                       value={newAccount.lastName}
                       onChange={(v) => setNewAccount({ ...newAccount, lastName: v })}
-                      placeholder="Last name"
+                      placeholder={t("admin.configuration.accounts.lastNamePlaceholder")}
                     />
                     <div className="sm:col-span-2">
                       <InputField
-                        label="Email"
+                        label={t("admin.configuration.accounts.email")}
                         value={newAccount.email}
                         onChange={(v) => setNewAccount({ ...newAccount, email: v })}
-                        placeholder="email@company.com"
+                        placeholder={t("admin.configuration.accounts.emailPlaceholder")}
                         type="email"
                         icon={AtSign}
                         required
@@ -1164,13 +1205,13 @@ const ConfigurationPage = () => {
                           : "bg-[#333333] text-gray-500 cursor-not-allowed"
                       }`}
                     >
-                      Create Account
+                      {t("admin.configuration.accounts.createAccount")}
                     </button>
                     <button
                       onClick={() => { setAddingAccount(false); setNewAccount({ firstName: "", lastName: "", email: "", password: "" }) }}
                       className="px-4 py-2 text-gray-400 text-sm hover:text-white transition-colors"
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </button>
                   </div>
                 </div>
@@ -1181,8 +1222,8 @@ const ConfigurationPage = () => {
                 {accounts.filter(a => !a.isPrimary).length === 0 && !addingAccount ? (
                   <div className="text-center py-8 text-gray-400">
                     <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">No team accounts yet</p>
-                    <p className="text-xs text-gray-500 mt-1">Add accounts so other team members can log in</p>
+                    <p className="text-sm">{t("admin.configuration.accounts.noTeamAccounts")}</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("admin.configuration.accounts.noTeamAccountsDesc")}</p>
                   </div>
                 ) : (
                   accounts.filter(a => !a.isPrimary).map((account) => {
@@ -1201,21 +1242,21 @@ const ConfigurationPage = () => {
                                   type="text"
                                   value={account.firstName}
                                   onChange={(e) => handleUpdateAccount(account.id, "firstName", e.target.value)}
-                                  placeholder="First name"
+                                  placeholder={t("admin.configuration.accounts.firstNamePlaceholder")}
                                   className="bg-[#1C1C1C] text-white rounded-lg px-3 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                                 />
                                 <input
                                   type="text"
                                   value={account.lastName}
                                   onChange={(e) => handleUpdateAccount(account.id, "lastName", e.target.value)}
-                                  placeholder="Last name"
+                                  placeholder={t("admin.configuration.accounts.lastNamePlaceholder")}
                                   className="bg-[#1C1C1C] text-white rounded-lg px-3 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                                 />
                                 <input
                                   type="email"
                                   value={account.email}
                                   onChange={(e) => handleUpdateAccount(account.id, "email", e.target.value)}
-                                  placeholder="Email"
+                                  placeholder={t("admin.configuration.accounts.email")}
                                   className="bg-[#1C1C1C] text-white rounded-lg px-3 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                                 />
                               </div>
@@ -1230,7 +1271,7 @@ const ConfigurationPage = () => {
                             <button
                               onClick={() => { setChangingPasswordId(isChangingPw ? null : account.id); if (!isChangingPw) { setNewPassword(""); setConfirmPassword("") } }}
                               className={`p-1.5 rounded-lg transition-colors ${isChangingPw ? "text-orange-400 bg-orange-500/10" : "text-gray-500 hover:text-white hover:bg-[#2F2F2F]"}`}
-                              title="Change password"
+                              title={t("admin.configuration.accounts.changePassword")}
                             >
                               <Lock className="w-3.5 h-3.5" />
                             </button>
@@ -1260,7 +1301,7 @@ const ConfigurationPage = () => {
                                     type={showNewPassword ? "text" : "password"}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="Min. 8 characters"
+                                    placeholder={t("admin.configuration.accounts.minCharacters")}
                                     className="w-full bg-[#1C1C1C] text-white rounded-lg px-3 pr-9 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                                   />
                                   <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
@@ -1269,13 +1310,13 @@ const ConfigurationPage = () => {
                                 </div>
                               </div>
                               <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-gray-400">Confirm</label>
+                                <label className="text-xs font-medium text-gray-400">{t("admin.configuration.accounts.confirm")}</label>
                                 <div className="relative">
                                   <input
                                     type={showConfirmPassword ? "text" : "password"}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="Repeat password"
+                                    placeholder={t("admin.configuration.accounts.repeatPassword")}
                                     className="w-full bg-[#1C1C1C] text-white rounded-lg px-3 pr-9 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
                                   />
                                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
@@ -1313,23 +1354,23 @@ const ConfigurationPage = () => {
 
             {/* Security Tips */}
             <SettingsCard className="bg-[#181818]">
-              <h4 className="text-white font-medium mb-3">Security Tips</h4>
+              <h4 className="text-white font-medium mb-3">{t("admin.configuration.accounts.securityTips")}</h4>
               <ul className="text-sm text-gray-400 space-y-2">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Use at least 8 characters for passwords
+                  {t("admin.configuration.accounts.securityTip1")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Include uppercase, lowercase, numbers and special characters
+                  {t("admin.configuration.accounts.securityTip2")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Don't reuse passwords from other accounts
+                  {t("admin.configuration.accounts.securityTip3")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Each team member should have their own account
+                  {t("admin.configuration.accounts.securityTip4")}
                 </li>
               </ul>
             </SettingsCard>
@@ -1342,37 +1383,37 @@ const ConfigurationPage = () => {
       case "contact-info":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Contact Information" description="Your company's contact details displayed to users" />
+            <SectionHeader title={t("admin.configuration.contact.title")} description={t("admin.configuration.contact.description")} />
             
             <SettingsCard>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <InputField
-                    label="Company Name"
+                    label={t("admin.configuration.contact.companyName")}
                     value={contactData.companyName}
                     onChange={(v) => setContactData({ ...contactData, companyName: v })}
-                    placeholder="Your Company Name"
+                    placeholder={t("admin.configuration.contact.companyNamePlaceholder")}
                     icon={Building2}
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <InputField
-                    label="Address"
+                    label={t("admin.configuration.contact.address")}
                     value={contactData.address}
                     onChange={(v) => setContactData({ ...contactData, address: v })}
-                    placeholder="Company Address"
+                    placeholder={t("admin.configuration.contact.addressPlaceholder")}
                     rows={3}
                   />
                 </div>
                 <InputField
-                  label="Phone"
+                  label={t("admin.configuration.contact.phone")}
                   value={contactData.phone}
                   onChange={(v) => setContactData({ ...contactData, phone: v })}
                   placeholder="+1 (555) 123-4567"
                   icon={Phone}
                 />
                 <InputField
-                  label="Email"
+                  label={t("admin.configuration.accounts.email")}
                   value={contactData.email}
                   onChange={(v) => setContactData({ ...contactData, email: v })}
                   placeholder="contact@company.com"
@@ -1381,7 +1422,7 @@ const ConfigurationPage = () => {
                 />
                 <div className="sm:col-span-2">
                   <InputField
-                    label="Website"
+                    label={t("admin.configuration.contact.website")}
                     value={contactData.website}
                     onChange={(v) => setContactData({ ...contactData, website: v })}
                     placeholder="https://www.company.com"
@@ -1396,7 +1437,7 @@ const ConfigurationPage = () => {
       case "legal-info":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Legal Information" description="Imprint, privacy policy, and terms of service in multiple languages" />
+            <SectionHeader title={t("admin.configuration.legal.title")} description={t("admin.configuration.legal.description")} />
             
             <div className="mb-4">
               <LanguageTabs
@@ -1409,12 +1450,12 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Imprint</label>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">{t("admin.configuration.legal.imprint")}</label>
                   <WysiwygEditor
                     key={`imprint-${legalLang}`}
                     value={legalInfo.imprint?.[legalLang] || ""}
                     onChange={(v) => setLegalInfo({ ...legalInfo, imprint: { ...legalInfo.imprint, [legalLang]: v } })}
-                    placeholder="Enter your company's imprint information..."
+                    placeholder={t("admin.configuration.legal.imprintPlaceholder")}
                     showImages={true}
                     minHeight={150}
                   />
@@ -1425,12 +1466,12 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Privacy Policy</label>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">{t("admin.configuration.legal.privacyPolicy")}</label>
                   <WysiwygEditor
                     key={`privacy-${legalLang}`}
                     value={legalInfo.privacyPolicy?.[legalLang] || ""}
                     onChange={(v) => setLegalInfo({ ...legalInfo, privacyPolicy: { ...legalInfo.privacyPolicy, [legalLang]: v } })}
-                    placeholder="Enter your privacy policy..."
+                    placeholder={t("admin.configuration.legal.privacyPolicyPlaceholder")}
                     showImages={true}
                     minHeight={200}
                   />
@@ -1441,12 +1482,12 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Terms and Conditions</label>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">{t("admin.configuration.legal.termsAndConditions")}</label>
                   <WysiwygEditor
                     key={`terms-${legalLang}`}
                     value={legalInfo.termsAndConditions?.[legalLang] || ""}
                     onChange={(v) => setLegalInfo({ ...legalInfo, termsAndConditions: { ...legalInfo.termsAndConditions, [legalLang]: v } })}
-                    placeholder="Enter your terms and conditions..."
+                    placeholder={t("admin.configuration.legal.termsPlaceholder")}
                     showImages={true}
                     minHeight={200}
                   />
@@ -1467,8 +1508,8 @@ const ConfigurationPage = () => {
               <SettingsCard>
                 <div className="text-center py-12 text-gray-400">
                   <Smartphone className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-white mb-2">Desktop Required</h3>
-                  <p className="text-sm">Contract forms can only be created and edited on a desktop device.</p>
+                  <h3 className="text-lg font-medium text-white mb-2">{t("admin.configuration.contracts.desktopRequired")}</h3>
+                  <p className="text-sm">{t("admin.configuration.contracts.desktopRequiredDesc")}</p>
                 </div>
               </SettingsCard>
             </div>
@@ -1476,15 +1517,15 @@ const ConfigurationPage = () => {
             {/* Desktop: full contract form management */}
             <div className="hidden lg:block space-y-6">
             <SectionHeader
-              title="Contract Forms"
-              description="Create and manage contract form templates"
+              title={t("admin.configuration.contracts.contractForms.title")}
+              description={t("admin.configuration.contracts.contractForms.description")}
               action={
                 <button
                   onClick={() => setShowCreateFormModal(true)}
                   className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Create Form
+                  {t("admin.configuration.contracts.createForm")}
                 </button>
               }
             />
@@ -1493,14 +1534,14 @@ const ConfigurationPage = () => {
               <SettingsCard>
                 <div className="text-center py-12 text-gray-400">
                   <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-white mb-2">No contract forms yet</h3>
-                  <p className="text-sm mb-6">Create your first contract form template</p>
+                  <h3 className="text-lg font-medium text-white mb-2">{t("admin.configuration.contracts.noContractForms")}</h3>
+                  <p className="text-sm mb-6">{t("admin.configuration.contracts.noContractFormsDesc")}</p>
                   <button
                     onClick={() => setShowCreateFormModal(true)}
                     className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
-                    Create Contract Form
+                    {t("admin.configuration.contracts.createContractForm")}
                   </button>
                 </div>
               </SettingsCard>
@@ -1553,7 +1594,7 @@ const ConfigurationPage = () => {
                             <h3 
                               className="text-white font-medium text-sm sm:text-base cursor-pointer hover:text-orange-400 transition-colors"
                               onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
-                              title="Click to edit name"
+                              title={t("admin.configuration.contracts.clickToEditName")}
                             >
                               {form.name}
                             </h3>
@@ -1563,39 +1604,39 @@ const ConfigurationPage = () => {
                               onClick={() => setContractForms([...contractForms, {
                                 ...form,
                                 id: Date.now(),
-                                name: `${form.name} (Copy)`,
+                                name: `${form.name} (${t("common.copy")})`,
                                 createdAt: new Date().toISOString()
                               }])}
                               className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded transition-colors"
-                              title="Duplicate"
+                              title={t("common.duplicate")}
                             >
                               <Copy className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => {
                                 Modal.confirm({
-                                  title: "Delete Contract Form",
-                                  content: `Are you sure you want to delete "${form.name}"? This will permanently delete all pages and content. This action cannot be undone.`,
+                                  title: t("admin.configuration.contracts.deleteContractForm"),
+                                  content: t("admin.configuration.contracts.deleteContractFormConfirm", { name: form.name }),
                                   okText: "Delete",
                                   okType: "danger",
                                   onOk: () => {
                                     setContractForms(contractForms.filter(f => f.id !== form.id))
-                                    notification.success({ message: "Contract form deleted" })
+                                    toast.success(t("admin.configuration.toast.contractFormDeleted"))
                                   }
                                 })
                               }}
                               className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                              title="Delete"
+                              title={t("common.delete")}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
                         <div className="text-xs text-gray-500">
-                          Created: {new Date(form.createdAt).toLocaleDateString()}
+                          {t("common.created")}: {new Date(form.createdAt).toLocaleDateString()}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
+                          {t("admin.configuration.contracts.pageCount", { count: form.pages?.length || 1 })}
                         </div>
                       </div>
                     </div>
@@ -1608,7 +1649,7 @@ const ConfigurationPage = () => {
                         className="w-full px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        Open Builder
+                        {t("admin.configuration.contracts.openBuilder")}
                       </button>
                     </div>
                   </div>
@@ -1624,15 +1665,15 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader
-              title="Contract Types"
-              description="Define different membership contracts for your studio"
+              title={t("admin.configuration.contracts.contractTypes.title")}
+              description={t("admin.configuration.contracts.contractTypes.description")}
               action={
                 <button
                   onClick={handleAddContractType}
                   className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add</span> Type
+                  <span className="hidden sm:inline">{t("common.add")}</span> {t("admin.configuration.contracts.type")}
                 </button>
               }
             />
@@ -1641,14 +1682,14 @@ const ConfigurationPage = () => {
               <SettingsCard>
                 <div className="text-center py-12 text-gray-400">
                   <RiContractLine className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-white mb-2">No contract types yet</h3>
-                  <p className="text-sm mb-6">Create your first membership contract type</p>
+                  <h3 className="text-lg font-medium text-white mb-2">{t("admin.configuration.contracts.noContractTypes")}</h3>
+                  <p className="text-sm mb-6">{t("admin.configuration.contracts.noContractTypesDesc")}</p>
                   <button
                     onClick={handleAddContractType}
                     className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
-                    Create Contract Type
+                    {t("admin.configuration.contracts.createContractType")}
                   </button>
                 </div>
               </SettingsCard>
@@ -1662,10 +1703,10 @@ const ConfigurationPage = () => {
                     {/* Header */}
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-3">
-                        <h3 className="text-white font-medium truncate">{type.name || "Untitled"}</h3>
+                        <h3 className="text-white font-medium truncate">{type.name || t("admin.configuration.contracts.untitled")}</h3>
                         {type.autoRenewal && (
                           <span className="px-2.5 py-1 bg-orange-500 text-white text-xs font-medium rounded-full flex-shrink-0">
-                            Auto-Renew
+                            {t("admin.configuration.contracts.autoRenew")}
                           </span>
                         )}
                       </div>
@@ -1673,7 +1714,7 @@ const ConfigurationPage = () => {
                       {/* Price highlight */}
                       <div className="mb-4">
                         <span className="text-2xl font-bold text-white">{type.cost}€</span>
-                        <span className="text-gray-500 text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                        <span className="text-gray-500 text-sm">/{type.billingPeriod === 'monthly' ? t("admin.configuration.contracts.month") : type.billingPeriod === 'weekly' ? t("admin.configuration.contracts.week") : t("admin.configuration.contracts.year")}</span>
                       </div>
                       
                       {/* Key info */}
@@ -1681,26 +1722,26 @@ const ConfigurationPage = () => {
                         <div className="flex items-center justify-between text-gray-400">
                           <span className="flex items-center gap-2">
                             <Clock className="w-4 h-4" />
-                            Duration
+                            {t("admin.configuration.contracts.duration")}
                           </span>
-                          <span className="text-white">{type.duration} months</span>
+                          <span className="text-white">{t("admin.configuration.contracts.durationMonths", { count: type.duration })}</span>
                         </div>
                         <div className="flex items-center justify-between text-gray-400">
                           <span className="flex items-center gap-2">
                             <Shield className="w-4 h-4" />
-                            Access
+                            {t("admin.configuration.contracts.access")}
                           </span>
                           <span className="text-white truncate max-w-[120px]">
-                            {type.accessTemplateId ? demoTemplates.find(t => String(t.id) === String(type.accessTemplateId))?.name || 'Unknown' : 'None'}
+                            {type.accessTemplateId ? demoTemplates.find(t => String(t.id) === String(type.accessTemplateId))?.name || t("admin.configuration.contracts.unknown") : t("admin.configuration.contracts.none")}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-gray-400">
                           <span className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            Form
+                            {t("admin.configuration.contracts.form")}
                           </span>
                           <span className="text-white truncate max-w-[120px]">
-                            {type.contractFormId ? contractForms.find(f => String(f.id) === String(type.contractFormId))?.name || 'Unknown' : 'None'}
+                            {type.contractFormId ? contractForms.find(f => String(f.id) === String(type.contractFormId))?.name || t("admin.configuration.contracts.unknown") : t("admin.configuration.contracts.none")}
                           </span>
                         </div>
                       </div>
@@ -1713,7 +1754,7 @@ const ConfigurationPage = () => {
                         className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        Edit
+                        {t("common.edit")}
                       </button>
                       <button
                         onClick={() => handleDeleteContractType(index)}
@@ -1749,15 +1790,15 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader
-              title="Contract Pause Reasons"
-              description="Define reasons members can pause their contracts"
+              title={t("admin.configuration.contracts.pauseReasons.title")}
+              description={t("admin.configuration.contracts.pauseReasons.description")}
               action={
                 <button
                   onClick={handleAddPauseReason}
                   className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Reason
+                  {t("admin.configuration.contracts.addReason")}
                 </button>
               }
             />
@@ -1766,7 +1807,7 @@ const ConfigurationPage = () => {
               {contractPauseReasons.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <PauseCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No pause reasons configured</p>
+                  <p>{t("admin.configuration.contracts.noPauseReasons")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1780,7 +1821,7 @@ const ConfigurationPage = () => {
                           updated[index].name = e.target.value
                           setContractPauseReasons(updated)
                         }}
-                        placeholder="Reason name"
+                        placeholder={t("admin.configuration.contracts.reasonNamePlaceholder")}
                         className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
                       />
                       <button
@@ -1804,15 +1845,15 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader
-              title="Lead Sources"
-              description="Track where your leads come from"
+              title={t("admin.configuration.resources.leadSources.title")}
+              description={t("admin.configuration.resources.leadSources.description")}
               action={
                 <button
                   onClick={handleAddLeadSource}
                   className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add</span> Source
+                  <span className="hidden sm:inline">{t("common.add")}</span> {t("admin.configuration.resources.source")}
                 </button>
               }
             />
@@ -1820,7 +1861,7 @@ const ConfigurationPage = () => {
               {leadSources.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No lead sources configured</p>
+                  <p>{t("admin.configuration.resources.noLeadSources")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1836,7 +1877,7 @@ const ConfigurationPage = () => {
                         type="text"
                         value={source.name}
                         onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
-                        placeholder="Source name"
+                        placeholder={t("admin.configuration.resources.sourceNamePlaceholder")}
                         className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
                       />
                       <button
@@ -1859,7 +1900,7 @@ const ConfigurationPage = () => {
       case "demo-email":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Access Email" description="Email sent when granting access (multi-language)" />
+            <SectionHeader title={t("admin.configuration.communication.accessEmail.title")} description={t("admin.configuration.communication.accessEmail.description")} />
             
             <div className="mb-4">
               <LanguageTabs
@@ -1872,16 +1913,16 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="space-y-4">
                 <InputField
-                  label="Email Subject"
+                  label={t("admin.configuration.communication.emailSubject")}
                   value={demoEmail.subject?.[demoEmailLang] || ""}
                   onChange={(v) => setDemoEmail({ ...demoEmail, subject: { ...demoEmail.subject, [demoEmailLang]: v } })}
-                  placeholder="Your Access Details"
+                  placeholder={t("admin.configuration.communication.accessEmail.subjectPlaceholder")}
                 />
 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Email Content</label>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">{t("admin.configuration.communication.emailContent")}</label>
                   <VariablesRow>
-                    <span className="text-xs text-gray-500">Variables:</span>
+                    <span className="text-xs text-gray-500">{t("admin.configuration.communication.variables")}:</span>
                     {["{Access_Link}", "{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Access}", "{Expiry_Date}"].map(v => (
                       <button
                         key={v}
@@ -1892,40 +1933,40 @@ const ConfigurationPage = () => {
                       </button>
                     ))}
                     <span className="text-xs text-gray-500 mx-2">|</span>
-                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <span className="text-xs text-gray-500 mr-1">{t("admin.configuration.communication.insert")}:</span>
                     <button
                       onClick={() => {
                         const sig = typeof emailSignature === "object" ? (emailSignature[demoEmailLang] || emailSignature.en || "") : emailSignature
                         if (sig) {
                           setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: (demoEmail.content?.[demoEmailLang] || "") + sig } })
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error(t("admin.configuration.toast.noSignatureConfigured"))
                         }
                       }}
                       className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
                     >
                       <FileText className="w-3 h-3" />
-                      Email Signature
+                      {t("admin.configuration.communication.emailSignature")}
                     </button>
                   </VariablesRow>
                   <WysiwygEditor
                     key={`demo-email-${demoEmailLang}`}
                     value={demoEmail.content?.[demoEmailLang] || ""}
                     onChange={(v) => setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: v } })}
-                    placeholder="Compose your demo access email content..."
+                    placeholder={t("admin.configuration.communication.accessEmail.contentPlaceholder")}
                     showImages={true}
                     minHeight={180}
                   />
                 </div>
 
                 <NumberInput
-                  label="Access Link Expiry"
+                  label={t("admin.configuration.communication.accessEmail.linkExpiry")}
                   value={demoEmail.expiryDays}
                   onChange={(v) => setDemoEmail({ ...demoEmail, expiryDays: v })}
                   min={1}
                   max={30}
-                  suffix="days"
-                  helpText="Number of days until the access link expires"
+                  suffix={t("admin.configuration.communication.days")}
+                  helpText={t("admin.configuration.communication.accessEmail.linkExpiryHelp")}
                 />
 
               </div>
@@ -1936,7 +1977,7 @@ const ConfigurationPage = () => {
       case "registration-email":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Registration Email" description="Email sent when a new member registers (multi-language)" />
+            <SectionHeader title={t("admin.configuration.communication.registrationEmail.title")} description={t("admin.configuration.communication.registrationEmail.description")} />
             
             <div className="mb-4">
               <LanguageTabs
@@ -1949,16 +1990,16 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="space-y-4">
                 <InputField
-                  label="Email Subject"
+                  label={t("admin.configuration.communication.emailSubject")}
                   value={registrationEmail.subject?.[registrationEmailLang] || ""}
                   onChange={(v) => setRegistrationEmail({ ...registrationEmail, subject: { ...registrationEmail.subject, [registrationEmailLang]: v } })}
-                  placeholder="Welcome - Complete Your Registration"
+                  placeholder={t("admin.configuration.communication.registrationEmail.subjectPlaceholder")}
                 />
 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Email Content</label>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">{t("admin.configuration.communication.emailContent")}</label>
                   <VariablesRow>
-                    <span className="text-xs text-gray-500">Variables:</span>
+                    <span className="text-xs text-gray-500">{t("admin.configuration.communication.variables")}:</span>
                     {["{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Registration}", "{Registration_Link}", "{Expiry_Date}"].map(v => (
                       <button
                         key={v}
@@ -1969,40 +2010,40 @@ const ConfigurationPage = () => {
                       </button>
                     ))}
                     <span className="text-xs text-gray-500 mx-2">|</span>
-                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <span className="text-xs text-gray-500 mr-1">{t("admin.configuration.communication.insert")}:</span>
                     <button
                       onClick={() => {
                         const sig = typeof emailSignature === "object" ? (emailSignature[registrationEmailLang] || emailSignature.en || "") : emailSignature
                         if (sig) {
                           setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: (registrationEmail.content?.[registrationEmailLang] || "") + sig } })
                         } else {
-                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                          toast.error(t("admin.configuration.toast.noSignatureConfigured"))
                         }
                       }}
                       className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
                     >
                       <FileText className="w-3 h-3" />
-                      Email Signature
+                      {t("admin.configuration.communication.emailSignature")}
                     </button>
                   </VariablesRow>
                   <WysiwygEditor
                     key={`reg-email-${registrationEmailLang}`}
                     value={registrationEmail.content?.[registrationEmailLang] || ""}
                     onChange={(v) => setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: v } })}
-                    placeholder="Dear {Studio_Owner_First_Name}, welcome to {Studio_Name}!..."
+                    placeholder={t("admin.configuration.communication.registrationEmail.contentPlaceholder")}
                     showImages={true}
                     minHeight={180}
                   />
                 </div>
 
                 <NumberInput
-                  label="Registration Link Expiry"
+                  label={t("admin.configuration.communication.registrationEmail.linkExpiry")}
                   value={registrationEmail.expiryHours}
                   onChange={(v) => setRegistrationEmail({ ...registrationEmail, expiryHours: v })}
                   min={1}
                   max={168}
-                  suffix="hours"
-                  helpText="Number of hours until the registration link expires (1-168 hours / 7 days)"
+                  suffix={t("admin.configuration.communication.hours")}
+                  helpText={t("admin.configuration.communication.registrationEmail.linkExpiryHelp")}
                 />
 
               </div>
@@ -2013,7 +2054,7 @@ const ConfigurationPage = () => {
       case "email-signature":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails (multi-language)" />
+            <SectionHeader title={t("admin.configuration.communication.signature.title")} description={t("admin.configuration.communication.signature.description")} />
             
             <div className="mb-4">
               <LanguageTabs
@@ -2026,13 +2067,13 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <div className="space-y-3">
                 <p className="text-sm text-gray-400">
-                  This signature can be inserted into your email notification templates using the orange "Email Signature" button.
+                  {t("admin.configuration.communication.signature.helpText")}
                 </p>
                 <WysiwygEditor
                   key={`signature-${emailSignatureLang}`}
                   value={emailSignature[emailSignatureLang] || ""}
                   onChange={(v) => setEmailSignature(prev => ({ ...prev, [emailSignatureLang]: v }))}
-                  placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
+                  placeholder={t("admin.configuration.communication.signature.placeholder")}
                   showImages={true}
                   minHeight={120}
                 />
@@ -2044,20 +2085,20 @@ const ConfigurationPage = () => {
       case "smtp-setup":
         return (
           <div className="space-y-6">
-            <SectionHeader title="SMTP Setup" description="Configure your email server for sending notifications" />
+            <SectionHeader title={t("admin.configuration.communication.smtp.title")} description={t("admin.configuration.communication.smtp.description")} />
             
             <SettingsCard>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputField
-                    label="SMTP Server"
+                    label={t("admin.configuration.communication.smtp.server")}
                     value={smtpConfig.smtpServer}
                     onChange={(v) => setSmtpConfig({ ...smtpConfig, smtpServer: v })}
                     placeholder="smtp.example.com"
                     icon={Server}
                   />
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300">SMTP Port</label>
+                    <label className="text-sm font-medium text-gray-300">{t("admin.configuration.communication.smtp.port")}</label>
                     <input
                       type="number"
                       value={smtpConfig.smtpPort}
@@ -2067,31 +2108,31 @@ const ConfigurationPage = () => {
                     />
                   </div>
                   <InputField
-                    label="Email Address (Username)"
+                    label={t("admin.configuration.communication.smtp.emailUsername")}
                     value={smtpConfig.smtpUser}
                     onChange={(v) => setSmtpConfig({ ...smtpConfig, smtpUser: v })}
                     placeholder="studio@example.com"
                     icon={AtSign}
                   />
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300">Password</label>
+                    <label className="text-sm font-medium text-gray-300">{t("admin.configuration.communication.smtp.password")}</label>
                     <input
                       type="password"
                       value={smtpConfig.smtpPass}
                       onChange={(e) => setSmtpConfig({ ...smtpConfig, smtpPass: e.target.value })}
-                      placeholder="Enter SMTP password"
+                      placeholder={t("admin.configuration.communication.smtp.passwordPlaceholder")}
                       className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                     />
                   </div>
                   <InputField
-                    label="Default Sender Name"
+                    label={t("admin.configuration.communication.smtp.senderName")}
                     value={smtpConfig.senderName}
                     onChange={(v) => setSmtpConfig({ ...smtpConfig, senderName: v })}
-                    placeholder="Your Studio Name"
+                    placeholder={t("admin.configuration.communication.smtp.senderNamePlaceholder")}
                   />
                   <div className="flex items-end">
                     <Toggle
-                      label="Use SSL/TLS"
+                      label={t("admin.configuration.communication.smtp.useSSL")}
                       checked={smtpConfig.useSSL}
                       onChange={(v) => setSmtpConfig({ ...smtpConfig, useSSL: v })}
                     />
@@ -2104,11 +2145,11 @@ const ConfigurationPage = () => {
                     className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
                   >
                     <Server className="w-4 h-4" />
-                    Test Connection
+                    {t("admin.configuration.communication.smtp.testConnection")}
                   </button>
                   <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2">
                     <Send className="w-4 h-4" />
-                    Send Test Email
+                    {t("admin.configuration.communication.smtp.sendTestEmail")}
                   </button>
                 </div>
               </div>
@@ -2116,7 +2157,7 @@ const ConfigurationPage = () => {
 
             {/* SMTP Help */}
             <SettingsCard className="bg-[#181818]">
-              <h4 className="text-white font-medium mb-3">Common SMTP Settings</h4>
+              <h4 className="text-white font-medium mb-3">{t("admin.configuration.communication.smtp.commonSettings")}</h4>
               <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex gap-3">
                   <span className="text-orange-400 font-medium w-24 flex-shrink-0">Gmail</span>
@@ -2141,21 +2182,21 @@ const ConfigurationPage = () => {
       case "version-history":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Version History" description="Document changes and updates to your platform" />
+            <SectionHeader title={t("admin.configuration.changelog.title")} description={t("admin.configuration.changelog.description")} />
             
             {/* Add New Entry */}
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Add New Changelog Entry</h3>
+              <h3 className="text-white font-medium mb-4">{t("admin.configuration.changelog.addNewEntry")}</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                   <InputField
-                    label="Version"
+                    label={t("admin.configuration.changelog.version")}
                     value={newChangelog.version}
                     onChange={(v) => setNewChangelog({ ...newChangelog, version: v })}
                     placeholder="e.g., 2.1.0"
                   />
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300">Release Date</label>
+                    <label className="text-sm font-medium text-gray-300">{t("admin.configuration.changelog.releaseDate")}</label>
                     <input
                       type="date"
                       value={newChangelog.date}
@@ -2164,7 +2205,7 @@ const ConfigurationPage = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300">Accent Color</label>
+                    <label className="text-sm font-medium text-gray-300">{t("admin.configuration.changelog.accentColor")}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
@@ -2178,7 +2219,7 @@ const ConfigurationPage = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Details</label>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">{t("admin.configuration.changelog.details")}</label>
                   <div className="mb-2">
                     <LanguageTabs
                       selectedLang={changelogLang}
@@ -2190,7 +2231,7 @@ const ConfigurationPage = () => {
                     key={`changelog-new-${changelogLang}`}
                     value={newChangelog.content?.[changelogLang] || ""}
                     onChange={(v) => setNewChangelog({ ...newChangelog, content: { ...newChangelog.content, [changelogLang]: v } })}
-                    placeholder="Describe the changes in this version..."
+                    placeholder={t("admin.configuration.changelog.detailsPlaceholder")}
                     showImages={true}
                     minHeight={120}
                   />
@@ -2205,19 +2246,19 @@ const ConfigurationPage = () => {
                       : "bg-[#333333] text-gray-500 cursor-not-allowed"
                   }`}
                 >
-                  Add Changelog Entry
+                  {t("admin.configuration.changelog.addEntry")}
                 </button>
               </div>
             </SettingsCard>
 
             {/* Changelog Entries */}
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Changelog Entries</h3>
+              <h3 className="text-white font-medium mb-4">{t("admin.configuration.changelog.entries")}</h3>
               {changelog.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No changelog entries yet</p>
-                  <p className="text-sm mt-1">Add your first entry above</p>
+                  <p>{t("admin.configuration.changelog.noEntries")}</p>
+                  <p className="text-sm mt-1">{t("admin.configuration.changelog.noEntriesDesc")}</p>
                 </div>
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
@@ -2230,9 +2271,9 @@ const ConfigurationPage = () => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-2">
-                            <span className="text-white font-semibold">Version {entry.version}</span>
+                            <span className="text-white font-semibold">{t("admin.configuration.changelog.version")} {entry.version}</span>
                             <span className="text-gray-500 text-sm">
-                              {entry.date ? dayjs(entry.date).format("MMMM D, YYYY") : "No Date"}
+                              {entry.date ? dayjs(entry.date).format("MMMM D, YYYY") : t("admin.configuration.changelog.noDate")}
                             </span>
                           </div>
                           <div
@@ -2262,15 +2303,15 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader
-              title="Access Templates"
-              description="Create and manage permission templates for Studio View and Member View"
+              title={t("admin.configuration.templates.title")}
+              description={t("admin.configuration.templates.description")}
               action={
                 <button
                   onClick={handleAddDemoTemplate}
                   className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  New Template
+                  {t("admin.configuration.templates.newTemplate")}
                 </button>
               }
             />
@@ -2279,8 +2320,8 @@ const ConfigurationPage = () => {
               <SettingsCard>
                 <div className="text-center py-8 text-gray-400">
                   <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No templates yet</p>
-                  <p className="text-sm mt-1">Create your first access template</p>
+                  <p>{t("admin.configuration.templates.noTemplates")}</p>
+                  <p className="text-sm mt-1">{t("admin.configuration.templates.noTemplatesDesc")}</p>
                 </div>
               </SettingsCard>
             ) : (
@@ -2306,7 +2347,7 @@ const ConfigurationPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-white font-medium text-sm truncate">{template.name || "Unnamed Template"}</h3>
+                            <h3 className="text-white font-medium text-sm truncate">{template.name || t("admin.configuration.templates.unnamedTemplate")}</h3>
                             <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title="Studio View">S: {studioEnabledCount}/{studioTotalCount}</span>
                             <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title="Member View">M: {memberEnabledCount}/{memberTotalCount}</span>
                           </div>
@@ -2322,7 +2363,7 @@ const ConfigurationPage = () => {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isExpanded ? "text-orange-400 bg-orange-500/10" : "text-gray-500 hover:text-white hover:bg-[#2F2F2F]"
                             }`}
-                            title="Toggle permissions"
+                            title={t("admin.configuration.templates.togglePermissions")}
                           >
                             <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                           </button>
@@ -2354,21 +2395,21 @@ const ConfigurationPage = () => {
                         <div className="mt-3 pt-3 border-t border-[#2F2F2F] space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <InputField
-                              label="Template Name"
+                              label={t("admin.configuration.templates.templateName")}
                               value={template.name}
                               onChange={(v) => handleUpdateDemoTemplate(template.id, "name", v)}
                               placeholder="e.g. Full Access, Basic View..."
                               required
                             />
                             <InputField
-                              label="Description"
+                              label={t("admin.configuration.templates.templateDescription")}
                               value={template.description}
                               onChange={(v) => handleUpdateDemoTemplate(template.id, "description", v)}
-                              placeholder="Describe what this template is for..."
+                              placeholder={t("admin.configuration.templates.descriptionPlaceholder")}
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-300">Color</label>
+                            <label className="text-sm font-medium text-gray-300">{t("admin.configuration.templates.color")}</label>
                             <div className="flex items-center gap-2">
                               <input
                                 type="color"
@@ -2395,7 +2436,7 @@ const ConfigurationPage = () => {
                                   : "text-gray-400 hover:text-white hover:bg-[#2F2F2F]"
                               }`}
                             >
-                              Studio View
+                              {t("admin.configuration.templates.studioView")}
                               <span className="ml-1.5 opacity-70">({studioEnabledCount}/{studioTotalCount})</span>
                             </button>
                             <button
@@ -2406,7 +2447,7 @@ const ConfigurationPage = () => {
                                   : "text-gray-400 hover:text-white hover:bg-[#2F2F2F]"
                               }`}
                             >
-                              Member View
+                              {t("admin.configuration.templates.memberView")}
                               <span className="ml-1.5 opacity-70">({memberEnabledCount}/{memberTotalCount})</span>
                             </button>
                           </div>
@@ -2415,20 +2456,20 @@ const ConfigurationPage = () => {
                           {activePermTab === "studio" && (
                             <>
                               <div className="flex items-center justify-between mb-2">
-                                <label className="text-xs font-medium text-gray-400">Studio View – Menu Permissions</label>
+                                <label className="text-xs font-medium text-gray-400">{t("admin.configuration.templates.studioViewPermissions")}</label>
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handleToggleAllPermissions(template.id, true, "studioPermissions")}
                                     className="text-xs text-green-400 hover:text-green-300 transition-colors"
                                   >
-                                    Enable All
+                                    {t("admin.configuration.templates.enableAll")}
                                   </button>
                                   <span className="text-gray-600">|</span>
                                   <button
                                     onClick={() => handleToggleAllPermissions(template.id, false, "studioPermissions")}
                                     className="text-xs text-red-400 hover:text-red-300 transition-colors"
                                   >
-                                    Disable All
+                                    {t("admin.configuration.templates.disableAll")}
                                   </button>
                                 </div>
                               </div>
@@ -2462,7 +2503,7 @@ const ConfigurationPage = () => {
                           {activePermTab === "member" && (
                             <>
                               <div className="flex items-center justify-between mb-2">
-                                <label className="text-xs font-medium text-gray-400">Member View – Menu Permissions</label>
+                                <label className="text-xs font-medium text-gray-400">{t("admin.configuration.templates.memberViewPermissions")}</label>
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handleToggleAllPermissions(template.id, true, "memberViewPermissions")}
@@ -2518,7 +2559,7 @@ const ConfigurationPage = () => {
         return (
           <div className="text-center py-12 text-gray-400">
             <Settings className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Select a section from the menu</p>
+            <p>{t("admin.configuration.selectSection")}</p>
           </div>
         )
     }
@@ -2539,7 +2580,7 @@ const ConfigurationPage = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search settings..."
+              placeholder={t("admin.configuration.search.placeholder")}
               className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
             />
             {searchQuery && (
@@ -2552,7 +2593,7 @@ const ConfigurationPage = () => {
             )}
           </div>
           {searchQuery && filteredNavItems.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2 text-center">No results found</p>
+            <p className="text-sm text-gray-500 mt-2 text-center">{t("common.noResults")}</p>
           )}
         </div>
 
@@ -2615,10 +2656,13 @@ const ConfigurationPage = () => {
       </div>
 
       {/* Mobile Navigation List - fixed fullscreen below dashboard header */}
-      <div className={`lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-[#1C1C1C] z-20 ${mobileShowContent ? 'hidden' : 'flex'}`}>
+      <div
+        className={`lg:hidden fixed inset-x-0 bottom-0 flex flex-col bg-[#1C1C1C] z-20 ${mobileShowContent ? 'hidden' : 'flex'}`}
+        style={{ top: "calc(3.5rem + env(safe-area-inset-top, 0px))" }}
+      >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
-          <h1 className="text-xl font-bold">Configuration</h1>
+          <h1 className="text-xl font-bold">{t("admin.configuration.title")}</h1>
         </div>
 
         {/* Mobile Search */}
@@ -2629,7 +2673,7 @@ const ConfigurationPage = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search settings..."
+              placeholder={t("admin.configuration.search.placeholder")}
               className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
             />
             {searchQuery && (
@@ -2697,7 +2741,10 @@ const ConfigurationPage = () => {
 
       {/* Mobile Content View - fixed fullscreen below dashboard header */}
       {mobileShowContent && (
-        <div className="lg:hidden fixed inset-x-0 top-14 bottom-0 flex flex-col bg-[#1C1C1C] z-30">
+        <div
+          className="lg:hidden fixed inset-x-0 bottom-0 flex flex-col bg-[#1C1C1C] z-30"
+          style={{ top: "calc(3.5rem + env(safe-area-inset-top, 0px))" }}
+        >
           {/* Mobile Content Header with Back Button - always visible */}
           <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
             <button
@@ -2719,7 +2766,7 @@ const ConfigurationPage = () => {
             <button
               onClick={getMobileAddAction()}
               className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-              aria-label="Add"
+              aria-label={t("common.add")}
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -2731,12 +2778,13 @@ const ConfigurationPage = () => {
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
         {/* Desktop Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#333333] flex-shrink-0">
-          <h1 className="text-2xl font-bold">Configuration</h1>
+          <h1 className="text-2xl font-bold">{t("admin.configuration.title")}</h1>
         </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
           {renderSectionContent()}
+          <KeyboardSpacer />
         </div>
       </div>
 

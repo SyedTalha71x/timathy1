@@ -1,6 +1,9 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
+import { haptic } from "../../utils/haptic"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 import {
   Search,
   Filter,
@@ -34,6 +37,7 @@ import {
 // Detail Modal Component
 // ============================================
 const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
+  const { t } = useTranslation()
   if (!feedback) return null
 
   const typeConfig = FEEDBACK_TYPES[feedback.type]
@@ -67,7 +71,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
         <div className="px-6 py-5 overflow-y-auto flex-1 space-y-5">
           {/* Studio Info */}
           <div className="bg-[#141414] rounded-xl p-4">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-3">Submitted by</h3>
+            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-3">{t("admin.feedback.detail.submittedBy")}</h3>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
                 <Building2 size={18} className="text-orange-400" />
@@ -81,14 +85,14 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 
           {/* Message */}
           <div>
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Message</h3>
+            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t("admin.feedback.detail.message")}</h3>
             <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{feedback.message}</p>
           </div>
 
           {/* Rating */}
           {feedback.rating > 0 && (
             <div>
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Rating</h3>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t("admin.feedback.detail.rating")}</h3>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -103,7 +107,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 
           {/* Status Change */}
           <div>
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Status</h3>
+            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t("admin.feedback.detail.status")}</h3>
             <div className="flex flex-wrap gap-2">
               {Object.entries(FEEDBACK_STATUSES).map(([key, config]) => (
                 <button
@@ -128,7 +132,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
             onClick={onClose}
             className="w-full px-4 py-2.5 bg-gray-700 text-white text-sm font-medium rounded-xl hover:bg-gray-600 transition-colors"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </div>
@@ -141,6 +145,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 // ============================================
 const Feedback = () => {
   const [feedbackList, setFeedbackList] = useState(DUMMY_FEEDBACK)
+  const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState("")
   const [filterTypes, setFilterTypes] = useState([])
   const [filterStatuses, setFilterStatuses] = useState([])
@@ -187,6 +192,7 @@ const Feedback = () => {
     })
 
   const handleStatusChange = (feedbackId, newStatus) => {
+    haptic.light()
     setFeedbackList((prev) =>
       prev.map((fb) => (fb.id === feedbackId ? { ...fb, status: newStatus } : fb))
     )
@@ -203,7 +209,8 @@ const Feedback = () => {
 
   const activeFilterCount = filterTypes.length + filterStatuses.length
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    haptic.success()
     setFeedbackList([...DUMMY_FEEDBACK])
     setSearchQuery("")
     setFilterTypes([])
@@ -213,65 +220,67 @@ const Feedback = () => {
 
   // Toggle helpers for multi-select
   const toggleStatus = (key) => {
+    haptic.light()
     setFilterStatuses((prev) =>
       prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]
     )
   }
 
   const toggleType = (key) => {
+    haptic.light()
     setFilterTypes((prev) =>
       prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]
     )
   }
 
   const sortOptions = [
-    { value: "newest", label: "Newest first" },
-    { value: "oldest", label: "Oldest first" },
-    { value: "rating", label: "Highest rating" },
+    { value: "newest", label: t("admin.feedback.sort.newest") },
+    { value: "oldest", label: t("admin.feedback.sort.oldest") },
+    { value: "rating", label: t("admin.feedback.sort.rating") },
   ]
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || "Newest first"
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || t("admin.feedback.sort.newest")
 
   return (
     <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Feedback</h1>
-          <p className="text-gray-400 text-sm mt-1 hidden sm:block">View and manage feedback from all studios</p>
+          <h1 className="text-2xl font-bold text-white">{t("admin.feedback.title")}</h1>
+          <p className="text-gray-400 text-sm mt-1 hidden sm:block">{t("admin.feedback.description")}</p>
         </div>
         <button
           onClick={handleRefresh}
           className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
         >
           <RefreshCw size={16} />
-          <span className="hidden sm:inline">Refresh</span>
+          <span className="hidden sm:inline">{t("common.refresh")}</span>
         </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
         <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
-          <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">Total</p>
+          <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.total")}</p>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.total}</p>
         </div>
         <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500"></div>
-            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">New</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.new")}</p>
           </div>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.new}</p>
         </div>
         <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-yellow-500"></div>
-            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">Review</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.review")}</p>
           </div>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.inReview}</p>
         </div>
         <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></div>
-            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">Resolved</p>
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.resolved")}</p>
           </div>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.resolved}</p>
         </div>
@@ -285,7 +294,7 @@ const Feedback = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by subject, studio, or person..."
+            placeholder={t("admin.feedback.search.placeholder")}
             className="w-full bg-[#141414] border border-[#333333] rounded-xl pl-10 pr-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
           />
         </div>
@@ -301,7 +310,7 @@ const Feedback = () => {
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
             <Filter size={14} />
-            <span className="text-xs sm:text-sm font-medium">Filters</span>
+            <span className="text-xs sm:text-sm font-medium">{t("admin.feedback.filters.title")}</span>
             <ChevronDown 
               size={14} 
               className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
@@ -336,7 +345,7 @@ const Feedback = () => {
               <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
                 <div className="py-1">
                   <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                    Sort by
+                    {t("admin.feedback.sort.sortBy")}
                   </div>
                   {sortOptions.map((option) => (
                     <button
@@ -373,7 +382,7 @@ const Feedback = () => {
                   : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
               }`}
             >
-              All ({feedbackList.length})
+              {t("common.all")} ({feedbackList.length})
             </button>
             {/* Status Filter Pills */}
             {Object.entries(FEEDBACK_STATUSES).map(([key, config]) => (
@@ -402,7 +411,7 @@ const Feedback = () => {
                   : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
               }`}
             >
-              All Types
+              {t("admin.feedback.allTypes")}
             </button>
             {/* Type Filter Pills */}
             {Object.entries(FEEDBACK_TYPES).map(([key, config]) => (
@@ -423,12 +432,13 @@ const Feedback = () => {
       </div>
 
       {/* Feedback List */}
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1 overflow-y-auto">
       <div className="space-y-3">
         {filteredFeedback.length === 0 ? (
           <div className="bg-[#1C1C1C] rounded-xl p-12 text-center">
             <MessageCircle size={40} className="text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">No feedback found</p>
-            <p className="text-gray-600 text-xs mt-1">Try adjusting your search or filters</p>
+            <p className="text-gray-400 text-sm">{t("admin.feedback.empty.title")}</p>
+            <p className="text-gray-600 text-xs mt-1">{t("admin.feedback.empty.description")}</p>
           </div>
         ) : (
           filteredFeedback.map((fb) => {
@@ -439,7 +449,7 @@ const Feedback = () => {
             return (
               <div
                 key={fb.id}
-                onClick={() => setSelectedFeedback(fb)}
+                onClick={() => { haptic.light(); setSelectedFeedback(fb) }}
                 className="bg-[#1C1C1C] rounded-xl p-4 hover:bg-[#222222] transition-colors cursor-pointer group"
               >
                 <div className="flex items-start gap-3">
@@ -506,9 +516,11 @@ const Feedback = () => {
       {/* Results Count */}
       {filteredFeedback.length > 0 && (
         <p className="text-gray-600 text-xs text-center mt-4">
-          {filteredFeedback.length} of {feedbackList.length} entries
+          {t("admin.feedback.results", { filtered: filteredFeedback.length, total: feedbackList.length })}
         </p>
       )}
+
+      </PullToRefresh>
 
       {/* Detail Modal */}
       {selectedFeedback && (

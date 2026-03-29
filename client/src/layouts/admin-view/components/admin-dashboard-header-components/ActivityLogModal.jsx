@@ -1,23 +1,24 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from "react"
 import { X, Clock, ChevronDown, ChevronRight, CalendarDays, User } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 // ============================================
 // Category filters — matches admin sidebar menu items
 // ============================================
-const CATEGORIES = [
-  { key: "all", label: "All" },
-  { key: "customers", label: "Customers" },
-  { key: "contracts", label: "Contracts" },
-  { key: "leads", label: "Leads" },
-  { key: "demo-access", label: "Demo Access" },
-  { key: "support", label: "Support" },
-  { key: "email", label: "Email" },
-  { key: "finances", label: "Finances" },
-  { key: "notes", label: "Notes" },
-  { key: "exercises", label: "Exercises" },
-  { key: "marketplace", label: "Marketplace" },
-  { key: "configuration", label: "Configuration" },
+const CATEGORIES = (t) => [
+  { key: "all", label: t("admin.activityLog.categories.all") },
+  { key: "customers", label: t("admin.activityLog.categories.customers") },
+  { key: "contracts", label: t("admin.activityLog.categories.contracts") },
+  { key: "leads", label: t("admin.activityLog.categories.leads") },
+  { key: "demo-access", label: t("admin.activityLog.categories.demoAccess") },
+  { key: "support", label: t("admin.activityLog.categories.support") },
+  { key: "email", label: t("admin.activityLog.categories.email") },
+  { key: "finances", label: t("admin.activityLog.categories.finances") },
+  { key: "notes", label: t("admin.activityLog.categories.notes") },
+  { key: "exercises", label: t("admin.activityLog.categories.exercises") },
+  { key: "marketplace", label: t("admin.activityLog.categories.marketplace") },
+  { key: "configuration", label: t("admin.activityLog.categories.configuration") },
 ]
 
 // ============================================
@@ -36,205 +37,209 @@ const STAFF_MEMBERS = [
 const ACTIVITY_LOGS = [
   {
     id: 1,
-    action: "Appointment Created",
-    description: "Created new appointment for John Doe",
+    actionType: "appointment_created",
+    descKey: "appointment_created", descParams: { name: "John Doe" },
     timestamp: "2024-12-15T14:30:00",
     category: "customers",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Service", to: "Personal Training" },
-      { field: "Date", to: "Dec 20, 2024 at 10:00 AM" },
-      { field: "Duration", to: "60 min" },
-      { field: "Trainer", to: "Justin M" },
+      { fieldKey: "service", to: "Personal Training" },
+      { fieldKey: "date", to: "Dec 20, 2024 at 10:00 AM" },
+      { fieldKey: "duration", to: "60 min" },
+      { fieldKey: "trainer", to: "Justin M" },
     ],
   },
   {
     id: 2,
-    action: "Member Updated",
-    description: "Updated profile information for Sarah Smith",
+    actionType: "member_updated",
+    descKey: "member_updated", descParams: { name: "Sarah Smith" },
     timestamp: "2024-12-15T13:15:00",
     category: "customers",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Email", from: "sarah.old@mail.com", to: "sarah.smith@mail.com" },
-      { field: "Phone", from: "+49 170 1234567", to: "+49 170 9876543" },
+      { fieldKey: "email", from: "sarah.old@mail.com", to: "sarah.smith@mail.com" },
+      { fieldKey: "phone", from: "+49 170 1234567", to: "+49 170 9876543" },
     ],
   },
   {
     id: 3,
-    action: "Contract Created",
-    description: "Created new contract for Mike Johnson",
+    actionType: "contract_created",
+    descKey: "contract_created", descParams: { name: "Mike Johnson" },
     timestamp: "2024-12-15T11:45:00",
     category: "contracts",
     user: { id: "anna", name: "Anna K" },
     changes: [
-      { field: "Type", to: "Premium Membership" },
-      { field: "Duration", to: "12 months" },
-      { field: "Monthly Fee", to: "49.90 EUR" },
-      { field: "Start Date", to: "Jan 01, 2025" },
+      { fieldKey: "type", to: "Premium Membership" },
+      { fieldKey: "duration", to: "12 months" },
+      { fieldKey: "monthlyFee", to: "49.90 EUR" },
+      { fieldKey: "startDate", to: "Jan 01, 2025" },
     ],
   },
   {
     id: 4,
-    action: "Lead Converted",
-    description: "Converted lead Lisa Garcia to full member",
+    actionType: "lead_converted",
+    descKey: "lead_converted", descParams: { name: "Lisa Garcia" },
     timestamp: "2024-12-15T10:20:00",
     category: "leads",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Status", from: "Lead", to: "Active Member" },
-      { field: "Contract", to: "Basic Membership - 6 months" },
-      { field: "Source", to: "Instagram" },
+      { fieldKey: "status", from: "Lead", to: "Active Member" },
+      { fieldKey: "contract", to: "Basic Membership - 6 months" },
+      { fieldKey: "source", to: "Instagram" },
     ],
   },
   {
     id: 5,
-    action: "Payment Processed",
-    description: "Monthly payment processed for Emily Brown",
+    actionType: "payment_processed",
+    descKey: "payment_processed", descParams: { name: "Emily Brown" },
     timestamp: "2024-12-15T09:30:00",
     category: "finances",
     user: { id: "system", name: "System" },
     changes: [
-      { field: "Amount", to: "39.90 EUR" },
-      { field: "Method", to: "SEPA Direct Debit" },
-      { field: "Invoice", to: "#INV-2024-1582" },
+      { fieldKey: "amount", to: "39.90 EUR" },
+      { fieldKey: "method", to: "SEPA Direct Debit" },
+      { fieldKey: "invoice", to: "#INV-2024-1582" },
     ],
   },
   {
     id: 6,
-    action: "Demo Access Granted",
-    description: "Granted demo access to Studio Fit Berlin",
+    actionType: "demo_access_granted",
+    descKey: "demo_access_granted", descParams: { name: "Studio Fit Berlin" },
     timestamp: "2024-12-14T16:45:00",
     category: "demo-access",
     user: { id: "anna", name: "Anna K" },
     changes: [
-      { field: "Studio", to: "Studio Fit Berlin" },
-      { field: "Template", to: "Full Access" },
-      { field: "Expires", to: "Dec 28, 2024" },
+      { fieldKey: "studio", to: "Studio Fit Berlin" },
+      { fieldKey: "template", to: "Full Access" },
+      { fieldKey: "expires", to: "Dec 28, 2024" },
     ],
   },
   {
     id: 7,
-    action: "Exercise Uploaded",
-    description: "Uploaded new exercise: HIIT Power Burpees",
+    actionType: "exercise_uploaded",
+    descKey: "exercise_uploaded", descParams: { name: "HIIT Power Burpees" },
     timestamp: "2024-12-14T15:20:00",
     category: "exercises",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Name", to: "HIIT Power Burpees" },
-      { field: "Difficulty", to: "Advanced" },
-      { field: "Muscles", to: "Full Body, Core" },
+      { fieldKey: "name", to: "HIIT Power Burpees" },
+      { fieldKey: "difficulty", to: "Advanced" },
+      { fieldKey: "muscles", to: "Full Body, Core" },
     ],
   },
   {
     id: 8,
-    action: "Contract Renewed",
-    description: "Renewed contract for Lisa Garcia",
+    actionType: "contract_renewed",
+    descKey: "contract_renewed", descParams: { name: "Lisa Garcia" },
     timestamp: "2024-12-14T14:10:00",
     category: "contracts",
     user: { id: "anna", name: "Anna K" },
     changes: [
-      { field: "Duration", from: "6 months", to: "12 months" },
-      { field: "Monthly Fee", from: "39.90 EUR", to: "34.90 EUR" },
-      { field: "End Date", from: "Mar 01, 2025", to: "Sep 01, 2025" },
+      { fieldKey: "duration", from: "6 months", to: "12 months" },
+      { fieldKey: "monthlyFee", from: "39.90 EUR", to: "34.90 EUR" },
+      { fieldKey: "endDate", from: "Mar 01, 2025", to: "Sep 01, 2025" },
     ],
   },
   {
     id: 9,
-    action: "Ticket Resolved",
-    description: "Resolved support ticket #1042 for Studio Fit Berlin",
+    actionType: "ticket_resolved",
+    descKey: "ticket_resolved", descParams: { ticket: "#1042", name: "Studio Fit Berlin" },
     timestamp: "2024-12-14T12:00:00",
     category: "support",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Status", from: "Open", to: "Resolved" },
-      { field: "Resolution", to: "Bug fixed in booking calendar" },
+      { fieldKey: "status", from: "Open", to: "Resolved" },
+      { fieldKey: "resolution", to: "Bug fixed in booking calendar" },
     ],
   },
   {
     id: 10,
-    action: "Product Added",
-    description: "Added new product to marketplace: Premium Yoga Mat",
+    actionType: "product_added",
+    descKey: "product_added", descParams: { name: "Premium Yoga Mat" },
     timestamp: "2024-12-14T10:30:00",
     category: "marketplace",
     user: { id: "anna", name: "Anna K" },
     changes: [
-      { field: "Name", to: "Premium Yoga Mat" },
-      { field: "Price", to: "29.90 EUR" },
-      { field: "Brand", to: "YogaPro" },
-      { field: "Status", to: "Active" },
+      { fieldKey: "name", to: "Premium Yoga Mat" },
+      { fieldKey: "price", to: "29.90 EUR" },
+      { fieldKey: "brand", to: "YogaPro" },
+      { fieldKey: "status", to: "Active" },
     ],
   },
   {
     id: 11,
-    action: "Email Campaign Sent",
-    description: "Sent newsletter campaign to 342 recipients",
+    actionType: "email_campaign_sent",
+    descKey: "email_campaign_sent", descParams: { count: "342" },
     timestamp: "2024-12-13T16:00:00",
     category: "email",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Subject", to: "December Promotions" },
-      { field: "Recipients", to: "342" },
-      { field: "Template", to: "Monthly Newsletter" },
+      { fieldKey: "subject", to: "December Promotions" },
+      { fieldKey: "recipients", to: "342" },
+      { fieldKey: "template", to: "Monthly Newsletter" },
     ],
   },
   {
     id: 12,
-    action: "Configuration Updated",
-    description: "Updated SMTP settings for email delivery",
+    actionType: "configuration_updated",
+    descKey: "configuration_updated", descParams: { setting: "SMTP", purpose: "email delivery" },
     timestamp: "2024-12-13T11:00:00",
     category: "configuration",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "SMTP Server", from: "smtp.old-provider.com", to: "smtp.new-provider.com" },
-      { field: "Port", from: "465", to: "587" },
-      { field: "Encryption", from: "SSL", to: "TLS" },
+      { fieldKey: "smtpServer", from: "smtp.old-provider.com", to: "smtp.new-provider.com" },
+      { fieldKey: "port", from: "465", to: "587" },
+      { fieldKey: "encryption", from: "SSL", to: "TLS" },
     ],
   },
   {
     id: 13,
-    action: "Payment Failed",
-    description: "Monthly payment failed for Chris Evans",
+    actionType: "payment_failed",
+    descKey: "payment_failed", descParams: { name: "Chris Evans" },
     timestamp: "2024-12-13T09:15:00",
     category: "finances",
     user: { id: "system", name: "System" },
     changes: [
-      { field: "Amount", to: "49.90 EUR" },
-      { field: "Error", to: "Card declined" },
-      { field: "Retry", to: "Scheduled Dec 16, 2024" },
+      { fieldKey: "amount", to: "49.90 EUR" },
+      { fieldKey: "error", to: "Card declined" },
+      { fieldKey: "retry", to: "Scheduled Dec 16, 2024" },
     ],
   },
   {
     id: 14,
-    action: "Note Created",
-    description: "Created internal note about Q1 strategy",
+    actionType: "note_created",
+    descKey: "note_created", descParams: { topic: "Q1 strategy" },
     timestamp: "2024-12-13T08:30:00",
     category: "notes",
     user: { id: "justin", name: "Justin M" },
     changes: [
-      { field: "Title", to: "Q1 2025 Strategy" },
-      { field: "Tags", to: "Strategy, Planning" },
+      { fieldKey: "title", to: "Q1 2025 Strategy" },
+      { fieldKey: "tags", to: "Strategy, Planning" },
     ],
   },
 ]
 
+
 // ============================================
 // Helpers
 // ============================================
-const formatTime = (timestamp) => {
+const LOCALE_MAP = { en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES", it: "it-IT" }
+const getLocale = (lang) => LOCALE_MAP[lang] || LOCALE_MAP.en
+
+const formatTime = (timestamp, locale) => {
   const date = new Date(timestamp)
-  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+  return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit", hour12: false })
 }
 
-const formatDateLabel = (dateStr) => {
+const formatDateLabel = (dateStr, t, locale) => {
   const date = new Date(dateStr)
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
 
-  if (date.toDateString() === today.toDateString()) return "Today"
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday"
-  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })
+  if (date.toDateString() === today.toDateString()) return t("admin.activityLog.today")
+  if (date.toDateString() === yesterday.toDateString()) return t("admin.activityLog.yesterday")
+  return date.toLocaleDateString(locale, { weekday: "long", month: "short", day: "numeric", year: "numeric" })
 }
 
 const formatInputDate = (date) => {
@@ -244,7 +249,7 @@ const formatInputDate = (date) => {
   return `${y}-${m}-${d}`
 }
 
-const groupByDate = (logs) => {
+const groupByDate = (logs, t, locale) => {
   const groups = {}
   logs.forEach((log) => {
     const dateKey = new Date(log.timestamp).toDateString()
@@ -254,7 +259,7 @@ const groupByDate = (logs) => {
   return Object.entries(groups)
     .map(([dateKey, items]) => ({
       dateKey,
-      label: formatDateLabel(dateKey),
+      label: formatDateLabel(dateKey, t, locale),
       items: items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
     }))
     .sort((a, b) => new Date(b.items[0].timestamp) - new Date(a.items[0].timestamp))
@@ -268,6 +273,8 @@ const getUserInitials = (name) => {
 // ActivityLogModal Component
 // ============================================
 const ActivityLogModal = ({ isOpen, onClose }) => {
+  const { t, i18n } = useTranslation()
+  const locale = getLocale(i18n.language)
   const [activeCategory, setActiveCategory] = useState("all")
   const [activeStaff, setActiveStaff] = useState("all")
   const [dateFrom, setDateFrom] = useState("")
@@ -295,7 +302,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null
 
-  const grouped = groupByDate(filtered)
+  const grouped = groupByDate(filtered, t, locale)
 
   const toggleExpanded = (id) => {
     setExpandedIds((prev) => {
@@ -322,8 +329,8 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-5 sm:p-6 border-b border-[#333333] flex-shrink-0 rounded-t-2xl">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-white">Activity Log</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">{filtered.length} of {ACTIVITY_LOGS.length} activities</p>
+            <h2 className="text-lg sm:text-xl font-bold text-white">{t("admin.activityLog.title")}</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">{t("admin.activityLog.activitiesCount", { count: filtered.length, total: ACTIVITY_LOGS.length })}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors">
             <X size={20} className="text-gray-400" />
@@ -343,7 +350,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
               }`}
             >
               <CalendarDays size={13} />
-              Filters
+              {t("admin.activityLog.filters")}
               {hasActiveFilters && !showFilters && (
                 <span className="w-1.5 h-1.5 rounded-full bg-white" />
               )}
@@ -354,7 +361,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 onClick={clearFilters}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-white transition-colors"
               >
-                Clear all
+                {t("admin.activityLog.clearAll")}
               </button>
             )}
           </div>
@@ -365,7 +372,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
               {/* Category pills */}
               <div className="overflow-x-auto">
                 <div className="flex gap-1.5">
-                  {CATEGORIES.map((cat) => (
+                  {CATEGORIES(t).map((cat) => (
                     <button
                       key={cat.key}
                       onClick={() => setActiveCategory(cat.key)}
@@ -385,7 +392,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
               <div className="flex flex-col sm:flex-row gap-3">
               {/* Date From */}
               <div className="flex-1">
-                <label className="text-[11px] text-zinc-500 mb-1 block">From</label>
+                <label className="text-[11px] text-zinc-500 mb-1 block">{t("admin.activityLog.from")}</label>
                 <input
                   type="date"
                   value={dateFrom}
@@ -396,7 +403,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
 
               {/* Date To */}
               <div className="flex-1">
-                <label className="text-[11px] text-zinc-500 mb-1 block">To</label>
+                <label className="text-[11px] text-zinc-500 mb-1 block">{t("admin.activityLog.to")}</label>
                 <input
                   type="date"
                   value={dateTo}
@@ -407,7 +414,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
 
               {/* Staff Filter */}
               <div className="flex-1">
-                <label className="text-[11px] text-zinc-500 mb-1 block">Staff</label>
+                <label className="text-[11px] text-zinc-500 mb-1 block">{t("admin.activityLog.staff")}</label>
                 <div className="relative">
                   <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <select
@@ -416,7 +423,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                     className="w-full bg-[#222222] text-white text-xs rounded-lg pl-8 pr-3 py-2 border border-[#333333] outline-none focus:border-orange-500 transition-colors appearance-none cursor-pointer"
                   >
                     {STAFF_MEMBERS.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
+                      <option key={s.id} value={s.id}>{s.id === "all" ? t("admin.activityLog.allStaff") : s.name}</option>
                     ))}
                   </select>
                 </div>
@@ -431,8 +438,8 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
           {grouped.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
               <CalendarDays size={32} className="mb-3 opacity-30" />
-              <p className="text-sm font-medium mb-1">No activities found</p>
-              <p className="text-xs text-zinc-600">Try adjusting your filters</p>
+              <p className="text-sm font-medium mb-1">{t("admin.activityLog.noActivities")}</p>
+              <p className="text-xs text-zinc-600">{t("admin.activityLog.noActivitiesHint")}</p>
             </div>
           ) : (
             grouped.map((group) => (
@@ -448,7 +455,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                     const isLast = idx === group.items.length - 1
                     const isExpanded = expandedIds.has(activity.id)
                     const hasChanges = activity.changes && activity.changes.length > 0
-                    const categoryLabel = CATEGORIES.find((c) => c.key === activity.category)?.label || activity.category
+                    const categoryLabel = CATEGORIES(t).find((c) => c.key === activity.category)?.label || activity.category
 
                     return (
                       <div key={activity.id} className="flex gap-3 sm:gap-4">
@@ -466,15 +473,15 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                           >
                             {/* Top Row */}
                             <div className="flex items-start justify-between gap-2 mb-1.5">
-                              <span className="text-sm font-medium text-white">{activity.action}</span>
+                              <span className="text-sm font-medium text-white">{t(`shared.activityLog.actionTypes.${activity.actionType}`, activity.actionType)}</span>
                               <div className="flex items-center gap-1.5 text-zinc-500 flex-shrink-0">
                                 <Clock size={12} />
-                                <span className="text-xs">{formatTime(activity.timestamp)}</span>
+                                <span className="text-xs">{formatTime(activity.timestamp, locale)}</span>
                               </div>
                             </div>
 
                             {/* Description */}
-                            <p className="text-sm text-zinc-400 mb-2.5">{activity.description}</p>
+                            <p className="text-sm text-zinc-400 mb-2.5">{t(`shared.activityLog.descriptions.${activity.descKey}`, activity.descParams)}</p>
 
                             {/* Bottom: Category + User + Expand */}
                             <div className="flex items-center justify-between">
@@ -493,7 +500,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
 
                               {hasChanges && (
                                 <div className="flex items-center gap-1 text-zinc-500">
-                                  <span className="text-[11px]">{activity.changes.length} {activity.changes.length === 1 ? "change" : "changes"}</span>
+                                  <span className="text-[11px]">{activity.changes.length === 1 ? t("admin.activityLog.change", { count: 1 }) : t("admin.activityLog.changes", { count: activity.changes.length })}</span>
                                   {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 </div>
                               )}
@@ -505,7 +512,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                             <div className="mt-1 ml-1 border-l-2 border-[#333333] pl-3 py-2 space-y-2">
                               {activity.changes.map((change, cIdx) => (
                                 <div key={cIdx} className="text-xs">
-                                  <span className="text-zinc-500">{change.field}</span>
+                                  <span className="text-zinc-500">{t(`shared.activityLog.fields.${change.fieldKey}`, change.fieldKey)}</span>
                                   {change.from ? (
                                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                       <span className="text-zinc-500 line-through">{change.from}</span>
@@ -534,10 +541,10 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
         {/* Footer */}
         <div className="flex justify-between items-center px-5 sm:px-6 py-4 border-t border-[#333333] flex-shrink-0">
           <p className="text-xs text-zinc-500">
-            Showing {filtered.length} of {ACTIVITY_LOGS.length}
+            {t("admin.activityLog.showingOf", { count: filtered.length, total: ACTIVITY_LOGS.length })}
           </p>
           <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors text-xs font-medium">
-            Load More
+            {t("admin.activityLog.loadMore")}
           </button>
         </div>
       </div>

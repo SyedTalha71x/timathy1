@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { X, Check, Pipette } from 'lucide-react'
 
 const PRESET_COLORS = [
@@ -100,7 +101,9 @@ function drawHueCanvas(canvas) {
   ctx.putImageData(imageData, 0, 0)
 }
 
-export default function ColorPickerModal({ isOpen, onClose, onSelectColor, currentColor = '#f97316', title = 'Choose Color' }) {
+export default function ColorPickerModal({ isOpen, onClose, onSelectColor, currentColor = '#f97316', title }) {
+  const { t } = useTranslation()
+  const displayTitle = title || t('common.colorPicker.title')
   const [selectedColor, setSelectedColor] = useState(currentColor)
   const [hexInput, setHexInput] = useState(currentColor)
   const [hsv, setHsv] = useState(() => hexToHsv(currentColor))
@@ -201,7 +204,7 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
       <div className="bg-surface-card p-6 rounded-xl w-full max-w-sm">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-content-primary font-bold">{title}</h2>
+          <h2 className="text-xl text-content-primary font-bold">{displayTitle}</h2>
           <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
             <X size={24} />
           </button>
@@ -228,7 +231,7 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
             }`}
           >
             <Pipette size={14} />
-            Custom
+            {t("common.colorPicker.custom")}
           </button>
         </div>
 

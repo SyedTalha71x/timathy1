@@ -13,6 +13,7 @@ import { fetchAllAppointments, fetchMyAppointments } from "../features/appointme
 import { fetchStudioServices } from "../features/services/servicesSlice"
 import { fetchMyStudio } from "../features/studio/studioSlice"
 import { fetchAllMember } from "../features/member/memberSlice"
+import KeyboardSpacer from "../components/shared/KeyboardSpacer"
 
 // ============================================================================
 // LOGIN PAGE COMPONENT
@@ -31,7 +32,7 @@ const LOGIN_TYPES = {
     hoverColor: "hover:bg-blue-700",
     bgColor: "bg-[#3F74FF]",
     redirectPath: "/dashboard/my-area",
-    fields: ["studioName", "email", "password"],
+    fields: ["email", "password"],
   },
   admin: {
     id: "admin",
@@ -71,7 +72,7 @@ export default function SignInPage() {
   const [activeLoginType, setActiveLoginType] = useState("studio")
 
   const [formData, setFormData] = useState({
-    studio: { studioName: "", email: "", password: "" },
+    studio: { email: "", password: "" },
     admin: { email: "", password: "" },
     member: { email: "", password: "" },
   })
@@ -213,23 +214,6 @@ export default function SignInPage() {
 
     return (
       <>
-        {/* Studio Name Feld (nur für Studio-Login) */}
-        {activeLoginType === "studio" && (
-          <div>
-            <label className="block text-xs text-gray-500 mb-1.5 ml-1">
-              {t("login.studioName")}
-            </label>
-            <input
-              type="text"
-              placeholder={t("login.studioNamePlaceholder")}
-              className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
-              value={currentFormData.studioName || ""}
-              onChange={(e) => handleInputChange(activeLoginType, "studioName", e.target.value)}
-              autoComplete="organization"
-            />
-          </div>
-        )}
-
         {/* Email Feld */}
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 ml-1">
@@ -269,7 +253,7 @@ export default function SignInPage() {
   // RENDER
   // -------------------------------------------------------------------------
   return (
-    <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+    <div className="flex-1 flex items-start md:items-center justify-center p-4 pt-12 md:p-8 overflow-y-auto">
       <div className="flex w-full max-w-md flex-col items-center justify-center">
 
         {/* ================================================================= */}
@@ -345,6 +329,7 @@ export default function SignInPage() {
 
 
             </form>
+            <KeyboardSpacer />
           </div>
         </div>
       </div>

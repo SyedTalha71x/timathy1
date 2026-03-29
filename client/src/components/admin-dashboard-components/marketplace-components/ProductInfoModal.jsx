@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import LanguageTabs, { getTranslation } from '../shared/LanguageTabs';
+import LanguageTabs, { getTranslation } from '../../shared/LanguageTabs';
 
 const ProductInfoModal = ({ isOpen, onClose, productForInfo, onEditClick }) => {
   const [viewLang, setViewLang] = useState("en");
