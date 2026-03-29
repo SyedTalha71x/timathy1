@@ -167,19 +167,37 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
-          <button onClick={() => onViewJournal(demo)} className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors">
-            <IoIosJournal size={13} />
-            <span className="hidden sm:inline">{t("admin.demoAccess.card.journal")}</span>
-          </button>
-          <button onClick={() => onEdit(demo)} className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors">
-            <Pencil size={12} />
-            <span className="hidden sm:inline">{t("admin.demoAccess.card.edit")}</span>
-          </button>
-          <button onClick={() => onResendEmail(demo)} className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors">
-            <Send size={12} />
-            <span className="hidden sm:inline">{t("admin.demoAccess.card.email")}</span>
-          </button>
+        <div className="flex items-center gap-1.5">
+          <div className="relative group flex-1">
+            <button onClick={() => onViewJournal(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors whitespace-nowrap">
+              <IoIosJournal size={13} />
+              <span className="hidden xl:inline truncate">{t("admin.demoAccess.card.journal")}</span>
+            </button>
+            <div className="xl:hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/90 text-white px-2.5 py-1 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+              {t("admin.demoAccess.card.journal")}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/90" />
+            </div>
+          </div>
+          <div className="relative group flex-1">
+            <button onClick={() => onEdit(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors whitespace-nowrap">
+              <Pencil size={12} />
+              <span className="hidden xl:inline truncate">{t("admin.demoAccess.card.edit")}</span>
+            </button>
+            <div className="xl:hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/90 text-white px-2.5 py-1 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+              {t("admin.demoAccess.card.edit")}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/90" />
+            </div>
+          </div>
+          <div className="relative group flex-1">
+            <button onClick={() => onResendEmail(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors whitespace-nowrap">
+              <Send size={12} />
+              <span className="hidden xl:inline truncate">{t("admin.demoAccess.card.email")}</span>
+            </button>
+            <div className="xl:hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/90 text-white px-2.5 py-1 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+              {t("admin.demoAccess.card.email")}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/90" />
+            </div>
+          </div>
           <button
             onClick={() => onToggleStatus(demo.id)}
             className={`p-2 rounded-xl text-xs transition-colors ${demo.status === "active" ? "bg-green-500/10 hover:bg-green-500/20 text-green-400" : "bg-red-500/10 hover:bg-red-500/20 text-red-400"}`}

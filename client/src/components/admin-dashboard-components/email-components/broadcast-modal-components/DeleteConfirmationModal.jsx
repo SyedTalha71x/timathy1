@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { X, Trash2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const DeleteConfirmationModal = ({
   isOpen,
@@ -8,6 +9,7 @@ const DeleteConfirmationModal = ({
   itemName,
   itemType = "item"
 }) => {
+  const { t } = useTranslation()
   if (!isOpen) return null
 
   const getItemIcon = () => {
@@ -23,17 +25,29 @@ const DeleteConfirmationModal = ({
     }
   }
 
+  const getItemTypeLabel = () => {
+    const map = {
+      folder: t("admin.email.deleteItemModal.types.folder"),
+      template: t("admin.email.deleteItemModal.types.template"),
+      message: t("admin.email.deleteItemModal.types.message"),
+      item: t("admin.email.deleteItemModal.types.item"),
+    }
+    return map[itemType] || itemType
+  }
+
   const handleConfirm = () => {
     onConfirm()
     onClose()
   }
+
+  const typeLabel = getItemTypeLabel()
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[10000]">
       <div className="bg-[#0E0E0E] rounded-2xl w-full max-w-md mx-4 border border-gray-800/50 shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-          <h2 className="text-lg font-semibold text-white">Delete {itemType}</h2>
+          <h2 className="text-lg font-semibold text-white">{t("admin.email.deleteItemModal.title", { type: typeLabel })}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-white/5 rounded-xl transition-colors"
@@ -52,10 +66,10 @@ const DeleteConfirmationModal = ({
               </div>
               <div>
                 <p className="text-sm text-gray-300">
-                  Are you sure you want to delete this {itemType}?
+                  {t("admin.email.deleteItemModal.confirmMessage", { type: typeLabel })}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  This action cannot be undone.
+                  {t("admin.email.deleteItemModal.cannotUndo")}
                 </p>
               </div>
             </div>
@@ -67,10 +81,10 @@ const DeleteConfirmationModal = ({
               <span className="text-2xl">{getItemIcon()}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-400 mb-0.5">
-                  {itemType.charAt(0).toUpperCase() + itemType.slice(1)} to delete:
+                  {t("admin.email.deleteItemModal.toDelete", { type: typeLabel })}:
                 </p>
                 <p className="text-white font-medium truncate">
-                  {itemName || `Untitled ${itemType}`}
+                  {itemName || t("admin.email.deleteItemModal.untitled", { type: typeLabel })}
                 </p>
               </div>
             </div>
@@ -83,14 +97,14 @@ const DeleteConfirmationModal = ({
             onClick={onClose}
             className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] text-white text-sm font-medium rounded-xl transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleConfirm}
             className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-medium rounded-xl transition-all flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
-            Delete {itemType}
+            {t("admin.email.deleteItemModal.deleteBtn", { type: typeLabel })}
           </button>
         </div>
       </div>

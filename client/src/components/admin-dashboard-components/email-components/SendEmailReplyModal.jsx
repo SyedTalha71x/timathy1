@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
 import { Mail, X, Send, Paperclip, Trash2, FileText, ChevronDown, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { WysiwygEditor } from "../../shared/WysiwygEditor";
 import DraftModal from "../../shared/communication/DraftModal";
 
@@ -295,6 +296,7 @@ const SendEmailReplyModal = ({
   const [replyData, setReplyData] = useState({ subject: "", body: "" });
   const [attachments, setAttachments] = useState([]);
   const [showDraftConfirmModal, setShowDraftConfirmModal] = useState(false);
+  const { t } = useTranslation();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
   const templateDropdownRef = useRef(null);
@@ -492,7 +494,7 @@ const SendEmailReplyModal = ({
 
     // Build reply with original message appended
     const originalMessageHtml = originalEmail
-      ? `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;color:#666;font-size:12px;"><strong>--- Original Message ---</strong><br/><strong>From:</strong> ${originalEmail.sender}${originalEmail.senderEmail ? ` &lt;${originalEmail.senderEmail}&gt;` : ""}<br/><strong>Date:</strong> ${new Date(originalEmail.time).toLocaleString()}<br/><strong>Subject:</strong> ${originalEmail.subject}<br/><br/>${originalEmail.body}</div>`
+      ? `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;color:#666;font-size:12px;"><strong>--- {t("admin.email.reply.originalMessage")} ---</strong><br/><strong>{t("admin.email.reply.from")}:</strong> ${originalEmail.sender}${originalEmail.senderEmail ? ` &lt;${originalEmail.senderEmail}&gt;` : ""}<br/><strong>{t("admin.email.reply.date")}:</strong> ${new Date(originalEmail.time).toLocaleString()}<br/><strong>{t("admin.email.reply.subjectLabel")}:</strong> ${originalEmail.subject}<br/><br/>${originalEmail.body}</div>`
       : "";
 
     const replyPayload = {
@@ -551,7 +553,7 @@ const SendEmailReplyModal = ({
       <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-[#333333] flex items-center justify-between flex-shrink-0">
-            <h3 className="text-lg font-semibold text-white">Reply to {originalEmail.sender}</h3>
+            <h3 className="text-lg font-semibold text-white">{t("admin.email.reply.title", { sender: originalEmail.sender })}</h3>
             <button onClick={handleClose} className="p-2 hover:bg-[#333333] rounded-lg transition-colors">
               <X size={20} className="text-gray-400" />
             </button>
@@ -561,14 +563,14 @@ const SendEmailReplyModal = ({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Template Selector */}
             <div ref={templateDropdownRef} className="relative">
-              <label className="block text-sm font-medium text-gray-400 mb-1">Template</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">{t("admin.email.compose.template")}</label>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
                   className="flex-1 flex items-center justify-between bg-[#222222] hover:bg-[#2a2a2a] text-sm rounded-xl px-4 py-2.5 transition-colors"
                 >
                   <span className={selectedTemplate ? "text-white" : "text-gray-500"}>
-                    {selectedTemplate ? selectedTemplate.name : "Select a template (optional)"}
+                    {selectedTemplate ? selectedTemplate.name : t("admin.email.compose.selectTemplate")}
                   </span>
                   <ChevronDown size={16} className={`text-gray-400 transition-transform ${showTemplateDropdown ? "rotate-180" : ""}`} />
                 </button>
@@ -576,7 +578,7 @@ const SendEmailReplyModal = ({
                   <button
                     onClick={handleClearTemplate}
                     className="p-2.5 bg-[#222222] hover:bg-[#2a2a2a] rounded-xl transition-colors"
-                    title="Clear template"
+                    title={t("admin.email.compose.clearTemplate")}
                   >
                     <X size={16} className="text-gray-400 hover:text-white" />
                   </button>
@@ -597,7 +599,7 @@ const SendEmailReplyModal = ({
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-white font-medium">{template.name}</span>
                             {hasVars && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full">Variables</span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full">{t("admin.email.compose.variables")}</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5 truncate">{template.subject}</p>
@@ -605,7 +607,7 @@ const SendEmailReplyModal = ({
                       );
                     })
                   ) : (
-                    <p className="p-3 text-sm text-gray-500">No templates available</p>
+                    <p className="p-3 text-sm text-gray-500">{t("admin.email.compose.noTemplates")}</p>
                   )}
                 </div>
               )}
@@ -616,7 +618,7 @@ const SendEmailReplyModal = ({
               <div className="flex items-start gap-2.5 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3.5 py-2.5">
                 <AlertTriangle size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div className="text-xs">
-                  <p className="text-yellow-400 font-medium">Template contains variables</p>
+                  <p className="text-yellow-400 font-medium">{t("admin.email.compose.variableWarning")}</p>
                   <p className="text-yellow-400/70 mt-0.5">
                     Variables like {extractVariables(selectedTemplate).map((v, i) => (
                       <span key={v}>
@@ -634,8 +636,8 @@ const SendEmailReplyModal = ({
               recipients={toRecipients}
               setRecipients={setToRecipients}
               searchMembers={searchMembers}
-              placeholder="Search by name, or type email..."
-              label="To"
+              placeholder={t("admin.email.compose.searchRecipients")}
+              label={t("admin.email.compose.to")}
               showAddCc={!showCc}
               onAddCc={() => setShowCc(true)}
               showAddBcc={!showBcc}
@@ -648,8 +650,8 @@ const SendEmailReplyModal = ({
                 recipients={ccRecipients}
                 setRecipients={setCcRecipients}
                 searchMembers={searchMembers}
-                placeholder="Search by name, or type email..."
-                label="CC"
+                placeholder={t("admin.email.compose.searchRecipients")}
+                label={t("admin.email.compose.cc")}
                 showRemoveButton={true}
                 onRemoveField={() => {
                   setShowCc(false);
@@ -664,8 +666,8 @@ const SendEmailReplyModal = ({
                 recipients={bccRecipients}
                 setRecipients={setBccRecipients}
                 searchMembers={searchMembers}
-                placeholder="Search by name, or type email..."
-                label="BCC"
+                placeholder={t("admin.email.compose.searchRecipients")}
+                label={t("admin.email.compose.bcc")}
                 showRemoveButton={true}
                 onRemoveField={() => {
                   setShowBcc(false);
@@ -676,10 +678,10 @@ const SendEmailReplyModal = ({
 
             {/* Subject */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">{t("admin.email.compose.subject")}</label>
               {/* Variables Row for Subject */}
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-gray-500">{t("admin.email.compose.variables")}:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
@@ -697,25 +699,25 @@ const SendEmailReplyModal = ({
                 value={replyData.subject}
                 onChange={(e) => setReplyData({ ...replyData, subject: e.target.value })}
                 className="w-full bg-[#222222] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors"
-                placeholder="Email subject"
+                placeholder={t("admin.email.compose.subjectPlaceholder")}
               />
             </div>
 
             {/* Message */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-gray-400">Message</label>
+                <label className="text-sm font-medium text-gray-400">{t("admin.email.compose.message")}</label>
                 <button
                   onClick={insertSignature}
                   className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors whitespace-nowrap"
                 >
                   <FileText className="w-3 h-3" />
-                  Insert Signature
+                  {t("admin.email.compose.insertSignature")}
                 </button>
               </div>
               {/* Variables Row for Body */}
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-gray-500">{t("admin.email.compose.variables")}:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
@@ -732,7 +734,7 @@ const SendEmailReplyModal = ({
                 ref={editorRef}
                 value={replyData.body}
                 onChange={(content) => setReplyData({ ...replyData, body: content })}
-                placeholder="Write your reply..."
+                placeholder={t("admin.email.reply.placeholder")}
                 minHeight={200}
                 maxHeight={350}
                 showImages={true}
@@ -742,7 +744,7 @@ const SendEmailReplyModal = ({
             {/* Attachments */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-400">Attachments</label>
+                <label className="text-sm font-medium text-gray-400">{t("admin.email.compose.attachments")}</label>
                 <input
                   ref={attachmentInputRef}
                   type="file"
@@ -795,7 +797,7 @@ const SendEmailReplyModal = ({
 
             {/* Original Message Preview */}
             <div className="border-t border-[#333333] pt-4 mt-2">
-              <div className="text-xs text-gray-500 mb-2 font-medium">Original Message</div>
+              <div className="text-xs text-gray-500 mb-2 font-medium">{t("admin.email.reply.originalMessage")}</div>
               <div className="bg-[#1a1a1a] rounded-xl overflow-hidden max-h-[250px] overflow-y-auto">
                 <div className="text-xs text-gray-400 space-y-1 p-4 border-b border-[#333333]">
                   <div>
@@ -806,7 +808,7 @@ const SendEmailReplyModal = ({
                     <span className="text-gray-500">Date:</span> {new Date(originalEmail.time).toLocaleString()}
                   </div>
                   <div>
-                    <span className="text-gray-500">Subject:</span> {originalEmail.subject}
+                    <span className="text-gray-500">{t("admin.email.compose.subject")}:</span> {originalEmail.subject}
                   </div>
                 </div>
                 <div

@@ -3,6 +3,7 @@ import { Lock, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft } from 'lucide-react
 import { useState, useRef, useEffect } from 'react'
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { useTranslation } from "react-i18next"
 import SortableLeadCard from "./sortable-lead-card"
 
 const SortableColumn = ({
@@ -31,6 +32,7 @@ const SortableColumn = ({
   onToggleSortOrder = () => {},
   onToggleCollapse = null,
 }) => {
+  const { t } = useTranslation()
   const isTrialColumn = id === "trial"
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const sortDropdownRef = useRef(null)
@@ -61,11 +63,11 @@ const SortableColumn = ({
   // Get lead IDs for SortableContext
   const leadIds = leads.map((lead) => lead.id)
 
-  // Sort options (removed Relations)
+  // Sort options
   const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'date', label: 'Date Created' },
-    { value: 'custom', label: 'Custom Order' }
+    { value: 'name', label: t("admin.leads.sort.name") },
+    { value: 'date', label: t("admin.leads.sort.dateCreated") },
+    { value: 'custom', label: t("admin.leads.sort.customOrder") }
   ]
 
   const handleSortOptionClick = (sortBy) => {
@@ -73,7 +75,7 @@ const SortableColumn = ({
   }
 
   // Get current sort label
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortSettings.sortBy)?.label || 'Custom Order'
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortSettings.sortBy)?.label || t("admin.leads.sort.customOrder")
 
   // Determine which arrow icon to show
   const getSortIcon = () => {
@@ -125,7 +127,7 @@ const SortableColumn = ({
             {/* Tooltip - only show when dropdown is closed */}
             {!showSortDropdown && (
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
-                <span className="font-medium">Sort by: {currentSortLabel}</span>
+                <span className="font-medium">{t("admin.leads.sort.sortByLabel")}: {currentSortLabel}</span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
             )}
@@ -135,7 +137,7 @@ const SortableColumn = ({
               <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[160px]">
                 <div className="py-1">
                   <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                    Sort by
+                    {t("admin.leads.sort.sortByLabel")}
                   </div>
                   {sortOptions.map((option) => (
                     <button
@@ -155,7 +157,7 @@ const SortableColumn = ({
                             onToggleSortOrder()
                           }}
                           className="p-1 hover:bg-gray-700 rounded text-gray-400"
-                          title={`Change to ${sortSettings.sortOrder === 'asc' ? 'descending' : 'ascending'}`}
+                          title={sortSettings.sortOrder === 'asc' ? t("admin.leads.sort.changeToDesc") : t("admin.leads.sort.changeToAsc")}
                         >
                           {sortSettings.sortOrder === 'asc' 
                             ? <ArrowUp size={14} /> 
@@ -180,7 +182,7 @@ const SortableColumn = ({
               </button>
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
-                <span className="font-medium">This column cannot be edited</span>
+                <span className="font-medium">{t("admin.leads.column.cannotEdit")}</span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
             </div>
@@ -211,7 +213,7 @@ const SortableColumn = ({
               </button>
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
-                <span className="font-medium">Edit column</span>
+                <span className="font-medium">{t("admin.leads.column.editColumn")}</span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
             </div>
@@ -241,7 +243,7 @@ const SortableColumn = ({
                 </svg>
               </button>
               <div className="absolute right-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
-                <span className="font-medium">Collapse column</span>
+                <span className="font-medium">{t("admin.leads.column.collapseColumn")}</span>
                 <div className="absolute -top-1 right-2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
             </div>
@@ -295,7 +297,7 @@ const SortableColumn = ({
               ${isOver ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-700"}
             `}
           >
-            {isOver ? "Drop here" : "No leads"}
+            {isOver ? t("admin.leads.column.dropHere") : t("admin.leads.column.noLeads")}
           </div>
         )}
       </div>

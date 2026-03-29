@@ -20,7 +20,7 @@ import AdminTicketView from "../../components/admin-dashboard-components/tickets
 import { adminTickets } from "../../utils/admin-panel-states/tickets-states"
 
 const AdminTicketsSystem = () => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const [tickets, setTickets] = useState(adminTickets)
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
@@ -34,6 +34,29 @@ const AdminTicketsSystem = () => {
     const sortDropdownRef = useRef(null)
 
     const [filtersExpanded, setFiltersExpanded] = useState(false)
+
+    const getLocale = () => {
+        const lang = i18n.language
+        if (lang === "de") return "de-DE"
+        if (lang === "fr") return "fr-FR"
+        if (lang === "es") return "es-ES"
+        if (lang === "it") return "it-IT"
+        return "en-GB"
+    }
+
+    // Parse date strings from dummy data (dd/mm/yyyy or ISO) and format for locale
+    const formatDateString = (dateStr) => {
+        if (!dateStr) return "—"
+        let date
+        const parts = dateStr.split("/")
+        if (parts.length === 3 && parts[0].length <= 2) {
+            date = new Date(parts[2], parts[1] - 1, parts[0])
+        } else {
+            date = new Date(dateStr)
+        }
+        if (isNaN(date.getTime())) return dateStr
+        return date.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit", year: "numeric" })
+    }
 
     useEffect(() => {
         const isDesktop = window.innerWidth >= 768
@@ -387,8 +410,8 @@ const AdminTicketsSystem = () => {
                             <p className="text-sm text-gray-400 mb-2">{ticket.studioName}</p>
 
                             <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
-                                <span>{t("admin.tickets.list.created")}: <span className="text-gray-300">{ticket.createdDate}</span></span>
-                                <span>{t("admin.tickets.list.updated")}: <span className="text-gray-300">{ticket.lastUpdated}</span></span>
+                                <span>{t("admin.tickets.list.created")}: <span className="text-gray-300">{formatDateString(ticket.createdDate)}</span></span>
+                                <span>{t("admin.tickets.list.updated")}: <span className="text-gray-300">{formatDateString(ticket.lastUpdated)}</span></span>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -396,7 +419,7 @@ const AdminTicketsSystem = () => {
                                     {getStatusLabel(ticket.status)}
                                 </span>
                                 <span className={`text-xs font-medium ${getPriorityTextColor(ticket.priority)}`}>
-                                    {t("admin.tickets.priority.label", { level: getPriorityLabel(ticket.priority) })}
+                                    {ticket.priority === "High" ? t("admin.tickets.priority.labelHigh") : ticket.priority === "Medium" ? t("admin.tickets.priority.labelMedium") : t("admin.tickets.priority.labelLow")}
                                 </span>
                             </div>
                         </div>

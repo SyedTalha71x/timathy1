@@ -3,6 +3,7 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { 
   X, FileText, Eye, Download, Check, Edit, 
   Copy, Building2, ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Clock, Calendar,
@@ -20,6 +21,15 @@ import AdminContractPDFDocument from "./AdminContractPDFDocument"
 
 // Status Tag Component
 const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, pauseEndDate = null, cancelReason = null, cancelDate = null }) => {
+  const { t, i18n } = useTranslation()
+
+  const statusMap = {
+    'Active': t("admin.contract.status.active"),
+    'Ongoing': t("admin.contract.status.active"),
+    'Paused': t("admin.contract.status.paused"),
+    'Cancelled': t("admin.contract.status.cancelled"),
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-accent-green';
@@ -33,7 +43,7 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
   const hasTooltip = status === 'Paused' || status === 'Cancelled';
   const hasHoverEffect = status === 'Paused' || status === 'Cancelled';
   
-  const formatD = (d) => d ? new Date(d).toLocaleDateString('de-DE') : null;
+  const formatD = (d) => d ? new Date(d).toLocaleDateString(i18n.language) : null;
 
   const renderPauseTooltip = () => {
     if (status !== 'Paused') return null;
@@ -41,24 +51,24 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
       <>
         {pauseReason && (
           <div className="flex items-center gap-2">
-            <span className="text-accent-yellow font-medium">Reason:</span>
+            <span className="text-accent-yellow font-medium">{t("admin.contract.mgmt.reason")}</span>
             <span>{pauseReason}</span>
           </div>
         )}
         {pauseStartDate && pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-accent-yellow font-medium">Period:</span>
+            <span className="text-accent-yellow font-medium">{t("admin.contract.mgmt.period")}</span>
             <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
           </div>
         )}
         {pauseStartDate && !pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-accent-yellow font-medium">Since:</span>
+            <span className="text-accent-yellow font-medium">{t("admin.contract.mgmt.since")}</span>
             <span>{formatD(pauseStartDate)}</span>
           </div>
         )}
         {!pauseReason && !pauseStartDate && (
-          <span>Contract is paused</span>
+          <span>{t("admin.contract.mgmt.contractPaused")}</span>
         )}
       </>
     );
@@ -70,18 +80,18 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
       <>
         {cancelReason && (
           <div className="flex items-center gap-2">
-            <span className="text-accent-red font-medium">Reason:</span>
+            <span className="text-accent-red font-medium">{t("admin.contract.mgmt.reason")}</span>
             <span>{cancelReason}</span>
           </div>
         )}
         {cancelDate && (
           <div className="flex items-center gap-2">
-            <span className="text-accent-red font-medium">Cancelled:</span>
+            <span className="text-accent-red font-medium">{t("admin.contract.mgmt.cancelled")}</span>
             <span>{formatD(cancelDate)}</span>
           </div>
         )}
         {!cancelReason && !cancelDate && (
-          <span>Contract was cancelled</span>
+          <span>{t("admin.contract.mgmt.contractCancelled")}</span>
         )}
       </>
     );
@@ -90,7 +100,7 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
   return (
     <div className={`relative ${hasTooltip ? 'group' : ''} inline-flex`}>
       <span className={`${getStatusColor(status)} text-white px-2 py-0.5 rounded-lg text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
-        {status}
+        {statusMap[status] || status}
       </span>
       {hasTooltip && (
         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
@@ -107,6 +117,7 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
 
 export function AdminContractManagement({ contract, onClose, studio = null }) {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   
   const displayContracts = [contract];
 
@@ -117,7 +128,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
   const [copiedField, setCopiedField] = useState(null)
 
   // Get studio name from contract or studio prop
-  const studioName = contract.studioName || studio?.name || "Unknown Studio"
+  const studioName = contract.studioName || studio?.name || t("admin.contract.mgmt.contract")
 
   // Get initials from studio name
   const getInitials = (name) => {
@@ -139,7 +150,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-"
-    return new Date(dateString).toLocaleDateString('de-DE')
+    return new Date(dateString).toLocaleDateString(i18n.language)
   }
 
   const getEffectiveEndDate = (contractItem) => {
@@ -250,6 +261,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
           contractForm={contractFormData}
           formValues={formValues}
           systemValues={systemValues}
+          language={i18n.language}
         />
       ).toBlob()
       
@@ -260,27 +272,27 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
       e.stopPropagation()
       if (!canPerformActions) {
         if (isOngoing) {
-          toast.info('Contract is ongoing (draft). Complete the contract first.')
+          toast.info(t("admin.contract.mgmt.ongoingDraft"))
         } else {
-          toast.info('No contract form data available. Fill out the contract form first.')
+          toast.info(t("admin.contract.mgmt.noFormData"))
         }
         return
       }
       if (hasContractForm && contractFormData) {
-        toast.loading('Generating PDF...', { id: 'pdf-view' })
+        toast.loading(t("admin.contract.mgmt.generatingPdf"), { id: 'pdf-view' })
         try {
           const pdfBlob = await generateContractPDF()
           const pdfUrl = URL.createObjectURL(pdfBlob)
           window.open(pdfUrl, '_blank')
           toast.dismiss('pdf-view')
-          toast.success('PDF opened in new tab')
+          toast.success(t("admin.contract.mgmt.pdfOpened"))
         } catch (error) {
           toast.dismiss('pdf-view')
-          toast.error('Failed to generate PDF')
+          toast.error(t("admin.contract.mgmt.pdfFailed"))
           console.error(error)
         }
       } else {
-        toast.info('No contract form data available. Fill out the contract form first.')
+        toast.info(t("admin.contract.mgmt.noFormData"))
       }
     }
     
@@ -288,14 +300,14 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
       e.stopPropagation()
       if (!canPerformActions) {
         if (isOngoing) {
-          toast.info('Contract is ongoing (draft). Complete the contract first.')
+          toast.info(t("admin.contract.mgmt.ongoingDraft"))
         } else {
-          toast.info('No contract form data available. Fill out the contract form first.')
+          toast.info(t("admin.contract.mgmt.noFormData"))
         }
         return
       }
       if (hasContractForm && contractFormData) {
-        toast.loading('Generating PDF...', { id: 'pdf-download' })
+        toast.loading(t("admin.contract.mgmt.generatingPdf"), { id: 'pdf-download' })
         try {
           const pdfBlob = await generateContractPDF()
           const fileName = `Contract_${contractItem.contractNumber || contractItem.id}_${studioName?.replace(/\s+/g, '_') || 'Studio'}.pdf`
@@ -310,14 +322,14 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
           URL.revokeObjectURL(url)
           
           toast.dismiss('pdf-download')
-          toast.success('PDF downloaded!')
+          toast.success(t("admin.contract.mgmt.pdfDownloaded"))
         } catch (error) {
           toast.dismiss('pdf-download')
-          toast.error('Failed to generate PDF')
+          toast.error(t("admin.contract.mgmt.pdfFailed"))
           console.error(error)
         }
       } else {
-        toast.info('No contract form data available. Fill out the contract form first.')
+        toast.info(t("admin.contract.mgmt.noFormData"))
       }
     }
     
@@ -325,14 +337,14 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
       e.stopPropagation()
       if (!canPerformActions) {
         if (isOngoing) {
-          toast.info('Contract is ongoing (draft). Complete the contract first.')
+          toast.info(t("admin.contract.mgmt.ongoingDraft"))
         } else {
-          toast.info('No contract form data available. Fill out the contract form first.')
+          toast.info(t("admin.contract.mgmt.noFormData"))
         }
         return
       }
       if (hasContractForm && contractFormData) {
-        toast.loading('Generating PDF for printing...', { id: 'pdf-print' })
+        toast.loading(t("admin.contract.mgmt.generatingPdfPrint"), { id: 'pdf-print' })
         try {
           const pdfBlob = await generateContractPDF()
           const pdfUrl = URL.createObjectURL(pdfBlob)
@@ -347,11 +359,11 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
           toast.dismiss('pdf-print')
         } catch (error) {
           toast.dismiss('pdf-print')
-          toast.error('Failed to generate PDF for printing')
+          toast.error(t("admin.contract.mgmt.pdfPrintFailed"))
           console.error(error)
         }
       } else {
-        toast.info('No contract form data available. Fill out the contract form first.')
+        toast.info(t("admin.contract.mgmt.noFormData"))
       }
     }
     
@@ -374,7 +386,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
             <div className="text-left">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-content-primary font-medium">
-                  Contract {contractItem.contractNumber || contractItem.id}
+                  {t("admin.contract.mgmt.contract")} {contractItem.contractNumber || contractItem.id}
                 </span>
                 <ContractStatusTag 
                   status={contractItem.status} 
@@ -387,17 +399,17 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 {contractItem.autoRenewal && contractItem.status === 'Active' && (
                   <div className="relative group inline-flex">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
-                      <RefreshCw size={10} /> Auto Renewal
+                      <RefreshCw size={10} /> {t("admin.contract.mgmt.autoRenewal")}
                     </span>
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
                       <div className="flex items-center gap-2">
                         <RefreshCw size={10} className="text-orange-400" />
                         <span>
                           {contractItem.renewalIndefinite === true 
-                            ? 'Unlimited auto renewal' 
+                            ? t("admin.contract.mgmt.unlimitedAutoRenewal") 
                             : contractItem.autoRenewalEndDate 
-                              ? `Auto renewal until ${formatDate(contractItem.autoRenewalEndDate)}` 
-                              : 'Auto renewal enabled'}
+                              ? t("admin.contract.mgmt.autoRenewalUntil", { date: formatDate(contractItem.autoRenewalEndDate) }) 
+                              : t("admin.contract.mgmt.autoRenewalEnabled")}
                         </span>
                       </div>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
@@ -406,7 +418,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 )}
                 {shouldShowExpiring(contractItem) && contractItem.status === 'Active' && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-accent-red/20 text-accent-red flex items-center gap-1">
-                    <AlertTriangle size={10} /> Expiring
+                    <AlertTriangle size={10} /> {t("admin.contract.mgmt.expiring")}
                   </span>
                 )}
                 {shouldShowExpired(contractItem) && contractItem.status === 'Active' && (
@@ -417,7 +429,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 {contractItem.bonusTime && (
                   <div className="relative group inline-flex">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
-                      <Gift size={10} /> Bonus ({contractItem.bonusTime.bonusAmount} {contractItem.bonusTime.bonusUnit})
+                      <Gift size={10} /> {t("admin.contract.mgmt.bonus")} ({contractItem.bonusTime.bonusAmount} {contractItem.bonusTime.bonusUnit})
                     </span>
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
                       {(() => {
@@ -430,8 +442,8 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                               {contractItem.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contractItem.bonusTime.reason}</span>}
                               {eff.bonusPeriod && <span className="text-content-muted block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
                               {contractItem.bonusTime.withExtension 
-                                ? <span className="text-accent-green block text-[10px] mt-0.5">+ Contract extension</span>
-                                : <span className="text-content-faint block text-[10px] mt-0.5">Without extension</span>
+                                ? <span className="text-accent-green block text-[10px] mt-0.5">{t("admin.contract.mgmt.contractExtension")}</span>
+                                : <span className="text-content-faint block text-[10px] mt-0.5">{t("admin.contract.mgmt.withoutExtension")}</span>
                               }
                             </div>
                           </div>
@@ -465,7 +477,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
                   : 'bg-surface-hover text-content-faint cursor-not-allowed'
               }`}
-              title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "View Contract" : "No form data available"}
+              title={isOngoing ? t("admin.contract.mgmt.ongoingDraft") : hasContractForm ? t("admin.contract.mgmt.viewContract") : t("admin.contract.mgmt.noFormData")}
             >
               <Eye size={16} />
             </button>
@@ -477,7 +489,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
                   : 'bg-surface-hover text-content-faint cursor-not-allowed'
               }`}
-              title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "Download Contract" : "No form data available"}
+              title={isOngoing ? t("admin.contract.mgmt.ongoingDraft") : hasContractForm ? t("admin.contract.mgmt.downloadContract") : t("admin.contract.mgmt.noFormData")}
             >
               <Download size={16} />
             </button>
@@ -489,7 +501,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                   ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
                   : 'bg-surface-hover text-content-faint cursor-not-allowed'
               }`}
-              title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "Print Contract" : "No form data available"}
+              title={isOngoing ? t("admin.contract.mgmt.ongoingDraft") : hasContractForm ? t("admin.contract.mgmt.printContract") : t("admin.contract.mgmt.noFormData")}
             >
               <Printer size={16} />
             </button>
@@ -514,7 +526,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
               <div className="grid grid-cols-2 gap-3">
                 {/* Contract Number */}
                 <div className="bg-surface-card rounded-lg p-3">
-                  <p className="text-xs text-content-faint mb-1">Contract Number</p>
+                  <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.contractNumber")}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-content-primary">{contractItem.contractNumber || contractItem.id}</span>
                     <button
@@ -532,7 +544,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
 
                 {/* Contract Type */}
                 <div className="bg-surface-card rounded-lg p-3">
-                  <p className="text-xs text-content-faint mb-1">Contract Type</p>
+                  <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.contractType")}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-content-primary">{contractItem.contractType}</span>
                     <button
@@ -551,7 +563,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 {/* IBAN */}
                 {contractItem.iban && (
                   <div className="bg-surface-card rounded-lg p-3">
-                    <p className="text-xs text-content-faint mb-1">IBAN</p>
+                    <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.iban")}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-content-primary font-mono text-xs">{contractItem.iban}</span>
                       <button
@@ -571,7 +583,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 {/* SEPA Mandate */}
                 {contractItem.sepaMandate && (
                   <div className="bg-surface-card rounded-lg p-3">
-                    <p className="text-xs text-content-faint mb-1">SEPA Mandate</p>
+                    <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.sepaMandate")}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-content-primary">{contractItem.sepaMandate}</span>
                       <button
@@ -590,27 +602,27 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
 
                 {/* Auto Renewal */}
                 <div className="bg-surface-card rounded-lg p-3">
-                  <p className="text-xs text-content-faint mb-1">Auto Renewal</p>
+                  <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.autoRenewal")}</p>
                   <span className={`text-sm ${contractItem.autoRenewal ? 'text-orange-400' : 'text-content-muted'}`}>
                     {contractItem.autoRenewal ? (
                       <span className="flex items-center gap-1 flex-wrap">
                         <RefreshCw size={12} /> Yes
                         <span className="text-orange-300/70 text-xs">
                           {contractItem.renewalIndefinite === true 
-                            ? '(unlimited)' 
+                            ? t("admin.contract.mgmt.unlimited") 
                             : contractItem.autoRenewalEndDate 
-                              ? `(until ${formatDate(contractItem.autoRenewalEndDate)})` 
+                              ? t("admin.contract.mgmt.until", { date: formatDate(contractItem.autoRenewalEndDate) }) 
                               : ''}
                         </span>
                       </span>
-                    ) : 'No'}
+                    ) : t("admin.contract.mgmt.no")}
                   </span>
                 </div>
 
                 {/* Monthly Cost */}
                 {contractItem.cost && (
                   <div className="bg-surface-card rounded-lg p-3">
-                    <p className="text-xs text-content-faint mb-1">Monthly Cost</p>
+                    <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.monthlyCost")}</p>
                     <span className="text-sm text-content-primary font-medium">€{contractItem.cost}</span>
                   </div>
                 )}
@@ -618,7 +630,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 {/* Cancel Reason (if cancelled) */}
                 {contractItem.status === 'Cancelled' && contractItem.cancelReason && (
                   <div className="bg-surface-card rounded-lg p-3 col-span-2">
-                    <p className="text-xs text-content-faint mb-1">Cancellation Reason</p>
+                    <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.cancelReason")}</p>
                     <span className="text-sm text-accent-red">{contractItem.cancelReason}</span>
                   </div>
                 )}
@@ -628,13 +640,13 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                   <>
                     {contractItem.pauseReason && (
                       <div className="bg-surface-card rounded-lg p-3">
-                        <p className="text-xs text-content-faint mb-1">Pause Reason</p>
+                        <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.pauseReason")}</p>
                         <span className="text-sm text-accent-yellow">{contractItem.pauseReason}</span>
                       </div>
                     )}
                     {contractItem.pauseStartDate && contractItem.pauseEndDate && (
                       <div className="bg-surface-card rounded-lg p-3">
-                        <p className="text-xs text-content-faint mb-1">Pause Period</p>
+                        <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.pausePeriod")}</p>
                         <span className="text-sm text-accent-yellow">
                           {formatDate(contractItem.pauseStartDate)} - {formatDate(contractItem.pauseEndDate)}
                         </span>
@@ -646,10 +658,10 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 {/* Discount Info */}
                 {contractItem.discount && (
                   <div className="bg-surface-card rounded-lg p-3">
-                    <p className="text-xs text-content-faint mb-1">Discount</p>
+                    <p className="text-xs text-content-faint mb-1">{t("admin.contract.mgmt.discountLabel")}</p>
                     <span className="text-sm text-accent-green">
                       {contractItem.discount.percentage}% 
-                      {contractItem.discount.isPermanent ? ' (permanent)' : ` for ${contractItem.discount.duration} periods`}
+                      {contractItem.discount.isPermanent ? ` ${t("admin.contract.mgmt.discountPermanent")}` : ` ${t("admin.contract.mgmt.discountForPeriods", { count: contractItem.discount.duration })}`}
                     </span>
                   </div>
                 )}
@@ -685,7 +697,7 @@ export function AdminContractManagement({ contract, onClose, studio = null }) {
                 className="flex items-center gap-2 px-3 py-1.5 bg-surface-hover text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors text-sm"
               >
                 <Building2 size={14} />
-                Go to Studio
+                {t("admin.contract.mgmt.goToStudio")}
               </button>
               <button
                 onClick={onClose}

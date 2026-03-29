@@ -4,17 +4,18 @@ import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil } from "lucide-
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
+import { useTranslation } from "react-i18next"
 
-// Note Status Options
-const NOTE_STATUSES = [
-  { id: "contact_attempt", label: "Contact Attempt" },
-  { id: "callback_requested", label: "Callback Requested" },
-  { id: "interest", label: "Interest" },
-  { id: "objection", label: "Objection" },
-  { id: "personal_info", label: "Personal Info" },
-  { id: "health", label: "Health" },
-  { id: "follow_up", label: "Follow-up" },
-  { id: "general", label: "General" },
+// Note Status Keys (translated via t() in component)
+const NOTE_STATUS_KEYS = [
+  { id: "contact_attempt", labelKey: "admin.leads.noteStatuses.contactAttempt" },
+  { id: "callback_requested", labelKey: "admin.leads.noteStatuses.callbackRequested" },
+  { id: "interest", labelKey: "admin.leads.noteStatuses.interest" },
+  { id: "objection", labelKey: "admin.leads.noteStatuses.objection" },
+  { id: "personal_info", labelKey: "admin.leads.noteStatuses.personalInfo" },
+  { id: "health", labelKey: "admin.leads.noteStatuses.health" },
+  { id: "follow_up", labelKey: "admin.leads.noteStatuses.followUp" },
+  { id: "general", labelKey: "admin.leads.noteStatuses.general" },
 ]
 
 const EditLeadModal = ({
@@ -25,11 +26,15 @@ const EditLeadModal = ({
   columns = [],
     initialTab = "details"
 }) => {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState(initialTab)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false)
   const {countries, loading} = useCountries();
   const specialNoteTextareaRef = useRef(null)
+  
+  // Translate note statuses
+  const NOTE_STATUSES = NOTE_STATUS_KEYS.map(s => ({ id: s.id, label: t(s.labelKey) }))
   
   // Local copy of notes for editing (only committed on save)
   const [localNotes, setLocalNotes] = useState([])
@@ -179,7 +184,7 @@ const EditLeadModal = ({
     e.stopPropagation()
     
     if (!newNote.text.trim()) {
-      toast.error("Please enter note text")
+      toast.error(t("admin.leads.form.validation.noteText"))
       return
     }
     
@@ -202,14 +207,14 @@ const EditLeadModal = ({
       endDate: "",
     })
     setIsAddingNote(false)
-    toast.success("Note added")
+    toast.success(t("admin.leads.form.toast.noteAdded"))
   }
   
   const handleDeleteNote = (noteId, e) => {
     e.preventDefault()
     e.stopPropagation()
     setLocalNotes(prev => prev.filter(n => n.id !== noteId))
-    toast.success("Note removed")
+    toast.success(t("admin.leads.form.toast.noteRemoved"))
   }
   
   const handleEditNoteClick = (note, e) => {
@@ -231,7 +236,7 @@ const EditLeadModal = ({
     e.stopPropagation()
     
     if (!newNote.text.trim()) {
-      toast.error("Please enter note text")
+      toast.error(t("admin.leads.form.validation.noteText"))
       return
     }
     
@@ -257,7 +262,7 @@ const EditLeadModal = ({
     })
     setEditingNoteId(null)
     setIsAddingNote(false)
-    toast.success("Note updated")
+    toast.success(t("admin.leads.form.toast.noteUpdated"))
   }
   
   const getStatusInfo = (statusId) => {
@@ -289,19 +294,19 @@ const EditLeadModal = ({
     
     // Validate required fields
     if (!formData.firstName?.trim()) {
-      toast.error("Please enter a first name")
+      toast.error(t("admin.leads.form.validation.firstName"))
       return
     }
     if (!formData.lastName?.trim()) {
-      toast.error("Please enter a last name")
+      toast.error(t("admin.leads.form.validation.lastName"))
       return
     }
     if (!formData.email?.trim()) {
-      toast.error("Please enter an email address")
+      toast.error(t("admin.leads.form.validation.email"))
       return
     }
     if (!isValidEmail(formData.email)) {
-      toast.error("Please enter a valid email address")
+      toast.error(t("admin.leads.form.validation.validEmail"))
       return
     }
     
@@ -317,13 +322,13 @@ const EditLeadModal = ({
       const exactAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age
       
       if (exactAge < 10) {
-        toast.error("Invalid birth date")
+        toast.error(t("admin.leads.form.validation.invalidBirthDate"))
         return
       }
       
       // Check if birthdate is in the future
       if (birthDate > today) {
-        toast.error("Invalid birth date")
+        toast.error(t("admin.leads.form.validation.invalidBirthDate"))
         return
       }
     }
@@ -385,7 +390,7 @@ const EditLeadModal = ({
         className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8"
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-white font-bold">Edit Lead</h2>
+          <h2 className="text-xl text-white font-bold">{t("admin.leads.form.editLead")}</h2>
           <button onClick={handleCloseClick} className="text-gray-400 hover:text-white">
             <X size={24} />
           </button>
@@ -401,7 +406,7 @@ const EditLeadModal = ({
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Details
+            {t("admin.leads.form.tabs.details")}
           </button>
           <button 
             onClick={(e) => handleTabClick("note", e)}
@@ -411,7 +416,7 @@ const EditLeadModal = ({
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Special Notes
+            {t("admin.leads.form.tabs.specialNotes")}
           </button>
 
         </div>
@@ -423,23 +428,23 @@ const EditLeadModal = ({
               <>
                 {/* Studio Information */}
                 <div className="space-y-4">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Information</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.studioInfo")}</div>
                   
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">
-                      Studio Name
+                      {t("admin.leads.form.fields.studioName")}
                     </label>
                     <input
                       type="text"
                       value={formData.studioName}
                       onChange={(e) => updateFormData("studioName", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      placeholder="Enter studio name..."
+                      placeholder={t("admin.leads.form.placeholders.studioName")}
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Website Link</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.websiteLink")}</label>
                     <input
                       type="url"
                       value={formData.websiteLink}
@@ -450,29 +455,29 @@ const EditLeadModal = ({
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Number of Members</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.numberOfMembers")}</label>
                     <select
                       value={formData.numberOfMembers}
                       onChange={(e) => updateFormData("numberOfMembers", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     >
-                      <option value="">Select Number of Members</option>
-                      <option value="1-50">1-50 Members</option>
-                      <option value="51-200">51-200 Members</option>
-                      <option value="201-500">201-500 Members</option>
-                      <option value="500+">More than 500 Members</option>
+                      <option value="">{t("admin.leads.form.placeholders.selectMembers")}</option>
+                      <option value="1-50">{t("admin.leads.form.memberRanges.range1")}</option>
+                      <option value="51-200">{t("admin.leads.form.memberRanges.range2")}</option>
+                      <option value="201-500">{t("admin.leads.form.memberRanges.range3")}</option>
+                      <option value="500+">{t("admin.leads.form.memberRanges.range4")}</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Studio Owner Information */}
                 <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Owner</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.studioOwner")}</div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">
-                        Studio Owner First Name<span className="text-red-500 ml-1">*</span>
+                        {t("admin.leads.form.fields.ownerFirstName")}<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         type="text"
@@ -484,7 +489,7 @@ const EditLeadModal = ({
                     </div>
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">
-                        Studio Owner Last Name<span className="text-red-500 ml-1">*</span>
+                        {t("admin.leads.form.fields.ownerLastName")}<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         type="text"
@@ -498,21 +503,21 @@ const EditLeadModal = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.gender")}</label>
                       <select
                         name="gender"
                         value={formData.gender || ""}
                         onChange={(e) => updateFormData("gender", e.target.value)}
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
+                        <option value="">{t("admin.leads.form.placeholders.selectGender")}</option>
+                        <option value="male">{t("admin.leads.form.genderOptions.male")}</option>
+                        <option value="female">{t("admin.leads.form.genderOptions.female")}</option>
+                        <option value="other">{t("admin.leads.form.genderOptions.other")}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.birthday")}</label>
                       <input
                         type="date"
                         value={formData.birthday}
@@ -525,11 +530,11 @@ const EditLeadModal = ({
 
                 {/* Contact Information */}
                 <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.contactInfo")}</div>
                   
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">
-                      Email<span className="text-red-500 ml-1">*</span>
+                      {t("admin.leads.form.fields.email")}<span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
                       type="email"
@@ -542,12 +547,11 @@ const EditLeadModal = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Mobile Number</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.mobileNumber")}</label>
                       <input
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => {
-                          // Only allow numbers and + sign
                           const sanitized = e.target.value.replace(/[^0-9+]/g, '')
                           updateFormData("phone", sanitized)
                         }}
@@ -556,12 +560,11 @@ const EditLeadModal = ({
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.telephoneNumber")}</label>
                       <input
                         type="tel"
                         value={formData.telephoneNumber}
                         onChange={(e) => {
-                          // Only allow numbers and + sign
                           const sanitized = e.target.value.replace(/[^0-9+]/g, '')
                           updateFormData("telephoneNumber", sanitized)
                         }}
@@ -574,10 +577,10 @@ const EditLeadModal = ({
 
                 {/* Address Information */}
                 <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.address")}</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street & Number</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.streetNumber")}</label>
                     <input
                       type="text"
                       value={formData.street}
@@ -588,7 +591,7 @@ const EditLeadModal = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.zipCode")}</label>
                       <input
                         type="text"
                         value={formData.zipCode}
@@ -597,7 +600,7 @@ const EditLeadModal = ({
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.city")}</label>
                       <input
                         type="text"
                         value={formData.city}
@@ -608,16 +611,16 @@ const EditLeadModal = ({
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Country</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.country")}</label>
                     <select
                       name="country"
                       value={formData.country}
                       onChange={(e) => updateFormData("country", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     >
-                      <option value="">Select a country</option>
+                      <option value="">{t("admin.leads.form.placeholders.selectCountry")}</option>
                       {loading ? (
-                        <option value="" disabled>Loading countries...</option>
+                        <option value="" disabled>{t("admin.leads.form.placeholders.loadingCountries")}</option>
                       ) : (
                         countries.map((country) => (
                           <option key={country.code} value={country.name}>
@@ -631,11 +634,11 @@ const EditLeadModal = ({
 
                 {/* Lead Information */}
                 <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lead Information</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{t("admin.leads.form.sections.leadInfo")}</div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Source</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.source")}</label>
                       <div className="relative">
                         <button
                           type="button"
@@ -647,7 +650,7 @@ const EditLeadModal = ({
                               {formData.source}
                             </span>
                           ) : (
-                            <span>Select Source</span>
+                            <span>{t("admin.leads.form.placeholders.selectSource")}</span>
                           )}
                           <svg
                             className={`w-4 h-4 transition-transform ${isSourceDropdownOpen ? 'rotate-180' : ''}`}
@@ -687,7 +690,7 @@ const EditLeadModal = ({
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Status</label>
+                      <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.status")}</label>
                       <div className="relative">
                         <button
                           type="button"
@@ -701,7 +704,7 @@ const EditLeadModal = ({
                                 style={{ backgroundColor: statusOptions.find(col => col.id === formData.status).color }}
                               />
                             )}
-                            <span>{statusOptions.find(col => col.id === formData.status)?.title || 'Select Status'}</span>
+                            <span>{statusOptions.find(col => col.id === formData.status)?.title || t("admin.leads.form.placeholders.selectStatus")}</span>
                           </div>
                           <svg
                             className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`}
@@ -745,12 +748,12 @@ const EditLeadModal = ({
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.form.fields.about")}</label>
                     <textarea
                       value={formData.details}
                       onChange={(e) => updateFormData("details", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
-                      placeholder="Enter more details..."
+                      placeholder={t("admin.leads.form.placeholders.details")}
                     />
                   </div>
                 </div>
@@ -763,7 +766,7 @@ const EditLeadModal = ({
                 {/* Lead Name Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">{t("admin.leads.form.notes.specialNotesFor")}</p>
                     <p className="text-white font-bold">
                       {leadData?.studioName || `${leadData?.firstName || ''} ${leadData?.surname || ''}`.trim() || <span className="text-gray-500 italic">Lead</span>}
                     </p>
@@ -793,9 +796,9 @@ const EditLeadModal = ({
                     }`}
                   >
                     {isAddingNote ? (
-                      <>Cancel</>
+                      <>{t("common.cancel")}</>
                     ) : (
-                      <><Plus size={14} /> Add Note</>
+                      <><Plus size={14} /> {t("admin.leads.form.notes.addNote")}</>
                     )}
                   </button>
                 </div>
@@ -805,7 +808,7 @@ const EditLeadModal = ({
                   <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
                     {/* Status Selection */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                      <label className="text-xs text-gray-400 block mb-1.5">{t("admin.leads.form.fields.status")}</label>
                       <select
                         value={newNote.status}
                         onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
@@ -821,13 +824,13 @@ const EditLeadModal = ({
                     
                     {/* Note Text */}
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <label className="text-xs text-gray-400 block mb-1.5">{t("admin.leads.form.notes.noteLabel")}</label>
                       <textarea
                         ref={specialNoteTextareaRef}
                         value={newNote.text}
                         onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
                         className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
-                        placeholder="Enter note..."
+                        placeholder={t("admin.leads.form.placeholders.enterNote")}
                       />
                     </div>
                     
@@ -840,14 +843,14 @@ const EditLeadModal = ({
                           onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
                           className="h-4 w-4 accent-blue-500"
                         />
-                        <span className="text-sm text-gray-300">Important</span>
+                        <span className="text-sm text-gray-300">{t("admin.leads.form.notes.important")}</span>
                       </label>
                     </div>
                     
                     {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
+                        <label className="text-xs text-gray-400 block mb-1.5">{t("admin.leads.form.notes.validFrom")}</label>
                         <input
                           type="date"
                           value={newNote.startDate}
@@ -856,7 +859,7 @@ const EditLeadModal = ({
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
+                        <label className="text-xs text-gray-400 block mb-1.5">{t("admin.leads.form.notes.validUntil")}</label>
                         <input
                           type="date"
                           value={newNote.endDate}
@@ -876,7 +879,7 @@ const EditLeadModal = ({
                           : "bg-blue-600 text-white"
                       }`}
                     >
-                      {editingNoteId ? "Update Note" : "Add Note"}
+                      {editingNoteId ? t("admin.leads.form.notes.updateNote") : t("admin.leads.form.notes.addNote")}
                     </button>
                   </div>
                 )}
@@ -907,7 +910,7 @@ const EditLeadModal = ({
                               </span>
                               {note.isImportant && (
                                 <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
-                                  Important
+                                  {t("admin.leads.form.notes.important")}
                                 </span>
                               )}
                             </div>
@@ -946,11 +949,11 @@ const EditLeadModal = ({
                               {(note.startDate || note.endDate) && (
                                 <p className="text-xs text-gray-600 mt-1">
                                   {note.startDate && note.endDate ? (
-                                    <>Valid: {note.startDate} - {note.endDate}</>
+                                    <>{t("admin.leads.form.notes.validRange")}: {note.startDate} - {note.endDate}</>
                                   ) : note.startDate ? (
-                                    <>Valid from: {note.startDate}</>
+                                    <>{t("admin.leads.form.notes.validFromLabel")}: {note.startDate}</>
                                   ) : (
-                                    <>Valid until: {note.endDate}</>
+                                    <>{t("admin.leads.form.notes.validUntilLabel")}: {note.endDate}</>
                                   )}
                                 </p>
                               )}
@@ -966,11 +969,11 @@ const EditLeadModal = ({
                               {(note.startDate || note.endDate) && (
                                 <div className="mt-2 text-xs text-gray-500">
                                   {note.startDate && note.endDate ? (
-                                    <>Valid: {note.startDate} - {note.endDate}</>
+                                    <>{t("admin.leads.form.notes.validRange")}: {note.startDate} - {note.endDate}</>
                                   ) : note.startDate ? (
-                                    <>Valid from: {note.startDate}</>
+                                    <>{t("admin.leads.form.notes.validFromLabel")}: {note.startDate}</>
                                   ) : (
-                                    <>Valid until: {note.endDate}</>
+                                    <>{t("admin.leads.form.notes.validUntilLabel")}: {note.endDate}</>
                                   )}
                                 </div>
                               )}
@@ -981,7 +984,7 @@ const EditLeadModal = ({
                     })
                   ) : (
                     <div className="text-gray-500 text-sm text-center py-8">
-                      No special notes yet. Click "Add Note" to create one.
+                      {t("admin.leads.form.notes.noNotesYet")}
                     </div>
                   )}
                 </div>
@@ -998,7 +1001,7 @@ const EditLeadModal = ({
               onClick={handleCloseClick}
               className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
@@ -1009,7 +1012,7 @@ const EditLeadModal = ({
                   : "bg-orange-500 hover:bg-orange-600"
               }`}
             >
-              Save Changes
+              {t("admin.leads.form.saveChanges")}
             </button>
           </div>
         </form>

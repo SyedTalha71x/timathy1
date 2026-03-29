@@ -75,7 +75,8 @@ const FranchiseDetailsModal = ({
   if (!isOpen || !franchise) return null
 
   const handleArchive = () => {
-    if (window.confirm(`Are you sure you want to ${franchise.isArchived ? "unarchive" : "archive"} "${franchise.name}"?`)) {
+    const actionKey = franchise.isArchived ? "admin.customers.shared.unarchive" : "admin.customers.shared.archive"
+    if (window.confirm(t("admin.customers.franchiseForm.archiveConfirm", { action: t(actionKey).toLowerCase(), name: franchise.name }))) {
       onArchiveFranchise(franchise.id)
       onClose()
     }
@@ -242,7 +243,7 @@ const FranchiseDetailsModal = ({
               <div className="bg-[#141414] rounded-xl p-4 space-y-4">
                 <CopyField label={t("admin.customers.shared.loginEmail")} value={franchise.loginEmail} />
                 <div>
-                  <p className="text-sm text-gray-400">Password</p>
+                  <p className="text-sm text-gray-400">{t("admin.customers.shared.password")}</p>
                   <p className="text-white tracking-widest">••••••••</p>
                 </div>
               </div>
@@ -319,7 +320,7 @@ const FranchiseDetailsModal = ({
               onClick={() => { onClose(); if (onEditFranchise) onEditFranchise(franchise) }}
               className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition-colors"
             >
-              Edit
+              {t("common.edit")}
             </button>
           </div>
         </div>

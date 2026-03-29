@@ -4,6 +4,8 @@
 /* eslint-disable no-unused-vars */
 import { X, FileText, Pencil, ArrowLeft, ChevronDown, ChevronUp, Shield } from "lucide-react"
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { DEFAULT_ADMIN_CONTRACT_TYPES, DEFAULT_ADMIN_CONTRACT_FORMS, adminPlatformData } from "../../../utils/admin-panel-states/admin-contract-states"
 import { DEFAULT_DEMO_TEMPLATES } from "../../../utils/admin-panel-states/configuration-states"
 import { studioDataNew } from "../../../utils/admin-panel-states/customers-states"
@@ -75,6 +77,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
   const { firstName: initialFirstName, lastName: initialLastName } = getInitialName()
 
   const [currentPage, setCurrentPage] = useState(0)
+  const { t, i18n } = useTranslation()
   const [showLeadSelection, setShowLeadSelection] = useState(!isEditMode && !isLeadPreSelected)
   const [showFormView, setShowFormView] = useState(true)
   const [contractData, setContractData] = useState({
@@ -166,9 +169,9 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
       let salutation = ""
       const gender = (leadData.gender || "").toLowerCase()
       if (gender === "male" || gender === "mÃ¤nnlich" || gender === "m") {
-        salutation = "Herr"
+        salutation = t("admin.contract.salutation.mr")
       } else if (gender === "female" || gender === "weiblich" || gender === "f") {
-        salutation = "Frau"
+        salutation = t("admin.contract.salutation.mrs")
       }
 
       setContractData((prev) => ({
@@ -395,9 +398,9 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
       let salutation = ""
       const gender = (lead.gender || "").toLowerCase()
       if (gender === "male" || gender === "männlich" || gender === "m") {
-        salutation = "Herr"
+        salutation = t("admin.contract.salutation.mr")
       } else if (gender === "female" || gender === "weiblich" || gender === "f") {
-        salutation = "Frau"
+        salutation = t("admin.contract.salutation.mrs")
       }
 
       const fullName = lead.name || `${firstName} ${lastName}`
@@ -461,7 +464,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
     }
     
     if (withSignature) {
-      toast.success("Contract generated with digital signature")
+      toast.success(t("admin.contract.contractModal.toastDigitalSigned"))
       saveContract({
         ...dataToSave,
         isDigital: true,
@@ -530,7 +533,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
     }
 
     onSave(newContract)
-    toast.success(isEditMode ? "Contract updated!" : "Contract created!")
+    toast.success(isEditMode ? t("admin.contract.contractModal.toastUpdated") : t("admin.contract.contractModal.toastCreated"))
     onClose()
   }
 
@@ -616,9 +619,9 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
     
     // Show appropriate message based on status
     if (isDraft) {
-      toast.success("Contract saved as draft (Pending)")
+      toast.success(t("admin.contract.contractModal.toastDraftSaved"))
     } else {
-      toast.success(isEditMode ? "Contract updated!" : "Contract created successfully!")
+      toast.success(isEditMode ? t("admin.contract.contractModal.toastUpdated") : t("admin.contract.contractModal.toastCreatedSuccess"))
     }
     onClose()
   }
@@ -641,7 +644,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
     return duration
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
       <style>{`
@@ -660,20 +663,20 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
             >
               <X size={20} />
             </button>
-            <h3 className="text-content-primary text-lg font-semibold mb-4">Generate Contract</h3>
-            <p className="text-content-secondary mb-6">How would you like to generate this contract?</p>
+            <h3 className="text-content-primary text-lg font-semibold mb-4">{t("admin.contract.contractModal.generateContractTitle")}</h3>
+            <p className="text-content-secondary mb-6">{t("admin.contract.contractModal.generateContractDesc")}</p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => handleSignatureOption(true)}
                 className="w-full px-4 text-sm py-3 bg-primary text-white rounded-xl hover:bg-primary-hover"
               >
-                With Digital Signature
+                {t("admin.contract.contractModal.withDigitalSignature")}
               </button>
               <button
                 onClick={() => handleSignatureOption(false)}
                 className="w-full px-4 text-sm py-3 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
-                Without Signature
+                {t("admin.contract.contractModal.withoutSignature")}
               </button>
             </div>
           </div>
@@ -684,20 +687,20 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
       {showPrintPrompt && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="bg-surface-card p-6 rounded-2xl max-w-md w-full">
-            <h3 className="text-content-primary text-lg font-semibold mb-4">Print Contract</h3>
-            <p className="text-content-secondary mb-6">Would you like to print this contract?</p>
+            <h3 className="text-content-primary text-lg font-semibold mb-4">{t("admin.contract.contractModal.printContractTitle")}</h3>
+            <p className="text-content-secondary mb-6">{t("admin.contract.contractModal.printContractDesc")}</p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => handlePrintPrompt(true)}
                 className="w-full px-4 py-3 text-sm bg-primary text-white rounded-xl hover:bg-primary-hover"
               >
-                Yes, Print Contract
+                {t("admin.contract.contractModal.yesPrint")}
               </button>
               <button
                 onClick={() => handlePrintPrompt(false)}
                 className="w-full px-4 py-3 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
-                No, Skip Printing
+                {t("admin.contract.contractModal.skipPrint")}
               </button>
             </div>
           </div>
@@ -710,7 +713,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-content-primary">
-                {isEditMode ? "Edit Contract" : "Add Contract"}
+                {isEditMode ? t("admin.contract.contractModal.editTitle") : t("admin.contract.contractModal.addTitle")}
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -720,7 +723,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                   className="text-content-muted hover:text-content-primary transition-colors p-1.5 hover:bg-surface-button rounded-xl flex items-center gap-1"
                 >
                   <ArrowLeft size={16} />
-                  <span className="text-xs">Form View</span>
+                  <span className="text-xs">{t("admin.contract.contractModal.formView")}</span>
                 </button>
               )}
               {/* Show "Back to Studio Selection" in form view, but NOT in contract document view */}
@@ -730,8 +733,8 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                   className="text-content-muted hover:text-content-primary transition-colors p-1.5 hover:bg-surface-button rounded-xl flex items-center gap-1"
                 >
                   <ArrowLeft size={16} />
-                  <span className="text-xs sm:hidden">Back</span>
-                  <span className="text-xs hidden sm:inline">Back to Selection</span>
+                  <span className="text-xs sm:hidden">{t("admin.contract.contractModal.back")}</span>
+                  <span className="text-xs hidden sm:inline">{t("admin.contract.contractModal.backToSelection")}</span>
                 </button>
               )}
               <button
@@ -750,16 +753,16 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
           {showLeadSelection ? (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-content-primary text-lg font-semibold mb-2">Select Lead or Studio</h3>
-                <p className="text-content-muted text-sm">Search for an existing lead or studio, or proceed without selecting one</p>
+                <h3 className="text-content-primary text-lg font-semibold mb-2">{t("admin.contract.contractModal.selectLeadOrStudio")}</h3>
+                <p className="text-content-muted text-sm">{t("admin.contract.contractModal.selectLeadOrStudioDesc")}</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-content-secondary block pl-1">Lead / Studio</label>
+                  <label className="text-xs text-content-secondary block pl-1">{t("admin.contract.contractModal.leadStudio")}</label>
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search for lead or studio..."
+                      placeholder={t("admin.contract.contractModal.searchPlaceholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-surface-dark text-sm rounded-xl px-3 py-2.5 text-content-primary placeholder-content-faint outline-none focus:ring-2 focus:ring-primary transition-shadow duration-200"
@@ -781,7 +784,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                                   ? "bg-primary/20 text-primary" 
                                   : "bg-orange-500/20 text-orange-400"
                               }`}>
-                                {item._type === "studio" ? "Studio" : "Lead"}
+                                {item._type === "studio" ? t("admin.contract.contractModal.studio") : t("admin.contract.contractModal.lead")}
                               </span>
                             </div>
                             {item._type === "studio" && item.ownerName && (
@@ -800,7 +803,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                   onClick={handleProceedWithoutLead}
                   className="text-content-muted hover:text-content-primary text-sm underline transition-colors"
                 >
-                  Proceed without selecting a lead or studio
+                  {t("admin.contract.contractModal.proceedWithout")}
                 </button>
               </div>
             </div>
@@ -812,34 +815,34 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                 {contractData.leadId && (
                   <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
                     <h4 className="text-content-primary text-sm font-medium mb-2 flex items-center gap-2">
-                      {isLeadPreSelected ? "Lead" : (contractData.selectedType === "studio" ? "Selected Studio" : "Selected Lead")}
+                      {isLeadPreSelected ? t("admin.contract.contractModal.lead") : (contractData.selectedType === "studio" ? t("admin.contract.contractModal.selectedStudio") : t("admin.contract.contractModal.selectedLead"))}
                       {!isLeadPreSelected && contractData.selectedType && (
                         <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                           contractData.selectedType === "studio"
                             ? "bg-primary/20 text-primary"
                             : "bg-orange-500/20 text-orange-400"
                         }`}>
-                          {contractData.selectedType === "studio" ? "Studio" : "Lead"}
+                          {contractData.selectedType === "studio" ? t("admin.contract.contractModal.studio") : t("admin.contract.contractModal.lead")}
                         </span>
                       )}
                     </h4>
                     <div className="text-sm text-content-secondary">
                       {contractData.studioName && (
                         <p>
-                          <span className="text-content-muted">Studio:</span> {contractData.studioName}
+                          <span className="text-content-muted">{t("admin.contract.contractModal.studio")}:</span> {contractData.studioName}
                         </p>
                       )}
                       <p>
-                        <span className="text-content-muted">{contractData.studioName ? "Owner:" : "Name:"}</span> {contractData.studioOwnerName || contractData.fullName}
+                        <span className="text-content-muted">{contractData.studioName ? t("admin.contract.contractModal.owner") : t("admin.contract.contractModal.nameLabel")}</span> {contractData.studioOwnerName || contractData.fullName}
                       </p>
                       {contractData.email && (
                         <p>
-                          <span className="text-content-muted">Email:</span> {contractData.email}
+                          <span className="text-content-muted">{t("admin.contract.contractModal.email")}</span> {contractData.email}
                         </p>
                       )}
                       {contractData.phone && (
                         <p>
-                          <span className="text-content-muted">Phone:</span> {contractData.phone}
+                          <span className="text-content-muted">{t("admin.contract.contractModal.phone")}</span> {contractData.phone}
                         </p>
                       )}
                     </div>
@@ -848,13 +851,13 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
 
                 {/* Contract Type Dropdown */}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-content-secondary block pl-1">Contract Type</label>
+                  <label className="text-xs text-content-secondary block pl-1">{t("admin.contract.contractModal.contractType")}</label>
                   <CustomSelect
                     name="rateType"
                     value={contractData.rateType}
                     onChange={handleInputChange}
                     options={DEFAULT_ADMIN_CONTRACT_TYPES.map((type) => ({ value: type.name, label: type.name }))}
-                    placeholder="Select contract type"
+                    placeholder={t("admin.contract.contractModal.selectContractType")}
                     searchable
                   />
                 </div>
@@ -862,7 +865,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                 {/* Access Role */}
                 {selectedContractType && (
                   <div className="space-y-1.5 relative">
-                    <label className="text-xs text-content-secondary block pl-1">Access Role</label>
+                    <label className="text-xs text-content-secondary block pl-1">{t("admin.contract.contractModal.accessRole")}</label>
                     <button
                       type="button"
                       onClick={() => setShowAccessDropdown(!showAccessDropdown)}
@@ -883,7 +886,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                             </>
                           )
                         }
-                        return <span className="text-sm text-content-muted flex-1">No access role assigned</span>
+                        return <span className="text-sm text-content-muted flex-1">{t("admin.contract.contractModal.noAccessRoleAssigned")}</span>
                       })()}
                       <ChevronDown size={14} className={`text-content-faint transition-transform ${showAccessDropdown ? 'rotate-180' : ''}`} />
                     </button>
@@ -928,10 +931,10 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-xs text-content-secondary block pl-1">Contract Start Date</label>
+                        <label className="text-xs text-content-secondary block pl-1">{t("admin.contract.contractModal.contractStartDate")}</label>
                         <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5">
                           <span className={`flex-1 text-sm ${contractStartDate ? 'text-content-primary' : 'text-content-muted'}`}>
-                            {contractStartDate ? new Date(contractStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                            {contractStartDate ? new Date(contractStartDate + 'T00:00').toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : t("admin.contract.contractModal.selectDate")}
                           </span>
                           <DatePickerField
                             value={contractStartDate}
@@ -941,10 +944,10 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs text-content-secondary block pl-1">Access Start Date</label>
+                        <label className="text-xs text-content-secondary block pl-1">{t("admin.contract.contractModal.accessStartDate")}</label>
                         <div className="flex items-center bg-surface-dark rounded-xl px-3 py-2.5">
                           <span className={`flex-1 text-sm ${accessStartDate ? 'text-content-primary' : 'text-content-muted'}`}>
-                            {accessStartDate ? new Date(accessStartDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                            {accessStartDate ? new Date(accessStartDate + 'T00:00').toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : t("admin.contract.contractModal.selectDate")}
                           </span>
                           <DatePickerField
                             value={accessStartDate}
@@ -960,24 +963,24 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                 {/* Contract Details Box */}
                 {selectedContractType && (
                   <div className="bg-surface-dark/60 p-4 rounded-xl border border-border">
-                    <h4 className="text-content-primary text-sm font-medium mb-2">Contract Details</h4>
+                    <h4 className="text-content-primary text-sm font-medium mb-2">{t("admin.contract.contractModal.contractDetails")}</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="block text-content-muted text-xs">Duration</span>
+                        <span className="block text-content-muted text-xs">{t("admin.contract.contractModal.duration")}</span>
                         <span className="text-content-primary">{getDurationDisplay()}</span>
                       </div>
                       <div>
-                        <span className="block text-content-muted text-xs">Cost</span>
+                        <span className="block text-content-muted text-xs">{t("admin.contract.contractModal.cost")}</span>
                         <span className="text-content-primary">{currency}{selectedContractType.cost}</span>
                       </div>
                       <div>
-                        <span className="block text-content-muted text-xs">Billing Period</span>
+                        <span className="block text-content-muted text-xs">{t("admin.contract.contractModal.billingPeriod")}</span>
                         <span className="text-content-primary">{selectedContractType.billingPeriod}</span>
                       </div>
                       <div>
-                        <span className="block text-content-muted text-xs">End Date</span>
+                        <span className="block text-content-muted text-xs">{t("admin.contract.contractModal.endDate")}</span>
                         <span className="text-content-primary">
-                          {contractEndDate ? new Date(contractEndDate + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                          {contractEndDate ? new Date(contractEndDate + 'T00:00').toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                         </span>
                       </div>
                     </div>
@@ -992,7 +995,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                       onClick={() => setIsDiscountExpanded(!isDiscountExpanded)}
                       className="w-full p-4 flex items-center justify-between text-content-primary hover:bg-surface-card transition-colors"
                     >
-                      <h4 className="text-sm font-medium">Discount</h4>
+                      <h4 className="text-sm font-medium">{t("admin.contract.contractModal.discount")}</h4>
                       {isDiscountExpanded ? (
                         <ChevronUp size={16} className="text-content-muted" />
                       ) : (
@@ -1004,7 +1007,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                       <div className="px-4 pb-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-content-muted text-xs mb-1">Percentage (%)</label>
+                            <label className="block text-content-muted text-xs mb-1">{t("admin.contract.contractModal.percentage")}</label>
                             <input
                               type="number"
                               name="percentage"
@@ -1016,7 +1019,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                             />
                           </div>
                           <div className={discount.isPermanent ? "opacity-50" : ""}>
-                            <label className="block text-content-muted text-xs mb-1">Billing Periods</label>
+                            <label className="block text-content-muted text-xs mb-1">{t("admin.contract.contractModal.billingPeriods")}</label>
                             <input
                               type="number"
                               name="duration"
@@ -1037,17 +1040,17 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                                 onChange={handleDiscountChange}
                                 className="primary-check"
                               />
-                              <span className="text-content-muted text-xs">Till End of Contract</span>
+                              <span className="text-content-muted text-xs">{t("admin.contract.contractModal.tillEndOfContract")}</span>
                             </label>
                           </div>
                         </div>
                         {/* Final Price Display */}
                         {priceCalculation && (
                           <div className="mt-4 pt-4 border-t border-border">
-                            <h5 className="text-content-primary text-sm font-medium mb-2">Price Calculation</h5>
+                            <h5 className="text-content-primary text-sm font-medium mb-2">{t("admin.contract.contractModal.priceCalc")}</h5>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-content-muted">Original Price:</span>
+                                <span className="text-content-muted">{t("admin.contract.contractModal.originalPrice")}</span>
                                 <span className="text-content-primary">
                                   {priceCalculation.currency}
                                   {priceCalculation.originalPrice.toFixed(2)}
@@ -1061,7 +1064,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                                 </span>
                               </div>
                               <div className="flex justify-between border-t border-border pt-2">
-                                <span className="text-content-primary font-medium">Final Price:</span>
+                                <span className="text-content-primary font-medium">{t("admin.contract.contractModal.finalPrice")}</span>
                                 <span className="text-accent-green font-medium">
                                   {priceCalculation.currency}
                                   {priceCalculation.finalPrice.toFixed(2)}
@@ -1069,7 +1072,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                               </div>
                               <div className="text-xs text-content-faint">
                                 {discount.isPermanent
-                                  ? "Discount applies for the entire contract duration"
+                                  ? t("admin.contract.contractModal.discountEntireDuration")
                                   : `Discount applies for ${discount.duration} billing period${Number(discount.duration) > 1 ? "s" : ""}`}
                               </div>
                             </div>
@@ -1089,18 +1092,18 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
               {currentPage === 0 ? (
                 <div className="bg-white rounded-lg p-6 relative font-sans">
                   <div className="flex justify-between items-start mb-6">
-                    <h1 className="text-content-primary text-2xl font-bold">Studio Contract</h1>
+                    <h1 className="text-content-primary text-2xl font-bold">{t("admin.contract.contractModal.studioContract")}</h1>
                     <div className="bg-surface-button text-content-primary p-4 w-40 h-20 flex items-center justify-center">
                       <span className="text-2xl font-bold">LOGO</span>
                     </div>
                   </div>
                   <div className="mb-6">
                     <h2 className="text-content-faint font-semibold mb-2 uppercase text-sm tracking-wide">
-                      STUDIO INFORMATION
+                      {t("admin.contract.contractModal.studioInfoHeader")}
                     </h2>
                     <div className="grid grid-cols-1 gap-2">
                       <div>
-                        <label className="block text-xs text-content-faint mb-1">Studio Name</label>
+                        <label className="block text-xs text-content-faint mb-1">{t("admin.contract.contractModal.studioNameLabel")}</label>
                         <input
                           type="text"
                           name="studioName"
@@ -1110,7 +1113,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-content-faint mb-1">Studio Owner Name</label>
+                        <label className="block text-xs text-content-faint mb-1">{t("admin.contract.contractModal.studioOwnerLabel")}</label>
                         <input
                           type="text"
                           name="studioOwnerName"
@@ -1121,7 +1124,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <label className="block text-xs text-content-faint mb-1">Title</label>
+                          <label className="block text-xs text-content-faint mb-1">{t("admin.contract.contractModal.titleLabel")}</label>
                           <input
                             type="text"
                             name="anrede"
@@ -1343,14 +1346,14 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                       onClick={prevPage}
                       className="px-4 py-2 bg-surface-button text-content-faint rounded-xl text-sm"
                     >
-                      Back
+                      {t("admin.contract.contractModal.back")}
                     </button>
                     <button
                       type="button"
                       onClick={handleGenerateContract}
                       className="px-4 py-2 bg-primary text-white rounded-xl text-sm"
                     >
-                      {isEditMode ? "Update Contract" : "Generate Contract"}
+                      {isEditMode ? t("admin.contract.contractModal.updateContract") : t("admin.contract.contractModal.generateContract")}
                     </button>
                   </div>
                 </div>
@@ -1371,7 +1374,7 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
                   : "bg-surface-button text-content-muted cursor-not-allowed"
               }`}
             >
-              <Pencil size={16} /> Fill out Contract
+              <Pencil size={16} /> {t("admin.contract.contractModal.fillOutContract")}
             </button>
           </div>
         )}
@@ -1407,7 +1410,8 @@ export function AdminContractModal({ onClose, onSave, contract = null, leadData 
         }}
         existingFormData={filledFormData?.formValues}
       />
-    </div>
+    </div>,
+    document.body
   )
 }
 

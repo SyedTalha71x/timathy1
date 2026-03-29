@@ -1,8 +1,10 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
+  const { t } = useTranslation()
   const [title, setTitle] = useState("")
   const [color, setColor] = useState("")
 
@@ -24,14 +26,14 @@ const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
     <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50">
       <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-white font-bold">Edit Column</h2>
+          <h2 className="text-xl text-white font-bold">{t("admin.leads.editColumnModal.title")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={24} />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm text-gray-200 block mb-2">Column Title</label>
+            <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.editColumnModal.columnTitle")}</label>
             <input
               type="text"
               value={title}
@@ -41,7 +43,7 @@ const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
             />
           </div>
           <div>
-            <label className="text-sm text-gray-200 block mb-2">Column Color</label>
+            <label className="text-sm text-gray-200 block mb-2">{t("admin.leads.editColumnModal.columnColor")}</label>
             <div className="flex gap-3">
               <input
                 type="color"
@@ -64,10 +66,10 @@ const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
               onClick={onClose}
               className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button type="submit" className="px-4 py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-orange-600">
-              Save Changes
+              {t("admin.leads.form.saveChanges")}
             </button>
           </div>
         </form>

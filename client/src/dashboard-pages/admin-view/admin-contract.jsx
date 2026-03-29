@@ -60,7 +60,16 @@ const StatusTag = ({
   cancelDate = null,
   scheduledStartDate = null 
 }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+
+  const statusTranslationMap = {
+    'Active': t("admin.contract.status.active"),
+    'Pending': t("admin.contract.status.pending"),
+    'Paused': t("admin.contract.status.paused"),
+    'Cancelled': t("admin.contract.status.cancelled"),
+    'Scheduled': t("admin.contract.status.scheduled"),
+  }
+  const translatedStatus = statusTranslationMap[status] || status
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -78,7 +87,7 @@ const StatusTag = ({
   const hasHoverEffect = status === 'Paused' || status === 'Cancelled' || status === 'Scheduled';
   
   // Format date helper
-  const formatD = (d) => d ? new Date(d).toLocaleDateString('de-DE') : null;
+  const formatD = (d) => d ? new Date(d).toLocaleDateString(i18n.language) : null;
 
   // Build tooltip content for Paused
   const renderPauseTooltip = () => {
@@ -156,7 +165,7 @@ const StatusTag = ({
     return (
       <div className={`relative ${hasTooltip ? 'group' : ''}`}>
         <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
-          <span className="truncate max-w-[140px]">{status}</span>
+          <span className="truncate max-w-[140px]">{translatedStatus}</span>
         </div>
         {/* Custom Tooltip */}
         {hasTooltip && (
@@ -177,7 +186,7 @@ const StatusTag = ({
   return (
     <div className={`relative ${hasTooltip ? 'group' : ''}`}>
       <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
-        <span>{status}</span>
+        <span>{translatedStatus}</span>
       </div>
       {/* Custom Tooltip */}
       {hasTooltip && (
@@ -230,7 +239,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
 
   // View and display states
   const [viewMode, setViewMode] = useState("list")
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [isCompactView, setIsCompactView] = useState(false)
   const [expandedMobileRowId, setExpandedMobileRowId] = useState(null)
   const [expandedCompactId, setExpandedCompactId] = useState(null)
@@ -284,7 +293,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         return {
           ...contract,
           status: 'Cancelled',
-          cancelReason: 'Contract expired',
+          cancelReason: t("admin.contract.reasons.expired"),
           originalEndDate: contract.originalEndDate || contract.endDate,
         }
       }
@@ -305,7 +314,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
           return {
             ...contract,
             status: 'Cancelled',
-            cancelReason: 'Contract changed',
+            cancelReason: t("admin.contract.reasons.changed"),
             cancelDate: contract.scheduledCancelDate || new Date().toISOString().split('T')[0],
             changedToContractId: activatedReplacement.id,
           }
@@ -540,7 +549,19 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
   }
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('de-DE')
+    return new Date(dateString).toLocaleDateString(i18n.language)
+  }
+
+  // Translate status values for display
+  const translateStatus = (status) => {
+    const map = {
+      'Active': t("admin.contract.status.active"),
+      'Pending': t("admin.contract.status.pending"),
+      'Paused': t("admin.contract.status.paused"),
+      'Cancelled': t("admin.contract.status.cancelled"),
+      'Scheduled': t("admin.contract.status.scheduled"),
+    }
+    return map[status] || status
   }
 
 
@@ -732,7 +753,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
       // Set filter for the member from another page (e.g., Leads, Expiring Contracts Widget)
       setMemberFilters([{
         studioId: location.state.filterMemberId,
-        studioName: location.state.filterMemberName || 'Member'
+        studioName: location.state.filterMemberName || t("admin.customers.shared.entityMember")
       }])
       // Clear the navigation state to prevent re-filtering on refresh
       window.history.replaceState({}, document.title)
@@ -1308,7 +1329,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      haptic.success(); toast.success(t("admin.contract.toast.renewScheduled", { date: new Date(startDate).toLocaleDateString('de-DE') }))
+      haptic.success(); toast.success(t("admin.contract.toast.renewScheduled", { date: new Date(startDate).toLocaleDateString(i18n.language) }))
     } else {
       // Immediate: mark old contract as ended/renewed, new contract is Active
       setContracts(prev => {
@@ -1317,7 +1338,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
             ? {
                 ...c,
                 status: "Cancelled",
-                cancelReason: "Contract renewed",
+                cancelReason: t("admin.contract.reasons.renewed"),
                 cancelDate: new Date().toISOString().split('T')[0],
                 renewedToContractId: newContract.id,
               }
@@ -1464,7 +1485,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
         )
         return [...updated, newContract]
       })
-      haptic.success(); toast.success(t("admin.contract.toast.changeScheduled", { date: new Date(changeData.startDate).toLocaleDateString('de-DE') }))
+      haptic.success(); toast.success(t("admin.contract.toast.changeScheduled", { date: new Date(changeData.startDate).toLocaleDateString(i18n.language) }))
     } else {
       // Immediate: cancel old contract now, new contract is Active
       setContracts(prev => {
@@ -1473,7 +1494,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
             ? {
                 ...c,
                 status: "Cancelled",
-                cancelReason: "Contract changed",
+                cancelReason: t("admin.contract.reasons.changed"),
                 cancelDate: new Date().toISOString().split('T')[0],
                 changedToContractId: newContract.id,
               }
@@ -1791,7 +1812,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                   onClick={() => setFilterStatuses([])}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.length === 0 ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
-                  All ({contracts.length})
+                  {t("common.all")} ({contracts.length})
                 </button>
                 <button
                   onClick={() => setFilterStatuses(prev => prev.includes('active') ? prev.filter(f => f !== 'active') : [...prev, 'active'])}
@@ -1836,7 +1857,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
               <div className="hidden lg:block">
                 <div className="bg-surface-card rounded-xl overflow-visible">
                   {/* Table Header */}
-                  <div className={`grid grid-cols-[auto_1fr_1.2fr_1fr_1fr_1fr_0.8fr_1.2fr_auto] gap-4 px-4 bg-surface-dark text-content-muted font-medium border-b border-border rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
+                  <div className={`grid grid-cols-[auto_1fr_1.2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 bg-surface-dark text-content-muted font-medium border-b border-border rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
                     <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>{t("admin.contract.table.contract")}</div>
                     <div>{t("admin.contract.table.contractNo")}</div>
                     <div>{t("admin.contract.table.studioName")}</div>
@@ -1857,7 +1878,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                           </div>
                         )}
                       <div
-                        className={`grid grid-cols-[auto_1fr_1.2fr_1fr_1fr_1fr_0.8fr_1.2fr_auto] gap-4 px-4 items-center border-b border-border/50 hover:bg-surface-hover transition-colors relative ${isCompactView ? 'py-2' : 'py-3'} ${contract.status === 'Pending' ? 'border border-dashed border-primary/40 rounded-xl my-1 bg-primary/5' : ''}`}
+                        className={`grid grid-cols-[auto_1fr_1.2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 items-center border-b border-border/50 hover:bg-surface-hover transition-colors relative ${isCompactView ? 'py-2' : 'py-3'} ${contract.status === 'Pending' ? 'border border-dashed border-primary/40 rounded-xl my-1 bg-primary/5' : ''}`}
                       >
                         {isExpiredContract(contract) && (
                           <div className="absolute inset-0 bg-surface-dark/70 z-[1] pointer-events-none" />
@@ -2583,7 +2604,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
                           c.status === 'Active' ? 'bg-green-500' : c.status === 'Pending' ? 'bg-gray-400' : 'bg-yellow-500'
                         }`} />
                         <span className="text-content-primary font-medium">{c.contractType}</span>
-                        <span className="text-content-faint">({c.status})</span>
+                        <span className="text-content-faint">({translateStatus(c.status)})</span>
                       </div>
                     ))}
                   </div>

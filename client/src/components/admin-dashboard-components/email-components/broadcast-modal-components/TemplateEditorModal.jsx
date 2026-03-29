@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { X, FileText, Paperclip, Image, File, Trash2 } from "lucide-react"
 import { WysiwygEditor } from "../../../shared/WysiwygEditor"
 
@@ -41,6 +42,7 @@ const TemplateEditorModal = ({
     body: "",
     folderId: ""
   })
+  const { t } = useTranslation()
   const [errors, setErrors] = useState({})
   const [attachments, setAttachments] = useState([])
   
@@ -149,13 +151,13 @@ const TemplateEditorModal = ({
   const validate = () => {
     const newErrors = {}
     if (isEmailTemplate) {
-      if (!templateData.subject.trim()) newErrors.subject = "Please enter a subject"
-      if (!templateData.body.trim() || templateData.body === "<p><br></p>") newErrors.body = "Please enter email content"
+      if (!templateData.subject.trim()) newErrors.subject = t("admin.email.templateEditor.validation.subject")
+      if (!templateData.body.trim() || templateData.body === "<p><br></p>") newErrors.body = t("admin.email.templateEditor.validation.body")
     } else {
-      if (!templateData.title.trim()) newErrors.title = "Please enter a title"
-      if (!templateData.message.trim()) newErrors.message = "Please enter a message"
+      if (!templateData.title.trim()) newErrors.title = t("admin.email.templateEditor.validation.title")
+      if (!templateData.message.trim()) newErrors.message = t("admin.email.templateEditor.validation.message")
     }
-    if (!templateData.folderId) newErrors.folderId = "Please select a folder"
+    if (!templateData.folderId) newErrors.folderId = t("admin.email.templateEditor.validation.folder")
     return newErrors
   }
 
@@ -167,7 +169,7 @@ const TemplateEditorModal = ({
       return
     }
     
-    // Use template name or default to "Untitled template"
+    // Use template name or default to t("admin.email.templateEditor.untitled")
     const templateName = templateData.name.trim() || "Untitled template"
     
     const saveData = {
@@ -194,8 +196,8 @@ const TemplateEditorModal = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-800/50 flex-shrink-0">
           <h2 className="text-lg font-semibold text-white">
             {template 
-              ? `Edit ${isEmailTemplate ? "Email" : "Push"} Template` 
-              : `Create ${isEmailTemplate ? "Email" : "Push"} Template`
+              ? t(isEmailTemplate ? "admin.email.templateEditor.editEmail" : "admin.email.templateEditor.editPush") 
+              : t(isEmailTemplate ? "admin.email.templateEditor.createEmail" : "admin.email.templateEditor.createPush")
             }
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
@@ -219,12 +221,12 @@ const TemplateEditorModal = ({
                   onChange={(e) => setTemplateData(prev => ({ ...prev, name: e.target.value }))}
                   onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                   className="w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-                  placeholder="Untitled template"
+                  placeholder={t("admin.email.templateEditor.untitled")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Folder</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t("admin.email.templateEditor.folder")}</label>
                 <select
                   value={templateData.folderId}
                   onChange={(e) => {
@@ -252,11 +254,11 @@ const TemplateEditorModal = ({
             {/* Subject Line (Email) or Title (Push) */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                {isEmailTemplate ? "Subject Line" : "Notification Title"}
+                {isEmailTemplate ? t("admin.email.templateEditor.subjectLine") : t("admin.email.templateEditor.notificationTitle")}
               </label>
               {/* Variables Row for Subject/Title */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-gray-500">{t("admin.email.compose.variables")}:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
@@ -281,7 +283,7 @@ const TemplateEditorModal = ({
                 className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
                   (isEmailTemplate ? errors.subject : errors.title) ? "ring-2 ring-red-500/50" : ""
                 }`}
-                placeholder={isEmailTemplate ? "Enter email subject..." : "Enter notification title..."}
+                placeholder={isEmailTemplate ? t("admin.email.templateEditor.subjectPlaceholder") : t("admin.email.templateEditor.titlePlaceholder")}
               />
               {(isEmailTemplate ? errors.subject : errors.title) && (
                 <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
@@ -294,12 +296,12 @@ const TemplateEditorModal = ({
             {/* Content Area */}
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                {isEmailTemplate ? "Email Body" : "Message Content"}
+                {isEmailTemplate ? t("admin.email.templateEditor.emailBody") : t("admin.email.templateEditor.messageContent")}
               </label>
 
               {/* Variables Row for Content */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-gray-500">{t("admin.email.compose.variables")}:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
@@ -313,7 +315,7 @@ const TemplateEditorModal = ({
                 {isEmailTemplate && (
                   <>
                     <span className="text-xs text-gray-500 mx-1">|</span>
-                    <span className="text-xs text-gray-500">Insert:</span>
+                    <span className="text-xs text-gray-500">{t("admin.email.templateEditor.insert")}:</span>
                     <button
                       type="button"
                       onClick={insertSignature}
@@ -335,7 +337,7 @@ const TemplateEditorModal = ({
                       setTemplateData(prev => ({ ...prev, body: value }))
                       setErrors(prev => ({ ...prev, body: "" }))
                     }}
-                    placeholder="Compose your email content..."
+                    placeholder={t("admin.email.templateEditor.composePlaceholder")}
                     minHeight={280}
                     maxHeight={400}
                   />
@@ -351,7 +353,7 @@ const TemplateEditorModal = ({
                   className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none ${
                     errors.message ? "ring-2 ring-red-500/50" : ""
                   }`}
-                  placeholder="Enter your push notification message..."
+                  placeholder={t("admin.email.templateEditor.pushPlaceholder")}
                   rows={10}
                 />
               )}
@@ -368,7 +370,7 @@ const TemplateEditorModal = ({
             {isEmailTemplate && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-400">Attachments</label>
+                  <label className="text-sm font-medium text-gray-400">{t("admin.email.compose.attachments")}</label>
                   <input
                     ref={attachmentInputRef}
                     type="file"
@@ -416,7 +418,7 @@ const TemplateEditorModal = ({
                     className="border border-dashed border-gray-700 rounded-xl p-4 text-center cursor-pointer hover:border-gray-600 transition-colors"
                   >
                     <Paperclip className="w-5 h-5 text-gray-500 mx-auto mb-1" />
-                    <p className="text-xs text-gray-500">Click to add attachments</p>
+                    <p className="text-xs text-gray-500">{t("admin.email.templateEditor.clickToAddAttachments")}</p>
                   </div>
                 )}
               </div>
@@ -436,7 +438,7 @@ const TemplateEditorModal = ({
               type="submit"
               className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-medium rounded-xl transition-all"
             >
-              {template ? "Update Template" : "Create Template"}
+              {template ? t("admin.email.templateEditor.updateTemplate") : t("admin.email.templateEditor.createTemplate")}
             </button>
           </div>
         </form>

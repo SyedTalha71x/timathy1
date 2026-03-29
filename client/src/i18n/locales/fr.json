@@ -895,7 +895,9 @@
         "high": "Haute",
         "medium": "Moyenne",
         "low": "Basse",
-        "label": "Priorité {{level}}"
+        "labelHigh": "Priorité haute",
+        "labelMedium": "Priorité moyenne",
+        "labelLow": "Priorité basse"
       },
       "list": {
         "created": "Créé",
@@ -904,6 +906,28 @@
       "empty": {
         "title": "Aucun ticket trouvé",
         "description": "Essayez d'ajuster votre recherche ou vos critères de filtre."
+      },
+      "view": {
+        "ticketClosed": "Ce ticket est fermé",
+        "reopenHint": "Vous pouvez le rouvrir en modifiant le statut dans la barre latérale.",
+        "attachImages": "Joindre des images",
+        "replyPlaceholder": "Tapez votre réponse au client...",
+        "sendReply": "Envoyer la réponse",
+        "updateTicket": "Mettre à jour le ticket",
+        "attachment": "Pièce jointe",
+        "preview": "Aperçu",
+        "viewImage": "Voir",
+        "previousImage": "Image précédente",
+        "nextImage": "Image suivante",
+        "sidebar": {
+          "studio": "Studio",
+          "topic": "Sujet",
+          "subject": "Objet",
+          "reason": "Raison",
+          "manage": "Gérer",
+          "timeline": "Chronologie",
+          "lastUpdated": "Dernière mise à jour"
+        }
       }
     },
     "analytics": {
@@ -1003,7 +1027,7 @@
       }
     },
     "feedback": {
-      "title": "Envoyer un feedback",
+      "title": "Feedback",
       "subtitle": "Aidez-nous à améliorer OrgaGym",
       "thankYou": "Merci !",
       "successMessage": "Votre feedback a été soumis avec succès. Nous apprécions que vous preniez le temps de nous aider à améliorer OrgaGym.",
@@ -1019,7 +1043,59 @@
       "ratingLabel": "Comment évaluez-vous votre expérience ?",
       "optional": "optionnel",
       "clearRating": "Effacer",
-      "sendFeedback": "Envoyer le feedback"
+      "sendFeedback": "Envoyer le feedback",
+      "description": "Gérer les retours de vos studios",
+      "allTypes": "Tous les types",
+      "types": {
+        "suggestion": "Suggestion",
+        "bugReport": "Rapport de bug",
+        "praise": "Éloge",
+        "other": "Autre",
+        "general": "Général",
+        "feature": "Demande de fonctionnalité"
+      },
+      "statuses": {
+        "new": "Nouveau",
+        "inReview": "En cours",
+        "resolved": "Résolu",
+        "dismissed": "Rejeté"
+      },
+      "detail": {
+        "submittedBy": "Soumis par",
+        "message": "Message",
+        "rating": "Note",
+        "status": "Statut"
+      },
+      "stats": {
+        "total": "Total",
+        "new": "Nouveau",
+        "review": "En cours",
+        "resolved": "Résolu"
+      },
+      "sort": {
+        "sortBy": "Trier par",
+        "newest": "Plus récent",
+        "oldest": "Plus ancien",
+        "rating": "Meilleure note"
+      },
+      "search": {
+        "placeholder": "Rechercher un feedback..."
+      },
+      "filters": {
+        "title": "Filtres"
+      },
+      "empty": {
+        "title": "Aucun feedback trouvé",
+        "description": "Essayez d'ajuster votre recherche ou vos filtres."
+      },
+      "results": "{{filtered}} sur {{total}} résultats",
+      "roles": {
+        "owner": "Propriétaire",
+        "manager": "Gérant",
+        "admin": "Administrateur",
+        "staff": "Personnel",
+        "trainer": "Entraîneur"
+      }
     },
     "finances": {
       "title": "Finances",
@@ -1137,7 +1213,104 @@
         "sent": "E-mail envoyé avec succès !",
         "fillRequired": "Veuillez remplir tous les champs obligatoires"
       },
-      "noSubject": "(Sans objet)"
+      "noSubject": "(Sans objet)",
+      "compose": {
+        "title": "Envoyer un e-mail",
+        "template": "Modèle",
+        "selectTemplate": "Sélectionner un modèle (optionnel)",
+        "clearTemplate": "Effacer le modèle",
+        "noTemplates": "Aucun modèle disponible",
+        "variableWarning": "Le modèle contient des variables",
+        "variables": "Variables",
+        "variablesLabel": "Variables",
+        "searchRecipients": "Rechercher par nom ou saisir un e-mail...",
+        "to": "À",
+        "cc": "CC",
+        "bcc": "CCI",
+        "addMore": "Ajouter...",
+        "staff": "Personnel",
+        "subject": "Objet",
+        "subjectPlaceholder": "Objet de l'e-mail",
+        "message": "Message",
+        "insertSignature": "Insérer la signature",
+        "messagePlaceholder": "Saisissez votre message ici...",
+        "attachments": "Pièces jointes",
+        "addAttachment": "Ajouter une pièce jointe",
+        "tapToAddAttachments": "Appuyez pour ajouter des pièces jointes",
+        "sendEmail": "Envoyer l'e-mail"
+      },
+      "reply": {
+        "title": "Répondre à {{sender}}",
+        "placeholder": "Écrire votre réponse...",
+        "originalMessage": "Message original",
+        "from": "De",
+        "date": "Date",
+        "subjectLabel": "Objet"
+      },
+      "draftModal": {
+        "title": "Enregistrer comme brouillon ?",
+        "subtitle": "Vos modifications seront enregistrées",
+        "message": "Vous avez du contenu non envoyé. Souhaitez-vous l'enregistrer comme brouillon ?",
+        "discard": "Supprimer",
+        "saveDraft": "Enregistrer le brouillon"
+      },
+      "deleteItemModal": {
+        "title": "Supprimer {{type}}",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer ce {{type}} ?",
+        "cannotUndo": "Cette action est irréversible.",
+        "toDelete": "{{type}} à supprimer",
+        "untitled": "{{type}} sans titre",
+        "deleteBtn": "Supprimer {{type}}",
+        "types": {
+          "folder": "Dossier",
+          "template": "Modèle",
+          "message": "Message",
+          "item": "Élément"
+        }
+      },
+      "templateEditor": {
+        "editEmail": "Modifier le modèle e-mail",
+        "editPush": "Modifier le modèle push",
+        "createEmail": "Créer un modèle e-mail",
+        "createPush": "Créer un modèle push",
+        "templateName": "Nom du modèle",
+        "untitled": "Modèle sans titre",
+        "folder": "Dossier",
+        "selectFolder": "Sélectionner un dossier...",
+        "subjectLine": "Ligne d'objet",
+        "notificationTitle": "Titre de notification",
+        "subjectPlaceholder": "Saisir l'objet...",
+        "titlePlaceholder": "Saisir le titre de notification...",
+        "emailBody": "Corps de l'e-mail",
+        "messageContent": "Contenu du message",
+        "insert": "Insérer",
+        "signature": "Signature",
+        "composePlaceholder": "Rédigez votre e-mail...",
+        "pushPlaceholder": "Saisir votre notification push...",
+        "clickToAddAttachments": "Cliquez pour ajouter des pièces jointes",
+        "updateTemplate": "Mettre à jour le modèle",
+        "createTemplate": "Créer le modèle",
+        "validation": {
+          "subject": "Veuillez saisir un objet",
+          "body": "Veuillez saisir le contenu",
+          "title": "Veuillez saisir un titre",
+          "message": "Veuillez saisir un message",
+          "folder": "Veuillez sélectionner un dossier"
+        }
+      },
+      "broadcast": {
+        "untitledTemplate": "Modèle sans titre",
+        "allFolders": "Tous les dossiers",
+        "createNewTemplate": "Créer un nouveau modèle",
+        "newTemplate": "Nouveau modèle",
+        "newFolder": "Nouveau dossier",
+        "selected": "sélectionné(s)",
+        "selectRecipient": "Veuillez sélectionner au moins un destinataire",
+        "selectTemplate": "Veuillez sélectionner un modèle",
+        "searchStudios": "Rechercher des studios...",
+        "searchTemplates": "Rechercher des modèles...",
+        "sendConfirmMessage": "Ceci enverra un e-mail à {{count}} destinataire(s)."
+      }
     },
     "todo": {
       "title": "Tâches",
@@ -1235,7 +1408,8 @@
       "deleteModal": {
         "confirmPrefix": "Êtes-vous sûr de vouloir supprimer",
         "confirmSuffix": "?",
-        "title": "Supprimer le lead"
+        "title": "Supprimer le lead",
+        "defaultMessage": "Êtes-vous sûr ? Cette action est irréversible."
       },
       "demoModal": {
         "createDemo": "Créer un accès démo",
@@ -1256,7 +1430,141 @@
         "reordered": "Leads réordonnés",
         "updated": "Lead mis à jour avec succès !"
       },
-      "view": "Vue"
+      "view": "Vue",
+      "noteStatuses": {
+        "contactAttempt": "Tentative de contact",
+        "callbackRequested": "Rappel demandé",
+        "interest": "Intérêt",
+        "objection": "Objection",
+        "personalInfo": "Info personnelle",
+        "health": "Santé",
+        "followUp": "Suivi",
+        "general": "Général"
+      },
+      "form": {
+        "tabs": {
+          "details": "Détails",
+          "specialNotes": "Notes spéciales"
+        },
+        "sections": {
+          "studioInfo": "Informations du studio",
+          "studioOwner": "Propriétaire du studio",
+          "contactInfo": "Informations de contact",
+          "address": "Adresse",
+          "leadInfo": "Informations du lead"
+        },
+        "fields": {
+          "studioName": "Nom du studio",
+          "websiteLink": "Lien du site web",
+          "numberOfMembers": "Nombre de membres",
+          "ownerFirstName": "Prénom du propriétaire",
+          "ownerLastName": "Nom du propriétaire",
+          "gender": "Genre",
+          "birthday": "Date de naissance",
+          "email": "E-mail",
+          "mobileNumber": "Numéro mobile",
+          "telephoneNumber": "Numéro de téléphone",
+          "streetNumber": "Rue & Numéro",
+          "zipCode": "Code postal",
+          "city": "Ville",
+          "country": "Pays",
+          "source": "Source",
+          "status": "Statut",
+          "about": "À propos",
+          "leadSource": "Source du lead",
+          "leadId": "ID du lead",
+          "createdDate": "Date de création",
+          "zipCodeCity": "Code postal & Ville",
+          "age": "Âge"
+        },
+        "placeholders": {
+          "studioName": "Entrer le nom du studio...",
+          "selectMembers": "Sélectionner le nombre de membres",
+          "selectGender": "Sélectionner le genre",
+          "selectCountry": "Sélectionner un pays",
+          "loadingCountries": "Chargement des pays...",
+          "selectSource": "Sélectionner la source",
+          "selectStatus": "Sélectionner le statut",
+          "details": "Entrer plus de détails...",
+          "enterNote": "Entrer une note..."
+        },
+        "genderOptions": {
+          "male": "Masculin",
+          "female": "Féminin",
+          "other": "Autre"
+        },
+        "memberRanges": {
+          "range1": "1-50 Membres",
+          "range2": "51-200 Membres",
+          "range3": "201-500 Membres",
+          "range4": "Plus de 500 Membres"
+        },
+        "validation": {
+          "firstName": "Veuillez entrer un prénom",
+          "lastName": "Veuillez entrer un nom",
+          "email": "Veuillez entrer une adresse e-mail",
+          "validEmail": "Veuillez entrer une adresse e-mail valide",
+          "invalidBirthDate": "Date de naissance invalide",
+          "noteText": "Veuillez entrer le texte de la note"
+        },
+        "toast": {
+          "noteAdded": "Note ajoutée",
+          "noteRemoved": "Note supprimée",
+          "noteUpdated": "Note mise à jour"
+        },
+        "notes": {
+          "specialNotesFor": "Notes spéciales pour",
+          "newLead": "Nouveau lead",
+          "addNote": "Ajouter une note",
+          "updateNote": "Mettre à jour la note",
+          "noteLabel": "Note",
+          "important": "Important",
+          "validFrom": "Valide à partir de (optionnel)",
+          "validUntil": "Valide jusqu'à (optionnel)",
+          "validRange": "Valide",
+          "validFromLabel": "Valide à partir de",
+          "validUntilLabel": "Valide jusqu'à",
+          "noNotesYet": "Aucune note spéciale. Cliquez sur \"Ajouter une note\" pour en créer une.",
+          "noNotesForLead": "Aucune note spéciale pour ce lead."
+        },
+        "editLead": "Modifier le lead",
+        "leadDetails": "Détails du lead",
+        "saveChanges": "Enregistrer les modifications",
+        "editSpecialNotes": "Modifier les notes spéciales"
+      },
+      "editColumnModal": {
+        "title": "Modifier la colonne",
+        "columnTitle": "Titre de la colonne",
+        "columnColor": "Couleur de la colonne"
+      },
+      "sort": {
+        "name": "Nom",
+        "dateCreated": "Date de création",
+        "customOrder": "Ordre personnalisé",
+        "sortByLabel": "Trier par",
+        "changeToDesc": "Trier par ordre décroissant",
+        "changeToAsc": "Trier par ordre croissant"
+      },
+      "column": {
+        "cannotEdit": "Cette colonne ne peut pas être modifiée",
+        "editColumn": "Modifier la colonne",
+        "collapseColumn": "Réduire la colonne",
+        "dropHere": "Déposer ici",
+        "noLeads": "Aucun lead"
+      },
+      "card": {
+        "expand": "Développer",
+        "collapse": "Réduire",
+        "created": "Créé",
+        "unknownDate": "Date inconnue",
+        "createContract": "Créer un contrat",
+        "createDemoAccess": "Créer un accès démo",
+        "menu": {
+          "viewDetails": "Voir les détails",
+          "documents": "Documents",
+          "viewHistory": "Voir l'historique"
+        }
+      }
     },
     "exercises": {
       "title": "Exercices",
@@ -1498,12 +1806,12 @@
         "noNotesYet": "Aucune note spéciale. Cliquez sur \"Ajouter une note\" pour en créer une."
       },
       "studioOptions": {
-        "title": "Edit Studio Options",
-        "chooseConfig": "Choose configuration type for",
-        "studioConfig": "Studio Configuration",
-        "studioConfigDesc": "Manage studio settings, resources, and appearance",
-        "adminConfig": "Admin Configuration",
-        "adminConfigDesc": "Manage admin settings and system configuration"
+        "title": "Modifier les options du studio",
+        "chooseConfig": "Choisir le type de configuration pour",
+        "studioConfig": "Configuration du studio",
+        "studioConfigDesc": "Gérer les paramètres, ressources et apparence du studio",
+        "adminConfig": "Configuration admin",
+        "adminConfigDesc": "Gérer les paramètres admin et la configuration système"
       },
       "payment": {
         "title": "Détails de paiement",
@@ -1556,54 +1864,54 @@
         "selectFirst": "Veuillez d'abord sélectionner une franchise"
       },
       "adminConfigModal": {
-        "title": "Edit Admin Configuration",
-        "saved": "Admin configuration saved",
-        "additionalInfo": "Additional Information",
-        "enterDetails": "Enter studio details, focus areas, special features...",
-        "basic": "Basic",
-        "basicDesc": "Limited access with essential features only",
+        "title": "Modifier la configuration admin",
+        "saved": "Configuration admin enregistrée",
+        "additionalInfo": "Informations supplémentaires",
+        "enterDetails": "Saisir les détails du studio, domaines d'activité, particularités...",
+        "basic": "Basique",
+        "basicDesc": "Accès limité avec les fonctionnalités essentielles uniquement",
         "standard": "Standard",
-        "standardDesc": "Standard access with core features",
+        "standardDesc": "Accès standard avec les fonctionnalités principales",
         "premium": "Premium",
-        "premiumDesc": "Full platform access with all features"
+        "premiumDesc": "Accès complet avec toutes les fonctionnalités"
       },
       "editConfig": {
-        "configSaved": "Configuration saved successfully!",
-        "studioDesc": "Studio Description",
-        "studioDescPlaceholder": "Describe your studio, its mission, facilities, and what makes it unique...",
-        "specialNotePlaceholder": "Enter special note or announcement...",
-        "noteContent": "Note Content",
-        "markImportant": "Mark as Important",
-        "activePeriod": "Active Period",
-        "studioCategories": "Studio Categories",
-        "addCategory": "Add New Category",
-        "categoryName": "Category name",
-        "deleteCategory": "Delete Category",
-        "deleteCategoryConfirm": "Are you sure you want to delete this category?",
-        "categoryAdded": "Category Added",
-        "categoryAddedDesc": "New studio category has been added.",
-        "categoryDeleted": "Category Deleted",
-        "categoryDeletedDesc": "Studio category has been deleted.",
-        "fitnessStudio": "Fitness Studio",
-        "emsStudio": "EMS Studio",
-        "selfServiceStudio": "Self-service Studio",
-        "navMenuAccess": "Navigation Menu Access",
-        "menuAccess": "Menu Access:",
-        "managePermissions": "Manage Menu Permissions",
+        "configSaved": "Configuration enregistrée avec succès !",
+        "studioDesc": "Description du studio",
+        "studioDescPlaceholder": "Décrivez votre studio, sa mission, ses équipements et ce qui le rend unique...",
+        "specialNotePlaceholder": "Saisir une note spéciale ou une annonce...",
+        "noteContent": "Contenu de la note",
+        "markImportant": "Marquer comme important",
+        "activePeriod": "Période active",
+        "studioCategories": "Catégories du studio",
+        "addCategory": "Ajouter une nouvelle catégorie",
+        "categoryName": "Nom de la catégorie",
+        "deleteCategory": "Supprimer la catégorie",
+        "deleteCategoryConfirm": "Êtes-vous sûr de vouloir supprimer cette catégorie ?",
+        "categoryAdded": "Catégorie ajoutée",
+        "categoryAddedDesc": "Une nouvelle catégorie de studio a été ajoutée.",
+        "categoryDeleted": "Catégorie supprimée",
+        "categoryDeletedDesc": "La catégorie de studio a été supprimée.",
+        "fitnessStudio": "Studio de fitness",
+        "emsStudio": "Studio EMS",
+        "selfServiceStudio": "Studio en libre-service",
+        "navMenuAccess": "Accès au menu de navigation",
+        "menuAccess": "Accès au menu :",
+        "managePermissions": "Gérer les permissions du menu",
         "permissions": "Permissions",
-        "permissionsUpdated": "Permissions Updated",
-        "permissionsUpdatedDesc": "Role permissions have been updated successfully.",
-        "newRole": "New Role",
-        "deleteRole": "Delete Role",
-        "deleteRoleConfirm": "Are you sure you want to delete this role?",
-        "roleDeleted": "Role Deleted",
-        "roleDeletedDesc": "Role has been successfully deleted.",
-        "noRoles": "No roles created yet",
-        "noRolesDesc": "Add your first role to get started",
-        "saveAsTemplate": "Save as Template",
-        "enterTemplateName": "Enter template name...",
-        "templateSaved": "Template Saved",
-        "templateSavedDesc": "Permission template has been saved successfully."
+        "permissionsUpdated": "Permissions mises à jour",
+        "permissionsUpdatedDesc": "Les permissions des rôles ont été mises à jour avec succès.",
+        "newRole": "Nouveau rôle",
+        "deleteRole": "Supprimer le rôle",
+        "deleteRoleConfirm": "Êtes-vous sûr de vouloir supprimer ce rôle ?",
+        "roleDeleted": "Rôle supprimé",
+        "roleDeletedDesc": "Le rôle a été supprimé avec succès.",
+        "noRoles": "Aucun rôle créé",
+        "noRolesDesc": "Ajoutez votre premier rôle pour commencer",
+        "saveAsTemplate": "Enregistrer comme modèle",
+        "enterTemplateName": "Saisir le nom du modèle...",
+        "templateSaved": "Modèle enregistré",
+        "templateSavedDesc": "Le modèle de permissions a été enregistré avec succès."
       },
       "franchiseDetails": {
         "title": "Franchise Details",
@@ -1640,6 +1948,15 @@
           "uk": "Royaume-Uni",
           "us": "États-Unis"
         }
+      },
+      "editStudioPages": {
+        "backToStudios": "Retour aux studios",
+        "leads": "Prospects",
+        "members": "Membres",
+        "staff": "Personnel",
+        "contracts": "Contrats",
+        "finances": "Finances",
+        "studioConfiguration": "Configuration du studio"
       },
       "permissionModal": {
         "title": "Gérer les permissions",
@@ -1713,7 +2030,7 @@
       },
       "card": {
         "days": "jours",
-        "daysRemaining": "{{count}} jours restants",
+        "daysRemaining": "{{days}} jours restants",
         "deactivated": "Désactivé",
         "edit": "Modifier",
         "email": "E-mail",
@@ -1768,6 +2085,65 @@
         "name": "Nom",
         "sortBy": "Trier par",
         "status": "Statut"
+      },
+      "wizard": {
+        "searchLeads": "Rechercher des leads par nom, e-mail ou entreprise...",
+        "continueWithoutLead": "Continuer sans lead",
+        "manualDetails": "Créer un accès avec des détails manuels",
+        "noLeadsFound": "Aucun lead trouvé",
+        "noLead": "Aucun lead",
+        "template": "Modèle",
+        "features": "fonctionnalités",
+        "newAccess": "Nouvel accès",
+        "editAccess": "Modifier l'accès",
+        "next": "Suivant",
+        "createAccess": "Créer l'accès",
+        "updateAccess": "Mettre à jour l'accès",
+        "emailCannotChange": "L'adresse e-mail ne peut pas être modifiée après la création",
+        "steps": {
+          "selectLead": "Sélectionner un lead",
+          "chooseTemplate": "Choisir un modèle",
+          "configure": "Configurer"
+        },
+        "fields": {
+          "studioName": "Nom du studio",
+          "ownerFirstName": "Prénom du propriétaire",
+          "ownerLastName": "Nom du propriétaire",
+          "duration": "Durée d'accès (jours)",
+          "email": "E-mail d'accès",
+          "emailAddress": "Adresse e-mail"
+        },
+        "placeholders": {
+          "studioName": "Entrer le nom du studio",
+          "firstName": "Prénom",
+          "lastName": "Nom"
+        }
+      },
+      "journalModal": {
+        "title": "Journal d'activité",
+        "by": "Par",
+        "noActivity": "Aucune activité enregistrée"
+      },
+      "emailModal": {
+        "sendTitle": "Envoyer l'e-mail d'accès ?",
+        "resendTitle": "Renvoyer l'e-mail d'accès ?",
+        "sendSubtitle": "Notifier l'utilisateur de son accès",
+        "resendSubtitle": "Renvoyer les détails d'accès à l'utilisateur",
+        "emailLanguage": "Langue de l'e-mail",
+        "preview": "Aperçu",
+        "subject": "Objet",
+        "to": "À",
+        "template": "Modèle",
+        "sendBtn": "Oui, envoyer maintenant",
+        "resendBtn": "Renvoyer l'e-mail",
+        "skipForNow": "Passer pour le moment",
+        "sendInfo": "Un e-mail sera envoyé à",
+        "sendInfoAccess": "avec les instructions pour configurer le mot de passe et accéder à",
+        "resendInfo": "Les détails d'accès seront renvoyés à",
+        "forStudio": "pour"
+      },
+      "confirmModal": {
+        "subtitle": "Veuillez confirmer votre action"
       }
     },
     "contract": {
@@ -1783,17 +2159,22 @@
         "owner": "Propriétaire",
         "contractType": "Type de contrat",
         "status": "Statut",
-        "autoRenewal": "Renouvellement auto.",
+        "autoRenewal": "Renouv. auto.",
         "contractDuration": "Durée du contrat",
         "actions": "Actions",
         "contract": "Contrat"
       },
       "status": {
         "active": "Actif",
-        "paused": "Contrat en pause",
-        "cancelled": "Contrat résilié",
-        "scheduled": "Contrat programmé",
+        "paused": "En pause",
+        "cancelled": "Résilié",
+        "scheduled": "Programmé",
         "pending": "En attente"
+      },
+      "reasons": {
+        "expired": "Contrat expiré",
+        "renewed": "Contrat renouvelé",
+        "changed": "Contrat modifié"
       },
       "actions": {
         "addContract": "Ajouter un contrat",
@@ -1892,6 +2273,262 @@
         "detailed": "Détaillé",
         "grid": "Grille",
         "list": "Liste"
+      },
+      "modal": {
+        "reason": "Motif",
+        "other": "Autre",
+        "selectReason": "Sélectionner un motif",
+        "pleaseSpecify": "Veuillez préciser...",
+        "selectDate": "Sélectionner une date",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "contractInfo": "Informations du contrat",
+        "contractType": "Type de contrat",
+        "contractDetails": "Détails du contrat",
+        "duration": "Durée",
+        "cost": "Coût",
+        "billingPeriod": "Période de facturation",
+        "discount": "Remise",
+        "percentage": "Pourcentage (%)",
+        "billingPeriods": "Périodes de facturation",
+        "tillEndOfContract": "Jusqu'à la fin du contrat",
+        "priceCalc": "Calcul du prix",
+        "originalPrice": "Prix original :",
+        "discountAmount": "Remise ({{pct}}%) :",
+        "finalPrice": "Prix final :",
+        "discountEntireDuration": "La remise s'applique pour toute la durée du contrat",
+        "discountForPeriods": "La remise s'applique pour {{count}} période(s) de facturation",
+        "selectContractType": "Sélectionner un type de contrat",
+        "month": "{{count}} mois",
+        "months": "{{count}} mois"
+      },
+      "deleteModal": {
+        "title": "Supprimer le contrat en cours",
+        "subtitle": "Cette action est irréversible",
+        "warning": "Vous êtes sur le point de supprimer un contrat en cours{{name}}.",
+        "warningDetail": "Ce contrat n'a pas été entièrement exécuté et sa suppression peut avoir des conséquences juridiques. Le studio sera notifié de ce changement.",
+        "deleteBtn": "Supprimer le contrat"
+      },
+      "pauseModal": {
+        "title": "Suspendre le contrat",
+        "selectStartDate": "Sélectionner la date de début",
+        "selectEndDate": "Sélectionner la date de fin",
+        "pauseBtn": "Suspendre le contrat",
+        "errReason": "Veuillez sélectionner un motif",
+        "errStartDate": "Veuillez sélectionner une date de début",
+        "errStartDatePast": "La date de début ne peut pas être dans le passé",
+        "errEndDate": "Veuillez sélectionner une date de fin",
+        "errEndDatePast": "La date de fin ne peut pas être dans le passé",
+        "errEndDateBeforeStart": "La date de fin doit être après la date de début"
+      },
+      "cancelModal": {
+        "title": "Résilier le contrat",
+        "studio": "Studio",
+        "contractPeriod": "Période du contrat",
+        "cancellationPeriod": "Délai de résiliation",
+        "latestCancelDate": "Date limite de résiliation",
+        "cancellationType": "Type de résiliation",
+        "extraordinary": "Résiliation extraordinaire",
+        "throughAdmin": "Résiliation par l'admin",
+        "selectCancelReason": "Sélectionner le motif de résiliation",
+        "entryDate": "Date d'entrée de la résiliation",
+        "contractEndDate": "Date de fin du contrat",
+        "notification": "Envoyer la notification de résiliation au studio par e-mail",
+        "discard": "Annuler",
+        "confirmBtn": "Confirmer la résiliation",
+        "oneMonth": "1 mois"
+      },
+      "renewModal": {
+        "title": "Renouveler le contrat",
+        "currentContract": "Contrat actuel",
+        "expired": "Expiré",
+        "expires": "Expire",
+        "startAfterCurrent": "Commencer après la période actuelle",
+        "customStartDate": "Date de début personnalisée",
+        "gapWarning": "Il y aura un écart de {{days}} {{unit}} sans contrat actif.",
+        "day": "jour",
+        "days": "jours",
+        "renewBtn": "Renouveler le contrat"
+      },
+      "bonusModal": {
+        "addTitle": "Ajouter du temps bonus",
+        "editTitle": "Modifier le temps bonus",
+        "reasonLabel": "Motif du temps bonus",
+        "startOfBonus": "Début du temps bonus",
+        "endOfContractPeriod": "Fin de la période contractuelle actuelle",
+        "fixedTime": "Date fixe",
+        "durationLabel": "Durée",
+        "unitDays": "Jours",
+        "unitWeeks": "Semaines",
+        "unitMonths": "Mois",
+        "bonusPeriod": "Période bonus :",
+        "removeTitle": "Supprimer le temps bonus",
+        "removeConfirm": "Êtes-vous sûr de vouloir supprimer le temps bonus de ce contrat ?",
+        "updateBtn": "Mettre à jour le temps bonus",
+        "addBtn": "Ajouter du temps bonus"
+      },
+      "changeModal": {
+        "title": "Modifier le contrat",
+        "currentContract": "Contrat actuel",
+        "type": "Type :",
+        "costLabel": "Coût :",
+        "expiresLabel": "Expire :",
+        "newContractType": "Nouveau type de contrat",
+        "changeStartDate": "Date de début du changement",
+        "contractEndDateLabel": "Date de fin du contrat ({{duration}})",
+        "newContractDetails": "Détails du nouveau contrat",
+        "changeInfo": "Le contrat {{contractType}} actuel pour {{studioName}} sera automatiquement résilié le {{date}} lorsque le nouveau contrat prendra effet.",
+        "reasonForChange": "Motif du changement",
+        "changeBtn": "Modifier le contrat",
+        "errStartDateFuture": "La date de début doit être aujourd'hui ou dans le futur"
+      },
+      "mgmt": {
+        "goToStudio": "Aller au studio",
+        "contract": "Contrat",
+        "contractNumber": "Numéro de contrat",
+        "contractType": "Type de contrat",
+        "iban": "IBAN",
+        "sepaMandate": "Mandat SEPA",
+        "autoRenewal": "Renouv. auto.",
+        "monthlyCost": "Coût mensuel",
+        "cancelReason": "Motif de résiliation",
+        "pauseReason": "Motif de suspension",
+        "pausePeriod": "Période de suspension",
+        "discountLabel": "Remise",
+        "discountPermanent": "(permanent)",
+        "discountForPeriods": "pour {{count}} périodes",
+        "yes": "Oui",
+        "no": "Non",
+        "unlimited": "(illimité)",
+        "until": "(jusqu'au {{date}})",
+        "unlimitedAutoRenewal": "Renouvellement automatique illimité",
+        "autoRenewalUntil": "Renouvellement automatique jusqu'au {{date}}",
+        "autoRenewalEnabled": "Renouvellement automatique activé",
+        "expiring": "Expire bientôt",
+        "expired": "Expiré",
+        "bonus": "Bonus",
+        "contractExtension": "+ Extension de contrat",
+        "withoutExtension": "Sans extension",
+        "viewContract": "Voir le contrat",
+        "downloadContract": "Télécharger le contrat",
+        "printContract": "Imprimer le contrat",
+        "ongoingDraft": "Le contrat est en cours (brouillon). Veuillez d'abord le finaliser.",
+        "noFormData": "Aucune donnée de formulaire disponible. Veuillez d'abord le remplir.",
+        "generatingPdf": "Génération du PDF...",
+        "generatingPdfPrint": "Génération du PDF pour impression...",
+        "pdfOpened": "PDF ouvert dans un nouvel onglet",
+        "pdfDownloaded": "PDF téléchargé !",
+        "pdfFailed": "Échec de la génération du PDF",
+        "pdfPrintFailed": "Échec de la génération du PDF pour impression",
+        "reason": "Motif :",
+        "period": "Période :",
+        "since": "Depuis :",
+        "cancelled": "Résilié :",
+        "contractPaused": "Le contrat est suspendu",
+        "contractCancelled": "Le contrat a été résilié"
+      },
+      "contractModal": {
+        "editTitle": "Modifier le contrat",
+        "addTitle": "Ajouter un contrat",
+        "formView": "Vue formulaire",
+        "back": "Retour",
+        "backToSelection": "Retour à la sélection",
+        "selectLeadOrStudio": "Sélectionner un prospect ou studio",
+        "selectLeadOrStudioDesc": "Recherchez un prospect ou studio existant, ou continuez sans sélection",
+        "leadStudio": "Prospect / Studio",
+        "searchPlaceholder": "Rechercher un prospect ou studio...",
+        "studio": "Studio",
+        "lead": "Prospect",
+        "proceedWithout": "Continuer sans sélection",
+        "selectedStudio": "Studio sélectionné",
+        "selectedLead": "Prospect sélectionné",
+        "owner": "Propriétaire :",
+        "nameLabel": "Nom :",
+        "email": "E-mail :",
+        "phone": "Téléphone :",
+        "contractType": "Type de contrat",
+        "selectContractType": "Sélectionner un type",
+        "accessRole": "Rôle d'accès",
+        "noAccessRole": "Aucun rôle d'accès",
+        "noAccessRoleAssigned": "Aucun rôle d'accès attribué",
+        "contractStartDate": "Date de début du contrat",
+        "accessStartDate": "Date de début d'accès",
+        "selectDate": "Sélectionner une date",
+        "contractDetails": "Détails du contrat",
+        "duration": "Durée",
+        "cost": "Coût",
+        "billingPeriod": "Période de facturation",
+        "endDate": "Date de fin",
+        "discount": "Remise",
+        "percentage": "Pourcentage (%)",
+        "billingPeriods": "Périodes de facturation",
+        "tillEndOfContract": "Jusqu'à la fin du contrat",
+        "priceCalc": "Calcul du prix",
+        "originalPrice": "Prix original :",
+        "discountAmount": "Remise ({{pct}}%) :",
+        "finalPrice": "Prix final :",
+        "discountEntireDuration": "La remise s'applique pour toute la durée du contrat",
+        "discountForPeriods": "La remise s'applique pour {{count}} période(s)",
+        "studioContract": "Contrat de studio",
+        "studioInfo": "INFORMATIONS DU STUDIO",
+        "updateContract": "Mettre à jour le contrat",
+        "generateContract": "Générer le contrat",
+        "toastDigitalSigned": "Contrat généré avec signature numérique",
+        "toastUpdated": "Contrat mis à jour !",
+        "toastCreated": "Contrat créé !",
+        "toastCreatedSuccess": "Contrat créé avec succès !",
+        "toastDraftSaved": "Contrat enregistré comme brouillon (En attente)",
+        "printTitle": "Imprimer le contrat",
+        "printConfirm": "Souhaitez-vous imprimer ce contrat maintenant ?",
+        "yesPrint": "Oui, imprimer",
+        "skipPrint": "Non, passer",
+        "fillOutContract": "Remplir le contrat",
+        "generateContractTitle": "Générer le contrat",
+        "generateContractDesc": "Comment souhaitez-vous générer ce contrat ?",
+        "withDigitalSignature": "Avec signature numérique",
+        "withoutSignature": "Sans signature",
+        "printContractTitle": "Imprimer le contrat",
+        "printContractDesc": "Souhaitez-vous imprimer ce contrat ?",
+        "studioInfoHeader": "INFORMATIONS DU STUDIO",
+        "studioNameLabel": "Nom du studio",
+        "studioOwnerLabel": "Propriétaire du studio",
+        "titleLabel": "Civilité",
+        "saveAsDraft": "Enregistrer comme brouillon"
+      },
+      "salutation": {
+        "select": "Sélectionner...",
+        "mr": "M.",
+        "mrs": "Mme",
+        "ms": "Mme"
+      },
+      "formFill": {
+        "clearSignature": "Effacer la signature",
+        "selectSalutation": "Sélectionner civilité...",
+        "preparingPrint": "Préparation de l'impression...",
+        "pdfPrintFailed": "Échec de la génération du PDF pour impression",
+        "generateTitle": "Générer le contrat",
+        "generateSubtitle": "Confirmer la génération du contrat",
+        "generateConfirm": "Êtes-vous sûr de vouloir générer ce contrat ? Le contrat sera créé avec toutes les informations saisies.",
+        "yesGenerate": "Oui, générer",
+        "printTitle": "Imprimer le contrat",
+        "printSubtitle": "Souhaitez-vous imprimer ?",
+        "printConfirm": "Souhaitez-vous imprimer le contrat maintenant ? Vous pouvez aussi l'imprimer plus tard depuis la gestion des contrats.",
+        "yesPrint": "Oui, imprimer",
+        "noSkip": "Non, passer",
+        "unsavedTitle": "Modifications non enregistrées",
+        "unsavedSubtitle": "Que souhaitez-vous faire ?",
+        "unsavedConfirm": "Vous avez des modifications non enregistrées. Souhaitez-vous les enregistrer comme brouillon (En attente) pour continuer plus tard, ou tout annuler ?",
+        "saveAsDraft": "Enregistrer comme brouillon (En attente)",
+        "discardChanges": "Annuler les modifications",
+        "pageOf": "Page {{current}} sur {{total}}",
+        "page": "Page {{number}}",
+        "zoomOut": "Zoom arrière",
+        "zoomIn": "Zoom avant",
+        "fieldsAttention": "{{count}} champ(s) nécessite(nt) attention",
+        "previous": "Précédent",
+        "next": "Suivant",
+        "generate": "Générer",
+        "generateContract": "Générer le contrat"
       }
     },
     "configuration": {
@@ -2300,7 +2937,8 @@
         "loginActivity": "Activité de connexion",
         "vacation": "Congés",
         "trialTraining": "Entraînement d'essai",
-        "tickets": "Tickets"
+        "tickets": "Tickets",
+        "demoAccess": "Accès démo"
       },
       "empty": {
         "noGeneralChanges": "Aucun changement général",
@@ -2325,7 +2963,9 @@
         "noTrialTrainingDesc": "Aucun entraînement d'essai n'a encore été enregistré.",
         "noTickets": "Aucun ticket",
         "noTicketsDesc": "Aucun historique de ticket n'a encore été enregistré.",
-        "noFilterMessages": "Aucun message {{filter}} trouvé."
+        "noFilterMessages": "Aucun message {{filter}} trouvé.",
+        "noDemoAccess": "Aucun accès démo",
+        "noDemoAccessDesc": "Aucun historique d'accès démo n'a été enregistré."
       },
       "subtitles": {
         "activityHistory": "Historique d'activité",

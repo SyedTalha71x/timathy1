@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from "react";
 import { IoIosSend, IoIosClose } from "react-icons/io";
+import { useTranslation } from "react-i18next";
 
 // ============================================
 // Default Access Email Templates
@@ -134,19 +135,18 @@ const SendEmailModal = ({
   onClose,
   demo,
   onSend,
-  mode = "create", // "create" | "resend"
+  mode = "create",
   emailTemplates: externalTemplates,
 }) => {
+  const { t } = useTranslation();
   const [selectedLang, setSelectedLang] = useState("de");
   const [showPreview, setShowPreview] = useState(false);
 
-  // Use external templates if provided, otherwise use defaults
   const templates = externalTemplates || DEFAULT_EMAIL_TEMPLATES;
   const languageKeys = Object.keys(templates);
 
   const isResend = mode === "resend";
 
-  // Template variables from demo config
   const variables = useMemo(
     () => ({
       firstName: demo?.config?.firstName || demo?.config?.studioOwnerFirstName || demo?.config?.name || "",
@@ -158,7 +158,6 @@ const SendEmailModal = ({
     [demo]
   );
 
-  // Current template with variables replaced
   const currentTemplate = templates[selectedLang];
   const previewSubject = replaceVariables(currentTemplate?.subject || "", variables);
   const previewBody = replaceVariables(currentTemplate?.body || "", variables);
@@ -195,12 +194,10 @@ const SendEmailModal = ({
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">
-                {isResend ? "Resend Access Email?" : "Send Access Email?"}
+                {isResend ? t("admin.demoAccess.emailModal.resendTitle") : t("admin.demoAccess.emailModal.sendTitle")}
               </h2>
               <p className="text-gray-400 text-sm mt-0.5">
-                {isResend
-                  ? "Send the access details to the user again"
-                  : "Notify the user about their access"}
+                {isResend ? t("admin.demoAccess.emailModal.resendSubtitle") : t("admin.demoAccess.emailModal.sendSubtitle")}
               </p>
             </div>
           </div>
@@ -217,7 +214,7 @@ const SendEmailModal = ({
           {/* Language Tabs */}
           <div className="mb-4">
             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 block">
-              Email Language
+              {t("admin.demoAccess.emailModal.emailLanguage")}
             </label>
             <div className="flex flex-wrap gap-1.5 bg-[#141414] rounded-xl p-1.5 border border-[#2a2a2a]">
               {languageKeys.map((langKey) => {
@@ -234,7 +231,7 @@ const SendEmailModal = ({
                     }`}
                   >
                     <span className="text-base leading-none">{lang.flag}</span>
-                    <span>{lang.label}</span>
+                    <span>{t("languages." + langKey)}</span>
                   </button>
                 );
               })}
@@ -246,16 +243,16 @@ const SendEmailModal = ({
             <p className="text-blue-400 text-sm">
               {isResend ? (
                 <>
-                  The access details will be resent to{" "}
+                  {t("admin.demoAccess.emailModal.resendInfo")}{" "}
                   <strong className="text-blue-300">{demo?.config?.email}</strong>{" "}
-                  for{" "}
+                  {t("admin.demoAccess.emailModal.forStudio")}{" "}
                   <strong className="text-blue-300">{demo?.config?.studioName}</strong>.
                 </>
               ) : (
                 <>
-                  An email will be sent to{" "}
+                  {t("admin.demoAccess.emailModal.sendInfo")}{" "}
                   <strong className="text-blue-300">{demo?.config?.email}</strong>{" "}
-                  with instructions to set up their password and access{" "}
+                  {t("admin.demoAccess.emailModal.sendInfoAccess")}{" "}
                   <strong className="text-blue-300">{demo?.config?.studioName}</strong>.
                 </>
               )}
@@ -268,79 +265,33 @@ const SendEmailModal = ({
             className="w-full flex items-center justify-between px-4 py-2.5 bg-[#141414] rounded-xl border border-[#2a2a2a] text-sm text-gray-300 hover:border-[#3a3a3a] transition-colors mb-4"
           >
             <span className="flex items-center gap-2">
-              <svg
-                className="w-4 h-4 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
+              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-              Preview
+              {t("admin.demoAccess.emailModal.preview")}
             </span>
-            <svg
-              className={`w-4 h-4 text-gray-500 transition-transform ${
-                showPreview ? "rotate-180" : ""
-              }`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+            <svg className={`w-4 h-4 text-gray-500 transition-transform ${showPreview ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {/* Email Preview Content */}
           {showPreview && (
             <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] overflow-hidden mb-4">
-              {/* Subject */}
               <div className="px-4 py-3 border-b border-[#2a2a2a]">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-600">
-                  Subject
-                </span>
-                <p className="text-white text-sm mt-1 font-medium">
-                  {previewSubject}
-                </p>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-600">{t("admin.demoAccess.emailModal.subject")}</span>
+                <p className="text-white text-sm mt-1 font-medium">{previewSubject}</p>
               </div>
-
-              {/* Recipient */}
               <div className="px-4 py-2.5 border-b border-[#2a2a2a] flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-600">
-                  To
-                </span>
-                <span className="text-gray-300 text-sm">
-                  {demo?.config?.email}
-                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-600">{t("admin.demoAccess.emailModal.to")}</span>
+                <span className="text-gray-300 text-sm">{demo?.config?.email}</span>
               </div>
-
-              {/* Body */}
               <div className="px-4 py-4">
-                <pre className="text-gray-300 text-sm whitespace-pre-wrap font-sans leading-relaxed">
-                  {previewBody}
-                </pre>
+                <pre className="text-gray-300 text-sm whitespace-pre-wrap font-sans leading-relaxed">{previewBody}</pre>
               </div>
-
-              {/* Selected Language Badge */}
               <div className="px-4 py-2.5 border-t border-[#2a2a2a] flex items-center justify-between">
-                <span className="text-xs text-gray-600">
-                  Template: {currentTemplate?.flag} {currentTemplate?.label}
-                </span>
+                <span className="text-xs text-gray-600">{t("admin.demoAccess.emailModal.template")}: {currentTemplate?.flag} {t("languages." + selectedLang)}</span>
               </div>
             </div>
           )}
@@ -353,14 +304,14 @@ const SendEmailModal = ({
             >
               <IoIosSend />
               {currentTemplate?.flag}{" "}
-              {isResend ? "Resend Email" : "Yes, Send Email Now"} ({currentTemplate?.label})
+              {isResend ? t("admin.demoAccess.emailModal.resendBtn") : t("admin.demoAccess.emailModal.sendBtn")} ({t("languages." + selectedLang)})
             </button>
 
             <button
               onClick={handleSkip}
               className="w-full bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors text-sm"
             >
-              {isResend ? "Cancel" : "Skip for Now"}
+              {isResend ? t("common.cancel") : t("admin.demoAccess.emailModal.skipForNow")}
             </button>
           </div>
         </div>

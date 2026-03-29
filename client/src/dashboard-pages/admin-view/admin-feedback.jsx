@@ -28,16 +28,84 @@ import {
   FEEDBACK_TYPES,
   FEEDBACK_STATUSES,
   DUMMY_FEEDBACK,
-  formatFeedbackDate,
-  formatFeedbackTime,
-  formatFeedbackDateTime,
 } from "../../utils/admin-panel-states/feedback-states"
+
+// ── Locale-aware date/time formatting ──
+const getLocaleFromI18n = (i18n) => {
+  const lang = i18n.language
+  if (lang === "de") return "de-DE"
+  if (lang === "fr") return "fr-FR"
+  if (lang === "es") return "es-ES"
+  if (lang === "it") return "it-IT"
+  return "en-GB"
+}
+
+const localFormatDate = (dateStr, locale) => {
+  if (!dateStr) return "—"
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return dateStr
+  return date.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" })
+}
+
+const localFormatTime = (dateStr, locale) => {
+  if (!dateStr) return ""
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return dateStr
+  return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+}
+
+const localFormatDateTime = (dateStr, locale) => {
+  if (!dateStr) return "—"
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return dateStr
+  return date.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+}
+
+// ── Translation helpers for types and statuses from states ──
+const getTypeLabel = (typeKey, t) => {
+  const map = {
+    suggestion: "admin.feedback.types.suggestion",
+    bugReport: "admin.feedback.types.bugReport",
+    bug_report: "admin.feedback.types.bugReport",
+    praise: "admin.feedback.types.praise",
+    other: "admin.feedback.types.other",
+    general: "admin.feedback.types.general",
+    feature: "admin.feedback.types.feature",
+  }
+  return map[typeKey] ? t(map[typeKey]) : FEEDBACK_TYPES[typeKey]?.label || typeKey
+}
+
+const getStatusLabelFb = (statusKey, t) => {
+  const map = {
+    new: "admin.feedback.statuses.new",
+    in_review: "admin.feedback.statuses.inReview",
+    resolved: "admin.feedback.statuses.resolved",
+    dismissed: "admin.feedback.statuses.dismissed",
+  }
+  return map[statusKey] ? t(map[statusKey]) : FEEDBACK_STATUSES[statusKey]?.label || statusKey
+}
+
+const getRoleLabel = (role, t) => {
+  const map = {
+    Owner: "admin.feedback.roles.owner",
+    owner: "admin.feedback.roles.owner",
+    Manager: "admin.feedback.roles.manager",
+    manager: "admin.feedback.roles.manager",
+    Admin: "admin.feedback.roles.admin",
+    admin: "admin.feedback.roles.admin",
+    Staff: "admin.feedback.roles.staff",
+    staff: "admin.feedback.roles.staff",
+    Trainer: "admin.feedback.roles.trainer",
+    trainer: "admin.feedback.roles.trainer",
+  }
+  return map[role] ? t(map[role]) : role
+}
 
 // ============================================
 // Detail Modal Component
 // ============================================
 const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   if (!feedback) return null
 
   const typeConfig = FEEDBACK_TYPES[feedback.type]
@@ -56,9 +124,9 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-semibold text-white">{feedback.subject}</h2>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className={`text-xs font-medium ${typeConfig.color}`}>{typeConfig.label}</span>
+                <span className={`text-xs font-medium ${typeConfig.color}`}>{getTypeLabel(feedback.type, t)}</span>
                 <span className="text-gray-600">•</span>
-                <span className="text-xs text-gray-400">{formatFeedbackDateTime(feedback.createdAt)}</span>
+                <span className="text-xs text-gray-400">{localFormatDateTime(feedback.createdAt, getLocaleFromI18n(i18n))}</span>
               </div>
             </div>
           </div>
@@ -78,7 +146,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
               </div>
               <div>
                 <p className="text-white font-medium">{feedback.studioName}</p>
-                <p className="text-gray-400 text-sm">{feedback.submittedBy} · {feedback.role}</p>
+                <p className="text-gray-400 text-sm">{feedback.submittedBy} · {getRoleLabel(feedback.role, t)}</p>
               </div>
             </div>
           </div>
@@ -119,7 +187,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
                       : "bg-[#141414] text-gray-400 border-gray-700 hover:border-gray-500"
                   }`}
                 >
-                  {config.label}
+                  {getStatusLabelFb(key, t)}
                 </button>
               ))}
             </div>
@@ -145,7 +213,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 // ============================================
 const Feedback = () => {
   const [feedbackList, setFeedbackList] = useState(DUMMY_FEEDBACK)
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [searchQuery, setSearchQuery] = useState("")
   const [filterTypes, setFilterTypes] = useState([])
   const [filterStatuses, setFilterStatuses] = useState([])
@@ -395,7 +463,7 @@ const Feedback = () => {
                     : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                 }`}
               >
-                {config.label} ({feedbackList.filter((fb) => fb.status === key).length})
+                {getStatusLabelFb(key, t)} ({feedbackList.filter((fb) => fb.status === key).length})
               </button>
             ))}
 
@@ -424,7 +492,7 @@ const Feedback = () => {
                     : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                 }`}
               >
-                {config.label} ({feedbackList.filter((fb) => fb.type === key).length})
+                {getTypeLabel(key, t)} ({feedbackList.filter((fb) => fb.type === key).length})
               </button>
             ))}
           </div>
@@ -469,7 +537,7 @@ const Feedback = () => {
                       {/* Status Badge */}
                       <div className="flex items-center gap-2 shrink-0">
                         <span className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium ${statusConfig.color} text-white`}>
-                          {statusConfig.label}
+                          {getStatusLabelFb(fb.status, t)}
                         </span>
                         <Eye size={14} className="text-gray-600 group-hover:text-gray-400 transition-colors hidden sm:block" />
                       </div>
@@ -487,11 +555,11 @@ const Feedback = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Calendar size={12} />
-                        <span>{formatFeedbackDate(fb.createdAt)}</span>
+                        <span>{localFormatDate(fb.createdAt, getLocaleFromI18n(i18n))}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Clock size={12} />
-                        <span>{formatFeedbackTime(fb.createdAt)}</span>
+                        <span>{localFormatTime(fb.createdAt, getLocaleFromI18n(i18n))}</span>
                       </div>
                       {fb.rating > 0 && (
                         <div className="flex items-center gap-0.5">

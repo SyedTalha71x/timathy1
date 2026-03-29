@@ -482,7 +482,6 @@ const CommunicationTab = ({ data, hidePush = false }) => {
 // Each tab definition: { id, label, icon, dataKey, Card, emptyTitle, emptyDesc, custom? }
 const TAB_REGISTRY = (t) => ({
   // Member tabs
-<<<<<<< HEAD
   general:       { label: t("shared.history.tabs.general"),        icon: UserCog,    Card: ChangeCard,         emptyTitle: t("shared.history.empty.noGeneralChanges"),   emptyDesc: t("shared.history.empty.noGeneralChangesDesc") },
   communication: { label: t("shared.history.tabs.communication"),  icon: Mail,       Card: null,               emptyTitle: t("shared.history.empty.noMessages"),          emptyDesc: t("shared.history.empty.noMessagesDesc"), custom: true },
   appointments:  { label: t("shared.history.tabs.appointments"),   icon: Calendar,   Card: AppointmentCard,    emptyTitle: t("shared.history.empty.noAppointments"),      emptyDesc: t("shared.history.empty.noAppointmentsDesc") },
@@ -496,25 +495,10 @@ const TAB_REGISTRY = (t) => ({
   vacation:      { label: t("shared.history.tabs.vacation"),         icon: Calendar,  Card: VacationCard,       emptyTitle: t("shared.history.empty.noVacation"),         emptyDesc: t("shared.history.empty.noVacationDesc") },
   // Lead tabs
   trial:         { label: t("shared.history.tabs.trialTraining"),    icon: Activity,  Card: TrialCard,          emptyTitle: t("shared.history.empty.noTrialTraining"),    emptyDesc: t("shared.history.empty.noTrialTrainingDesc") },
+  demoAccess:    { label: t("shared.history.tabs.demoAccess"),       icon: Activity,  Card: TrialCard,          emptyTitle: t("shared.history.empty.noDemoAccess"),       emptyDesc: t("shared.history.empty.noDemoAccessDesc") },
   // Studio tabs
   tickets:       { label: t("shared.history.tabs.tickets"),          icon: FileText,  Card: TicketCard,         emptyTitle: t("shared.history.empty.noTickets"),           emptyDesc: t("shared.history.empty.noTicketsDesc") },
 })
-=======
-  general: { label: "General", icon: UserCog, Card: ChangeCard, emptyTitle: "No General Changes", emptyDesc: "No profile changes have been recorded yet." },
-  communication: { label: "Communication", icon: Mail, Card: null, emptyTitle: "No Messages", emptyDesc: "No communication history has been recorded yet.", custom: true },
-  appointments: { label: "Appointments", icon: Calendar, Card: AppointmentCard, emptyTitle: "No Appointments", emptyDesc: "No appointment history has been recorded yet." },
-  checkins: { label: "Check-ins", icon: Activity, Card: CheckinCard, emptyTitle: "No Check-ins", emptyDesc: "No check-in activity has been recorded yet." },
-  finance: { label: "Finance", icon: CreditCard, Card: FinanceCard, emptyTitle: "No Transactions", emptyDesc: "No finance transactions have been recorded yet." },
-  contracts: { label: "Contracts", icon: FileText, Card: ContractChangeCard, emptyTitle: "No Contract Changes", emptyDesc: "No contract changes have been recorded yet." },
-  // Staff tabs
-  profile: { label: "General", icon: UserCog, Card: ChangeCard, emptyTitle: "No General Changes", emptyDesc: "No profile changes have been recorded yet." },
-  actions: { label: "Actions", icon: Activity, Card: ActionCard, emptyTitle: "No Actions", emptyDesc: "No actions have been recorded yet." },
-  login: { label: "Login Activity", icon: LogIn, Card: LoginCard, emptyTitle: "No Login Activity", emptyDesc: "No login activity has been recorded yet." },
-  vacation: { label: "Vacation", icon: Calendar, Card: VacationCard, emptyTitle: "No Vacation History", emptyDesc: "No vacation bookings have been recorded yet." },
-  // Lead tabs
-  trial: { label: "Trial Training", icon: Activity, Card: TrialCard, emptyTitle: "No Trial Training", emptyDesc: "No trial training activities have been recorded yet." },
-}
->>>>>>> 2308746 (Staff completed with login history document upload and vacation)
 
 const VARIANT_TABS = {
   member: ["general", "communication", "appointments", "checkins", "finance", "contracts"],
@@ -524,7 +508,6 @@ const VARIANT_TABS = {
   studio:   ["general", "contracts", "finance", "tickets"],
 }
 
-<<<<<<< HEAD
 const VARIANT_SUBTITLES = (t) => ({
   member:   t("shared.history.subtitles.activityHistory"),
   staff:    t("shared.history.subtitles.activityHistory"),
@@ -532,14 +515,6 @@ const VARIANT_SUBTITLES = (t) => ({
   contract: t("shared.history.subtitles.contractHistory"),
   studio:   t("shared.history.subtitles.studioHistory"),
 })
-=======
-const VARIANT_SUBTITLES = {
-  member: "Activity History",
-  staff: "Activity History",
-  lead: "Lead History",
-  contract: "Contract History",
-}
->>>>>>> 2308746 (Staff completed with login history document upload and vacation)
 
 const VARIANT_ACCENT = {
   member: "primary",

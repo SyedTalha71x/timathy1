@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { IoIosClose, IoIosWarning } from "react-icons/io";
+import { useTranslation } from "react-i18next";
 
 const CustomConfirmationModal = ({ 
   isOpen, 
@@ -7,10 +8,11 @@ const CustomConfirmationModal = ({
   onConfirm, 
   title, 
   message, 
-  confirmText = "Confirm", 
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   confirmColor = "orange"
 }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   const colorClasses = {
@@ -30,7 +32,7 @@ const CustomConfirmationModal = ({
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">{title}</h2>
-              <p className="text-gray-400 text-sm mt-1">Please confirm your action</p>
+              <p className="text-gray-400 text-sm mt-1">{t("admin.demoAccess.confirmModal.subtitle")}</p>
             </div>
           </div>
           <button
@@ -51,7 +53,7 @@ const CustomConfirmationModal = ({
               onClick={onClose}
               className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium"
             >
-              {cancelText}
+              {cancelText || t("common.cancel")}
             </button>
             <button
               onClick={() => {
@@ -60,7 +62,7 @@ const CustomConfirmationModal = ({
               }}
               className={`flex-1 ${colorClasses[confirmColor]} text-white py-3 px-4 rounded-lg transition-colors font-medium`}
             >
-              {confirmText}
+              {confirmText || t("common.confirm")}
             </button>
           </div>
         </div>

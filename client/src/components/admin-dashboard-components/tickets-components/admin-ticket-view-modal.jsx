@@ -3,6 +3,7 @@
 /* eslint-disable no-unused-vars */
 import { AlertCircle, Calendar, CheckCircle, Clock, Filter, ImageIcon, MessageSquare, X, XCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import ReactQuill from "react-quill"
 import Logo from '../../../../public/OrgaGym Logo.svg'
 
@@ -114,6 +115,7 @@ const parseSubjectAndReason = (subject) => {
 
 // ── Admin Ticket View ────────────────────────────────────────
 const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
+  const { t, i18n } = useTranslation()
   const [replyText, setReplyText] = useState("")
   const [uploadedImages, setUploadedImages] = useState([])
   const [ticketStatus, setTicketStatus] = useState(ticket.status)
@@ -127,6 +129,50 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
 
   const isTicketClosed = ticket.status === "Closed"
   const { subjectPart, reasonPart } = parseSubjectAndReason(ticket.subject)
+
+  const getLocale = () => {
+    const lang = i18n.language
+    if (lang === "de") return "de-DE"
+    if (lang === "fr") return "fr-FR"
+    if (lang === "es") return "es-ES"
+    if (lang === "it") return "it-IT"
+    return "en-GB"
+  }
+
+  // Parse date strings from dummy data (dd/mm/yyyy or ISO) and format for locale
+  const formatDateString = (dateStr) => {
+    if (!dateStr) return "—"
+    let date
+    // Try dd/mm/yyyy format
+    const parts = dateStr.split("/")
+    if (parts.length === 3 && parts[0].length <= 2) {
+      date = new Date(parts[2], parts[1] - 1, parts[0])
+    } else {
+      date = new Date(dateStr)
+    }
+    if (isNaN(date.getTime())) return dateStr
+    return date.toLocaleDateString(getLocale(), { day: "2-digit", month: "2-digit", year: "numeric" })
+  }
+
+  // ── Status label (translated) ─────────────────────────────
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "Open": return t("admin.tickets.status.open")
+      case "Awaiting your reply": return t("admin.tickets.status.awaitingReply")
+      case "Closed": return t("admin.tickets.status.closed")
+      default: return status
+    }
+  }
+
+  // ── Priority label (translated) ──────────────────────────
+  const getPriorityLabel = (priority) => {
+    switch (priority) {
+      case "High": return t("admin.tickets.priority.high")
+      case "Medium": return t("admin.tickets.priority.medium")
+      case "Low": return t("admin.tickets.priority.low")
+      default: return priority
+    }
+  }
 
   // ── Auto-scroll to bottom on new messages ──────────────────
   useEffect(() => {
@@ -156,8 +202,8 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
   // ── Helpers ────────────────────────────────────────────────
   const formatTimestamp = () => {
     const now = new Date()
-    const date = now.toLocaleDateString("en-GB")
-    const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    const date = now.toLocaleDateString(getLocale())
+    const time = now.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
     return `${date}, ${time}`
   }
 
@@ -177,7 +223,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
       const updatedTicket = {
         ...ticket,
         messages: [...ticket.messages, newMessage],
-        lastUpdated: new Date().toLocaleDateString("en-GB"),
+        lastUpdated: new Date().toLocaleDateString(getLocale()),
         status: ticketStatus
       }
 
@@ -193,7 +239,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
       status: ticketStatus,
       priority: ticketPriority,
       assignedTo: assignedTo,
-      lastUpdated: new Date().toLocaleDateString("en-GB")
+      lastUpdated: new Date().toLocaleDateString(getLocale())
     }
     onUpdateTicket(updatedTicket)
   }
@@ -234,18 +280,18 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             key={idx}
             className="block group relative cursor-pointer"
             onClick={() => setViewingImage({
-              image: { url: img, name: `Attachment ${idx + 1}` },
-              images: message.images.map((url, i) => ({ url, name: `Attachment ${i + 1}` })),
+              image: { url: img, name: `${t("admin.tickets.view.attachment")} ${idx + 1}` },
+              images: message.images.map((url, i) => ({ url, name: `${t("admin.tickets.view.attachment")} ${i + 1}` })),
               index: idx
             })}
           >
             <img
               src={img || "/placeholder.svg"}
-              alt={`Attachment ${idx + 1}`}
+              alt={`${t("admin.tickets.view.attachment")} ${idx + 1}`}
               className="w-full h-16 object-cover rounded-lg border border-gray-700 group-hover:border-blue-500 transition-colors"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-medium">View</span>
+              <span className="text-white text-xs font-medium">{t("admin.tickets.view.viewImage")}</span>
             </div>
           </div>
         ))}
@@ -299,7 +345,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                   {ticket.subject} <span className="text-blue-400">#{ticket.id}</span>
                 </h2>
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium flex-shrink-0 ${getStatusBadgeColor(ticketStatus)}`}>
-                  {ticketStatus}
+                  {getStatusLabel(ticketStatus)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -320,11 +366,11 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 <div className="flex items-center gap-1 text-gray-300">
                   <Calendar size={14} />
-                  <span>Created: {ticket.createdDate}</span>
+                  <span>{t("admin.tickets.list.created")}: {formatDateString(ticket.createdDate)}</span>
                 </div>
                 <div className="flex items-center gap-1 text-gray-300">
                   <Clock size={14} />
-                  <span>Updated: {ticket.lastUpdated}</span>
+                  <span>{t("admin.tickets.list.updated")}: {formatDateString(ticket.lastUpdated)}</span>
                 </div>
               </div>
             </div>
@@ -376,8 +422,8 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             <div className="border-t border-gray-700 p-3 sm:p-4 flex-shrink-0 bg-[#2A2A2A]">
               {isTicketClosed ? (
                 <div className="text-center text-gray-400 py-4 bg-[#1C1C1C] rounded-lg">
-                  <div className="text-sm font-medium mb-1">This ticket is closed</div>
-                  <div className="text-xs">You can reopen it by changing the status in the sidebar.</div>
+                  <div className="text-sm font-medium mb-1">{t("admin.tickets.view.ticketClosed")}</div>
+                  <div className="text-xs">{t("admin.tickets.view.reopenHint")}</div>
                 </div>
               ) : (
                 <>
@@ -396,7 +442,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                         className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
                       >
                         <ImageIcon size={16} />
-                        Attach Images
+                        {t("admin.tickets.view.attachImages")}
                       </button>
 
                       {uploadedImages.length > 0 && (
@@ -406,18 +452,18 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                               <div
                                 className="cursor-pointer"
                                 onClick={() => setViewingImage({
-                                  image: { url: img, name: `Preview ${idx + 1}` },
-                                  images: uploadedImages.map((url, i) => ({ url, name: `Preview ${i + 1}` })),
+                                  image: { url: img, name: `${t("admin.tickets.view.preview")} ${idx + 1}` },
+                                  images: uploadedImages.map((url, i) => ({ url, name: `${t("admin.tickets.view.preview")} ${i + 1}` })),
                                   index: idx
                                 })}
                               >
                                 <img
                                   src={img || "/placeholder.svg"}
-                                  alt={`Preview ${idx + 1}`}
+                                  alt={`${t("admin.tickets.view.preview")} ${idx + 1}`}
                                   className="w-full h-20 object-cover rounded-lg border border-gray-700"
                                 />
                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                                  <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">{t("admin.tickets.view.viewImage")}</span>
                                 </div>
                               </div>
                               <button
@@ -437,7 +483,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       <WysiwygEditor
                         value={replyText}
                         onChange={setReplyText}
-                        placeholder="Type your reply to the customer..."
+                        placeholder={t("admin.tickets.view.replyPlaceholder")}
                       />
                     </div>
                   </div>
@@ -448,7 +494,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       disabled={!replyText.trim()}
                       className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors"
                     >
-                      Send Reply
+                      {t("admin.tickets.view.sendReply")}
                     </button>
                   </div>
                 </>
@@ -457,14 +503,13 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
           </div>
 
           {/* ══════════════════════════════════════════════════
-              SIDEBAR — redesigned for clarity & intuition
-              Flow: Studio → Topic → Manage → Update
+              SIDEBAR
              ══════════════════════════════════════════════════ */}
           <div className={`${showSidebar ? 'block' : 'hidden'} lg:block w-full lg:w-80 border-t lg:border-l border-gray-700 text-sm flex-shrink-0 lg:max-h-full overflow-y-auto`}>
 
-            {/* 1) Studio Info — who sent this ticket */}
+            {/* 1) Studio Info */}
             <div className="p-4 border-b border-gray-700">
-              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Studio</h4>
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">{t("admin.tickets.view.sidebar.studio")}</h4>
               <div className="space-y-1.5">
                 <p className="text-white font-medium text-sm">{ticket.studioName}</p>
                 <p className="text-gray-400 text-xs">{ticket.customer.email}</p>
@@ -472,29 +517,29 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
               </div>
             </div>
 
-            {/* 2) Subject & Reason — what is this ticket about */}
+            {/* 2) Subject & Reason */}
             <div className="p-4 border-b border-gray-700">
-              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Topic</h4>
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">{t("admin.tickets.view.sidebar.topic")}</h4>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-xs w-16 flex-shrink-0">Subject</span>
+                  <span className="text-gray-500 text-xs w-16 flex-shrink-0">{t("admin.tickets.view.sidebar.subject")}</span>
                   <span className="text-white text-sm font-medium">{subjectPart}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-xs w-16 flex-shrink-0">Reason</span>
+                  <span className="text-gray-500 text-xs w-16 flex-shrink-0">{t("admin.tickets.view.sidebar.reason")}</span>
                   <span className="text-gray-300 text-sm">{reasonPart}</span>
                 </div>
               </div>
             </div>
 
-            {/* 3) Manage — status & priority controls */}
+            {/* 3) Manage */}
             <div className="p-4 border-b border-gray-700">
-              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Manage</h4>
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">{t("admin.tickets.view.sidebar.manage")}</h4>
 
               <div className="space-y-4">
-                {/* Status — pill toggle (3 options only) */}
+                {/* Status */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Status</label>
+                  <label className="block text-xs text-gray-400 mb-2">{t("admin.tickets.sort.status")}</label>
                   <div className="flex flex-wrap gap-1.5">
                     {["Open", "Awaiting your reply", "Closed"].map((status) => (
                       <button
@@ -502,15 +547,15 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                         onClick={() => setTicketStatus(status)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${getStatusPillStyle(status, ticketStatus === status)}`}
                       >
-                        {status}
+                        {getStatusLabel(status)}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Priority — pill toggle */}
+                {/* Priority */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Priority</label>
+                  <label className="block text-xs text-gray-400 mb-2">{t("admin.tickets.sort.priority")}</label>
                   <div className="flex gap-1.5">
                     {["Low", "Medium", "High"].map((priority) => {
                       const isActive = ticketPriority === priority
@@ -529,7 +574,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                               : "bg-[#1C1C1C] text-gray-400 border-gray-700 hover:border-gray-500"
                           }`}
                         >
-                          {priority}
+                          {getPriorityLabel(priority)}
                         </button>
                       )
                     })}
@@ -541,22 +586,22 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                   onClick={handleUpdateTicket}
                   className="w-full px-4 py-2.5 bg-orange-500 cursor-pointer text-white rounded-lg font-medium text-sm hover:bg-orange-600 transition-colors"
                 >
-                  Update Ticket
+                  {t("admin.tickets.view.updateTicket")}
                 </button>
               </div>
             </div>
 
             {/* 4) Timestamps */}
             <div className="p-4">
-              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Timeline</h4>
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">{t("admin.tickets.view.sidebar.timeline")}</h4>
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Created</span>
-                  <span className="text-gray-300">{ticket.createdDate}</span>
+                  <span className="text-gray-500">{t("admin.tickets.list.created")}</span>
+                  <span className="text-gray-300">{formatDateString(ticket.createdDate)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Last updated</span>
-                  <span className="text-gray-300">{ticket.lastUpdated}</span>
+                  <span className="text-gray-500">{t("admin.tickets.view.sidebar.lastUpdated")}</span>
+                  <span className="text-gray-300">{formatDateString(ticket.lastUpdated)}</span>
                 </div>
               </div>
             </div>
@@ -573,7 +618,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
           <button
             onClick={() => setViewingImage(null)}
             className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
-            aria-label="Close image"
+            aria-label={t("common.close")}
           >
             <X size={32} />
           </button>
@@ -586,7 +631,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                 setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex })
               }}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
-              aria-label="Previous image"
+              aria-label={t("admin.tickets.view.previousImage")}
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -602,7 +647,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                 setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex })
               }}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
-              aria-label="Next image"
+              aria-label={t("admin.tickets.view.nextImage")}
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
