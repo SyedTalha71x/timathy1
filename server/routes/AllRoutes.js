@@ -32,6 +32,9 @@ const FeedbackRoutes = require('./FeedbackRoutes')
 const TicketRoutes = require('./TicketRoutes')
 const VacationRoutes = require('./VacationRoutes')
 const MedicalHistoryResponseRoutes = require('./MedicalResponseRoutes')
+const ClassRoutes = require('./classes/ClassRoutes')
+
+
 
 const router = express.Router();
 
@@ -94,7 +97,7 @@ router.use('/feedback', FeedbackRoutes)
 router.use('/ticket', TicketRoutes)
 router.use('/vacation', VacationRoutes)
 router.use('/history', MedicalHistoryResponseRoutes)
-
+router.use('/class', ClassRoutes)
 
 
 

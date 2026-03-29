@@ -526,6 +526,7 @@ export default function DocumentManagementModal({
     fileInputRef.current?.click()
   }
 
+
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
@@ -618,7 +619,7 @@ export default function DocumentManagementModal({
           signatureLocation: window.location.href,
           entityName: entityName,
           title: selectedForm.title,
-          tags: []
+          tagsId: []
         }
       })).unwrap()
 
@@ -630,7 +631,7 @@ export default function DocumentManagementModal({
           size: "N/A",
           uploadDate: new Date(result.data.createdAt).toISOString().split('T')[0],
           section: "medicalHistory",
-          tags: result.data.tags || [],
+          tagsId: result.data.tags || [],
           answers: result.data.answers,
           signature: result.data.signature,
           signed: !!result.data.signature
@@ -726,7 +727,7 @@ export default function DocumentManagementModal({
 
         await dispatch(updateDocumentMetadataThunk({
           documentId: docId,
-          updates: updateData
+          updateData: updateData
         })).unwrap();
 
         setDocuments(prev => prev.map((doc) =>
@@ -757,8 +758,8 @@ export default function DocumentManagementModal({
     try {
       if (doc.type === "medicalHistory") {
         await dispatch(updateResponseThunk({
-          id: docId,
-          data: { tags: newTags }
+          responseId: docId,
+          updateData: { tagsId: newTags }
         })).unwrap()
         setMedicalHistories(prev => prev.map(d =>
           d.id === docId ? { ...d, tags: newTags } : d
@@ -766,7 +767,7 @@ export default function DocumentManagementModal({
       } else {
         await dispatch(updateDocumentMetadataThunk({
           documentId: docId,
-          updates: { tags: newTags }
+          updateData: { tagsId: newTags }
         })).unwrap()
         setDocuments(prev => prev.map(d =>
           d.id === docId ? { ...d, tags: newTags } : d

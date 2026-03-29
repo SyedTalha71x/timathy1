@@ -46,7 +46,7 @@ import AssessmentFormModal from "../../components/shared/medical-history/medical
 import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
 import { capitalizeWords } from "../../utils/stringUtils";
 import { useDispatch, useSelector } from "react-redux"
-import { sendVacationRequestThunk, updateStaffThunk } from "../../features/staff/staffSlice"
+import { updateStaffThunk } from "../../features/staff/staffSlice"
 
 const StaffContext = createContext(null)
 
@@ -771,6 +771,42 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
     return [...staffResults, ...memberResults].slice(0, 10);
   };
 
+  const rawStaff = staffHistoryData?.staff?.[0] || {}
+
+  const formattedHistory = {
+    login: (rawStaff.loginHistory || []).slice(0, 5).map((log) => {
+      const dateObj = new Date(log.date)
+
+      return {
+        id: log._id,
+        action: "Login", // you don’t have logout so keep it fixed
+        date: dateObj.toLocaleDateString(),
+        time: dateObj.toLocaleTimeString(),
+        ipAddress: log.ip || "N/A",
+        device: log.device || "Unknown",
+      }
+    })
+  }
+  const formattedVacation = {
+    vacation: (rawStaff.vacations || []).slice(0, 5).map((vac) => {
+      const start = new Date(vac.startDate)
+      const end = new Date(vac.endDate)
+
+      const days =
+        Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
+
+      return {
+        id: vac._id, // 👈 IMPORTANT for React key
+        startDate: start,
+        endDate: end,
+        requestDate: vac.createdAt, // 👈 match card
+        approvedBy: vac.approvedBy || vac.rejectedBy || "Admin",
+        status: vac.status,
+        days
+      }
+    })
+  }
+
   const AdminBanner = () => {
     if (!isAdminMode) return null
     return (
@@ -1302,7 +1338,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                     <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                       {staff.firstName} {staff.lastName}
                                     </span>
-                                    <StaffColorIndicator color={staff.color} />
+                                    <StaffColorIndicator color={staff.staffColor} />
                                   </div>
                                   <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint truncate block`}>
                                     {staff.email}
@@ -1416,7 +1452,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                       <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                         {staff.firstName} {staff.lastName}
                                       </span>
-                                      <StaffColorIndicator color={staff.color} />
+                                      <StaffColorIndicator color={staff.staffColor} />
                                     </div>
                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                       <RoleTag staffRole={capitalizeWords(staff.staffRole)} compact={true} />
@@ -1650,7 +1686,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                       <h3 className="text-content-primary font-medium text-lg">
                                         {staff.firstName} {staff.lastName}
                                       </h3>
-                                      <StaffColorIndicator color={staff.color} />
+                                      <StaffColorIndicator color={staff.staffColor} />
                                     </div>
 
                                     <div className="flex items-center gap-2 mt-2">
@@ -1815,10 +1851,14 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
           <SharedHistoryModal
             variant="staff"
             person={selectedStaffForHistory}
-            history={staffHistoryData}
+            history={{
+              ...formattedHistory,
+              vacation: formattedVacation.vacation   // 👈 FIX
+            }}
             onClose={() => {
               setIsHistoryModalOpen(false)
               setSelectedStaffForHistory(null)
+
             }}
           />
         )}
