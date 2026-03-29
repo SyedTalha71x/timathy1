@@ -2,10 +2,15 @@ const cloudinary = require("./Cloudinary");
 const fs = require("fs");
 
 // --- Profile Images ---
-const uploadToCloudinary = (fileBuffer, folder = "Timathy/profiles") => {
+const uploadToCloudinary = (fileBuffer, folder = "Timathy/all") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: "image" },
+      {
+        folder,
+        resource_type: "raw",
+        access_mode: "public",
+        type: "upload",
+      },
       (error, result) => {
         if (error) return reject(error);
         resolve(result);
@@ -19,6 +24,8 @@ const uploadToCloudinary = (fileBuffer, folder = "Timathy/profiles") => {
     bufferStream.pipe(stream);
   });
 };
+
+
 
 // --- Notes Attachments ---
 const uploadAttachment = (fileBuffer, folder = "Timathy/notes/attachments") => {
@@ -153,5 +160,6 @@ module.exports = {
   uploadIdlePeriod,
   uploadThumbnail,
   uploadTrainingPlanVideo,
-  uploadAttachment
+  uploadAttachment,
+
 };

@@ -8,9 +8,18 @@ const {
     deleteStaffById,
     updateById,
 } = require('../controllers/StaffController');
+
+const {
+    uploadDocuments,
+    deleteDocument,
+    updateDocument,
+    documentById,
+    viewDocumentById,
+    allDocumentByEntity
+} = require('../controllers/documents/UploadDocumentController');
 const { verifyAccessToken, verifyRefreshToken } = require('../middleware/verifyToken');
 const { isAdmin, isStaff } = require('../middleware/RoleCheck');
-const { uploadImage } = require('../config/upload')
+const { uploadImage, uploadDocument } = require('../config/upload')
 const router = express.Router();
 
 
@@ -22,6 +31,23 @@ router.put('/update', uploadImage.single('img'), verifyAccessToken, updateById)
 router.put('/:staffId', uploadImage.single('img'), verifyAccessToken, updateStaffById)
 router.delete('/:staffId', verifyAccessToken, deleteStaffById)
 
-// only login staff update himself
+
+router.get('/view/:documentId', viewDocumentById);
+
+
+// upload Documents
+router.post("/:entityType/:entityId/upload", uploadDocument.array('documents', 10), uploadDocuments);
+
+// Delete a document
+router.delete("/:entityType/:entityId/:documentId", deleteDocument);
+
+// Update document metadata
+router.patch("/:documentId", updateDocument);
+// get all documents for an entity
+router.get("/:entityType/:entityId", allDocumentByEntity)
+// get document by id
+router.get("/details/:documentId", documentById)
+
+// Add this to your document routes file
 
 module.exports = router
