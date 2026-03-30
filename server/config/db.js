@@ -1,16 +1,15 @@
+// config/db.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const dns = require('dns')
 
-dns.setDefaultResultOrder('ipv4first');
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log('DB Connected');
+    } catch (err) {
+        console.error('DB Error:', err);
+        process.exit(1);
+    }
+};
 
-const db = mongoose.connect(process.env.MONGO_URI);
-
-db.then(() => {
-    console.log('Connected')
-})
-db.catch((err) => {
-    console.error(err)
-})
-
-module.exports = db;
+module.exports = connectDB;

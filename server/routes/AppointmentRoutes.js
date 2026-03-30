@@ -9,7 +9,10 @@ const { createAppointment,
     createBookingTrailByStaff,
     createBlockedAppointment,
     updateAppointmentById,
-    deleteAppointmentById } = require('../controllers/AppointmentController')
+    deleteAppointmentById,
+    approvedAppointment,
+    rejectedAppointment,
+    getAllPendingAppointment } = require('../controllers/AppointmentController')
 const { verifyAccessToken } = require('../middleware/verifyToken')
 const { isStaff } = require('../middleware/RoleCheck')
 const router = express.Router()
@@ -24,5 +27,13 @@ router.get('/member/:memberId', verifyAccessToken, appointmentByMemberId);
 router.post('/trial/:leadId', verifyAccessToken, createBookingTrailByStaff);
 router.put("/:appointmentId", verifyAccessToken, isStaff, updateAppointmentById)
 router.delete("/:appointmentId", verifyAccessToken, isStaff, deleteAppointmentById)
+
+
+
+
+// all new
+router.patch('/approved/:appointmentId', approvedAppointment)
+router.patch('/rejected/:appointmentId', rejectedAppointment)
+router.get('/pending', getAllPendingAppointment)
 
 module.exports = router

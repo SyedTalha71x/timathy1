@@ -131,6 +131,10 @@ const studioSchema = new mongoose.Schema(
     classTypes: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'classType'
+    }],
+    classes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'classes'
     }]
   },
   { timestamps: true }

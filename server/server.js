@@ -1,7 +1,7 @@
 require('dotenv').config();
 
-const app = require('./app'); // express nodejs frame work all detail inside in this file
-
+const { app, initializeCronJobs } = require('./app'); // express nodejs frame work all detail inside in this file
+const connectDB = require('./config/db') // database connection file
 const http = require('http');
 const { Server } = require('socket.io')
 const server = http.Server(app);
@@ -9,8 +9,8 @@ const server = http.Server(app);
 
 const io = new Server(server, {
     cors: {
-        // origin: process.env.FRONTEND_URL,  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
-        origin: 'http://localhost:5173',  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
+        origin: process.env.FRONTEND_URL,  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
+        // origin: 'http://localhost:5173',  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -39,11 +39,26 @@ io.on("connection", (socket) => {
     })
 })
 
-const port = process.env.PORT //server port where server running
+const port = process.env.PORT || 5000;
 
-// server listen
-server.listen(port, () => {
-    console.log(`Server running ${port}`)
-})
+const startServer = async () => {
+    try {
+        // ✅ 1. Connect DB FIRST
+        await connectDB();
 
-server.setTimeout(15 * 60 * 1000); // 15 minutes
+        // ✅ 2. Start server
+        server.listen(port, async () => {
+            console.log(`Server running ${port}`);
+
+            // ✅ 3. Start cron AFTER DB is ready
+            await initializeCronJobs();
+        });
+
+    } catch (error) {
+        console.error("Startup error:", error);
+    }
+};
+
+startServer();
+
+server.setTimeout(15 * 60 * 1000);

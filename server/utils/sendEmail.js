@@ -3,11 +3,18 @@ const nodemailer = require('nodemailer');
 const EmailModel = require('../models/EmailModel');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT),
+    secure: false, // false for TLS
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS
     }
+});
+
+transporter.verify((error, success) => {
+    if (error) console.error("SMTP connection failed:", error);
+    else console.log("SMTP server is ready");
 });
 
 /**
@@ -26,7 +33,7 @@ const sendEmail = async (to, subject, text, html = null) => {
         await transporter.sendMail({ from, to, subject, text, html: body });
 
         // Save to database
-        const email = new EmailModel({ from, to, subject, body,status:"sent" });
+        const email = new EmailModel({ from, to, subject, body, status: "sent" });
         await email.save();
 
     } catch (error) {

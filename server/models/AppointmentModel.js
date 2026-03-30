@@ -50,7 +50,7 @@ const appointmentSchema = new mongoose.Schema({
     },
     view: {
         type: String,
-        enum: ['upcoming', 'pending', 'past', 'blocked'],
+        enum: ['upcoming', 'canceled', 'past', 'blocked'],
         default: 'upcoming'
     },
     isTrial: {
@@ -77,6 +77,14 @@ const appointmentSchema = new mongoose.Schema({
     occurrences: {
         type: Number,
         default: 1
+    },
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    rejectedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     },
 }, { timestamps: true });
 
