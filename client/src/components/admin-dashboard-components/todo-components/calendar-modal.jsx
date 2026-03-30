@@ -2,7 +2,12 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
 import { Clock, Bell, Repeat, X, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import ConfirmationModal from "./confirmation-modal";
+
+// Map i18n language codes to full locale codes
+const localeMap = { en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES", it: "it-IT" };
+const getLocale = (lang) => localeMap[lang] || lang;
 
 const CalendarModal = ({
   isOpen,
@@ -15,6 +20,9 @@ const CalendarModal = ({
   initialCustomReminder = null,
   initialRepeatEnd = null
 }) => {
+  const { t, i18n } = useTranslation();
+  const locale = getLocale(i18n.language);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showClearConfirmation, setShowClearConfirmation] = useState(false)
   
@@ -41,7 +49,6 @@ const CalendarModal = ({
       setTempReminder(initialReminder || "");
       setTempRepeat(initialRepeat || "");
 
-      // Handle custom reminder
       if (initialReminder === "Custom") {
         setShowCustomReminder(true);
         setCustomValue(initialCustomReminder?.value || "");
@@ -50,7 +57,6 @@ const CalendarModal = ({
         setShowCustomReminder(false);
       }
 
-      // Handle repeat end settings
       if (initialRepeatEnd) {
         setRepeatEndType(initialRepeatEnd.type || "never");
         setRepeatEndDate(initialRepeatEnd.date || "");
@@ -61,7 +67,6 @@ const CalendarModal = ({
         setRepeatOccurrences("");
       }
 
-      // Set current date to selected date if it exists
       if (initialDate) {
         const dateParts = initialDate.split('-');
         if (dateParts.length === 3) {
@@ -73,11 +78,9 @@ const CalendarModal = ({
         }
       }
       
-      // Expand sections if they have values, otherwise collapse on mobile
       setIsReminderExpanded(!!initialReminder && initialReminder !== "")
       setIsRepeatExpanded(!!initialRepeat && initialRepeat !== "")
     } else {
-      // Reset collapsed state when modal closes
       setIsReminderExpanded(false)
       setIsRepeatExpanded(false)
     }
@@ -85,9 +88,25 @@ const CalendarModal = ({
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  // Highlight the selected date on the calendar
+  // Locale-aware month name
+  const getMonthName = () => {
+    return currentDate.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  };
+
+  // Locale-aware day headers (short weekday names starting from Sunday)
+  const getDayHeaders = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      // Jan 4 2026 is a Sunday
+      const date = new Date(2026, 0, 4 + i);
+      days.push(date.toLocaleDateString(locale, { weekday: "narrow" }));
+    }
+    return days;
+  };
+
+  const dayHeaders = getDayHeaders();
+
   const getDayClassName = (day) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const isSelected = tempDate === dateStr;
@@ -104,6 +123,13 @@ const CalendarModal = ({
     }
 
     return className;
+  };
+
+  // Format time for display based on locale
+  const formatTimeDisplay = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes));
+    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   };
 
   const generateTimeOptions = () => {
@@ -156,14 +182,11 @@ const CalendarModal = ({
     onClose();
   };
 
-
   if (!isOpen) return null;
-
 
   const handleClear = () => {
     setShowClearConfirmation(true)
   }
-
 
   const confirmClear = () => {
     setTempDate("")
@@ -176,21 +199,16 @@ const CalendarModal = ({
     setRepeatEndDate("")
     setRepeatOccurrences("")
     setShowClearConfirmation(false)
-    // Reset calendar view to current month
     setCurrentDate(new Date())
   }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-2 md:p-4 pt-8 md:pt-4">
-      {/* Modal Container - Flex column with fixed footer */}
       <div className="bg-[#181818] rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
-        {/* Header - Fixed */}
+        {/* Header */}
         <div className="flex justify-between items-center p-4 md:p-6 pb-4 md:pb-5 flex-shrink-0 border-b border-gray-700">
-          <h2 className="text-white text-lg font-semibold">Date & Time</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <h2 className="text-white text-lg font-semibold">{t("todo.calendar.title")}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -206,8 +224,8 @@ const CalendarModal = ({
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="text-white font-medium text-sm">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              <span className="text-white font-medium text-sm capitalize">
+                {getMonthName()}
               </span>
               <button
                 onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
@@ -218,7 +236,7 @@ const CalendarModal = ({
             </div>
 
             <div className="grid grid-cols-7 gap-1 mb-2">
-              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, idx) => (
+              {dayHeaders.map((day, idx) => (
                 <div key={idx} className="text-center text-gray-500 text-xs font-medium py-1">
                   {day}
                 </div>
@@ -232,11 +250,7 @@ const CalendarModal = ({
               {Array.from({ length: daysInMonth }).map((_, index) => {
                 const day = index + 1;
                 return (
-                  <button
-                    key={day}
-                    onClick={() => handleDateClick(day)}
-                    className={getDayClassName(day)}
-                  >
+                  <button key={day} onClick={() => handleDateClick(day)} className={getDayClassName(day)}>
                     {day}
                   </button>
                 );
@@ -250,23 +264,17 @@ const CalendarModal = ({
             <div>
               <label className="text-sm text-gray-200 flex items-center gap-2 mb-2">
                 <Clock size={16} className="text-gray-400" />
-                Time
+                {t("todo.calendar.time")}
               </label>
               <select
                 value={tempTime}
                 onChange={(e) => handleTimeChange(e.target.value)}
                 className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
               >
-                <option value="">Select time</option>
+                <option value="">{t("todo.calendar.selectTime")}</option>
                 {generateTimeOptions().map((time) => (
                   <option key={time} value={time}>
-                    {(() => {
-                      const [hours, minutes] = time.split(':');
-                      const hour = parseInt(hours);
-                      const ampm = hour >= 12 ? 'PM' : 'AM';
-                      const formattedHour = hour % 12 || 12;
-                      return `${formattedHour}:${minutes} ${ampm}`;
-                    })()}
+                    {formatTimeDisplay(time)}
                   </option>
                 ))}
               </select>
@@ -274,47 +282,41 @@ const CalendarModal = ({
 
             {/* Reminder - Collapsible on mobile */}
             <div>
-              {/* Mobile: Collapsible header */}
               <button
                 onClick={() => setIsReminderExpanded(!isReminderExpanded)}
                 className="md:hidden w-full flex items-center justify-between text-sm text-gray-200 py-2"
               >
                 <span className="flex items-center gap-2">
                   <Bell size={16} className="text-gray-400" />
-                  Reminder
+                  {t("todo.calendar.reminder")}
                   {tempReminder && tempReminder !== "" && (
                     <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full">
                       {tempReminder}
                     </span>
                   )}
                 </span>
-                <ChevronDown 
-                  size={16} 
-                  className={`text-gray-400 transition-transform ${isReminderExpanded ? 'rotate-180' : ''}`} 
-                />
+                <ChevronDown size={16} className={`text-gray-400 transition-transform ${isReminderExpanded ? 'rotate-180' : ''}`} />
               </button>
               
-              {/* Desktop: Always visible label */}
               <label className="hidden md:flex text-sm text-gray-200 items-center gap-2 mb-2">
                 <Bell size={16} className="text-gray-400" />
-                Reminder
+                {t("todo.calendar.reminder")}
               </label>
               
-              {/* Content - Always visible on desktop, collapsible on mobile */}
               <div className={`${isReminderExpanded ? 'block' : 'hidden'} md:block`}>
                 <select
                   value={tempReminder}
                   onChange={(e) => handleReminderChange(e.target.value)}
                   className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
                 >
-                  <option value="">None</option>
-                  <option value="On time">On time</option>
-                  <option value="5 minutes before">5 minutes before</option>
-                  <option value="15 minutes before">15 minutes before</option>
-                  <option value="30 minutes before">30 minutes before</option>
-                  <option value="1 hour before">1 hour before</option>
-                  <option value="1 day before">1 day before</option>
-                  <option value="Custom">Custom</option>
+                  <option value="">{t("todo.calendar.none")}</option>
+                  <option value="On time">{t("todo.calendar.onTime")}</option>
+                  <option value="5 minutes before">{t("todo.calendar.5minBefore")}</option>
+                  <option value="15 minutes before">{t("todo.calendar.15minBefore")}</option>
+                  <option value="30 minutes before">{t("todo.calendar.30minBefore")}</option>
+                  <option value="1 hour before">{t("todo.calendar.1hourBefore")}</option>
+                  <option value="1 day before">{t("todo.calendar.1dayBefore")}</option>
+                  <option value="Custom">{t("todo.calendar.custom")}</option>
                 </select>
 
                 {showCustomReminder && (
@@ -332,12 +334,12 @@ const CalendarModal = ({
                       onChange={(e) => setCustomUnit(e.target.value)}
                       className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm outline-none"
                     >
-                      <option value="Minutes">Minutes</option>
-                      <option value="Hours">Hours</option>
-                      <option value="Days">Days</option>
-                      <option value="Weeks">Weeks</option>
+                      <option value="Minutes">{t("todo.calendar.minutes")}</option>
+                      <option value="Hours">{t("todo.calendar.hours")}</option>
+                      <option value="Days">{t("todo.calendar.days")}</option>
+                      <option value="Weeks">{t("todo.calendar.weeks")}</option>
                     </select>
-                    <span className="text-sm text-gray-400">before</span>
+                    <span className="text-sm text-gray-400">{t("todo.calendar.before")}</span>
                   </div>
                 )}
               </div>
@@ -345,97 +347,56 @@ const CalendarModal = ({
 
             {/* Repeat - Collapsible on mobile */}
             <div>
-              {/* Mobile: Collapsible header */}
               <button
                 onClick={() => setIsRepeatExpanded(!isRepeatExpanded)}
                 className="md:hidden w-full flex items-center justify-between text-sm text-gray-200 py-2"
               >
                 <span className="flex items-center gap-2">
                   <Repeat size={16} className="text-gray-400" />
-                  Repeat
+                  {t("todo.calendar.repeatLabel")}
                   {tempRepeat && tempRepeat !== "" && (
                     <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full">
                       {tempRepeat}
                     </span>
                   )}
                 </span>
-                <ChevronDown 
-                  size={16} 
-                  className={`text-gray-400 transition-transform ${isRepeatExpanded ? 'rotate-180' : ''}`} 
-                />
+                <ChevronDown size={16} className={`text-gray-400 transition-transform ${isRepeatExpanded ? 'rotate-180' : ''}`} />
               </button>
               
-              {/* Desktop: Always visible label */}
               <label className="hidden md:flex text-sm text-gray-200 items-center gap-2 mb-2">
                 <Repeat size={16} className="text-gray-400" />
-                Repeat
+                {t("todo.calendar.repeatLabel")}
               </label>
               
-              {/* Content - Always visible on desktop, collapsible on mobile */}
               <div className={`${isRepeatExpanded ? 'block' : 'hidden'} md:block`}>
                 <select
                   value={tempRepeat}
                   onChange={(e) => setTempRepeat(e.target.value)}
                   className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
                 >
-                  <option value="">Never</option>
-                  <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
+                  <option value="">{t("todo.calendar.neverEnd")}</option>
+                  <option value="Daily">{t("todo.repeat.daily")}</option>
+                  <option value="Weekly">{t("todo.repeat.weekly")}</option>
+                  <option value="Monthly">{t("todo.repeat.monthly")}</option>
                 </select>
 
                 {tempRepeat && tempRepeat !== "" && (
                   <div className="mt-3 ml-1 space-y-2">
-                    <div className="text-sm text-gray-400 mb-2">Ends:</div>
+                    <div className="text-sm text-gray-400 mb-2">{t("todo.calendar.ends")}</div>
                     <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="repeatEnd"
-                        value="never"
-                        checked={repeatEndType === "never"}
-                        onChange={() => setRepeatEndType("never")}
-                        className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
-                      />
-                      Never
+                      <input type="radio" name="repeatEnd" value="never" checked={repeatEndType === "never"} onChange={() => setRepeatEndType("never")} className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500" />
+                      {t("todo.calendar.neverEnd")}
                     </label>
                     <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="repeatEnd"
-                        value="onDate"
-                        checked={repeatEndType === "onDate"}
-                        onChange={() => setRepeatEndType("onDate")}
-                        className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
-                      />
-                      On date:
-                      <input
-                        type="date"
-                        value={repeatEndDate}
-                        onChange={(e) => setRepeatEndDate(e.target.value)}
-                        onClick={() => setRepeatEndType("onDate")}
-                        className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1"
-                      />
+                      <input type="radio" name="repeatEnd" value="onDate" checked={repeatEndType === "onDate"} onChange={() => setRepeatEndType("onDate")} className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500" />
+                      {t("todo.calendar.onDateEnd")}
+                      <input type="date" value={repeatEndDate} onChange={(e) => setRepeatEndDate(e.target.value)} onClick={() => setRepeatEndType("onDate")} className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1" />
                     </label>
                     <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="repeatEnd"
-                        value="after"
-                        checked={repeatEndType === "after"}
-                        onChange={() => setRepeatEndType("after")}
-                        className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
-                      />
-                      After
-                      <input
-                        type="number"
-                        value={repeatOccurrences}
-                        onChange={(e) => setRepeatOccurrences(e.target.value)}
-                        onClick={() => setRepeatEndType("after")}
-                        min="1"
-                        placeholder="5"
-                        className="w-16 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1"
-                      />
-                      <span className="text-gray-400">occurrences</span>
+                      <input type="radio" name="repeatEnd" value="after" checked={repeatEndType === "after"} onChange={() => setRepeatEndType("after")} className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500" />
+                      {t("todo.calendar.afterEnd")}
+                      <input type="number" value={repeatOccurrences} onChange={(e) => setRepeatOccurrences(e.target.value)} onClick={() => setRepeatEndType("after")} min="1" placeholder="5" className="w-16 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1" />
+                      <span className="text-gray-400">{t("todo.calendar.occurrences")}</span>
                     </label>
                   </div>
                 )}
@@ -444,43 +405,25 @@ const CalendarModal = ({
           </div>
         </div>
 
-        {/* Footer Buttons - Fixed at bottom */}
+        {/* Footer Buttons */}
         <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-gray-700 bg-[#181818] rounded-b-xl">
-          {/* Clear All - small on mobile */}
           <div className="flex justify-center mb-3 md:hidden">
-            <button
-              onClick={handleClear}
-              className="px-3 py-1.5 text-red-400 hover:text-red-300 text-xs hover:bg-red-500/10 rounded-lg transition-colors"
-              title="Clear all date/time settings"
-            >
-              Clear All
+            <button onClick={handleClear} className="px-3 py-1.5 text-red-400 hover:text-red-300 text-xs hover:bg-red-500/10 rounded-lg transition-colors">
+              {t("todo.calendar.clearAll")}
             </button>
           </div>
           
-          {/* Main buttons row */}
           <div className="flex justify-between items-center">
-            {/* Clear All - Desktop only */}
-            <button
-              onClick={handleClear}
-              className="hidden md:block px-4 py-2 text-red-400 hover:text-red-300 text-sm hover:bg-red-500/10 rounded-xl transition-colors"
-              title="Clear all date/time settings"
-            >
-              Clear All
+            <button onClick={handleClear} className="hidden md:block px-4 py-2 text-red-400 hover:text-red-300 text-sm hover:bg-red-500/10 rounded-xl transition-colors">
+              {t("todo.calendar.clearAll")}
             </button>
             
-            {/* Cancel and Save */}
             <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-end">
-              <button
-                onClick={onClose}
-                className="flex-1 md:flex-none px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
-              >
-                Cancel
+              <button onClick={onClose} className="flex-1 md:flex-none px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors">
+                {t("common.cancel")}
               </button>
-              <button
-                onClick={handleOK}
-                className="flex-1 md:flex-none px-4 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors whitespace-nowrap"
-              >
-                Save
+              <button onClick={handleOK} className="flex-1 md:flex-none px-4 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors whitespace-nowrap">
+                {t("common.save")}
               </button>
             </div>
           </div>
@@ -491,27 +434,17 @@ const CalendarModal = ({
         isOpen={showClearConfirmation}
         onClose={() => setShowClearConfirmation(false)}
         onConfirm={confirmClear}
-        title="Clear All Settings"
-        message="Are you sure you want to reset all date, time, reminder, and repeat settings in this form?"
-        confirmText="Clear All"
-        cancelText="Cancel"
+        title={t("todo.calendar.clearTitle")}
+        message={t("todo.calendar.clearMessage")}
+        confirmText={t("todo.calendar.clearAll")}
+        cancelText={t("common.cancel")}
       />
 
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2F2F2F;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #555;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #2F2F2F; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #777; }
       `}</style>
     </div>
   );

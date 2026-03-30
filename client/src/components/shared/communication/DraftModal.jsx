@@ -2,37 +2,39 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { FileText } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const DraftModal = ({ show, onClose, onDiscard, onSave }) => {
+  const { t } = useTranslation();
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-      <div className="bg-surface-card p-6 rounded-xl w-full max-w-md">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
+      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-            <FileText className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
+            <FileText className="w-6 h-6 text-orange-400" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-content-primary">Save as Draft?</h3>
-            <p className="text-sm text-content-faint">Your changes will be saved</p>
+            <h3 className="text-lg font-semibold text-white">{t("admin.email.draftModal.title")}</h3>
+            <p className="text-sm text-gray-500">{t("admin.email.draftModal.subtitle")}</p>
           </div>
         </div>
-        <p className="text-content-muted text-sm mb-6">
-          You have unsent content. Would you like to save it as a draft?
+        <p className="text-gray-400 text-sm mb-6">
+          {t("admin.email.draftModal.message")}
         </p>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-3">
           <button
             onClick={onDiscard}
-            className="px-4 py-2 text-sm bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
+            className="px-5 py-2.5 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
           >
-            Discard
+            {t("admin.email.draftModal.discard")}
           </button>
           <button
             onClick={onSave}
-            className="px-4 py-2 text-sm bg-primary hover:bg-primary-hover text-white rounded-xl transition-colors"
+            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
           >
-            Save Draft
+            {t("admin.email.draftModal.saveDraft")}
           </button>
         </div>
       </div>

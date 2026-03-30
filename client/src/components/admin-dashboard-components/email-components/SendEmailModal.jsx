@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { WysiwygEditor } from "../../shared/WysiwygEditor";
-import DraftModal from "./DraftModal";
+import DraftModal from "../../shared/communication/DraftModal";
 
 // Import email signature from configuration (Single Source of Truth)
 import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../utils/admin-panel-states/configuration-states";
@@ -91,6 +91,7 @@ const EmailTagInput = ({
   showAddBcc = false,
   onAddBcc
 }) => {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -192,7 +193,7 @@ const EmailTagInput = ({
                 onClick={onAddCc}
                 className="text-xs text-[#FF843E] hover:text-[#e0733a] transition-colors"
               >
-                + CC
+                {t("admin.email.compose.addCc")}
               </button>
             )}
             {showAddBcc && (
@@ -200,7 +201,7 @@ const EmailTagInput = ({
                 onClick={onAddBcc}
                 className="text-xs text-[#FF843E] hover:text-[#e0733a] transition-colors"
               >
-                + BCC
+                {t("admin.email.compose.addBcc")}
               </button>
             )}
             {showRemoveButton && (
@@ -208,7 +209,7 @@ const EmailTagInput = ({
                 onClick={onRemoveField}
                 className="text-xs text-gray-500 hover:text-gray-400 transition-colors"
               >
-                Remove
+                {t("admin.email.compose.remove")}
               </button>
             )}
           </div>
@@ -267,7 +268,7 @@ const EmailTagInput = ({
                 <div>
                   <span className="text-sm text-white block">
                     {member.name || `${member.firstName} ${member.lastName}`}
-                    {member.type === 'staff' && <span className="ml-2 text-xs text-blue-400">(Staff)</span>}
+                    {member.type === 'staff' && <span className="ml-2 text-xs text-blue-400">({t("admin.email.compose.staff")})</span>}
                   </span>
                   <span className="text-xs text-gray-400">{member.email}</span>
                 </div>
@@ -282,13 +283,13 @@ const EmailTagInput = ({
                 <Mail className="w-4 h-4 text-gray-400" />
               </div>
               <div>
-                <span className="text-sm text-white block">Add "{inputValue}"</span>
-                <span className="text-xs text-gray-400">Press Enter to add email</span>
+                <span className="text-sm text-white block">{t("admin.email.compose.addEmail", { email: inputValue })}</span>
+                <span className="text-xs text-gray-400">{t("admin.email.compose.pressEnterToAdd")}</span>
               </div>
             </button>
           ) : inputValue ? (
             <p className="p-3 text-sm text-gray-400">
-              Type a valid email address or search for members
+              {t("admin.email.compose.invalidEmail")}
             </p>
           ) : null}
         </div>
@@ -327,6 +328,7 @@ const SendEmailModal = ({
   const attachmentInputRef = useRef(null);
   const editorRef = useRef(null);
   const subjectInputRef = useRef(null);
+  const subjectSelfUpdate = useRef(false);
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
   const [showDraftConfirmModal, setShowDraftConfirmModal] = useState(false);
@@ -341,27 +343,22 @@ const SendEmailModal = ({
   const templateDropdownRef = useRef(null);
 
   const insertVariables = EMAIL_INSERT_VARIABLES;
-
-  // Insert variable into subject field
+  const getVarValue = (variable) => t("admin.email.variableValues." + variable.id, { defaultValue: variable.value });
+  const getVarLabel = (variable) => t("admin.email.variables." + variable.id, { defaultValue: variable.label });
+  // Insert variable into subject field as plain text
   const insertVariableToSubject = (variable) => {
     if (subjectInputRef.current) {
-      const input = subjectInputRef.current;
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      const text = emailData.subject || '';
-      const newText = text.substring(0, start) + variable.value + text.substring(end);
-      setEmailData({ ...emailData, subject: newText });
-      setTimeout(() => {
-        input.selectionStart = input.selectionEnd = start + variable.value.length;
-        input.focus();
-      }, 0);
+      subjectInputRef.current.focus();
+      document.execCommand('insertText', false, getVarValue(variable));
+      subjectSelfUpdate.current = true;
+      setEmailData(prev => ({ ...prev, subject: subjectInputRef.current.innerHTML }));
     }
   };
 
-  // Insert variable into body (WYSIWYG editor)
+  // Insert variable into body (WYSIWYG editor) as plain text
   const insertVariableToBody = (variable) => {
     if (editorRef.current) {
-      editorRef.current.insertText(variable.value);
+      editorRef.current.insertText(getVarValue(variable));
     }
   };
 
@@ -447,7 +444,7 @@ const SendEmailModal = ({
   // Uses email signature from configuration-states (Single Source of Truth)
   const insertSignature = () => {
     const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature 
-      || '<p>--<br>Mit freundlichen GrÃ¼ÃŸen</p>';
+      || `<p>--<br>${t('admin.email.compose.greeting')}</p>`;
     
     // Directly update the email body with signature appended
     const currentBody = emailData.body || '';
@@ -510,6 +507,14 @@ const SendEmailModal = ({
     if (!text) return text;
     return text.replace(/\{([A-Za-z_]+)\}/g, '<span style="background-color: rgba(234, 179, 8, 0.2); color: #eab308; padding: 1px 4px; border-radius: 4px; font-size: 12px;">{$1}</span>');
   };
+
+  // Sync contentEditable subject with external state changes (template, draft)
+  useEffect(() => {
+    if (subjectInputRef.current) {
+      if (subjectSelfUpdate.current) { subjectSelfUpdate.current = false; return; }
+      subjectInputRef.current.innerHTML = emailData.subject || '';
+    }
+  }, [emailData.subject]);
 
   // Handle template selection
   const handleSelectTemplate = (template) => {
@@ -637,7 +642,7 @@ const SendEmailModal = ({
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h2 className="text-base md:text-lg font-medium flex items-center gap-2 text-white">
               <Mail className="w-5 h-5" />
-              Send Email
+              {t("admin.email.compose.sendEmail")}
             </h2>
             <button
               onClick={handleClose}
@@ -707,12 +712,12 @@ const SendEmailModal = ({
                 <div className="text-xs">
                   <p className="text-yellow-400 font-medium">{t("admin.email.compose.variableWarning")}</p>
                   <p className="text-yellow-400/70 mt-0.5">
-                    Variables like {extractVariables(selectedTemplate).map((v, i) => (
+                    {t("admin.email.compose.variablesLike")} {extractVariables(selectedTemplate).map((v, i) => (
                       <span key={v}>
                         {i > 0 && ", "}
                         <span className="bg-yellow-500/20 px-1 py-0.5 rounded text-yellow-300">{v}</span>
                       </span>
-                    ))} will only be replaced when sending to a single recipient. For multiple recipients, variables will be sent as-is.
+                    ))} {t("admin.email.compose.variableWarningText")}
                   </p>
                 </div>
               </div>
@@ -737,7 +742,7 @@ const SendEmailModal = ({
                 recipients={ccRecipients}
                 setRecipients={setCcRecipients}
                 searchMembers={handleSearchMemberForEmail}
-                placeholder="Search by name, or type email..."
+                placeholder={t("admin.email.compose.searchRecipients")}
                 label={t("admin.email.compose.cc")}
                 showRemoveButton={true}
                 onRemoveField={() => {
@@ -753,7 +758,7 @@ const SendEmailModal = ({
                 recipients={bccRecipients}
                 setRecipients={setBccRecipients}
                 searchMembers={handleSearchMemberForEmail}
-                placeholder="Search by name, or type email..."
+                placeholder={t("admin.email.compose.searchRecipients")}
                 label={t("admin.email.compose.bcc")}
                 showRemoveButton={true}
                 onRemoveField={() => {
@@ -766,7 +771,7 @@ const SendEmailModal = ({
             {/* Subject */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">
-                Subject
+                {t("admin.email.compose.subject")}
               </label>
               {/* Variables Row for Subject */}
               <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -778,20 +783,23 @@ const SendEmailModal = ({
                     onClick={() => insertVariableToSubject(variable)}
                     className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
                   >
-                    {variable.label}
+                    {getVarLabel(variable)}
                   </button>
                 ))}
               </div>
-              <input
-                ref={subjectInputRef}
-                type="text"
-                value={emailData.subject}
-                onChange={(e) =>
-                  setEmailData({ ...emailData, subject: e.target.value })
-                }
-                className="w-full bg-[#222222] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors"
-                placeholder={t("admin.email.compose.subjectPlaceholder")}
-              />
+              <div className="relative">
+                <div
+                  ref={subjectInputRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="subject-editable w-full bg-[#222222] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors min-h-[40px] whitespace-nowrap overflow-x-auto"
+                  data-placeholder={t("admin.email.compose.subjectPlaceholder")}
+                  onInput={(e) => { const html = e.currentTarget.innerHTML; subjectSelfUpdate.current = true; setEmailData(prev => ({ ...prev, subject: html })) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                  onPaste={(e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')) }}
+                />
+                <style>{`.subject-editable:empty::before { content: attr(data-placeholder); color: #6b7280; pointer-events: none; }`}</style>
+              </div>
             </div>
 
             {/* Message with WYSIWYG Editor */}
@@ -808,7 +816,7 @@ const SendEmailModal = ({
               </div>
               {/* Variables Row for Body */}
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="text-xs text-gray-500">Variables:</span>
+                <span className="text-xs text-gray-500">{t("admin.email.compose.variablesLabel")}:</span>
                 {insertVariables.map((variable) => (
                   <button
                     key={variable.id}
@@ -816,7 +824,7 @@ const SendEmailModal = ({
                     onClick={() => insertVariableToBody(variable)}
                     className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
                   >
-                    {variable.label}
+                    {getVarLabel(variable)}
                   </button>
                 ))}
               </div>
@@ -836,7 +844,7 @@ const SendEmailModal = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-sm font-medium text-gray-400">
-                  Attachments
+                  {t("admin.email.compose.attachments")}
                 </label>
                 <input
                   ref={attachmentInputRef}
@@ -898,7 +906,7 @@ const SendEmailModal = ({
                 onClick={onClose}
                 className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={onSendEmail}
@@ -906,7 +914,7 @@ const SendEmailModal = ({
                 className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
-                Send Email
+                {t("admin.email.compose.sendEmail")}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Calendar, ChevronDown } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 
 /**
  * PeriodPicker Component
@@ -19,6 +20,28 @@ const PeriodPicker = ({
   periods = [],
   className = ""
 }) => {
+  const { t } = useTranslation()
+
+  // Helper to translate period keys to localized labels
+  const translatePeriod = (periodKey) => {
+    if (!periodKey) return ""
+    if (periodKey.startsWith("Custom:")) return periodKey
+    const periodMap = {
+      "This Month": t("admin.finances.periods.thisMonth"),
+      "Last Month": t("admin.finances.periods.lastMonth"),
+      "Last 3 Months": t("admin.finances.periods.last3Months"),
+      "Last 6 Months": t("admin.finances.periods.last6Months"),
+      "This Year": t("admin.finances.periods.thisYear"),
+      "Last Year": t("admin.finances.periods.lastYear"),
+      "All Time": t("admin.finances.periods.allTime"),
+      "This Week": t("admin.finances.periods.thisWeek"),
+      "Last Week": t("admin.finances.periods.lastWeek"),
+      "This Quarter": t("admin.finances.periods.thisQuarter"),
+      "Last Quarter": t("admin.finances.periods.lastQuarter"),
+    }
+    return periodMap[periodKey] || periodKey
+  }
+
   const [isOpen, setIsOpen] = useState(false)
   const [isCustomExpanded, setIsCustomExpanded] = useState(false)
   const [customDates, setCustomDates] = useState({
@@ -87,7 +110,7 @@ const PeriodPicker = ({
         className={`bg-[#141414] text-white px-4 py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-3 text-sm transition-colors ${className}`}
       >
         <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <span className="text-sm flex-1 text-left truncate">{selectedPeriod}</span>
+        <span className="text-sm flex-1 text-left truncate">{translatePeriod(selectedPeriod)}</span>
         <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
@@ -96,7 +119,7 @@ const PeriodPicker = ({
           {/* Preset Periods */}
           <div className="py-1">
             <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-              Select Period
+              {t("admin.finances.period.selectPeriod")}
             </div>
             {periods.map((period) => (
               <button
@@ -108,7 +131,7 @@ const PeriodPicker = ({
                 }`}
                 onClick={() => handleSelectPeriod(period)}
               >
-                {period}
+                {translatePeriod(period)}
               </button>
             ))}
           </div>
@@ -122,7 +145,7 @@ const PeriodPicker = ({
               onClick={handleCustomClick}
             >
               <Calendar className="w-4 h-4" />
-              Custom Period
+              {t("admin.finances.period.customPeriod")}
             </button>
             
             {/* Date Inputs - Show when custom period is selected */}
@@ -131,7 +154,7 @@ const PeriodPicker = ({
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">Start Date</label>
+                      <label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.startDate")}</label>
                       <input
                         type="date"
                         value={customDates.startDate}
@@ -140,7 +163,7 @@ const PeriodPicker = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">End Date</label>
+                      <label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.endDate")}</label>
                       <input
                         type="date"
                         value={customDates.endDate}
@@ -154,7 +177,7 @@ const PeriodPicker = ({
                     disabled={!customDates.startDate || !customDates.endDate}
                     className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Apply
+                    {t("admin.finances.period.apply")}
                   </button>
                 </div>
               </div>

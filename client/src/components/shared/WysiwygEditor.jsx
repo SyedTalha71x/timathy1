@@ -143,6 +143,7 @@ ImageBlot.blotName = 'image'
 ImageBlot.tagName = 'IMG'
 Quill.register(ImageBlot, true)
 
+
 // Editor Modal
 const EditorModal = ({ show, onClose, title, children, onSubmit, submitText, submitDisabled = false }) => {
   if (!show) return null
@@ -1224,7 +1225,7 @@ export const WysiwygEditor = forwardRef(({
     history: { delay: 500, maxStack: 100, userOnly: false }
   }), [toolbarConfig, linkHandler, imageHandler, emojiHandler])
 
-  const formats = ['font', 'size', 'bold', 'italic', 'underline', 'strike', 'color', 'background', 'list', 'bullet', 'align', 'link', 'image']
+  const formats = ['font', 'size', 'bold', 'italic', 'underline', 'strike', 'color', 'background', 'list', 'bullet', 'align', 'link', 'image', 'variable']
 
   useEffect(() => {
     const style = document.createElement('style')

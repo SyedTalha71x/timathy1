@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import { Check, X, Search, ArrowUp, ArrowDown, ArrowUpDown, Eye, EyeOff, Info } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 // Masked IBAN Component
 const MaskedIban = ({ iban, className = "" }) => {
+  const { t } = useTranslation();
   const [isRevealed, setIsRevealed] = useState(false);
 
   if (!iban) return <span className="text-gray-500">-</span>;
@@ -28,7 +30,7 @@ const MaskedIban = ({ iban, className = "" }) => {
           setIsRevealed(!isRevealed);
         }}
         className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
-        title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
+        title={isRevealed ? t("admin.finances.actions.hideIban") : t("admin.finances.actions.showIban")}
       >
         {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
       </button>
@@ -43,6 +45,7 @@ const CheckFundsModal = ({
   onUpdateStatuses,
   financialState,
 }) => {
+  const { t } = useTranslation();
   const [transactionStatuses, setTransactionStatuses] = useState({});
   const [selectedTransactions, setSelectedTransactions] = useState({});
   
@@ -286,7 +289,7 @@ const CheckFundsModal = ({
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl max-h-[80vh] overflow-hidden flex flex-col mx-4">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-white text-lg font-medium">
-            Check Incoming Funds
+            {t("admin.finances.checkFundsModal.title")}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X className="w-5 h-5" />
@@ -299,7 +302,7 @@ const CheckFundsModal = ({
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             <input
               type="search"
-              placeholder="Search by studio, account holder, IBAN, or mandate..."
+              placeholder={t("admin.finances.search.placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="h-10 bg-[#141414] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -312,20 +315,20 @@ const CheckFundsModal = ({
             <>
               <div className="flex flex-col sm:flex-row justify-between gap-3 mb-4">
                 <p className="text-gray-300 text-sm">
-                  Update the status of pending transactions:
+                  {t("admin.finances.checkFundsModal.updateStatus")}
                 </p>
                 <div className="flex gap-2">
                   <button
                     className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors"
                     onClick={() => handleSelectAll(true)}
                   >
-                    Select All
+                    {t("admin.finances.checkFundsModal.selectAll")}
                   </button>
                   <button
                     className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors"
                     onClick={() => handleSelectAll(false)}
                   >
-                    Deselect All
+                    {t("admin.finances.checkFundsModal.deselectAll")}
                   </button>
                 </div>
               </div>
@@ -335,19 +338,19 @@ const CheckFundsModal = ({
                 <div className="mb-4 p-3 bg-[#141414] rounded-lg">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-gray-300 text-sm">
-                      Set all selected ({selectedCount}) to:
+                      {t("admin.finances.checkFundsModal.setAllSelected", { count: selectedCount })}
                     </span>
                     <button
                       onClick={() => handleSetAllSelectedStatus("Successful")}
                       className="px-3 py-1 text-sm rounded-lg bg-[#10b981] text-white hover:bg-[#10b981]/80 transition-colors"
                     >
-                      Successful
+                      {t("admin.finances.status.successful")}
                     </button>
                     <button
                       onClick={() => handleSetAllSelectedStatus("Failed")}
                       className="px-3 py-1 text-sm rounded-lg bg-[#ef4444] text-white hover:bg-[#ef4444]/80 transition-colors"
                     >
-                      Failed
+                      {t("admin.finances.status.failed")}
                     </button>
                   </div>
                 </div>
@@ -377,8 +380,8 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.studio}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("studio")}>
-                          <span className="hidden md:inline">Studio</span>
-                          <span className="md:hidden">Studio</span>
+                          <span className="hidden md:inline">{t("admin.finances.table.studio")}</span>
+                          <span className="md:hidden">{t("admin.finances.table.studio")}</span>
                           {getSortIcon("studio")}
                         </div>
                         <div 
@@ -395,8 +398,8 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.accountHolder}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("accountHolder")}>
-                          <span className="hidden md:inline">Account Holder</span>
-                          <span className="md:hidden">Holder</span>
+                          <span className="hidden md:inline">{t("admin.finances.table.accountHolder")}</span>
+                          <span className="md:hidden">{t("admin.finances.table.holder")}</span>
                           {getSortIcon("accountHolder")}
                         </div>
                         <div 
@@ -414,8 +417,8 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}
                       >
                         <div className="flex items-center justify-end gap-1">
-                          <span className="hidden md:inline">Amount</span>
-                          <span className="md:hidden">Amt</span>
+                          <span className="hidden md:inline">{t("admin.finances.table.amount")}</span>
+                          <span className="md:hidden">{t("admin.finances.table.amt")}</span>
                           {getSortIcon("amount")}
                         </div>
                         <div 
@@ -431,8 +434,8 @@ const CheckFundsModal = ({
                         className="px-1.5 md:px-2 py-2 text-center relative"
                         style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}
                       >
-                        <span className="hidden md:inline">Services</span>
-                        <span className="md:hidden">Svc</span>
+                        <span className="hidden md:inline">{t("admin.finances.table.services")}</span>
+                        <span className="md:hidden">{t("admin.finances.table.svc")}</span>
                         <div 
                           className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
                           onMouseDown={(e) => handleResizeMouseDown(e, 'services')}
@@ -447,7 +450,7 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.status}px`, minWidth: '100px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("status")}>
-                          Status {getSortIcon("status")}
+                          {t("admin.finances.table.status")} {getSortIcon("status")}
                         </div>
                         <div 
                           className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
@@ -463,7 +466,7 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>
-                          IBAN {getSortIcon("iban")}
+                          {t("admin.finances.table.iban")} {getSortIcon("iban")}
                         </div>
                         <div 
                           className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
@@ -479,8 +482,8 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.mandate}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}>
-                          <span className="hidden md:inline">Mandate Number</span>
-                          <span className="md:hidden">Mandate</span>
+                          <span className="hidden md:inline">{t("admin.finances.table.mandateNumber")}</span>
+                          <span className="md:hidden">{t("admin.finances.table.mandate")}</span>
                           {getSortIcon("mandate")}
                         </div>
                         <div 
@@ -497,7 +500,7 @@ const CheckFundsModal = ({
                         style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>
-                          Date {getSortIcon("date")}
+                          {t("admin.finances.table.date")} {getSortIcon("date")}
                         </div>
                         <div 
                           className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
@@ -556,7 +559,7 @@ const CheckFundsModal = ({
                                       : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F]"
                                   }`}
                                 >
-                                  <span className="hidden md:inline">Successful</span>
+                                  <span className="hidden md:inline">{t("admin.finances.status.successful")}</span>
                                   <span className="md:hidden">S</span>
                                 </button>
                                 <button
@@ -567,14 +570,14 @@ const CheckFundsModal = ({
                                       : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F]"
                                   }`}
                                 >
-                                  <span className="hidden md:inline">Failed</span>
+                                  <span className="hidden md:inline">{t("admin.finances.status.failed")}</span>
                                   <span className="md:hidden">F</span>
                                 </button>
                               </div>
                             ) : (
                               <>
                                 <span className="hidden md:inline text-white bg-[#f59e0b] px-2 py-1 rounded-lg text-xs">
-                                  Pending
+                                  {t("admin.finances.status.pending")}
                                 </span>
                                 <span className="md:hidden text-white bg-[#f59e0b] px-1 py-0.5 rounded text-xs">
                                   P
@@ -602,8 +605,8 @@ const CheckFundsModal = ({
             <div className="bg-[#141414] p-6 rounded-xl text-center">
               <p className="text-gray-400">
                 {searchTerm 
-                  ? "No transactions found matching your search."
-                  : "No transactions are pending fund verification."
+                  ? t("admin.finances.checkFundsModal.noSearchResults")
+                  : t("admin.finances.checkFundsModal.noPending")
                 }
               </p>
             </div>
@@ -615,7 +618,7 @@ const CheckFundsModal = ({
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-sm bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleUpdateStatuses}
@@ -623,7 +626,7 @@ const CheckFundsModal = ({
             disabled={!Object.values(selectedTransactions).some((v) => v)}
           >
             <Check className="w-4 h-4" />
-            Update
+            {t("admin.finances.checkFundsModal.update")}
           </button>
         </div>
 
@@ -632,7 +635,7 @@ const CheckFundsModal = ({
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
             <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col mx-4">
               <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-white text-lg font-medium">Services Breakdown</h2>
+                <h2 className="text-white text-lg font-medium">{t("admin.finances.servicesBreakdown.title")}</h2>
                 <button onClick={() => setServicesModalOpen(false)} className="text-gray-400 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
@@ -641,7 +644,7 @@ const CheckFundsModal = ({
               <div className="p-4 overflow-y-auto flex-grow">
                 <div className="mb-4">
                   <h3 className="text-white font-medium mb-2">{selectedStudioName}</h3>
-                  <p className="text-gray-400 text-sm">Service breakdown for this studio</p>
+                  <p className="text-gray-400 text-sm">{t("admin.finances.servicesBreakdown.studioDescription")}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -658,7 +661,7 @@ const CheckFundsModal = ({
 
                 <div className="mt-4 pt-4 border-t border-gray-800">
                   <div className="flex justify-between items-center">
-                    <span className="text-white font-semibold text-sm">Total Amount</span>
+                    <span className="text-white font-semibold text-sm">{t("admin.finances.servicesBreakdown.totalAmount")}</span>
                     <span className="text-white font-bold text-lg">
                       ${selectedServices.reduce((sum, service) => sum + (service.cost || 0), 0).toFixed(2)} USD
                     </span>

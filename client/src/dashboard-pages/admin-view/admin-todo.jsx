@@ -36,6 +36,11 @@ import { useTranslation } from "react-i18next"
 import PullToRefresh from "../../components/shared/PullToRefresh"
 import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 import { haptic } from "../../utils/haptic"
+
+// Map i18n language codes to full locale codes
+const localeMap = { en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES", it: "it-IT" }
+const getLocale = (lang) => localeMap[lang] || lang
+
 // ============================================
 // Mobile Create Task Modal Component
 // ============================================
@@ -49,7 +54,8 @@ const MobileCreateTaskModal = ({
   newTaskData,
   setNewTaskData,
 }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = getLocale(i18n.language)
   const [taskTitle, setTaskTitle] = useState("")
   const titleInputRef = useRef(null)
 
@@ -95,7 +101,7 @@ const MobileCreateTaskModal = ({
     let display = ""
     if (newTaskData.dueDate) {
       const date = new Date(newTaskData.dueDate)
-      display = date.toLocaleDateString("en-US", { 
+      display = date.toLocaleDateString(locale, { 
         weekday: 'short',
         month: "short", 
         day: "numeric",
@@ -240,7 +246,8 @@ const MobileTaskDetail = ({
   onOpenTagsModal,
   repeatConfigs
 }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = getLocale(i18n.language)
   const [showActionsMenu, setShowActionsMenu] = useState(false)
   const [editedTitle, setEditedTitle] = useState(task.title || "")
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -279,7 +286,7 @@ const MobileTaskDetail = ({
     let display = ""
     if (task.dueDate) {
       const date = new Date(task.dueDate)
-      display = date.toLocaleDateString("en-US", { 
+      display = date.toLocaleDateString(locale, { 
         weekday: 'short',
         month: "short", 
         day: "numeric",
@@ -490,7 +497,7 @@ const MobileTaskDetail = ({
           />
           {task.createdAt && (
             <p className="text-xs text-gray-500 mt-2">
-              {t("common.created")}: {new Date(task.createdAt).toLocaleDateString('en-US', {
+              {t("common.created")}: {new Date(task.createdAt).toLocaleDateString(locale, {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric',
@@ -601,6 +608,9 @@ const MobileTaskCard = ({
   onStatusChange,
   configuredTags,
 }) => {
+  const { t, i18n } = useTranslation()
+  const locale = getLocale(i18n.language)
+
   const getTagColor = (tagName) => {
     const tag = configuredTags.find((t) => t.name === tagName)
     return tag ? tag.color : "#3F74FF"
@@ -612,7 +622,7 @@ const MobileTaskCard = ({
   const formatDate = () => {
     if (!task.dueDate) return null
     const date = new Date(task.dueDate)
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    return date.toLocaleDateString(locale, { month: "short", day: "numeric" })
   }
 
   return (
@@ -701,11 +711,13 @@ const MobileTaskCard = ({
 // Selected Date Time Display
 // ============================================
 const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
+  const { t, i18n } = useTranslation()
+  const locale = getLocale(i18n.language)
   if (!date && !time) return null
   const formatDate = (dateStr) => {
     if (!dateStr) return ""
     const date = new Date(dateStr)
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
     })
@@ -733,16 +745,16 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 }
 
 export default function TodoApp() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   
   // ============================================
   // Column Configuration
   // ============================================
-  const [columns] = useState([
+  const columns = useMemo(() => [
     { id: "ongoing", title: t("admin.todo.columns.ongoing"), color: "#f59e0b" },
     { id: "completed", title: t("admin.todo.columns.completed"), color: "#10b981" },
     { id: "canceled", title: t("admin.todo.columns.canceled"), color: "#ef4444" },
-  ])
+  ], [t, i18n.language])
   
   const [collapsedColumns, setCollapsedColumns] = useState({
     completed: true,

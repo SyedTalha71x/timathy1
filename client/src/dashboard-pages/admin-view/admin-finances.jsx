@@ -50,6 +50,26 @@ const MaskedIban = ({ iban, className = "" }) => {
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const { t } = useTranslation()
+
+  // Helper to translate period keys from financialData to localized labels
+  const translatePeriod = (periodKey) => {
+    if (!periodKey) return ""
+    if (periodKey.startsWith("Custom:")) return periodKey
+    const periodMap = {
+      "This Month": t("admin.finances.periods.thisMonth"),
+      "Last Month": t("admin.finances.periods.lastMonth"),
+      "Last 3 Months": t("admin.finances.periods.last3Months"),
+      "Last 6 Months": t("admin.finances.periods.last6Months"),
+      "This Year": t("admin.finances.periods.thisYear"),
+      "Last Year": t("admin.finances.periods.lastYear"),
+      "All Time": t("admin.finances.periods.allTime"),
+      "This Week": t("admin.finances.periods.thisWeek"),
+      "Last Week": t("admin.finances.periods.lastWeek"),
+      "This Quarter": t("admin.finances.periods.thisQuarter"),
+      "Last Quarter": t("admin.finances.periods.lastQuarter"),
+    }
+    return periodMap[periodKey] || periodKey
+  }
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const [isCustomPeriodExpanded, setIsCustomPeriodExpanded] = useState(false)
   const [inlineCustomDates, setInlineCustomDates] = useState({ startDate: "", endDate: "" })
@@ -286,14 +306,14 @@ export default function FinancesPage() {
           <div className="relative" ref={periodDropdownRef}>
             <button onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)} className="bg-[#141414] text-white px-3 sm:px-4 py-2 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-2 text-xs sm:text-sm transition-colors">
               <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className={`hidden sm:inline ${selectedPeriod.startsWith("Custom:") ? '' : 'truncate max-w-[120px]'}`}>{selectedPeriod}</span>
+              <span className={`hidden sm:inline ${selectedPeriod.startsWith("Custom:") ? '' : 'truncate max-w-[120px]'}`}>{translatePeriod(selectedPeriod)}</span>
               <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
             {periodDropdownOpen && (
               <div className="hidden md:block absolute right-0 z-40 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden top-full">
                 <div className="py-1">
                   <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("admin.finances.period.selectPeriod")}</div>
-                  {Object.keys(financialState).map((period) => (<button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={() => handleSelectPeriod(period)}>{period}</button>))}
+                  {Object.keys(financialState).map((period) => (<button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={() => handleSelectPeriod(period)}>{translatePeriod(period)}</button>))}
                 </div>
                 <div className="border-t border-gray-700">
                   <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={handleCustomPeriodClick}><Calendar className="w-4 h-4" />{t("admin.finances.period.customPeriod")}</button>
@@ -322,7 +342,7 @@ export default function FinancesPage() {
         <div className="md:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={(e) => { if (e.target === e.currentTarget) { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) } }}>
           <div data-mobile-period-modal className="bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg w-[90%] max-w-[340px] max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700"><span className="text-white font-medium">{t("admin.finances.period.selectPeriod")}</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) }} className="text-gray-400 hover:text-white p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
-            <div className="py-1 max-h-[40vh] overflow-y-auto">{Object.keys(financialState).map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }}>{period}</button>))}</div>
+            <div className="py-1 max-h-[40vh] overflow-y-auto">{Object.keys(financialState).map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }}>{translatePeriod(period)}</button>))}</div>
             <div className="border-t border-gray-700">
               <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(!isCustomPeriodExpanded) }}><Calendar className="w-4 h-4" />{t("admin.finances.period.customPeriod")}</button>
               {isCustomPeriodExpanded && (

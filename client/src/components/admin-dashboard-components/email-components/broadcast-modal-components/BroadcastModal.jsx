@@ -248,10 +248,10 @@ export default function BroadcastModal({
 
   const getSendButtonText = () => {
     const parts = []
-    if (memberCount > 0) parts.push(`${memberCount} studio${memberCount > 1 ? 's' : ''}`)
-    if (staffCount > 0) parts.push(`${staffCount} franchise${staffCount > 1 ? 's' : ''}`)
+    if (memberCount > 0) parts.push(memberCount > 1 ? t("admin.email.broadcast.studioCountPlural", { count: memberCount }) : t("admin.email.broadcast.studioCount", { count: memberCount }))
+    if (staffCount > 0) parts.push(staffCount > 1 ? t("admin.email.broadcast.franchiseCountPlural", { count: staffCount }) : t("admin.email.broadcast.franchiseCount", { count: staffCount }))
     if (parts.length === 0) return ""
-    return ` to ${parts.join(' & ')}`
+    return ` → ${parts.join(' & ')}`
   }
 
   // Mobile step navigation
@@ -291,13 +291,13 @@ export default function BroadcastModal({
               <X className="w-5 h-5 text-gray-400" />
             </button>
           )}
-          <h2 className="text-lg font-semibold text-white">Email Broadcast</h2>
+          <h2 className="text-lg font-semibold text-white">{t("admin.email.broadcast.title")}</h2>
         </div>
         
         {/* Channel indicator */}
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-blue-500/20 text-blue-400">
           <Mail className="w-4 h-4" />
-          Email
+          {t("admin.email.broadcast.email")}
         </div>
       </div>
 
@@ -309,10 +309,8 @@ export default function BroadcastModal({
               <Check className="w-4 h-4 text-orange-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">Broadcast sent!</p>
-              <p className="text-xs text-gray-400 truncate">
-                Sent to {lastSentInfo.recipientCount} recipient{lastSentInfo.recipientCount > 1 ? 's' : ''}
-              </p>
+              <p className="text-sm font-medium text-white">{t("admin.email.broadcast.broadcastSent")}</p>
+              <p className="text-xs text-gray-400 truncate">{t("admin.email.broadcast.sentTo", { count: lastSentInfo.recipientCount })}</p>
             </div>
             <button onClick={() => setShowSuccessMessage(false)} className="p-1 hover:bg-white/10 rounded-lg">
               <X className="w-4 h-4 text-gray-400" />
@@ -330,7 +328,7 @@ export default function BroadcastModal({
           }`}
         >
           <Send className="w-4 h-4" />
-          Compose
+          {t("admin.email.broadcast.compose")}
         </button>
         <button 
           onClick={() => setActiveSection("templates")}
@@ -339,7 +337,7 @@ export default function BroadcastModal({
           }`}
         >
           <FileText className="w-4 h-4" />
-          Templates
+          {t("admin.email.broadcast.templates")}
         </button>
         <button 
           onClick={() => setActiveSection("folders")}
@@ -348,7 +346,7 @@ export default function BroadcastModal({
           }`}
         >
           <Folder className="w-4 h-4" />
-          Folders
+          {t("admin.email.broadcast.folders")}
         </button>
       </div>
 
@@ -365,7 +363,7 @@ export default function BroadcastModal({
                 }`}>
                   {selectedRecipients.length > 0 && mobileStep !== "recipients" ? <Check className="w-3.5 h-3.5" /> : "1"}
                 </div>
-                <span className="text-xs">Recipients</span>
+                <span className="text-xs">{t("admin.email.broadcast.recipients")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-600" />
               <div className={`flex items-center gap-1.5 ${mobileStep === "template" ? "text-orange-400" : "text-gray-500"}`}>
@@ -374,7 +372,7 @@ export default function BroadcastModal({
                 }`}>
                   {selectedTemplate && mobileStep !== "template" ? <Check className="w-3.5 h-3.5" /> : "2"}
                 </div>
-                <span className="text-xs">Template</span>
+                <span className="text-xs">{t("admin.email.broadcast.template")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-600" />
               <div className={`flex items-center gap-1.5 ${mobileStep === "review" ? "text-orange-400" : "text-gray-500"}`}>
@@ -383,7 +381,7 @@ export default function BroadcastModal({
                 }`}>
                   3
                 </div>
-                <span className="text-xs">Review</span>
+                <span className="text-xs">{t("admin.email.broadcast.review")}</span>
               </div>
             </div>
 
@@ -402,7 +400,7 @@ export default function BroadcastModal({
                         }`}
                       >
                         <User className="w-4 h-4" />
-                        Studio
+                        {t("admin.email.broadcast.studio")}
                       </button>
                       <button 
                         onClick={() => setAudienceTab("staff")} 
@@ -411,7 +409,7 @@ export default function BroadcastModal({
                         }`}
                       >
                         <Building2 className="w-4 h-4" />
-                        Franchise
+                        {t("admin.email.broadcast.franchise")}
                       </button>
                     </div>
                   </div>
@@ -424,7 +422,7 @@ export default function BroadcastModal({
                         type="text" 
                         value={searchMember} 
                         onChange={(e) => setSearchMember(e.target.value)} 
-                        placeholder={audienceTab === "staff" ? "Search franchises..." : "Search studios..."} 
+                        placeholder={audienceTab === "staff" ? t("admin.email.broadcast.searchFranchisesPlaceholder") : t("admin.email.broadcast.searchStudiosPlaceholder")} 
                         className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl pl-10 pr-4 py-3 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50" 
                       />
                     </div>
@@ -432,9 +430,9 @@ export default function BroadcastModal({
 
                   {/* Select All */}
                   <div className="px-4 py-2 flex items-center justify-between bg-[#0a0a0a]">
-                    <span className="text-xs text-gray-400">{visibleRecipientList.length} available</span>
+                    <span className="text-xs text-gray-400">{t("admin.email.broadcast.available", { count: visibleRecipientList.length })}</span>
                     <button onClick={handleSelectAll} className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
-                      {selectAll ? <><X className="w-3 h-3" />Deselect All</> : <><Check className="w-3 h-3" />Select All</>}
+                      {selectAll ? <><X className="w-3 h-3" />{t("admin.email.broadcast.deselectAll")}</> : <><Check className="w-3 h-3" />{t("admin.email.broadcast.selectAll")}</>}
                     </button>
                   </div>
 
@@ -475,10 +473,10 @@ export default function BroadcastModal({
                   <div className="p-4 bg-[#0a0a0a] border-t border-gray-800/50">
                     {selectedRecipients.length > 0 && (
                       <p className="text-xs text-gray-400 mb-3 text-center">
-                        {memberCount > 0 && `${memberCount} studio${memberCount > 1 ? 's' : ''}`}
+                        {memberCount > 0 && (memberCount > 1 ? t("admin.email.broadcast.studioCountPlural", { count: memberCount }) : t("admin.email.broadcast.studioCount", { count: memberCount }))}
                         {memberCount > 0 && staffCount > 0 && ' & '}
-                        {staffCount > 0 && `${staffCount} franchise${staffCount > 1 ? 's' : ''}`}
-                        {' selected'}
+                        {staffCount > 0 && (staffCount > 1 ? t("admin.email.broadcast.franchiseCountPlural", { count: staffCount }) : t("admin.email.broadcast.franchiseCount", { count: staffCount }))}
+                        {' ' + t("admin.email.broadcast.selected")}
                       </p>
                     )}
                     <button 
@@ -490,7 +488,7 @@ export default function BroadcastModal({
                           : "bg-gray-700 text-gray-500"
                       }`}
                     >
-                      Continue
+                      {t("admin.email.broadcast.continue")}
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -509,7 +507,7 @@ export default function BroadcastModal({
                           !selectedFolder ? "bg-orange-500 text-white" : "bg-[#1a1a1a] text-gray-400"
                         }`}
                       >
-                        All
+                        {t("common.all")}
                       </button>
                       {currentFolders.map((folder) => (
                         <button
@@ -577,12 +575,12 @@ export default function BroadcastModal({
                     ) : (
                       <div className="text-center py-12">
                         <FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                        <p className="text-gray-500 mb-2">No templates found</p>
+                        <p className="text-gray-500 mb-2">{t("admin.email.broadcast.noTemplatesFound")}</p>
                         <button 
                           onClick={() => handleOpenTemplateModal()} 
                           className="text-sm text-orange-400"
                         >
-                          Create your first template
+                          {t("admin.email.broadcast.createFirstTemplate")}
                         </button>
                       </div>
                     )}
@@ -599,7 +597,7 @@ export default function BroadcastModal({
                           : "bg-gray-700 text-gray-500"
                       }`}
                     >
-                      Review & Send
+                      {t("admin.email.broadcast.reviewAndSend")}
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -617,8 +615,8 @@ export default function BroadcastModal({
                           <Mail className="w-5 h-5 text-orange-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white">Email</p>
-                          <p className="text-xs text-gray-500">Channel</p>
+                          <p className="text-sm font-medium text-white">{t("admin.email.broadcast.email")}</p>
+                          <p className="text-xs text-gray-500">{t("admin.email.broadcast.channel")}</p>
                         </div>
                       </div>
                     </div>
@@ -626,7 +624,7 @@ export default function BroadcastModal({
                     {/* Recipients Summary */}
                     <div className="bg-[#1a1a1a] rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-medium text-white">Recipients</p>
+                        <p className="text-sm font-medium text-white">{t("admin.email.broadcast.recipients")}</p>
                         <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-lg">
                           {selectedRecipients.length}
                         </span>
@@ -644,7 +642,7 @@ export default function BroadcastModal({
                         ))}
                         {selectedRecipients.length > 6 && (
                           <div className="flex items-center px-2 py-1.5 bg-[#0E0E0E] rounded-lg">
-                            <span className="text-xs text-gray-400">+{selectedRecipients.length - 6} more</span>
+                            <span className="text-xs text-gray-400">{t("admin.email.broadcast.more", { count: selectedRecipients.length - 6 })}</span>
                           </div>
                         )}
                       </div>
@@ -652,7 +650,7 @@ export default function BroadcastModal({
 
                     {/* Template Preview */}
                     <div className="bg-[#1a1a1a] rounded-xl p-4">
-                      <p className="text-sm font-medium text-white mb-3">Template</p>
+                      <p className="text-sm font-medium text-white mb-3">{t("admin.email.broadcast.template")}</p>
                       <div className="bg-[#0E0E0E] rounded-xl p-3">
                         <p className="text-sm font-medium text-white mb-1">
                           {selectedTemplate?.name || t("admin.email.broadcast.untitledTemplate")}
@@ -674,7 +672,7 @@ export default function BroadcastModal({
                       className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 active:from-orange-600 active:to-orange-700"
                     >
                       <Send className="w-5 h-5" />
-                      Send Email
+                      {t("admin.email.broadcast.sendEmail")}
                     </button>
                   </div>
                 </div>
@@ -695,7 +693,7 @@ export default function BroadcastModal({
                     !selectedFolder ? "bg-orange-500 text-white" : "bg-[#1a1a1a] text-gray-400"
                   }`}
                 >
-                  All
+                  {t("common.all")}
                 </button>
                 {currentFolders.map((folder) => (
                   <button
@@ -757,7 +755,7 @@ export default function BroadcastModal({
               ) : (
                 <div className="text-center py-12">
                   <FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-2">No templates yet</p>
+                  <p className="text-gray-500 mb-2">{t("admin.email.broadcast.noTemplatesYet")}</p>
                 </div>
               )}
             </div>
@@ -769,7 +767,7 @@ export default function BroadcastModal({
                 className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-orange-600"
               >
                 <Plus className="w-4 h-4" />
-                New Template
+                {t("admin.email.broadcast.newTemplate")}
               </button>
             </div>
           </div>
@@ -795,7 +793,7 @@ export default function BroadcastModal({
                             </div>
                             <div>
                               <h4 className="text-sm font-medium text-white">{folder.name}</h4>
-                              <p className="text-xs text-gray-500">{templateCount} template{templateCount !== 1 ? "s" : ""}</p>
+                              <p className="text-xs text-gray-500">{templateCount !== 1 ? t("admin.email.broadcast.templateCountPlural", { count: templateCount }) : t("admin.email.broadcast.templateCount", { count: templateCount })}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
@@ -820,7 +818,7 @@ export default function BroadcastModal({
               ) : (
                 <div className="text-center py-12">
                   <Folder className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-2">No folders yet</p>
+                  <p className="text-gray-500 mb-2">{t("admin.email.broadcast.noFoldersYet")}</p>
                 </div>
               )}
             </div>
@@ -832,7 +830,7 @@ export default function BroadcastModal({
                 className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium flex items-center justify-center gap-2 active:bg-orange-600"
               >
                 <FolderPlus className="w-4 h-4" />
-                New Folder
+                {t("admin.email.broadcast.newFolder")}
               </button>
             </div>
           </div>
@@ -855,13 +853,8 @@ export default function BroadcastModal({
                 <Check className="w-4 h-4 text-orange-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">Broadcast sent successfully!</p>
-                <p className="text-xs text-gray-400">
-                  Email sent to{" "}
-                  {lastSentInfo.memberCount > 0 && `${lastSentInfo.memberCount} studio${lastSentInfo.memberCount > 1 ? 's' : ''}`}
-                  {lastSentInfo.memberCount > 0 && lastSentInfo.staffCount > 0 && ' & '}
-                  {lastSentInfo.staffCount > 0 && `${lastSentInfo.staffCount} franchise${lastSentInfo.staffCount > 1 ? 's' : ''}`}
-                </p>
+                <p className="text-sm font-medium text-white">{t("admin.email.broadcast.broadcastSentSuccess")}</p>
+                <p className="text-xs text-gray-400">{t("admin.email.broadcast.sentTo", { count: lastSentInfo.memberCount + lastSentInfo.staffCount })}</p>
               </div>
               <button 
                 onClick={() => setShowSuccessMessage(false)}
@@ -876,10 +869,10 @@ export default function BroadcastModal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-white">Email Broadcast</h2>
+            <h2 className="text-lg font-semibold text-white">{t("admin.email.broadcast.title")}</h2>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-xs font-medium">
               <Mail className="w-3.5 h-3.5" />
-              Email
+              {t("admin.email.broadcast.email")}
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
@@ -891,24 +884,24 @@ export default function BroadcastModal({
           {/* Left Sidebar */}
           <div className="w-56 border-r border-gray-800/50 p-3 flex flex-col">
             <div className="flex-1">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-2">Sections</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-2">{t("admin.email.broadcast.sections")}</p>
               <div className="space-y-1">
                 <button onClick={() => setActiveSection("compose")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "compose" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                  <Send className="w-4 h-4" />Compose
+                  <Send className="w-4 h-4" />{t("admin.email.broadcast.compose")}
                 </button>
                 <button onClick={() => setActiveSection("templates")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "templates" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                  <FileText className="w-4 h-4" />Templates<span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-lg">{currentTemplates.length}</span>
+                  <FileText className="w-4 h-4" />{t("admin.email.broadcast.templates")}<span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-lg">{currentTemplates.length}</span>
                 </button>
                 <button onClick={() => setActiveSection("folders")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${activeSection === "folders" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                  <Folder className="w-4 h-4" />Folders<span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-lg">{currentFolders.length}</span>
+                  <Folder className="w-4 h-4" />{t("admin.email.broadcast.folders")}<span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-lg">{currentFolders.length}</span>
                 </button>
               </div>
             </div>
 
             <div className="mt-auto pt-4 border-t border-gray-800/50">
               <div className="bg-[#1a1a1a] rounded-xl p-3 space-y-2">
-                <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Recipients</span><span className="text-white font-medium">{selectedRecipients.length}</span></div>
-                <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Template</span><span className={selectedTemplate ? "text-white" : "text-gray-500"}>{selectedTemplate ? "Selected" : "None"}</span></div>
+                <div className="flex items-center justify-between text-xs"><span className="text-gray-500">{t("admin.email.broadcast.recipients")}</span><span className="text-white font-medium">{selectedRecipients.length}</span></div>
+                <div className="flex items-center justify-between text-xs"><span className="text-gray-500">{t("admin.email.broadcast.template")}</span><span className={selectedTemplate ? "text-white" : "text-gray-500"}>{selectedTemplate ? t("admin.email.broadcast.selectedStatus") : t("admin.email.broadcast.noneStatus")}</span></div>
               </div>
             </div>
           </div>
@@ -920,24 +913,24 @@ export default function BroadcastModal({
                 {/* Recipients Panel */}
                 <div className="w-80 border-r border-gray-800/50 flex flex-col">
                   <div className="p-4 border-b border-gray-800/50">
-                    <h3 className="text-sm font-medium text-white mb-3">Select Recipients</h3>
+                    <h3 className="text-sm font-medium text-white mb-3">{t("admin.email.broadcast.selectRecipients")}</h3>
                     <div className="flex bg-[#1a1a1a] rounded-xl p-1 mb-3">
                       <button onClick={() => setAudienceTab("member")} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${audienceTab === "member" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}>
-                        <User className="w-3.5 h-3.5" />Studio
+                        <User className="w-3.5 h-3.5" />{t("admin.email.broadcast.studio")}
                       </button>
                       <button onClick={() => setAudienceTab("staff")} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${audienceTab === "staff" ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}>
-                        <Building2 className="w-3.5 h-3.5" />Franchise
+                        <Building2 className="w-3.5 h-3.5" />{t("admin.email.broadcast.franchise")}
                       </button>
                     </div>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                      <input type="text" value={searchMember} onChange={(e) => setSearchMember(e.target.value)} placeholder={audienceTab === "staff" ? "Search franchises..." : "Search studios..."} className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50" />
+                      <input type="text" value={searchMember} onChange={(e) => setSearchMember(e.target.value)} placeholder={audienceTab === "staff" ? t("admin.email.broadcast.searchFranchisesPlaceholder") : t("admin.email.broadcast.searchStudiosPlaceholder")} className="w-full bg-[#1a1a1a] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50" />
                     </div>
                   </div>
                   <div className="px-4 py-2 border-b border-gray-800/50 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">{visibleRecipientList.length} available</span>
+                    <span className="text-xs text-gray-400">{t("admin.email.broadcast.available", { count: visibleRecipientList.length })}</span>
                     <button onClick={handleSelectAll} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
-                      {selectAll ? <><X className="w-3 h-3" />Deselect All</> : <><Check className="w-3 h-3" />Select All</>}
+                      {selectAll ? <><X className="w-3 h-3" />{t("admin.email.broadcast.deselectAll")}</> : <><Check className="w-3 h-3" />{t("admin.email.broadcast.selectAll")}</>}
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-2">
@@ -963,7 +956,7 @@ export default function BroadcastModal({
                 <div ref={templatePanelRef} className="flex-1 flex flex-col p-4 overflow-y-auto">
                   {selectedRecipients.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-xs text-gray-500 mb-2">{selectedRecipients.length} recipient{selectedRecipients.length > 1 ? "s" : ""} selected</p>
+                      <p className="text-xs text-gray-500 mb-2">{t("admin.email.broadcast.recipientsSelected", { count: selectedRecipients.length })}</p>
                       <div className="flex flex-wrap gap-2">
                         {selectedRecipients.slice(0, 8).map((recipient) => (
                           <div key={recipient.id} className="flex items-center gap-2 bg-[#1a1a1a] rounded-lg px-2.5 py-1.5">
@@ -972,13 +965,13 @@ export default function BroadcastModal({
                             <button onClick={() => removeRecipient(recipient)} className="p-0.5 hover:bg-white/10 rounded transition-colors"><X className="w-3 h-3 text-gray-400" /></button>
                           </div>
                         ))}
-                        {selectedRecipients.length > 8 && <div className="flex items-center px-2.5 py-1.5 bg-[#1a1a1a] rounded-lg"><span className="text-xs text-gray-400">+{selectedRecipients.length - 8} more</span></div>}
+                        {selectedRecipients.length > 8 && <div className="flex items-center px-2.5 py-1.5 bg-[#1a1a1a] rounded-lg"><span className="text-xs text-gray-400">{t("admin.email.broadcast.more", { count: selectedRecipients.length - 8 })}</span></div>}
                       </div>
                     </div>
                   )}
 
                   <div className="mb-4">
-                    <label className="text-xs text-gray-500 mb-2 block">Select Folder</label>
+                    <label className="text-xs text-gray-500 mb-2 block">{t("admin.email.broadcast.selectFolder")}</label>
                     <select value={selectedFolder?.id || ""} onChange={(e) => { 
                       const value = e.target.value;
                       if (value === "") {
@@ -995,8 +988,8 @@ export default function BroadcastModal({
 
                   <div className="flex-1 mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs text-gray-500">Select Template</label>
-                      <button onClick={() => handleOpenTemplateModal()} className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"><Plus className="w-3 h-3" />New Template</button>
+                      <label className="text-xs text-gray-500">{t("admin.email.broadcast.selectTemplateLbl")}</label>
+                      <button onClick={() => handleOpenTemplateModal()} className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"><Plus className="w-3 h-3" />{t("admin.email.broadcast.newTemplate")}</button>
                     </div>
                     <div ref={templateListRef} className="bg-[#1a1a1a] rounded-xl max-h-64 overflow-y-auto">
                       {currentTemplates.length > 0 ? currentTemplates.map((template) => {
@@ -1043,15 +1036,15 @@ export default function BroadcastModal({
                       }) : (
                         <div className="p-8 text-center">
                           <FileText className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">No templates found</p>
-                          <button onClick={() => handleOpenTemplateModal()} className="mt-2 text-xs text-orange-400 hover:text-orange-300">Create your first template</button>
+                          <p className="text-sm text-gray-500">{t("admin.email.broadcast.noTemplatesFound")}</p>
+                          <button onClick={() => handleOpenTemplateModal()} className="mt-2 text-xs text-orange-400 hover:text-orange-300">{t("admin.email.broadcast.createFirstTemplate")}</button>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <button onClick={handleBroadcastClick} disabled={!canSend} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${canSend ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}>
-                    <Send className="w-4 h-4" />Send Email{getSendButtonText()}
+                    <Send className="w-4 h-4" />{t("admin.email.broadcast.sendEmail")}{getSendButtonText()}
                   </button>
                 </div>
               </div>
@@ -1060,8 +1053,8 @@ export default function BroadcastModal({
             {activeSection === "templates" && (
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-white">Email Templates</h3>
-                  <button onClick={() => handleOpenTemplateModal()} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"><Plus className="w-4 h-4" />New Template</button>
+                  <h3 className="text-lg font-medium text-white">{t("admin.email.broadcast.emailTemplates")}</h3>
+                  <button onClick={() => handleOpenTemplateModal()} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"><Plus className="w-4 h-4" />{t("admin.email.broadcast.newTemplate")}</button>
                 </div>
                 <div className="mb-4">
                   <select value={selectedFolder?.id || ""} onChange={(e) => { 
@@ -1102,15 +1095,15 @@ export default function BroadcastModal({
                     )
                   })}
                 </div>
-                {currentTemplates.length === 0 && <div className="text-center py-12"><FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" /><p className="text-gray-500 mb-2">No templates yet</p><button onClick={() => handleOpenTemplateModal()} className="text-sm text-orange-400 hover:text-orange-300">Create your first template</button></div>}
+                {currentTemplates.length === 0 && <div className="text-center py-12"><FileText className="w-12 h-12 text-gray-700 mx-auto mb-3" /><p className="text-gray-500 mb-2">{t("admin.email.broadcast.noTemplatesYet")}</p><button onClick={() => handleOpenTemplateModal()} className="text-sm text-orange-400 hover:text-orange-300">{t("admin.email.broadcast.createFirstTemplate")}</button></div>}
               </div>
             )}
 
             {activeSection === "folders" && (
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-white">Email Folders</h3>
-                  <button onClick={() => handleOpenFolderModal()} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"><FolderPlus className="w-4 h-4" />New Folder</button>
+                  <h3 className="text-lg font-medium text-white">{t("admin.email.broadcast.emailFolders")}</h3>
+                  <button onClick={() => handleOpenFolderModal()} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"><FolderPlus className="w-4 h-4" />{t("admin.email.broadcast.newFolder")}</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {currentFolders.map((folder) => {
@@ -1122,7 +1115,7 @@ export default function BroadcastModal({
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${folder.color || '#3B82F6'}20` }}>
                               <Folder className="w-5 h-5" style={{ color: folder.color || '#3B82F6' }} />
                             </div>
-                            <div><h4 className="text-sm font-medium text-white">{folder.name}</h4><p className="text-xs text-gray-500">{templateCount} template{templateCount !== 1 ? "s" : ""}</p></div>
+                            <div><h4 className="text-sm font-medium text-white">{folder.name}</h4><p className="text-xs text-gray-500">{templateCount !== 1 ? t("admin.email.broadcast.templateCountPlural", { count: templateCount }) : t("admin.email.broadcast.templateCount", { count: templateCount })}</p></div>
                           </div>
                           <div data-folder-dropdown>
                             <button onClick={(e) => handleDropdownClick(e, folder.id, 'folder')} className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors">
@@ -1134,7 +1127,7 @@ export default function BroadcastModal({
                     )
                   })}
                 </div>
-                {currentFolders.length === 0 && <div className="text-center py-12"><Folder className="w-12 h-12 text-gray-700 mx-auto mb-3" /><p className="text-gray-500 mb-2">No folders yet</p><button onClick={() => handleOpenFolderModal()} className="text-sm text-orange-400 hover:text-orange-300">Create your first folder</button></div>}
+                {currentFolders.length === 0 && <div className="text-center py-12"><Folder className="w-12 h-12 text-gray-700 mx-auto mb-3" /><p className="text-gray-500 mb-2">{t("admin.email.broadcast.noFoldersYet")}</p><button onClick={() => handleOpenFolderModal()} className="text-sm text-orange-400 hover:text-orange-300">{t("admin.email.broadcast.createFirstFolder")}</button></div>}
               </div>
             )}
           </div>
@@ -1143,15 +1136,15 @@ export default function BroadcastModal({
         {/* Portal Dropdowns */}
         {templateDropdownOpen && (
           <div className="absolute bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-xl py-1 z-[200] min-w-[120px]" style={{ top: dropdownPosition.top, left: dropdownPosition.left }} data-template-dropdown>
-            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleOpenTemplateModal(template) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> Edit</button>
-            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleDeleteTemplate(template) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> Delete</button>
+            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleOpenTemplateModal(template) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> {t("common.edit")}</button>
+            <button onClick={(e) => { e.stopPropagation(); const templateId = typeof templateDropdownOpen === 'string' && templateDropdownOpen.startsWith('grid-') ? Number(templateDropdownOpen.replace('grid-', '')) : templateDropdownOpen; const template = currentTemplates.find(t => t.id === templateId); if (template) handleDeleteTemplate(template) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> {t("common.delete")}</button>
           </div>
         )}
 
         {folderDropdownOpen && (
           <div className="absolute bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-xl py-1 z-[200] min-w-[120px]" style={{ top: dropdownPosition.top, left: dropdownPosition.left }} data-folder-dropdown>
-            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleOpenFolderModal(folder) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> Edit</button>
-            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleDeleteFolder(folder) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> Delete</button>
+            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleOpenFolderModal(folder) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"><Edit size={14} /> {t("common.edit")}</button>
+            <button onClick={(e) => { e.stopPropagation(); const folder = currentFolders.find(f => f.id === folderDropdownOpen); if (folder) handleDeleteFolder(folder) }} className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"><Trash2 size={14} /> {t("common.delete")}</button>
           </div>
         )}
       </div>
@@ -1179,35 +1172,35 @@ export default function BroadcastModal({
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[10000] p-4">
           <div className="bg-[#0E0E0E] rounded-2xl w-full max-w-lg border border-gray-800/50 shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-              <h2 className="text-lg font-semibold text-white">Confirm Broadcast</h2>
+              <h2 className="text-lg font-semibold text-white">{t("admin.email.broadcast.confirmBroadcast")}</h2>
               <button onClick={() => setShowSendConfirmModal(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
 
             <div className="p-4 space-y-4">
-              <p className="text-gray-300">Are you sure you want to send this email broadcast?</p>
+              <p className="text-gray-300">{t("admin.email.broadcast.confirmBroadcastMessage")}</p>
               
               <div className="bg-[#1a1a1a] rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Channel</span>
+                  <span className="text-sm text-gray-500">{t("admin.email.broadcast.channel")}</span>
                   <span className="text-sm text-white font-medium flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    Email
+                    {t("admin.email.broadcast.email")}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Recipients</span>
+                  <span className="text-sm text-gray-500">{t("admin.email.broadcast.recipients")}</span>
                   <span className="text-sm text-white font-medium">
-                    {memberCount > 0 && `${memberCount} studio${memberCount > 1 ? 's' : ''}`}
+                    {memberCount > 0 && (memberCount > 1 ? t("admin.email.broadcast.studioCountPlural", { count: memberCount }) : t("admin.email.broadcast.studioCount", { count: memberCount }))}
                     {memberCount > 0 && staffCount > 0 && ' & '}
-                    {staffCount > 0 && `${staffCount} franchise${staffCount > 1 ? 's' : ''}`}
+                    {staffCount > 0 && (staffCount > 1 ? t("admin.email.broadcast.franchiseCountPlural", { count: staffCount }) : t("admin.email.broadcast.franchiseCount", { count: staffCount }))}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Template</span>
+                  <span className="text-sm text-gray-500">{t("admin.email.broadcast.template")}</span>
                   <span className="text-sm text-white font-medium truncate max-w-[200px]">
                     {selectedTemplate?.name || selectedTemplate?.subject || t("admin.email.broadcast.untitledTemplate")}
                   </span>
@@ -1221,11 +1214,11 @@ export default function BroadcastModal({
 
             <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-800/50 bg-[#0a0a0a]">
               <button onClick={() => setShowSendConfirmModal(false)} className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] text-white text-sm font-medium rounded-xl transition-colors">
-                Cancel
+                {t("common.cancel")}
               </button>
               <button onClick={handleConfirmBroadcast} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-medium rounded-xl transition-all flex items-center gap-2">
                 <Send className="w-4 h-4" />
-                Send Now
+                {t("admin.email.broadcast.sendNow")}
               </button>
             </div>
           </div>

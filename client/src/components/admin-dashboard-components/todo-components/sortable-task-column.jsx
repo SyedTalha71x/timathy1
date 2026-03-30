@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, ChevronUp, ArrowUpDown, ArrowUp, ArrowDown, Pin } from 'lucide-react'
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { useTranslation } from "react-i18next"
 import SortableTaskCard from "./sortable-task-card"
 
 const SortableTaskColumn = ({
@@ -27,6 +28,7 @@ const SortableTaskColumn = ({
   onSortChange = () => {},
   onToggleSortOrder = () => {},
 }) => {
+  const { t } = useTranslation()
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
   const sortDropdownRef = useRef(null)
@@ -99,11 +101,11 @@ const SortableTaskColumn = ({
 
   // Sort options
   const sortOptions = [
-    { value: 'title', label: 'Title' },
-    { value: 'dueDate', label: 'Due Date' },
-    { value: 'tag', label: 'Tag' },
-    { value: 'recentlyAdded', label: 'Recently Added' },
-    { value: 'custom', label: 'Custom Order' }
+    { value: 'title', label: t("todo.sort.title") },
+    { value: 'dueDate', label: t("todo.sort.dueDate") },
+    { value: 'tag', label: t("todo.sort.tag") },
+    { value: 'recentlyAdded', label: t("todo.sort.recentlyAdded") },
+    { value: 'custom', label: t("todo.sort.customOrder") }
   ]
 
   const handleSortOptionClick = (sortBy) => {
@@ -123,7 +125,7 @@ const SortableTaskColumn = ({
   }
 
   // Get current sort label
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortSettings.sortBy)?.label || 'Custom Order'
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortSettings.sortBy)?.label || t("todo.sort.customOrder")
 
   // Determine which arrow icon to show
   const getSortIcon = () => {
@@ -162,7 +164,7 @@ const SortableTaskColumn = ({
           <button
             onClick={() => onToggleCollapse(id)}
             className="text-gray-400 hover:text-white p-1 flex-shrink-0 transition-colors active:opacity-80"
-            title={isCollapsed ? "Expand section" : "Collapse section"}
+            title={isCollapsed ? t("todo.column.expandSection") : t("todo.column.collapseSection")}
           >
             {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
           </button>
@@ -173,7 +175,7 @@ const SortableTaskColumn = ({
               ref={sortButtonRef}
               onClick={handleToggleDropdown}
               className="hidden md:flex text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg items-center gap-1 transition-colors"
-              title={`Sort by: ${currentSortLabel}`}
+              title={`${t("todo.sort.sortBy")}: ${currentSortLabel}`}
             >
               {getSortIcon()}
             </button>
@@ -210,7 +212,7 @@ const SortableTaskColumn = ({
         >
           <div className="py-1">
             <div className="px-3 py-2 text-xs text-gray-500 font-medium border-b border-gray-700">
-              Sort by
+              {t("todo.sort.sortBy")}
             </div>
             {sortOptions.map((option) => (
               <div
@@ -237,7 +239,6 @@ const SortableTaskColumn = ({
                       onToggleSortOrder()
                     }}
                     className="p-1 hover:bg-gray-700 rounded text-gray-400"
-                    title={`Change to ${sortSettings.sortOrder === 'asc' ? 'descending' : 'ascending'}`}
                   >
                     {sortSettings.sortOrder === 'asc' 
                       ? <ArrowUp size={14} /> 
@@ -255,7 +256,7 @@ const SortableTaskColumn = ({
                 }}
                 className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
               >
-                Close
+                {t("common.close")}
               </button>
             </div>
           </div>
@@ -276,7 +277,7 @@ const SortableTaskColumn = ({
                   <>
                     <div className="flex items-center gap-2 px-2 py-1">
                       <Pin size={12} className="text-amber-500 fill-amber-500" />
-                      <span className="text-xs text-amber-500 font-medium">Pinned</span>
+                      <span className="text-xs text-amber-500 font-medium">{t("todo.column.pinned")}</span>
                       <div className="flex-1 h-px bg-amber-500/30"></div>
                     </div>
                     {pinnedTasks.map((task, index) => (
@@ -341,7 +342,7 @@ const SortableTaskColumn = ({
                   ${isOver ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-700"}
                 `}
               >
-                {isOver ? "Drop here" : `No ${title.toLowerCase()} tasks`}
+                {isOver ? t("todo.column.dropHere") : t("todo.column.noTasks", { column: title.toLowerCase() })}
               </div>
             )}
           </SortableContext>

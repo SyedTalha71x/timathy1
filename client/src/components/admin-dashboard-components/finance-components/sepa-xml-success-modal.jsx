@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Download, CheckCircle, X } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function SepaXmlSuccessModal({ 
   isOpen, 
@@ -10,6 +11,8 @@ export default function SepaXmlSuccessModal({
   totalAmount,
   shouldAutoDownload = false
 }) {
+  const { t } = useTranslation();
+
   // Auto-download when modal opens if shouldAutoDownload is true
   useEffect(() => {
     if (isOpen && shouldAutoDownload) {
@@ -46,7 +49,7 @@ export default function SepaXmlSuccessModal({
               <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
             </div>
             <h3 className="text-white text-base sm:text-lg font-semibold truncate">
-              SEPA XML Generated
+              {t("admin.finances.sepaSuccess.title")}
             </h3>
           </div>
           <button
@@ -61,22 +64,22 @@ export default function SepaXmlSuccessModal({
         <div className="p-4 sm:p-6 space-y-4">
           <p className="text-gray-300 text-sm">
             {shouldAutoDownload 
-              ? "Your SEPA XML file has been generated and downloaded automatically."
-              : "Your SEPA XML file has been generated successfully and is ready for download."
+              ? t("admin.finances.sepaSuccess.autoDownloadMessage")
+              : t("admin.finances.sepaSuccess.readyMessage")
             }
           </p>
           
           <div className="bg-[#141414] rounded-lg p-3 sm:p-4 space-y-3">
             <div className="flex justify-between items-center gap-2 text-sm min-w-0">
-              <span className="text-gray-400 flex-shrink-0 whitespace-nowrap">File Name:</span>
+              <span className="text-gray-400 flex-shrink-0 whitespace-nowrap">{t("admin.finances.sepaSuccess.fileName")}:</span>
               <span className="text-white font-medium truncate text-right" title={fileName}>{fileName}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Transactions:</span>
-              <span className="text-white">{transactionCount} records</span>
+              <span className="text-gray-400">{t("admin.finances.sepaSuccess.transactions")}:</span>
+              <span className="text-white">{t("admin.finances.sepaSuccess.records", { count: transactionCount })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Total Amount:</span>
+              <span className="text-gray-400">{t("admin.finances.sepaSuccess.totalAmount")}:</span>
               <span className="text-green-500 font-medium">
                 {new Intl.NumberFormat('en-US', {
                   style: 'currency',
@@ -87,7 +90,7 @@ export default function SepaXmlSuccessModal({
           </div>
 
           <p className="text-gray-400 text-xs">
-            The XML file follows SEPA ISO 20022 standards and is ready for bank processing.
+            {t("admin.finances.sepaSuccess.isoNote")}
           </p>
         </div>
 
@@ -98,7 +101,7 @@ export default function SepaXmlSuccessModal({
               onClick={onClose}
               className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
             >
-              Close
+              {t("common.close")}
             </button>
           ) : (
             <>
@@ -106,15 +109,15 @@ export default function SepaXmlSuccessModal({
                 onClick={onClose}
                 className="flex-1 py-3 px-4 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
               >
-                Close
+                {t("common.close")}
               </button>
               <button
                 onClick={handleDownload}
                 className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Download XML</span>
-                <span className="sm:hidden">Download</span>
+                <span className="hidden sm:inline">{t("admin.finances.sepaSuccess.downloadXml")}</span>
+                <span className="sm:hidden">{t("admin.finances.sepaSuccess.download")}</span>
               </button>
             </>
           )}
