@@ -1,10 +1,11 @@
 const mongoose = require('mongoose')
 const AppointmentModel = require('../models/AppointmentModel');
-const { MemberModel } = require('../models/Discriminators');
+const { MemberModel, StaffModel } = require('../models/Discriminators');
 const StudioModel = require('../models/StudioModel');
 const ServiceModel = require('../models/ServiceModel')
 const { NotFoundError, UnAuthorizedError, BadRequestError } = require('../middleware/error/httpErrors');
 const LeadModel = require('../models/LeadModel');
+const { notifyUser } = require('../utils/NotificationService');
 
 // createAppointment
 
@@ -44,16 +45,86 @@ const createAppointment = async (req, res, next) => {
             status = "completed";
             view = 'past';
         }
-        const appointment = await AppointmentModel.create({
-            member: userId,
-            studio: studioId,
-            serviceId: serviceId,
-            date,
-            timeSlot: timeSlotId,
-            view,
-            // notes,
-            status
-        })
+        // SINGLE BOOKING
+        if (bookingType === "single") {
+            const appointment = await AppointmentModel.create({
+                member: memberId,
+                studio: studioId,
+                serviceId: serviceId,
+                date,
+                timeSlot: timeSlotId,
+                view,
+                bookingType: "single",
+                status,
+            });
+
+            await MemberModel.findByIdAndUpdate(memberId, {
+                $push: { appointments: appointment._id },
+            });
+
+            serviceData.contingentUsage -= 1;
+            await serviceData.save();
+
+            return res.status(201).json({
+                success: true,
+                appointment,
+            });
+        }
+
+        // RECURRING BOOKING
+        if (bookingType === "recurring") {
+            if (!frequency || !occurrences)
+                throw new BadRequestError("Missing recurring details");
+
+            // const recurringGroupId = new mongoose.Types.ObjectId();
+            let appointments = [];
+            let currentDate = new Date(date);
+
+            for (let i = 0; i < occurrences; i++) {
+                appointments.push({
+                    member: memberId,
+                    studio: studioId,
+                    serviceId: serviceId,
+                    date: new Date(currentDate),
+                    timeSlot: timeSlotId,
+                    view,
+                    bookingType: "recurring",
+                    frequency,
+                    occurrences,
+                    // recurringGroupId,
+                    status,
+                });
+
+                if (frequency === "daily")
+                    currentDate.setDate(currentDate.getDate() + 1);
+
+                if (frequency === "weekly")
+                    currentDate.setDate(currentDate.getDate() + 7);
+
+                if (frequency === "monthly")
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+
+            const createdAppointments =
+                await AppointmentModel.insertMany(appointments);
+
+            await MemberModel.findByIdAndUpdate(memberId, {
+                $push: {
+                    appointments: {
+                        $each: createdAppointments.map(a => a._id),
+                    },
+                },
+            });
+            if (serviceData.contingentUsage < occurrences)
+                throw new BadRequestError("No remaining contingent");
+            serviceData.contingentUsage -= occurrences;
+            await serviceData.save();
+
+            return res.status(201).json({
+                success: true,
+                appointments: createdAppointments,
+            });
+        }
 
         await MemberModel.findByIdAndUpdate(userId, {
             $push: { appointments: appointment._id }
@@ -61,8 +132,10 @@ const createAppointment = async (req, res, next) => {
 
         serviceData.contingentUsage -= 1;
         await serviceData.save();
+        const members = await MemberModel.find(userId, { email: 1 });
+        const emails = members.map(m => m.email);
 
-
+        await notifyUser(userId, emails, "Appointment Booked", `Your appointment for ${serviceData.name} on ${date} has been booked successfully.`, 'appointment_booked')
         return res.status(201).json({
             success: true,
             appointment
@@ -196,7 +269,9 @@ const createAppointmentByStaff = async (req, res, next) => {
 
             serviceData.contingentUsage -= 1;
             await serviceData.save();
-
+            const members = await MemberModel.find(memberId, { email: 1 });
+            const emails = members.map(m => m.email);
+            await notifyUser(memberId, emails, "Appointment Booked", `You appointment ${appointment._id} on ${new Date(appointment.date).toLocaleDateString()} booked by staff.`, 'appointment-booked');
             return res.status(201).json({
                 success: true,
                 appointment,
@@ -252,11 +327,15 @@ const createAppointmentByStaff = async (req, res, next) => {
             serviceData.contingentUsage -= occurrences;
             await serviceData.save();
 
+            const members = await MemberModel.find(memberId, { email: 1 });
+            const emails = members.map(m => m.email);
+            await notifyUser(memberId, emails, "Appointment Booked", `Your upcoming appointments ${createdAppointments._id} are created  by staff.`, 'appointment-booked');
             return res.status(201).json({
                 success: true,
                 appointments: createdAppointments,
             });
         }
+
 
     } catch (error) {
         next(error);
@@ -387,7 +466,13 @@ const cancelAppointment = async (req, res, next) => {
         appointment.status = "canceled";
         appointment.view = "past";
         await appointment.save();
+        const members = await AppointmentModel.find({ members })
 
+        const member = await MemberModel.find(members, { email: 1 })
+        const emails = member.map(m => m.email)
+
+
+        await notifyUser(member, emails, "Appointment canceled", `You ${appointment._id} appointment has been canceled by staff.`, 'appointment-canceled');
         return res.status(200).json({
             message: "Appointment successfully canceled",
             appointment,
@@ -446,7 +531,7 @@ const appointmentByMemberId = async (req, res, next) => {
 };
 
 
-// update appointment
+
 // update appointment
 const updateAppointmentById = async (req, res, next) => {
     try {
@@ -543,15 +628,67 @@ const deleteAppointmentById = async (req, res, next) => {
 }
 
 
-// const approvedAppointment = async (req, res, next) => {
-//     try {
+const approvedAppointment = async (req, res, next) => {
+    try {
+        const { appointmentId } = req.params
+        const userId = req.user?._id
 
-//     }
-//     catch (error) {
-//         next(error)
-//     }
-// }
+        const appointment = await AppointmentModel.findById(appointmentId)
+        if (!appointment) throw new NotFoundError("Invalid Appointment Id")
 
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, {
+            $set: { status: "approved", view: "upcoming", approvedBy: userId }
+        }, { new: true })
+
+        return res.status(200).json({
+            success: true,
+            appointment: updatedAppointment
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+const rejectedAppointment = async (req, res, next) => {
+    try {
+        const { appointmentId } = req.params
+        const userId = req.user?._id
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+        if (!appointment) throw new NotFoundError("Invalid Appointment Id")
+
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, {
+            $set: { status: "rejected", view: "canceled", rejectedBy: userId }
+        }, { new: true })
+
+        return res.status(200).json({
+            success: true,
+            appointment: updatedAppointment
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+
+const getAllPendingAppointment = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const studioId = req.user?.studio
+        const appointment = await AppointmentModel.find({ studio: studioId, status: 'pending' })
+
+        if (appointment.length === 0) throw new NotFoundError("No Appointment Found")
+        return res.status(200).json({
+            success: true,
+            count: appointment.length,
+            appointment: appointment
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
 
 module.exports = {
     createAppointment,
@@ -563,5 +700,8 @@ module.exports = {
     createBlockedAppointment,
     createBookingTrailByStaff,
     updateAppointmentById,
-    deleteAppointmentById
+    deleteAppointmentById,
+    getAllPendingAppointment,
+    approvedAppointment,
+    rejectedAppointment
 }

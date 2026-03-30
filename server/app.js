@@ -74,10 +74,7 @@ const initializeCronJobs = async () => {
     console.log('Cron jobs initialized successfully');
 };
 
-// Export app but don't start cron jobs if in test environment
-if (process.env.NODE_ENV !== 'test') {
-    initializeCronJobs();
-}
 
 
-module.exports = app 
+
+module.exports = {app, initializeCronJobs }; 

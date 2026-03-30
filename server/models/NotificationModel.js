@@ -11,7 +11,29 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['info', "success", "warning", "error", "appointment", "Birthday"],
+        enum: [
+            'info',
+            "success",
+            "warning",
+            "error",
+            "today-appointment",
+            'contract-expiration',
+            'appointment-request',
+            'contract-paused',
+            'memberData-changed',
+            'bankData-changed',
+            'email-error',
+            'vacation-request',
+            'studio-chat',
+            'member-chat',
+            "Birthday",
+            'appointment-booked',
+            'appointment-canceled',
+            'bookingTrail',
+            'classCancellation',
+            'enrolled_in_class',
+            'removed_from_class'
+        ],
         default: 'info'
     },
     read: {

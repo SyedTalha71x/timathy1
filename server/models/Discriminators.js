@@ -174,7 +174,11 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
     profileUpdateRejectedReason: {
         type: String,
         default: null
-    }
+    },
+    classes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'classes'
+    }]
 
 }))
 
@@ -284,7 +288,10 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'SepaMandate'
     }],
-
+    classes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'classes'
+    }]
 }))
 
 module.exports = { AdminModel, MemberModel, StaffModel }

@@ -21,7 +21,7 @@ import medicalReducer from '../features/medicalHistory/medicalHistorySlice'
 import websiteReducer from '../features/website/websiteSlice'
 import supportReducer from '../features/supportCenter/supportSlice'
 
-
+import classReducers from '../features/classes/classSlice'
 
 
 
@@ -49,6 +49,7 @@ export const store = configureStore({
         notes: noteReducer,
         medical: medicalReducer,
         website: websiteReducer,
-        support: supportReducer
+        support: supportReducer,
+        classes: classReducers
     }
 })
