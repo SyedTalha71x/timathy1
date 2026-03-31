@@ -37,9 +37,9 @@ const classSlice = createSlice({
 // &&&&&&&&&&&&&&&
 
             // get categories
-            .addCase()
+            // .addCase()
             // create category
-            .addCase()
+            // .addCase()
 
 
 
