@@ -177,7 +177,7 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "trial-training", label: "Trial Training" },
     ],
   },
-  {
+{
     id: "classes",
     label: "Classes",
     icon: Timer,
@@ -186,6 +186,7 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "classes-calendar-settings", label: "Calendar Settings" },
       { id: "class-types", label: "Class Types" },
       { id: "class-categories", label: "Categories" },
+      { id: "class-rooms", label: "Rooms" },
     ],
   },
   {
@@ -603,6 +604,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [classCategories, setClassCategories] = useState([])
   const [classCalendarSettings, setClassCalendarSettings] = useState({})
   const [editingClassCategory, setEditingClassCategory] = useState({ index: null, value: "" })
+  const [classRooms, setClassRooms] = useState(["Studio 1", "Studio 2", "Outdoor"])
+  const [editingClassRoom, setEditingClassRoom] = useState({ index: null, value: "" })
   const [showClassTypeModal, setShowClassTypeModal] = useState(false)
   const [editingClassType, setEditingClassType] = useState(null)
   const [classTypeForm, setClassTypeForm] = useState({
@@ -1852,6 +1855,39 @@ useEffect(() => {
     )
   }
 
+  // Room handlers
+  const handleAddClassRoom = () => {
+    openAddItemModal(
+      "Add Room",
+      [
+        { key: "name", label: "Room Name", type: "text", placeholder: "e.g. Studio 1, Outdoor Area", required: true },
+      ],
+      (data) => {
+        const duplicate = classRooms.find(r => r.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Room already exists")
+          return
+        }
+        setClassRooms([...classRooms, data.name])
+        closeAddItemModal()
+        toast.success("Room created")
+      }
+    )
+  }
+
+  const handleRemoveClassRoom = (index) => {
+    const room = classRooms[index]
+    openDeleteModal(
+      "Delete Room",
+      room,
+      "This cannot be undone.",
+      () => {
+        setClassRooms(classRooms.filter((_, i) => i !== index))
+        closeDeleteModal()
+        toast.success("Room deleted")
+      }
+    )
+  }
   // Contract handlers
   const handleAddContractType = () => {
     setEditingContractType({
@@ -2088,8 +2124,10 @@ useEffect(() => {
         return handleAddCategory
       case "class-types":
         return () => handleOpenClassTypeModal(null)
-      case "class-categories":
+  case "class-categories":
         return handleAddClassCategory
+      case "class-rooms":
+        return handleAddClassRoom
       case "staff-roles":
         return handleAddRole
       case "lead-sources":
@@ -3591,6 +3629,90 @@ useEffect(() => {
               </div>
               <p className="text-xs text-content-faint mt-4">
                 Click a category to edit. Categories in use cannot be deleted.
+              </p>
+            </SettingsCard>
+          </div>
+        )
+
+ case "class-rooms":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Rooms"
+              description="Manage rooms available for classes"
+              action={
+                <button
+                  onClick={handleAddClassRoom}
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Add</span> Room
+                </button>
+              }
+            />
+            <SettingsCard>
+              {classRooms.length === 0 ? (
+                <p className="text-sm text-content-muted text-center py-8">No rooms yet. Add your first room above.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {classRooms.map((room, index) => (
+                    <div key={index} className="group relative">
+                      {editingClassRoom.index === index ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={editingClassRoom.value}
+                            onChange={(e) => setEditingClassRoom({ ...editingClassRoom, value: e.target.value })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const updated = [...classRooms]
+                                updated[index] = editingClassRoom.value.trim() || room
+                                setClassRooms(updated)
+                                setEditingClassRoom({ index: null, value: "" })
+                              }
+                              if (e.key === 'Escape') setEditingClassRoom({ index: null, value: "" })
+                            }}
+                            autoFocus
+                            className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-40"
+                          />
+                          <button
+                            onClick={() => {
+                              const updated = [...classRooms]
+                              updated[index] = editingClassRoom.value.trim() || room
+                              setClassRooms(updated)
+                              setEditingClassRoom({ index: null, value: "" })
+                            }}
+                            className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingClassRoom({ index: null, value: "" })}
+                            className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
+                          onClick={() => setEditingClassRoom({ index, value: room })}
+                        >
+                          {room}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleRemoveClassRoom(index) }}
+                            className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-content-faint mt-4">
+                Click a room to edit. These rooms will be available when creating classes.
               </p>
             </SettingsCard>
           </div>
