@@ -5,7 +5,7 @@ import { FaInfoCircle, FaThumbtack, FaPlus } from 'react-icons/fa';
 import { ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink, Plus } from 'lucide-react';
 
 import ProductModal from '../../components/admin-dashboard-components/marketplace-components/ProductModal';
-import DeleteConfirmationModal from '../../components/admin-dashboard-components/marketplace-components/DeleteConfirmationModal';
+import DeleteModal from '../../components/shared/DeleteModal';
 import ProductInfoModal from '../../components/admin-dashboard-components/marketplace-components/ProductInfoModal';
 import { getTranslation, emptyTranslations } from '../../components/shared/LanguageTabs';
 
@@ -18,8 +18,9 @@ import {
 
 // ─── Admin Product Card ──────────────────────────────────────────────────────
 const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStatus, onInfo }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const productName = getTranslation(product.productName, "en");
+  const formattedPrice = Number(product.price).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
     <div className={`bg-[#2a2a2a] rounded-2xl overflow-hidden relative select-none ${!product.isActive ? 'opacity-60' : ''}`}>
@@ -73,7 +74,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
         <h3 className="text-base font-medium truncate mb-1">{productName}</h3>
         <p className="text-sm text-gray-300 mb-1">{product.brandName}</p>
         <p className="text-sm text-gray-400 mb-2">{t("admin.marketplace.card.articleNo")}: {product.articleNo}</p>
-        <p className="text-lg font-bold text-white">${product.price}</p>
+        <p className="text-lg font-bold text-white">{formattedPrice}</p>
 
         {/* Translation status indicator */}
         <div className="flex items-center gap-1 mt-2">
@@ -600,7 +601,13 @@ const Marketplace = () => {
         fileInputRef={fileInputRef}
       />
 
-      <DeleteConfirmationModal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} onConfirm={confirmDelete} productToDelete={productToDelete} />
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title={t("admin.marketplace.deleteModal.title")}
+        message={t("admin.marketplace.deleteModal.message", { name: productToDelete ? getTranslation(productToDelete.productName, "en") : '' })}
+      />
       <ProductInfoModal isOpen={isInfoModalOpen} onClose={closeInfoModal} productForInfo={productForInfo} onEditClick={openEditModal} />
     </>
   );

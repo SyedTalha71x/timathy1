@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Edit, Trash2, Save } from "lucide-react";
 import LanguageTabs, { LANGUAGES, getOptionName } from "../../shared/LanguageTabs";
+import { useTranslation } from "react-i18next";
 
 export default function ManageOptionsModal({
   isOpen,
@@ -32,15 +33,14 @@ export default function ManageOptionsModal({
   cancelEditing,
   onClose,
 }) {
+  const { t } = useTranslation();
   const [muscleLang, setMuscleLang] = useState("en");
   const [equipLang, setEquipLang] = useState("en");
 
   if (!isOpen) return null;
 
-  const muscleLangLabel =
-    LANGUAGES.find((l) => l.code === muscleLang)?.fullLabel || "English";
-  const equipLangLabel =
-    LANGUAGES.find((l) => l.code === equipLang)?.fullLabel || "English";
+  const muscleLangLabel = t(`languages.${muscleLang}`);
+  const equipLangLabel = t(`languages.${equipLang}`);
 
   const renderOptionRow = ({
     option,
@@ -61,6 +61,8 @@ export default function ManageOptionsModal({
     const isFallback = !displayName;
     const shownName = displayName || fallbackName;
 
+    const langLabel = t(`languages.${lang}`);
+
     return (
       <div
         key={option.id || index}
@@ -73,7 +75,7 @@ export default function ManageOptionsModal({
               value={editingValue}
               onChange={(e) => setEditingValue(e.target.value)}
               className="flex-1 bg-[#2F2F2F] rounded px-3 py-1 text-white text-sm border border-[#444444] outline-none"
-              placeholder={`${LANGUAGES.find((l) => l.code === lang)?.fullLabel} translation...`}
+              placeholder={t("admin.exercises.manageModal.translationPlaceholder", { language: langLabel })}
               onKeyDown={(e) => {
                 if (e.key === "Enter") onSave(lang);
                 if (e.key === "Escape") cancelEditing();
@@ -103,8 +105,7 @@ export default function ManageOptionsModal({
               </span>
               {isFallback && (
                 <span className="text-xs text-gray-600">
-                  no {LANGUAGES.find((l) => l.code === lang)?.fullLabel}{" "}
-                  translation
+                  {t("admin.exercises.manageModal.noTranslation", { language: langLabel })}
                 </span>
               )}
               {!isFallback &&
@@ -121,7 +122,7 @@ export default function ManageOptionsModal({
                 {LANGUAGES.map((l) => (
                   <span
                     key={l.code}
-                    title={`${l.fullLabel}: ${option.translations?.[l.code]?.trim() ? "✓" : "-"}`}
+                    title={`${t(`languages.${l.code}`)}: ${option.translations?.[l.code]?.trim() ? "✓" : "-"}`}
                     className={`w-1.5 h-1.5 rounded-full ${
                       option.translations?.[l.code]?.trim()
                         ? "bg-green-500"
@@ -158,7 +159,7 @@ export default function ManageOptionsModal({
         <div className="sticky top-0 bg-[#1C1C1C] z-10 px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b border-[#333333] flex-shrink-0 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-white">
-              Manage Exercise Options
+              {t("admin.exercises.manageModal.title")}
             </h2>
             <button
               onClick={() => {
@@ -177,7 +178,7 @@ export default function ManageOptionsModal({
             {/* Muscle Section */}
             <div className="space-y-4">
               <h3 className="text-base sm:text-lg font-semibold text-white">
-                Muscle Groups
+                {t("admin.exercises.manageModal.muscleGroups")}
               </h3>
 
               <LanguageTabs
@@ -194,7 +195,7 @@ export default function ManageOptionsModal({
                   type="text"
                   value={newMuscleGroup}
                   onChange={(e) => setNewMuscleGroup(e.target.value)}
-                  placeholder={`Add muscle group (${muscleLangLabel})...`}
+                  placeholder={t("admin.exercises.manageModal.addMusclePlaceholder", { language: muscleLangLabel })}
                   className="flex-1 bg-[#161616] rounded-xl px-4 py-2.5 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newMuscleGroup.trim())
@@ -206,7 +207,7 @@ export default function ManageOptionsModal({
                   disabled={!newMuscleGroup.trim()}
                   className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-xl text-white text-sm"
                 >
-                  Add
+                  {t("admin.exercises.manageModal.add")}
                 </button>
               </div>
 
@@ -214,7 +215,7 @@ export default function ManageOptionsModal({
               <div className="bg-[#161616] rounded-xl border border-[#333333] max-h-64 overflow-y-auto">
                 {muscleOptions.length === 0 ? (
                   <p className="text-gray-500 text-sm p-3 text-center">
-                    No muscle groups added yet.
+                    {t("admin.exercises.manageModal.noMuscles")}
                   </p>
                 ) : (
                   muscleOptions.map((muscle, index) =>
@@ -236,7 +237,9 @@ export default function ManageOptionsModal({
 
             {/* Equipment Section */}
             <div className="space-y-4">
-              <h3 className="text-base sm:text-lg font-semibold text-white">Equipment</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-white">
+                {t("admin.exercises.manageModal.equipment")}
+              </h3>
 
               <LanguageTabs
                 selectedLang={equipLang}
@@ -252,7 +255,7 @@ export default function ManageOptionsModal({
                   type="text"
                   value={newEquipment}
                   onChange={(e) => setNewEquipment(e.target.value)}
-                  placeholder={`Add equipment (${equipLangLabel})...`}
+                  placeholder={t("admin.exercises.manageModal.addEquipmentPlaceholder", { language: equipLangLabel })}
                   className="flex-1 bg-[#161616] rounded-xl px-4 py-2.5 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newEquipment.trim())
@@ -264,7 +267,7 @@ export default function ManageOptionsModal({
                   disabled={!newEquipment.trim()}
                   className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-xl text-white text-sm"
                 >
-                  Add
+                  {t("admin.exercises.manageModal.add")}
                 </button>
               </div>
 
@@ -272,7 +275,7 @@ export default function ManageOptionsModal({
               <div className="bg-[#161616] rounded-xl border border-[#333333] max-h-64 overflow-y-auto">
                 {equipmentOptions.length === 0 ? (
                   <p className="text-gray-500 text-sm p-3 text-center">
-                    No equipment added yet.
+                    {t("admin.exercises.manageModal.noEquipment")}
                   </p>
                 ) : (
                   equipmentOptions.map((equip, index) =>
@@ -304,7 +307,7 @@ export default function ManageOptionsModal({
               }}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white text-sm font-medium"
             >
-              Close
+              {t("common.close")}
             </button>
           </div>
         </div>

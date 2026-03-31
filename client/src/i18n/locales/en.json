@@ -47,7 +47,11 @@
     },
     "copy": "Copy",
     "no": "No",
-    "yes": "Yes"
+    "yes": "Yes",
+    "deleteModal": {
+      "messageWithItem": "Are you sure you want to delete",
+      "messageDefault": "Are you sure you want to delete this item?"
+    }
   },
   "languages": {
     "en": "English",
@@ -1024,6 +1028,49 @@
         "updated": "Product updated successfully!",
         "added": "Product added successfully!",
         "deleted": "Product deleted successfully!"
+      },
+      "modal": {
+        "titleEdit": "Edit Product",
+        "titleAdd": "Add New Product",
+        "language": "Language",
+        "langHint": "English is required. {{language}} is optional.",
+        "productPicture": "Product Picture",
+        "changePicture": "Change picture",
+        "removePicture": "Remove picture",
+        "clickToUpload": "Click to upload image",
+        "imageFormats": "PNG, JPG, WEBP",
+        "brandName": "Brand Name",
+        "brandNamePlaceholder": "Enter brand name",
+        "productName": "Product Name",
+        "productNamePlaceholder": "Enter product name",
+        "translationFor": "Translation for: \"{{name}}\"",
+        "enterTranslation": "Enter translation...",
+        "articleNo": "Article No",
+        "articleNoPlaceholder": "e.g. 555088-101",
+        "price": "Price",
+        "pricePlaceholder": "0.00",
+        "productLink": "Product Link",
+        "productLinkPlaceholder": "https://example.com/product",
+        "productInfo": "Product Info",
+        "productInfoPlaceholder": "Add additional information about the product...",
+        "productInfoTranslationPlaceholder": "Enter translation for the product info...",
+        "productStatus": "Product Status",
+        "productStatusHelp": "Toggle to activate/deactivate product",
+        "updateProduct": "Update Product"
+      },
+      "infoModal": {
+        "title": "Product Information",
+        "brand": "Brand:",
+        "articleNo": "Article No:",
+        "status": "Status:",
+        "showingFallback": "Showing English fallback",
+        "noInfo": "No additional information available",
+        "addInfo": "Add information",
+        "editProduct": "Edit Product"
+      },
+      "deleteModal": {
+        "title": "Delete Product",
+        "message": "Are you sure you want to delete \"{{name}}\"? All translations will be permanently removed. This action cannot be undone."
       }
     },
     "feedback": {
@@ -1583,7 +1630,7 @@
       "pinNote": "Pin Note",
       "selectNoteHint": "Select a note from the list to view its contents",
       "showLess": "Show Less",
-      "showMore": "Show More",
+      "showMore": "+{{count}} more",
       "sort": {
         "custom": "Custom",
         "date": "Date",
@@ -1591,7 +1638,11 @@
       },
       "startWriting": "Start writing...",
       "tags": "Tags",
-      "unpinNote": "Unpin Note"
+      "unpinNote": "Unpin Note",
+      "deleteModal": {
+        "title": "Delete Note",
+        "message": "Are you sure you want to delete the note \"{{title}}\"? This action cannot be undone."
+      }
     },
     "leads": {
       "title": "Leads",
@@ -1812,7 +1863,62 @@
       "allLevels": "All Levels",
       "noResults": "No exercises found",
       "translations": "Translations",
-      "uploadExercise": "Upload Exercise"
+      "uploadExercise": "Upload Exercise",
+      "deleteModal": {
+        "title": "Delete Exercise",
+        "subtitle": "This action cannot be undone",
+        "message": "Are you sure you want to delete \"{{name}}\"? All associated data and translations will be permanently removed."
+      },
+      "form": {
+        "titleCreate": "Upload New Exercise",
+        "titleEdit": "Edit Exercise",
+        "language": "Language",
+        "langHint": "English is required. {{language}} is optional.",
+        "exerciseName": "Exercise Name",
+        "exerciseNamePlaceholder": "Enter exercise name...",
+        "translationFor": "Translation for: \"{{name}}\"",
+        "enterTranslation": "Enter translation...",
+        "description": "Description",
+        "descriptionPlaceholder": "Describe the exercise...",
+        "descriptionTranslationPlaceholder": "Enter translation for the description...",
+        "difficultyLevel": "Difficulty Level",
+        "exerciseVideo": "Exercise Video",
+        "thumbnailImage": "Thumbnail Image",
+        "optional": "Optional",
+        "targetMuscles": "Target Muscles",
+        "selectedCount": "{{count}} selected",
+        "equipmentNeeded": "Equipment Needed",
+        "selectedMuscles": "Selected Muscles:",
+        "selectedEquipment": "Selected Equipment:",
+        "none": "None",
+        "saveChanges": "Save Changes"
+      },
+      "manageModal": {
+        "title": "Manage Exercise Options",
+        "muscleGroups": "Muscle Groups",
+        "equipment": "Equipment",
+        "addMusclePlaceholder": "Add muscle group ({{language}})...",
+        "addEquipmentPlaceholder": "Add equipment ({{language}})...",
+        "add": "Add",
+        "noMuscles": "No muscle groups added yet.",
+        "noEquipment": "No equipment added yet.",
+        "noTranslation": "no {{language}} translation",
+        "translationPlaceholder": "{{language}} translation..."
+      },
+      "view": {
+        "exerciseInfo": "Exercise Information",
+        "description": "Description:",
+        "difficulty": "Difficulty:",
+        "duration": "Duration:",
+        "uploaded": "Uploaded:",
+        "uploadedBy": "Uploaded by:",
+        "showingFallback": "Showing English fallback",
+        "musclesAndEquipment": "Target Muscles & Equipment",
+        "targetMuscles": "Target Muscles",
+        "equipmentNeeded": "Equipment Needed",
+        "editExercise": "Edit Exercise",
+        "browserNotSupported": "Your browser does not support the video tag."
+      }
     },
     "customers": {
       "title": "Studios",
@@ -2884,7 +2990,27 @@
           "title": "SMTP Settings",
           "useSSL": "Use SSL"
         },
-        "variables": "Variables"
+        "variables": "Variables",
+        "variableLabels": {
+          "Access_Link": "Access Link",
+          "Studio_Name": "Studio Name",
+          "Studio_Owner_First_Name": "Owner First Name",
+          "Studio_Owner_Last_Name": "Owner Last Name",
+          "Email_For_Access": "Email for Access",
+          "Email_For_Registration": "Email for Registration",
+          "Registration_Link": "Registration Link",
+          "Expiry_Date": "Expiry Date"
+        },
+        "variableValues": {
+          "Access_Link": "{Access_Link}",
+          "Studio_Name": "{Studio_Name}",
+          "Studio_Owner_First_Name": "{Studio_Owner_First_Name}",
+          "Studio_Owner_Last_Name": "{Studio_Owner_Last_Name}",
+          "Email_For_Access": "{Email_For_Access}",
+          "Email_For_Registration": "{Email_For_Registration}",
+          "Registration_Link": "{Registration_Link}",
+          "Expiry_Date": "{Expiry_Date}"
+        }
       },
       "contact": {
         "address": "Address",
@@ -2943,7 +3069,49 @@
         "unknown": "Unknown",
         "untitled": "Untitled",
         "week": "Week",
-        "year": "Year"
+        "year": "Year",
+        "contractTypeModal": {
+          "titleEdit": "Edit Contract Type",
+          "titleCreate": "New Contract Type",
+          "contractName": "Contract Name",
+          "contractNameTooltip": "The name of this contract type that members will see when signing up",
+          "contractNamePlaceholder": "e.g., Premium Membership",
+          "cost": "Cost",
+          "costTooltip": "The price charged to the member per billing period (weekly, monthly, or annually)",
+          "minimumDuration": "Minimum Duration",
+          "minimumDurationTooltip": "The minimum commitment period. After this period, the contract can be renewed or terminated.",
+          "months": "months",
+          "billingPeriod": "Billing Period",
+          "billingPeriodTooltip": "How often the member is charged. The cost above is charged once per billing period.",
+          "weekly": "Weekly",
+          "monthly": "Monthly",
+          "annually": "Annually",
+          "accessTemplate": "Access Template",
+          "accessTemplateTooltip": "Link an access template to this contract type. Members with this contract will automatically receive the permissions defined in the selected template.",
+          "noAccessTemplates": "No access templates available.",
+          "noAccessTemplatesHint": "Create access templates in the \"Access Templates\" section first.",
+          "noTemplateLinked": "No template linked",
+          "selectAccessTemplate": "Select an access template...",
+          "contractForm": "Contract Form",
+          "contractFormTooltip": "The document template used when a member signs this contract. Create forms in the 'Contract Forms' section.",
+          "noContractForms": "No contract forms available.",
+          "noContractFormsHint": "Please create a contract form first in the \"Contract Forms\" section.",
+          "selectForm": "Select a form...",
+          "noticePeriod": "Notice Period",
+          "noticePeriodTooltip": "How many days before the contract end date the member must cancel. After this deadline, the contract will auto-renew (if enabled).",
+          "daysBeforeEnd": "days before end",
+          "autoRenewal": "Automatic Renewal",
+          "autoRenewalHelp": "Contract continues automatically after the minimum duration ends",
+          "renewalDuration": "Renewal Duration",
+          "renewalDurationTooltip": "How long the contract continues after the minimum duration. Choose 'Indefinite' for an open-ended contract that runs until cancelled.",
+          "fixedPeriod": "Fixed period",
+          "indefinite": "Indefinite",
+          "days": "Days",
+          "weeks": "Weeks",
+          "priceAfterRenewal": "Price After Renewal",
+          "priceAfterRenewalTooltip": "The new price per billing period after the contract renews.",
+          "select": "Select..."
+        }
       },
       "legal": {
         "description": "Manage your legal documents",
@@ -2965,7 +3133,8 @@
         "noLeadSources": "No lead sources defined",
         "source": "Source",
         "sourceNamePlaceholder": "Enter source name...",
-        "thisSource": "this source"
+        "thisSource": "this source",
+        "addLeadSource": "Add Source"
       },
       "select": "Select",
       "selectSection": "Select a section",
@@ -2990,6 +3159,30 @@
         "title": "Permission Templates",
         "togglePermissions": "Toggle Permissions",
         "unnamedTemplate": "Unnamed Template"
+      },
+      "nav": {
+        "account": "Account",
+        "platform": "Platform",
+        "contracts": "Contracts",
+        "resources": "Resources",
+        "communication": "Communication",
+        "changelog": "Changelog",
+        "access": "Access Templates",
+        "sections": {
+          "accounts": "Account Settings",
+          "contact-info": "Contact Information",
+          "legal-info": "Legal",
+          "contract-forms": "Contract Forms",
+          "contract-types": "Contract Types",
+          "pause-reasons": "Pause Reasons",
+          "lead-sources": "Lead Sources",
+          "demo-email": "Access Email",
+          "registration-email": "Registration Email",
+          "email-signature": "Email Signature",
+          "smtp-setup": "SMTP Settings",
+          "version-history": "Changelog",
+          "demo-templates": "Permission Templates"
+        }
       }
     },
     "header": {

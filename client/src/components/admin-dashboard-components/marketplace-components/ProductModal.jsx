@@ -4,15 +4,52 @@ import React, { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { X, Upload, Trash2, Link, Image } from 'lucide-react';
 import LanguageTabs, { LANGUAGES, emptyTranslations } from '../../shared/LanguageTabs';
+import { useTranslation } from 'react-i18next';
 
 const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, handleInputChange, handleImageUpload, handleRemovePicture, handleSubmit, triggerFileInput, fileInputRef }) => {
+  const { t, i18n } = useTranslation();
   const [formLang, setFormLang] = useState("en");
+  const [priceDisplay, setPriceDisplay] = useState("");
 
   if (!isOpen) return null;
 
-  const currentLangLabel = LANGUAGES.find((l) => l.code === formLang)?.fullLabel || "English";
+  // Format price for display based on current language
+  const formatPriceForDisplay = (value) => {
+    if (!value && value !== 0) return ""
+    return Number(value).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  }
 
-  // Helper to update a translated field (productName / infoText)
+  // Parse locale-formatted price string to number
+  const parsePriceInput = (input) => {
+    if (!input) return ""
+    // Replace comma with dot for parsing (handles both DE "29,99" and EN "29.99")
+    const cleaned = input.replace(/[^\d,.]/g, "").replace(",", ".")
+    return cleaned
+  }
+
+  const handlePriceChange = (e) => {
+    const raw = e.target.value
+    setPriceDisplay(raw)
+    const parsed = parsePriceInput(raw)
+    handleInputChange({ target: { name: "price", value: parsed } })
+  }
+
+  const handlePriceFocus = () => {
+    // Show raw number on focus for easy editing
+    setPriceDisplay(formData.price ? String(formData.price).replace(".", i18n.language === "en" ? "." : ",") : "")
+  }
+
+  const handlePriceBlur = () => {
+    // Format on blur
+    const num = parseFloat(parsePriceInput(priceDisplay))
+    if (!isNaN(num)) {
+      setPriceDisplay(formatPriceForDisplay(num))
+    }
+  }
+
+  const currentLangLabel = t(`languages.${formLang}`);
+  const mp = "admin.marketplace.modal";
+
   const handleTranslatedField = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -30,7 +67,7 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
         <div className="sticky top-0 bg-[#1C1C1C] z-10 px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-[#333333] flex-shrink-0 rounded-t-2xl sm:rounded-t-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-white">
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
+              {editingProduct ? t(`${mp}.titleEdit`) : t(`${mp}.titleAdd`)}
             </h2>
             <button
               onClick={() => { onClose(); setFormLang("en"); }}
@@ -44,7 +81,7 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
         <form onSubmit={handleSubmit} className="px-5 sm:px-6 pb-5 sm:pb-6 pt-4 flex-1 overflow-y-auto">
           {/* Language Tabs */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Language</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">{t(`${mp}.language`)}</label>
             <LanguageTabs
               selectedLang={formLang}
               onSelect={setFormLang}
@@ -52,23 +89,23 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
             />
             {formLang !== "en" && (
               <p className="text-xs text-gray-500 mt-1.5">
-                English is required. {currentLangLabel} is optional.
+                {t(`${mp}.langHint`, { language: currentLangLabel })}
               </p>
             )}
           </div>
 
           {/* Picture Upload */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-3">Product Picture</label>
+            <label className="block text-sm font-medium text-gray-300 mb-3">{t(`${mp}.productPicture`)}</label>
             <div className="relative w-full h-36 sm:h-44 bg-[#2a2a2a] rounded-2xl overflow-hidden border-2 border-dashed border-[#444444] hover:border-gray-500 transition-colors group">
               {formData.picturePreview ? (
                 <>
                   <img src={formData.picturePreview} alt="Product preview" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                    <button type="button" onClick={triggerFileInput} className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-xl transition-colors" title="Change picture">
+                    <button type="button" onClick={triggerFileInput} className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-xl transition-colors" title={t(`${mp}.changePicture`)}>
                       <Upload size={18} />
                     </button>
-                    <button type="button" onClick={handleRemovePicture} className="bg-red-500/30 hover:bg-red-500/50 backdrop-blur-sm text-white p-3 rounded-xl transition-colors" title="Remove picture">
+                    <button type="button" onClick={handleRemovePicture} className="bg-red-500/30 hover:bg-red-500/50 backdrop-blur-sm text-white p-3 rounded-xl transition-colors" title={t(`${mp}.removePicture`)}>
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -76,8 +113,8 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
               ) : (
                 <button type="button" onClick={triggerFileInput} className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer">
                   <div className="bg-[#3a3a3a] p-3 rounded-xl"><Image size={24} className="text-gray-400" /></div>
-                  <span className="text-gray-400 text-sm font-medium">Click to upload image</span>
-                  <span className="text-gray-600 text-xs">PNG, JPG, WEBP</span>
+                  <span className="text-gray-400 text-sm font-medium">{t(`${mp}.clickToUpload`)}</span>
+                  <span className="text-gray-600 text-xs">{t(`${mp}.imageFormats`)}</span>
                 </button>
               )}
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="product-image-upload" ref={fileInputRef} />
@@ -87,14 +124,14 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
           <div className="space-y-4">
             {/* Brand Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Brand Name</label>
-              <input type="text" name="brandName" value={formData.brandName} onChange={handleInputChange} required className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder="Enter brand name" />
+              <label className="block text-sm font-medium text-gray-300 mb-2">{t(`${mp}.brandName`)}</label>
+              <input type="text" name="brandName" value={formData.brandName} onChange={handleInputChange} required className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder={t(`${mp}.brandNamePlaceholder`)} />
             </div>
 
             {/* Product Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Product Name {formLang === "en" ? "*" : `(${currentLangLabel})`}
+                {t(`${mp}.productName`)} {formLang === "en" ? "*" : `(${currentLangLabel})`}
               </label>
               <input
                 type="text"
@@ -104,10 +141,10 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
                 className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
                 placeholder={
                   formLang === "en"
-                    ? "Enter product name"
+                    ? t(`${mp}.productNamePlaceholder`)
                     : typeof formData.productName === "object" && formData.productName?.en
-                      ? `Translation for: "${formData.productName.en}"`
-                      : "Enter translation..."
+                      ? t(`${mp}.translationFor`, { name: formData.productName.en })
+                      : t(`${mp}.enterTranslation`)
                 }
               />
               {formLang !== "en" && typeof formData.productName === "object" && formData.productName?.en && (
@@ -118,28 +155,39 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
             {/* Article No & Price */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Article No</label>
-                <input type="text" name="articleNo" value={formData.articleNo} onChange={handleInputChange} required className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder="e.g. 555088-101" />
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t(`${mp}.articleNo`)}</label>
+                <input type="text" name="articleNo" value={formData.articleNo} onChange={handleInputChange} required className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder={t(`${mp}.articleNoPlaceholder`)} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Price ($)</label>
-                <input type="number" name="price" value={formData.price} onChange={handleInputChange} required min="0" step="0.01" className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder="0.00" />
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t(`${mp}.price`)}</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  name="price"
+                  value={priceDisplay || (formData.price ? formatPriceForDisplay(formData.price) : "")}
+                  onChange={handlePriceChange}
+                  onFocus={handlePriceFocus}
+                  onBlur={handlePriceBlur}
+                  required
+                  className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                  placeholder={t(`${mp}.pricePlaceholder`)}
+                />
               </div>
             </div>
 
             {/* Product Link */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Product Link</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">{t(`${mp}.productLink`)}</label>
               <div className="relative">
                 <Link size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input type="url" name="link" value={formData.link} onChange={handleInputChange} className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 pl-10 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder="https://example.com/product" />
+                <input type="url" name="link" value={formData.link} onChange={handleInputChange} className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 pl-10 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" placeholder={t(`${mp}.productLinkPlaceholder`)} />
               </div>
             </div>
 
             {/* Product Info */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Product Info {formLang !== "en" ? `(${currentLangLabel})` : ""}
+                {t(`${mp}.productInfo`)} {formLang !== "en" ? `(${currentLangLabel})` : ""}
               </label>
               <textarea
                 value={typeof formData.infoText === "object" ? (formData.infoText?.[formLang] || "") : formData.infoText}
@@ -148,10 +196,10 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
                 className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors resize-none"
                 placeholder={
                   formLang === "en"
-                    ? "Add additional information about the product..."
+                    ? t(`${mp}.productInfoPlaceholder`)
                     : typeof formData.infoText === "object" && formData.infoText?.en
-                      ? "Enter translation for the product info..."
-                      : "Enter translation..."
+                      ? t(`${mp}.productInfoTranslationPlaceholder`)
+                      : t(`${mp}.enterTranslation`)
                 }
               />
               {formLang !== "en" && typeof formData.infoText === "object" && formData.infoText?.en && (
@@ -162,13 +210,13 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
             {/* Active/Inactive Toggle */}
             <div className="flex items-center justify-between pt-4 border-t border-[#333333]">
               <div>
-                <label htmlFor="isActive" className="text-sm font-medium text-gray-300">Product Status</label>
-                <p className="text-xs text-gray-500">Toggle to activate/deactivate product</p>
+                <label htmlFor="isActive" className="text-sm font-medium text-gray-300">{t(`${mp}.productStatus`)}</label>
+                <p className="text-xs text-gray-500">{t(`${mp}.productStatusHelp`)}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="isActive" name="isActive" checked={formData.isActive} onChange={handleInputChange} className="sr-only peer" />
                 <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                <span className="ml-3 text-sm text-gray-300">{formData.isActive ? 'Active' : 'Inactive'}</span>
+                <span className="ml-3 text-sm text-gray-300">{formData.isActive ? t('common.active') : t('common.inactive')}</span>
               </label>
             </div>
           </div>
@@ -176,10 +224,10 @@ const ProductModal = ({ isOpen, onClose, editingProduct, formData, setFormData, 
           {/* Action Buttons */}
           <div className="flex gap-3 mt-6">
             <button type="button" onClick={() => { onClose(); setFormLang("en"); }} className="flex-1 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm">
-              Cancel
+              {t("common.cancel")}
             </button>
             <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm flex items-center justify-center gap-2">
-              {editingProduct ? 'Update Product' : (<><FaPlus size={12} /><span>Add Product</span></>)}
+              {editingProduct ? t(`${mp}.updateProduct`) : (<><FaPlus size={12} /><span>{t("admin.marketplace.addProduct")}</span></>)}
             </button>
           </div>
         </form>

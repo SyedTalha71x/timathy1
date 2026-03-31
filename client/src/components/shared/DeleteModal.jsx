@@ -1,21 +1,22 @@
 /* eslint-disable react/prop-types */
 import { X, Trash2, AlertTriangle } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 // =============================================================================
 // SHARED DELETE CONFIRMATION MODAL
 // =============================================================================
-// Used by: configuration.jsx (all delete actions), and any future delete flows
+// Used by: configuration.jsx (all delete actions), admin-notes.jsx, and any future delete flows
 //
 // INTERFACE:
 //   isOpen:        boolean — controls visibility
 //   onClose:       () => void — called when modal is dismissed (Cancel / X / backdrop)
 //   onConfirm:     () => void — called when user confirms the delete
-//   title:         string (optional) — modal title, defaults to "Delete Item"
+//   title:         string (optional) — modal title, defaults to t("common.delete")
 //   itemName:      string (optional) — the name of the item being deleted (highlighted)
 //   message:       string|JSX (optional) — primary message body
 //   description:   string|JSX (optional) — secondary description (e.g. consequences)
-//   confirmText:   string (optional) — confirm button label, defaults to "Delete"
-//   cancelText:    string (optional) — cancel button label, defaults to "Cancel"
+//   confirmText:   string (optional) — confirm button label, defaults to t("common.delete")
+//   cancelText:    string (optional) — cancel button label, defaults to t("common.cancel")
 //   variant:       "danger" | "warning" (optional) — visual style, defaults to "danger"
 // =============================================================================
 
@@ -23,15 +24,22 @@ const DeleteModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = "Delete Item",
+  title,
   itemName,
   message,
   description,
-  confirmText = "Delete",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   variant = "danger",
 }) => {
+  const { t } = useTranslation()
+
   if (!isOpen) return null
+
+  // Apply translated defaults
+  const resolvedTitle = title || t("common.delete")
+  const resolvedConfirmText = confirmText || t("common.delete")
+  const resolvedCancelText = cancelText || t("common.cancel")
 
   const isDanger = variant === "danger"
   const iconBg = isDanger ? "bg-red-500/20" : "bg-amber-500/20"
@@ -53,16 +61,16 @@ const DeleteModal = ({
 
     return (
       <p className="text-content-muted text-sm">
-        Are you sure you want to delete{" "}
         {itemName ? (
           <>
+            {t("common.deleteModal.messageWithItem", { defaultValue: "Are you sure you want to delete" })}{" "}
             <span className="text-content-primary font-semibold">
               &quot;{itemName}&quot;
             </span>
             ?
           </>
         ) : (
-          "this item?"
+          t("common.deleteModal.messageDefault", { defaultValue: "Are you sure you want to delete this item?" })
         )}
       </p>
     )
@@ -92,7 +100,7 @@ const DeleteModal = ({
               <Icon size={20} className={iconColor} />
             </div>
             <h2 className="text-lg font-semibold text-content-primary">
-              {title}
+              {resolvedTitle}
             </h2>
           </div>
           <button
@@ -118,7 +126,7 @@ const DeleteModal = ({
             onClick={handleClose}
             className="w-full sm:w-auto px-5 py-2.5 bg-surface-button text-sm font-medium text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
-            {cancelText}
+            {resolvedCancelText}
           </button>
 
           <button
@@ -126,7 +134,7 @@ const DeleteModal = ({
             className={`w-full sm:w-auto px-5 py-2.5 ${btnBg} text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center gap-2`}
           >
             <Trash2 className="w-4 h-4" />
-            {confirmText}
+            {resolvedConfirmText}
           </button>
         </div>
       </div>

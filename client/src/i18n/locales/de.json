@@ -47,7 +47,11 @@
     },
     "copy": "Kopieren",
     "no": "Nein",
-    "yes": "Ja"
+    "yes": "Ja",
+    "deleteModal": {
+      "messageWithItem": "Möchtest du wirklich löschen",
+      "messageDefault": "Möchtest du dieses Element wirklich löschen?"
+    }
   },
   "languages": {
     "en": "Englisch",
@@ -1024,6 +1028,49 @@
         "updated": "Produkt erfolgreich aktualisiert!",
         "added": "Produkt erfolgreich hinzugefügt!",
         "deleted": "Produkt erfolgreich gelöscht!"
+      },
+      "modal": {
+        "titleEdit": "Produkt bearbeiten",
+        "titleAdd": "Neues Produkt hinzufügen",
+        "language": "Sprache",
+        "langHint": "Englisch ist erforderlich. {{language}} ist optional.",
+        "productPicture": "Produktbild",
+        "changePicture": "Bild ändern",
+        "removePicture": "Bild entfernen",
+        "clickToUpload": "Klicken zum Hochladen",
+        "imageFormats": "PNG, JPG, WEBP",
+        "brandName": "Markenname",
+        "brandNamePlaceholder": "Markennamen eingeben",
+        "productName": "Produktname",
+        "productNamePlaceholder": "Produktnamen eingeben",
+        "translationFor": "Übersetzung für: \"{{name}}\"",
+        "enterTranslation": "Übersetzung eingeben...",
+        "articleNo": "Artikelnr.",
+        "articleNoPlaceholder": "z. B. 555088-101",
+        "price": "Preis",
+        "pricePlaceholder": "0,00",
+        "productLink": "Produktlink",
+        "productLinkPlaceholder": "https://beispiel.de/produkt",
+        "productInfo": "Produktinfo",
+        "productInfoPlaceholder": "Zusätzliche Informationen zum Produkt hinzufügen...",
+        "productInfoTranslationPlaceholder": "Übersetzung für die Produktinfo eingeben...",
+        "productStatus": "Produktstatus",
+        "productStatusHelp": "Produkt aktivieren/deaktivieren",
+        "updateProduct": "Produkt aktualisieren"
+      },
+      "infoModal": {
+        "title": "Produktinformationen",
+        "brand": "Marke:",
+        "articleNo": "Artikelnr.:",
+        "status": "Status:",
+        "showingFallback": "Zeigt englischen Fallback",
+        "noInfo": "Keine zusätzlichen Informationen verfügbar",
+        "addInfo": "Information hinzufügen",
+        "editProduct": "Produkt bearbeiten"
+      },
+      "deleteModal": {
+        "title": "Produkt löschen",
+        "message": "Möchtest du \"{{name}}\" wirklich löschen? Alle Übersetzungen werden dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
       }
     },
     "feedback": {
@@ -1583,7 +1630,7 @@
       "pinNote": "Notiz anheften",
       "selectNoteHint": "Wählen Sie eine Notiz aus der Liste, um den Inhalt anzuzeigen",
       "showLess": "Weniger anzeigen",
-      "showMore": "Mehr anzeigen",
+      "showMore": "+{{count}} weitere",
       "sort": {
         "custom": "Benutzerdefiniert",
         "date": "Datum",
@@ -1591,7 +1638,11 @@
       },
       "startWriting": "Beginnen Sie zu schreiben...",
       "tags": "Tags",
-      "unpinNote": "Notiz lösen"
+      "unpinNote": "Notiz lösen",
+      "deleteModal": {
+        "title": "Notiz löschen",
+        "message": "Möchtest du die Notiz \"{{title}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+      }
     },
     "leads": {
       "title": "Leads",
@@ -1812,7 +1863,62 @@
       "allLevels": "Alle Stufen",
       "noResults": "Keine Übungen gefunden",
       "translations": "Übersetzungen",
-      "uploadExercise": "Übung hochladen"
+      "uploadExercise": "Übung hochladen",
+      "deleteModal": {
+        "title": "Übung löschen",
+        "subtitle": "Diese Aktion kann nicht rückgängig gemacht werden",
+        "message": "Möchtest du \"{{name}}\" wirklich löschen? Alle zugehörigen Daten und Übersetzungen werden dauerhaft entfernt."
+      },
+      "form": {
+        "titleCreate": "Neue Übung hochladen",
+        "titleEdit": "Übung bearbeiten",
+        "language": "Sprache",
+        "langHint": "Englisch ist erforderlich. {{language}} ist optional.",
+        "exerciseName": "Übungsname",
+        "exerciseNamePlaceholder": "Übungsname eingeben...",
+        "translationFor": "Übersetzung für: \"{{name}}\"",
+        "enterTranslation": "Übersetzung eingeben...",
+        "description": "Beschreibung",
+        "descriptionPlaceholder": "Übung beschreiben...",
+        "descriptionTranslationPlaceholder": "Übersetzung für die Beschreibung eingeben...",
+        "difficultyLevel": "Schwierigkeitsgrad",
+        "exerciseVideo": "Übungsvideo",
+        "thumbnailImage": "Vorschaubild",
+        "optional": "Optional",
+        "targetMuscles": "Zielmuskeln",
+        "selectedCount": "{{count}} ausgewählt",
+        "equipmentNeeded": "Benötigtes Equipment",
+        "selectedMuscles": "Ausgewählte Muskeln:",
+        "selectedEquipment": "Ausgewähltes Equipment:",
+        "none": "Keines",
+        "saveChanges": "Änderungen speichern"
+      },
+      "manageModal": {
+        "title": "Übungsoptionen verwalten",
+        "muscleGroups": "Muskelgruppen",
+        "equipment": "Equipment",
+        "addMusclePlaceholder": "Muskelgruppe hinzufügen ({{language}})...",
+        "addEquipmentPlaceholder": "Equipment hinzufügen ({{language}})...",
+        "add": "Hinzufügen",
+        "noMuscles": "Noch keine Muskelgruppen hinzugefügt.",
+        "noEquipment": "Noch kein Equipment hinzugefügt.",
+        "noTranslation": "keine {{language}} Übersetzung",
+        "translationPlaceholder": "{{language}} Übersetzung..."
+      },
+      "view": {
+        "exerciseInfo": "Übungsinformationen",
+        "description": "Beschreibung:",
+        "difficulty": "Schwierigkeit:",
+        "duration": "Dauer:",
+        "uploaded": "Hochgeladen:",
+        "uploadedBy": "Hochgeladen von:",
+        "showingFallback": "Zeigt englischen Fallback",
+        "musclesAndEquipment": "Zielmuskeln & Equipment",
+        "targetMuscles": "Zielmuskeln",
+        "equipmentNeeded": "Benötigtes Equipment",
+        "editExercise": "Übung bearbeiten",
+        "browserNotSupported": "Dein Browser unterstützt das Video-Tag nicht."
+      }
     },
     "customers": {
       "title": "Studios",
@@ -2771,8 +2877,8 @@
         "createContractFormFirst": "Bitte zuerst ein Vertragsformular erstellen",
         "selectContractForm": "Bitte ein Vertragsformular auswählen",
         "enterName": "Bitte einen Namen eingeben",
-        "fillChangelogFields": "Bitte füllen Sie alle Changelog-Felder aus",
-        "fillSmtpFields": "Bitte füllen Sie alle SMTP-Felder aus"
+        "fillChangelogFields": "Bitte fülle alle Changelog-Felder aus",
+        "fillSmtpFields": "Bitte fülle alle SMTP-Felder aus"
       },
       "accounts": {
         "addAccount": "Konto hinzufügen",
@@ -2797,7 +2903,7 @@
         "newAccount": "Neues Konto",
         "newPassword": "Neues Passwort",
         "noTeamAccounts": "Keine Teamkonten",
-        "noTeamAccountsDesc": "Fügen Sie Teammitglieder hinzu",
+        "noTeamAccountsDesc": "Füge Teammitglieder hinzu",
         "passwordFair": "Ausreichend",
         "passwordGood": "Gut",
         "passwordStrong": "Stark",
@@ -2807,7 +2913,7 @@
         "primaryAdmin": "Hauptadministrator",
         "profile": "Profil",
         "removeAccount": "Konto entfernen",
-        "removeAccountConfirm": "Sind Sie sicher, dass Sie dieses Konto entfernen möchten?",
+        "removeAccountConfirm": "Möchtest du das Konto von {{name}} wirklich entfernen?",
         "repeatPassword": "Passwort wiederholen",
         "savePassword": "Passwort speichern",
         "securityTip1": "Mindestens 8 Zeichen verwenden",
@@ -2826,14 +2932,14 @@
         "addEntry": "Eintrag hinzufügen",
         "addNewEntry": "Neuen Eintrag hinzufügen",
         "deleteEntry": "Eintrag löschen",
-        "deleteEntryConfirm": "Sind Sie sicher, dass Sie diesen Changelog-Eintrag löschen möchten?",
-        "description": "Changelog-Einträge für Ihre Plattform verwalten",
+        "deleteEntryConfirm": "Möchtest du den Eintrag \"{{version}}\" wirklich löschen?",
+        "description": "Changelog-Einträge für deine Plattform verwalten",
         "details": "Details",
         "detailsPlaceholder": "Changelog-Details eingeben...",
         "entries": "Einträge",
         "noDate": "Kein Datum",
         "noEntries": "Keine Changelog-Einträge",
-        "noEntriesDesc": "Erstellen Sie Ihren ersten Changelog-Eintrag",
+        "noEntriesDesc": "Erstelle deinen ersten Changelog-Eintrag",
         "releaseDate": "Veröffentlichungsdatum",
         "thisEntry": "diesen Eintrag",
         "title": "Changelog",
@@ -2883,7 +2989,27 @@
           "title": "SMTP-Einstellungen",
           "useSSL": "SSL verwenden"
         },
-        "variables": "Variablen"
+        "variables": "Variablen",
+        "variableLabels": {
+          "Access_Link": "Zugangslink",
+          "Studio_Name": "Studioname",
+          "Studio_Owner_First_Name": "Vorname Inhaber",
+          "Studio_Owner_Last_Name": "Nachname Inhaber",
+          "Email_For_Access": "E-Mail für Zugang",
+          "Email_For_Registration": "E-Mail für Registrierung",
+          "Registration_Link": "Registrierungslink",
+          "Expiry_Date": "Ablaufdatum"
+        },
+        "variableValues": {
+          "Access_Link": "{Zugangslink}",
+          "Studio_Name": "{Studio-Name}",
+          "Studio_Owner_First_Name": "{Inhaber_Vorname}",
+          "Studio_Owner_Last_Name": "{Inhaber_Nachname}",
+          "Email_For_Access": "{E-Mail_für_Zugang}",
+          "Email_For_Registration": "{E-Mail_für_Registrierung}",
+          "Registration_Link": "{Registrierungslink}",
+          "Expiry_Date": "{Ablaufdatum}"
+        }
       },
       "contact": {
         "address": "Adresse",
@@ -2905,18 +3031,18 @@
           "title": "Vertragsformulare"
         },
         "contractTypes": {
-          "description": "Verfügbare Vertragstypen definieren",
-          "title": "Vertragstypen"
+          "description": "Verfügbare Vertragsarten definieren",
+          "title": "Vertragsarten"
         },
         "createContractForm": "Vertragsformular erstellen",
-        "createContractType": "Vertragstyp erstellen",
+        "createContractType": "Vertragsart erstellen",
         "createForm": "Formular erstellen",
         "deleteContractForm": "Vertragsformular löschen",
-        "deleteContractFormConfirm": "Sind Sie sicher, dass Sie dieses Vertragsformular löschen möchten?",
-        "deleteContractType": "Vertragstyp löschen",
-        "deleteContractTypeConfirm": "Sind Sie sicher, dass Sie diesen Vertragstyp löschen möchten?",
+        "deleteContractFormConfirm": "Möchtest du dieses Vertragsformular wirklich löschen?",
+        "deleteContractType": "Vertragsart löschen",
+        "deleteContractTypeConfirm": "Möchtest du die Vertragsart \"{{name}}\" wirklich löschen?",
         "deletePauseReason": "Pausengrund löschen",
-        "deletePauseReasonConfirm": "Sind Sie sicher, dass Sie diesen Pausengrund löschen möchten?",
+        "deletePauseReasonConfirm": "Möchtest du den Pausengrund \"{{name}}\" wirklich löschen?",
         "desktopRequired": "Desktop erforderlich",
         "desktopRequiredDesc": "Der Vertragsformular-Editor ist nur auf dem Desktop verfügbar",
         "duration": "Laufzeit",
@@ -2924,9 +3050,9 @@
         "form": "Formular",
         "month": "Monat",
         "noContractForms": "Keine Vertragsformulare",
-        "noContractFormsDesc": "Erstellen Sie Ihr erstes Vertragsformular",
-        "noContractTypes": "Keine Vertragstypen",
-        "noContractTypesDesc": "Erstellen Sie Ihren ersten Vertragstyp",
+        "noContractFormsDesc": "Erstelle dein erstes Vertragsformular",
+        "noContractTypes": "Keine Vertragsarten",
+        "noContractTypesDesc": "Erstelle deine erste Vertragsart",
         "noPauseReasons": "Keine Pausengründe definiert",
         "none": "Keine",
         "openBuilder": "Editor öffnen",
@@ -2942,7 +3068,49 @@
         "unknown": "Unbekannt",
         "untitled": "Ohne Titel",
         "week": "Woche",
-        "year": "Jahr"
+        "year": "Jahr",
+        "contractTypeModal": {
+          "titleEdit": "Vertragsart bearbeiten",
+          "titleCreate": "Neue Vertragsart",
+          "contractName": "Vertragsname",
+          "contractNameTooltip": "Der Name dieser Vertragsart, den Mitglieder bei der Anmeldung sehen",
+          "contractNamePlaceholder": "z. B. Premium-Mitgliedschaft",
+          "cost": "Kosten",
+          "costTooltip": "Der Preis, der dem Mitglied pro Abrechnungszeitraum berechnet wird (wöchentlich, monatlich oder jährlich)",
+          "minimumDuration": "Mindestlaufzeit",
+          "minimumDurationTooltip": "Die Mindestvertragslaufzeit. Nach Ablauf kann der Vertrag verlängert oder gekündigt werden.",
+          "months": "Monate",
+          "billingPeriod": "Abrechnungszeitraum",
+          "billingPeriodTooltip": "Wie oft dem Mitglied berechnet wird. Die oben genannten Kosten fallen einmal pro Abrechnungszeitraum an.",
+          "weekly": "Wöchentlich",
+          "monthly": "Monatlich",
+          "annually": "Jährlich",
+          "accessTemplate": "Zugangsvorlage",
+          "accessTemplateTooltip": "Verknüpfe eine Zugangsvorlage mit dieser Vertragsart. Mitglieder mit diesem Vertrag erhalten automatisch die in der gewählten Vorlage definierten Berechtigungen.",
+          "noAccessTemplates": "Keine Zugangsvorlagen verfügbar.",
+          "noAccessTemplatesHint": "Erstelle zuerst Zugangsvorlagen im Bereich \"Zugangsvorlagen\".",
+          "noTemplateLinked": "Keine Vorlage verknüpft",
+          "selectAccessTemplate": "Zugangsvorlage auswählen...",
+          "contractForm": "Vertragsformular",
+          "contractFormTooltip": "Die Dokumentvorlage, die verwendet wird, wenn ein Mitglied diesen Vertrag unterschreibt. Formulare können im Bereich 'Vertragsformulare' erstellt werden.",
+          "noContractForms": "Keine Vertragsformulare verfügbar.",
+          "noContractFormsHint": "Bitte erstelle zuerst ein Vertragsformular im Bereich \"Vertragsformulare\".",
+          "selectForm": "Formular auswählen...",
+          "noticePeriod": "Kündigungsfrist",
+          "noticePeriodTooltip": "Wie viele Tage vor Vertragsende das Mitglied kündigen muss. Nach Ablauf dieser Frist verlängert sich der Vertrag automatisch (falls aktiviert).",
+          "daysBeforeEnd": "Tage vor Ende",
+          "autoRenewal": "Automatische Verlängerung",
+          "autoRenewalHelp": "Vertrag verlängert sich automatisch nach Ablauf der Mindestlaufzeit",
+          "renewalDuration": "Verlängerungsdauer",
+          "renewalDurationTooltip": "Wie lange der Vertrag nach der Mindestlaufzeit weiterläuft. Wähle 'Unbefristet' für einen unbegrenzten Vertrag bis zur Kündigung.",
+          "fixedPeriod": "Fester Zeitraum",
+          "indefinite": "Unbefristet",
+          "days": "Tage",
+          "weeks": "Wochen",
+          "priceAfterRenewal": "Preis nach Verlängerung",
+          "priceAfterRenewalTooltip": "Der neue Preis pro Abrechnungszeitraum nach Vertragsverlängerung.",
+          "select": "Auswählen..."
+        }
       },
       "legal": {
         "description": "Rechtliche Dokumente verwalten",
@@ -2956,7 +3124,7 @@
       },
       "resources": {
         "deleteLeadSource": "Lead-Quelle löschen",
-        "deleteLeadSourceConfirm": "Sind Sie sicher, dass Sie diese Lead-Quelle löschen möchten?",
+        "deleteLeadSourceConfirm": "Möchtest du die Quelle \"{{name}}\" wirklich löschen?",
         "leadSources": {
           "description": "Lead-Quellen für das Tracking verwalten",
           "title": "Lead-Quellen"
@@ -2964,7 +3132,8 @@
         "noLeadSources": "Keine Lead-Quellen definiert",
         "source": "Quelle",
         "sourceNamePlaceholder": "Quellenname eingeben...",
-        "thisSource": "diese Quelle"
+        "thisSource": "diese Quelle",
+        "addLeadSource": "Quelle hinzufügen"
       },
       "select": "Auswählen",
       "selectSection": "Bereich auswählen",
@@ -2979,9 +3148,9 @@
         "memberViewPermissions": "Mitglieder-Ansicht Berechtigungen",
         "newTemplate": "Neue Vorlage",
         "noTemplates": "Keine Vorlagen",
-        "noTemplatesDesc": "Erstellen Sie Ihre erste Berechtigungsvorlage",
+        "noTemplatesDesc": "Erstelle deine erste Berechtigungsvorlage",
         "removeTemplate": "Vorlage entfernen",
-        "removeTemplateConfirm": "Sind Sie sicher, dass Sie diese Vorlage entfernen möchten?",
+        "removeTemplateConfirm": "Möchtest du diese Vorlage wirklich entfernen?",
         "studioView": "Studio-Ansicht",
         "studioViewPermissions": "Studio-Ansicht Berechtigungen",
         "templateDescription": "Vorlagenbeschreibung",
@@ -2989,6 +3158,30 @@
         "title": "Berechtigungsvorlagen",
         "togglePermissions": "Berechtigungen umschalten",
         "unnamedTemplate": "Unbenannte Vorlage"
+      },
+      "nav": {
+        "account": "Konto",
+        "platform": "Plattform",
+        "contracts": "Verträge",
+        "resources": "Ressourcen",
+        "communication": "Kommunikation",
+        "changelog": "Änderungsprotokoll",
+        "access": "Zugangsvorlagen",
+        "sections": {
+          "accounts": "Kontoeinstellungen",
+          "contact-info": "Kontaktinformationen",
+          "legal-info": "Rechtliches",
+          "contract-forms": "Vertragsformulare",
+          "contract-types": "Vertragsarten",
+          "pause-reasons": "Pausengründe",
+          "lead-sources": "Lead-Quellen",
+          "demo-email": "Zugangs-E-Mail",
+          "registration-email": "Registrierungs-E-Mail",
+          "email-signature": "E-Mail-Signatur",
+          "smtp-setup": "SMTP-Einstellungen",
+          "version-history": "Änderungsprotokoll",
+          "demo-templates": "Berechtigungsvorlagen"
+        }
       }
     },
     "header": {

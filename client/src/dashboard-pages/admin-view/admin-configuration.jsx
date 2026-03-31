@@ -14,7 +14,6 @@ import {
   PauseCircle,
   Mail,
 
-  Upload,
   ChevronRight,
   ChevronDown,
   ChevronLeft,
@@ -42,15 +41,15 @@ import {
   Clock,
 } from "lucide-react"
 import { RiContractLine } from "react-icons/ri"
-import { Modal, ColorPicker } from "antd"
+import { ColorPicker } from "antd"
 import dayjs from "dayjs"
 
 
-import defaultLogoUrl from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
 import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
 import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
+import DeleteModal from "../../components/shared/DeleteModal"
 import LanguageTabs, { emptyTranslations } from "../../components/shared/LanguageTabs"
 
 import { useTranslation } from "react-i18next"
@@ -351,9 +350,9 @@ const navigationItems = CONFIGURATION_NAV_ITEMS.map(item => {
       // Insert contract-forms right before contract-types (or at the beginning)
       const typeIndex = mapped.sections.findIndex(s => s.id === "contract-types")
       if (typeIndex >= 0) {
-        mapped.sections.splice(typeIndex, 0, { id: "contract-forms", label: "Contract Forms" })
+        mapped.sections.splice(typeIndex, 0, { id: "contract-forms", labelKey: "admin.configuration.contracts.contractForms.title" })
       } else {
-        mapped.sections.unshift({ id: "contract-forms", label: "Contract Forms" })
+        mapped.sections.unshift({ id: "contract-forms", labelKey: "admin.configuration.contracts.contractForms.title" })
       }
     }
   }
@@ -397,8 +396,6 @@ const ConfigurationPage = () => {
   const [editingAccountId, setEditingAccountId] = useState(null)
   const [addingAccount, setAddingAccount] = useState(false)
   const [newAccount, setNewAccount] = useState({ firstName: "", lastName: "", email: "", password: "" })
-  const [logo, setLogo] = useState([])
-  const [logoUrl, setLogoUrl] = useState("")
   // Password change state (for inline editing)
   const [changingPasswordId, setChangingPasswordId] = useState(null)
   const [newPassword, setNewPassword] = useState("")
@@ -452,6 +449,10 @@ const ConfigurationPage = () => {
 
   const [smtpConfig, setSmtpConfig] = useState({ ...DEFAULT_SMTP_CONFIG })
 
+  // Refs for WysiwygEditors (for variable insertion via insertText)
+  const demoEmailEditorRef = useRef(null)
+  const registrationEmailEditorRef = useRef(null)
+
   // ============================================
   // Changelog State
   // ============================================
@@ -471,6 +472,10 @@ const ConfigurationPage = () => {
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [expandedTemplatePerms, setExpandedTemplatePerms] = useState([])
   const [templatePermTab, setTemplatePermTab] = useState({}) // tracks "studio" or "member" per template id
+
+  // Shared delete modal state
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: "", message: "", onConfirm: null })
+  const closeDeleteModal = () => setDeleteModal({ isOpen: false, title: "", message: "", onConfirm: null })
 
   // ============================================
   // Helper Functions
@@ -568,19 +573,43 @@ const ConfigurationPage = () => {
     }
   }
 
+  // Resolve translated labels for navigation categories and sections
+  const getCategoryLabel = (category) => {
+    const translated = t(`admin.configuration.nav.${category.id}`, { defaultValue: '' })
+    return translated || category.label
+  }
+
+  // Resolve translated variable labels for email templates
+  const getVarLabel = (varName) => {
+    const key = varName.replace(/{|}/g, "")
+    return t(`admin.configuration.communication.variableLabels.${key}`, { defaultValue: key.replace(/_/g, " ") })
+  }
+
+  // Resolve translated variable values (what gets inserted into the editor)
+  const getVarValue = (varName) => {
+    const key = varName.replace(/{|}/g, "")
+    return t(`admin.configuration.communication.variableValues.${key}`, { defaultValue: varName })
+  }
+
+  const getSectionLabel = (section) => {
+    if (section.labelKey) return t(section.labelKey)
+    const translated = t(`admin.configuration.nav.sections.${section.id}`, { defaultValue: '' })
+    return translated || section.label
+  }
+
   const getCurrentSectionTitle = () => {
     for (const cat of navigationItems) {
       const section = cat.sections.find(s => s.id === activeSection)
-      if (section) return section.label
+      if (section) return getSectionLabel(section)
     }
     return t("nav.settings")
   }
 
-  // Search filter
+  // Search filter (searches both translated and raw labels)
   const filteredNavItems = searchQuery
     ? navigationItems.filter(cat =>
-        cat.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        cat.sections.some(s => s.label.toLowerCase().includes(searchQuery.toLowerCase()))
+        getCategoryLabel(cat).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cat.sections.some(s => getSectionLabel(s).toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : navigationItems
 
@@ -589,8 +618,8 @@ const ConfigurationPage = () => {
     if (searchQuery) {
       const matchingCategories = navigationItems
         .filter(cat =>
-          cat.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          cat.sections.some(s => s.label.toLowerCase().includes(searchQuery.toLowerCase()))
+          getCategoryLabel(cat).toLowerCase().includes(searchQuery.toLowerCase()) ||
+          cat.sections.some(s => getSectionLabel(s).toLowerCase().includes(searchQuery.toLowerCase()))
         )
         .map(cat => cat.id)
       
@@ -624,16 +653,6 @@ const ConfigurationPage = () => {
   // ============================================
   // Handler Functions
   // ============================================
-
-  const handleLogoUpload = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
-      setLogoUrl(url)
-      setLogo([file])
-      toast.success(t("admin.configuration.toast.logoUploaded"))
-    }
-  }
 
   const handleChangePassword = (accountId) => {
     if (!isPasswordFormValid()) {
@@ -681,15 +700,15 @@ const ConfigurationPage = () => {
       toast.error(t("admin.configuration.errors.primaryAdminCannotRemove"))
       return
     }
-    Modal.confirm({
+    setDeleteModal({
+      isOpen: true,
       title: t("admin.configuration.accounts.removeAccount"),
-      content: t("admin.configuration.accounts.removeAccountConfirm", { name: `${account?.firstName} ${account?.lastName}` }),
-      okText: t("common.remove"),
-      okType: "danger",
-      onOk: () => {
+      message: t("admin.configuration.accounts.removeAccountConfirm", { name: `${account?.firstName} ${account?.lastName}` }),
+      onConfirm: () => {
         setAccounts(accounts.filter(a => a.id !== id))
         if (editingAccountId === id) setEditingAccountId(null)
         toast.success(t("admin.configuration.toast.accountRemoved"))
+        closeDeleteModal()
       },
     })
   }
@@ -764,14 +783,14 @@ const ConfigurationPage = () => {
     haptic.warning()
 
     const type = contractTypes[index]
-    Modal.confirm({
+    setDeleteModal({
+      isOpen: true,
       title: t("admin.configuration.contracts.deleteContractType"),
-      content: t("admin.configuration.contracts.deleteContractTypeConfirm", { name: type.name || t("admin.configuration.contracts.thisContractType") }),
-      okText: t("common.delete"),
-      okType: "danger",
-      onOk: () => {
+      message: t("admin.configuration.contracts.deleteContractTypeConfirm", { name: type.name || t("admin.configuration.contracts.thisContractType") }),
+      onConfirm: () => {
         setContractTypes(contractTypes.filter((_, i) => i !== index))
         toast.success(t("admin.configuration.toast.contractTypeDeleted"))
+        closeDeleteModal()
       }
     })
   }
@@ -786,14 +805,14 @@ const ConfigurationPage = () => {
     haptic.warning()
 
     const reason = contractPauseReasons[index]
-    Modal.confirm({
+    setDeleteModal({
+      isOpen: true,
       title: t("admin.configuration.contracts.deletePauseReason"),
-      content: t("admin.configuration.contracts.deletePauseReasonConfirm", { name: reason?.name || t("admin.configuration.contracts.thisReason") }),
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => {
+      message: t("admin.configuration.contracts.deletePauseReasonConfirm", { name: reason?.name || t("admin.configuration.contracts.thisReason") }),
+      onConfirm: () => {
         setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
         toast.success(t("admin.configuration.toast.pauseReasonDeleted"))
+        closeDeleteModal()
       }
     })
   }
@@ -837,14 +856,14 @@ const ConfigurationPage = () => {
     haptic.warning()
 
     const source = leadSources.find(s => s.id === id)
-    Modal.confirm({
+    setDeleteModal({
+      isOpen: true,
       title: t("admin.configuration.resources.deleteLeadSource"),
-      content: t("admin.configuration.resources.deleteLeadSourceConfirm", { name: source?.name || t("admin.configuration.resources.thisSource") }),
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => {
+      message: t("admin.configuration.resources.deleteLeadSourceConfirm", { name: source?.name || t("admin.configuration.resources.thisSource") }),
+      onConfirm: () => {
         setLeadSources(leadSources.filter(s => s.id !== id))
         toast.success(t("admin.configuration.toast.leadSourceDeleted"))
+        closeDeleteModal()
       }
     })
   }
@@ -877,14 +896,14 @@ const ConfigurationPage = () => {
 
   const removeChangelogEntry = (index) => {
     const entry = changelog[index]
-    Modal.confirm({
+    setDeleteModal({
+      isOpen: true,
       title: t("admin.configuration.changelog.deleteEntry"),
-      content: t("admin.configuration.changelog.deleteEntryConfirm", { version: entry?.version || t("admin.configuration.changelog.thisEntry") }),
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => {
+      message: t("admin.configuration.changelog.deleteEntryConfirm", { version: entry?.version || t("admin.configuration.changelog.thisEntry") }),
+      onConfirm: () => {
         setChangelog(changelog.filter((_, i) => i !== index))
         toast.success(t("admin.configuration.toast.changelogDeleted"))
+        closeDeleteModal()
       }
     })
   }
@@ -929,14 +948,14 @@ const ConfigurationPage = () => {
   const handleRemoveDemoTemplate = (id) => {
     haptic.warning()
 
-    Modal.confirm({
+    setDeleteModal({
+      isOpen: true,
       title: t("admin.configuration.templates.removeTemplate"),
-      content: t("admin.configuration.templates.removeTemplateConfirm"),
-      okText: t("common.remove"),
-      okType: "danger",
-      onOk: () => {
+      message: t("admin.configuration.templates.removeTemplateConfirm"),
+      onConfirm: () => {
         setDemoTemplates(demoTemplates.filter(t => t.id !== id))
         if (editingTemplate === id) setEditingTemplate(null)
+        closeDeleteModal()
       }
     })
   }
@@ -966,39 +985,6 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader title={t("admin.configuration.accounts.title")} description={t("admin.configuration.accounts.description")} />
-
-            {/* Logo Upload */}
-            <SettingsCard>
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-28 h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0 shadow-lg">
-                  <img 
-                    src={logoUrl || defaultLogoUrl} 
-                    alt={t("admin.configuration.accounts.profile")} 
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.src = defaultLogoUrl }}
-                  />
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-white font-medium mb-2">{t("admin.configuration.accounts.platformLogo")}</h3>
-                  <p className="text-sm text-gray-400 mb-4">{t("admin.configuration.accounts.uploadLogoDesc")}</p>
-                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                    <label className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
-                      {logo.length > 0 ? t("admin.configuration.accounts.changeLogo") : t("admin.configuration.accounts.uploadLogo")}
-                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                    </label>
-                    {logo.length > 0 && (
-                      <button
-                        onClick={() => { setLogo([]); setLogoUrl("") }}
-                        className="px-4 py-2 text-red-400 text-sm hover:bg-red-500/10 rounded-xl transition-colors"
-                      >
-                        {t("common.remove")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </SettingsCard>
 
             {/* Primary Admin */}
             {accounts.filter(a => a.isPrimary).map((account) => {
@@ -1295,7 +1281,7 @@ const ConfigurationPage = () => {
                           <div className="mt-3 pt-3 border-t border-[#2F2F2F] space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
                               <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-gray-400">New Password</label>
+                                <label className="text-xs font-medium text-gray-400">{t("admin.configuration.accounts.newPassword")}</label>
                                 <div className="relative">
                                   <input
                                     type={showNewPassword ? "text" : "password"}
@@ -1326,7 +1312,7 @@ const ConfigurationPage = () => {
                               </div>
                             </div>
                             {confirmPassword && newPassword !== confirmPassword && (
-                              <p className="text-xs text-red-400">Passwords do not match</p>
+                              <p className="text-xs text-red-400">{t("admin.configuration.accounts.passwordsDoNotMatch")}</p>
                             )}
                             <div className="flex items-center gap-2">
                               <button
@@ -1334,13 +1320,13 @@ const ConfigurationPage = () => {
                                 disabled={!isPasswordFormValid()}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isPasswordFormValid() ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-[#333333] text-gray-500 cursor-not-allowed"}`}
                               >
-                                Save
+                                {t("common.save")}
                               </button>
                               <button
                                 onClick={() => { setChangingPasswordId(null); setNewPassword(""); setConfirmPassword("") }}
                                 className="px-3 py-1.5 text-gray-400 text-xs hover:text-white transition-colors"
                               >
-                                Cancel
+                                {t("common.cancel")}
                               </button>
                             </div>
                           </div>
@@ -1614,14 +1600,14 @@ const ConfigurationPage = () => {
                             </button>
                             <button
                               onClick={() => {
-                                Modal.confirm({
+                                setDeleteModal({
+                                  isOpen: true,
                                   title: t("admin.configuration.contracts.deleteContractForm"),
-                                  content: t("admin.configuration.contracts.deleteContractFormConfirm", { name: form.name }),
-                                  okText: "Delete",
-                                  okType: "danger",
-                                  onOk: () => {
+                                  message: t("admin.configuration.contracts.deleteContractFormConfirm", { name: form.name }),
+                                  onConfirm: () => {
                                     setContractForms(contractForms.filter(f => f.id !== form.id))
                                     toast.success(t("admin.configuration.toast.contractFormDeleted"))
+                                    closeDeleteModal()
                                   }
                                 })
                               }}
@@ -1673,7 +1659,7 @@ const ConfigurationPage = () => {
                   className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("common.add")}</span> {t("admin.configuration.contracts.type")}
+                  {t("admin.configuration.contracts.createContractType")}
                 </button>
               }
             />
@@ -1853,7 +1839,7 @@ const ConfigurationPage = () => {
                   className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("common.add")}</span> {t("admin.configuration.resources.source")}
+                  {t("admin.configuration.resources.addLeadSource")}
                 </button>
               }
             />
@@ -1926,10 +1912,10 @@ const ConfigurationPage = () => {
                     {["{Access_Link}", "{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Access}", "{Expiry_Date}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: (demoEmail.content?.[demoEmailLang] || "") + v } })}
+                        onClick={() => demoEmailEditorRef.current?.insertText(getVarValue(v))}
                         className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
                       >
-                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                        {getVarLabel(v)}
                       </button>
                     ))}
                     <span className="text-xs text-gray-500 mx-2">|</span>
@@ -1938,7 +1924,7 @@ const ConfigurationPage = () => {
                       onClick={() => {
                         const sig = typeof emailSignature === "object" ? (emailSignature[demoEmailLang] || emailSignature.en || "") : emailSignature
                         if (sig) {
-                          setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: (demoEmail.content?.[demoEmailLang] || "") + sig } })
+                          demoEmailEditorRef.current?.insertHTML(sig)
                         } else {
                           toast.error(t("admin.configuration.toast.noSignatureConfigured"))
                         }
@@ -1950,6 +1936,7 @@ const ConfigurationPage = () => {
                     </button>
                   </VariablesRow>
                   <WysiwygEditor
+                    ref={demoEmailEditorRef}
                     key={`demo-email-${demoEmailLang}`}
                     value={demoEmail.content?.[demoEmailLang] || ""}
                     onChange={(v) => setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: v } })}
@@ -2003,10 +1990,10 @@ const ConfigurationPage = () => {
                     {["{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Registration}", "{Registration_Link}", "{Expiry_Date}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: (registrationEmail.content?.[registrationEmailLang] || "") + v } })}
+                        onClick={() => registrationEmailEditorRef.current?.insertText(getVarValue(v))}
                         className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
                       >
-                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                        {getVarLabel(v)}
                       </button>
                     ))}
                     <span className="text-xs text-gray-500 mx-2">|</span>
@@ -2015,7 +2002,7 @@ const ConfigurationPage = () => {
                       onClick={() => {
                         const sig = typeof emailSignature === "object" ? (emailSignature[registrationEmailLang] || emailSignature.en || "") : emailSignature
                         if (sig) {
-                          setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: (registrationEmail.content?.[registrationEmailLang] || "") + sig } })
+                          registrationEmailEditorRef.current?.insertHTML(sig)
                         } else {
                           toast.error(t("admin.configuration.toast.noSignatureConfigured"))
                         }
@@ -2027,6 +2014,7 @@ const ConfigurationPage = () => {
                     </button>
                   </VariablesRow>
                   <WysiwygEditor
+                    ref={registrationEmailEditorRef}
                     key={`reg-email-${registrationEmailLang}`}
                     value={registrationEmail.content?.[registrationEmailLang] || ""}
                     onChange={(v) => setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: v } })}
@@ -2348,8 +2336,8 @@ const ConfigurationPage = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h3 className="text-white font-medium text-sm truncate">{template.name || t("admin.configuration.templates.unnamedTemplate")}</h3>
-                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title="Studio View">S: {studioEnabledCount}/{studioTotalCount}</span>
-                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title="Member View">M: {memberEnabledCount}/{memberTotalCount}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title={t("admin.configuration.templates.studioView")}>S: {studioEnabledCount}/{studioTotalCount}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0" title={t("admin.configuration.templates.memberView")}>M: {memberEnabledCount}/{memberTotalCount}</span>
                           </div>
                           {template.description && !isEditing && (
                             <p className="text-xs text-gray-500 truncate mt-0.5">{template.description}</p>
@@ -2569,7 +2557,7 @@ const ConfigurationPage = () => {
   // Main Render
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-[#1C1C1C] text-white overflow-hidden rounded-3xl">
+    <div className="flex flex-col lg:flex-row lg:h-[calc(100vh-5rem)] bg-[#1C1C1C] text-white overflow-hidden rounded-3xl">
       {/* Sidebar Navigation - Desktop */}
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-[#333333] bg-[#181818] flex-col min-h-0">
         {/* Search */}
@@ -2600,7 +2588,7 @@ const ConfigurationPage = () => {
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto p-2 min-h-0">
           {filteredNavItems.map((category) => {
-            const categoryMatches = matchesSearch(category.label)
+            const categoryMatches = matchesSearch(getCategoryLabel(category))
             
             return (
               <div key={category.id} className="mb-1">
@@ -2620,7 +2608,7 @@ const ConfigurationPage = () => {
                   }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="flex-1 font-medium">{highlightText(category.label)}</span>
+                  <span className="flex-1 font-medium">{highlightText(getCategoryLabel(category))}</span>
                   <ChevronRight className={`w-4 h-4 transition-transform ${
                     expandedCategories.includes(category.id) ? "rotate-90" : ""
                   }`} />
@@ -2629,7 +2617,7 @@ const ConfigurationPage = () => {
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
                     {category.sections.map((section) => {
-                      const sectionMatches = matchesSearch(section.label)
+                      const sectionMatches = matchesSearch(getSectionLabel(section))
                       
                       return (
                         <button
@@ -2643,7 +2631,7 @@ const ConfigurationPage = () => {
                                 : "text-gray-500 hover:text-white hover:bg-[#252525]"
                           }`}
                         >
-                          {highlightText(section.label)}
+                          {highlightText(getSectionLabel(section))}
                         </button>
                       )
                     })}
@@ -2690,7 +2678,7 @@ const ConfigurationPage = () => {
         {/* Mobile Navigation Items */}
         <div className="flex-1 min-h-0 overflow-y-auto p-2">
           {filteredNavItems.map((category) => {
-            const categoryMatches = matchesSearch(category.label)
+            const categoryMatches = matchesSearch(getCategoryLabel(category))
             
             return (
               <div key={category.id} className="mb-1">
@@ -2705,7 +2693,7 @@ const ConfigurationPage = () => {
                   }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="flex-1 font-medium">{highlightText(category.label)}</span>
+                  <span className="flex-1 font-medium">{highlightText(getCategoryLabel(category))}</span>
                   <ChevronRight className={`w-4 h-4 transition-transform ${
                     expandedCategories.includes(category.id) ? "rotate-90" : ""
                   }`} />
@@ -2714,7 +2702,7 @@ const ConfigurationPage = () => {
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
                     {category.sections.map((section) => {
-                      const sectionMatches = matchesSearch(section.label)
+                      const sectionMatches = matchesSearch(getSectionLabel(section))
                       
                       return (
                         <button
@@ -2726,7 +2714,7 @@ const ConfigurationPage = () => {
                               : "text-gray-500 hover:text-white hover:bg-[#252525]"
                           }`}
                         >
-                          <span>{highlightText(section.label)}</span>
+                          <span>{highlightText(getSectionLabel(section))}</span>
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       )
@@ -2813,6 +2801,15 @@ const ConfigurationPage = () => {
           />
         </div>
       )}
+
+      {/* Shared Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={deleteModal.onConfirm}
+        title={deleteModal.title}
+        message={deleteModal.message}
+      />
     </div>
   )
 }

@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import LanguageTabs, { getTranslation, getOptionName } from "../../shared/LanguageTabs";
+import { useTranslation } from "react-i18next";
 
 export default function ViewExerciseModal({
   isOpen,
@@ -34,6 +35,7 @@ export default function ViewExerciseModal({
   muscleOptions,
   equipmentOptions,
 }) {
+  const { t } = useTranslation();
   const [viewLang, setViewLang] = useState("en");
 
   if (!isOpen || !selectedVideo) return null;
@@ -93,7 +95,7 @@ export default function ViewExerciseModal({
               onEnded={() => setIsPlaying(false)}
             >
               <source src={selectedVideo.videoUrl} type="video/mp4" />
-              Your browser does not support the video tag.
+              {t("admin.exercises.view.browserNotSupported")}
             </video>
 
             {/* Video Controls */}
@@ -138,49 +140,49 @@ export default function ViewExerciseModal({
             {/* Left Section */}
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
-                Exercise Information
+                {t("admin.exercises.view.exerciseInfo")}
               </h3>
 
               <div className="bg-[#161616] rounded-xl p-4 space-y-3">
                 <div>
-                  <span className="text-gray-400 text-sm">Description:</span>
+                  <span className="text-gray-400 text-sm">{t("admin.exercises.view.description")}</span>
                   <p className="text-white text-sm mt-1">
                     {exerciseDescription}
                   </p>
                   {viewLang !== "en" && !selectedVideo.description?.[viewLang]?.trim() && (
                     <p className="text-xs text-gray-600 mt-1 italic">
-                      Showing English fallback
+                      {t("admin.exercises.view.showingFallback")}
                     </p>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Difficulty:</span>
+                  <span className="text-gray-400 text-sm">{t("admin.exercises.view.difficulty")}</span>
                   <span
                     className={`px-2 py-1 rounded text-xs text-white ${getDifficultyColor(
                       selectedVideo.difficulty
                     )}`}
                   >
-                    {selectedVideo.difficulty}
+                    {t(`training.difficulty.${selectedVideo.difficulty.toLowerCase()}`)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Duration:</span>
+                  <span className="text-gray-400 text-sm">{t("admin.exercises.view.duration")}</span>
                   <span className="text-white text-sm">
                     {selectedVideo.duration}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Uploaded:</span>
+                  <span className="text-gray-400 text-sm">{t("admin.exercises.view.uploaded")}</span>
                   <span className="text-white text-sm">
                     {selectedVideo.uploadedAt}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Uploaded by:</span>
+                  <span className="text-gray-400 text-sm">{t("admin.exercises.view.uploadedBy")}</span>
                   <span className="text-white text-sm">
                     {selectedVideo.uploadedBy}
                   </span>
@@ -191,13 +193,13 @@ export default function ViewExerciseModal({
             {/* Right Section */}
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
-                Target Muscles & Equipment
+                {t("admin.exercises.view.musclesAndEquipment")}
               </h3>
 
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-400 mb-2">
-                    Target Muscles
+                    {t("admin.exercises.view.targetMuscles")}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedVideo.targetMuscles.map((muscleId, index) => (
@@ -213,7 +215,7 @@ export default function ViewExerciseModal({
 
                 <div>
                   <h4 className="text-sm font-medium text-gray-400 mb-2">
-                    Equipment Needed
+                    {t("admin.exercises.view.equipmentNeeded")}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedVideo.equipment.map((equipId, index) => (
@@ -238,7 +240,7 @@ export default function ViewExerciseModal({
                   className="flex-1 px-3 py-2.5 bg-blue-600 text-sm hover:bg-blue-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Edit size={16} />
-                  Edit Exercise
+                  {t("admin.exercises.view.editExercise")}
                 </button>
 
                 <button

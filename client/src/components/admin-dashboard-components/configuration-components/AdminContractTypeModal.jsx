@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Shield,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 // ============================================
 // Inline helper components (Admin dark theme)
@@ -64,7 +65,7 @@ const AdminSelect = ({ value, onChange, options, placeholder, className = "" }) 
         className={`w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500 flex items-center justify-between ${className}`}
       >
         <span className={selectedOption ? "text-white" : "text-gray-500"}>
-          {selectedOption?.label || placeholder || "Select..."}
+          {selectedOption?.label || placeholder}
         </span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
@@ -110,6 +111,9 @@ const AdminContractTypeModal = ({
   currency = "€",
   onSave,
 }) => {
+  const { t } = useTranslation()
+  const ct = "admin.configuration.contracts.contractTypeModal"
+
   if (!isOpen || !editingContractType) return null
 
   return (
@@ -118,7 +122,7 @@ const AdminContractTypeModal = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
           <h3 className="text-lg font-semibold text-white">
-            {editingContractTypeIndex !== null ? 'Edit Contract Type' : 'New Contract Type'}
+            {editingContractTypeIndex !== null ? t(`${ct}.titleEdit`) : t(`${ct}.titleCreate`)}
           </h3>
           <button
             onClick={onClose}
@@ -133,9 +137,9 @@ const AdminContractTypeModal = ({
           {/* Name */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              Contract Name
+              {t(`${ct}.contractName`)}
               <span className="text-red-400">*</span>
-              <Tooltip content="The name of this contract type that members will see when signing up">
+              <Tooltip content={t(`${ct}.contractNameTooltip`)}>
                 <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
               </Tooltip>
             </label>
@@ -143,7 +147,7 @@ const AdminContractTypeModal = ({
               type="text"
               value={editingContractType.name}
               onChange={(e) => setEditingContractType({ ...editingContractType, name: e.target.value })}
-              placeholder="e.g., Premium Membership"
+              placeholder={t(`${ct}.contractNamePlaceholder`)}
               className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500"
             />
           </div>
@@ -152,9 +156,9 @@ const AdminContractTypeModal = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                Cost
+                {t(`${ct}.cost`)}
                 <span className="text-red-400">*</span>
-                <Tooltip content="The price charged to the member per billing period (weekly, monthly, or annually)">
+                <Tooltip content={t(`${ct}.costTooltip`)}>
                   <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                 </Tooltip>
               </label>
@@ -171,9 +175,9 @@ const AdminContractTypeModal = ({
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                Minimum Duration
+                {t(`${ct}.minimumDuration`)}
                 <span className="text-red-400">*</span>
-                <Tooltip content="The minimum commitment period. After this period, the contract can be renewed or terminated." position="right">
+                <Tooltip content={t(`${ct}.minimumDurationTooltip`)} position="right">
                   <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                 </Tooltip>
               </label>
@@ -185,17 +189,17 @@ const AdminContractTypeModal = ({
                   min={1} max={60}
                   className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500"
                 />
-                <span className="text-gray-400 flex-shrink-0">months</span>
+                <span className="text-gray-400 flex-shrink-0">{t(`${ct}.months`)}</span>
               </div>
             </div>
           </div>
           
-          {/* Billing Period (full width, no contingent) */}
+          {/* Billing Period */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              Billing Period
+              {t(`${ct}.billingPeriod`)}
               <span className="text-red-400">*</span>
-              <Tooltip content="How often the member is charged. The cost above is charged once per billing period.">
+              <Tooltip content={t(`${ct}.billingPeriodTooltip`)}>
                 <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
               </Tooltip>
             </label>
@@ -203,9 +207,9 @@ const AdminContractTypeModal = ({
               value={editingContractType.billingPeriod}
               onChange={(v) => setEditingContractType({ ...editingContractType, billingPeriod: v })}
               options={[
-                { value: "weekly", label: "Weekly" },
-                { value: "monthly", label: "Monthly" },
-                { value: "annually", label: "Annually" }
+                { value: "weekly", label: t(`${ct}.weekly`) },
+                { value: "monthly", label: t(`${ct}.monthly`) },
+                { value: "annually", label: t(`${ct}.annually`) }
               ]}
             />
           </div>
@@ -213,15 +217,15 @@ const AdminContractTypeModal = ({
           {/* Access Template */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              Access Template
-              <Tooltip content="Link an access template to this contract type. Members with this contract will automatically receive the permissions defined in the selected template.">
+              {t(`${ct}.accessTemplate`)}
+              <Tooltip content={t(`${ct}.accessTemplateTooltip`)}>
                 <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
               </Tooltip>
             </label>
             {accessTemplates.length === 0 ? (
               <div className="p-3 bg-[#141414] rounded-xl border border-yellow-500/30">
-                <p className="text-sm text-yellow-400">No access templates available.</p>
-                <p className="text-xs text-gray-500 mt-1">Create access templates in the &quot;Access Templates&quot; section first.</p>
+                <p className="text-sm text-yellow-400">{t(`${ct}.noAccessTemplates`)}</p>
+                <p className="text-xs text-gray-500 mt-1">{t(`${ct}.noAccessTemplatesHint`)}</p>
               </div>
             ) : (
               <>
@@ -229,14 +233,14 @@ const AdminContractTypeModal = ({
                   value={editingContractType.accessTemplateId || ""}
                   onChange={(v) => setEditingContractType({ ...editingContractType, accessTemplateId: v || null })}
                   options={[
-                    { value: "", label: "No template linked" },
-                    ...accessTemplates.map(t => ({ value: t.id, label: t.name }))
+                    { value: "", label: t(`${ct}.noTemplateLinked`) },
+                    ...accessTemplates.map(tmpl => ({ value: tmpl.id, label: tmpl.name }))
                   ]}
-                  placeholder="Select an access template..."
+                  placeholder={t(`${ct}.selectAccessTemplate`)}
                 />
                 {/* Show selected template info */}
                 {editingContractType.accessTemplateId && (() => {
-                  const linked = accessTemplates.find(t => String(t.id) === String(editingContractType.accessTemplateId))
+                  const linked = accessTemplates.find(tmpl => String(tmpl.id) === String(editingContractType.accessTemplateId))
                   if (!linked) return null
                   return (
                     <div className="flex items-center gap-2 px-3 py-2 bg-[#141414] rounded-lg border border-[#333333]">
@@ -262,23 +266,23 @@ const AdminContractTypeModal = ({
           {/* Contract Form */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              Contract Form
+              {t(`${ct}.contractForm`)}
               <span className="text-red-400">*</span>
-              <Tooltip content="The document template used when a member signs this contract. Create forms in the 'Contract Forms' section.">
+              <Tooltip content={t(`${ct}.contractFormTooltip`)}>
                 <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
               </Tooltip>
             </label>
             {contractForms.length === 0 ? (
               <div className="p-3 bg-[#141414] rounded-xl border border-yellow-500/30">
-                <p className="text-sm text-yellow-400">No contract forms available.</p>
-                <p className="text-xs text-gray-500 mt-1">Please create a contract form first in the &quot;Contract Forms&quot; section.</p>
+                <p className="text-sm text-yellow-400">{t(`${ct}.noContractForms`)}</p>
+                <p className="text-xs text-gray-500 mt-1">{t(`${ct}.noContractFormsHint`)}</p>
               </div>
             ) : (
               <AdminSelect
                 value={editingContractType.contractFormId || ""}
                 onChange={(v) => setEditingContractType({ ...editingContractType, contractFormId: v ? Number(v) : null })}
                 options={contractForms.map(f => ({ value: f.id, label: f.name }))}
-                placeholder="Select a form..."
+                placeholder={t(`${ct}.selectForm`)}
               />
             )}
           </div>
@@ -286,8 +290,8 @@ const AdminContractTypeModal = ({
           {/* Notice Period */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              Notice Period
-              <Tooltip content="How many days before the contract end date the member must cancel. After this deadline, the contract will auto-renew (if enabled).">
+              {t(`${ct}.noticePeriod`)}
+              <Tooltip content={t(`${ct}.noticePeriodTooltip`)}>
                 <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
               </Tooltip>
             </label>
@@ -299,17 +303,17 @@ const AdminContractTypeModal = ({
                 min={0}
                 className="w-20 sm:w-24 bg-[#141414] text-white rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500"
               />
-              <span className="text-gray-400 text-sm">days before end</span>
+              <span className="text-gray-400 text-sm">{t(`${ct}.daysBeforeEnd`)}</span>
             </div>
           </div>
           
           {/* Auto Renewal Section */}
           <div className="p-4 bg-[#141414] rounded-xl space-y-4">
             <Toggle
-              label="Automatic Renewal"
+              label={t(`${ct}.autoRenewal`)}
               checked={editingContractType.autoRenewal}
               onChange={(v) => setEditingContractType({ ...editingContractType, autoRenewal: v })}
-              helpText="Contract continues automatically after the minimum duration ends"
+              helpText={t(`${ct}.autoRenewalHelp`)}
             />
             
             {editingContractType.autoRenewal && (
@@ -317,8 +321,8 @@ const AdminContractTypeModal = ({
                 {/* Renewal Duration */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    Renewal Duration
-                    <Tooltip content="How long the contract continues after the minimum duration. Choose 'Indefinite' for an open-ended contract that runs until cancelled.">
+                    {t(`${ct}.renewalDuration`)}
+                    <Tooltip content={t(`${ct}.renewalDurationTooltip`)}>
                       <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                     </Tooltip>
                   </label>
@@ -330,8 +334,8 @@ const AdminContractTypeModal = ({
                         renewalIndefinite: v === "indefinite"
                       })}
                       options={[
-                        { value: "fixed", label: "Fixed period" },
-                        { value: "indefinite", label: "Indefinite" }
+                        { value: "fixed", label: t(`${ct}.fixedPeriod`) },
+                        { value: "indefinite", label: t(`${ct}.indefinite`) }
                       ]}
                     />
                     {!editingContractType.renewalIndefinite && (
@@ -347,9 +351,9 @@ const AdminContractTypeModal = ({
                           value={editingContractType.renewalPeriodUnit || "months"}
                           onChange={(v) => setEditingContractType({ ...editingContractType, renewalPeriodUnit: v })}
                           options={[
-                            { value: "days", label: "Days" },
-                            { value: "weeks", label: "Weeks" },
-                            { value: "months", label: "Months" }
+                            { value: "days", label: t(`${ct}.days`) },
+                            { value: "weeks", label: t(`${ct}.weeks`) },
+                            { value: "months", label: t(`${ct}.monthly`) }
                           ]}
                         />
                       </>
@@ -360,8 +364,8 @@ const AdminContractTypeModal = ({
                 {/* Price After Renewal */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    Price After Renewal
-                    <Tooltip content="The new price per billing period after the contract renews.">
+                    {t(`${ct}.priceAfterRenewal`)}
+                    <Tooltip content={t(`${ct}.priceAfterRenewalTooltip`)}>
                       <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                     </Tooltip>
                   </label>
@@ -387,14 +391,14 @@ const AdminContractTypeModal = ({
             onClick={onClose}
             className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3A3A3A] transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={onSave}
             className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
           >
             <Check className="w-4 h-4" />
-            {editingContractTypeIndex !== null ? 'Save' : 'Create'}
+            {editingContractTypeIndex !== null ? t("common.save") : t("common.create")}
           </button>
         </div>
       </div>

@@ -47,7 +47,11 @@
     },
     "copy": "Copia",
     "no": "No",
-    "yes": "Sì"
+    "yes": "Sì",
+    "deleteModal": {
+      "messageWithItem": "Sei sicuro di voler eliminare",
+      "messageDefault": "Sei sicuro di voler eliminare questo elemento?"
+    }
   },
   "languages": {
     "en": "Inglese",
@@ -1024,6 +1028,49 @@
         "updated": "Prodotto aggiornato con successo!",
         "added": "Prodotto aggiunto con successo!",
         "deleted": "Prodotto eliminato con successo!"
+      },
+      "modal": {
+        "titleEdit": "Modifica prodotto",
+        "titleAdd": "Aggiungi nuovo prodotto",
+        "language": "Lingua",
+        "langHint": "L'inglese è obbligatorio. {{language}} è opzionale.",
+        "productPicture": "Immagine del prodotto",
+        "changePicture": "Cambia immagine",
+        "removePicture": "Rimuovi immagine",
+        "clickToUpload": "Clicca per caricare",
+        "imageFormats": "PNG, JPG, WEBP",
+        "brandName": "Nome del marchio",
+        "brandNamePlaceholder": "Inserisci il nome del marchio",
+        "productName": "Nome del prodotto",
+        "productNamePlaceholder": "Inserisci il nome del prodotto",
+        "translationFor": "Traduzione per: \"{{name}}\"",
+        "enterTranslation": "Inserisci la traduzione...",
+        "articleNo": "N. articolo",
+        "articleNoPlaceholder": "es. 555088-101",
+        "price": "Prezzo",
+        "pricePlaceholder": "0,00",
+        "productLink": "Link del prodotto",
+        "productLinkPlaceholder": "https://esempio.it/prodotto",
+        "productInfo": "Info prodotto",
+        "productInfoPlaceholder": "Aggiungi informazioni aggiuntive sul prodotto...",
+        "productInfoTranslationPlaceholder": "Inserisci la traduzione dell'info prodotto...",
+        "productStatus": "Stato del prodotto",
+        "productStatusHelp": "Attiva/disattiva prodotto",
+        "updateProduct": "Aggiorna prodotto"
+      },
+      "infoModal": {
+        "title": "Informazioni sul prodotto",
+        "brand": "Marchio:",
+        "articleNo": "N. articolo:",
+        "status": "Stato:",
+        "showingFallback": "Mostrando testo inglese",
+        "noInfo": "Nessuna informazione aggiuntiva disponibile",
+        "addInfo": "Aggiungi informazione",
+        "editProduct": "Modifica prodotto"
+      },
+      "deleteModal": {
+        "title": "Elimina prodotto",
+        "message": "Sei sicuro di voler eliminare \"{{name}}\"? Tutte le traduzioni verranno rimosse permanentemente. Questa azione non può essere annullata."
       }
     },
     "feedback": {
@@ -1583,7 +1630,7 @@
       "pinNote": "Fissa nota",
       "selectNoteHint": "Seleziona una nota dalla lista per vederne il contenuto",
       "showLess": "Mostra meno",
-      "showMore": "Mostra di più",
+      "showMore": "+{{count}} altri",
       "sort": {
         "custom": "Personalizzato",
         "date": "Data",
@@ -1591,7 +1638,11 @@
       },
       "startWriting": "Inizia a scrivere...",
       "tags": "Tag",
-      "unpinNote": "Rimuovi fissaggio"
+      "unpinNote": "Rimuovi fissaggio",
+      "deleteModal": {
+        "title": "Elimina nota",
+        "message": "Sei sicuro di voler eliminare la nota \"{{title}}\"? Questa azione non può essere annullata."
+      }
     },
     "leads": {
       "title": "Lead",
@@ -1812,7 +1863,62 @@
       "allLevels": "Tutti i livelli",
       "noResults": "Nessun esercizio trovato",
       "translations": "Traduzioni",
-      "uploadExercise": "Carica esercizio"
+      "uploadExercise": "Carica esercizio",
+      "deleteModal": {
+        "title": "Elimina esercizio",
+        "subtitle": "Questa azione non può essere annullata",
+        "message": "Sei sicuro di voler eliminare \"{{name}}\"? Tutti i dati e le traduzioni associate verranno rimossi permanentemente."
+      },
+      "form": {
+        "titleCreate": "Carica nuovo esercizio",
+        "titleEdit": "Modifica esercizio",
+        "language": "Lingua",
+        "langHint": "L'inglese è obbligatorio. {{language}} è opzionale.",
+        "exerciseName": "Nome esercizio",
+        "exerciseNamePlaceholder": "Inserisci il nome dell'esercizio...",
+        "translationFor": "Traduzione per: \"{{name}}\"",
+        "enterTranslation": "Inserisci la traduzione...",
+        "description": "Descrizione",
+        "descriptionPlaceholder": "Descrivi l'esercizio...",
+        "descriptionTranslationPlaceholder": "Inserisci la traduzione della descrizione...",
+        "difficultyLevel": "Livello di difficoltà",
+        "exerciseVideo": "Video dell'esercizio",
+        "thumbnailImage": "Immagine anteprima",
+        "optional": "Opzionale",
+        "targetMuscles": "Muscoli target",
+        "selectedCount": "{{count}} selezionato/i",
+        "equipmentNeeded": "Attrezzatura necessaria",
+        "selectedMuscles": "Muscoli selezionati:",
+        "selectedEquipment": "Attrezzatura selezionata:",
+        "none": "Nessuna",
+        "saveChanges": "Salva modifiche"
+      },
+      "manageModal": {
+        "title": "Gestisci opzioni esercizio",
+        "muscleGroups": "Gruppi muscolari",
+        "equipment": "Attrezzatura",
+        "addMusclePlaceholder": "Aggiungi gruppo muscolare ({{language}})...",
+        "addEquipmentPlaceholder": "Aggiungi attrezzatura ({{language}})...",
+        "add": "Aggiungi",
+        "noMuscles": "Nessun gruppo muscolare aggiunto.",
+        "noEquipment": "Nessuna attrezzatura aggiunta.",
+        "noTranslation": "nessuna traduzione {{language}}",
+        "translationPlaceholder": "Traduzione {{language}}..."
+      },
+      "view": {
+        "exerciseInfo": "Informazioni sull'esercizio",
+        "description": "Descrizione:",
+        "difficulty": "Difficoltà:",
+        "duration": "Durata:",
+        "uploaded": "Caricato:",
+        "uploadedBy": "Caricato da:",
+        "showingFallback": "Mostrando testo inglese predefinito",
+        "musclesAndEquipment": "Muscoli target e attrezzatura",
+        "targetMuscles": "Muscoli target",
+        "equipmentNeeded": "Attrezzatura necessaria",
+        "editExercise": "Modifica esercizio",
+        "browserNotSupported": "Il tuo browser non supporta il tag video."
+      }
     },
     "customers": {
       "title": "Studi",
@@ -2884,7 +2990,27 @@
           "title": "Impostazioni SMTP",
           "useSSL": "Usa SSL"
         },
-        "variables": "Variabili"
+        "variables": "Variabili",
+        "variableLabels": {
+          "Access_Link": "Link di accesso",
+          "Studio_Name": "Nome dello studio",
+          "Studio_Owner_First_Name": "Nome del proprietario",
+          "Studio_Owner_Last_Name": "Cognome del proprietario",
+          "Email_For_Access": "Email per l'accesso",
+          "Email_For_Registration": "Email per la registrazione",
+          "Registration_Link": "Link di registrazione",
+          "Expiry_Date": "Data di scadenza"
+        },
+        "variableValues": {
+          "Access_Link": "{Link_accesso}",
+          "Studio_Name": "{Nome_studio}",
+          "Studio_Owner_First_Name": "{Nome_proprietario}",
+          "Studio_Owner_Last_Name": "{Cognome_proprietario}",
+          "Email_For_Access": "{Email_accesso}",
+          "Email_For_Registration": "{Email_registrazione}",
+          "Registration_Link": "{Link_registrazione}",
+          "Expiry_Date": "{Data_scadenza}"
+        }
       },
       "contact": {
         "address": "Indirizzo",
@@ -2943,7 +3069,49 @@
         "unknown": "Sconosciuto",
         "untitled": "Senza titolo",
         "week": "Settimana",
-        "year": "Anno"
+        "year": "Anno",
+        "contractTypeModal": {
+          "titleEdit": "Modifica tipo di contratto",
+          "titleCreate": "Nuovo tipo di contratto",
+          "contractName": "Nome del contratto",
+          "contractNameTooltip": "Il nome di questo tipo di contratto che i membri vedranno durante la registrazione",
+          "contractNamePlaceholder": "es. Abbonamento Premium",
+          "cost": "Costo",
+          "costTooltip": "Il prezzo addebitato al membro per periodo di fatturazione (settimanale, mensile o annuale)",
+          "minimumDuration": "Durata minima",
+          "minimumDurationTooltip": "Il periodo minimo di impegno. Dopo questo periodo, il contratto può essere rinnovato o terminato.",
+          "months": "mesi",
+          "billingPeriod": "Periodo di fatturazione",
+          "billingPeriodTooltip": "Con quale frequenza viene addebitato il membro. Il costo sopra viene addebitato una volta per periodo di fatturazione.",
+          "weekly": "Settimanale",
+          "monthly": "Mensile",
+          "annually": "Annuale",
+          "accessTemplate": "Modello di accesso",
+          "accessTemplateTooltip": "Collega un modello di accesso a questo tipo di contratto. I membri con questo contratto riceveranno automaticamente i permessi definiti nel modello selezionato.",
+          "noAccessTemplates": "Nessun modello di accesso disponibile.",
+          "noAccessTemplatesHint": "Crea prima i modelli di accesso nella sezione \"Modelli di accesso\".",
+          "noTemplateLinked": "Nessun modello collegato",
+          "selectAccessTemplate": "Seleziona un modello di accesso...",
+          "contractForm": "Modulo contratto",
+          "contractFormTooltip": "Il modello di documento utilizzato quando un membro firma questo contratto. Crea moduli nella sezione 'Moduli contratto'.",
+          "noContractForms": "Nessun modulo contratto disponibile.",
+          "noContractFormsHint": "Crea prima un modulo contratto nella sezione \"Moduli contratto\".",
+          "selectForm": "Seleziona un modulo...",
+          "noticePeriod": "Periodo di preavviso",
+          "noticePeriodTooltip": "Quanti giorni prima della scadenza del contratto il membro deve disdire. Dopo questa scadenza, il contratto si rinnoverà automaticamente (se abilitato).",
+          "daysBeforeEnd": "giorni prima della scadenza",
+          "autoRenewal": "Rinnovo automatico",
+          "autoRenewalHelp": "Il contratto continua automaticamente dopo la durata minima",
+          "renewalDuration": "Durata del rinnovo",
+          "renewalDurationTooltip": "Per quanto tempo continua il contratto dopo la durata minima. Scegli 'Indefinito' per un contratto aperto fino alla disdetta.",
+          "fixedPeriod": "Periodo fisso",
+          "indefinite": "Indefinito",
+          "days": "Giorni",
+          "weeks": "Settimane",
+          "priceAfterRenewal": "Prezzo dopo il rinnovo",
+          "priceAfterRenewalTooltip": "Il nuovo prezzo per periodo di fatturazione dopo il rinnovo del contratto.",
+          "select": "Seleziona..."
+        }
       },
       "legal": {
         "description": "Gestisci documenti legali",
@@ -2965,7 +3133,8 @@
         "noLeadSources": "Nessuna fonte lead definita",
         "source": "Fonte",
         "sourceNamePlaceholder": "Inserisci nome della fonte...",
-        "thisSource": "questa fonte"
+        "thisSource": "questa fonte",
+        "addLeadSource": "Aggiungi fonte"
       },
       "select": "Seleziona",
       "selectSection": "Seleziona una sezione",
@@ -2990,6 +3159,30 @@
         "title": "Modelli di permessi",
         "togglePermissions": "Attiva/disattiva permessi",
         "unnamedTemplate": "Modello senza nome"
+      },
+      "nav": {
+        "account": "Account",
+        "platform": "Piattaforma",
+        "contracts": "Contratti",
+        "resources": "Risorse",
+        "communication": "Comunicazione",
+        "changelog": "Registro modifiche",
+        "access": "Modelli di accesso",
+        "sections": {
+          "accounts": "Impostazioni account",
+          "contact-info": "Informazioni di contatto",
+          "legal-info": "Legale",
+          "contract-forms": "Moduli contratto",
+          "contract-types": "Tipi di contratto",
+          "pause-reasons": "Motivi di pausa",
+          "lead-sources": "Fonti di contatto",
+          "demo-email": "Email di accesso",
+          "registration-email": "Email di registrazione",
+          "email-signature": "Firma email",
+          "smtp-setup": "Impostazioni SMTP",
+          "version-history": "Registro modifiche",
+          "demo-templates": "Modelli di permessi"
+        }
       }
     },
     "header": {

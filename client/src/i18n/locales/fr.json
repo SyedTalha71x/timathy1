@@ -47,7 +47,11 @@
     },
     "copy": "Copier",
     "no": "Non",
-    "yes": "Oui"
+    "yes": "Oui",
+    "deleteModal": {
+      "messageWithItem": "Êtes-vous sûr de vouloir supprimer",
+      "messageDefault": "Êtes-vous sûr de vouloir supprimer cet élément ?"
+    }
   },
   "languages": {
     "en": "Anglais",
@@ -1024,6 +1028,49 @@
         "updated": "Produit mis à jour avec succès !",
         "added": "Produit ajouté avec succès !",
         "deleted": "Produit supprimé avec succès !"
+      },
+      "modal": {
+        "titleEdit": "Modifier le produit",
+        "titleAdd": "Ajouter un nouveau produit",
+        "language": "Langue",
+        "langHint": "L'anglais est obligatoire. {{language}} est optionnel.",
+        "productPicture": "Image du produit",
+        "changePicture": "Changer l'image",
+        "removePicture": "Supprimer l'image",
+        "clickToUpload": "Cliquer pour télécharger",
+        "imageFormats": "PNG, JPG, WEBP",
+        "brandName": "Nom de marque",
+        "brandNamePlaceholder": "Entrer le nom de marque",
+        "productName": "Nom du produit",
+        "productNamePlaceholder": "Entrer le nom du produit",
+        "translationFor": "Traduction pour : \"{{name}}\"",
+        "enterTranslation": "Entrer la traduction...",
+        "articleNo": "N° article",
+        "articleNoPlaceholder": "ex. 555088-101",
+        "price": "Prix",
+        "pricePlaceholder": "0,00",
+        "productLink": "Lien du produit",
+        "productLinkPlaceholder": "https://exemple.fr/produit",
+        "productInfo": "Info produit",
+        "productInfoPlaceholder": "Ajouter des informations supplémentaires sur le produit...",
+        "productInfoTranslationPlaceholder": "Entrer la traduction de l'info produit...",
+        "productStatus": "Statut du produit",
+        "productStatusHelp": "Activer/désactiver le produit",
+        "updateProduct": "Mettre à jour"
+      },
+      "infoModal": {
+        "title": "Informations sur le produit",
+        "brand": "Marque :",
+        "articleNo": "N° article :",
+        "status": "Statut :",
+        "showingFallback": "Affichage du texte anglais",
+        "noInfo": "Aucune information supplémentaire disponible",
+        "addInfo": "Ajouter une information",
+        "editProduct": "Modifier le produit"
+      },
+      "deleteModal": {
+        "title": "Supprimer le produit",
+        "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Toutes les traductions seront définitivement supprimées. Cette action est irréversible."
       }
     },
     "feedback": {
@@ -1583,7 +1630,7 @@
       "pinNote": "Épingler la note",
       "selectNoteHint": "Sélectionnez une note dans la liste pour voir son contenu",
       "showLess": "Voir moins",
-      "showMore": "Voir plus",
+      "showMore": "+{{count}} de plus",
       "sort": {
         "custom": "Personnalisé",
         "date": "Date",
@@ -1591,7 +1638,11 @@
       },
       "startWriting": "Commencez à écrire...",
       "tags": "Étiquettes",
-      "unpinNote": "Désépingler la note"
+      "unpinNote": "Désépingler la note",
+      "deleteModal": {
+        "title": "Supprimer la note",
+        "message": "Êtes-vous sûr de vouloir supprimer la note \"{{title}}\" ? Cette action est irréversible."
+      }
     },
     "leads": {
       "title": "Leads",
@@ -1812,7 +1863,62 @@
       "allLevels": "Tous les niveaux",
       "noResults": "Aucun exercice trouvé",
       "translations": "Traductions",
-      "uploadExercise": "Télécharger un exercice"
+      "uploadExercise": "Télécharger un exercice",
+      "deleteModal": {
+        "title": "Supprimer l'exercice",
+        "subtitle": "Cette action est irréversible",
+        "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Toutes les données et traductions associées seront définitivement supprimées."
+      },
+      "form": {
+        "titleCreate": "Ajouter un nouvel exercice",
+        "titleEdit": "Modifier l'exercice",
+        "language": "Langue",
+        "langHint": "L'anglais est obligatoire. {{language}} est optionnel.",
+        "exerciseName": "Nom de l'exercice",
+        "exerciseNamePlaceholder": "Saisir le nom de l'exercice...",
+        "translationFor": "Traduction pour : \"{{name}}\"",
+        "enterTranslation": "Saisir la traduction...",
+        "description": "Description",
+        "descriptionPlaceholder": "Décrire l'exercice...",
+        "descriptionTranslationPlaceholder": "Saisir la traduction de la description...",
+        "difficultyLevel": "Niveau de difficulté",
+        "exerciseVideo": "Vidéo de l'exercice",
+        "thumbnailImage": "Image miniature",
+        "optional": "Optionnel",
+        "targetMuscles": "Muscles ciblés",
+        "selectedCount": "{{count}} sélectionné(s)",
+        "equipmentNeeded": "Équipement nécessaire",
+        "selectedMuscles": "Muscles sélectionnés :",
+        "selectedEquipment": "Équipement sélectionné :",
+        "none": "Aucun",
+        "saveChanges": "Enregistrer les modifications"
+      },
+      "manageModal": {
+        "title": "Gérer les options d'exercice",
+        "muscleGroups": "Groupes musculaires",
+        "equipment": "Équipement",
+        "addMusclePlaceholder": "Ajouter un groupe musculaire ({{language}})...",
+        "addEquipmentPlaceholder": "Ajouter un équipement ({{language}})...",
+        "add": "Ajouter",
+        "noMuscles": "Aucun groupe musculaire ajouté.",
+        "noEquipment": "Aucun équipement ajouté.",
+        "noTranslation": "pas de traduction {{language}}",
+        "translationPlaceholder": "Traduction {{language}}..."
+      },
+      "view": {
+        "exerciseInfo": "Informations sur l'exercice",
+        "description": "Description :",
+        "difficulty": "Difficulté :",
+        "duration": "Durée :",
+        "uploaded": "Téléchargé :",
+        "uploadedBy": "Téléchargé par :",
+        "showingFallback": "Affichage du texte anglais par défaut",
+        "musclesAndEquipment": "Muscles ciblés & Équipement",
+        "targetMuscles": "Muscles ciblés",
+        "equipmentNeeded": "Équipement nécessaire",
+        "editExercise": "Modifier l'exercice",
+        "browserNotSupported": "Votre navigateur ne prend pas en charge la balise vidéo."
+      }
     },
     "customers": {
       "title": "Studios",
@@ -2884,7 +2990,27 @@
           "title": "Paramètres SMTP",
           "useSSL": "Utiliser SSL"
         },
-        "variables": "Variables"
+        "variables": "Variables",
+        "variableLabels": {
+          "Access_Link": "Lien d'accès",
+          "Studio_Name": "Nom du studio",
+          "Studio_Owner_First_Name": "Prénom du propriétaire",
+          "Studio_Owner_Last_Name": "Nom du propriétaire",
+          "Email_For_Access": "E-mail pour l'accès",
+          "Email_For_Registration": "E-mail pour l'inscription",
+          "Registration_Link": "Lien d'inscription",
+          "Expiry_Date": "Date d'expiration"
+        },
+        "variableValues": {
+          "Access_Link": "{Lien_accès}",
+          "Studio_Name": "{Nom_studio}",
+          "Studio_Owner_First_Name": "{Prénom_propriétaire}",
+          "Studio_Owner_Last_Name": "{Nom_propriétaire}",
+          "Email_For_Access": "{Email_accès}",
+          "Email_For_Registration": "{Email_inscription}",
+          "Registration_Link": "{Lien_inscription}",
+          "Expiry_Date": "{Date_expiration}"
+        }
       },
       "contact": {
         "address": "Adresse",
@@ -2943,7 +3069,49 @@
         "unknown": "Inconnu",
         "untitled": "Sans titre",
         "week": "Semaine",
-        "year": "Année"
+        "year": "Année",
+        "contractTypeModal": {
+          "titleEdit": "Modifier le type de contrat",
+          "titleCreate": "Nouveau type de contrat",
+          "contractName": "Nom du contrat",
+          "contractNameTooltip": "Le nom de ce type de contrat que les membres verront lors de l'inscription",
+          "contractNamePlaceholder": "ex. Abonnement Premium",
+          "cost": "Coût",
+          "costTooltip": "Le prix facturé au membre par période de facturation (hebdomadaire, mensuelle ou annuelle)",
+          "minimumDuration": "Durée minimale",
+          "minimumDurationTooltip": "La période d'engagement minimum. Après cette période, le contrat peut être renouvelé ou résilié.",
+          "months": "mois",
+          "billingPeriod": "Période de facturation",
+          "billingPeriodTooltip": "La fréquence de facturation du membre. Le coût ci-dessus est facturé une fois par période de facturation.",
+          "weekly": "Hebdomadaire",
+          "monthly": "Mensuel",
+          "annually": "Annuel",
+          "accessTemplate": "Modèle d'accès",
+          "accessTemplateTooltip": "Associez un modèle d'accès à ce type de contrat. Les membres avec ce contrat recevront automatiquement les permissions définies dans le modèle sélectionné.",
+          "noAccessTemplates": "Aucun modèle d'accès disponible.",
+          "noAccessTemplatesHint": "Créez d'abord des modèles d'accès dans la section \"Modèles d'accès\".",
+          "noTemplateLinked": "Aucun modèle associé",
+          "selectAccessTemplate": "Sélectionner un modèle d'accès...",
+          "contractForm": "Formulaire de contrat",
+          "contractFormTooltip": "Le modèle de document utilisé lorsqu'un membre signe ce contrat. Créez des formulaires dans la section 'Formulaires de contrat'.",
+          "noContractForms": "Aucun formulaire de contrat disponible.",
+          "noContractFormsHint": "Veuillez d'abord créer un formulaire de contrat dans la section \"Formulaires de contrat\".",
+          "selectForm": "Sélectionner un formulaire...",
+          "noticePeriod": "Délai de préavis",
+          "noticePeriodTooltip": "Combien de jours avant la fin du contrat le membre doit résilier. Passé ce délai, le contrat se renouvellera automatiquement (si activé).",
+          "daysBeforeEnd": "jours avant la fin",
+          "autoRenewal": "Renouvellement automatique",
+          "autoRenewalHelp": "Le contrat se poursuit automatiquement après la durée minimale",
+          "renewalDuration": "Durée de renouvellement",
+          "renewalDurationTooltip": "La durée du contrat après la période minimale. Choisissez 'Indéfini' pour un contrat ouvert jusqu'à résiliation.",
+          "fixedPeriod": "Période fixe",
+          "indefinite": "Indéfini",
+          "days": "Jours",
+          "weeks": "Semaines",
+          "priceAfterRenewal": "Prix après renouvellement",
+          "priceAfterRenewalTooltip": "Le nouveau prix par période de facturation après le renouvellement du contrat.",
+          "select": "Sélectionner..."
+        }
       },
       "legal": {
         "description": "Gérer les documents juridiques",
@@ -2965,7 +3133,8 @@
         "noLeadSources": "Aucune source de leads définie",
         "source": "Source",
         "sourceNamePlaceholder": "Saisir le nom de la source...",
-        "thisSource": "cette source"
+        "thisSource": "cette source",
+        "addLeadSource": "Ajouter une source"
       },
       "select": "Sélectionner",
       "selectSection": "Sélectionner une section",
@@ -2990,6 +3159,30 @@
         "title": "Modèles de permissions",
         "togglePermissions": "Basculer les permissions",
         "unnamedTemplate": "Modèle sans nom"
+      },
+      "nav": {
+        "account": "Compte",
+        "platform": "Plateforme",
+        "contracts": "Contrats",
+        "resources": "Ressources",
+        "communication": "Communication",
+        "changelog": "Journal des modifications",
+        "access": "Modèles d'accès",
+        "sections": {
+          "accounts": "Paramètres du compte",
+          "contact-info": "Coordonnées",
+          "legal-info": "Mentions légales",
+          "contract-forms": "Formulaires de contrat",
+          "contract-types": "Types de contrat",
+          "pause-reasons": "Motifs de pause",
+          "lead-sources": "Sources de prospects",
+          "demo-email": "E-mail d'accès",
+          "registration-email": "E-mail d'inscription",
+          "email-signature": "Signature e-mail",
+          "smtp-setup": "Paramètres SMTP",
+          "version-history": "Journal des modifications",
+          "demo-templates": "Modèles de permissions"
+        }
       }
     },
     "header": {
