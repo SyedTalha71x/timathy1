@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 /**
  * MaskedIban Component
@@ -11,6 +12,7 @@ import { useState } from "react"
  * - className: Additional classes for styling
  */
 const MaskedIban = ({ iban, className = "" }) => {
+  const { t } = useTranslation()
   const [isRevealed, setIsRevealed] = useState(false)
 
   if (!iban) return <span className="text-gray-500">-</span>
@@ -36,7 +38,7 @@ const MaskedIban = ({ iban, className = "" }) => {
           setIsRevealed(!isRevealed)
         }}
         className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
-        title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
+        title={isRevealed ? t("admin.finances.actions.hideIban") : t("admin.finances.actions.showIban")}
       >
         {isRevealed ? (
           <EyeOff className="w-3 h-3" />

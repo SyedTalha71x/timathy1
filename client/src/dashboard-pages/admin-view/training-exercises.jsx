@@ -24,7 +24,7 @@ import toast from "../../components/shared/SharedToast"
 import ManageOptionsModal from "../../components/admin-dashboard-components/training-components/ManageOptionsModal";
 import ExerciseFormModal from "../../components/admin-dashboard-components/training-components/ExerciseFormModal";
 import ViewExerciseModal from "../../components/admin-dashboard-components/training-components/ViewExerciseModal";
-import DeleteExerciseModal from "../../components/admin-dashboard-components/training-components/DeleteExerciseModal";
+import DeleteModal from "../../components/shared/DeleteModal";
 import { getTranslation, getOptionName, emptyTranslations } from '../../components/shared/LanguageTabs';
 
 import { useTranslation } from "react-i18next"
@@ -79,6 +79,11 @@ export default function AdminTrainingManagement() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   // ─── Display helpers ────────────────────────────────────────────────────────
+
+  const getDifficultyLabel = (difficulty) => {
+    const key = difficulty?.toLowerCase()
+    return key ? t(`training.difficulty.${key}`) : difficulty
+  }
 
   const getMuscleDisplayName = (muscleId, lang = "en") => {
     const muscle = muscleOptions.find(m => m.id === muscleId)
@@ -434,7 +439,7 @@ export default function AdminTrainingManagement() {
             >
               <Filter size={16} />
               <span className="truncate">
-                {selectedDifficulty === "all" ? t("admin.exercises.allLevels") : selectedDifficulty}
+                {selectedDifficulty === "all" ? t("admin.exercises.allLevels") : getDifficultyLabel(selectedDifficulty)}
               </span>
               <ChevronDown
                 size={16}
@@ -455,7 +460,7 @@ export default function AdminTrainingManagement() {
                     onClick={() => { setSelectedDifficulty(difficulty); setIsDifficultyDropdownOpen(false) }}
                     className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors ${selectedDifficulty === difficulty ? "bg-[#3F3F3F]" : ""}`}
                   >
-                    <span className="text-white">{difficulty}</span>
+                    <span className="text-white">{getDifficultyLabel(difficulty)}</span>
                   </button>
                 ))}
               </div>
@@ -483,7 +488,7 @@ export default function AdminTrainingManagement() {
                 <div
                   className={`absolute top-2 left-2 px-2 py-1 rounded text-xs text-white ${getDifficultyColor(video.difficulty)}`}
                 >
-                  {video.difficulty}
+                  {getDifficultyLabel(video.difficulty)}
                 </div>
               </div>
               <div className="p-3 sm:p-4">
@@ -641,11 +646,15 @@ export default function AdminTrainingManagement() {
         <Plus size={22} />
       </button>
 
-      <DeleteExerciseModal
+      <DeleteModal
         isOpen={isDeleteModalOpen}
-        videoToDelete={videoToDelete}
         onClose={() => { setIsDeleteModalOpen(false); setVideoToDelete(null) }}
-        onConfirmDelete={handleDelete}
+        onConfirm={handleDelete}
+        title={t("admin.exercises.deleteModal.title")}
+        message={t("admin.exercises.deleteModal.message", { name: videoToDelete ? getTranslation(videoToDelete.name, "en") : '' })}
+        description={t("admin.exercises.deleteModal.subtitle")}
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
       />
     </div>
   )

@@ -47,7 +47,11 @@
     },
     "copy": "Copy",
     "no": "No",
-    "yes": "Yes"
+    "yes": "Yes",
+    "deleteModal": {
+      "messageWithItem": "Are you sure you want to delete",
+      "messageDefault": "Are you sure you want to delete this item?"
+    }
   },
   "languages": {
     "en": "English",
@@ -1024,6 +1028,49 @@
         "updated": "Product updated successfully!",
         "added": "Product added successfully!",
         "deleted": "Product deleted successfully!"
+      },
+      "modal": {
+        "titleEdit": "Edit Product",
+        "titleAdd": "Add New Product",
+        "language": "Language",
+        "langHint": "English is required. {{language}} is optional.",
+        "productPicture": "Product Picture",
+        "changePicture": "Change picture",
+        "removePicture": "Remove picture",
+        "clickToUpload": "Click to upload image",
+        "imageFormats": "PNG, JPG, WEBP",
+        "brandName": "Brand Name",
+        "brandNamePlaceholder": "Enter brand name",
+        "productName": "Product Name",
+        "productNamePlaceholder": "Enter product name",
+        "translationFor": "Translation for: \"{{name}}\"",
+        "enterTranslation": "Enter translation...",
+        "articleNo": "Article No",
+        "articleNoPlaceholder": "e.g. 555088-101",
+        "price": "Price",
+        "pricePlaceholder": "0.00",
+        "productLink": "Product Link",
+        "productLinkPlaceholder": "https://example.com/product",
+        "productInfo": "Product Info",
+        "productInfoPlaceholder": "Add additional information about the product...",
+        "productInfoTranslationPlaceholder": "Enter translation for the product info...",
+        "productStatus": "Product Status",
+        "productStatusHelp": "Toggle to activate/deactivate product",
+        "updateProduct": "Update Product"
+      },
+      "infoModal": {
+        "title": "Product Information",
+        "brand": "Brand:",
+        "articleNo": "Article No:",
+        "status": "Status:",
+        "showingFallback": "Showing English fallback",
+        "noInfo": "No additional information available",
+        "addInfo": "Add information",
+        "editProduct": "Edit Product"
+      },
+      "deleteModal": {
+        "title": "Delete Product",
+        "message": "Are you sure you want to delete \"{{name}}\"? All translations will be permanently removed. This action cannot be undone."
       }
     },
     "feedback": {
@@ -1153,6 +1200,137 @@
       "cannotBeUndone": "This action cannot be undone",
       "toast": {
         "statusUpdated": "Transaction statuses updated successfully!"
+      },
+      "servicesBreakdown": {
+        "title": "Services Breakdown",
+        "studioDescription": "Service breakdown for this studio",
+        "memberDescription": "Service breakdown for this member",
+        "totalAmount": "Total Amount"
+      },
+      "checkFundsModal": {
+        "title": "Check Incoming Funds",
+        "updateStatus": "Update the status of pending transactions:",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "setAllSelected": "Set all selected ({{count}}) to:",
+        "noSearchResults": "No transactions found matching your search.",
+        "noPending": "No transactions are pending fund verification.",
+        "update": "Update"
+      },
+      "sepaXml": {
+        "title": "Run Payment",
+        "periodLabel": "Period",
+        "claimsThrough": "Claims Through",
+        "collectionDate": "Collection Date",
+        "executedBy": "Executed By",
+        "reviewTransactions": "Review and select transactions to include in the SEPA XML file:",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "noSearchResults": "No transactions found matching your search.",
+        "noPending": "No pending or failed transactions for this period.",
+        "generateTitle": "Generate SEPA XML",
+        "generateConfirm": "Are you sure you want to generate the SEPA XML file?",
+        "selectedTransactions": "Selected transactions",
+        "totalAmountLabel": "Total amount",
+        "claimsThroughLabel": "Claims through",
+        "collectionDateLabel": "Collection date",
+        "executedByLabel": "Executed by",
+        "autoDownload": "Download SEPA XML file automatically",
+        "generateXml": "Generate XML",
+        "generateSepaXml": "Generate SEPA XML"
+      },
+      "sepaSuccess": {
+        "title": "SEPA XML Generated",
+        "autoDownloadMessage": "Your SEPA XML file has been generated and downloaded automatically.",
+        "readyMessage": "Your SEPA XML file has been generated successfully and is ready for download.",
+        "fileName": "File Name",
+        "transactions": "Transactions",
+        "records": "{{count}} records",
+        "totalAmount": "Total Amount",
+        "isoNote": "The XML file follows SEPA ISO 20022 standards and is ready for bank processing.",
+        "downloadXml": "Download XML",
+        "download": "Download"
+      },
+      "documents": {
+        "title": "SEPA XML Documents",
+        "latestFile": "Latest File",
+        "pastFiles": "Past Files",
+        "latest": "Latest",
+        "generated": "Generated",
+        "size": "Size",
+        "transactions": "Transactions",
+        "total": "Total",
+        "viewDocument": "View Document",
+        "download": "Download",
+        "delete": "Delete",
+        "noDocuments": "No SEPA XML documents generated yet",
+        "noDocumentsHint": "Generated XML files will appear here",
+        "noPastFiles": "No past files available",
+        "noPastFilesHint": "Only the latest generated file is currently available",
+        "noLatestFile": "No latest file available",
+        "deleteTitle": "Delete SEPA File",
+        "deleteConfirm": "Are you sure you want to delete this SEPA XML file?",
+        "deleteWarning": "This action cannot be undone. The file will be permanently deleted.",
+        "deleteFile": "Delete File"
+      },
+      "paymentRuns": {
+        "title": "Payment Run History",
+        "runs": "{{count}} Runs",
+        "noRuns": "No Payment Runs Yet",
+        "noRunsHint": "Completed payment runs will appear here",
+        "latest": "Latest",
+        "transactionsCount": "{{count}} Transactions",
+        "totalAmount": "Total Amount",
+        "downloadSepaXml": "Download SEPA XML",
+        "downloadPdf": "Download PDF Report",
+        "paymentDetails": "Payment Details",
+        "claimsThrough": "Claims Through",
+        "collectionDate": "Collection Date",
+        "directDebits": "Direct Debits",
+        "creditorInfo": "Creditor Information",
+        "bank": "Bank",
+        "creditorId": "Creditor ID",
+        "transactionsTitle": "Transactions ({{count}})",
+        "studioNo": "Studio No.",
+        "studioName": "Studio Name",
+        "accountHolder": "Account Holder",
+        "bookingNo": "Booking No.",
+        "services": "Services",
+        "amount": "Amount",
+        "total": "Total:",
+        "deleteTitle": "Delete Payment Run",
+        "deleteConfirm": "Are you sure you want to delete this payment run?",
+        "created": "Created",
+        "deleteWarning": "This action cannot be undone. All associated data will be permanently deleted.",
+        "pdfTitle": "Payment Run Report",
+        "pdfPaymentDetails": "Payment Run Details",
+        "pdfPaymentRunNumber": "Payment Run Number:",
+        "pdfCreated": "Created:",
+        "pdfClaimsThrough": "Claims Through:",
+        "pdfCollectionDate": "Collection Date:",
+        "pdfDirectDebits": "Number of Direct Debits:",
+        "pdfExecutedBy": "Executed By:",
+        "pdfCreditorInfo": "Creditor Information",
+        "pdfCompany": "Company:",
+        "pdfBankName": "Bank Name:",
+        "pdfDetailEvaluation": "Detail Evaluation",
+        "pdfErrorGenerating": "Error generating PDF. Please try again."
+      },
+      "customDate": {
+        "title": "Custom Date Range"
+      },
+      "periods": {
+        "thisMonth": "This Month",
+        "lastMonth": "Last Month",
+        "last3Months": "Last 3 Months",
+        "last6Months": "Last 6 Months",
+        "thisYear": "This Year",
+        "lastYear": "Last Year",
+        "allTime": "All Time",
+        "thisWeek": "This Week",
+        "lastWeek": "Last Week",
+        "thisQuarter": "This Quarter",
+        "lastQuarter": "Last Quarter"
       }
     },
     "email": {
@@ -1237,7 +1415,18 @@
         "attachments": "Attachments",
         "addAttachment": "Add Attachment",
         "tapToAddAttachments": "Tap to add attachments",
-        "sendEmail": "Send Email"
+        "sendEmail": "Send Email",
+        "pressEnterToAdd": "Press Enter to add email",
+        "greeting": "Best regards",
+        "clickToAddAttachments": "Click to add attachments",
+        "sendReply": "Send Reply",
+        "addCc": "+ CC",
+        "addBcc": "+ BCC",
+        "remove": "Remove",
+        "addEmail": "Add \"{{email}}\"",
+        "invalidEmail": "Type a valid email address or search for members",
+        "variableWarningText": "will only be replaced when sending to a single recipient. For multiple recipients, variables will be sent as-is.",
+        "variablesLike": "Variables like"
       },
       "reply": {
         "title": "Reply to {{sender}}",
@@ -1245,7 +1434,8 @@
         "originalMessage": "Original Message",
         "from": "From",
         "date": "Date",
-        "subjectLabel": "Subject"
+        "subjectLabel": "Subject",
+        "clickToAddAttachments": "Click to add attachments"
       },
       "draftModal": {
         "title": "Save as Draft?",
@@ -1296,7 +1486,9 @@
           "title": "Please enter a title",
           "message": "Please enter a message",
           "folder": "Please select a folder"
-        }
+        },
+        "greeting": "Best regards",
+        "addAttachment": "Add Attachment"
       },
       "broadcast": {
         "untitledTemplate": "Untitled template",
@@ -1309,7 +1501,68 @@
         "selectTemplate": "Please select an email template",
         "searchStudios": "Search studios...",
         "searchTemplates": "Search templates...",
-        "sendConfirmMessage": "This will send an email to {{count}} recipient(s)."
+        "sendConfirmMessage": "This will send an email to {{count}} recipient(s).",
+        "title": "Email Broadcast",
+        "compose": "Compose",
+        "templates": "Templates",
+        "folders": "Folders",
+        "sections": "Sections",
+        "recipients": "Recipients",
+        "template": "Template",
+        "review": "Review",
+        "channel": "Channel",
+        "email": "Email",
+        "studio": "Studio",
+        "franchise": "Franchise",
+        "selectRecipients": "Select Recipients",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All",
+        "available": "{{count}} available",
+        "continue": "Continue",
+        "reviewAndSend": "Review & Send",
+        "sendEmail": "Send Email",
+        "sendNow": "Send Now",
+        "noTemplatesFound": "No templates found",
+        "noTemplatesYet": "No templates yet",
+        "createFirstTemplate": "Create your first template",
+        "noFoldersYet": "No folders yet",
+        "createFirstFolder": "Create your first folder",
+        "emailTemplates": "Email Templates",
+        "emailFolders": "Email Folders",
+        "selectFolder": "Select Folder",
+        "selectTemplateLbl": "Select Template",
+        "templateCount": "{{count}} template",
+        "templateCountPlural": "{{count}} templates",
+        "recipientCount": "{{count}} recipient",
+        "recipientCountPlural": "{{count}} recipients",
+        "broadcastSent": "Broadcast sent!",
+        "broadcastSentSuccess": "Broadcast sent successfully!",
+        "sentTo": "Sent to {{count}} recipient(s)",
+        "confirmBroadcast": "Confirm Broadcast",
+        "confirmBroadcastMessage": "Are you sure you want to send this email broadcast?",
+        "selectedStatus": "Selected",
+        "noneStatus": "None",
+        "more": "+{{count}} more",
+        "searchStudiosPlaceholder": "Search studios...",
+        "searchFranchisesPlaceholder": "Search franchises...",
+        "recipientsSelected": "{{count}} selected",
+        "studioCount": "{{count}} studio",
+        "studioCountPlural": "{{count}} studios",
+        "franchiseCount": "{{count}} franchise",
+        "franchiseCountPlural": "{{count}} franchises",
+        "emailSentTo": "Email sent to {{details}}"
+      },
+      "variables": {
+        "studio_name": "Studio Name",
+        "franchise_name": "Franchise Name",
+        "operator_first_name": "Studio Operator First Name",
+        "operator_last_name": "Studio Operator Last Name"
+      },
+      "variableValues": {
+        "studio_name": "{Studio_Name}",
+        "franchise_name": "{Franchise_Name}",
+        "operator_first_name": "{Studio_Operator_First_Name}",
+        "operator_last_name": "{Studio_Operator_Last_Name}"
       }
     },
     "todo": {
@@ -1326,7 +1579,7 @@
       "addTags": "Add Tags",
       "manageTags": "Manage Tags",
       "columns": {
-        "ongoing": "Ongoing",
+        "ongoing": "Open",
         "completed": "Completed",
         "canceled": "Canceled"
       },
@@ -1339,7 +1592,7 @@
       },
       "actions": {
         "markComplete": "Mark Complete",
-        "setOngoing": "Set Ongoing",
+        "setOngoing": "Reopen",
         "cancelTask": "Cancel Task",
         "pinTask": "Pin Task",
         "unpinTask": "Unpin Task",
@@ -1348,7 +1601,7 @@
         "delete": "Delete"
       },
       "empty": {
-        "ongoing": "No ongoing tasks",
+        "ongoing": "No open tasks",
         "completed": "No completed tasks",
         "canceled": "No canceled tasks"
       },
@@ -1377,7 +1630,7 @@
       "pinNote": "Pin Note",
       "selectNoteHint": "Select a note from the list to view its contents",
       "showLess": "Show Less",
-      "showMore": "Show More",
+      "showMore": "+{{count}} more",
       "sort": {
         "custom": "Custom",
         "date": "Date",
@@ -1385,7 +1638,11 @@
       },
       "startWriting": "Start writing...",
       "tags": "Tags",
-      "unpinNote": "Unpin Note"
+      "unpinNote": "Unpin Note",
+      "deleteModal": {
+        "title": "Delete Note",
+        "message": "Are you sure you want to delete the note \"{{title}}\"? This action cannot be undone."
+      }
     },
     "leads": {
       "title": "Leads",
@@ -1606,7 +1863,62 @@
       "allLevels": "All Levels",
       "noResults": "No exercises found",
       "translations": "Translations",
-      "uploadExercise": "Upload Exercise"
+      "uploadExercise": "Upload Exercise",
+      "deleteModal": {
+        "title": "Delete Exercise",
+        "subtitle": "This action cannot be undone",
+        "message": "Are you sure you want to delete \"{{name}}\"? All associated data and translations will be permanently removed."
+      },
+      "form": {
+        "titleCreate": "Upload New Exercise",
+        "titleEdit": "Edit Exercise",
+        "language": "Language",
+        "langHint": "English is required. {{language}} is optional.",
+        "exerciseName": "Exercise Name",
+        "exerciseNamePlaceholder": "Enter exercise name...",
+        "translationFor": "Translation for: \"{{name}}\"",
+        "enterTranslation": "Enter translation...",
+        "description": "Description",
+        "descriptionPlaceholder": "Describe the exercise...",
+        "descriptionTranslationPlaceholder": "Enter translation for the description...",
+        "difficultyLevel": "Difficulty Level",
+        "exerciseVideo": "Exercise Video",
+        "thumbnailImage": "Thumbnail Image",
+        "optional": "Optional",
+        "targetMuscles": "Target Muscles",
+        "selectedCount": "{{count}} selected",
+        "equipmentNeeded": "Equipment Needed",
+        "selectedMuscles": "Selected Muscles:",
+        "selectedEquipment": "Selected Equipment:",
+        "none": "None",
+        "saveChanges": "Save Changes"
+      },
+      "manageModal": {
+        "title": "Manage Exercise Options",
+        "muscleGroups": "Muscle Groups",
+        "equipment": "Equipment",
+        "addMusclePlaceholder": "Add muscle group ({{language}})...",
+        "addEquipmentPlaceholder": "Add equipment ({{language}})...",
+        "add": "Add",
+        "noMuscles": "No muscle groups added yet.",
+        "noEquipment": "No equipment added yet.",
+        "noTranslation": "no {{language}} translation",
+        "translationPlaceholder": "{{language}} translation..."
+      },
+      "view": {
+        "exerciseInfo": "Exercise Information",
+        "description": "Description:",
+        "difficulty": "Difficulty:",
+        "duration": "Duration:",
+        "uploaded": "Uploaded:",
+        "uploadedBy": "Uploaded by:",
+        "showingFallback": "Showing English fallback",
+        "musclesAndEquipment": "Target Muscles & Equipment",
+        "targetMuscles": "Target Muscles",
+        "equipmentNeeded": "Equipment Needed",
+        "editExercise": "Edit Exercise",
+        "browserNotSupported": "Your browser does not support the video tag."
+      }
     },
     "customers": {
       "title": "Studios",
@@ -2678,7 +2990,27 @@
           "title": "SMTP Settings",
           "useSSL": "Use SSL"
         },
-        "variables": "Variables"
+        "variables": "Variables",
+        "variableLabels": {
+          "Access_Link": "Access Link",
+          "Studio_Name": "Studio Name",
+          "Studio_Owner_First_Name": "Owner First Name",
+          "Studio_Owner_Last_Name": "Owner Last Name",
+          "Email_For_Access": "Email for Access",
+          "Email_For_Registration": "Email for Registration",
+          "Registration_Link": "Registration Link",
+          "Expiry_Date": "Expiry Date"
+        },
+        "variableValues": {
+          "Access_Link": "{Access_Link}",
+          "Studio_Name": "{Studio_Name}",
+          "Studio_Owner_First_Name": "{Studio_Owner_First_Name}",
+          "Studio_Owner_Last_Name": "{Studio_Owner_Last_Name}",
+          "Email_For_Access": "{Email_For_Access}",
+          "Email_For_Registration": "{Email_For_Registration}",
+          "Registration_Link": "{Registration_Link}",
+          "Expiry_Date": "{Expiry_Date}"
+        }
       },
       "contact": {
         "address": "Address",
@@ -2737,7 +3069,49 @@
         "unknown": "Unknown",
         "untitled": "Untitled",
         "week": "Week",
-        "year": "Year"
+        "year": "Year",
+        "contractTypeModal": {
+          "titleEdit": "Edit Contract Type",
+          "titleCreate": "New Contract Type",
+          "contractName": "Contract Name",
+          "contractNameTooltip": "The name of this contract type that members will see when signing up",
+          "contractNamePlaceholder": "e.g., Premium Membership",
+          "cost": "Cost",
+          "costTooltip": "The price charged to the member per billing period (weekly, monthly, or annually)",
+          "minimumDuration": "Minimum Duration",
+          "minimumDurationTooltip": "The minimum commitment period. After this period, the contract can be renewed or terminated.",
+          "months": "months",
+          "billingPeriod": "Billing Period",
+          "billingPeriodTooltip": "How often the member is charged. The cost above is charged once per billing period.",
+          "weekly": "Weekly",
+          "monthly": "Monthly",
+          "annually": "Annually",
+          "accessTemplate": "Access Template",
+          "accessTemplateTooltip": "Link an access template to this contract type. Members with this contract will automatically receive the permissions defined in the selected template.",
+          "noAccessTemplates": "No access templates available.",
+          "noAccessTemplatesHint": "Create access templates in the \"Access Templates\" section first.",
+          "noTemplateLinked": "No template linked",
+          "selectAccessTemplate": "Select an access template...",
+          "contractForm": "Contract Form",
+          "contractFormTooltip": "The document template used when a member signs this contract. Create forms in the 'Contract Forms' section.",
+          "noContractForms": "No contract forms available.",
+          "noContractFormsHint": "Please create a contract form first in the \"Contract Forms\" section.",
+          "selectForm": "Select a form...",
+          "noticePeriod": "Notice Period",
+          "noticePeriodTooltip": "How many days before the contract end date the member must cancel. After this deadline, the contract will auto-renew (if enabled).",
+          "daysBeforeEnd": "days before end",
+          "autoRenewal": "Automatic Renewal",
+          "autoRenewalHelp": "Contract continues automatically after the minimum duration ends",
+          "renewalDuration": "Renewal Duration",
+          "renewalDurationTooltip": "How long the contract continues after the minimum duration. Choose 'Indefinite' for an open-ended contract that runs until cancelled.",
+          "fixedPeriod": "Fixed period",
+          "indefinite": "Indefinite",
+          "days": "Days",
+          "weeks": "Weeks",
+          "priceAfterRenewal": "Price After Renewal",
+          "priceAfterRenewalTooltip": "The new price per billing period after the contract renews.",
+          "select": "Select..."
+        }
       },
       "legal": {
         "description": "Manage your legal documents",
@@ -2759,7 +3133,8 @@
         "noLeadSources": "No lead sources defined",
         "source": "Source",
         "sourceNamePlaceholder": "Enter source name...",
-        "thisSource": "this source"
+        "thisSource": "this source",
+        "addLeadSource": "Add Source"
       },
       "select": "Select",
       "selectSection": "Select a section",
@@ -2784,6 +3159,30 @@
         "title": "Permission Templates",
         "togglePermissions": "Toggle Permissions",
         "unnamedTemplate": "Unnamed Template"
+      },
+      "nav": {
+        "account": "Account",
+        "platform": "Platform",
+        "contracts": "Contracts",
+        "resources": "Resources",
+        "communication": "Communication",
+        "changelog": "Changelog",
+        "access": "Access Templates",
+        "sections": {
+          "accounts": "Account Settings",
+          "contact-info": "Contact Information",
+          "legal-info": "Legal",
+          "contract-forms": "Contract Forms",
+          "contract-types": "Contract Types",
+          "pause-reasons": "Pause Reasons",
+          "lead-sources": "Lead Sources",
+          "demo-email": "Access Email",
+          "registration-email": "Registration Email",
+          "email-signature": "Email Signature",
+          "smtp-setup": "SMTP Settings",
+          "version-history": "Changelog",
+          "demo-templates": "Permission Templates"
+        }
       }
     },
     "header": {
@@ -3151,6 +3550,148 @@
       "deleteTaskConfirm": "Are you sure you want to delete this task?",
       "cancelTask": "Cancel Task",
       "cancelTaskConfirm": "Are you sure you want to cancel this task?"
+    }
+  },
+  "todo": {
+    "deleteModal": {
+      "title": "Confirm Delete",
+      "message": "Are you sure you want to delete the task \"{{title}}\"? This action cannot be undone."
+    },
+    "editTags": {
+      "title": "Edit Tags",
+      "selectTags": "Select tags for: \"{{title}}\"",
+      "saveChanges": "Save Changes"
+    },
+    "repeat": {
+      "title": "Repeat Task: {{title}}",
+      "frequency": "Repeat Frequency",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "repeatOnDays": "Repeat on days",
+      "ends": "Ends",
+      "never": "Never",
+      "onDate": "On date:",
+      "after": "After",
+      "occurrences": "occurrences",
+      "saveChanges": "Save Changes"
+    },
+    "calendar": {
+      "title": "Date & Time",
+      "time": "Time",
+      "selectTime": "Select time",
+      "reminder": "Reminder",
+      "repeatLabel": "Repeat",
+      "none": "None",
+      "onTime": "On time",
+      "5minBefore": "5 minutes before",
+      "15minBefore": "15 minutes before",
+      "30minBefore": "30 minutes before",
+      "1hourBefore": "1 hour before",
+      "1dayBefore": "1 day before",
+      "custom": "Custom",
+      "minutes": "Minutes",
+      "hours": "Hours",
+      "days": "Days",
+      "weeks": "Weeks",
+      "before": "before",
+      "clearAll": "Clear All",
+      "clearTitle": "Clear All Settings",
+      "clearMessage": "Are you sure you want to reset all date, time, reminder, and repeat settings in this form?",
+      "ends": "Ends:",
+      "onDateEnd": "On date:",
+      "afterEnd": "After",
+      "occurrences": "occurrences",
+      "neverEnd": "Never"
+    },
+    "column": {
+      "expandSection": "Expand section",
+      "collapseSection": "Collapse section",
+      "pinned": "Pinned",
+      "dropHere": "Drop here",
+      "noTasks": "No {{column}} tasks"
+    },
+    "card": {
+      "dateTime": "Date & Time",
+      "noDate": "No date",
+      "noDueDateSet": "No due date set",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "duplicate": "Duplicate",
+      "repeatAction": "Repeat",
+      "cancelTask": "Cancel Task",
+      "setOngoing": "Reopen",
+      "complete": "Complete",
+      "delete": "Delete",
+      "reminderTooltip": "Reminder: {{value}}",
+      "repeatsYes": "Repeats: Yes"
+    },
+    "sort": {
+      "tag": "Tag",
+      "recentlyAdded": "Recently Added",
+      "customOrder": "Custom Order",
+      "sortBy": "Sort by",
+      "custom": "Custom Order",
+      "title": "Title",
+      "dueDate": "Due Date",
+      "recent": "Recently Added"
+    },
+    "days": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "dayHeaders": {
+      "su": "Su",
+      "mo": "Mo",
+      "tu": "Tu",
+      "we": "We",
+      "th": "Th",
+      "fr": "Fr",
+      "sa": "Sa"
+    },
+    "tags": "Tags",
+    "title": "To-Do",
+    "newTask": "New Task",
+    "create": "Create",
+    "placeholder": "What needs to be done?",
+    "inputPlaceholder": "New task… (Press Enter to add)",
+    "noDate": "No due date",
+    "noTags": "No tags",
+    "dueDateTime": "Due Date & Time",
+    "reminder": "Reminder",
+    "addTags": "Add Tags",
+    "manageTags": "Manage Tags",
+    "backToTasks": "Back to Tasks",
+    "canceledClickRestore": "Canceled — click to restore",
+    "clearDateTime": "Clear Date & Time",
+    "moreActions": "More Actions",
+    "repeating": "Repeating",
+    "setDueDate": "Set Due Date",
+    "taskTitlePlaceholder": "Task title...",
+    "columns": {
+      "ongoing": "Open",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    },
+    "actions": {
+      "markComplete": "Mark Complete",
+      "setOngoing": "Reopen",
+      "cancelTask": "Cancel Task",
+      "pinTask": "Pin Task",
+      "unpinTask": "Unpin Task",
+      "duplicate": "Duplicate",
+      "setRepeat": "Set Repeat",
+      "delete": "Delete"
+    },
+    "empty": {
+      "ongoing": "No open tasks",
+      "completed": "No completed tasks",
+      "canceled": "No canceled tasks"
     }
   }
 }

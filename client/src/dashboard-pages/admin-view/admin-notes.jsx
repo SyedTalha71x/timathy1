@@ -7,7 +7,7 @@ import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifi
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import TagManagerModal from "../../components/shared/TagManagerModal"
-import DeleteConfirmModal from "../../components/admin-dashboard-components/notes-components/DeleteConfirmModal"
+import DeleteModal from "../../components/shared/DeleteModal"
 import { demoNotes, notesTagsData } from "../../utils/admin-panel-states/notes-states"
 
 import { useTranslation } from "react-i18next"
@@ -1085,11 +1085,14 @@ export default function NotesApp() {
       </div>
 
       {/* Delete Modal */}
-      <DeleteConfirmModal
+      <DeleteModal
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => { deleteNote(deleteConfirm.id); setDeleteConfirm(null) }}
-        noteTitle={deleteConfirm?.title || ''}
+        title={t("admin.notes.deleteModal.title")}
+        message={t("admin.notes.deleteModal.message", { title: deleteConfirm?.title || t("admin.notes.untitled") })}
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
       />
 
       {/* Mobile Editor Overlay */}

@@ -1,8 +1,10 @@
 /* eslint-disable react/prop-types */
 import { Download, Eye, FileText, Trash2, X, AlertTriangle } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDocument }) => {
+  const { t } = useTranslation()
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
   const [documentToDelete, setDocumentToDelete] = useState(null)
   const [activeTab, setActiveTab] = useState("latest") // "latest" or "past"
@@ -60,14 +62,14 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
           <div className="flex items-center gap-2">
             <h3 className="text-white font-medium text-sm md:text-base">{doc.filename}</h3>
             {isLatest && (
-              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">Latest</span>
+              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">{t("admin.finances.documents.latest")}</span>
             )}
           </div>
           <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-xs md:text-sm text-gray-400 mt-1">
-            <span>Generated: {formatDate(doc.createdAt)}</span>
-            <span>Size: {formatFileSize(doc.size)}</span>
-            <span>Transactions: {doc.transactionCount}</span>
-            <span>Total: ${doc.totalAmount?.toFixed(2) || '0.00'}</span>
+            <span>{t("admin.finances.documents.generated")}: {formatDate(doc.createdAt)}</span>
+            <span>{t("admin.finances.documents.size")}: {formatFileSize(doc.size)}</span>
+            <span>{t("admin.finances.documents.transactions")}: {doc.transactionCount}</span>
+            <span>{t("admin.finances.documents.total")}: ${doc.totalAmount?.toFixed(2) || '0.00'}</span>
           </div>
         </div>
       </div>
@@ -75,7 +77,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
         <button
           onClick={() => onViewDocument(doc)}
           className="p-1.5 md:p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-          title="View Document"
+          title={t("admin.finances.documents.viewDocument")}
         >
           <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
@@ -90,14 +92,14 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
             document.body.removeChild(element)
           }}
           className="p-1.5 md:p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-colors"
-          title="Download"
+          title={t("admin.finances.documents.download")}
         >
           <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
         <button
           onClick={() => handleDeleteClick(doc)}
           className="p-1.5 md:p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-          title="Delete"
+          title={t("admin.finances.documents.delete")}
         >
           <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
@@ -112,7 +114,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
           <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center">
             <div className="flex items-center gap-2 md:gap-3">
               <FileText className="w-4 h-4 md:w-5 md:h-5 text-white" />
-              <h2 className="text-white text-base md:text-lg font-medium">SEPA XML Documents</h2>
+              <h2 className="text-white text-base md:text-lg font-medium">{t("admin.finances.documents.title")}</h2>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X className="w-4 h-4 md:w-5 md:h-5" />
@@ -129,7 +131,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              Latest File
+              {t("admin.finances.documents.latestFile")}
             </button>
             <button
               onClick={() => setActiveTab("past")}
@@ -139,7 +141,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              Past Files {pastDocuments.length > 0 && `(${pastDocuments.length})`}
+              {t("admin.finances.documents.pastFiles")} {pastDocuments.length > 0 && `(${pastDocuments.length})`}
             </button>
           </div>
 
@@ -147,8 +149,8 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
             {documents.length === 0 ? (
               <div className="text-center py-6 md:py-8">
                 <FileText className="w-10 h-10 md:w-12 md:h-12 text-gray-600 mx-auto mb-3 md:mb-4" />
-                <p className="text-gray-400 text-sm md:text-base">No SEPA XML documents generated yet</p>
-                <p className="text-gray-500 text-xs md:text-sm mt-2">Generated XML files will appear here</p>
+                <p className="text-gray-400 text-sm md:text-base">{t("admin.finances.documents.noDocuments")}</p>
+                <p className="text-gray-500 text-xs md:text-sm mt-2">{t("admin.finances.documents.noDocumentsHint")}</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -176,9 +178,9 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
                     ) : (
                       <div className="text-center py-8">
                         <FileText className="w-10 h-10 md:w-12 md:h-12 text-gray-600 mx-auto mb-3 md:mb-4" />
-                        <p className="text-gray-400 text-sm md:text-base">No past files available</p>
+                        <p className="text-gray-400 text-sm md:text-base">{t("admin.finances.documents.noPastFiles")}</p>
                         <p className="text-gray-500 text-xs md:text-sm mt-2">
-                          Only the latest generated file is currently available
+                          {t("admin.finances.documents.noPastFilesHint")}
                         </p>
                       </div>
                     )}
@@ -189,7 +191,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
                 {activeTab === "latest" && !latestDocument && (
                   <div className="text-center py-8">
                     <FileText className="w-10 h-10 md:w-12 md:h-12 text-gray-600 mx-auto mb-3 md:mb-4" />
-                    <p className="text-gray-400 text-sm md:text-base">No latest file available</p>
+                    <p className="text-gray-400 text-sm md:text-base">{t("admin.finances.documents.noLatestFile")}</p>
                   </div>
                 )}
               </div>
@@ -207,23 +209,23 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
                 <div className="bg-red-900/30 p-2 rounded-lg">
                   <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-red-400" />
                 </div>
-                <h3 className="text-white text-lg font-medium">Delete SEPA File</h3>
+                <h3 className="text-white text-lg font-medium">{t("admin.finances.documents.deleteTitle")}</h3>
               </div>
               
               <p className="text-gray-300 mb-2">
-                Are you sure you want to delete this SEPA XML file?
+                {t("admin.finances.documents.deleteConfirm")}
               </p>
               {documentToDelete && (
                 <p className="text-gray-400 text-sm mb-4">
                   <strong>{documentToDelete.filename}</strong>
                   <br />
-                  Generated: {formatDate(documentToDelete.createdAt)}
+                  {t("admin.finances.documents.generated")}: {formatDate(documentToDelete.createdAt)}
                   <br />
-                  Transactions: {documentToDelete.transactionCount}
+                  {t("admin.finances.documents.transactions")}: {documentToDelete.transactionCount}
                 </p>
               )}
               <p className="text-yellow-400 text-sm mb-6">
-                This action cannot be undone. The file will be permanently deleted.
+                {t("admin.finances.documents.deleteWarning")}
               </p>
 
               <div className="flex gap-3 justify-end">
@@ -231,14 +233,14 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
                   onClick={cancelDelete}
                   className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   onClick={confirmDelete}
                   className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete File
+                  {t("admin.finances.documents.deleteFile")}
                 </button>
               </div>
             </div>

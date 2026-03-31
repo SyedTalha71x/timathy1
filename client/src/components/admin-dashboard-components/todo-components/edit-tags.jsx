@@ -1,11 +1,11 @@
 
-
-/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X, Check } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const TagsModal = ({ task, configuredTags, onClose, onUpdate }) => {
+  const { t } = useTranslation()
   const [selectedTags, setSelectedTags] = useState([...task.tags])
 
   const toggleTag = (tagName) => {
@@ -21,14 +21,14 @@ const TagsModal = ({ task, configuredTags, onClose, onUpdate }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white">Edit Tags</h2>
+          <h2 className="text-xl font-bold text-white">{t("todo.editTags.title")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={20} />
           </button>
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-300 text-sm mb-4">Select tags for: "{task.title}"</p>
+          <p className="text-gray-300 text-sm mb-4">{t("todo.editTags.selectTags", { title: task.title })}</p>
 
           <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
             {configuredTags.map((tag) => {
@@ -55,13 +55,13 @@ const TagsModal = ({ task, configuredTags, onClose, onUpdate }) => {
             onClick={onClose}
             className="bg-[#2F2F2F] text-sm text-gray-300 px-4 py-2 rounded-xl hover:bg-gray-700"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleSave}
             className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition-colors"
           >
-            Save Changes
+            {t("todo.editTags.saveChanges")}
           </button>
         </div>
       </div>

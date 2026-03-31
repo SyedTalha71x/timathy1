@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Save, Upload } from "lucide-react";
 import LanguageTabs, { LANGUAGES, getOptionName } from "../../shared/LanguageTabs";
+import { useTranslation } from "react-i18next";
 
 export default function ExerciseFormModal({
   isCreateModalOpen,
@@ -20,6 +21,7 @@ export default function ExerciseFormModal({
   setSelectedVideo,
   resetForm,
 }) {
+  const { t } = useTranslation();
   const [formLang, setFormLang] = useState("en");
 
   const isOpen = isCreateModalOpen || isEditModalOpen;
@@ -40,8 +42,7 @@ export default function ExerciseFormModal({
     setFormLang("en");
   };
 
-  const currentLangLabel =
-    LANGUAGES.find((l) => l.code === formLang)?.fullLabel || "English";
+  const currentLangLabel = t(`languages.${formLang}`);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center sm:p-4 z-50">
@@ -50,7 +51,7 @@ export default function ExerciseFormModal({
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg sm:text-xl font-bold text-white">
-              {isCreateModalOpen ? "Upload New Exercise" : "Edit Exercise"}
+              {isCreateModalOpen ? t("admin.exercises.form.titleCreate") : t("admin.exercises.form.titleEdit")}
             </h2>
             <button
               onClick={closeModal}
@@ -63,7 +64,7 @@ export default function ExerciseFormModal({
           {/* Language Tabs */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
-              Language
+              {t("admin.exercises.form.language")}
             </label>
             <LanguageTabs
               selectedLang={formLang}
@@ -72,7 +73,7 @@ export default function ExerciseFormModal({
             />
             {formLang !== "en" && (
               <p className="text-xs text-gray-500 mt-1.5">
-                English is required. {currentLangLabel} is optional.
+                {t("admin.exercises.form.langHint", { language: currentLangLabel })}
               </p>
             )}
           </div>
@@ -85,7 +86,7 @@ export default function ExerciseFormModal({
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Exercise Name{" "}
+                  {t("admin.exercises.form.exerciseName")}{" "}
                   {formLang === "en" ? "*" : `(${currentLangLabel})`}
                 </label>
                 <input
@@ -95,10 +96,10 @@ export default function ExerciseFormModal({
                   className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none"
                   placeholder={
                     formLang === "en"
-                      ? "Enter exercise name..."
+                      ? t("admin.exercises.form.exerciseNamePlaceholder")
                       : formData.name?.en
-                        ? `Translation for: "${formData.name.en}"`
-                        : "Enter translation..."
+                        ? t("admin.exercises.form.translationFor", { name: formData.name.en })
+                        : t("admin.exercises.form.enterTranslation")
                   }
                 />
                 {formLang !== "en" && formData.name?.en && (
@@ -111,7 +112,7 @@ export default function ExerciseFormModal({
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Description{" "}
+                  {t("admin.exercises.form.description")}{" "}
                   {formLang === "en" ? "*" : `(${currentLangLabel})`}
                 </label>
                 <textarea
@@ -123,10 +124,10 @@ export default function ExerciseFormModal({
                   rows={4}
                   placeholder={
                     formLang === "en"
-                      ? "Describe the exercise..."
+                      ? t("admin.exercises.form.descriptionPlaceholder")
                       : formData.description?.en
-                        ? "Enter translation for the description..."
-                        : "Enter translation..."
+                        ? t("admin.exercises.form.descriptionTranslationPlaceholder")
+                        : t("admin.exercises.form.enterTranslation")
                   }
                 />
                 {formLang !== "en" && formData.description?.en && (
@@ -139,7 +140,7 @@ export default function ExerciseFormModal({
               {/* Difficulty */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Difficulty Level
+                  {t("admin.exercises.form.difficultyLevel")}
                 </label>
                 <select
                   value={formData.difficulty}
@@ -149,7 +150,7 @@ export default function ExerciseFormModal({
                   className="w-full bg-[#161616] rounded-xl px-4 py-2.5 sm:py-3 text-white text-sm border border-[#333333] focus:border-blue-500 outline-none"
                 >
                   {["Beginner", "Intermediate", "Advanced"].map((option) => (
-                    <option key={option}>{option}</option>
+                    <option key={option} value={option}>{t(`training.difficulty.${option.toLowerCase()}`)}</option>
                   ))}
                 </select>
               </div>
@@ -158,7 +159,7 @@ export default function ExerciseFormModal({
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Exercise Video {isCreateModalOpen ? "*" : "(Optional)"}
+                    {t("admin.exercises.form.exerciseVideo")} {isCreateModalOpen ? "*" : `(${t("admin.exercises.form.optional")})`}
                   </label>
                   <input
                     type="file"
@@ -175,7 +176,7 @@ export default function ExerciseFormModal({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Thumbnail Image (Optional)
+                    {t("admin.exercises.form.thumbnailImage")} ({t("admin.exercises.form.optional")})
                   </label>
                   <input
                     type="file"
@@ -197,7 +198,7 @@ export default function ExerciseFormModal({
               {/* Target Muscles */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-3">
-                  Target Muscles * ({formData.targetMuscles.length} selected)
+                  {t("admin.exercises.form.targetMuscles")} * ({t("admin.exercises.form.selectedCount", { count: formData.targetMuscles.length })})
                 </label>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-[#333333] p-3">
                   <div className="grid grid-cols-2 gap-2">
@@ -224,7 +225,7 @@ export default function ExerciseFormModal({
               {/* Equipment */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-3">
-                  Equipment Needed ({formData.equipment.length} selected)
+                  {t("admin.exercises.form.equipmentNeeded")} ({t("admin.exercises.form.selectedCount", { count: formData.equipment.length })})
                 </label>
                 <div className="max-h-48 overflow-y-auto custom-scrollbar bg-[#161616] rounded-xl border border-[#333333] p-3">
                   {equipmentOptions.map((equip) => (
@@ -249,7 +250,7 @@ export default function ExerciseFormModal({
               {/* Selected Preview */}
               <div>
                 <h4 className="text-sm font-medium text-gray-400 mb-2">
-                  Selected Muscles:
+                  {t("admin.exercises.form.selectedMuscles")}
                 </h4>
                 <div className="flex flex-wrap gap-1 mb-4">
                   {formData.targetMuscles.map((muscleId, i) => {
@@ -268,7 +269,7 @@ export default function ExerciseFormModal({
                 </div>
 
                 <h4 className="text-sm font-medium text-gray-400 mb-2">
-                  Selected Equipment:
+                  {t("admin.exercises.form.selectedEquipment")}
                 </h4>
                 <div className="flex flex-wrap gap-1">
                   {formData.equipment.length > 0 ? (
@@ -287,7 +288,7 @@ export default function ExerciseFormModal({
                     })
                   ) : (
                     <span className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
-                      None
+                      {t("admin.exercises.form.none")}
                     </span>
                   )}
                 </div>
@@ -303,7 +304,7 @@ export default function ExerciseFormModal({
               onClick={closeModal}
               className="flex-1 px-4 py-3 text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-white"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={isCreateModalOpen ? handleCreate : handleEdit}
@@ -315,7 +316,7 @@ export default function ExerciseFormModal({
               className="flex-1 px-4 py-3 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-xl text-white flex items-center justify-center gap-2"
             >
               {isCreateModalOpen ? <Upload size={16} /> : <Save size={16} />}
-              {isCreateModalOpen ? "Upload Exercise" : "Save Changes"}
+              {isCreateModalOpen ? t("admin.exercises.uploadExercise") : t("admin.exercises.form.saveChanges")}
             </button>
           </div>
         </div>

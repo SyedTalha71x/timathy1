@@ -49,55 +49,57 @@ const TemplateEditorModal = ({
   const editorRef = useRef(null)
   const textareaRef = useRef(null)
   const subjectInputRef = useRef(null)
+  const subjectSelfUpdate = useRef(false)
   const titleInputRef = useRef(null)
   const attachmentInputRef = useRef(null)
 
   const insertVariables = EMAIL_INSERT_VARIABLES
-
-  // Insert variable into the active field
+  const getVarValue = (variable) => t("admin.email.variableValues." + variable.id, { defaultValue: variable.value })
+  const getVarLabel = (variable) => t("admin.email.variables." + variable.id, { defaultValue: variable.label })
+  // Insert variable into the active field as plain text
   const insertVariableToField = (variable, field) => {
     if (field === 'body' && isEmailTemplate && editorRef.current) {
-      editorRef.current.insertText(variable.value)
+      editorRef.current.insertText(getVarValue(variable))
     } else if (field === 'message' && !isEmailTemplate && textareaRef.current) {
       const textarea = textareaRef.current
       const start = textarea.selectionStart
       const end = textarea.selectionEnd
       const text = templateData.message
-      const newText = text.substring(0, start) + variable.value + text.substring(end)
+      const newText = text.substring(0, start) + getVarValue(variable) + text.substring(end)
       setTemplateData(prev => ({ ...prev, message: newText }))
       setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + variable.value.length
+        textarea.selectionStart = textarea.selectionEnd = start + getVarValue(variable).length
         textarea.focus()
       }, 0)
     } else if (field === 'subject' && subjectInputRef.current) {
-      const input = subjectInputRef.current
-      const start = input.selectionStart
-      const end = input.selectionEnd
-      const text = templateData.subject
-      const newText = text.substring(0, start) + variable.value + text.substring(end)
-      setTemplateData(prev => ({ ...prev, subject: newText }))
-      setTimeout(() => {
-        input.selectionStart = input.selectionEnd = start + variable.value.length
-        input.focus()
-      }, 0)
+      subjectInputRef.current.focus()
+      document.execCommand('insertText', false, getVarValue(variable))
+      subjectSelfUpdate.current = true
+      setTemplateData(prev => ({ ...prev, subject: subjectInputRef.current.innerHTML }))
+      setErrors(prev => ({ ...prev, subject: "" }))
     } else if (field === 'title' && titleInputRef.current) {
-      const input = titleInputRef.current
-      const start = input.selectionStart
-      const end = input.selectionEnd
-      const text = templateData.title
-      const newText = text.substring(0, start) + variable.value + text.substring(end)
-      setTemplateData(prev => ({ ...prev, title: newText }))
-      setTimeout(() => {
-        input.selectionStart = input.selectionEnd = start + variable.value.length
-        input.focus()
-      }, 0)
+      titleInputRef.current.focus()
+      document.execCommand('insertText', false, getVarValue(variable))
+      subjectSelfUpdate.current = true
+      setTemplateData(prev => ({ ...prev, title: titleInputRef.current.innerHTML }))
+      setErrors(prev => ({ ...prev, title: "" }))
     }
   }
+
+  // Sync contentEditable with external state changes (template loading)
+  useEffect(() => {
+    const ref = isEmailTemplate ? subjectInputRef : titleInputRef
+    const val = isEmailTemplate ? templateData.subject : templateData.title
+    if (ref.current) {
+      if (subjectSelfUpdate.current) { subjectSelfUpdate.current = false; return }
+      ref.current.innerHTML = val || ''
+    }
+  }, [templateData.subject, templateData.title, isEmailTemplate])
 
   const insertSignature = () => {
     if (isEmailTemplate && editorRef.current) {
       // Get signature from configuration (Single Source of Truth)
-      const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature || "<p>--<br>Mit freundlichen GrÃ¼ÃŸen</p>";
+      const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature || `<p>--<br>${t("admin.email.templateEditor.greeting")}</p>`;
       const currentBody = templateData.body || "";
       const newBody = currentBody + `<br><br>${signatureHtml}`;
       setTemplateData(prev => ({ ...prev, body: newBody }));
@@ -170,7 +172,7 @@ const TemplateEditorModal = ({
     }
     
     // Use template name or default to t("admin.email.templateEditor.untitled")
-    const templateName = templateData.name.trim() || "Untitled template"
+    const templateName = templateData.name.trim() || t("admin.email.templateEditor.untitled")
     
     const saveData = {
       id: template?.id || Date.now(),
@@ -213,7 +215,7 @@ const TemplateEditorModal = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Template Name
+                  {t("admin.email.templateEditor.templateName")}
                 </label>
                 <input
                   type="text"
@@ -237,7 +239,7 @@ const TemplateEditorModal = ({
                     errors.folderId ? "ring-2 ring-red-500/50" : ""
                   }`}
                 >
-                  <option value="">Select folder...</option>
+                  <option value="">{t("admin.email.templateEditor.selectFolder")}</option>
                   {folders.map((folder) => (
                     <option key={folder.id} value={folder.id}>{folder.name}</option>
                   ))}
@@ -266,25 +268,31 @@ const TemplateEditorModal = ({
                     onClick={() => insertVariableToField(variable, isEmailTemplate ? "subject" : "title")}
                     className="px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
                   >
-                    {variable.label}
+                    {getVarLabel(variable)}
                   </button>
                 ))}
               </div>
-              <input
-                ref={isEmailTemplate ? subjectInputRef : titleInputRef}
-                type="text"
-                value={isEmailTemplate ? templateData.subject : templateData.title}
-                onChange={(e) => {
-                  const field = isEmailTemplate ? "subject" : "title"
-                  setTemplateData(prev => ({ ...prev, [field]: e.target.value }))
-                  setErrors(prev => ({ ...prev, [field]: "" }))
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
-                  (isEmailTemplate ? errors.subject : errors.title) ? "ring-2 ring-red-500/50" : ""
-                }`}
-                placeholder={isEmailTemplate ? t("admin.email.templateEditor.subjectPlaceholder") : t("admin.email.templateEditor.titlePlaceholder")}
-              />
+              <div className="relative">
+                <div
+                  ref={isEmailTemplate ? subjectInputRef : titleInputRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  className={`subject-editable w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all min-h-[44px] whitespace-nowrap overflow-x-auto ${
+                    (isEmailTemplate ? errors.subject : errors.title) ? "ring-2 ring-red-500/50" : ""
+                  }`}
+                  data-placeholder={isEmailTemplate ? t("admin.email.templateEditor.subjectPlaceholder") : t("admin.email.templateEditor.titlePlaceholder")}
+                  onInput={(e) => {
+                    const html = e.currentTarget.innerHTML
+                    subjectSelfUpdate.current = true
+                    const field = isEmailTemplate ? "subject" : "title"
+                    setTemplateData(prev => ({ ...prev, [field]: html }))
+                    setErrors(prev => ({ ...prev, [field]: "" }))
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                  onPaste={(e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')) }}
+                />
+                <style>{`.subject-editable:empty::before { content: attr(data-placeholder); color: #6b7280; pointer-events: none; }`}</style>
+              </div>
               {(isEmailTemplate ? errors.subject : errors.title) && (
                 <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
                   <span className="w-1 h-1 bg-red-400 rounded-full"></span>
@@ -309,7 +317,7 @@ const TemplateEditorModal = ({
                     onClick={() => insertVariableToField(variable, isEmailTemplate ? "body" : "message")}
                     className="px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors"
                   >
-                    {variable.label}
+                    {getVarLabel(variable)}
                   </button>
                 ))}
                 {isEmailTemplate && (
@@ -322,7 +330,7 @@ const TemplateEditorModal = ({
                       className="px-2.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg flex items-center gap-1 transition-colors"
                     >
                       <FileText className="w-3 h-3" />
-                      Signature
+                      {t("admin.email.templateEditor.signature")}
                     </button>
                   </>
                 )}
@@ -384,7 +392,7 @@ const TemplateEditorModal = ({
                     className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors"
                   >
                     <Paperclip className="w-3.5 h-3.5" />
-                    Add Attachment
+                    {t("admin.email.templateEditor.addAttachment")}
                   </button>
                 </div>
                 
@@ -432,7 +440,7 @@ const TemplateEditorModal = ({
               onClick={onClose}
               className="px-5 py-2.5 bg-[#1a1a1a] hover:bg-[#252525] text-white text-sm font-medium rounded-xl transition-colors"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"

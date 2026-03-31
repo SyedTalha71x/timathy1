@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 import { Download, FileText, Trash2, X, AlertTriangle, Eye, EyeOff, User, Calendar, Hash, Building, ChevronDown, ChevronRight } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 // Masked IBAN Component
 const MaskedIban = ({ iban, className = "" }) => {
+  const { t } = useTranslation();
   const [isRevealed, setIsRevealed] = useState(false);
 
   if (!iban) return <span className="text-gray-500">-</span>;
@@ -30,7 +32,7 @@ const MaskedIban = ({ iban, className = "" }) => {
           setIsRevealed(!isRevealed);
         }}
         className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
-        title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
+        title={isRevealed ? t("admin.finances.actions.hideIban") : t("admin.finances.actions.showIban")}
       >
         {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
       </button>
@@ -39,6 +41,7 @@ const MaskedIban = ({ iban, className = "" }) => {
 };
 
 const PaymentRunsModal = ({ isOpen, onClose, paymentRuns = [], onDeletePaymentRun }) => {
+  const { t } = useTranslation()
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
   const [runToDelete, setRunToDelete] = useState(null)
   const [expandedRun, setExpandedRun] = useState(null)
@@ -265,7 +268,7 @@ ${run.transactions.map((tx, idx) => {
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(18)
     doc.setFont('helvetica', 'bold')
-    doc.text('Payment Run Report', margin, 14)
+    doc.text(t("admin.finances.paymentRuns.pdfTitle"), margin, 14)
     
     doc.setFontSize(11)
     doc.setFont('helvetica', 'normal')
@@ -281,7 +284,7 @@ ${run.transactions.map((tx, idx) => {
     
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
-    doc.text('Payment Run Details', margin + 5, yPos + 10)
+    doc.text(t("admin.finances.paymentRuns.pdfPaymentDetails"), margin + 5, yPos + 10)
     
     doc.setDrawColor(...primaryColor)
     doc.setLineWidth(0.5)
@@ -292,12 +295,12 @@ ${run.transactions.map((tx, idx) => {
     
     const detailsStartY = yPos + 20
     const detailsData = [
-      ['Payment Run Number:', run.paymentRunNumber],
-      ['Created:', formatDate(run.createdAt)],
-      ['Claims Through:', formatDateShort(run.claimsUntilDate)],
-      ['Collection Date:', formatDateShort(run.collectionDate)],
-      ['Number of Direct Debits:', String(run.transactions.length)],
-      ['Executed By:', run.executedBy]
+      [t("admin.finances.paymentRuns.pdfPaymentRunNumber"), run.paymentRunNumber],
+      [t("admin.finances.paymentRuns.pdfCreated"), formatDate(run.createdAt)],
+      [t("admin.finances.paymentRuns.pdfClaimsThrough"), formatDateShort(run.claimsUntilDate)],
+      [t("admin.finances.paymentRuns.pdfCollectionDate"), formatDateShort(run.collectionDate)],
+      [t("admin.finances.paymentRuns.pdfDirectDebits"), String(run.transactions.length)],
+      [t("admin.finances.paymentRuns.pdfExecutedBy"), run.executedBy]
     ]
     
     detailsData.forEach((row, i) => {
@@ -317,7 +320,7 @@ ${run.transactions.map((tx, idx) => {
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...darkColor)
-    doc.text('Creditor Information', creditorBoxX + 5, yPos + 10)
+    doc.text(t("admin.finances.paymentRuns.pdfCreditorInfo"), creditorBoxX + 5, yPos + 10)
     
     doc.setDrawColor(...primaryColor)
     doc.line(creditorBoxX + 5, yPos + 13, creditorBoxX + 55, yPos + 13)
@@ -326,11 +329,11 @@ ${run.transactions.map((tx, idx) => {
     doc.setFont('helvetica', 'normal')
     
     const creditorData = [
-      ['Company:', run.creditor.name],
-      ['Bank Name:', run.creditor.bankName],
+      [t("admin.finances.paymentRuns.pdfCompany"), run.creditor.name],
+      [t("admin.finances.paymentRuns.pdfBankName"), run.creditor.bankName],
       ['IBAN:', run.creditor.iban],
       ['BIC:', run.creditor.bic],
-      ['Creditor ID:', run.creditor.creditorId]
+      [t("admin.finances.paymentRuns.creditorId") + ':', run.creditor.creditorId]
     ]
     
     creditorData.forEach((row, i) => {
@@ -350,7 +353,7 @@ ${run.transactions.map((tx, idx) => {
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(12)
     doc.setFont('helvetica', 'normal')
-    doc.text('Total Amount', pageWidth / 2, yPos + 10, { align: 'center' })
+    doc.text(t("admin.finances.paymentRuns.totalAmount"), pageWidth / 2, yPos + 10, { align: 'center' })
     
     doc.setFontSize(24)
     doc.setFont('helvetica', 'bold')
@@ -372,7 +375,7 @@ ${run.transactions.map((tx, idx) => {
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    doc.text(`Detail Evaluation - ${run.paymentRunNumber}`, margin, 12)
+    doc.text(`${t("admin.finances.paymentRuns.pdfDetailEvaluation")} - ${run.paymentRunNumber}`, margin, 12)
     
     // Prepare table data with Studio Name column added
     const tableData = run.transactions.map((tx, idx) => [
@@ -387,14 +390,22 @@ ${run.transactions.map((tx, idx) => {
     
     // Add total row
     tableData.push([
-      '', '', '', '', '', 'Total:',
+      '', '', '', '', '', t("admin.finances.paymentRuns.total"),
       formatCurrency(run.totalAmount)
     ])
     
     // Create table using autoTable - with Studio Name header
     autoTable(doc, {
       startY: 25,
-      head: [['Studio No.', 'Studio Name', 'Account Holder', 'Booking No.', 'IBAN', 'Services', 'Amount']],
+      head: [[
+        t("admin.finances.paymentRuns.studioNo"),
+        t("admin.finances.paymentRuns.studioName"),
+        t("admin.finances.paymentRuns.accountHolder"),
+        t("admin.finances.paymentRuns.bookingNo"),
+        t("admin.finances.table.iban"),
+        t("admin.finances.paymentRuns.services"),
+        t("admin.finances.paymentRuns.amount")
+      ]],
       body: tableData,
       theme: 'grid',
       headStyles: {
@@ -443,7 +454,7 @@ ${run.transactions.map((tx, idx) => {
       doc.save(`PaymentRun_${run.paymentRunNumber}_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('Error generating PDF. Please try again.')
+      alert(t("admin.finances.paymentRuns.pdfErrorGenerating"))
     }
   }
 
@@ -459,9 +470,9 @@ ${run.transactions.map((tx, idx) => {
           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
-              <h2 className="text-white text-lg font-medium">Payment Run History</h2>
+              <h2 className="text-white text-lg font-medium">{t("admin.finances.paymentRuns.title")}</h2>
               <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-full">
-                {paymentRuns.length} Runs
+                {t("admin.finances.paymentRuns.runs", { count: paymentRuns.length })}
               </span>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
@@ -474,8 +485,8 @@ ${run.transactions.map((tx, idx) => {
             {paymentRuns.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg mb-2">No Payment Runs Yet</p>
-                <p className="text-gray-500 text-sm">Completed payment runs will appear here</p>
+                <p className="text-gray-400 text-lg mb-2">{t("admin.finances.paymentRuns.noRuns")}</p>
+                <p className="text-gray-500 text-sm">{t("admin.finances.paymentRuns.noRunsHint")}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -491,24 +502,24 @@ ${run.transactions.map((tx, idx) => {
                           <div>
                             <div className="flex items-center gap-3 mb-1">
                               <span className="text-white font-bold text-lg">{run.paymentRunNumber}</span>
-                              {index === 0 && <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full">Latest</span>}
+                              {index === 0 && <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full">{t("admin.finances.paymentRuns.latest")}</span>}
                             </div>
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400">
                               <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(run.createdAt)}</span>
                               <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" />{run.executedBy}</span>
-                              <span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" />{run.transactions.length} Transactions</span>
+                              <span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" />{t("admin.finances.paymentRuns.transactionsCount", { count: run.transactions.length })}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-4 ml-14 md:ml-0">
                           <div className="text-right">
-                            <div className="text-xs text-gray-500 mb-1">Total Amount</div>
+                            <div className="text-xs text-gray-500 mb-1">{t("admin.finances.paymentRuns.totalAmount")}</div>
                             <div className="text-white font-bold text-xl">{formatCurrency(run.totalAmount)}</div>
                           </div>
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <button onClick={() => downloadSepaXml(run)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded-lg transition-colors" title="Download SEPA XML"><Download className="w-4 h-4" /></button>
-                            <button onClick={() => downloadPdfReport(run)} className="p-2 text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 rounded-lg transition-colors" title="Download PDF Report"><FileText className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeleteClick(run)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => downloadSepaXml(run)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded-lg transition-colors" title={t("admin.finances.paymentRuns.downloadSepaXml")}><Download className="w-4 h-4" /></button>
+                            <button onClick={() => downloadPdfReport(run)} className="p-2 text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 rounded-lg transition-colors" title={t("admin.finances.paymentRuns.downloadPdf")}><FileText className="w-4 h-4" /></button>
+                            <button onClick={() => handleDeleteClick(run)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors" title={t("common.delete")}><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </div>
                       </div>
@@ -519,36 +530,36 @@ ${run.transactions.map((tx, idx) => {
                       <div className="border-t border-gray-800 p-4 bg-[#0D0D0D]">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                           <div className="bg-[#1C1C1C] rounded-lg p-4">
-                            <h4 className="text-white font-medium mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-gray-400" />Payment Details</h4>
+                            <h4 className="text-white font-medium mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-gray-400" />{t("admin.finances.paymentRuns.paymentDetails")}</h4>
                             <div className="space-y-2 text-sm">
-                              <div className="flex justify-between"><span className="text-gray-400">Claims Through:</span><span className="text-white">{formatDateShort(run.claimsUntilDate)}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">Collection Date:</span><span className="text-white">{formatDateShort(run.collectionDate)}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">Direct Debits:</span><span className="text-white">{run.transactions.length}</span></div>
+                              <div className="flex justify-between"><span className="text-gray-400">{t("admin.finances.paymentRuns.claimsThrough")}:</span><span className="text-white">{formatDateShort(run.claimsUntilDate)}</span></div>
+                              <div className="flex justify-between"><span className="text-gray-400">{t("admin.finances.paymentRuns.collectionDate")}:</span><span className="text-white">{formatDateShort(run.collectionDate)}</span></div>
+                              <div className="flex justify-between"><span className="text-gray-400">{t("admin.finances.paymentRuns.directDebits")}:</span><span className="text-white">{run.transactions.length}</span></div>
                             </div>
                           </div>
                           <div className="bg-[#1C1C1C] rounded-lg p-4">
-                            <h4 className="text-white font-medium mb-3 flex items-center gap-2"><Building className="w-4 h-4 text-gray-400" />Creditor Information</h4>
+                            <h4 className="text-white font-medium mb-3 flex items-center gap-2"><Building className="w-4 h-4 text-gray-400" />{t("admin.finances.paymentRuns.creditorInfo")}</h4>
                             <div className="space-y-2 text-sm">
-                              <div className="flex justify-between"><span className="text-gray-400">Bank:</span><span className="text-white">{run.creditor.bankName}</span></div>
+                              <div className="flex justify-between"><span className="text-gray-400">{t("admin.finances.paymentRuns.bank")}:</span><span className="text-white">{run.creditor.bankName}</span></div>
                               <div className="flex justify-between"><span className="text-gray-400">IBAN:</span><span className="text-white font-mono text-xs">{run.creditor.iban}</span></div>
                               <div className="flex justify-between"><span className="text-gray-400">BIC:</span><span className="text-white font-mono text-xs">{run.creditor.bic}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">Creditor ID:</span><span className="text-white font-mono text-xs">{run.creditor.creditorId}</span></div>
+                              <div className="flex justify-between"><span className="text-gray-400">{t("admin.finances.paymentRuns.creditorId")}:</span><span className="text-white font-mono text-xs">{run.creditor.creditorId}</span></div>
                             </div>
                           </div>
                         </div>
                         <div className="bg-[#1C1C1C] rounded-lg p-4">
-                          <h4 className="text-white font-medium mb-3">Transactions ({run.transactions.length})</h4>
+                          <h4 className="text-white font-medium mb-3">{t("admin.finances.paymentRuns.transactionsTitle", { count: run.transactions.length })}</h4>
                           <div className="overflow-x-auto">
                             <table className="w-full text-sm" style={{ minWidth: '800px' }}>
                               <thead>
                                 <tr className="text-gray-400 text-xs uppercase">
-                                  <th className="text-left py-2 px-2">Studio No.</th>
-                                  <th className="text-left py-2 px-2">Studio Name</th>
-                                  <th className="text-left py-2 px-2">Account Holder</th>
-                                  <th className="text-left py-2 px-2">Booking No.</th>
-                                  <th className="text-left py-2 px-2">IBAN</th>
-                                  <th className="text-left py-2 px-2">Services</th>
-                                  <th className="text-right py-2 px-2">Amount</th>
+                                  <th className="text-left py-2 px-2">{t("admin.finances.paymentRuns.studioNo")}</th>
+                                  <th className="text-left py-2 px-2">{t("admin.finances.paymentRuns.studioName")}</th>
+                                  <th className="text-left py-2 px-2">{t("admin.finances.paymentRuns.accountHolder")}</th>
+                                  <th className="text-left py-2 px-2">{t("admin.finances.paymentRuns.bookingNo")}</th>
+                                  <th className="text-left py-2 px-2">{t("admin.finances.table.iban")}</th>
+                                  <th className="text-left py-2 px-2">{t("admin.finances.paymentRuns.services")}</th>
+                                  <th className="text-right py-2 px-2">{t("admin.finances.paymentRuns.amount")}</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -564,7 +575,7 @@ ${run.transactions.map((tx, idx) => {
                                   </tr>
                                 ))}
                                 <tr className="border-t-2 border-orange-500 bg-orange-500/10">
-                                  <td colSpan="6" className="py-3 px-2 text-right text-white font-bold">Total:</td>
+                                  <td colSpan="6" className="py-3 px-2 text-right text-white font-bold">{t("admin.finances.paymentRuns.total")}</td>
                                   <td className="py-3 px-2 text-right text-orange-500 font-bold text-lg">{formatCurrency(run.totalAmount)}</td>
                                 </tr>
                               </tbody>
@@ -572,8 +583,8 @@ ${run.transactions.map((tx, idx) => {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-3 mt-4">
-                          <button onClick={() => downloadSepaXml(run)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"><Download className="w-4 h-4" />Download SEPA XML</button>
-                          <button onClick={() => downloadPdfReport(run)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><FileText className="w-4 h-4" />Download PDF Report</button>
+                          <button onClick={() => downloadSepaXml(run)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"><Download className="w-4 h-4" />{t("admin.finances.paymentRuns.downloadSepaXml")}</button>
+                          <button onClick={() => downloadPdfReport(run)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><FileText className="w-4 h-4" />{t("admin.finances.paymentRuns.downloadPdf")}</button>
                         </div>
                       </div>
                     )}
@@ -592,20 +603,20 @@ ${run.transactions.map((tx, idx) => {
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-red-900/30 p-2 rounded-lg"><AlertTriangle className="w-6 h-6 text-red-400" /></div>
-                <h3 className="text-white text-lg font-medium">Delete Payment Run</h3>
+                <h3 className="text-white text-lg font-medium">{t("admin.finances.paymentRuns.deleteTitle")}</h3>
               </div>
-              <p className="text-gray-300 mb-2">Are you sure you want to delete this payment run?</p>
+              <p className="text-gray-300 mb-2">{t("admin.finances.paymentRuns.deleteConfirm")}</p>
               {runToDelete && (
                 <div className="bg-[#141414] rounded-lg p-3 mb-4">
                   <p className="text-white font-medium">{runToDelete.paymentRunNumber}</p>
-                  <p className="text-gray-400 text-sm mt-1">Created: {formatDate(runToDelete.createdAt)}</p>
-                  <p className="text-gray-400 text-sm">Transactions: {runToDelete.transactions.length} | Amount: {formatCurrency(runToDelete.totalAmount)}</p>
+                  <p className="text-gray-400 text-sm mt-1">{t("admin.finances.paymentRuns.created")}: {formatDate(runToDelete.createdAt)}</p>
+                  <p className="text-gray-400 text-sm">{t("admin.finances.documents.transactions")}: {runToDelete.transactions.length} | {t("admin.finances.paymentRuns.amount")}: {formatCurrency(runToDelete.totalAmount)}</p>
                 </div>
               )}
-              <p className="text-yellow-400 text-sm mb-6">This action cannot be undone. All associated data will be permanently deleted.</p>
+              <p className="text-yellow-400 text-sm mb-6">{t("admin.finances.paymentRuns.deleteWarning")}</p>
               <div className="flex gap-3 justify-end">
-                <button onClick={cancelDelete} className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors">Cancel</button>
-                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"><Trash2 className="w-4 h-4" />Delete</button>
+                <button onClick={cancelDelete} className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors">{t("common.cancel")}</button>
+                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"><Trash2 className="w-4 h-4" />{t("common.delete")}</button>
               </div>
             </div>
           </div>

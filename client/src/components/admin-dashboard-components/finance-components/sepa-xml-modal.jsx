@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import { Calendar, X, Edit, Info, Search, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, Eye, EyeOff, User } from "lucide-react"
 import { useEffect, useState, useMemo, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 // Masked IBAN Component
 const MaskedIban = ({ iban, className = "" }) => {
+  const { t } = useTranslation();
   const [isRevealed, setIsRevealed] = useState(false);
   if (!iban) return <span className="text-gray-500">-</span>;
   const maskIban = (ibanStr) => {
@@ -18,7 +20,7 @@ const MaskedIban = ({ iban, className = "" }) => {
   return (
     <div className={`flex items-center gap-1 ${className}`}>
       <span className="font-mono text-xs whitespace-nowrap">{displayValue}</span>
-      <button onClick={(e) => { e.stopPropagation(); setIsRevealed(!isRevealed); }} className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0" title={isRevealed ? "Hide IBAN" : "Show full IBAN"}>
+      <button onClick={(e) => { e.stopPropagation(); setIsRevealed(!isRevealed); }} className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0" title={isRevealed ? t("admin.finances.actions.hideIban") : t("admin.finances.actions.showIban")}>
         {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
       </button>
     </div>
@@ -26,6 +28,27 @@ const MaskedIban = ({ iban, className = "" }) => {
 };
 
 const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerateXml, financialData, creditorInfo, currentUser = "Admin" }) => {
+  const { t } = useTranslation()
+
+  // Helper to translate period keys to localized labels
+  const translatePeriod = (periodKey) => {
+    if (!periodKey) return ""
+    if (periodKey.startsWith("Custom:")) return periodKey
+    const periodMap = {
+      "This Month": t("admin.finances.periods.thisMonth"),
+      "Last Month": t("admin.finances.periods.lastMonth"),
+      "Last 3 Months": t("admin.finances.periods.last3Months"),
+      "Last 6 Months": t("admin.finances.periods.last6Months"),
+      "This Year": t("admin.finances.periods.thisYear"),
+      "Last Year": t("admin.finances.periods.lastYear"),
+      "All Time": t("admin.finances.periods.allTime"),
+      "This Week": t("admin.finances.periods.thisWeek"),
+      "Last Week": t("admin.finances.periods.lastWeek"),
+      "This Quarter": t("admin.finances.periods.thisQuarter"),
+      "Last Quarter": t("admin.finances.periods.lastQuarter"),
+    }
+    return periodMap[periodKey] || periodKey
+  }
   const [selectedTransactions, setSelectedTransactions] = useState({})
   const [editedAmounts, setEditedAmounts] = useState({})
   const [customPeriod, setCustomPeriod] = useState({ startDate: "", endDate: "" })
@@ -190,13 +213,13 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   const selectedCount = Object.values(selectedTransactions).filter(v => v).length
   const totalAmount = periodTransactions.filter((tx) => selectedTransactions[tx.id]).reduce((sum, tx) => sum + (editedAmounts[tx.id] || tx.amount), 0)
   const availablePeriods = financialData ? Object.keys(financialData) : []
-  const getPeriodDisplayText = () => { if (isCustomPeriodActive && customPeriod.startDate && customPeriod.endDate) return `${formatDateForDisplay(customPeriod.startDate)} - ${formatDateForDisplay(customPeriod.endDate)}`; return localSelectedPeriod }
+  const getPeriodDisplayText = () => { if (isCustomPeriodActive && customPeriod.startDate && customPeriod.endDate) return `${formatDateForDisplay(customPeriod.startDate)} - ${formatDateForDisplay(customPeriod.endDate)}`; return translatePeriod(localSelectedPeriod) }
 
   return (
     <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl max-h-[80vh] flex flex-col overflow-visible">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-white text-lg font-medium">Run Payment</h2>
+          <h2 className="text-white text-lg font-medium">{t("admin.finances.sepaXml.title")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
 
@@ -204,7 +227,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         <div className="p-4 border-b border-gray-800 overflow-visible">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative" ref={dropdownRef}>
-              <label className="block text-xs text-gray-500 mb-1">Period</label>
+              <label className="block text-xs text-gray-500 mb-1">{t("admin.finances.sepaXml.periodLabel")}</label>
               <button onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)} className="w-full bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-2 text-sm transition-colors">
                 <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <span className="text-sm flex-1 text-left truncate">{getPeriodDisplayText()}</span>
@@ -213,21 +236,21 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
               {periodDropdownOpen && (
                 <div className="hidden sm:block absolute z-40 mt-2 w-full min-w-[280px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   <div className="py-1 max-h-[40vh] overflow-y-auto">
-                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Select Period</div>
+                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("admin.finances.period.selectPeriod")}</div>
                     {availablePeriods.map((period) => (
-                      <button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${localSelectedPeriod === period && !isCustomPeriodActive ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={() => handleSelectPeriod(period)}>{period}</button>
+                      <button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${localSelectedPeriod === period && !isCustomPeriodActive ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={() => handleSelectPeriod(period)}>{translatePeriod(period)}</button>
                     ))}
                   </div>
                   <div className="border-t border-gray-700">
-                    <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${isCustomPeriodActive ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={handleCustomPeriodSelect}><Calendar className="w-4 h-4" />Custom Period</button>
+                    <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${isCustomPeriodActive ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={handleCustomPeriodSelect}><Calendar className="w-4 h-4" />{t("admin.finances.period.customPeriod")}</button>
                     {isCustomPeriodActive && (
                       <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
                         <div className="flex flex-col gap-3">
                           <div className="grid grid-cols-2 gap-3">
-                            <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={customPeriod.startDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
-                            <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={customPeriod.endDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+                            <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.startDate")}</label><input type="date" value={customPeriod.startDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+                            <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.endDate")}</label><input type="date" value={customPeriod.endDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
                           </div>
-                          <button onClick={handleApplyCustomPeriod} disabled={!customPeriod.startDate || !customPeriod.endDate} className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Apply</button>
+                          <button onClick={handleApplyCustomPeriod} disabled={!customPeriod.startDate || !customPeriod.endDate} className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{t("admin.finances.period.apply")}</button>
                         </div>
                       </div>
                     )}
@@ -235,9 +258,9 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                 </div>
               )}
             </div>
-            <div><label className="block text-xs text-gray-500 mb-1">Claims Through</label><input type="date" value={claimsUntilDate} onChange={(e) => setClaimsUntilDate(e.target.value)} className="w-full bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333] text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
-            <div><label className="block text-xs text-gray-500 mb-1">Collection Date</label><input type="date" value={collectionDate} onChange={(e) => setCollectionDate(e.target.value)} className="w-full bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333] text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
-            <div><label className="block text-xs text-gray-500 mb-1">Executed By</label><div className="flex items-center gap-2 bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333]"><User className="w-4 h-4 text-gray-400" /><span className="text-sm">{currentUser}</span></div></div>
+            <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.sepaXml.claimsThrough")}</label><input type="date" value={claimsUntilDate} onChange={(e) => setClaimsUntilDate(e.target.value)} className="w-full bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333] text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+            <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.sepaXml.collectionDate")}</label><input type="date" value={collectionDate} onChange={(e) => setCollectionDate(e.target.value)} className="w-full bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333] text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+            <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.sepaXml.executedBy")}</label><div className="flex items-center gap-2 bg-[#141414] text-white px-3 py-2 rounded-xl border border-[#333333]"><User className="w-4 h-4 text-gray-400" /><span className="text-sm">{currentUser}</span></div></div>
           </div>
         </div>
 
@@ -245,20 +268,20 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         {periodDropdownOpen && (
           <div className="sm:hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/50" onClick={(e) => { if (e.target === e.currentTarget) { setPeriodDropdownOpen(false); setIsCustomPeriodActive(false) } }}>
             <div className="bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg w-[90%] max-w-[340px] max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700"><span className="text-white font-medium">Select Period</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodActive(false) }} className="text-gray-400 hover:text-white p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700"><span className="text-white font-medium">{t("admin.finances.period.selectPeriod")}</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodActive(false) }} className="text-gray-400 hover:text-white p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
               <div className="py-1 max-h-[40vh] overflow-y-auto">
-                {availablePeriods.map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${localSelectedPeriod === period && !isCustomPeriodActive ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { setLocalSelectedPeriod(period); setIsCustomPeriodActive(false); setPeriodDropdownOpen(false) }}>{period}</button>))}
+                {availablePeriods.map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${localSelectedPeriod === period && !isCustomPeriodActive ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { setLocalSelectedPeriod(period); setIsCustomPeriodActive(false); setPeriodDropdownOpen(false) }}>{translatePeriod(period)}</button>))}
               </div>
               <div className="border-t border-gray-700">
-                <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodActive ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setCustomPeriod((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodActive(!isCustomPeriodActive) }}><Calendar className="w-4 h-4" />Custom Period</button>
+                <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodActive ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setCustomPeriod((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodActive(!isCustomPeriodActive) }}><Calendar className="w-4 h-4" />{t("admin.finances.period.customPeriod")}</button>
                 {isCustomPeriodActive && (
                   <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
                     <div className="flex flex-col gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={customPeriod.startDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
-                        <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={customPeriod.endDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
+                        <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.startDate")}</label><input type="date" value={customPeriod.startDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
+                        <div><label className="block text-xs text-gray-500 mb-1">{t("admin.finances.period.endDate")}</label><input type="date" value={customPeriod.endDate} onChange={(e) => setCustomPeriod((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
                       </div>
-                      <button type="button" onClick={() => { if (customPeriod.startDate && customPeriod.endDate) { setLocalSelectedPeriod(`Custom: ${formatDateForDisplay(customPeriod.startDate)} - ${formatDateForDisplay(customPeriod.endDate)}`); setIsCustomPeriodActive(false); setPeriodDropdownOpen(false) } }} disabled={!customPeriod.startDate || !customPeriod.endDate} className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">Apply</button>
+                      <button type="button" onClick={() => { if (customPeriod.startDate && customPeriod.endDate) { setLocalSelectedPeriod(`Custom: ${formatDateForDisplay(customPeriod.startDate)} - ${formatDateForDisplay(customPeriod.endDate)}`); setIsCustomPeriodActive(false); setPeriodDropdownOpen(false) } }} disabled={!customPeriod.startDate || !customPeriod.endDate} className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">{t("admin.finances.period.apply")}</button>
                     </div>
                   </div>
                 )}
@@ -271,7 +294,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         <div className="p-4 border-b border-gray-800">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-            <input type="search" placeholder="Search by studio, account holder, IBAN, or mandate..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 bg-[#141414] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" />
+            <input type="search" placeholder={t("admin.finances.search.placeholder")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 bg-[#141414] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors" />
           </div>
         </div>
 
@@ -279,10 +302,10 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           {sortedTransactions.length > 0 ? (
             <>
               <div className="flex flex-col sm:flex-row justify-between gap-3 mb-4">
-                <p className="text-gray-300 text-sm">Review and select transactions to include in the SEPA XML file:</p>
+                <p className="text-gray-300 text-sm">{t("admin.finances.sepaXml.reviewTransactions")}</p>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors" onClick={() => handleSelectAll(true)}>Select All</button>
-                  <button className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors" onClick={() => handleSelectAll(false)}>Deselect All</button>
+                  <button className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors" onClick={() => handleSelectAll(true)}>{t("admin.finances.sepaXml.selectAll")}</button>
+                  <button className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors" onClick={() => handleSelectAll(false)}>{t("admin.finances.sepaXml.deselectAll")}</button>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -291,21 +314,21 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                     <tr>
                       <th className="px-1.5 py-2 w-8 rounded-tl-lg"><input type="checkbox" className="rounded bg-black border-gray-700 text-[#3F74FF] focus:ring-[#3F74FF]" checked={sortedTransactions.length > 0 && sortedTransactions.every(tx => selectedTransactions[tx.id])} onChange={() => { const allSelected = sortedTransactions.every(tx => selectedTransactions[tx.id]); handleSelectAll(!allSelected) }} /></th>
                       {/* Studio Name Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.studio}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("studio")}><span className="hidden md:inline">Studio</span><span className="md:hidden">Studio</span>{getSortIcon("studio")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'studio')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.studio}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("studio")}><span className="hidden md:inline">{t("admin.finances.table.studio")}</span><span className="md:hidden">{t("admin.finances.table.studio")}</span>{getSortIcon("studio")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'studio')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* Account Holder Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.accountHolder}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("accountHolder")}><span className="hidden md:inline">Account Holder</span><span className="md:hidden">Holder</span>{getSortIcon("accountHolder")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'accountHolder')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.accountHolder}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("accountHolder")}><span className="hidden md:inline">{t("admin.finances.table.accountHolder")}</span><span className="md:hidden">{t("admin.finances.table.holder")}</span>{getSortIcon("accountHolder")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'accountHolder')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* Amount Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-right hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}><div className="flex items-center justify-end gap-1 cursor-pointer" onClick={() => handleSort("amount")}><span className="hidden md:inline">Amount</span><span className="md:hidden">Amt</span>{getSortIcon("amount")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'amount')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-right hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}><div className="flex items-center justify-end gap-1 cursor-pointer" onClick={() => handleSort("amount")}><span className="hidden md:inline">{t("admin.finances.table.amount")}</span><span className="md:hidden">{t("admin.finances.table.amt")}</span>{getSortIcon("amount")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'amount')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* Services Column */}
-                      <th className="px-1.5 py-2 text-center relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}><span className="hidden md:inline">Services</span><span className="md:hidden">Svc</span><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'services')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 py-2 text-center relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}><span className="hidden md:inline">{t("admin.finances.table.services")}</span><span className="md:hidden">{t("admin.finances.table.svc")}</span><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'services')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* Status Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.status}px`, minWidth: '35px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("status")}><span className="hidden md:inline">Status</span><span className="md:hidden">St.</span>{getSortIcon("status")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'status')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.status}px`, minWidth: '35px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("status")}><span className="hidden md:inline">{t("admin.finances.table.status")}</span><span className="md:hidden">{t("admin.finances.table.st")}</span>{getSortIcon("status")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'status')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* IBAN Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.iban}px`, minWidth: '55px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>IBAN {getSortIcon("iban")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'iban')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.iban}px`, minWidth: '55px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>{t("admin.finances.table.iban")} {getSortIcon("iban")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'iban')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* Mandate Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}><span className="hidden md:inline">Mandate Number</span><span className="md:hidden">Mandate</span>{getSortIcon("mandate")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}><span className="hidden md:inline">{t("admin.finances.table.mandateNumber")}</span><span className="md:hidden">{t("admin.finances.table.mandate")}</span>{getSortIcon("mandate")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                       {/* Date Column */}
-                      <th className="px-1.5 md:px-2 py-2 text-left rounded-tr-lg hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>Date {getSortIcon("date")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'date')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
+                      <th className="px-1.5 md:px-2 py-2 text-left rounded-tr-lg hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>{t("admin.finances.table.date")} {getSortIcon("date")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'date')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -320,7 +343,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                           </div>
                         </td>
                         <td className="px-1.5 py-2 text-center"><button onClick={() => handleShowServices(tx.services, getStudioName(tx))} className="text-blue-400 hover:text-blue-300" disabled={!selectedTransactions[tx.id]}><Info className="w-3 h-3" /></button></td>
-                        <td className="px-1.5 md:px-2 py-2"><span className={`md:hidden px-1 py-0.5 rounded text-xs font-medium ${tx.status === "Pending" ? "bg-[#f59e0b] text-white" : "bg-[#ef4444] text-white"}`}>{tx.status === "Pending" ? "P" : "F"}</span><span className={`hidden md:inline px-2 py-1 rounded text-xs font-medium ${tx.status === "Pending" ? "bg-[#f59e0b] text-white" : "bg-[#ef4444] text-white"}`}>{tx.status}</span></td>
+                        <td className="px-1.5 md:px-2 py-2"><span className={`md:hidden px-1 py-0.5 rounded text-xs font-medium ${tx.status === "Pending" ? "bg-[#f59e0b] text-white" : "bg-[#ef4444] text-white"}`}>{tx.status === "Pending" ? "P" : "F"}</span><span className={`hidden md:inline px-2 py-1 rounded text-xs font-medium ${tx.status === "Pending" ? "bg-[#f59e0b] text-white" : "bg-[#ef4444] text-white"}`}>{tx.status === "Pending" ? t("admin.finances.status.pending") : t("admin.finances.status.failed")}</span></td>
                         <td className="px-1.5 md:px-2 py-2 text-xs"><MaskedIban iban={getTransactionIban(tx)} /></td>
                         <td className="px-1.5 md:px-2 py-2 text-xs truncate">{tx.mandateNumber || `MNDT-${tx.id.toString().padStart(6, '0')}`}</td>
                         <td className="px-1.5 md:px-2 py-2 text-xs">{new Date(tx.date).toLocaleDateString()}</td>
@@ -331,7 +354,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
               </div>
             </>
           ) : (
-            <div className="bg-[#141414] p-6 rounded-xl text-center"><p className="text-gray-400 text-sm">{searchTerm ? "No transactions found matching your search." : "No pending or failed transactions for this period."}</p></div>
+            <div className="bg-[#141414] p-6 rounded-xl text-center"><p className="text-gray-400 text-sm">{searchTerm ? t("admin.finances.sepaXml.noSearchResults") : t("admin.finances.sepaXml.noPending")}</p></div>
           )}
         </div>
 
@@ -339,11 +362,11 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         {servicesModalOpen && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
             <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col mx-4">
-              <div className="p-4 border-b border-gray-800 flex justify-between items-center"><h2 className="text-white text-lg font-medium">Services Breakdown</h2><button onClick={() => setServicesModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button></div>
+              <div className="p-4 border-b border-gray-800 flex justify-between items-center"><h2 className="text-white text-lg font-medium">{t("admin.finances.servicesBreakdown.title")}</h2><button onClick={() => setServicesModalOpen(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button></div>
               <div className="p-4 overflow-y-auto flex-grow">
-                <div className="mb-4"><h3 className="text-white font-medium mb-2">{selectedStudioName}</h3><p className="text-gray-400 text-sm">Service breakdown for this studio</p></div>
+                <div className="mb-4"><h3 className="text-white font-medium mb-2">{selectedStudioName}</h3><p className="text-gray-400 text-sm">{t("admin.finances.servicesBreakdown.studioDescription")}</p></div>
                 <div className="space-y-3">{selectedServices.map((service, index) => (<div key={index} className="bg-[#141414] p-3 rounded-lg"><div className="flex justify-between items-start mb-1"><span className="text-white font-medium text-sm">{service.name}</span><span className="text-white font-semibold text-sm">{formatCurrency(service.cost)}</span></div><p className="text-gray-400 text-xs">{service.description}</p></div>))}</div>
-                <div className="mt-4 pt-4 border-t border-gray-800"><div className="flex justify-between items-center"><span className="text-white font-semibold text-sm">Total Amount</span><span className="text-white font-bold text-lg">{formatCurrency(selectedServices.reduce((sum, service) => sum + service.cost, 0))}</span></div></div>
+                <div className="mt-4 pt-4 border-t border-gray-800"><div className="flex justify-between items-center"><span className="text-white font-semibold text-sm">{t("admin.finances.servicesBreakdown.totalAmount")}</span><span className="text-white font-bold text-lg">{formatCurrency(selectedServices.reduce((sum, service) => sum + service.cost, 0))}</span></div></div>
               </div>
             </div>
           </div>
@@ -353,30 +376,30 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         {confirmationModalOpen && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-30">
             <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-4">
-              <div className="p-4 border-b border-gray-800"><h2 className="text-white text-lg font-medium">Generate SEPA XML</h2></div>
+              <div className="p-4 border-b border-gray-800"><h2 className="text-white text-lg font-medium">{t("admin.finances.sepaXml.generateTitle")}</h2></div>
               <div className="p-4">
-                <p className="text-gray-300 text-sm mb-4">Are you sure you want to generate the SEPA XML file?</p>
+                <p className="text-gray-300 text-sm mb-4">{t("admin.finances.sepaXml.generateConfirm")}</p>
                 <div className="bg-[#141414] p-3 rounded-lg mb-4 space-y-2">
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Selected transactions:</span><span className="text-white font-medium">{selectedCount}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Total amount:</span><span className="text-white font-medium">{formatCurrency(totalAmount)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Period:</span><span className="text-white font-medium">{isCustomPeriodActive ? `${formatDateForDisplay(customPeriod.startDate)} - ${formatDateForDisplay(customPeriod.endDate)}` : localSelectedPeriod}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Claims through:</span><span className="text-white font-medium">{formatDateForDisplay(claimsUntilDate)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Collection date:</span><span className="text-white font-medium">{formatDateForDisplay(collectionDate)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Executed by:</span><span className="text-white font-medium">{currentUser}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-400">{t("admin.finances.sepaXml.selectedTransactions")}:</span><span className="text-white font-medium">{selectedCount}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-400">{t("admin.finances.sepaXml.totalAmountLabel")}:</span><span className="text-white font-medium">{formatCurrency(totalAmount)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-400">{t("admin.finances.sepaXml.periodLabel")}:</span><span className="text-white font-medium">{isCustomPeriodActive ? `${formatDateForDisplay(customPeriod.startDate)} - ${formatDateForDisplay(customPeriod.endDate)}` : translatePeriod(localSelectedPeriod)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-400">{t("admin.finances.sepaXml.claimsThroughLabel")}:</span><span className="text-white font-medium">{formatDateForDisplay(claimsUntilDate)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-400">{t("admin.finances.sepaXml.collectionDateLabel")}:</span><span className="text-white font-medium">{formatDateForDisplay(collectionDate)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-400">{t("admin.finances.sepaXml.executedByLabel")}:</span><span className="text-white font-medium">{currentUser}</span></div>
                 </div>
-                <div className="flex items-center gap-2 mb-4"><input type="checkbox" id="shouldDownload" checked={shouldDownload} onChange={(e) => setShouldDownload(e.target.checked)} className="rounded bg-black border-gray-700 text-[#3F74FF] focus:ring-[#3F74FF]" /><label htmlFor="shouldDownload" className="text-sm text-gray-300">Download SEPA XML file automatically</label></div>
+                <div className="flex items-center gap-2 mb-4"><input type="checkbox" id="shouldDownload" checked={shouldDownload} onChange={(e) => setShouldDownload(e.target.checked)} className="rounded bg-black border-gray-700 text-[#3F74FF] focus:ring-[#3F74FF]" /><label htmlFor="shouldDownload" className="text-sm text-gray-300">{t("admin.finances.sepaXml.autoDownload")}</label></div>
               </div>
               <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
-                <button onClick={handleCancelGeneration} className="px-4 py-2 rounded-xl text-sm bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] transition-colors">Cancel</button>
-                <button onClick={handleConfirmGeneration} className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 transition-colors">Generate XML</button>
+                <button onClick={handleCancelGeneration} className="px-4 py-2 rounded-xl text-sm bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] transition-colors">{t("common.cancel")}</button>
+                <button onClick={handleConfirmGeneration} className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 transition-colors">{t("admin.finances.sepaXml.generateXml")}</button>
               </div>
             </div>
           </div>
         )}
 
         <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] transition-colors">Cancel</button>
-          <button onClick={handleGenerateXmlClick} className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={!Object.values(selectedTransactions).some((v) => v)}>Generate SEPA XML</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] transition-colors">{t("common.cancel")}</button>
+          <button onClick={handleGenerateXmlClick} className="px-4 py-2 rounded-xl text-sm bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={!Object.values(selectedTransactions).some((v) => v)}>{t("admin.finances.sepaXml.generateSepaXml")}</button>
         </div>
       </div>
     </div>
