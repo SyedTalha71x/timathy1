@@ -143,14 +143,18 @@ const loginStaff = async (req, res, next) => {
   try {
     const { email, password, studioName } = req.body;
 
-    const studio = await StudioModel.findOne({
-      studioName: { $regex: `^${studioName}$`, $options: "i" },
-    });
-    if (!studio) throw new BadRequestError("Invalid Studio Name");
+    // const studio = await StudioModel.findOne({
+    //   studioName: { $regex: `^${studioName}$`, $options: "i" },
+    // });
+    // if (!studio) throw new BadRequestError("Invalid Studio Name");
 
-    const staff = await UserModel.findOne({ email, studio: studio._id })
-      .select("+password")
-      .populate("studio");
+    // const staff = await UserModel.find({ email: email })// studio: studio._id })
+    // .select("+password")
+    // // .populate("studio");
+
+    const staff = await UserModel.findOne({ email })
+    .populate('studio','studioName')
+    .select('+password')
 
     if (!staff) throw new NotFoundError("Invalid Email && studioName");
 
@@ -165,8 +169,8 @@ const loginStaff = async (req, res, next) => {
       action: 'login'
     });
     // Keep only last 50 records
-    if (staff.loginHistory.length > 50) {
-      staff.loginHistory = staff.loginHistory.slice(-50);
+    if (staff.loginHistory.length > 10) {
+      staff.loginHistory = staff.loginHistory.slice(-10);
     }
 
     const { AccessToken, RefreshToken } = GenerateToken({
@@ -215,6 +219,7 @@ const loginStaff = async (req, res, next) => {
         staffRole: staff.staffRole,
       },
     });
+
   } catch (err) {
     next(err);
   }

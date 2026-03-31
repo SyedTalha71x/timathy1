@@ -45,13 +45,23 @@ const ClassTypeModal = ({
   const imageInputRef = useRef(null)
 
   const handleImageSelect = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => { setTempImage(event.target.result); setShowImageCropModal(true) }
-      reader.readAsDataURL(file)
+    const file = e?.target?.files?.[0]
+    if (!file) return
+
+    // Reset any previous temp image
+    setTempImage(null)
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setTempImage(event.target.result)
+      setShowImageCropModal(true)
     }
-    if (imageInputRef.current) imageInputRef.current.value = ""
+    reader.readAsDataURL(file)
+
+    // Clear the input so the same file can be selected again
+    if (imageInputRef.current) {
+      imageInputRef.current.value = ""
+    }
   }
 
   const handleCroppedImage = (croppedImage) => {
@@ -143,9 +153,9 @@ const ClassTypeModal = ({
                 </label>
                 <CustomSelect
                   name="category"
-                  value={classTypeForm.category}
+                  value={classTypeForm.category} // should be the category _id
                   onChange={(e) => setClassTypeForm({ ...classTypeForm, category: e.target.value })}
-                  options={classCategories.map(c => ({ value: c, label: c }))}
+                  options={classCategories.map(c => ({ value: c._id, label: c.categoryName }))}
                   placeholder="Select category"
                   className="bg-surface-card px-4 py-2.5 border-border"
                 />

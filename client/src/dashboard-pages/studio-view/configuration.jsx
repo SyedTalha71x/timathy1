@@ -71,6 +71,20 @@ import CreateContractFormModal from "../../components/studio-components/configur
 import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { updateLoggedInStaffThunk } from '../../features/staff/staffSlice'
+import { useSelector, useDispatch } from 'react-redux'
+// all classes Related slices
+import {
+  createCategoryThunk,
+  getCategoriesThunk,
+  updateCategoryThunk,
+  deleteCategoryThunk,
+  createClassTypeThunk,
+  getClassTypeThunk,
+  updateClassTypeThunk,
+  deleteClassTypeThunk,
+  createClassThunk,
+} from '../../features/classes/classSlice'
+
 // ============================================
 // Configuration State Imports (Single Source of Truth)
 // ============================================
@@ -129,14 +143,13 @@ import {
 // Shared Hook for data abstraction (Admin + Studio Panel)
 // ============================================
 import { useStudioConfiguration } from "../../hooks/useStudioConfiguration"
-import { useDispatch } from "react-redux"
 import { updateStudioThunk } from "../../features/studio/studioSlice"
 import { createAppointmentTypesThunk, deleteAppointmentTypesThunk, updateAppointmentTypesThunk } from "../../features/services/servicesSlice"
 
 
 
 
-const getCSSVar = (name) => 
+const getCSSVar = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 // ============================================
@@ -440,7 +453,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // URL Search Params
   const [searchParams] = useSearchParams()
   const dispatch = useDispatch();
+  const { categories = [], types = [], classes = [], loading } = useSelector((state) => state.classes) || {}
 
+  // console.log('Categories', categories)
+  // console.log('Types', types)
   // ============================================
   // Load configuration via shared hook
   // ============================================
@@ -488,6 +504,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     }
   }, [searchParams])
 
+  useEffect(() => {
+    dispatch(getClassTypeThunk())
+    dispatch(getCategoriesThunk())
+  }, [dispatch])
   // ============================================
   // Profile State Variables
   // ============================================
@@ -910,28 +930,28 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ========================
   // All AppointmentType Data
   // ========================
-useEffect(() => {
-  if (config?.services?.length) {
-    const mapped = config.services.map(service => ({
-      id: service._id,
-      name: service.name,
-      description: service.description,
-      price: service.price,
-      // fallback/defaults for missing fields
-      duration: service.duration ?? 30, // or any default
-      interval: service.interval ?? 30,
-      category: service.category ?? "General",
-      image: service.image?.url ?? null,
-      calenderColor: service.calenderColor ?? "#10b981", // default green
-      slotsRequired: service.slot ?? 1,
-      maxParallel: service.maxSimultaneous ?? 1,
-      contingentUsage: service.contingentUsage ?? 1,
-    }));
+  useEffect(() => {
+    if (config?.services?.length) {
+      const mapped = config.services.map(service => ({
+        id: service._id,
+        name: service.name,
+        description: service.description,
+        price: service.price,
+        // fallback/defaults for missing fields
+        duration: service.duration ?? 30, // or any default
+        interval: service.interval ?? 30,
+        category: service.category ?? "General",
+        image: service.image?.url ?? null,
+        calenderColor: service.calenderColor ?? "#10b981", // default green
+        slotsRequired: service.slot ?? 1,
+        maxParallel: service.maxSimultaneous ?? 1,
+        contingentUsage: service.contingentUsage ?? 1,
+      }));
 
-    console.log("Mapped Appointment Types:", mapped);
-    setAppointmentTypes(mapped);
-  }
-}, [config]);
+      console.log("Mapped Appointment Types:", mapped);
+      setAppointmentTypes(mapped);
+    }
+  }, [config]);
 
   // console.log('Appointment Type',appointmentTypes)
 
@@ -1700,6 +1720,8 @@ useEffect(() => {
   const handleUpdateAppointmentType = (index, field, value) => {
     const updated = [...appointmentTypes]
     updated[index][field] = value
+
+
     setAppointmentTypes(updated)
   }
 
@@ -1718,6 +1740,33 @@ useEffect(() => {
   }
 
   // Category handlers
+
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      // Map categories to the format expected by the UI
+      const formattedCategories = categories.map(cat => cat.name)
+      setClassCategories(formattedCategories)
+    }
+  }, [categories])
+
+  useEffect(() => {
+    if (types && types.length > 0) {
+      // Map class types to the format expected by the UI
+      const formattedTypes = types.map(type => ({
+        id: type._id,
+        name: type.name,
+        description: type.description,
+        duration: type.duration,
+        maxParticipants: type.maxPeople, // Changed from maxParticipants to maxPeople
+        color: type.calenderColor, // Changed from color to calenderColor
+        category: type.category?.categoryName || "", // For display
+        categoryId: type.category?._id || "", // For storing the reference
+        image: type.img?.url || null,
+      }))
+      setClassTypes(formattedTypes)
+    }
+  }, [types])
+
   const handleAddCategory = () => {
     openAddItemModal(
       "Add Category",
@@ -1760,24 +1809,36 @@ useEffect(() => {
   // ============================================
   const handleOpenClassTypeModal = (type = null) => {
     if (type) {
+      // Editing existing class type
       setEditingClassType(type)
       setClassTypeForm({
-        name: type.name || "", description: type.description || "",
-        duration: type.duration || 60, maxParticipants: type.maxParticipants || 12,
-        color: type.color || "#3B82F6", category: type.category || "",
+        name: type.name || "",
+        description: type.description || "",
+        duration: type.duration || 60,
+        maxParticipants: type.maxParticipants || 12,
+        color: type.color || "#3B82F6",
+        category: type.categoryId || "", // This should be the category ID
         image: type.image || null,
       })
     } else {
+      // Creating new class type
       setEditingClassType(null)
       setClassTypeForm({
-        name: "", description: "", duration: 60, maxParticipants: 12,
-        color: "#3B82F6", category: "", image: null,
+        name: "",
+        description: "",
+        duration: 60,
+        maxParticipants: 12,
+        color: "#3B82F6",
+        category: "", // Empty string for new class types
+        image: null,
       })
     }
     setShowClassTypeModal(true)
   }
 
-  const handleSaveClassType = () => {
+
+  // save class Type
+  const handleSaveClassType = async () => {
     if (!classTypeForm.name.trim()) {
       toast.error("Please enter a name for the class type")
       return
@@ -1790,68 +1851,171 @@ useEffect(() => {
       toast.error("Please enter max participants (min. 1)")
       return
     }
-    if (editingClassType) {
-      setClassTypes(classTypes.map(t => t.id === editingClassType.id ? { ...t, ...classTypeForm } : t))
-      toast.success("Class type updated")
-    } else {
-      setClassTypes([...classTypes, { id: Date.now(), ...classTypeForm }])
-      toast.success("Class type created")
+
+    // Find the selected category from the categories array (Redux state)
+    const selectedCategory = categories.find(cat => cat._id === classTypeForm.category)
+
+    if (!selectedCategory) {
+      toast.error("Please select a valid category")
+      return
     }
-    setShowClassTypeModal(false)
-    setEditingClassType(null)
+
+    console.log("Selected Category:", selectedCategory)
+
+    const formData = new FormData()
+    formData.append("name", classTypeForm.name)
+    formData.append("description", classTypeForm.description)
+    formData.append("duration", classTypeForm.duration)
+    formData.append("maxPeople", classTypeForm.maxParticipants) // Use maxPeople, not maxParticipants
+    formData.append("calenderColor", classTypeForm.color)
+    formData.append("categoryId", selectedCategory._id) // Send the category ID
+
+    if (classTypeForm.image) {
+      formData.append("img", classTypeForm.image)
+    }
+
+    try {
+      if (editingClassType) {
+        await dispatch(updateClassTypeThunk({
+          typeId: editingClassType.id,
+          updateData: formData
+        })).unwrap()
+        toast.success("Class type updated successfully")
+      } else {
+        await dispatch(createClassTypeThunk(formData)).unwrap()
+        toast.success("Class type created successfully")
+      }
+
+      dispatch(getClassTypeThunk()) // Refresh the list
+      setShowClassTypeModal(false)
+      setEditingClassType(null)
+    } catch (error) {
+      console.error("Error saving class type:", error)
+      toast.error(error.message || "Failed to save class type")
+    }
   }
 
-  const handleDeleteClassType = (id) => {
-    const type = classTypes.find(t => t.id === id)
+
+  // delete class type
+  const handleDeleteClassType = async (id) => {
+    const type = types.find(t => t._id === id)
     openDeleteModal(
       "Delete Class Type",
       type?.name || "this class type",
-      "This cannot be undone.",
-      () => {
-        setClassTypes(classTypes.filter(t => t.id !== id))
-        closeDeleteModal()
-        toast.success("Class type deleted")
+      "This cannot be undone. All classes using this type will be affected.",
+      async () => {
+        try {
+          await dispatch(deleteClassTypeThunk(id)).unwrap()
+          toast.success("Class type deleted successfully")
+          dispatch(getClassTypeThunk()) // Refresh the list
+          closeDeleteModal()
+        } catch (error) {
+          console.error("Error deleting class type:", error)
+          toast.error(error.message || "Failed to delete class type")
+        }
       }
     )
   }
+
+
+
+  // Category Handlers with Redux Integration
 
   const handleAddClassCategory = () => {
     openAddItemModal(
       "Add Category",
       [
         { key: "name", label: "Category Name", type: "text", placeholder: "e.g. Yoga, HIIT", required: true },
+        { key: "description", label: "Description", type: "text", placeholder: "Optional description", required: false },
       ],
-      (data) => {
-        const duplicate = classCategories.find(c => c.toLowerCase() === data.name.toLowerCase())
+      async (data) => {
+        const duplicate = categories.find(c => c.categoryName?.toLowerCase() === data.name.toLowerCase())
         if (duplicate) {
           toast.error("Duplicate — Category already exists")
           return
         }
-        setClassCategories([...classCategories, data.name])
-        closeAddItemModal()
-        toast.success("Category created")
+
+        try {
+
+          const apiData = {
+            category: data.name,
+            description: data.description
+          }
+
+          await dispatch(createCategoryThunk(apiData)).unwrap()
+          toast.success("Category created successfully")
+          dispatch(getCategoriesThunk()) // Refresh the list
+          closeAddItemModal()
+        } catch (error) {
+          console.error("Error creating category:", error)
+          toast.error(error.message || "Failed to create category")
+        }
       }
     )
   }
 
-  const handleRemoveClassCategory = (index) => {
-    const category = classCategories[index]
-    if (classTypes.some(t => t.category === category)) {
+  const handleUpdateClassCategory = async (index, newName) => {
+    const categoryToUpdate = categories[index]
+    if (!categoryToUpdate) return
+
+    // Check for duplicates
+    const duplicate = categories.find(
+      (c, i) => i !== index && c.categoryName.toLowerCase() === newName.toLowerCase()
+    )
+    if (duplicate) {
+      toast.error("Duplicate — Category name already exists")
+      return
+    }
+
+    try {
+      const updateData = {
+        category: newName,
+        description: categoryToUpdate.description || ""
+      }
+
+      await dispatch(updateCategoryThunk({
+        id: categoryToUpdate._id,
+        updateData
+      })).unwrap()
+      toast.success("Category updated successfully")
+      await dispatch(getCategoriesThunk()) // Refresh the list
+    } catch (error) {
+      console.error("Error updating category:", error)
+      toast.error(error.message || "Failed to update category")
+    }
+  }
+
+
+  const handleRemoveClassCategory = async (index) => {
+    const category = categories[index]
+
+    // Check if category is in use by any class type
+    const isInUse = types.some(t =>
+      t.category === category._id || t.category?.categoryName === category.categoryName
+    )
+
+    if (isInUse) {
       toast.error("Cannot remove — Category is in use by a class type")
       return
     }
+
     openDeleteModal(
       "Delete Category",
-      category,
+      category.categoryName,
       "This cannot be undone.",
-      () => {
-        setClassCategories(classCategories.filter((_, i) => i !== index))
-        closeDeleteModal()
-        toast.success("Category deleted")
+      async () => {
+        try {
+          await dispatch(deleteCategoryThunk(category._id)).unwrap()
+          toast.success("Category deleted successfully")
+          dispatch(getCategoriesThunk()) // Refresh the list
+          closeDeleteModal()
+        } catch (error) {
+          console.error("Error deleting category:", error)
+          toast.error(error.message || "Failed to delete category")
+        }
       }
     )
   }
-
   // Contract handlers
   const handleAddContractType = () => {
     setEditingContractType({
@@ -3070,7 +3234,7 @@ useEffect(() => {
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: type.calenderColor }}
                           title="Calendar color"
-                          />
+                        />
 
                         <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                       </div>
@@ -3422,7 +3586,14 @@ useEffect(() => {
               }
             />
 
-            {classTypes.length === 0 ? (
+            {loading ? (
+              <SettingsCard>
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-content-muted">Loading class types...</p>
+                </div>
+              </SettingsCard>
+            ) : classTypes.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
                   <Timer className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -3439,15 +3610,19 @@ useEffect(() => {
               </SettingsCard>
             ) : (
               <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-                {classTypes.map((type) => (
+                {types.map((type) => (
                   <div
-                    key={type.id}
+                    key={type._id}
                     className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
                   >
                     {/* Image */}
                     <div className="relative aspect-video bg-surface-card">
-                      {type.image ? (
-                        <img src={type.image} alt={type.name} className="w-full h-full object-cover" />
+                      {type.img ? (
+                        <img
+                          src={type.img?.url}
+                          alt={type.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Timer className="w-12 h-12 text-content-faint" />
@@ -3457,7 +3632,7 @@ useEffect(() => {
 
                       {type.category && (
                         <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                          {type.category}
+                          {type.category?.categoryName}
                         </div>
                       )}
 
@@ -3477,7 +3652,11 @@ useEffect(() => {
                     {/* Content */}
                     <div className="p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }} title="Calendar color" />
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: type.calendarColor }}
+                          title="Calendar color"
+                        />
                         <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                       </div>
 
@@ -3496,14 +3675,14 @@ useEffect(() => {
                     {/* Actions */}
                     <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
                       <button
-                        onClick={() => handleOpenClassTypeModal(type)}
+                        onClick={() => handleOpenClassTypeModal(type._id)}
                         className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteClassType(type.id)}
+                        onClick={() => handleDeleteClassType(type._id)}
                         className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3533,62 +3712,81 @@ useEffect(() => {
               }
             />
             <SettingsCard>
-              <div className="flex flex-wrap gap-2">
-                {classCategories.map((category, index) => (
-                  <div key={index} className="group relative">
-                    {editingClassCategory.index === index ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="text"
-                          value={editingClassCategory.value}
-                          onChange={(e) => setEditingClassCategory({ ...editingClassCategory, value: e.target.value })}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              const updated = [...classCategories]
-                              updated[index] = editingClassCategory.value.trim() || category
-                              setClassCategories(updated)
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-content-muted">Loading categories...</p>
+                </div>
+              ) : categories.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No categories configured</p>
+                  <p className="text-sm mt-1">Click "Add Category" to create your first category</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category, index) => (
+                    <div key={category.id} className="group relative">
+                      {editingClassCategory.index === index ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={editingClassCategory.value}
+                            onChange={(e) => setEditingClassCategory({ ...editingClassCategory, value: e.target.value })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleUpdateClassCategory(index, editingClassCategory.value.trim() || category.categoryName)
+                                setEditingClassCategory({ index: null, value: "" })
+                              }
+                              if (e.key === 'Escape') {
+                                setEditingClassCategory({ index: null, value: "" })
+                              }
+                            }}
+                            autoFocus
+                            className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
+                          />
+                          <button
+                            onClick={() => {
+                              handleUpdateClassCategory(index, editingClassCategory.value.trim() || category.categoryName)
                               setEditingClassCategory({ index: null, value: "" })
-                            }
-                            if (e.key === 'Escape') setEditingClassCategory({ index: null, value: "" })
-                          }}
-                          autoFocus
-                          className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
-                        />
-                        <button
-                          onClick={() => {
-                            const updated = [...classCategories]
-                            updated[index] = editingClassCategory.value.trim() || category
-                            setClassCategories(updated)
-                            setEditingClassCategory({ index: null, value: "" })
-                          }}
-                          className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                            }}
+                            className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingClassCategory({ index: null, value: "" })}
+                            className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
+                          onClick={() => setEditingClassCategory({ index, value: category.categoryName })}
                         >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setEditingClassCategory({ index: null, value: "" })}
-                          className="p-1 text-red-400 hover:bg-red-500/10 rounded"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
-                        onClick={() => setEditingClassCategory({ index, value: category })}
-                      >
-                        {category}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleRemoveClassCategory(index) }}
-                          className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                          {category.categoryName}
+                          {category.description && (
+                            <Tooltip content={category.description} position="right">
+                              <Info className="w-3 h-3 text-content-faint hover:text-content-secondary cursor-help" />
+                            </Tooltip>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveClassCategory(index)
+                            }}
+                            className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="text-xs text-content-faint mt-4">
                 Click a category to edit. Categories in use cannot be deleted.
               </p>
@@ -6729,7 +6927,7 @@ useEffect(() => {
         editingClassType={editingClassType}
         classTypeForm={classTypeForm}
         setClassTypeForm={setClassTypeForm}
-        classCategories={classCategories}
+        classCategories={categories}
         onSave={handleSaveClassType}
         openColorPicker={openColorPicker}
       />

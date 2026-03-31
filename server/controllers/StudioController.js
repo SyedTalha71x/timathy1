@@ -236,9 +236,24 @@ const deleteStudioById = async (req, res, next) => {
   }
 }
 
+
+const getAllStudio = async (req, res, next) => {
+  const userId = req.user?._id;
+
+  const studios = await StudioModel.find()
+
+
+  return res.status(200).json({
+    success: true,
+    // members: studios.users.length,
+    studios: studios,
+  })
+}
+
 module.exports = {
   updateStudio,
   getStudioByMemberId,
   createStudio,
-  deleteStudioById
+  deleteStudioById,
+  getAllStudio
 }

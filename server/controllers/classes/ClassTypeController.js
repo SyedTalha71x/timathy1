@@ -17,10 +17,11 @@ const createCategory = async (req, res, next) => {
     try {
         const studioId = req.user?.studio;
 
-        const { category } = req.body;
+        const { category, description } = req.body;
 
         const newCategory = await CategoryModel.create({
             categoryName: category,
+            description,
             studio: studioId
         });
         res.status(201).json({
@@ -139,7 +140,7 @@ const createClassType = async (req, res, next) => {
         await StudioModel.findByIdAndUpdate(studioId, { $push: { classTypes: newClassType._id } }, { new: true })
         res.status(201).json({
             success: true,
-            classType: newClassType
+            type: newClassType
         });
     }
     catch (error) {
@@ -201,7 +202,7 @@ const updateClassTypes = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            classType: classType
+            type: classType
         });
     }
     catch (error) {
@@ -316,7 +317,7 @@ const createClassByStaff = async (req, res, next) => {
             await StudioModel.findByIdAndUpdate(studioId, { $push: { classes: { $each: classIds } } });
             await StaffModel.findByIdAndUpdate(staffId, { $push: { classes: { $each: classIds } } });
 
-            return res.status(200).json({ success: true, classes: createdClasses });
+            return res.status(200).json({ success: true, class: createdClasses });
         }
 
         return res.status(400).json({ success: false, message: "Invalid bookingType" });
@@ -343,9 +344,10 @@ const getClasses = async (req, res, next) => {
             })
             .populate('staff', 'firstName lastName img email')
             .populate({
-                path: 'participants',
+                path: 'enrolledMembers',
                 select: 'firstName lastName img email'
             })
+            .populate('room','studioName email')
 
         return res.status(200).json({
             success: true,
@@ -401,7 +403,7 @@ const cancelClass = async (req, res, next) => {
         // Notify all participants of affected classes
         for (const cls of affectedClasses) {
             const members = await MemberModel.find(
-                { _id: { $in: cls.participants } },
+                { _id: { $in: cls.enrolledMembers } },
                 { email: 1 }
             );
             const memberIds = members.map(m => m._id);
@@ -464,12 +466,12 @@ const enrollMembersToClassByStaff = async (req, res, next) => {
         if (!classToUpdate) return res.status(404).json({ success: false, message: "Class not found" });
 
         // Ensure we don't exceed maxParticipants
-        if (classToUpdate.participants.length + memberIds.length > classToUpdate.maxParticipants) {
+        if (classToUpdate.enrolledMembers.length + memberIds.length > classToUpdate.maxParticipants) {
             return res.status(400).json({ success: false, message: "Exceeding maximum participants" });
         }
 
         // Add members to class participants
-        classToUpdate.participants.push(memberIds);
+        classToUpdate.enrolledMembers.push(memberIds);
         await classToUpdate.save();
 
         await MemberModel.updateMany({
@@ -500,7 +502,7 @@ const removeEnrolledMembers = async (req, res, next) => {
         if (!classToUpdate) return res.status(404).json({ success: false, message: "Class not found" });
 
         // Remove members from class participants
-        classToUpdate.participants.pull(memberIds);
+        classToUpdate.enrolledMembers.pull(memberIds);
         await classToUpdate.save();
 
         await MemberModel.updateMany({
@@ -574,7 +576,7 @@ const enrollMyself = async (req, res, next) => {
         const findClass = await ClassModel.findById(classId)
 
         const updatedClass = await ClassModel.findByIdAndUpdate(classId, {
-            $set: { participants: userId }
+            $set: { enrolledMembers: userId }
         }, { new: true, runValidators: true })
 
         await MemberModel.findByIdAndUpdate(userId, {
@@ -588,6 +590,32 @@ const enrollMyself = async (req, res, next) => {
     }
     catch (error) {
         return next(error)
+    }
+}
+
+
+// my classes
+
+const myClasses = async (req, res, next) => {
+    try {
+        const userId = req.user?._id
+        const myClasses = await ClassModel.find({ enrolledMembers: userId })
+            .populate({
+                path: 'classType',
+                select: 'img name duration category calenderColor',
+                populate: ({
+                    path: 'category',
+                    select: 'categoryName'
+                })
+            })
+
+        return res.status(200).json({
+            success: true,
+            class: myClasses
+        })
+    }
+    catch (error) {
+        next(error)
     }
 }
 
@@ -614,6 +642,7 @@ module.exports = {
     enrollMembersToClassByStaff,
     removeEnrolledMembers,
     updateClassById,
-    enrollMyself
+    enrollMyself,
+    myClasses
 
 }

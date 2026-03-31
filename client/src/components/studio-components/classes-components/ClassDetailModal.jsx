@@ -5,19 +5,89 @@ import { X, Clock, Users, MapPin, Calendar, Repeat, Search, UserMinus, Trash2, P
 import NotifyModalMain from '../../shared/NotifyModal';
 import DatePickerField from '../../shared/DatePickerField';
 import { getRoleColorHex } from '../../../utils/studio-states/staff-states';
+import { toast } from 'react-toastify'
 
-const fmtDate = (d) => { const dt=d instanceof Date?d:new Date(d); return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}` };
-const getColorHex = (t) => { if(!t)return"#808080";if(t.colorHex)return t.colorHex;if(t.color?.startsWith("#"))return t.color;return"#808080" };
+const fmtDate = (d) => {
+  const dt = d instanceof Date ? d : new Date(d);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+};
+
+const getColorHex = (t) => {
+  if (!t) return "#808080";
+  if (t.colorHex) return t.colorHex;
+  if (t.calenderColor) return t.calenderColor;
+  if (t.color?.startsWith("#")) return t.color;
+  return "#808080";
+};
+
+// Helper to parse time from "11:00am" to "HH:MM"
+const parseTimeTo24h = (timeStr) => {
+  if (!timeStr) return "09:00";
+  const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+  if (match) {
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3].toLowerCase();
+    if (period === 'pm' && hours !== 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+  return timeStr;
+};
+
+// Helper to format time for display
+const formatTimeDisplay = (timeStr) => {
+  if (!timeStr) return "";
+  const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+  if (match) {
+    return `${match[1]}:${match[2]}${match[3]}`;
+  }
+  const [hours, minutes] = timeStr.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'pm' : 'am';
+  const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+  return `${displayHour}:${minutes}${ampm}`;
+};
+
+// Helper to get staff name from various possible formats
+const getStaffName = (staff) => {
+  if (!staff) return "Unknown";
+  if (staff.firstName && staff.lastName) return `${staff.firstName} ${staff.lastName}`;
+  if (staff.name) return staff.name;
+  if (staff.trainerName) return staff.trainerName;
+  return "Unknown";
+};
+
+// Helper to get staff initials
+const getStaffInitials = (staff) => {
+  if (!staff) return "?";
+  if (staff.firstName && staff.lastName) {
+    return `${staff.firstName.charAt(0)}${staff.lastName.charAt(0)}`.toUpperCase();
+  }
+  if (staff.name) {
+    const parts = staff.name.split(" ");
+    return parts.map(p => p.charAt(0)).join("").toUpperCase();
+  }
+  return "?";
+};
+
+// Helper to get staff color
+const getStaffColor = (staff) => {
+  if (!staff) return "var(--color-primary)";
+  if (staff.color) return staff.color;
+  if (staff.staffColor) return staff.staffColor;
+  return "var(--color-primary)";
+};
 
 // ─── Custom Dropdown (fixed positioning, matches CreateClassModal) ───
 const CustomDropdown = ({ value, placeholder, renderSelected, children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
   const btnRef = useRef(null);
-  const [pos, setPos] = useState({ top:0, left:0, width:0 });
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
-    const h = (e) => { if(ref.current && !ref.current.contains(e.target)) setIsOpen(false) };
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setIsOpen(false) };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, []);
@@ -35,7 +105,7 @@ const CustomDropdown = ({ value, placeholder, renderSelected, children }) => {
       <button ref={btnRef} type="button" onClick={handleToggle}
         className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-left flex items-center justify-between hover:bg-surface-hover transition-colors">
         {value ? renderSelected() : <span className="text-content-faint">{placeholder}</span>}
-        <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? "rotate-180" : ""}`}/>
+        <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       {isOpen && (
         <div className="fixed bg-surface-base border border-border rounded-xl shadow-xl z-[1100] max-h-64 overflow-y-auto"
@@ -85,31 +155,43 @@ const ClassDetailModal = ({
   const [notifyEntityName, setNotifyEntityName] = useState("");
   const [pendingAction, setPendingAction] = useState(null);
 
-  useEffect(() => { if(showSearch && searchInputRef.current) searchInputRef.current.focus() }, [showSearch]);
+  useEffect(() => { if (showSearch && searchInputRef.current) searchInputRef.current.focus() }, [showSearch]);
 
   // Close recurring popover on outside click
   useEffect(() => {
     if (!showRecurringInfo) return;
-    const h = (e) => { if(recurringRef.current && !recurringRef.current.contains(e.target)) setShowRecurringInfo(false) };
+    const h = (e) => { if (recurringRef.current && !recurringRef.current.contains(e.target)) setShowRecurringInfo(false) };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [showRecurringInfo]);
 
-  // Initialize local state from classData when modal opens or classData changes
+  // Initialize local state from classData when modal opens
   useEffect(() => {
     if (!isOpen || !classData) return;
-    const h = classData.startTime?.split(":")[0] || "09";
-    const m = classData.startTime?.split(":")[1] || "00";
-    setEditDate(classData.date || "");
-    setEditHour(h); setEditMinute(m);
-    setEditRoom(classData.room || "");
-    setEditTrainerId(classData.trainerId);
+
+    // Get date in YYYY-MM-DD format
+    const dateStr = classData.date ? fmtDate(new Date(classData.date)) : "";
+
+    // Parse time from API format "11:00am"
+    const startTimeFormatted = parseTimeTo24h(classData.startTime || classData.time || "09:00");
+    const [hour, minute] = startTimeFormatted.split(":");
+
+    setEditDate(dateStr);
+    setEditHour(hour);
+    setEditMinute(minute);
+    setEditRoom(classData.roomId || classData.room?._id || classData.room || "");
+    
+    // Get trainer ID from classData
+    const trainerId = classData.trainerId || classData.staff?._id || classData.staff?.id || classData.trainer;
+    setEditTrainerId(trainerId);
     setEditMax(classData.maxParticipants || 12);
+
     // Store originals
-    setOrigDate(classData.date || "");
-    setOrigHour(h); setOrigMinute(m);
-    setOrigRoom(classData.room || "");
-    setOrigTrainerId(classData.trainerId);
+    setOrigDate(dateStr);
+    setOrigHour(hour);
+    setOrigMinute(minute);
+    setOrigRoom(classData.roomId || classData.room?._id || classData.room || "");
+    setOrigTrainerId(trainerId);
     setOrigMax(classData.maxParticipants || 12);
   }, [isOpen, classData?.id]);
 
@@ -124,21 +206,45 @@ const ClassDetailModal = ({
 
   if (!isOpen || !classData) return null;
 
-  const enrolled = membersData.filter(m => classData.enrolledMembers?.includes(m.id));
-  const available = membersData.filter(m => !classData.enrolledMembers?.includes(m.id));
+  // Normalize trainers data - ensure they have firstName, lastName, id
+  const normalizedTrainers = trainers.map(t => ({
+    id: t.id || t._id,
+    firstName: t.firstName || t.name?.split(' ')[0] || "Staff",
+    lastName: t.lastName || t.name?.split(' ')[1] || "",
+    role: t.role || t.staffRole,
+    color: t.color || t.staffColor,
+    img: t.img?.url || t.profile_image || t.img,
+    staffColor: t.staffColor,
+  }));
+
+  // Get enrolled members from participants array
+  const enrolledMembers = classData.enrolledMembers || classData.participants || [];
+  const enrolled = membersData.filter(m => enrolledMembers.some(p => p._id === m._id || p === m._id));
+  const available = membersData.filter(m => !enrolledMembers.some(p => p._id === m._id || p === m._id));
   const filtered = available.filter(m => `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()));
-  const spotsLeft = (classData.maxParticipants || 0) - (classData.enrolledMembers?.length || 0);
+  const spotsLeft = (classData.maxParticipants || 0) - (enrolledMembers.length || 0);
   const isFull = spotsLeft <= 0;
-  const isCancelled = classData.isCancelled || false;
+  const isCancelled = classData.isCancelled || classData.status === 'canceled' || false;
   const isPast = classData.isPast || false;
   const canEdit = !isPast && !isCancelled;
-  const color = isCancelled ? "#6B7280" : (classData.color || "#6c5ce7");
-  const hasSeries = classData.isRecurring && classData.seriesId;
-  const seriesClasses = hasSeries
+  const color = isCancelled ? "#6B7280" : (classData.typeColor || classData.classType?.calenderColor || "#6c5ce7");
+  const hasSeries = classData.isRecurring || classData.bookingType === 'recurring';
+  const seriesClasses = hasSeries && classData.seriesId
     ? allClassesData.filter(c => c.seriesId === classData.seriesId && !c.isCancelled)
     : [];
   const seriesUpcoming = seriesClasses.filter(c => !c.isPast);
   const seriesTotalEnrolled = seriesClasses.reduce((sum, c) => sum + (c.enrolledMembers?.length || 0), 0);
+
+  // Get the current trainer object for display
+  const currentTrainer = normalizedTrainers.find(t => t.id === editTrainerId) || 
+    (classData.staff ? {
+      id: classData.staff._id,
+      firstName: classData.staff.firstName,
+      lastName: classData.staff.lastName,
+      role: classData.staff.role,
+      color: classData.staff.color,
+      img: classData.staff.img?.url,
+    } : null);
 
   // ─── Change detection ───
   const hasScheduleChanges = editDate !== origDate || editHour !== origHour || editMinute !== origMinute;
@@ -151,26 +257,31 @@ const ClassDetailModal = ({
   };
   const handleDiscardAndClose = () => { setShowUnsavedConfirm(false); onClose(); };
 
-  const formatDate = (ds) => { if(!ds) return "N/A"; const d = typeof ds==="string" ? new Date(ds) : ds; if(isNaN(d.getTime())) return ds; return d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"}) };
-  const formatDateDisplay = (ds) => { if(!ds) return "Select date"; const [y,m,d] = ds.split("-"); return `${d}.${m}.${y}` };
+  const formatDate = (ds) => {
+    if (!ds) return "N/A";
+    const d = typeof ds === "string" ? new Date(ds) : ds;
+    if (isNaN(d.getTime())) return ds;
+    return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  };
 
-  const getInitials = (t) => {
-    if (t.firstName || t.lastName) return `${t.firstName?.charAt(0)||''}${t.lastName?.charAt(0)||''}`.toUpperCase();
-    const parts = (t.trainerName || t.name || "").split(" ");
-    return parts.map(p => p.charAt(0)).join("").toUpperCase();
+  const formatDateDisplay = (ds) => {
+    if (!ds) return "Select date";
+    const [y, m, d] = ds.split("-");
+    return `${d}.${m}.${y}`;
   };
 
   // ─── Recurring info helpers ───
-  const dayNames = { "0":"Sunday","1":"Monday","2":"Tuesday","3":"Wednesday","4":"Thursday","5":"Friday","6":"Saturday" };
-  const freqLabels = { daily:"Daily", weekly:"Weekly", biweekly:"Bi-weekly", monthly:"Monthly" };
+  const dayNames = { "0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday" };
+  const freqLabels = { daily: "Daily", weekly: "Weekly", biweekly: "Bi-weekly", monthly: "Monthly" };
   const getRecurringLabel = () => {
-    const rec = classData.recurring;
-    if (!rec) return null;
-    const freq = freqLabels[rec.frequency] || rec.frequency;
-    const day = dayNames[String(rec.dayOfWeek)] || "";
-    return { freq, day, occurrences: rec.occurrences || "–", startDate: rec.startDate };
+    if (!hasSeries) return null;
+    const freq = classData.frequency || classData.recurrencePattern;
+    const day = classData.dayOfWeek ? dayNames[classData.dayOfWeek] : "";
+    const occurrences = classData.occurrence || classData.occurrences;
+    const startDate = classData.startDate;
+    return { freq: freqLabels[freq] || freq, day, occurrences, startDate };
   };
-  const recurringLabel = classData.isRecurring ? getRecurringLabel() : null;
+  const recurringLabel = hasSeries ? getRecurringLabel() : null;
 
   // ─── Time helpers ───
   const todayStr = fmtDate(new Date());
@@ -186,12 +297,13 @@ const ClassDetailModal = ({
   };
 
   const calcEndTime = (h, m) => {
-    const total = Number(h) * 60 + Number(m) + (classData.duration || 60);
+    const duration = classData.duration || 60;
+    const total = Number(h) * 60 + Number(m) + duration;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   };
 
   const isTimePast = (date, h, m) => {
-    const classStart = new Date(`${date}T${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:00`);
+    const classStart = new Date(`${date}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`);
     const slotBoundary = new Date();
     slotBoundary.setMinutes(Math.floor(slotBoundary.getMinutes() / 30) * 30, 0, 0);
     return classStart < slotBoundary;
@@ -209,24 +321,20 @@ const ClassDetailModal = ({
   // ─── Build changes object ───
   const buildChanges = () => {
     const changes = {};
-    const selectedTrainer = trainers.find(t => t.id === editTrainerId);
+    const selectedTrainer = normalizedTrainers.find(t => t.id === editTrainerId);
 
     if (editDate !== origDate) changes.date = editDate;
     if (editHour !== origHour || editMinute !== origMinute) {
-      changes.startTime = `${editHour}:${editMinute}`;
-      changes.endTime = calcEndTime(editHour, editMinute);
-    }
-    // If date changed but time didn't, still include the full schedule
-    if (changes.date && !changes.startTime) {
-      changes.startTime = `${editHour}:${editMinute}`;
-      changes.endTime = calcEndTime(editHour, editMinute);
+      // Convert to backend format "HH:MMam/pm"
+      const hour = parseInt(editHour);
+      const ampm = hour >= 12 ? 'pm' : 'am';
+      const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+      const startTime = `${displayHour}:${editMinute}${ampm}`;
+      changes.time = startTime;
     }
     if (editRoom !== origRoom) changes.room = editRoom;
     if (editTrainerId !== origTrainerId && selectedTrainer) {
-      changes.trainerId = selectedTrainer.id;
-      changes.trainerName = `${selectedTrainer.firstName} ${selectedTrainer.lastName}`;
-      changes.trainerImg = selectedTrainer.img || null;
-      changes.trainerColor = selectedTrainer.color || null;
+      changes.staff = selectedTrainer.id;
     }
     if (editMax !== origMax) changes.maxParticipants = editMax;
 
@@ -238,7 +346,10 @@ const ClassDetailModal = ({
     if (!hasChanges) return;
 
     // Validate: is the selected time in the past?
-    if (isTimePast(editDate, editHour, editMinute)) return;
+    if (isTimePast(editDate, editHour, editMinute)) {
+      toast.error("Cannot schedule class in the past");
+      return;
+    }
 
     const changes = buildChanges();
 
@@ -258,14 +369,19 @@ const ClassDetailModal = ({
   // ─── Member handlers ───
   const handleEnrollClick = (member) => {
     const name = `${member.firstName} ${member.lastName}`;
-    setPendingAction({ type: "enroll", memberId: member.id, memberName: name });
-    setNotifyAction("book"); setNotifyEntityName(name); setShowNotify(true); setSearchQuery("");
+    setPendingAction({ type: "enroll", memberId: member._id || member.id, memberName: name });
+    setNotifyAction("book");
+    setNotifyEntityName(name);
+    setShowNotify(true);
+    setSearchQuery("");
   };
 
   const handleRemoveClick = (member) => {
     const name = `${member.firstName} ${member.lastName}`;
-    setPendingAction({ type: "remove", memberId: member.id, memberName: name });
-    setNotifyAction("cancel"); setNotifyEntityName(name); setShowNotify(true);
+    setPendingAction({ type: "remove", memberId: member._id || member.id, memberName: name });
+    setNotifyAction("cancel");
+    setNotifyEntityName(name);
+    setShowNotify(true);
   };
 
   const handleCancelConfirm = () => {
@@ -276,7 +392,7 @@ const ClassDetailModal = ({
       // Collect all enrolled members across the series for notify
       const allSeriesMembers = new Set();
       seriesClasses.forEach(c => (c.enrolledMembers || []).forEach(id => allSeriesMembers.add(id)));
-      const affectedMembers = membersData.filter(m => allSeriesMembers.has(m.id));
+      const affectedMembers = membersData.filter(m => allSeriesMembers.has(m._id || m.id));
       const names = affectedMembers.map(m => `${m.firstName} ${m.lastName}`).join(", ");
 
       if (affectedMembers.length > 0) {
@@ -290,14 +406,22 @@ const ClassDetailModal = ({
       }
     } else {
       if (enrolled.length > 0) {
-        setPendingAction({ type: "cancel" }); setNotifyAction("cancel");
+        setPendingAction({ type: "cancel" });
+        setNotifyAction("cancel");
         setNotifyEntityName(enrolled.map(m => `${m.firstName} ${m.lastName}`).join(", "));
         setShowNotify(true);
-      } else { onCancelClass?.(classData.id); onClose(); }
+      } else {
+        onCancelClass?.(classData.id);
+        onClose();
+      }
     }
   };
 
-  const handleDeleteConfirm = () => { setShowDeleteConfirm(false); onDeleteClass?.(classData.id); onClose(); };
+  const handleDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    onDeleteClass?.(classData.id);
+    onClose();
+  };
 
   const handleNotifyConfirm = (shouldNotify, options) => {
     if (!pendingAction) return;
@@ -307,7 +431,8 @@ const ClassDetailModal = ({
     else if (pendingAction.type === "cancel-series") { onCancelSeries?.(classData.seriesId); onClose(); }
     else if (pendingAction.type === "reschedule") onEditClass?.(classData.id, pendingAction.changes);
     if (shouldNotify) console.log("Notification:", { action: pendingAction.type, options });
-    setShowNotify(false); setPendingAction(null);
+    setShowNotify(false);
+    setPendingAction(null);
   };
 
   // Cancel from notify → go back to editing
@@ -317,15 +442,17 @@ const ClassDetailModal = ({
   };
 
   // Current trainer for display
-  const editTrainer = trainers.find(t => t.id === editTrainerId);
+  const editTrainer = currentTrainer;
   const editEndTime = calcEndTime(editHour, editMinute);
+  const displayStartTime = formatTimeDisplay(classData.startTime || classData.time || "09:00");
+  const displayEndTime = formatTimeDisplay(classData.endTime || classData.time || "10:00");
 
   // For notify modal: show the NEW date/time
   const notifyDate = pendingAction?.type === "reschedule" && pendingAction?.changes?.date
     ? formatDate(pendingAction.changes.date) : formatDate(classData.date);
-  const notifyTime = pendingAction?.type === "reschedule" && pendingAction?.changes?.startTime
-    ? `${pendingAction.changes.startTime} - ${pendingAction.changes.endTime}`
-    : `${classData.startTime} - ${classData.endTime}`;
+  const notifyTime = pendingAction?.type === "reschedule" && pendingAction?.changes?.time
+    ? pendingAction.changes.time
+    : `${displayStartTime} - ${displayEndTime}`;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={handleClose}>
@@ -334,58 +461,49 @@ const ClassDetailModal = ({
         {/* Header with color bar */}
         <div className="relative">
           <div className="h-1.5 flex-shrink-0" style={{ background: color }}>
-            {isCancelled && <div className="absolute inset-0 h-1.5" style={{ background: 'repeating-linear-gradient(135deg,transparent,transparent 3px,rgba(255,255,255,.2) 3px,rgba(255,255,255,.2) 6px)' }}/>}
+            {isCancelled && <div className="absolute inset-0 h-1.5" style={{ background: 'repeating-linear-gradient(135deg,transparent,transparent 3px,rgba(255,255,255,.2) 3px,rgba(255,255,255,.2) 6px)' }} />}
           </div>
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }}/>
-              <h2 className="text-lg font-semibold text-content-primary truncate">{classData.typeName}</h2>
-              {classData.isRecurring && (
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+              <h2 className="text-lg font-semibold text-content-primary truncate">{classData.typeName || classData.classType?.name}</h2>
+              {hasSeries && (
                 <div ref={recurringRef} className="relative flex-shrink-0">
                   <button
                     onClick={() => setShowRecurringInfo(!showRecurringInfo)}
-                    onMouseEnter={() => { if(window.innerWidth >= 1024) setShowRecurringInfo(true) }}
-                    onMouseLeave={() => { if(window.innerWidth >= 1024) setShowRecurringInfo(false) }}
+                    onMouseEnter={() => { if (window.innerWidth >= 1024) setShowRecurringInfo(true) }}
+                    onMouseLeave={() => { if (window.innerWidth >= 1024) setShowRecurringInfo(false) }}
                     className="p-1 rounded-md text-content-muted hover:text-primary hover:bg-primary/10 transition-colors"
                     title="Recurring class">
-                    <Repeat size={14}/>
+                    <Repeat size={14} />
                   </button>
-                  {showRecurringInfo && (
+                  {showRecurringInfo && recurringLabel && (
                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[1050] w-56">
                       <div className="bg-surface-dark border border-border rounded-xl shadow-xl p-3 text-xs">
                         <div className="flex items-center gap-2 mb-2">
-                          <Repeat size={12} className="text-primary"/>
+                          <Repeat size={12} className="text-primary" />
                           <span className="text-content-primary font-semibold">Recurring Class</span>
                         </div>
-                        {recurringLabel ? (
-                          <div className="space-y-1.5 text-content-secondary">
+                        <div className="space-y-1.5 text-content-secondary">
+                          <div className="flex justify-between">
+                            <span className="text-content-faint">Frequency</span>
+                            <span className="text-content-primary font-medium">{recurringLabel.freq}</span>
+                          </div>
+                          {recurringLabel.day && (
                             <div className="flex justify-between">
-                              <span className="text-content-faint">Frequency</span>
-                              <span className="text-content-primary font-medium">{recurringLabel.freq}</span>
+                              <span className="text-content-faint">Day</span>
+                              <span className="text-content-primary font-medium">{recurringLabel.day}</span>
                             </div>
-                            {recurringLabel.day && (
-                              <div className="flex justify-between">
-                                <span className="text-content-faint">Day</span>
-                                <span className="text-content-primary font-medium">{recurringLabel.day}</span>
-                              </div>
-                            )}
+                          )}
+                          {recurringLabel.occurrences && (
                             <div className="flex justify-between">
                               <span className="text-content-faint">Occurrences</span>
                               <span className="text-content-primary font-medium">{recurringLabel.occurrences}</span>
                             </div>
-                            {recurringLabel.startDate && (
-                              <div className="flex justify-between">
-                                <span className="text-content-faint">Since</span>
-                                <span className="text-content-primary font-medium">{formatDateDisplay(recurringLabel.startDate)}</span>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-content-faint">This class is part of a recurring series.</p>
-                        )}
+                          )}
+                        </div>
                       </div>
-                      {/* Arrow */}
-                      <div className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-surface-dark border-l border-t border-border"/>
+                      <div className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-surface-dark border-l border-t border-border" />
                     </div>
                   )}
                 </div>
@@ -394,7 +512,7 @@ const ClassDetailModal = ({
               {isPast && !isCancelled && <span className="text-[10px] font-medium text-content-faint bg-surface-button px-2 py-0.5 rounded-lg flex-shrink-0">Past</span>}
             </div>
             <button onClick={handleClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg transition-colors flex-shrink-0">
-              <X size={20}/>
+              <X size={20} />
             </button>
           </div>
         </div>
@@ -406,16 +524,14 @@ const ClassDetailModal = ({
             { id: "participants", label: "Participants", badge: `${enrolled.length}/${classData.maxParticipants}` },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-2 ${
-                activeTab === tab.id ? "text-content-primary" : "text-content-muted hover:text-content-secondary"
-              }`}>
+              className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === tab.id ? "text-content-primary" : "text-content-muted hover:text-content-secondary"
+                }`}>
               {tab.label}
               {tab.badge && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
-                  activeTab === tab.id ? "bg-primary/15 text-primary" : (isFull ? "bg-red-500/15 text-red-400" : "bg-surface-button text-content-muted")
-                }`}>{tab.badge}</span>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${activeTab === tab.id ? "bg-primary/15 text-primary" : (isFull ? "bg-red-500/15 text-red-400" : "bg-surface-button text-content-muted")
+                  }`}>{tab.badge}</span>
               )}
-              {activeTab === tab.id && <div className="absolute bottom-0 left-1 right-1 h-[2px] bg-primary rounded-full"/>}
+              {activeTab === tab.id && <div className="absolute bottom-0 left-1 right-1 h-[2px] bg-primary rounded-full" />}
             </button>
           ))}
         </div>
@@ -434,7 +550,7 @@ const ClassDetailModal = ({
                   {canEdit ? (
                     <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
                       <span className={editDate ? "text-content-primary" : "text-content-faint"}>{formatDateDisplay(editDate)}</span>
-                      <DatePickerField value={editDate} onChange={setEditDate} minDate={todayStr}/>
+                      <DatePickerField value={editDate} onChange={setEditDate} minDate={todayStr} />
                     </div>
                   ) : (
                     <div className="bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary">
@@ -448,7 +564,7 @@ const ClassDetailModal = ({
                     <div className="flex items-center gap-1.5">
                       <select value={editHour} onChange={e => handleHourChange(e.target.value)}
                         className="flex-1 bg-surface-dark border border-border text-sm rounded-xl px-2 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary cursor-pointer">
-                        {filteredHours.map(h => { const v = String(h).padStart(2,"0"); return <option key={h} value={v}>{v}</option> })}
+                        {filteredHours.map(h => { const v = String(h).padStart(2, "0"); return <option key={h} value={v}>{v}</option> })}
                       </select>
                       <span className="text-content-muted font-semibold">:</span>
                       <select value={editMinute} onChange={e => setEditMinute(e.target.value)}
@@ -458,7 +574,7 @@ const ClassDetailModal = ({
                     </div>
                   ) : (
                     <div className="bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary">
-                      {classData.startTime} – {classData.endTime}
+                      {displayStartTime} – {displayEndTime}
                     </div>
                   )}
                 </div>
@@ -467,8 +583,8 @@ const ClassDetailModal = ({
               {/* Duration Info */}
               {canEdit && (
                 <div className="flex items-center gap-2 text-xs text-content-muted bg-surface-dark rounded-xl px-4 py-2.5 border border-border">
-                  <Clock size={13}/>
-                  <span>Duration: {classData.duration} min</span>
+                  <Clock size={13} />
+                  <span>Duration: {classData.duration || 60} min</span>
                   <span className="text-content-faint">·</span>
                   <span>Ends at {editEndTime}</span>
                 </div>
@@ -477,56 +593,57 @@ const ClassDetailModal = ({
               {/* Staff */}
               <div>
                 <label className="block text-sm font-medium text-content-secondary mb-2">Staff</label>
-                {canEdit && trainers.length > 0 ? (
+                {canEdit && normalizedTrainers.length > 0 ? (
                   <CustomDropdown
                     value={editTrainerId}
                     placeholder="Select staff..."
                     renderSelected={() => (
                       <div className="flex items-center gap-3">
                         {editTrainer?.img ? (
-                          <img src={editTrainer.img} alt="" className="w-6 h-6 rounded-lg object-cover"/>
+                          <img src={editTrainer.img} alt="" className="w-6 h-6 rounded-lg object-cover" />
                         ) : (
                           <div className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-semibold"
-                            style={{ backgroundColor: editTrainer?.color || 'var(--color-primary)' }}>
-                            {getInitials(editTrainer || {})}
+                            style={{ backgroundColor: getStaffColor(editTrainer) }}>
+                            {getStaffInitials(editTrainer)}
                           </div>
                         )}
-                        <span className="text-content-primary">{editTrainer?.firstName} {editTrainer?.lastName}</span>
-                        {editTrainer?.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{backgroundColor:getRoleColorHex(editTrainer.role)}}><Briefcase size={9} className="flex-shrink-0"/>{editTrainer.role}</span>}
+                        <span className="text-content-primary">{getStaffName(editTrainer)}</span>
+                        {editTrainer?.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{ backgroundColor: getRoleColorHex(editTrainer.role) }}><Briefcase size={9} className="flex-shrink-0" />{editTrainer.role}</span>}
                       </div>
                     )}>
-                    {(close) => trainers.map(t => (
+                    {(close) => normalizedTrainers.map(t => (
                       <button key={t.id} onClick={() => { setEditTrainerId(t.id); close(); }}
-                        className={`w-full text-left p-3 flex items-center gap-3 transition-colors ${
-                          editTrainerId === t.id ? 'bg-surface-hover' : 'hover:bg-surface-hover'
-                        }`}>
+                        className={`w-full text-left p-3 flex items-center gap-3 transition-colors ${editTrainerId === t.id ? 'bg-surface-hover' : 'hover:bg-surface-hover'
+                          }`}>
                         {t.img ? (
-                          <img src={t.img} alt="" className="w-8 h-8 rounded-lg object-cover"/>
+                          <img src={t.img} alt="" className="w-8 h-8 rounded-lg object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold"
-                            style={{ backgroundColor: t.color || 'var(--color-primary)' }}>
-                            {getInitials(t)}
+                            style={{ backgroundColor: getStaffColor(t) }}>
+                            {getStaffInitials(t)}
                           </div>
                         )}
                         <div className="flex-1">
-                          <div className="text-sm text-content-primary">{t.firstName} {t.lastName}</div>
-                          {t.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium mt-0.5" style={{backgroundColor:getRoleColorHex(t.role)}}><Briefcase size={9} className="flex-shrink-0"/>{t.role}</span>}
+                          <div className="text-sm text-content-primary">{getStaffName(t)}</div>
+                          {t.role && <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium mt-0.5" style={{ backgroundColor: getRoleColorHex(t.role) }}><Briefcase size={9} className="flex-shrink-0" />{t.role}</span>}
                         </div>
-                        {editTrainerId === t.id && <Check size={16} className="text-primary"/>}
+                        {editTrainerId === t.id && <Check size={16} className="text-primary" />}
                       </button>
                     ))}
                   </CustomDropdown>
                 ) : (
                   <div className="bg-surface-dark border border-border rounded-xl px-4 py-2.5 flex items-center gap-3">
-                    {classData.trainerImg ? (
-                      <img src={classData.trainerImg} alt="" className="w-6 h-6 rounded-lg object-cover"/>
+                    {classData.trainerImg || classData.staff?.img?.url ? (
+                      <img src={classData.trainerImg || classData.staff?.img?.url} alt="" className="w-6 h-6 rounded-lg object-cover" />
                     ) : (
                       <div className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-semibold"
-                        style={{ backgroundColor: classData.trainerColor || 'var(--color-primary)' }}>
-                        {getInitials(classData)}
+                        style={{ backgroundColor: classData.trainerColor || classData.staff?.staffColor || 'var(--color-primary)' }}>
+                        {classData.trainerName ? 
+                          classData.trainerName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                          getStaffInitials(classData.staff)}
                       </div>
                     )}
-                    <span className="text-sm text-content-primary">{classData.trainerName}</span>
+                    <span className="text-sm text-content-primary">{getStaffName(classData.staff) || classData.trainerName || "Unknown"}</span>
                   </div>
                 )}
               </div>
@@ -539,23 +656,24 @@ const ClassDetailModal = ({
                     <div className="relative">
                       <select value={editRoom} onChange={e => setEditRoom(e.target.value)}
                         className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary cursor-pointer">
-                        {rooms.map(r => <option key={r} value={r}>{r}</option>)}
+                        <option value="">Select room</option>
+                        {rooms.map(r => <option key={r.id || r} value={r.id || r}>{r.name || r}</option>)}
                       </select>
-                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none"/>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
                     </div>
                   ) : (
                     <div className="bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary">
-                      {classData.room || "N/A"}
+                      {classData.roomName || classData.room?.studioName || "N/A"}
                     </div>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-content-secondary mb-2">Max Participants</label>
                   {canEdit ? (
-                    <input type="number" min={(classData.enrolledMembers?.length) || 1} max={100}
+                    <input type="number" min={(enrolled.length) || 1} max={100}
                       value={editMax}
-                      onChange={e => setEditMax(Math.max((classData.enrolledMembers?.length) || 1, Math.min(100, Number(e.target.value) || 1)))}
-                      className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary focus:outline-none focus:border-primary"/>
+                      onChange={e => setEditMax(Math.max((enrolled.length) || 1, Math.min(100, Number(e.target.value) || 1)))}
+                      className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary focus:outline-none focus:border-primary" />
                   ) : (
                     <div className="bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary">
                       {classData.maxParticipants}
@@ -584,7 +702,7 @@ const ClassDetailModal = ({
                 {!isFull && canEdit && (
                   <button onClick={() => setShowSearch(!showSearch)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded-xl transition-colors">
-                    <Plus size={13}/>Add
+                    <Plus size={13} />Add
                   </button>
                 )}
               </div>
@@ -593,26 +711,26 @@ const ClassDetailModal = ({
               {showSearch && canEdit && (
                 <div className="mb-4">
                   <div className="bg-surface-dark rounded-xl px-3 py-2.5 flex items-center gap-2 border border-border focus-within:border-primary transition-colors">
-                    <Search size={14} className="text-content-muted flex-shrink-0"/>
+                    <Search size={14} className="text-content-muted flex-shrink-0" />
                     <input ref={searchInputRef} type="text" placeholder="Search members..." value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="flex-1 bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"/>
+                      className="flex-1 bg-transparent outline-none text-sm text-content-primary placeholder-content-faint" />
                     <button onClick={() => { setShowSearch(false); setSearchQuery("") }} className="text-content-muted hover:text-content-primary">
-                      <X size={14}/>
+                      <X size={14} />
                     </button>
                   </div>
                   {searchQuery && filtered.length > 0 && (
                     <div className="mt-1.5 bg-surface-dark border border-border rounded-xl overflow-hidden">
                       {filtered.slice(0, 5).map(m => (
-                        <button key={m.id} onClick={() => handleEnrollClick(m)}
+                        <button key={m._id || m.id} onClick={() => handleEnrollClick(m)}
                           className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left border-b border-border last:border-0">
-                          {m.image ? <img src={m.image} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0"/>
+                          {m.image || m.img?.url ? <img src={m.image || m.img?.url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
                             : <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">{m.firstName?.charAt(0)}{m.lastName?.charAt(0)}</div>}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-content-primary truncate">{m.firstName} {m.lastName}</p>
                             {m.email && <p className="text-xs text-content-faint truncate">{m.email}</p>}
                           </div>
-                          <Plus size={14} className="text-primary flex-shrink-0"/>
+                          <Plus size={14} className="text-primary flex-shrink-0" />
                         </button>
                       ))}
                     </div>
@@ -629,12 +747,12 @@ const ClassDetailModal = ({
               <div className="space-y-1.5">
                 {enrolled.length === 0 ? (
                   <div className="text-center py-10 text-content-muted text-sm">
-                    <Users size={28} className="mx-auto mb-2 text-content-faint"/>
+                    <Users size={28} className="mx-auto mb-2 text-content-faint" />
                     No members enrolled yet
                   </div>
                 ) : enrolled.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-dark hover:bg-surface-hover transition-colors">
-                    {m.image ? <img src={m.image} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0"/>
+                  <div key={m._id || m.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-dark hover:bg-surface-hover transition-colors">
+                    {m.image || m.img?.url ? <img src={m.image || m.img?.url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
                       : <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">{m.firstName?.charAt(0)}{m.lastName?.charAt(0)}</div>}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-content-primary font-medium truncate">{m.firstName} {m.lastName}</p>
@@ -643,7 +761,7 @@ const ClassDetailModal = ({
                     {canEdit && (
                       <button onClick={() => handleRemoveClick(m)}
                         className="p-1.5 text-content-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Remove">
-                        <UserMinus size={14}/>
+                        <UserMinus size={14} />
                       </button>
                     )}
                   </div>
@@ -667,18 +785,17 @@ const ClassDetailModal = ({
               Delete Permanently
             </button>
           )}
-          <div className="flex-1"/>
+          <div className="flex-1" />
           <button onClick={handleClose}
             className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors">
             Close
           </button>
           {canEdit && activeTab === "details" && (
             <button onClick={handleSaveChanges} disabled={!hasChanges}
-              className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
-                hasChanges
+              className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${hasChanges
                   ? "text-white bg-primary hover:bg-primary-hover"
                   : "text-content-faint bg-surface-button cursor-not-allowed"
-              }`}>
+                }`}>
               Save Changes
             </button>
           )}
@@ -691,15 +808,15 @@ const ClassDetailModal = ({
           <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-semibold text-content-primary">Cancel Class</h2>
-              <button onClick={() => setShowCancelConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20}/></button>
+              <button onClick={() => setShowCancelConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0"><AlertTriangle size={20} className="text-red-400"/></div>
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0"><AlertTriangle size={20} className="text-red-400" /></div>
                 <div>
-                  <p className="text-sm text-content-primary mb-1">Are you sure you want to cancel <span className="font-semibold text-primary">{classData.typeName}</span>?</p>
+                  <p className="text-sm text-content-primary mb-1">Are you sure you want to cancel <span className="font-semibold text-primary">{classData.typeName || classData.classType?.name}</span>?</p>
                   <p className="text-xs text-content-muted">
-                    {formatDateDisplay(classData.date)} · {classData.startTime} – {classData.endTime}
+                    {formatDateDisplay(classData.date)} · {displayStartTime} – {displayEndTime}
                   </p>
                 </div>
               </div>
@@ -709,13 +826,11 @@ const ClassDetailModal = ({
                 <div className="space-y-2">
                   <label
                     onClick={() => setCancelScope("single")}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                      cancelScope === "single" ? "border-primary bg-primary/5" : "border-border bg-surface-dark hover:bg-surface-hover"
-                    }`}>
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
-                      cancelScope === "single" ? "border-primary" : "border-content-faint"
-                    }`}>
-                      {cancelScope === "single" && <div className="w-2 h-2 rounded-full bg-primary"/>}
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${cancelScope === "single" ? "border-primary bg-primary/5" : "border-border bg-surface-dark hover:bg-surface-hover"
+                      }`}>
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${cancelScope === "single" ? "border-primary" : "border-content-faint"
+                      }`}>
+                      {cancelScope === "single" && <div className="w-2 h-2 rounded-full bg-primary" />}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-content-primary">Only this class</p>
@@ -727,13 +842,11 @@ const ClassDetailModal = ({
                   </label>
                   <label
                     onClick={() => setCancelScope("series")}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                      cancelScope === "series" ? "border-primary bg-primary/5" : "border-border bg-surface-dark hover:bg-surface-hover"
-                    }`}>
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
-                      cancelScope === "series" ? "border-primary" : "border-content-faint"
-                    }`}>
-                      {cancelScope === "series" && <div className="w-2 h-2 rounded-full bg-primary"/>}
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${cancelScope === "series" ? "border-primary bg-primary/5" : "border-border bg-surface-dark hover:bg-surface-hover"
+                      }`}>
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${cancelScope === "series" ? "border-primary" : "border-content-faint"
+                      }`}>
+                      {cancelScope === "series" && <div className="w-2 h-2 rounded-full bg-primary" />}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-content-primary flex items-center gap-2">
@@ -772,13 +885,13 @@ const ClassDetailModal = ({
           <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-semibold text-content-primary">Delete Class</h2>
-              <button onClick={() => setShowDeleteConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20}/></button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0"><Trash2 size={20} className="text-red-400"/></div>
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0"><Trash2 size={20} className="text-red-400" /></div>
                 <div>
-                  <p className="text-sm text-content-primary mb-1">Permanently delete <span className="font-semibold text-primary">{classData.typeName}</span>?</p>
+                  <p className="text-sm text-content-primary mb-1">Permanently delete <span className="font-semibold text-primary">{classData.typeName || classData.classType?.name}</span>?</p>
                   <p className="text-xs text-content-faint">This action cannot be undone.</p>
                 </div>
               </div>
@@ -797,11 +910,11 @@ const ClassDetailModal = ({
           <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-semibold text-content-primary">Unsaved Changes</h2>
-              <button onClick={() => setShowUnsavedConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20}/></button>
+              <button onClick={() => setShowUnsavedConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0"><AlertTriangle size={20} className="text-amber-400"/></div>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0"><AlertTriangle size={20} className="text-amber-400" /></div>
                 <div>
                   <p className="text-sm text-content-primary mb-1">You have unsaved changes.</p>
                   <p className="text-xs text-content-faint">Are you sure you want to close? Your changes will be lost.</p>
@@ -830,10 +943,10 @@ const ClassDetailModal = ({
             seriesClasses.forEach(c => (c.enrolledMembers || []).forEach(id => allIds.add(id)));
             return allIds.size;
           })()
-          : (pendingAction?.type === "cancel" || pendingAction?.type === "reschedule") ? enrolled.length
-          : 1
+            : (pendingAction?.type === "cancel" || pendingAction?.type === "reschedule") ? enrolled.length
+              : 1
         }
-        appointmentType={classData.typeName}
+        appointmentType={classData.typeName || classData.classType?.name}
         date={notifyDate}
         time={notifyTime}
       />

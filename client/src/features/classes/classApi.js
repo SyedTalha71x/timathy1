@@ -142,3 +142,11 @@ export const enrollMySelfInClassApi = async (classId) => {
     const res = await api.patch(`/class/${classId}/enroll`, { withCredentials: true })
     return res.data
 }
+
+
+// my classes
+
+export const myClassesApi = async () => {
+    const res = await api.get('/class/my-classes', { withCredentials: true })
+    return res.data
+}

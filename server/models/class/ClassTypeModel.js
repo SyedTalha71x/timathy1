@@ -8,6 +8,9 @@ const categorySchema = new mongoose.Schema({
         trim: true,
         required: true,
     },
+    description: {
+        type: String,
+    },
     studio: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio',
