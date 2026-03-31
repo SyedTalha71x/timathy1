@@ -62,7 +62,7 @@ const classSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'staff'
     },
-    participants: [{
+    enrolledMembers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'member'
     }],

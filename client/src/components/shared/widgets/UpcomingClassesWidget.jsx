@@ -4,12 +4,18 @@ import React from "react";
 import { Users, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 
-const formatDateLocal = (date) => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+const parseTimeForDisplay = (timeStr) => {
+  if (!timeStr) return "";
+  const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+  if (match) {
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3].toLowerCase();
+    const ampm = period === 'am' ? 'AM' : 'PM';
+    const displayHour = hours > 12 ? hours - 12 : hours;
+    return `${displayHour}:${String(minutes).padStart(2, '0')} ${ampm}`;
+  }
+  return timeStr;
 };
 
 const UpcomingClassesWidget = ({
@@ -19,47 +25,79 @@ const UpcomingClassesWidget = ({
   isCollapsed: externalCollapsed,
   onToggleCollapse,
 }) => {
-  // Use external state if provided, otherwise internal
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse || (() => setInternalCollapsed(!internalCollapsed));
 
-  // Only show upcoming (future, not cancelled) classes
   const now = new Date();
 
   const upcomingClasses = classesData
     .filter((cls) => {
       // Exclude cancelled classes
-      if (cls.isCancelled) return false;
+      if (cls.isCancelled || cls.status === 'canceled') return false;
       // Exclude past classes
       if (cls.isPast) return false;
-      const classDate = typeof cls.date === "string" ? new Date(cls.date) : cls.date;
+      if (!cls.date || !cls.startTime) return false;
+
+      const classDate = new Date(cls.date);
       if (isNaN(classDate?.getTime())) return false;
-      const classDateTime = new Date(classDate);
-      const [h, m] = (cls.startTime || "00:00").split(":").map(Number);
-      classDateTime.setHours(h, m, 0, 0);
-      // Only show classes that haven't ended yet
-      return classDateTime >= now;
+
+      // Parse time from format like "11:00am"
+      const timeMatch = cls.startTime.match(/(\d+):(\d+)(am|pm)/i);
+      if (!timeMatch) return false;
+
+      let hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+      const period = timeMatch[3].toLowerCase();
+      if (period === 'pm' && hours !== 12) hours += 12;
+      if (period === 'am' && hours === 12) hours = 0;
+
+      classDate.setHours(hours, minutes, 0, 0);
+
+      return classDate > now;
     })
     .sort((a, b) => {
-      const aDate = typeof a.date === "string" ? new Date(a.date) : a.date;
-      const bDate = typeof b.date === "string" ? new Date(b.date) : b.date;
-      const [aH, aM] = (a.startTime || "00:00").split(":").map(Number);
-      const [bH, bM] = (b.startTime || "00:00").split(":").map(Number);
-      const aTime = new Date(aDate).setHours(aH, aM);
-      const bTime = new Date(bDate).setHours(bH, bM);
+      const aDate = new Date(a.date);
+      const bDate = new Date(b.date);
+      const aTimeMatch = a.startTime.match(/(\d+):(\d+)(am|pm)/i);
+      const bTimeMatch = b.startTime.match(/(\d+):(\d+)(am|pm)/i);
+
+      if (!aTimeMatch || !bTimeMatch) return 0;
+
+      let aHours = parseInt(aTimeMatch[1]);
+      let bHours = parseInt(bTimeMatch[1]);
+      const aMinutes = parseInt(aTimeMatch[2]);
+      const bMinutes = parseInt(bTimeMatch[2]);
+      const aPeriod = aTimeMatch[3].toLowerCase();
+      const bPeriod = bTimeMatch[3].toLowerCase();
+
+      if (aPeriod === 'pm' && aHours !== 12) aHours += 12;
+      if (aPeriod === 'am' && aHours === 12) aHours = 0;
+      if (bPeriod === 'pm' && bHours !== 12) bHours += 12;
+      if (bPeriod === 'am' && bHours === 12) bHours = 0;
+
+      const aTime = new Date(aDate).setHours(aHours, aMinutes);
+      const bTime = new Date(bDate).setHours(bHours, bMinutes);
       return aTime - bTime;
     })
     .slice(0, 10);
 
   const formatClassDate = (dateStr) => {
-    const d = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
     if (isNaN(d?.getTime())) return "";
     return d.toLocaleDateString("en-GB", {
       weekday: "short",
       day: "2-digit",
       month: "2-digit",
     });
+  };
+
+  const getStatusColor = (enrolled, max) => {
+    const spotsLeft = max - enrolled;
+    if (enrolled >= max) return "text-red-400";
+    if (spotsLeft <= 2) return "text-amber-400";
+    return "text-content-muted";
   };
 
   return (
@@ -69,7 +107,7 @@ const UpcomingClassesWidget = ({
         onClick={toggleCollapse}
       >
         <h3 className="text-content-primary font-semibold text-sm">Upcoming Classes</h3>
-        <button className="p-1 bg-surface-button hover:bg-surface-button rounded-lg cursor-pointer transition-colors text-content-primary">
+        <button className="p-1 bg-surface-button hover:bg-surface-button-hover rounded-lg cursor-pointer transition-colors text-content-primary">
           {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </button>
       </div>
@@ -82,46 +120,45 @@ const UpcomingClassesWidget = ({
             </div>
           ) : (
             upcomingClasses.map((cls) => {
-              const enrolled = cls.enrolledMembers?.length || 0;
+              const enrolled = cls.participants?.length || 0;
               const max = cls.maxParticipants || 0;
               const isFull = enrolled >= max;
               const spotsLeft = max - enrolled;
-              const color = cls.color || "#6c5ce7";
+              const color = cls.calenderColor || "#6c5ce7";
 
               return (
                 <button
                   key={cls.id}
                   onClick={() => onClassClick?.(cls)}
-                  className="upcoming-class-tile w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-surface-card hover:bg-surface-hover transition-all text-left cursor-pointer"
+                  className="upcoming-class-tile w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-surface-card hover:bg-surface-hover transition-all text-left cursor-pointer group"
                 >
-                  {/* Color bar */}
                   <div
-                    className="w-1 h-8 rounded-sm flex-shrink-0"
+                    className="w-1 h-8 rounded-sm flex-shrink-0 transition-all group-hover:w-1.5"
                     style={{ background: color }}
                   />
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium text-content-primary truncate">
                       {cls.typeName}
                     </div>
                     <div className="text-[10px] text-content-muted flex items-center gap-1">
-                      {formatClassDate(cls.date)} · {cls.startTime}
+                      <Clock size={10} className="flex-shrink-0" />
+                      <span>{formatClassDate(cls.date)} · {parseTimeForDisplay(cls.startTime)}</span>
                     </div>
+                    {cls.trainerName && (
+                      <div className="text-[9px] text-content-faint mt-0.5 truncate">
+                        {cls.trainerName}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Participant Count */}
                   <div
-                    className={`flex items-center gap-1 text-[10px] flex-shrink-0 ${
-                      isFull
-                        ? "text-red-400"
-                        : spotsLeft <= 2
-                        ? "text-amber-400"
-                        : "text-content-muted"
-                    }`}
+                    className={`flex items-center gap-1 text-[10px] flex-shrink-0 font-medium ${getStatusColor(enrolled, max)}`}
                   >
                     <Users size={10} />
-                    {enrolled}/{max}
+                    <span>{enrolled}/{max}</span>
+                    {isFull && <span className="text-[8px]">(Full)</span>}
+                    {!isFull && spotsLeft <= 2 && <span className="text-[8px]">({spotsLeft} left)</span>}
                   </div>
                 </button>
               );

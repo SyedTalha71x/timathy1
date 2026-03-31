@@ -20,7 +20,8 @@ const {
     enrollMembersToClassByStaff,
     removeEnrolledMembers,
     updateClassById,
-    enrollMyself
+    enrollMyself,
+    myClasses
 } = require('../../controllers/classes/ClassTypeController');
 
 const { verifyAccessToken } = require('../../middleware/verifyToken')
@@ -50,6 +51,8 @@ router.delete('/type/:typeId', deleteClassType)
 // create Classes Routes here
 router.post('/create', createClassByStaff)
 router.get('/', getClasses)
+router.get('/my-classes', myClasses)
+
 router.put('/update/:classId', updateClassById)
 router.delete('/delete/:classId', isStaff, deleteClass)
 
