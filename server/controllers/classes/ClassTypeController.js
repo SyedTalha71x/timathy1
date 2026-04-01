@@ -1,4 +1,4 @@
-const { ClassTypeModel, CategoryModel } = require('../../models/class/ClassTypeModel');
+const { ClassTypeModel, CategoryModel, RoomModel } = require('../../models/class/ClassTypeModel');
 const ClassModel = require('../../models/class/ClassModel');
 const StudioModel = require('../../models/StudioModel');
 const { uploadToCloudinary } = require('../../utils/CloudinaryUpload');
@@ -95,6 +95,100 @@ const deleteCategory = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: "Category deleted successfully"
+        });
+    }
+    catch (error) {
+        next(error)
+    }
+}
+// ********
+// CREATE Room CONTROLLER
+// ********
+
+// *** create room ***
+
+const createRoom = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio;
+
+        const { room, description } = req.body;
+
+        const newRoom = await RoomModel.create({
+            roomName: room,
+            description,
+            studio: studioId
+        });
+        res.status(201).json({
+            success: true,
+            room: newRoom
+        });
+
+    }
+    catch (error) {
+        next(error);
+    }
+}
+
+
+// *** get all Rooms ***
+const getAllRoom = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio;
+
+        const rooms = await RoomModel.find({ studio: studioId });
+        res.status(200).json({
+            success: true,
+            rooms: rooms
+        });
+
+    }
+    catch (error) {
+        next(error);
+    }
+}
+
+// *** update Room ***
+
+const updateRoom = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const { room } = req.body;
+
+        const roomToUpdate = await RoomModel.findById(id);
+        if (!roomToUpdate) {
+            return res.status(404).json({ success: false, message: "Category not found" });
+        }
+
+        const updateRoom = await RoomModel.findByIdAndUpdate(id, { roomName: room }, { new: true });
+
+        res.status(200).json({
+            success: true,
+            room: updateRoom
+        });
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+
+// *** Delete Room ***
+
+const deleteRoom = async (req, res, next) => {
+    try {
+        const { id } = req.params
+
+        const roomToDelete = await RoomModel.findById(id);
+        if (!roomToDelete) {
+            return res.status(404).json({ success: false, message: "Room not found" });
+        }
+
+        await RoomModel.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: "Room deleted successfully"
         });
     }
     catch (error) {
@@ -246,7 +340,7 @@ const createClassByStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
         const studioId = req.user?.studio;
-        const { classTypeId, staffId, bookingType, date, time, maxParticipants, studio, frequency, occurrence, dayOfWeek } = req.body;
+        const { classTypeId, staffId, bookingType, date, time, maxParticipants, roomId, frequency, occurrence, dayOfWeek } = req.body;
 
         // Validate classTypeId
         const classTypeExists = await ClassTypeModel.findById(classTypeId);
@@ -257,7 +351,7 @@ const createClassByStaff = async (req, res, next) => {
         if (!staffExists) return res.status(404).json({ success: false, message: "Staff member not found" });
 
         // Validate roomId
-        const roomExists = await StudioModel.findById(studio);
+        const roomExists = await RoomModel.findById(roomId);
         if (!roomExists) return res.status(404).json({ success: false, message: "Room not found" });
 
         if (bookingType === 'single') {
@@ -265,7 +359,7 @@ const createClassByStaff = async (req, res, next) => {
                 classType: classTypeId,
                 staff: staffId,
                 bookingType,
-                room: studioId,
+                room: roomId,
                 date,
                 time,
                 maxParticipants,
@@ -294,7 +388,7 @@ const createClassByStaff = async (req, res, next) => {
                     frequency,
                     dayOfWeek,
                     occurrence,
-                    room: studio,
+                    room: roomId,
                     bookingType: 'recurring',
                     date: new Date(currentDate), // use currentDate
                     time,
@@ -347,7 +441,7 @@ const getClasses = async (req, res, next) => {
                 path: 'enrolledMembers',
                 select: 'firstName lastName img email'
             })
-            .populate('room','studioName email')
+            .populate('room', 'roomName')
 
         return res.status(200).json({
             success: true,
@@ -362,10 +456,10 @@ const getClasses = async (req, res, next) => {
 
 const cancelClass = async (req, res, next) => {
     try {
-        const { id } = req.params; // class ID
+        const { classId } = req.params; // class ID
         const { cancelType } = req.body; // "single" or "series"
 
-        const classToCancel = await ClassModel.findById(id);
+        const classToCancel = await ClassModel.findById(classId);
         if (!classToCancel) return res.status(404).json({ message: "Class not found" });
 
         let affectedClasses = [];
@@ -374,6 +468,7 @@ const cancelClass = async (req, res, next) => {
         if (classToCancel.bookingType === "single") {
             classToCancel.status = 'canceled';
             classToCancel.classStatus = 'canceled';
+            classToCancel.isCanceled = true;
             await classToCancel.save();
             affectedClasses = [classToCancel];
         }
@@ -383,6 +478,7 @@ const cancelClass = async (req, res, next) => {
             if (cancelType === "single") {
                 classToCancel.status = 'canceled';
                 classToCancel.classStatus = 'canceled';
+                classToCancel.isCanceled = true;
                 await classToCancel.save();
                 affectedClasses = [classToCancel];
             }
@@ -433,19 +529,16 @@ const cancelClass = async (req, res, next) => {
 
 const deleteClass = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const role = req.user?.role;
-        const staffRole = req.user?.staffRole;
-        const classToDelete = await ClassModel.findById(id);
+        const { classId } = req.params;
+
+        const classToDelete = await ClassModel.findById(classId);
         if (!classToDelete) return res.status(404).json({ success: false, message: "Class not found" });
 
+        const deleteClass = await ClassModel.findByIdAndDelete(classId)
 
 
-
-        await ClassModel.findByIdAndDelete(id)
-
-        await StudioModel.findByIdAndUpdate(classToDelete.studio, { $pull: { classes: id } });
-        await StaffModel.findByIdAndUpdate(classToDelete.staff, { $pull: { classes: id } });
+        await StudioModel.findByIdAndUpdate(classToDelete.studio, { $pull: { classes: classId } });
+        await StaffModel.findByIdAndUpdate(classToDelete.staff, { $pull: { classes: classId } });
 
         return res.status(200).json({ success: true, message: "Class deleted successfully" });
 
@@ -460,35 +553,108 @@ const deleteClass = async (req, res, next) => {
 const enrollMembersToClassByStaff = async (req, res, next) => {
     try {
         const { classId } = req.params;
-        const { memberIds } = req.body; // array of member IDs to enroll
+        let { memberIds } = req.body; // can be single ID or array of IDs
 
-        const classToUpdate = await ClassModel.findById(classId);
-        if (!classToUpdate) return res.status(404).json({ success: false, message: "Class not found" });
-
-        // Ensure we don't exceed maxParticipants
-        if (classToUpdate.enrolledMembers.length + memberIds.length > classToUpdate.maxParticipants) {
-            return res.status(400).json({ success: false, message: "Exceeding maximum participants" });
+        // Normalize memberIds to always be an array
+        if (!memberIds) {
+            return res.status(400).json({
+                success: false,
+                message: "memberIds is required"
+            });
         }
 
-        // Add members to class participants
-        classToUpdate.enrolledMembers.push(memberIds);
+        // Convert single ID to array
+        if (!Array.isArray(memberIds)) {
+            memberIds = [memberIds];
+        }
+
+        // Remove duplicates and filter out invalid entries
+        memberIds = [...new Set(memberIds)].filter(id => id && id.trim());
+
+        if (memberIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "At least one valid member ID is required"
+            });
+        }
+
+        const classToUpdate = await ClassModel.findById(classId);
+        if (!classToUpdate) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+
+        // Check which members are already enrolled
+        const existingMemberIds = classToUpdate.enrolledMembers.map(id => id.toString());
+        const newMemberIds = memberIds.filter(id => !existingMemberIds.includes(id));
+
+        if (newMemberIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "All specified members are already enrolled in this class"
+            });
+        }
+
+        // Check capacity
+        const currentCount = classToUpdate.enrolledMembers.length;
+        const newCount = newMemberIds.length;
+
+        if (currentCount + newCount > classToUpdate.maxParticipants) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot enroll ${newCount} member${newCount > 1 ? 's' : ''}. Maximum participants is ${classToUpdate.maxParticipants}. Currently enrolled: ${currentCount}`
+            });
+        }
+
+        // Add members to class
+        classToUpdate.enrolledMembers.push(...newMemberIds);
         await classToUpdate.save();
 
-        await MemberModel.updateMany({
-            _id: { $in: memberIds }
-        }, {
-            $push: { classes: classId }
-        }, { new: true })
-        const members = await MemberModel.find({ _id: { $in: memberIds } }, { email: 1 });
-        const emails = members.map(m => m.email);
+        // Update members with the class
+        await MemberModel.updateMany(
+            { _id: { $in: newMemberIds } },
+            { $push: { classes: classId } }
+        );
 
-        await notifyUser(memberIds, emails, "Enrolled in Class", `You have been enrolled in the class ${classToUpdate._id} by staff.`, 'enrolled_in_class')
+        // Get member details for notification
+        const members = await MemberModel.find(
+            { _id: { $in: newMemberIds } },
+            { email: 1, name: 1 }
+        );
 
-        console.log("Enrolled members to class:", classToUpdate);
-        return res.status(200).json({ success: true, message: "Members enrolled successfully", class: classToUpdate });
+        // Send notifications (if notifyUser function exists)
+        if (members.length > 0) {
+            const emails = members.map(m => m.email);
+            const memberNames = members.map(m => m.name).join(', ');
+
+            await notifyUser(
+                newMemberIds,
+                emails,
+                "Enrolled in Class",
+                `You ${members.length > 1 ? 'have been' : 'have been'} enrolled in ${classToUpdate.name || 'the class'} by staff.`,
+                'enrolled_in_class'
+            );
+        }
+
+        console.log(`Enrolled ${newMemberIds.length} member(s) to class:`, classToUpdate._id);
+
+        // Return updated class with populated member details
+        const populatedClass = await ClassModel.findById(classId)
+            .populate('enrolledMembers', 'name email');
+
+        return res.status(200).json({
+            success: true,
+            message: `${newMemberIds.length} member${newMemberIds.length > 1 ? 's' : ''} enrolled successfully`,
+            class: populatedClass,
+            enrolledCount: newMemberIds.length,
+            enrolledMembers: newMemberIds
+        });
     }
     catch (error) {
-        next(error)
+        console.error("Error in enrollMembersToClassByStaff:", error);
+        next(error);
     }
 }
 
@@ -496,31 +662,102 @@ const enrollMembersToClassByStaff = async (req, res, next) => {
 const removeEnrolledMembers = async (req, res, next) => {
     try {
         const { classId } = req.params;
-        const { memberIds } = req.body; // array of member IDs to remove
+        let { memberIds } = req.body; // can be single ID or array of IDs
 
+        // Validate and normalize memberIds
+        if (!memberIds) {
+            return res.status(400).json({
+                success: false,
+                message: "memberIds is required"
+            });
+        }
+
+        // Convert single ID to array
+        if (!Array.isArray(memberIds)) {
+            memberIds = [memberIds];
+        }
+
+        // Remove duplicates and filter out invalid entries
+        memberIds = [...new Set(memberIds)].filter(id => id && id.trim());
+
+        if (memberIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "At least one valid member ID is required"
+            });
+        }
+
+        // Find the class
         const classToUpdate = await ClassModel.findById(classId);
-        if (!classToUpdate) return res.status(404).json({ success: false, message: "Class not found" });
+        if (!classToUpdate) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+
+        // Check which members are actually enrolled
+        const enrolledMemberIds = classToUpdate.enrolledMembers.map(id => id.toString());
+        const membersToRemove = memberIds.filter(id => enrolledMemberIds.includes(id));
+
+        if (membersToRemove.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "None of the specified members are enrolled in this class"
+            });
+        }
 
         // Remove members from class participants
-        classToUpdate.enrolledMembers.pull(memberIds);
-        await classToUpdate.save();
+        // Using $pull with $in for multiple IDs
+        await ClassModel.findByIdAndUpdate(
+            classId,
+            { $pull: { enrolledMembers: { $in: membersToRemove } } },
+            { new: true }
+        );
 
-        await MemberModel.updateMany({
-            _id: { $in: memberIds }
-        }, {
-            $pull: { classes: classId }
-        }, { new: true })
-        // Fetch member emails for notification
-        const members = await MemberModel.find({ _id: { $in: memberIds } }, { email: 1 });
-        const emails = members.map(m => m.email);
+        // Remove class from members' enrolled classes
+        await MemberModel.updateMany(
+            { _id: { $in: membersToRemove } },
+            { $pull: { classes: classId } }
+        );
 
-        await notifyUser(memberIds, emails, "Removed from Class", `You have been removed from the class ${classToUpdate._id} by staff.`, 'removed_from_class');
+        // Fetch member details for notification
+        const members = await MemberModel.find(
+            { _id: { $in: membersToRemove } },
+            { email: 1, name: 1 }
+        );
 
+        // Send notifications
+        if (members.length > 0) {
+            const emails = members.map(m => m.email);
+            const memberNames = members.map(m => m.name).join(', ');
 
-        return res.status(200).json({ success: true, message: "Members removed successfully", class: classToUpdate });
+            await notifyUser(
+                membersToRemove,
+                emails,
+                "Removed from Class",
+                `You ${membersToRemove.length > 1 ? 'have been' : 'have been'} removed from ${classToUpdate.name || 'the class'} by staff.`,
+                'removed_from_class'
+            );
+        }
+
+        // Get the updated class with populated data
+        const updatedClass = await ClassModel.findById(classId)
+            .populate('enrolledMembers', 'name email');
+
+        console.log(`Removed ${membersToRemove.length} member(s) from class:`, classToUpdate._id);
+
+        return res.status(200).json({
+            success: true,
+            message: `${membersToRemove.length} member${membersToRemove.length > 1 ? 's' : ''} removed successfully`,
+            class: updatedClass,
+            removedCount: membersToRemove.length,
+            removedMembers: membersToRemove
+        });
     }
     catch (error) {
-        next(error)
+        console.error("Error in removeEnrolledMembers:", error);
+        next(error);
     }
 }
 
@@ -535,7 +772,7 @@ const updateClassById = async (req, res, next) => {
             date,
             staffId,
             time,
-            studioId,
+            roomId,
             maxParticipants,
         } = req.body
 
@@ -548,7 +785,7 @@ const updateClassById = async (req, res, next) => {
         if (staffId !== undefined) updateData.staff = staffId
         if (time !== undefined) updateData.time = time
         if (maxParticipants !== undefined) updateData.maxParticipants = maxParticipants
-        if (studioId !== undefined) updateData.room = studioId
+        if (roomId !== undefined) updateData.room = roomId
 
 
         const updatedClass = await ClassModel.findByIdAndUpdate(classId,
@@ -569,30 +806,118 @@ const updateClassById = async (req, res, next) => {
 
 const enrollMyself = async (req, res, next) => {
     try {
-        const userId = req.user?._id
+        const userId = req.user?._id;
 
-        const { classId } = req.params
+        // Check if user is authenticated
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User not authenticated"
+            });
+        }
 
-        const findClass = await ClassModel.findById(classId)
+        const { classId } = req.params;
 
-        const updatedClass = await ClassModel.findByIdAndUpdate(classId, {
-            $set: { enrolledMembers: userId }
-        }, { new: true, runValidators: true })
+        // Validate classId
+        if (!classId) {
+            return res.status(400).json({
+                success: false,
+                message: "Class ID is required"
+            });
+        }
 
-        await MemberModel.findByIdAndUpdate(userId, {
-            $push: { classes: classId }
-        }, { new: true })
+        // Find the class
+        const findClass = await ClassModel.findById(classId);
+
+        if (!findClass) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+
+        // Check if user is already enrolled
+        const isAlreadyEnrolled = findClass.enrolledMembers.some(
+            member => member.toString() === userId.toString()
+        );
+
+        if (isAlreadyEnrolled) {
+            return res.status(400).json({
+                success: false,
+                message: "You are already enrolled in this class"
+            });
+        }
+
+        // Check if class is full
+        if (findClass.enrolledMembers.length >= findClass.maxParticipants) {
+            return res.status(400).json({
+                success: false,
+                message: `Class is full. Maximum capacity: ${findClass.maxParticipants}`
+            });
+        }
+
+        // Check if class is still available (e.g., not cancelled, not past date)
+        if (findClass.status === 'cancelled') {
+            return res.status(400).json({
+                success: false,
+                message: "This class has been cancelled"
+            });
+        }
+
+        // Check if enrollment deadline has passed (if applicable)
+        if (findClass.enrollmentDeadline && new Date() > new Date(findClass.enrollmentDeadline)) {
+            return res.status(400).json({
+                success: false,
+                message: "Enrollment deadline has passed"
+            });
+        }
+
+        // IMPORTANT FIX: Use $push instead of $set to add to array
+        const updatedClass = await ClassModel.findByIdAndUpdate(
+            classId,
+            { $push: { enrolledMembers: userId } }, // Changed from $set to $push
+            { new: true, runValidators: true }
+        );
+
+        // Update member's enrolled classes
+        await MemberModel.findByIdAndUpdate(
+            userId,
+            { $push: { classes: classId } },
+            { new: true }
+        );
+
+        // Optional: Send confirmation notification
+        try {
+            const member = await MemberModel.findById(userId, { email: 1, name: 1 });
+            if (member && member.email) {
+                await notifyUser(
+                    [userId],
+                    [member.email],
+                    "Enrolled in Class",
+                    `You have successfully enrolled in ${findClass.name || 'the class'}.`,
+                    'self_enrolled_in_class'
+                );
+            }
+        } catch (notificationError) {
+            // Don't fail the enrollment if notification fails
+            console.error("Failed to send notification:", notificationError);
+        }
+
+        // Populate enrolled members for response
+        const populatedClass = await ClassModel.findById(classId)
+            .populate('enrolledMembers', 'name email');
 
         return res.status(200).json({
             success: true,
-            class: updatedClass
-        })
+            message: "Successfully enrolled in class",
+            class: populatedClass
+        });
     }
     catch (error) {
-        return next(error)
+        console.error("Error in enrollMyself:", error);
+        return next(error);
     }
 }
-
 
 // my classes
 
@@ -608,6 +933,8 @@ const myClasses = async (req, res, next) => {
                     select: 'categoryName'
                 })
             })
+            .populate('staff', 'firstName lastName staffRole')
+            .populate('room', 'roomName')
 
         return res.status(200).json({
             success: true,
@@ -643,6 +970,15 @@ module.exports = {
     removeEnrolledMembers,
     updateClassById,
     enrollMyself,
-    myClasses
+    myClasses,
+
+    // all room controller
+    createRoom,
+    getAllRoom,
+    updateRoom,
+    deleteRoom
+
+
+
 
 }

@@ -20,20 +20,24 @@ import {
   enrolledMemberInClass,
   removeEnrollMemberThunk,
   updateClassThunk,
-  deleteClassThunk
+  deleteClassThunk,
+  canceledClassThunk,
+  getAllRoomsThunk
 } from '../../features/classes/classSlice'
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllStaffThunk } from "../../features/staff/staffSlice"
 import { fetchAllStudios } from "../../features/studio/studioSlice"
+import { fetchAllMember } from "../../features/member/memberSlice"
 
 export default function Classes() {
   const calendarRef = useRef(null);
 
   // Redux state - with safe defaults
   const { staff: staffList = [], loading: staffLoading } = useSelector((state) => state.staff) || {}
-  const { members = [] } = useSelector((state) => state.members) || {}
-  const { studios: studioData = [] } = useSelector((state) => state.studio) || {}
-  const { classes: classesFromRedux = [], types: classTypesFromRedux = [], loading: classesLoading } = useSelector((state) => state.classes) || {}
+  const { members = [] } = useSelector((state) => state.member) || {}
+
+
+  const { classes: classesFromRedux = [], types: classTypesFromRedux = [], loading: classesLoading, rooms: roomData = [] } = useSelector((state) => state.classes) || {}
   const dispatch = useDispatch()
 
   // Helper function to get staff initials
@@ -46,16 +50,15 @@ export default function Classes() {
 
   // Transform rooms data from studios
   const roomsData = useMemo(() => {
-    if (!studioData || !Array.isArray(studioData) || studioData.length === 0) return [];
+    if (!roomData || !Array.isArray(roomData) || roomData.length === 0) return [];
     // Map studios to rooms format
-    return studioData.map(studio => ({
-      id: studio._id,
-      name: studio.studioName || studio.name || "Studio",
-      email: studio.email,
-      phone: studio.phone,
-      address: studio.address,
+    return roomData.map(room => ({
+      id: room._id,
+      name: room.roomName || room.name || "Room 1",
+
     }));
-  }, [studioData]);
+  }, [roomData]);
+
 
   // ============================================================================
   // Data Transformation Memos
@@ -63,11 +66,28 @@ export default function Classes() {
 
   // Transform staff data from Redux to match the expected format
   const allActiveStaff = useMemo(() => {
-    // Check if staffList exists and is an array
-    if (!staffList || !Array.isArray(staffList) || staffList.length === 0) return [];
+
+
+    // staffList might be an array or an object with a staff property
+    let staffArray = [];
+
+    if (Array.isArray(staffList)) {
+      staffArray = staffList;
+    } else if (staffList && typeof staffList === 'object') {
+      // If it's an object, look for staff property
+      staffArray = staffList.staff || [];
+    }
+
+
+
     // Filter active staff (not archived and active)
-    return staffList.filter(staff => staff.isActive && !staff.isArchived);
+    const activeStaff = staffArray.filter(staff => staff.isActive === true && staff.isArchived !== true);
+
+
+
+    return activeStaff;
   }, [staffList]);
+
 
   // Transform class types from Redux to match the expected format
   const classTypesData = useMemo(() => {
@@ -168,6 +188,8 @@ export default function Classes() {
     });
   }, [classesFromRedux, classTypesData, allActiveStaff, roomsData]);
 
+
+
   // ============================================================================
   // State Variables
   // ============================================================================
@@ -264,7 +286,9 @@ export default function Classes() {
     dispatch(getAllClassesThunk());
     dispatch(getClassTypeThunk());
     dispatch(fetchAllStaffThunk());
-    dispatch(fetchAllStudios())
+    dispatch(fetchAllStudios());
+    dispatch(fetchAllMember());
+    dispatch(getAllRoomsThunk())
   }, [dispatch]);
 
   // Filter classes based on selected filters
@@ -279,6 +303,7 @@ export default function Classes() {
       return true;
     });
   }, [classesMain, classFilters, staffFilters]);
+
 
   // Check if selected date is in the past
   const isSelectedDatePast = useMemo(() => {
@@ -337,34 +362,24 @@ export default function Classes() {
 
   const handleCreateClass = async (data) => {
     try {
-      const formData = new FormData();
-      formData.append("classType", data.typeId);
-      formData.append("staff", data.trainerId);
-      formData.append("date", data.date);
-      formData.append("time", data.startTime);
-      formData.append("room", data.roomId);
-      formData.append("maxParticipants", data.maxParticipants.toString());
-      if (data.description) formData.append("description", data.description);
-      formData.append("bookingType", data.isRecurring ? "recurring" : "single");
 
-      if (data.isRecurring) {
-        formData.append("frequency", data.recurrencePattern);
-        if (data.recurrenceEndDate) formData.append("recurrenceEndDate", data.recurrenceEndDate);
-      }
 
-      await dispatch(createClassThunk(formData)).unwrap();
-      toast.success(data.isRecurring ? "Class series created" : "Class created");
+
+      await dispatch(createClassThunk(data)).unwrap();
+      toast.success(data.bookingType === "recurring" ? "Class series created" : "Class created");
       refreshData();
       setIsCreateModalOpen(false);
       setPrefilledSlotTime(null);
     } catch (error) {
       console.error("Error creating class:", error);
-      toast.error(error.message || "Failed to create class");
+      toast.error(error.response?.data?.message || error.message || "Failed to create class");
     }
   };
 
   const handleEnrollMember = async (classId, memberId) => {
     try {
+       console.log("Enrolling member:", { classId, memberId });
+  
       await dispatch(enrolledMemberInClass({ classId, memberId })).unwrap();
       toast.success("Member enrolled successfully");
       refreshData();
@@ -376,6 +391,8 @@ export default function Classes() {
 
   const handleRemoveMember = async (classId, memberId) => {
     try {
+      console.log("Removing member:", { classId, memberId });
+
       await dispatch(removeEnrollMemberThunk({ classId, memberId })).unwrap();
       toast.success("Member removed successfully");
       refreshData();
@@ -385,37 +402,83 @@ export default function Classes() {
     }
   };
 
+  // cancel single Class
+
   const handleCancelClass = async (classId) => {
+    if (!classId) {
+      toast.error("Class ID is required");
+      return;
+    }
+
+    // Confirm cancellation
+    const confirmCancel = window.confirm("Are you sure you want to cancel this class? This action cannot be undone.");
+    if (!confirmCancel) return;
+
     try {
-      await dispatch(updateClassThunk({
+      const result = await dispatch(canceledClassThunk({
         classId,
-        updateData: { status: 'canceled' }
+        cancelType: "single"
       })).unwrap();
-      toast.success("Class cancelled successfully");
+
+      toast.success(result.message || "Class cancelled successfully");
       refreshData();
+      // Optionally set filter to show cancelled classes
       setClassFilters(prev => ({ ...prev, "Cancelled Classes": true }));
     } catch (error) {
       console.error("Error cancelling class:", error);
-      toast.error(error.message || "Failed to cancel class");
+      toast.error(error.response?.data?.message || error.message || "Failed to cancel class");
     }
   };
 
-  const handleCancelSeries = async (seriesId) => {
-    if (!seriesId) return;
+
+  // cancel class and also upcoming classes of this series
+  const handleCancelSeries = async (seriesId, classDate) => {
+    if (!seriesId) {
+      toast.error("Series ID is required");
+      return;
+    }
+
+    // Count upcoming classes in series for confirmation message
+    const classesInSeries = classesMain.filter(c =>
+      c.seriesId === seriesId &&
+      !c.isCancelled &&
+      !c.isPast &&
+      new Date(c.date) >= new Date(classDate)
+    );
+
+    if (classesInSeries.length === 0) {
+      toast.error("No upcoming classes found in this series to cancel");
+      return;
+    }
+
+    // Confirm series cancellation
+    const confirmCancel = window.confirm(
+      `Are you sure you want to cancel this series?\n\n` +
+      `${classesInSeries.length} upcoming class${classesInSeries.length !== 1 ? "es" : ""} will be cancelled.\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmCancel) return;
+
     try {
-      const classesInSeries = classesMain.filter(c => c.seriesId === seriesId && !c.isCancelled && !c.isPast);
-      for (const cls of classesInSeries) {
-        await dispatch(updateClassThunk({
-          classId: cls.id,
-          updateData: { status: 'canceled' }
-        })).unwrap();
+      const classId = classesInSeries[0]?._id;
+
+      if (!classId) {
+        toast.error("Unable to identify class in series");
+        return;
       }
-      toast.success(`${classesInSeries.length} class${classesInSeries.length !== 1 ? "es" : ""} cancelled`);
+
+      const result = await dispatch(canceledClassThunk({
+        classId,
+        cancelType: "series"
+      })).unwrap();
+
+      toast.success(result.message || `${classesInSeries.length} class${classesInSeries.length !== 1 ? "es" : ""} cancelled`);
       refreshData();
       setClassFilters(prev => ({ ...prev, "Cancelled Classes": true }));
     } catch (error) {
       console.error("Error cancelling series:", error);
-      toast.error(error.message || "Failed to cancel series");
+      toast.error(error.response?.data?.message || error.message || "Failed to cancel series");
     }
   };
 
@@ -431,13 +494,37 @@ export default function Classes() {
   };
 
   const handleEditClass = async (classId, changes) => {
+    // Extract string ID
+    const extractId = (id) => {
+      if (!id) return null;
+      if (typeof id === 'string') return id;
+      if (typeof id === 'object') {
+        return id._id || id.id || null;
+      }
+      return null;
+    };
+
+    const id = extractId(classId);
+
+    console.log("Editing class:", { classId, extractedId: id, changes });
+
+    if (!id) {
+      toast.error("Class ID is required");
+      return;
+    }
+
     try {
-      await dispatch(updateClassThunk({ classId, updateData: changes })).unwrap();
+      // Assuming you have an update class thunk
+      await dispatch(updateClassThunk({
+        classId: id,
+        updateData: changes
+      })).unwrap();
+
       toast.success("Class updated successfully");
       refreshData();
     } catch (error) {
       console.error("Error updating class:", error);
-      toast.error(error.message || "Failed to update class");
+      toast.error(error.response?.data?.message || error.message || "Failed to update class");
     }
   };
 

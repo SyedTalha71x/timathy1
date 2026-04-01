@@ -48,6 +48,53 @@ export const deleteCategoryThunk = createAsyncThunk('/category/delete-category',
         return rejectWithValue(error.response?.data)
     }
 })
+// &&&&&&&&&&&&&&
+//  ALL ROOMs THUNKS
+// &&&&&&&&&&&&&&&&&&&
+
+// &&& Create Room &&&
+export const createRoomThunk = createAsyncThunk('/room/create-room', async (data, { rejectWithValue }) => {
+    try {
+        const res = await classApi.createRoomApi(data)
+        return res.room
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+// &&& Get Rooms &&&
+export const getAllRoomsThunk = createAsyncThunk('/room/get-rooms', async (_, { rejectWithValue }) => {
+    try {
+        const res = await classApi.getRoomsApi();
+        return res.rooms
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+// &&& update Room &&&
+export const updateRoomThunk = createAsyncThunk('/room/update-room', async ({ id, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await classApi.updateRoomApi(id, updateData)
+        return res.room
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+// &&& delete Room &&&
+export const deleteRoomThunk = createAsyncThunk('/room/delete-room', async (id, { rejectWithValue }) => {
+    try {
+        const res = await classApi.deleteRoomApi(id)
+        return { id, message: res.message }
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
 
 // **************
 // ALL CLASS-TYPES THUNK
@@ -147,7 +194,7 @@ export const deleteClassThunk = createAsyncThunk('/class/delete-class', async (c
 // add people in class
 export const enrolledMemberInClass = createAsyncThunk('/class/enroll-in-class', async ({ classId, memberId }, { rejectWithValue }) => {
     try {
-        const res = await classApi.enrollParticipantApi(classId)
+        const res = await classApi.enrollParticipantApi(classId, memberId)
         return res.class
     }
     catch (error) {
@@ -158,7 +205,7 @@ export const enrolledMemberInClass = createAsyncThunk('/class/enroll-in-class', 
 // remove people in class
 export const removeEnrollMemberThunk = createAsyncThunk('/class/remove-from-class', async ({ classId, memberId }, { rejectWithValue }) => {
     try {
-        const res = await classApi.removeParticipantApi(classId)
+        const res = await classApi.removeParticipantApi(classId, memberId)
         return res.class
     }
     catch (error) {
@@ -167,9 +214,9 @@ export const removeEnrollMemberThunk = createAsyncThunk('/class/remove-from-clas
 })
 
 // canceled class
-export const canceledClassThunk = createAsyncThunk('/class/canceled-class', async (classId, { rejectWithValue }) => {
+export const canceledClassThunk = createAsyncThunk('/class/canceled-class', async ({ classId, cancelType }, { rejectWithValue }) => {
     try {
-        const res = await classApi.cancelClassApi(classId)
+        const res = await classApi.cancelClassApi(classId, cancelType)
         return res.class
     }
     catch (error) {
@@ -178,7 +225,7 @@ export const canceledClassThunk = createAsyncThunk('/class/canceled-class', asyn
 })
 
 // enroll member himself in class
-export const enrolledMemberHimselfThunk = createAsyncThunk('/class/enroll', async (classId, { rejectWithValue }) => {
+export const enrolledMemberHimselfThunk = createAsyncThunk('/class/enroll', async ({ classId }, { rejectWithValue }) => {
     try {
         const res = await classApi.enrollMySelfInClassApi(classId)
         return res.class
@@ -204,6 +251,7 @@ const classSlice = createSlice({
         classes: [],
         categories: [],
         types: [],
+        rooms: [],
         loading: false,
         error: null
     },
@@ -227,7 +275,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // create category
             .addCase(createCategoryThunk.pending, (state) => {
                 state.loading = true;
@@ -241,7 +289,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // update category
             .addCase(updateCategoryThunk.pending, (state) => {
                 state.loading = true;
@@ -249,7 +297,7 @@ const classSlice = createSlice({
             })
             .addCase(updateCategoryThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.categories = state.categories.map(cat => 
+                state.categories = state.categories.map(cat =>
                     cat._id === action.payload._id ? action.payload : cat
                 );
             })
@@ -257,7 +305,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // delete category
             .addCase(deleteCategoryThunk.pending, (state) => {
                 state.loading = true;
@@ -268,6 +316,67 @@ const classSlice = createSlice({
                 state.categories = state.categories.filter(cat => cat._id !== action.payload.id);
             })
             .addCase(deleteCategoryThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // &&&&&&&&&&
+            // ALL ROOMS SLICES
+            // &&&&&&&&&&&&&&&
+
+            // get Rooms
+            .addCase(getAllRoomsThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(getAllRoomsThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.rooms = action.payload
+            })
+            .addCase(getAllRoomsThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // create Room
+            .addCase(createRoomThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(createRoomThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.rooms = [...state.rooms, action.payload];
+            })
+            .addCase(createRoomThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // update Room
+            .addCase(updateRoomThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateRoomThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.rooms = state.rooms.map(rm =>
+                    rm._id === action.payload._id ? action.payload : rm
+                );
+            })
+            .addCase(updateRoomThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // delete Room
+            .addCase(deleteRoomThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(deleteRoomThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.rooms = state.rooms.filter(rm => rm._id !== action.payload.id);
+            })
+            .addCase(deleteRoomThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })
@@ -289,7 +398,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // create Class Type
             .addCase(createClassTypeThunk.pending, (state) => {
                 state.loading = true;
@@ -303,7 +412,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // update Class Type
             .addCase(updateClassTypeThunk.pending, (state) => {
                 state.loading = true;
@@ -311,7 +420,7 @@ const classSlice = createSlice({
             })
             .addCase(updateClassTypeThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.types = state.types.map(type => 
+                state.types = state.types.map(type =>
                     type._id === action.payload._id ? action.payload : type
                 );
             })
@@ -319,7 +428,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // delete Class Type
             .addCase(deleteClassTypeThunk.pending, (state) => {
                 state.loading = true;
@@ -351,7 +460,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // create Class
             .addCase(createClassThunk.pending, (state) => {
                 state.loading = true;
@@ -365,7 +474,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // update Class
             .addCase(updateClassThunk.pending, (state) => {
                 state.loading = true;
@@ -373,7 +482,7 @@ const classSlice = createSlice({
             })
             .addCase(updateClassThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.classes = state.classes.map(cls => 
+                state.classes = state.classes.map(cls =>
                     cls._id === action.payload._id ? action.payload : cls
                 );
             })
@@ -381,7 +490,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // Delete Class
             .addCase(deleteClassThunk.pending, (state) => {
                 state.loading = true;
@@ -403,7 +512,7 @@ const classSlice = createSlice({
             })
             .addCase(enrolledMemberInClass.fulfilled, (state, action) => {
                 state.loading = false;
-                state.classes = state.classes.map(cls => 
+                state.classes = state.classes.map(cls =>
                     cls._id === action.payload._id ? action.payload : cls
                 );
             })
@@ -419,7 +528,7 @@ const classSlice = createSlice({
             })
             .addCase(removeEnrollMemberThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.classes = state.classes.map(cls => 
+                state.classes = state.classes.map(cls =>
                     cls._id === action.payload._id ? action.payload : cls
                 );
             })
@@ -427,7 +536,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // member enrolled himself
             .addCase(enrolledMemberHimselfThunk.pending, (state) => {
                 state.loading = true;
@@ -435,7 +544,7 @@ const classSlice = createSlice({
             })
             .addCase(enrolledMemberHimselfThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.classes = state.classes.map(cls => 
+                state.classes = state.classes.map(cls =>
                     cls._id === action.payload._id ? action.payload : cls
                 );
             })
@@ -443,7 +552,7 @@ const classSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // canceled class
             .addCase(canceledClassThunk.pending, (state) => {
                 state.loading = true;
@@ -451,15 +560,13 @@ const classSlice = createSlice({
             })
             .addCase(canceledClassThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.classes = state.classes.map(cls => 
-                    cls._id === action.payload._id ? action.payload : cls
-                );
+                state.classes = action.payload;
             })
             .addCase(canceledClassThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message
             })
-            
+
             // my classes
             .addCase(myClassesThunk.pending, (state) => {
                 state.loading = true;

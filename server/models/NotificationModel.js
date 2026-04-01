@@ -32,7 +32,8 @@ const notificationSchema = new mongoose.Schema({
             'bookingTrail',
             'classCancellation',
             'enrolled_in_class',
-            'removed_from_class'
+            'removed_from_class',
+            'self_enrolled_in_class'
         ],
         default: 'info'
     },

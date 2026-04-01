@@ -43,7 +43,7 @@ const UpcomingClassesWidget = ({
       if (isNaN(classDate?.getTime())) return false;
 
       // Parse time from format like "11:00am"
-      const timeMatch = cls.startTime.match(/(\d+):(\d+)(am|pm)/i);
+      const timeMatch = cls.time.match(/(\d+):(\d+)(am|pm)/i);
       if (!timeMatch) return false;
 
       let hours = parseInt(timeMatch[1]);
@@ -81,6 +81,8 @@ const UpcomingClassesWidget = ({
       return aTime - bTime;
     })
     .slice(0, 10);
+
+
 
   const formatClassDate = (dateStr) => {
     if (!dateStr) return "";

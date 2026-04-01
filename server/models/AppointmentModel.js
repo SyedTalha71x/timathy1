@@ -1,5 +1,21 @@
 const mongoose = require('mongoose')
 
+
+const appointmentCategoriesSchema = new mongoose.Schema({
+    categoryName: {
+        type: String
+    },
+    description: {
+        type: String
+    },
+    studio: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Studio'
+    }
+}, { timestamps: true })
+
+const AppointmentCategoryModel = mongoose.model('appointmentCategory', appointmentCategoriesSchema)
+
 const appointmentSchema = new mongoose.Schema({
     member: {
         type: mongoose.Schema.Types.ObjectId,
@@ -144,4 +160,4 @@ appointmentSchema.statics.updatePastAppointments = async function () {
 
 const AppointmentModel = mongoose.model('Appointment', appointmentSchema);
 
-module.exports = AppointmentModel;
+module.exports = { AppointmentModel, AppointmentCategoryModel };

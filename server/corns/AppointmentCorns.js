@@ -1,6 +1,6 @@
 // corns/AppointmentCorns.js
 const cron = require('node-cron');
-const AppointmentModel = require('../models/AppointmentModel');
+const { AppointmentModel } = require('../models/AppointmentModel');
 const { MemberModel } = require('../models/Discriminators');
 const shiftModel = require('../models/ShiftModel');
 
@@ -92,7 +92,7 @@ const updateTemporaryMember = async () => {
                 status: { $ne: "archived" }
             },
             {
-                $set: { status: "archived", memberType: 'archived',isArchived: true }
+                $set: { status: "archived", memberType: 'archived', isArchived: true }
             }
         );
 

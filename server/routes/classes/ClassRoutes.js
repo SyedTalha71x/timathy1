@@ -12,7 +12,7 @@ const {
     updateClassTypes,
     deleteClassType,
 
-    // All classes related controllers can be added here
+    // All classes related controllers
     createClassByStaff,
     getClasses,
     deleteClass,
@@ -21,49 +21,60 @@ const {
     removeEnrolledMembers,
     updateClassById,
     enrollMyself,
-    myClasses
+    myClasses,
+
+    // all room related controllers
+    deleteRoom,
+    updateRoom,
+    getAllRoom,
+    createRoom
 } = require('../../controllers/classes/ClassTypeController');
 
 const { verifyAccessToken } = require('../../middleware/verifyToken')
 const { uploadImage } = require('../../config/upload')
-const { isStaff } = require('../../middleware/roleCheck')
+const { isStaff, isMember } = require('../../middleware/RoleCheck')
 
 const router = express.Router();
 
-
+// Apply token verification to all routes
 router.use(verifyAccessToken);
 
-// create Category Routes
+// ==================== CATEGORY ROUTES ====================
 router.post('/category/create', createCategory);
 router.get('/categories', getAllCategories);
 router.put('/category/:id', updateCategory);
 router.delete('/category/:id', deleteCategory);
 
+// ==================== ROOM ROUTES ====================
+router.post('/room/create', createRoom);
+router.get('/rooms', getAllRoom);
+router.put('/room/:id', updateRoom);
+router.delete('/room/:id', deleteRoom);
 
-// create Class-Types Routes
+// ==================== CLASS-TYPES ROUTES ====================
 router.post('/type/create', uploadImage.single('img'), createClassType)
 router.get('/types', getClassTypes)
 router.put('/type/:typeId', uploadImage.single('img'), updateClassTypes)
 router.delete('/type/:typeId', deleteClassType)
 
-
-
-// create Classes Routes here
-router.post('/create', createClassByStaff)
+// ==================== CLASS ROUTES ====================
+// GET routes first (to avoid path conflicts)
 router.get('/', getClasses)
 router.get('/my-classes', myClasses)
 
+// POST routes
+router.post('/create', createClassByStaff)
+
+// PUT routes
 router.put('/update/:classId', updateClassById)
+
+// PATCH routes - order matters! More specific routes first
+router.patch('/enroll/:classId', isStaff, enrollMembersToClassByStaff)  // Staff enrolls members
+router.patch('/remove-enrolled/:classId', isStaff, removeEnrolledMembers)  // Staff removes members
+router.patch('/cancel/:classId', isStaff, cancelClass)  // Staff cancels class
+router.patch('/:classId/enroll', isMember, enrollMyself)  // Member enrolls themselves
+
+// DELETE routes - put at the end
 router.delete('/delete/:classId', isStaff, deleteClass)
-
-
-
-
-// patch
-router.patch('/cancel/:classId', isStaff, cancelClass)
-router.patch('/enroll/:classId', isStaff, enrollMembersToClassByStaff)
-router.patch('/remove-enrolled/:classId', isStaff, removeEnrolledMembers)
-router.patch('/:classId/enroll', isStaff, enrollMyself)
-
 
 module.exports = router;
