@@ -908,7 +908,7 @@ export default function LeadManagement() {
 
 
   return (
-    <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden">
+    <div className="min-h-screen rounded-3xl p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1 overflow-x-hidden">
 {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
@@ -940,7 +940,7 @@ export default function LeadManagement() {
           <div className="hidden md:block relative group">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+              className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
             >
               <Plus size={14} className="sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">{t("admin.leads.createLead")}</span>
@@ -962,16 +962,16 @@ export default function LeadManagement() {
       <div className="mb-4 sm:mb-6" ref={searchDropdownRef}>
         <div className="relative">
           <div 
-            className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors cursor-text"
+            className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-[#3F74FF] transition-colors cursor-text"
             onClick={() => searchInputRef.current?.focus()}
           >
-            <Search className="text-gray-400 flex-shrink-0" size={16} />
+            <Search className="text-content-muted flex-shrink-0" size={16} />
             
             {/* Filter Chips */}
             {leadFilters.map((filter) => (
               <div 
                 key={filter.leadId}
-                className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                className="flex items-center gap-1.5 bg-blue-600/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
               >
                 <span className="text-white text-xs whitespace-nowrap">{filter.leadName}</span>
                 <button
@@ -979,9 +979,9 @@ export default function LeadManagement() {
                     e.stopPropagation();
                     handleRemoveLeadFilter(filter.leadId);
                   }}
-                  className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                  className="p-0.5 hover:bg-blue-600/30 rounded transition-colors"
                 >
-                  <X size={12} className="text-gray-400 hover:text-white" />
+                  <X size={12} className="text-content-muted hover:text-content-primary" />
                 </button>
               </div>
             ))}
@@ -998,7 +998,7 @@ export default function LeadManagement() {
               }}
               onFocus={() => searchQuery && setShowSearchDropdown(true)}
               onKeyDown={handleSearchKeyDown}
-              className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500 [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+              className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-content-faint [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
             />
             
             {/* Clear All Button */}
@@ -1011,24 +1011,24 @@ export default function LeadManagement() {
                 className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
                 title={t("admin.leads.search.clearAll")}
               >
-                <X size={14} className="text-gray-400 hover:text-white" />
+                <X size={14} className="text-content-muted hover:text-content-primary" />
               </button>
             )}
           </div>
           
           {/* Autocomplete Dropdown */}
           {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
               {getSearchSuggestions().map((lead) => (
                 <button
                   key={lead.id}
                   onClick={() => handleSelectLead(lead)}
-                  className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                  className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate font-bold">{lead.studioName || `${lead.firstName} ${lead.surname}`}</p>
-                    {lead.studioName && <p className="text-xs text-gray-400 truncate">{lead.firstName} {lead.surname}</p>}
-                    <p className="text-xs text-gray-500 truncate">{lead.email}</p>
+                    {lead.studioName && <p className="text-xs text-content-muted truncate">{lead.firstName} {lead.surname}</p>}
+                    <p className="text-xs text-content-faint truncate">{lead.email}</p>
                   </div>
                 </button>
               ))}
@@ -1037,14 +1037,15 @@ export default function LeadManagement() {
           
           {/* No results message */}
           {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-              <p className="text-sm text-gray-500 text-center">{t("admin.leads.search.noResults")}</p>
+            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+              <p className="text-sm text-content-faint text-center">{t("admin.leads.search.noResults")}</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Kanban Board with DnD Context */}
+      <PullToRefresh onRefresh={async () => {}} className="flex-1 overflow-y-auto">
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetection}
@@ -1111,7 +1112,7 @@ export default function LeadManagement() {
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round"
-                          className="text-gray-400"
+                          className="text-content-muted"
                         >
                           <path d="m6 9 6 6 6-6"/>
                         </svg>
@@ -1124,7 +1125,7 @@ export default function LeadManagement() {
                         className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
                         onClick={() => toggleColumnCollapse(column.id)}
                       >
-                        <ChevronRight size={16} className="text-gray-400" />
+                        <ChevronRight size={16} className="text-content-muted" />
                       </button>
                       <div className="absolute left-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
                         <span className="font-medium">{t("admin.leads.expandColumn")}</span>
@@ -1227,6 +1228,7 @@ export default function LeadManagement() {
           ) : null}
         </DragOverlay>
       </DndContext>
+      </PullToRefresh>
 
       {/* Modals */}
       <AddLeadModal 
@@ -1319,28 +1321,28 @@ export default function LeadManagement() {
       {/* Demo Access Confirmation Modal (shown when dragging lead to trial column) */}
       {showDemoAccessConfirm && pendingDemoLead && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] rounded-xl max-w-md w-full border border-gray-800">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+          <div className="bg-surface-hover rounded-xl max-w-md w-full border border-border">
+            <div className="p-6 border-b border-border flex justify-between items-start">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
                   <ClipboardList size={20} className="text-blue-400" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{t("admin.leads.demoModal.title")}</h2>
-                  <p className="text-gray-400 text-sm mt-1">
+                  <p className="text-content-muted text-sm mt-1">
                     {pendingDemoLead.studioName || `${pendingDemoLead.firstName} ${pendingDemoLead.surname}`}
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleDemoConfirmCancel}
-                className="text-gray-400 hover:text-white transition-colors p-1"
+                className="text-content-muted hover:text-content-primary transition-colors p-1"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="p-6">
-              <p className="text-gray-300 text-sm mb-6">
+              <p className="text-content-secondary text-sm mb-6">
                 {t("admin.leads.demoModal.description")}
               </p>
               <div className="flex gap-3">
@@ -1352,7 +1354,7 @@ export default function LeadManagement() {
                 </button>
                 <button
                   onClick={handleDemoConfirmCreate}
-                  className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm"
+                  className="flex-1 bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium text-sm"
                 >
                   {t("admin.leads.demoModal.createDemo")}
                 </button>
@@ -1380,7 +1382,7 @@ export default function LeadManagement() {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label={t("admin.leads.createLead")}
       >
         <Plus size={22} />

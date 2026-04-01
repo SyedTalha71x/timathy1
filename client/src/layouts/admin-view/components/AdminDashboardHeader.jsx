@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
-import { History, Menu } from "lucide-react"
+import { History } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import OrgaGymLogoWihoutText from '../../../../public/OrgaGym Logo.svg'
 import ActivityLogModal from './admin-dashboard-header-components/ActivityLogModal'
@@ -11,7 +11,7 @@ import ProfileDropdown from './admin-dashboard-header-components/ProfileDropdown
 /**
  * AdminDashboardHeader Component
  *
- * Header for admin view — handles sidebar open/close exactly like studio DashboardHeader.
+ * Header for admin view — mirrors StudioDashboardHeader design.
  * Language, Profile, and ActivityLog are separate components in the same folder.
  *
  * Props:
@@ -41,20 +41,24 @@ const AdminDashboardHeader = ({
 
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
       <div
-        className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 pb-2 px-2 flex items-center justify-between lg:hidden z-40 select-none"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+        className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border pb-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none"
+        style={{ touchAction: "manipulation", paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
       >
-        {/* Left: Logo + Hamburger */}
+        {/* Left: Logo + Sidebar Toggle */}
         <div className="flex items-center gap-2">
-          <div className="bg-orange-500 p-2 rounded-md">
+          <div className="bg-primary p-2 rounded-md">
             <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
           </div>
           <button
             onClick={onToggleSidebar}
-            className="p-1.5 rounded-lg text-white hover:bg-zinc-700"
+            className="p-2 px-3 rounded-xl bg-surface-card text-content-primary"
             aria-label={t("admin.header.toggleSidebar")}
           >
-            <Menu size={20} />
+            {isSidebarOpen ? (
+              <img draggable="false" key="open" src="/icon.svg" className="theme-icon h-[18px] w-[18px]" alt="Close sidebar" />
+            ) : (
+              <img draggable="false" key="closed" src='/expand-sidebar mirrored.svg' className="theme-icon h-[18px] w-[18px]" alt="Open sidebar" />
+            )}
           </button>
         </div>
 
@@ -62,10 +66,10 @@ const AdminDashboardHeader = ({
         <div className="flex gap-1 items-center">
           <button
             onClick={() => setIsActivityLogModalOpen(true)}
-            className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1 hover:text-white transition-colors"
+            className="p-2 px-3 rounded-xl text-content-muted bg-surface-card cursor-pointer flex items-center gap-1"
             aria-label={t("admin.header.activityLog")}
           >
-            <History size={20} />
+            <History size={18} />
           </button>
           <LanguageDropdown isMobile />
           <ProfileDropdown isMobile />
@@ -73,28 +77,36 @@ const AdminDashboardHeader = ({
       </div>
 
       {/* ===== DESKTOP HEADER (hidden lg:flex) ===== */}
-      <div className="lg:flex hidden rounded-md bg-[#1f1e1e] z-20 p-2 mb-2 items-center justify-between select-none sticky top-0">
-        {/* Left: Collapse Toggle + Title */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleLeftSidebarCollapse}
-            className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer hover:text-white transition-colors"
-            aria-label={t("admin.header.toggleCollapse")}
-          >
-            <Menu size={20} />
-          </button>
+      <div className="lg:flex hidden rounded-md justify-between bg-surface-hover z-20 py-1 px-2 mb-2 items-center gap-2 select-none sticky top-0">
+        {/* Left: Collapse Toggle */}
+        <div className="flex items-center">
+          {toggleLeftSidebarCollapse && (
+            <div
+              onClick={toggleLeftSidebarCollapse}
+              className="p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer"
+              aria-label={t("admin.header.toggleCollapse")}
+            >
+              {isLeftSidebarCollapsed ? (
+                <img draggable="false" key="collapsed" src='/expand-sidebar mirrored.svg' className="theme-icon h-5 w-5" alt="Open sidebar" />
+              ) : (
+                <img draggable="false" key="expanded" src="/icon.svg" className="theme-icon h-5 w-5" alt="Close sidebar" />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right: Activity Log + Language + Profile */}
-        <div className="flex items-center gap-2">
+        <div className="flex gap-1 items-center">
           <button
             onClick={() => setIsActivityLogModalOpen(true)}
-            className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1 hover:text-white transition-colors"
+            className="p-1.5 px-2.5 rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1"
             aria-label={t("admin.header.activityLog")}
           >
-            <History size={20} />
+            <History size={18} />
           </button>
-          <LanguageDropdown />
+          <div className="mr-2">
+            <LanguageDropdown />
+          </div>
           <ProfileDropdown />
         </div>
       </div>

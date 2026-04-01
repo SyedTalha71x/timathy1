@@ -121,12 +121,12 @@ const MobileCreateTaskModal = ({
   if (!isOpen) return null
 
   return (
-    <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[70] flex flex-col">
+    <div className="md:hidden fixed inset-0 bg-surface-base z-[70] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0 safe-area-top">
+      <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0 safe-area-top">
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
+          className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-xl transition-colors active:scale-95"
         >
           <X size={24} />
         </button>
@@ -136,8 +136,8 @@ const MobileCreateTaskModal = ({
           disabled={!taskTitle.trim()}
           className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
             taskTitle.trim()
-              ? "bg-orange-500 text-white active:scale-95"
-              : "bg-gray-700 text-gray-500"
+              ? "bg-primary text-white active:scale-95"
+              : "bg-gray-700 text-content-faint"
           }`}
         >
           {t("admin.todo.create")}
@@ -147,7 +147,7 @@ const MobileCreateTaskModal = ({
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto">
         {/* Task Title */}
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-border">
           <textarea
             ref={titleInputRef}
             value={taskTitle}
@@ -156,7 +156,7 @@ const MobileCreateTaskModal = ({
               setNewTaskData(prev => ({ ...prev, title: e.target.value }))
             }}
             placeholder={t("admin.todo.placeholder")}
-            className="w-full bg-transparent text-xl font-semibold text-white placeholder-gray-500 outline-none resize-none min-h-[80px]"
+            className="w-full bg-transparent text-xl font-semibold text-white placeholder-content-faint outline-none resize-none min-h-[80px]"
             rows={3}
           />
         </div>
@@ -164,30 +164,30 @@ const MobileCreateTaskModal = ({
         {/* Date & Time Section */}
         <button
           onClick={() => onOpenCalendarModal()}
-          className="w-full p-4 border-b border-gray-800 flex items-center justify-between active:bg-gray-800/50"
+          className="w-full p-4 border-b border-border flex items-center justify-between active:bg-gray-800/50"
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gray-800">
-              <Calendar size={18} className="text-gray-400" />
+              <Calendar size={18} className="text-content-muted" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-gray-300">{t("admin.todo.dueDateTime")}</p>
-              <p className={`text-sm ${newTaskData.dueDate ? 'text-white' : 'text-gray-500'}`}>
+              <p className="text-sm font-medium text-content-secondary">{t("admin.todo.dueDateTime")}</p>
+              <p className={`text-sm ${newTaskData.dueDate ? 'text-white' : 'text-content-faint'}`}>
                 {formatDateTime()}
               </p>
             </div>
           </div>
-          <ChevronDown size={18} className="text-gray-400" />
+          <ChevronDown size={18} className="text-content-muted" />
         </button>
 
         {/* Reminder Section */}
         {newTaskData.reminder && newTaskData.reminder !== "" && (
-          <div className="p-4 border-b border-gray-800 flex items-center gap-3">
+          <div className="p-4 border-b border-border flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gray-800">
-              <Bell size={18} className="text-gray-400" />
+              <Bell size={18} className="text-content-muted" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-300">{t("admin.todo.reminder")}</p>
+              <p className="text-sm font-medium text-content-secondary">{t("admin.todo.reminder")}</p>
               <p className="text-sm text-white">{newTaskData.reminder}</p>
             </div>
           </div>
@@ -196,14 +196,14 @@ const MobileCreateTaskModal = ({
         {/* Tags Section */}
         <button
           onClick={() => onOpenTagsModal()}
-          className="w-full p-4 border-b border-gray-800 text-left active:bg-gray-800/50"
+          className="w-full p-4 border-b border-border text-left active:bg-gray-800/50"
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gray-800">
-              <Tag size={18} className="text-gray-400" />
+              <Tag size={18} className="text-content-muted" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-300">{t("admin.todo.tags")}</p>
+              <p className="text-sm font-medium text-content-secondary">{t("admin.todo.tags")}</p>
               {newTaskData.tags && newTaskData.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newTaskData.tags.map((tag, idx) => (
@@ -217,10 +217,10 @@ const MobileCreateTaskModal = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">{t("admin.todo.noTags")}</p>
+                <p className="text-sm text-content-faint">{t("admin.todo.noTags")}</p>
               )}
             </div>
-            <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+            <ChevronDown size={18} className="text-content-muted flex-shrink-0" />
           </div>
         </button>
         <KeyboardSpacer />
@@ -313,12 +313,12 @@ const MobileTaskDetail = ({
   const hasRepeat = (task.repeatSettings && task.repeatSettings.frequency) || repeatConfigs[task.id] || task.repeat
 
   return (
-    <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+    <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0 safe-area-top">
+      <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0 safe-area-top">
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
+          className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-xl transition-colors active:scale-95"
           aria-label={t("admin.todo.backToTasks")}
         >
           <ChevronLeft size={24} />
@@ -338,7 +338,7 @@ const MobileTaskDetail = ({
           <div className="relative" ref={actionsMenuRef}>
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
-              className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-xl transition-colors active:scale-95"
+              className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-xl transition-colors active:scale-95"
               aria-label={t("admin.todo.moreActions")}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -347,7 +347,7 @@ const MobileTaskDetail = ({
             </button>
 
             {showActionsMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg min-w-[200px] z-[100] overflow-hidden">
+              <div className="absolute top-full right-0 mt-2 bg-surface-hover border border-border rounded-xl shadow-lg min-w-[200px] z-[100] overflow-hidden">
                 <div className="py-1">
                   {!isCompleted && !isCanceled && (
                     <button
@@ -356,7 +356,7 @@ const MobileTaskDetail = ({
                         setShowActionsMenu(false)
                         onClose()
                       }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                     >
                       <Check size={16} />
                       <span>{t("admin.todo.actions.markComplete")}</span>
@@ -369,7 +369,7 @@ const MobileTaskDetail = ({
                         onStatusChange(task.id, "ongoing")
                         setShowActionsMenu(false)
                       }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                     >
                       <Edit size={16} />
                       <span>{t("admin.todo.actions.setOngoing")}</span>
@@ -383,7 +383,7 @@ const MobileTaskDetail = ({
                         setShowActionsMenu(false)
                         onClose()
                       }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                     >
                       <X size={16} />
                       <span>{t("admin.todo.actions.cancelTask")}</span>
@@ -397,7 +397,7 @@ const MobileTaskDetail = ({
                           onStatusChange(task.id, "ongoing")
                           setShowActionsMenu(false)
                         }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                       >
                         <Edit size={16} />
                         <span>{t("admin.todo.actions.setOngoing")}</span>
@@ -408,7 +408,7 @@ const MobileTaskDetail = ({
                           setShowActionsMenu(false)
                           onClose()
                         }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                       >
                         <Check size={16} />
                         <span>{t("admin.todo.actions.markComplete")}</span>
@@ -416,14 +416,14 @@ const MobileTaskDetail = ({
                     </>
                   )}
 
-                  <div className="border-t border-gray-700 my-1"></div>
+                  <div className="border-t border-border my-1"></div>
 
                   <button
                     onClick={() => {
                       onPinToggle(task.id)
                       setShowActionsMenu(false)
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                   >
                     {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
                     <span>{task.isPinned ? t("admin.todo.actions.unpinTask") : t("admin.todo.actions.pinTask")}</span>
@@ -435,7 +435,7 @@ const MobileTaskDetail = ({
                       setShowActionsMenu(false)
                       onClose()
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                   >
                     <Copy size={16} />
                     <span>{t("admin.todo.actions.duplicate")}</span>
@@ -446,20 +446,20 @@ const MobileTaskDetail = ({
                       onRepeat(task)
                       setShowActionsMenu(false)
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white active:bg-gray-700"
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-white active:bg-surface-button"
                   >
                     <Repeat size={16} />
                     <span>{t("admin.todo.actions.setRepeat")}</span>
                   </button>
 
-                  <div className="border-t border-gray-700 my-1"></div>
+                  <div className="border-t border-border my-1"></div>
                   
                   <button
                     onClick={() => {
                       onDelete(task.id)
                       setShowActionsMenu(false)
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500 active:bg-gray-700"
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500 active:bg-surface-button"
                   >
                     <Trash2 size={16} />
                     <span>{t("admin.todo.actions.delete")}</span>
@@ -474,7 +474,7 @@ const MobileTaskDetail = ({
       {/* Task Content - Scrollable */}
       <div className="flex-1 overflow-y-auto">
         {/* Title Section */}
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-border">
           <textarea
             ref={titleTextareaRef}
             value={editedTitle}
@@ -484,9 +484,9 @@ const MobileTaskDetail = ({
             }}
             onBlur={handleSaveTitle}
             placeholder={t("admin.todo.taskTitlePlaceholder")}
-            className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-blue-500 transition-all pb-2 resize-none ${
-              isCompleted ? 'text-gray-500' : 
-              isCanceled ? 'text-gray-600 line-through italic' : 
+            className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-primary transition-all pb-2 resize-none ${
+              isCompleted ? 'text-content-faint' : 
+              isCanceled ? 'text-content-faint line-through italic' : 
               'text-white'
             }`}
             style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }}
@@ -496,7 +496,7 @@ const MobileTaskDetail = ({
             }}
           />
           {task.createdAt && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-content-faint mt-2">
               {t("common.created")}: {new Date(task.createdAt).toLocaleDateString(locale, {
                 day: 'numeric',
                 month: 'short',
@@ -515,21 +515,21 @@ const MobileTaskDetail = ({
               onOpenCalendarModal(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat)
             }
           }}
-          className={`w-full p-4 border-b border-gray-800 flex items-center justify-between ${
+          className={`w-full p-4 border-b border-border flex items-center justify-between ${
             !isCompleted && !isCanceled ? 'active:bg-gray-800/50' : ''
           }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gray-800">
-              <Calendar size={18} className="text-gray-400" />
+              <Calendar size={18} className="text-content-muted" />
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-gray-300">{t("admin.todo.dueDateTime")}</p>
-              <p className={`text-sm ${task.dueDate ? 'text-white' : 'text-gray-500'}`}>
+              <p className="text-sm font-medium text-content-secondary">{t("admin.todo.dueDateTime")}</p>
+              <p className={`text-sm ${task.dueDate ? 'text-white' : 'text-content-faint'}`}>
                 {formatDateTime()}
                 {hasRepeat && (
-                  <span className="ml-2 text-gray-400">
+                  <span className="ml-2 text-content-muted">
                     <Repeat size={12} className="inline" /> {t("admin.todo.repeating")}
                   </span>
                 )}
@@ -537,18 +537,18 @@ const MobileTaskDetail = ({
             </div>
           </div>
           {!isCompleted && !isCanceled && (
-            <ChevronDown size={18} className="text-gray-400" />
+            <ChevronDown size={18} className="text-content-muted" />
           )}
         </button>
 
         {/* Reminder Section */}
         {task.reminder && task.reminder !== "None" && (
-          <div className="p-4 border-b border-gray-800 flex items-center gap-3">
+          <div className="p-4 border-b border-border flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gray-800">
-              <Bell size={18} className="text-gray-400" />
+              <Bell size={18} className="text-content-muted" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-300">{t("admin.todo.reminder")}</p>
+              <p className="text-sm font-medium text-content-secondary">{t("admin.todo.reminder")}</p>
               <p className="text-sm text-white">{task.reminder}</p>
             </div>
           </div>
@@ -561,17 +561,17 @@ const MobileTaskDetail = ({
               onOpenTagsModal(task)
             }
           }}
-          className={`w-full p-4 border-b border-gray-800 text-left ${
+          className={`w-full p-4 border-b border-border text-left ${
             !isCompleted && !isCanceled ? 'active:bg-gray-800/50' : ''
           }`}
           disabled={isCompleted || isCanceled}
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-xl bg-gray-800">
-              <Tag size={18} className="text-gray-400" />
+              <Tag size={18} className="text-content-muted" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-300">{t("admin.todo.tags")}</p>
+              <p className="text-sm font-medium text-content-secondary">{t("admin.todo.tags")}</p>
               {task.tags && task.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {task.tags.map((tag, idx) => (
@@ -585,11 +585,11 @@ const MobileTaskDetail = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">{t("admin.todo.noTags")}</p>
+                <p className="text-sm text-content-faint">{t("admin.todo.noTags")}</p>
               )}
             </div>
             {!isCompleted && !isCanceled && (
-              <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+              <ChevronDown size={18} className="text-content-muted flex-shrink-0" />
             )}
           </div>
         </button>
@@ -631,7 +631,7 @@ const MobileTaskCard = ({
       className={`p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer select-none ${
         isCompleted ? 'bg-gray-800/50' :
         isCanceled ? 'bg-gray-800/30' :
-        'bg-[#1a1a1a] active:bg-gray-800'
+        'bg-surface-hover active:bg-gray-800'
       }`}
     >
       <div className="flex items-start gap-3">
@@ -642,10 +642,10 @@ const MobileTaskCard = ({
               e.stopPropagation()
               onStatusChange(task.id, "ongoing")
             }}
-            className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-600 border border-gray-500"
+            className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-600 border border-border"
             title={t("admin.todo.canceledClickRestore")}
           >
-            <X size={12} className="text-gray-400" />
+            <X size={12} className="text-content-muted" />
           </button>
         ) : (
           <button
@@ -654,8 +654,8 @@ const MobileTaskCard = ({
               onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
             }}
             className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-              isCompleted ? 'bg-gray-500 border-gray-500' :
-              'border-gray-500 hover:border-blue-400'
+              isCompleted ? 'bg-gray-500 border-border' :
+              'border-border hover:border-blue-400'
             }`}
           >
             {isCompleted && <Check size={12} className="text-white" />}
@@ -666,8 +666,8 @@ const MobileTaskCard = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className={`text-sm font-medium ${
-              isCompleted ? 'text-gray-500' :
-              isCanceled ? 'text-gray-600 line-through italic' :
+              isCompleted ? 'text-content-faint' :
+              isCanceled ? 'text-content-faint line-through italic' :
               'text-white'
             }`} style={{ wordBreak: 'break-word' }}>
               {task.title}
@@ -678,7 +678,7 @@ const MobileTaskCard = ({
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {formatDate() && (
               <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-gray-800 text-gray-500' : 'bg-blue-900/30 text-blue-300'
+                isCompleted || isCanceled ? 'bg-gray-800 text-content-faint' : 'bg-blue-900/30 text-blue-300'
               }`}>
                 <Calendar size={10} />
                 {formatDate()}
@@ -690,7 +690,7 @@ const MobileTaskCard = ({
               <span
                 key={idx}
                 className={`text-xs px-2 py-0.5 rounded-md ${
-                  isCompleted || isCanceled ? 'bg-gray-800 text-gray-500' : 'text-white'
+                  isCompleted || isCanceled ? 'bg-gray-800 text-content-faint' : 'text-white'
                 }`}
                 style={{ backgroundColor: isCompleted || isCanceled ? undefined : getTagColor(tag) }}
               >
@@ -698,7 +698,7 @@ const MobileTaskCard = ({
               </span>
             ))}
             {task.tags && task.tags.length > 2 && (
-              <span className="text-xs text-gray-500">+{task.tags.length - 2}</span>
+              <span className="text-xs text-content-faint">+{task.tags.length - 2}</span>
             )}
           </div>
         </div>
@@ -731,13 +731,13 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
     return `${formattedHour}:${minutes} ${ampm}`
   }
   return (
-    <div className="flex items-center gap-2 bg-[#2F2F2F] rounded-lg px-3 py-1 text-sm mr-2">
+    <div className="flex items-center gap-2 bg-surface-button rounded-lg px-3 py-1 text-sm mr-2">
       <span className="text-white whitespace-nowrap">
         {date && formatDate(date)}
         {date && time && " • "}
         {time && formatTime(time)}
       </span>
-      <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title={t("admin.todo.clearDateTime")}>
+      <button onClick={onClear} className="text-content-muted hover:text-content-primary ml-1" title={t("admin.todo.clearDateTime")}>
         <X size={14} />
       </button>
     </div>
@@ -1456,7 +1456,7 @@ export default function TodoApp() {
         `}
       </style>
       <div
-        className="flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden"
+        className="flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-surface-base text-white relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden"
       >
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* ============================================ */}
@@ -1470,7 +1470,7 @@ export default function TodoApp() {
                 {/* Mobile: Tags Button */}
                 <button
                   onClick={() => setIsTagManagerOpen(true)}
-                  className="md:hidden bg-[#2F2F2F] text-gray-300 p-2 rounded-lg hover:bg-[#3F3F3F] transition-colors active:scale-95"
+                  className="md:hidden bg-surface-button text-content-secondary p-2 rounded-lg hover:bg-surface-button-hover transition-colors active:scale-95"
                   title={t("admin.todo.manageTags")}
                 >
                   <Tag size={18} />
@@ -1480,8 +1480,8 @@ export default function TodoApp() {
 
             {/* Desktop: Task Input Area */}
             <div className="hidden md:flex flex-col md:flex-row gap-4 items-stretch mb-4">
-              <div className="relative flex items-start flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none min-h-[44px]">
-                <Plus size={18} className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
+              <div className="relative flex items-start flex-grow bg-surface-dark rounded-xl px-4 py-2.5 text-white placeholder-content-faint outline-none min-h-[44px]">
+                <Plus size={18} className="text-content-muted mr-2 mt-1 flex-shrink-0" />
                 <OptimizedTextarea
                   value={newTaskInput}
                   onChange={handleTextareaChange}
@@ -1505,7 +1505,7 @@ export default function TodoApp() {
                         initialRepeat: selectedRepeat,
                       })
                     }}
-                    className="text-gray-400 hover:text-white p-1"
+                    className="text-content-muted hover:text-content-primary p-1"
                     title={t("admin.todo.setDueDate")}
                   >
                     <Calendar size={18} />
@@ -1517,13 +1517,13 @@ export default function TodoApp() {
                   <button
                     type="button"
                     onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-                    className="text-gray-400 hover:text-white ml-2 p-1"
+                    className="text-content-muted hover:text-content-primary ml-2 p-1"
                     title={t("admin.todo.addTags")}
                   >
                     <ChevronDown size={18} />
                   </button>
                   {isTagDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-72 max-h-[450px] overflow-y-auto tag-dropdown-content">
+                    <div className="absolute top-full right-0 mt-2 bg-surface-button rounded-xl shadow-lg z-50 p-3 w-72 max-h-[450px] overflow-y-auto tag-dropdown-content">
                       <div className="space-y-4">
                         <div>
                           <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
@@ -1572,7 +1572,7 @@ export default function TodoApp() {
               <div className="relative group">
                 <button
                   onClick={() => setIsTagManagerOpen(true)}
-                  className="bg-[#2F2F2F] text-white px-4 py-3 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap transition-colors"
+                  className="bg-surface-button text-white px-4 py-3 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap transition-colors"
                 >
                   <Tag size={16} />
                   <span>{t("admin.todo.tags")}</span>
@@ -1593,7 +1593,7 @@ export default function TodoApp() {
           {/* ============================================ */}
           {/* MAIN CONTENT - Desktop: DnD Columns */}
           {/* ============================================ */}
-          <div className="hidden md:block flex-1 overflow-y-auto p-4 md:p-6 pt-0">
+          <PullToRefresh onRefresh={async () => {}} className="hidden md:block flex-1 overflow-y-auto p-4 md:p-6 pt-0">
             <DndContext
               sensors={sensors}
               collisionDetection={collisionDetection}
@@ -1651,15 +1651,15 @@ export default function TodoApp() {
                 ) : null}
               </DragOverlay>
             </DndContext>
-          </div>
+          </PullToRefresh>
 
           {/* ============================================ */}
           {/* MAIN CONTENT - Mobile: Task List */}
           {/* ============================================ */}
-          <div className="md:hidden flex-1 overflow-y-auto custom-scrollbar">
+          <PullToRefresh onRefresh={async () => {}} className="md:hidden flex-1 overflow-y-auto custom-scrollbar">
             <div className="p-4 pt-0 pb-24 space-y-4">
               {/* Ongoing Tasks */}
-              <div className="bg-[#141414] rounded-2xl overflow-hidden">
+              <div className="bg-surface-card rounded-2xl overflow-hidden">
                 <div 
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(245, 158, 11, 0.125)' }}
@@ -1670,7 +1670,7 @@ export default function TodoApp() {
                   >
                     <ChevronDown 
                       size={14} 
-                      className={`text-gray-400 transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
+                      className={`text-content-muted transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                     <span className="font-medium text-white text-xs">{t("admin.todo.columns.ongoing")}</span>
@@ -1685,13 +1685,13 @@ export default function TodoApp() {
                         e.stopPropagation()
                         setMobileSortMenuOpen(mobileSortMenuOpen === 'ongoing' ? null : 'ongoing')
                       }}
-                      className="p-1.5 text-gray-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-content-muted hover:text-content-primary rounded-lg"
                     >
                       <ArrowUpDown size={16} />
                     </button>
                     {mobileSortMenuOpen === 'ongoing' && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
-                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">{t("common.sortBy")}</div>
+                      <div className="absolute right-0 top-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
+                        <div className="px-3 py-2 text-xs text-content-faint border-b border-border">{t("common.sortBy")}</div>
                         {[
                           { value: 'custom', label: t('admin.todo.sort.custom') },
                           { value: 'title', label: t('admin.todo.sort.title') },
@@ -1703,7 +1703,7 @@ export default function TodoApp() {
                             className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
                               columnSortSettings.ongoing?.sortBy === option.value 
                                 ? 'bg-gray-800 text-white' 
-                                : 'text-gray-300 hover:bg-gray-800'
+                                : 'text-content-secondary hover:bg-surface-hover'
                             }`}
                           >
                             <button
@@ -1724,7 +1724,7 @@ export default function TodoApp() {
                                   e.stopPropagation()
                                   handleToggleSortOrder('ongoing')
                                 }}
-                                className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                                className="p-1 hover:bg-gray-700 rounded text-content-muted"
                               >
                                 {columnSortSettings.ongoing?.sortOrder === 'asc' 
                                   ? <ArrowUp size={14} /> 
@@ -1734,13 +1734,13 @@ export default function TodoApp() {
                             )}
                           </div>
                         ))}
-                        <div className="border-t border-gray-700 mt-1">
+                        <div className="border-t border-border mt-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               setMobileSortMenuOpen(null)
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                            className="w-full text-left px-4 py-2.5 text-sm text-content-muted hover:bg-surface-hover"
                           >
                             {t("common.close")}
                           </button>
@@ -1793,7 +1793,7 @@ export default function TodoApp() {
                             </>
                           )}
                           {filteredTasks.ongoing.length === 0 && (
-                            <p className="text-center text-gray-500 py-4 text-sm">{t("admin.todo.empty.ongoing")}</p>
+                            <p className="text-center text-content-faint py-4 text-sm">{t("admin.todo.empty.ongoing")}</p>
                           )}
                         </>
                       )
@@ -1803,7 +1803,7 @@ export default function TodoApp() {
               </div>
 
               {/* Completed Tasks */}
-              <div className="bg-[#141414] rounded-2xl overflow-hidden">
+              <div className="bg-surface-card rounded-2xl overflow-hidden">
                 <div 
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(16, 185, 129, 0.125)' }}
@@ -1814,7 +1814,7 @@ export default function TodoApp() {
                   >
                     <ChevronDown 
                       size={14} 
-                      className={`text-gray-400 transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`} 
+                      className={`text-content-muted transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`} 
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                     <span className="font-medium text-white text-xs">{t("admin.todo.columns.completed")}</span>
@@ -1829,13 +1829,13 @@ export default function TodoApp() {
                         e.stopPropagation()
                         setMobileSortMenuOpen(mobileSortMenuOpen === 'completed' ? null : 'completed')
                       }}
-                      className="p-1.5 text-gray-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-content-muted hover:text-content-primary rounded-lg"
                     >
                       <ArrowUpDown size={16} />
                     </button>
                     {mobileSortMenuOpen === 'completed' && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
-                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">{t("common.sortBy")}</div>
+                      <div className="absolute right-0 top-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
+                        <div className="px-3 py-2 text-xs text-content-faint border-b border-border">{t("common.sortBy")}</div>
                         {[
                           { value: 'custom', label: t('admin.todo.sort.custom') },
                           { value: 'title', label: t('admin.todo.sort.title') },
@@ -1847,7 +1847,7 @@ export default function TodoApp() {
                             className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
                               columnSortSettings.completed?.sortBy === option.value 
                                 ? 'bg-gray-800 text-white' 
-                                : 'text-gray-300 hover:bg-gray-800'
+                                : 'text-content-secondary hover:bg-surface-hover'
                             }`}
                           >
                             <button
@@ -1868,7 +1868,7 @@ export default function TodoApp() {
                                   e.stopPropagation()
                                   handleToggleSortOrder('completed')
                                 }}
-                                className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                                className="p-1 hover:bg-gray-700 rounded text-content-muted"
                               >
                                 {columnSortSettings.completed?.sortOrder === 'asc' 
                                   ? <ArrowUp size={14} /> 
@@ -1878,13 +1878,13 @@ export default function TodoApp() {
                             )}
                           </div>
                         ))}
-                        <div className="border-t border-gray-700 mt-1">
+                        <div className="border-t border-border mt-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               setMobileSortMenuOpen(null)
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                            className="w-full text-left px-4 py-2.5 text-sm text-content-muted hover:bg-surface-hover"
                           >
                             {t("common.close")}
                           </button>
@@ -1906,14 +1906,14 @@ export default function TodoApp() {
                         />
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4 text-sm">{t("admin.todo.empty.completed")}</p>
+                      <p className="text-center text-content-faint py-4 text-sm">{t("admin.todo.empty.completed")}</p>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Canceled Tasks */}
-              <div className="bg-[#141414] rounded-2xl overflow-hidden">
+              <div className="bg-surface-card rounded-2xl overflow-hidden">
                 <div 
                   className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.125)' }}
@@ -1924,7 +1924,7 @@ export default function TodoApp() {
                   >
                     <ChevronDown 
                       size={14} 
-                      className={`text-gray-400 transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`} 
+                      className={`text-content-muted transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`} 
                     />
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                     <span className="font-medium text-white text-xs">{t("admin.todo.columns.canceled")}</span>
@@ -1939,13 +1939,13 @@ export default function TodoApp() {
                         e.stopPropagation()
                         setMobileSortMenuOpen(mobileSortMenuOpen === 'canceled' ? null : 'canceled')
                       }}
-                      className="p-1.5 text-gray-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-content-muted hover:text-content-primary rounded-lg"
                     >
                       <ArrowUpDown size={16} />
                     </button>
                     {mobileSortMenuOpen === 'canceled' && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
-                        <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">{t("common.sortBy")}</div>
+                      <div className="absolute right-0 top-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
+                        <div className="px-3 py-2 text-xs text-content-faint border-b border-border">{t("common.sortBy")}</div>
                         {[
                           { value: 'custom', label: t('admin.todo.sort.custom') },
                           { value: 'title', label: t('admin.todo.sort.title') },
@@ -1957,7 +1957,7 @@ export default function TodoApp() {
                             className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
                               columnSortSettings.canceled?.sortBy === option.value 
                                 ? 'bg-gray-800 text-white' 
-                                : 'text-gray-300 hover:bg-gray-800'
+                                : 'text-content-secondary hover:bg-surface-hover'
                             }`}
                           >
                             <button
@@ -1978,7 +1978,7 @@ export default function TodoApp() {
                                   e.stopPropagation()
                                   handleToggleSortOrder('canceled')
                                 }}
-                                className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                                className="p-1 hover:bg-gray-700 rounded text-content-muted"
                               >
                                 {columnSortSettings.canceled?.sortOrder === 'asc' 
                                   ? <ArrowUp size={14} /> 
@@ -1988,13 +1988,13 @@ export default function TodoApp() {
                             )}
                           </div>
                         ))}
-                        <div className="border-t border-gray-700 mt-1">
+                        <div className="border-t border-border mt-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               setMobileSortMenuOpen(null)
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                            className="w-full text-left px-4 py-2.5 text-sm text-content-muted hover:bg-surface-hover"
                           >
                             {t("common.close")}
                           </button>
@@ -2016,13 +2016,13 @@ export default function TodoApp() {
                         />
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4 text-sm">{t("admin.todo.empty.canceled")}</p>
+                      <p className="text-center text-content-faint py-4 text-sm">{t("admin.todo.empty.canceled")}</p>
                     )}
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </PullToRefresh>
         </div>
 
         {/* ============================================ */}
@@ -2069,10 +2069,10 @@ export default function TodoApp() {
         {/* ============================================ */}
         <button
           onClick={() => setShowMobileCreateModal(true)}
-          className="md:hidden fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-2xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           aria-label={t("admin.todo.newTask")}
         >
-          <Plus size={24} />
+          <Plus size={22} />
         </button>
 
         {/* ============================================ */}

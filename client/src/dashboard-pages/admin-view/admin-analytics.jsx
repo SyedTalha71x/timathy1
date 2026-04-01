@@ -109,7 +109,7 @@ export default function Analytics() {
     
     return (
       <div 
-        className="p-6 rounded-xl transition-all duration-300 bg-[#161616] cursor-pointer hover:bg-[#1e1e1e]"
+        className="p-6 rounded-xl transition-all duration-300 bg-surface-card cursor-pointer hover:bg-surface-card"
         onClick={() => handleMetricClick(metric)}
       >
         <div className="flex items-center justify-between mb-4">
@@ -155,7 +155,7 @@ export default function Analytics() {
   }
 
   const LeadConversionFunnel = () => (
-    <div className="bg-[#161616] rounded-xl p-6 mt-6">
+    <div className="bg-surface-card rounded-xl p-6 mt-6">
       <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
         <BarChart3 size={20} />
         {t("admin.analytics.leadFunnel")}
@@ -201,7 +201,7 @@ export default function Analytics() {
   )
 
   const FinancialInsights = () => (
-    <div className="bg-[#161616] rounded-xl p-6 mt-6">
+    <div className="bg-surface-card rounded-xl p-6 mt-6">
       <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
         <DollarSign size={20} />
         {t("admin.analytics.financialInsights")}
@@ -214,7 +214,7 @@ export default function Analytics() {
         </div>
         <div className="p-4 bg-black rounded-lg">
           <div className="text-zinc-400 text-sm">{t("admin.analytics.totalExpenses")}</div>
-          <div className="text-2xl font-bold text-orange-500">${(financialInsights.expenses / 1000).toFixed(0)}K</div>
+          <div className="text-2xl font-bold text-primary">${(financialInsights.expenses / 1000).toFixed(0)}K</div>
         </div>
         <div className="p-4 bg-black rounded-lg">
           <div className="text-zinc-400 text-sm">{t("admin.analytics.profitMargin")}</div>
@@ -245,7 +245,7 @@ export default function Analytics() {
   )
 
   const TopPerformersSection = () => (
-    <div className="bg-[#161616] rounded-xl p-6 mt-6">
+    <div className="bg-surface-card rounded-xl p-6 mt-6">
       <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
         <TrendingUp size={20} />
         {t("admin.analytics.topPerformers")}
@@ -300,7 +300,7 @@ export default function Analytics() {
   )
 
   return (
-    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+    <div className="min-h-screen rounded-3xl bg-surface-base text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
       <PullToRefresh onRefresh={handleRefresh} className="flex-1 overflow-y-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -320,7 +320,7 @@ export default function Analytics() {
         <FinancialInsights />
         <TopPerformersSection />
 
-        <div className="bg-[#161616] rounded-xl p-6 mt-6">
+        <div className="bg-surface-card rounded-xl p-6 mt-6">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
             <ChartBar size={20} />
             {t("admin.analytics.growthTrends")}

@@ -134,7 +134,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
     }
 
     const variantClasses = {
-      orange: "bg-orange-500",
+      orange: "bg-primary",
       blue: "bg-blue-600",
     }
 
@@ -509,7 +509,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
     // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     return (
       <>
-<div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
+<div className="flex flex-col lg:flex-row rounded-3xl bg-surface-base transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
           <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
 
             {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Header (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
@@ -521,17 +521,17 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
                 {/* Sort Button - Mobile */}
                 <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
-                  <button onClick={(e) => { e.stopPropagation(); setShowMobileSortDropdown(!showMobileSortDropdown) }} className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
+                  <button onClick={(e) => { e.stopPropagation(); setShowMobileSortDropdown(!showMobileSortDropdown) }} className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2">
                     {getSortIcon()}<span>{currentSortLabel}</span>
                   </button>
                   {showMobileSortDropdown && (
-                    <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
-                          <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleMobileSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
+                          <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleMobileSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-content-secondary'}`}>
                             <span>{tSort(opt.value)}</span>
-                            {sortBy === opt.value && <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
+                            {sortBy === opt.value && <span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                           </button>
                         ))}
                       </div>
@@ -543,9 +543,9 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
               <div className="flex items-center gap-2">
                 {viewMode === "studios" ? (
-                  <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Network size={14} /><span className="hidden sm:inline">{t("admin.customers.buttons.assignToFranchise")}</span></button>
+                  <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="hidden lg:flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Network size={14} /><span className="hidden sm:inline">{t("admin.customers.buttons.assignToFranchise")}</span></button>
                 ) : (
-                  <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Plus size={14} /><span className="hidden sm:inline">{t("admin.customers.buttons.createFranchise")}</span></button>
+                  <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="hidden lg:flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Plus size={14} /><span className="hidden sm:inline">{t("admin.customers.buttons.createFranchise")}</span></button>
                 )}
               </div>
             </div>
@@ -555,26 +555,26 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
               <div className="flex gap-3">
                 <div className="relative flex-1">
                   <div
-                    className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors cursor-text"
+                    className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-[#3F74FF] transition-colors cursor-text"
                     onClick={() => searchInputRef.current?.focus()}
                   >
-                    <Search className="text-gray-400 flex-shrink-0" size={16} />
+                    <Search className="text-content-muted flex-shrink-0" size={16} />
 
                     {/* Filter Chips */}
                     {(viewMode === "studios" ? studioFilters : franchiseFilters).map((filter) => (
                       <div
                         key={filter.itemId}
-                        className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                        className="flex items-center gap-1.5 bg-blue-600/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
                       >
-                        <div className={`w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0 ${viewMode === "studios" ? "bg-orange-500" : "bg-blue-600"}`}>
+                        <div className={`w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0 ${viewMode === "studios" ? "bg-primary" : "bg-blue-600"}`}>
                           {filter.itemName.split(' ')[0]?.charAt(0)}{filter.itemName.split(' ')[1]?.charAt(0) || ''}
                         </div>
                         <span className="text-white text-xs whitespace-nowrap">{filter.itemName}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleRemoveSearchFilter(filter.itemId) }}
-                          className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                          className="p-0.5 hover:bg-blue-600/30 rounded transition-colors"
                         >
-                          <X size={12} className="text-gray-400 hover:text-white" />
+                          <X size={12} className="text-content-muted hover:text-content-primary" />
                         </button>
                       </div>
                     ))}
@@ -592,7 +592,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                       }}
                       onFocus={() => (viewMode === "studios" ? searchQuery : franchiseSearchQuery) && setShowSearchDropdown(true)}
                       onKeyDown={handleSearchKeyDown}
-                      className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                      className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-content-faint"
                     />
 
                     {/* Clear All Button */}
@@ -606,24 +606,24 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                         className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
                         title={t("admin.customers.search.clearAllFilters")}
                       >
-                        <X size={14} className="text-gray-400 hover:text-white" />
+                        <X size={14} className="text-content-muted hover:text-content-primary" />
                       </button>
                     )}
                   </div>
 
                   {/* Autocomplete Dropdown */}
                   {showSearchDropdown && (viewMode === "studios" ? searchQuery : franchiseSearchQuery).trim() && getSearchSuggestions().length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                       {getSearchSuggestions().map((item) => (
                         <button
                           key={item.id}
                           onClick={() => handleSelectSearchItem(item)}
-                          className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                          className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
                         >
                           <InitialsAvatar name={item.name || `${item.ownerFirstName} ${item.ownerLastName}`} size="sm" variant={viewMode === "studios" ? "orange" : "blue"} className="!w-8 !h-8 !text-xs" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-white truncate">{item.name}</p>
-                            <p className="text-xs text-gray-500 truncate">
+                            <p className="text-xs text-content-faint truncate">
                               {viewMode === "studios"
                                 ? `${item.city || ""}${item.ownerName ? ` · ${item.ownerName}` : ""}`
                                 : `${item.city || ""}${item.ownerFirstName ? ` · ${item.ownerFirstName} ${item.ownerLastName}` : ""}`
@@ -637,14 +637,14 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 
                   {/* No results message */}
                   {showSearchDropdown && (viewMode === "studios" ? searchQuery : franchiseSearchQuery).trim() && getSearchSuggestions().length === 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                      <p className="text-sm text-gray-500 text-center">{viewMode === "studios" ? t("admin.customers.search.noStudiosFound") : t("admin.customers.search.noFranchisesFound")}</p>
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                      <p className="text-sm text-content-faint text-center">{viewMode === "studios" ? t("admin.customers.search.noStudiosFound") : t("admin.customers.search.noFranchisesFound")}</p>
                     </div>
                   )}
                 </div>
-                <div className="flex bg-black rounded-xl border border-[#333333] p-1">
-                  <button onClick={() => { setViewMode("studios"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Building size={16} /><span className="hidden sm:inline">{t("admin.customers.tabs.studios")}</span></button>
-                  <button onClick={() => { setViewMode("franchise"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Network size={16} /><span className="hidden sm:inline">{t("admin.customers.tabs.franchise")}</span></button>
+                <div className="flex bg-black rounded-xl border border-border p-1">
+                  <button onClick={() => { setViewMode("studios"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "studios" ? "bg-blue-600 text-white" : "text-content-muted hover:text-content-primary"}`}><Building size={16} /><span className="hidden sm:inline">{t("admin.customers.tabs.studios")}</span></button>
+                  <button onClick={() => { setViewMode("franchise"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "franchise" ? "bg-blue-600 text-white" : "text-content-muted hover:text-content-primary"}`}><Network size={16} /><span className="hidden sm:inline">{t("admin.customers.tabs.franchise")}</span></button>
                 </div>
               </div>
             </div>
@@ -652,23 +652,23 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
             {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Filters (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2">
-                <button onClick={() => setFiltersExpanded(!filtersExpanded)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                <button onClick={() => setFiltersExpanded(!filtersExpanded)} className="flex items-center gap-2 text-content-muted hover:text-content-primary transition-colors">
                   <Filter size={14} /><span className="text-xs sm:text-sm font-medium">{t("admin.customers.filters.title")}</span>
                   <ChevronDown size={14} className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} />
                   {!filtersExpanded && filterStatus !== 'all' && <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">1</span>}
                 </button>
                 <div className="hidden lg:block relative" ref={sortDropdownRef}>
-                  <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }} className="px-3 sm:px-4 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
+                  <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }} className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2">
                     {getSortIcon()}<span>{currentSortLabel}</span>
                   </button>
                   {showSortDropdown && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                         {currentSortOptions.map((opt) => (
-                          <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
+                          <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === opt.value ? 'text-white bg-gray-800/50' : 'text-content-secondary'}`}>
                             <span>{tSort(opt.value)}</span>
-                            {sortBy === opt.value && <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
+                            {sortBy === opt.value && <span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                           </button>
                         ))}
                       </div>
@@ -678,13 +678,13 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
               </div>
               <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="flex flex-wrap gap-1.5 sm:gap-3">
-                  <button onClick={() => setFilterStatus('all')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+                  <button onClick={() => setFilterStatus('all')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
                     {t("admin.customers.filters.all")} ({viewMode === "studios" ? studios.length : franchises.length})
                   </button>
-                  <button onClick={() => setFilterStatus('active')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+                  <button onClick={() => setFilterStatus('active')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-blue-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
                     {t("admin.customers.filters.active")} ({viewMode === "studios" ? studios.filter((s) => s.isActive).length : franchises.filter((f) => !f.isArchived).length})
                   </button>
-                  <button onClick={() => setFilterStatus('archived')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'archived' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+                  <button onClick={() => setFilterStatus('archived')} className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'archived' ? "bg-blue-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
                     {viewMode === "studios" ? t("admin.customers.filters.inactive") : t("admin.customers.filters.archived")} ({viewMode === "studios" ? studios.filter((s) => !s.isActive).length : franchises.filter((f) => f.isArchived).length})
                   </button>
                 </div>
@@ -692,11 +692,11 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
             </div>
 
             {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Content Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
-            <div className="open_sans_font">
+            <PullToRefresh onRefresh={async () => {}} className="open_sans_font">
               {viewMode === "studios" ? (
                   /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â STUDIOS LIST VIEW Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
-                  <div className="bg-[#141414] rounded-xl overflow-hidden">
-                    <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium py-3">
+                  <div className="bg-surface-card rounded-xl overflow-hidden">
+                    <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border text-xs text-content-faint font-medium py-3">
                       <div className="col-span-3">{t("admin.customers.studioTable.studioName")}</div>
                       <div className="col-span-1">{t("admin.customers.studioTable.number")}</div>
                       <div className="col-span-2">{t("admin.customers.studioTable.owner")}</div>
@@ -708,7 +708,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                     {filteredAndSortedStudios().length > 0 ? filteredAndSortedStudios().map((studio, i) => {
                       const total = filteredAndSortedStudios().length
                       return (
-                        <div key={studio.id} className={`group hover:bg-[#1a1a1a] transition-colors ${i !== total - 1 ? 'border-b border-gray-800/50' : ''}`}>
+                        <div key={studio.id} className={`group hover:bg-surface-hover transition-colors ${i !== total - 1 ? 'border-b border-border' : ''}`}>
                           {/* Desktop Row */}
                           <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center py-4">
                             <div className="col-span-3 flex items-center gap-3 min-w-0 relative">
@@ -725,14 +725,14 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                               )}
                               <div className="min-w-0 flex-1">
                                 <span className="text-white font-medium text-base truncate block">{studio.name}</span>
-                                <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-gray-500 flex-shrink-0" /><span className="text-sm text-gray-500 truncate">{studio.city}, {studio.zipCode}</span></div>
+                                <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-content-faint flex-shrink-0" /><span className="text-sm text-content-faint truncate">{studio.city}, {studio.zipCode}</span></div>
                               </div>
                             </div>
                             <div className="col-span-1 flex items-center">
                               <span className="text-white text-sm font-mono">{String(studio.studioNumber || studio.id).padStart(5, '0')}</span>
                             </div>
                             <div className="col-span-2">
-                              <span className="text-sm text-gray-400 truncate block">{studio.ownerName || '-'}</span>
+                              <span className="text-sm text-content-muted truncate block">{studio.ownerName || '-'}</span>
                             </div>
                             <div className="col-span-1"><StatusTag isActive={studio.isActive} t={t} /></div>
                             <div className="col-span-1">
@@ -743,28 +743,28 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                               ) })()}
                             </div>
                             <div className="col-span-2 flex items-center gap-1.5">
-                              <button onClick={() => handleOpenMembersModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><HiOutlineUsers size={14} />{studioStats[studio.id]?.members || 0}</button>
+                              <button onClick={() => handleOpenMembersModal(studio)} className="text-sm text-white hover:text-content-secondary inline-flex items-center gap-1 hover:scale-110 transition-transform"><HiOutlineUsers size={14} />{studioStats[studio.id]?.members || 0}</button>
                               <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => handleOpenStaffsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BsPersonWorkspace size={14} />{studioStats[studio.id]?.trainers || 0}</button>
+                              <button onClick={() => handleOpenStaffsModal(studio)} className="text-sm text-white hover:text-content-secondary inline-flex items-center gap-1 hover:scale-110 transition-transform"><BsPersonWorkspace size={14} />{studioStats[studio.id]?.trainers || 0}</button>
                               <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => handleOpenContractsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><RiContractLine size={14} />{studioStats[studio.id]?.contracts || 0}</button>
+                              <button onClick={() => handleOpenContractsModal(studio)} className="text-sm text-white hover:text-content-secondary inline-flex items-center gap-1 hover:scale-110 transition-transform"><RiContractLine size={14} />{studioStats[studio.id]?.contracts || 0}</button>
                               <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => handleOpenLeadsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><FaPersonRays size={14} />{studioLeads[studio.id]?.length || 0}</button>
+                              <button onClick={() => handleOpenLeadsModal(studio)} className="text-sm text-white hover:text-content-secondary inline-flex items-center gap-1 hover:scale-110 transition-transform"><FaPersonRays size={14} />{studioLeads[studio.id]?.length || 0}</button>
                               <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => { navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BadgeDollarSign size={14} /></button>
+                              <button onClick={() => { navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="text-sm text-white hover:text-content-secondary inline-flex items-center gap-1 hover:scale-110 transition-transform"><BadgeDollarSign size={14} /></button>
                             </div>
                             <div className="col-span-2 flex items-center justify-end gap-0.5">
-                              <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.documents")}><FileText size={18} /></button>
-                              <button onClick={() => handlePaymentClick(studio)} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.payment")}><CreditCard size={18} /></button>
-                              <button onClick={() => { setSelectedStudio(studio); setShowHistory(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.history")}><HistoryIcon size={18} /></button>
+                              <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.documents")}><FileText size={18} /></button>
+                              <button onClick={() => handlePaymentClick(studio)} className="p-2 text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.payment")}><CreditCard size={18} /></button>
+                              <button onClick={() => { setSelectedStudio(studio); setShowHistory(true) }} className="p-2 text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.history")}><HistoryIcon size={18} /></button>
                               <div className="w-px h-5 bg-gray-700/50 mx-1" />
                               <button onClick={() => handleViewDetails(studio)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.viewDetails")}><Eye size={18} /></button>
-                              <button onClick={() => handleEditStudio(studio)} className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.edit")}><Pencil size={18} /></button>
+                              <button onClick={() => handleEditStudio(studio)} className="p-2 text-primary hover:text-primary hover:bg-white/5 rounded-lg transition-colors" title={t("admin.customers.actions.edit")}><Pencil size={18} /></button>
                             </div>
                           </div>
                           {/* Mobile Row */}
                           <div className="lg:hidden">
-                            <div className={`px-3 py-3 cursor-pointer active:bg-[#252525] transition-colors`} onClick={() => setExpandedMobileRowId(expandedMobileRowId === studio.id ? null : studio.id)}>
+                            <div className={`px-3 py-3 cursor-pointer active:bg-surface-button transition-colors`} onClick={() => setExpandedMobileRowId(expandedMobileRowId === studio.id ? null : studio.id)}>
                               <div className="flex items-center gap-3">
                                 <LeadSpecialNoteIcon
                                   lead={studio}
@@ -780,29 +780,29 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className="text-white font-medium text-base truncate">{studio.name}</span>
-                                    <span className="text-gray-500 text-xs font-mono flex-shrink-0">#{String(studio.studioNumber || studio.id).padStart(5, '0')}</span>
+                                    <span className="text-content-faint text-xs font-mono flex-shrink-0">#{String(studio.studioNumber || studio.id).padStart(5, '0')}</span>
                                   </div>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={studio.isActive} compact={true} t={t} />{(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (<span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border ${colors}`}><Shield size={9} />{role}</span>) })()}<span className="text-xs text-gray-500">{studio.city}</span></div>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={studio.isActive} compact={true} t={t} />{(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (<span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border ${colors}`}><Shield size={9} />{role}</span>) })()}<span className="text-xs text-content-faint">{studio.city}</span></div>
                                 </div>
-                                <ChevronDown size={18} className={`text-gray-500 transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === studio.id ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={18} className={`text-content-faint transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === studio.id ? 'rotate-180' : ''}`} />
                               </div>
                             </div>
                             <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === studio.id ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
                               <div className="px-3 pb-3 pt-1">
-                                <div className="bg-[#0f0f0f] rounded-xl p-2">
+                                <div className="bg-surface-dark rounded-xl p-2">
                                   <div className="grid grid-cols-4 gap-1 mb-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenMembersModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><HiOutlineUsers size={18} /><span className="text-[10px]">{t("admin.customers.mobile.membersCount", { count: studioStats[studio.id]?.members || 0 })}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStaffsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BsPersonWorkspace size={18} /><span className="text-[10px]">{t("admin.customers.mobile.staffCount", { count: studioStats[studio.id]?.trainers || 0 })}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><RiContractLine size={18} /><span className="text-[10px]">{t("admin.customers.mobile.contractsCount", { count: studioStats[studio.id]?.contracts || 0 })}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{t("admin.customers.mobile.leadsCount", { count: studioLeads[studio.id]?.length || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenMembersModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-content-secondary hover:bg-white/5 rounded-lg transition-all hover:scale-105"><HiOutlineUsers size={18} /><span className="text-[10px]">{t("admin.customers.mobile.membersCount", { count: studioStats[studio.id]?.members || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStaffsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-content-secondary hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BsPersonWorkspace size={18} /><span className="text-[10px]">{t("admin.customers.mobile.staffCount", { count: studioStats[studio.id]?.trainers || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-content-secondary hover:bg-white/5 rounded-lg transition-all hover:scale-105"><RiContractLine size={18} /><span className="text-[10px]">{t("admin.customers.mobile.contractsCount", { count: studioStats[studio.id]?.contracts || 0 })}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-content-secondary hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{t("admin.customers.mobile.leadsCount", { count: studioLeads[studio.id]?.length || 0 })}</span></button>
                                   </div>
                                   <div className="grid grid-cols-6 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">{t("admin.customers.actions.finances")}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">{t("admin.customers.actions.docs")}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handlePaymentClick(studio) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><CreditCard size={18} /><span className="text-[10px]">{t("admin.customers.actions.payment")}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">{t("admin.customers.actions.history")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/admin-dashboard/studio-finances/${studio.id}`) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-content-secondary hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">{t("admin.customers.actions.finances")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">{t("admin.customers.actions.docs")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePaymentClick(studio) }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors"><CreditCard size={18} /><span className="text-[10px]">{t("admin.customers.actions.payment")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">{t("admin.customers.actions.history")}</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleViewDetails(studio) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">{t("admin.customers.actions.details")}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleEditStudio(studio) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">{t("admin.customers.actions.edit")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEditStudio(studio) }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">{t("admin.customers.actions.edit")}</span></button>
                                   </div>
                                 </div>
                               </div>
@@ -811,13 +811,13 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                         </div>
                       )
                     }) : (
-                      <div className="text-center py-8"><p className="text-gray-400 text-sm">{filterStatus === "active" ? t("admin.customers.empty.noActiveStudios") : filterStatus === "archived" ? t("admin.customers.empty.noInactiveStudios") : t("admin.customers.empty.noStudios")}</p></div>
+                      <div className="text-center py-8"><p className="text-content-muted text-sm">{filterStatus === "active" ? t("admin.customers.empty.noActiveStudios") : filterStatus === "archived" ? t("admin.customers.empty.noInactiveStudios") : t("admin.customers.empty.noStudios")}</p></div>
                     )}
                   </div>
               ) : (
                 /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FRANCHISES VIEW Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
-                  <div className="bg-[#141414] rounded-xl overflow-hidden">
-                    <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium py-3`}>
+                  <div className="bg-surface-card rounded-xl overflow-hidden">
+                    <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border text-xs text-content-faint font-medium py-3`}>
                       <div className="col-span-3">{t("admin.customers.franchiseTable.franchise")}</div>
                       <div className="col-span-1">{t("admin.customers.franchiseTable.status")}</div>
                       <div className="col-span-2">{t("admin.customers.franchiseTable.owner")}</div>
@@ -828,7 +828,7 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                     {filteredAndSortedFranchises().length > 0 ? filteredAndSortedFranchises().map((franchise, i) => {
                       const total = filteredAndSortedFranchises().length
                       return (
-                        <div key={franchise.id} className={`group hover:bg-[#1a1a1a] transition-colors ${i !== total - 1 ? 'border-b border-gray-800/50' : ''}`}>
+                        <div key={franchise.id} className={`group hover:bg-surface-hover transition-colors ${i !== total - 1 ? 'border-b border-border' : ''}`}>
                           <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center py-4`}>
                             <div className="col-span-3 flex items-center gap-3 min-w-0">
                               <LeadSpecialNoteIcon
@@ -846,21 +846,21 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                               )}
                               <div className="min-w-0 flex-1">
                                 <span className={`text-white font-medium text-base truncate block`}>{franchise.name}</span>
-                                <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-gray-500 flex-shrink-0" /><span className={`text-sm text-gray-500 truncate`}>{franchise.city}, {franchise.zipCode}</span></div>
+                                <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-content-faint flex-shrink-0" /><span className={`text-sm text-content-faint truncate`}>{franchise.city}, {franchise.zipCode}</span></div>
                               </div>
                             </div>
                             <div className="col-span-1"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} t={t} /></div>
-                            <div className="col-span-2"><span className={`text-sm text-gray-400`}>{franchise.ownerFirstName} {franchise.ownerLastName}</span></div>
+                            <div className="col-span-2"><span className={`text-sm text-content-muted`}>{franchise.ownerFirstName} {franchise.ownerLastName}</span></div>
                             <div className="col-span-1"><button onClick={() => handleOpenStudioManagement(franchise)} className={`text-sm text-blue-400 hover:text-blue-300 inline-flex items-center gap-1`}><Building size={14} />{getStudiosByFranchise(franchise.id).length}</button></div>
-                            <div className="col-span-2"><span className={`text-sm text-gray-500 truncate block`}>{franchise.loginEmail}</span></div>
+                            <div className="col-span-2"><span className={`text-sm text-content-faint truncate block`}>{franchise.loginEmail}</span></div>
                             <div className="col-span-3 flex items-center justify-end gap-0.5">
                               <button onClick={() => handleViewFranchiseDetails(franchise)} className={`p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`} title={t("admin.customers.actions.details")}><Eye size={18} /></button>
-                              <button onClick={() => handleEditFranchise(franchise)} className={`p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors`} title={t("admin.customers.actions.edit")}><Pencil size={18} /></button>
+                              <button onClick={() => handleEditFranchise(franchise)} className={`p-2 text-primary hover:text-primary hover:bg-white/5 rounded-lg transition-colors`} title={t("admin.customers.actions.edit")}><Pencil size={18} /></button>
                             </div>
                           </div>
                           {/* Mobile Row */}
                           <div className="lg:hidden">
-                            <div className={`px-3 py-3 cursor-pointer active:bg-[#252525]`} onClick={() => setExpandedMobileRowId(expandedMobileRowId === `f-${franchise.id}` ? null : `f-${franchise.id}`)}>
+                            <div className={`px-3 py-3 cursor-pointer active:bg-surface-button`} onClick={() => setExpandedMobileRowId(expandedMobileRowId === `f-${franchise.id}` ? null : `f-${franchise.id}`)}>
                               <div className="flex items-center gap-3">
                                 <LeadSpecialNoteIcon
                                   lead={franchise}
@@ -877,21 +877,21 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <span className={`text-white font-medium text-base truncate block`}>{franchise.name}</span>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} compact={true} t={t} /><span className="text-xs text-gray-500">{franchise.city}</span></div>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} compact={true} t={t} /><span className="text-xs text-content-faint">{franchise.city}</span></div>
                                 </div>
-                                <ChevronDown size={18} className={`text-gray-500 transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === `f-${franchise.id}` ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={18} className={`text-content-faint transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === `f-${franchise.id}` ? 'rotate-180' : ''}`} />
                               </div>
                             </div>
                             <div className={`overflow-hidden transition-all duration-200 ${expandedMobileRowId === `f-${franchise.id}` ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
                               <div className="px-3 pb-3 pt-1">
-                                <div className="bg-[#0f0f0f] rounded-xl p-2">
+                                <div className="bg-surface-dark rounded-xl p-2">
                                   <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">{t("admin.customers.mobile.ownerLabel", { name: `${franchise.ownerFirstName} ${franchise.ownerLastName}` })}</span>
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">{t("admin.customers.mobile.studiosCount", { count: getStudiosByFranchise(franchise.id).length })}</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-content-secondary">{t("admin.customers.mobile.ownerLabel", { name: `${franchise.ownerFirstName} ${franchise.ownerLastName}` })}</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-content-secondary">{t("admin.customers.mobile.studiosCount", { count: getStudiosByFranchise(franchise.id).length })}</span>
                                   </div>
                                   <div className="grid grid-cols-2 gap-1">
                                     <button onClick={(e) => { e.stopPropagation(); handleViewFranchiseDetails(franchise) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">{t("admin.customers.actions.details")}</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleEditFranchise(franchise) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">{t("admin.customers.actions.edit")}</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEditFranchise(franchise) }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">{t("admin.customers.actions.edit")}</span></button>
                                   </div>
                                 </div>
                               </div>
@@ -900,19 +900,19 @@ import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
                         </div>
                       )
                     }) : (
-                      <div className="text-center py-8"><Building2 size={48} className="mx-auto mb-4 text-gray-600" /><p className="text-gray-400">{t("admin.customers.empty.noFranchises")}</p><button onClick={() => setIsCreateFranchiseModalOpen(true)} className="mt-4 bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl text-sm">{t("admin.customers.buttons.createFirstFranchise")}</button></div>
+                      <div className="text-center py-8"><Building2 size={48} className="mx-auto mb-4 text-content-faint" /><p className="text-content-muted">{t("admin.customers.empty.noFranchises")}</p><button onClick={() => setIsCreateFranchiseModalOpen(true)} className="mt-4 bg-primary hover:bg-primary-hover px-4 py-2 rounded-xl text-sm">{t("admin.customers.buttons.createFirstFranchise")}</button></div>
                     )}
                   </div>
               )}
-            </div>
+            </PullToRefresh>
           </div>
         </div>
 
         {/* Floating Action Button - Mobile */}
         {viewMode === "studios" ? (
-          <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.customers.buttons.assignToFranchise")}><Network size={22} /></button>
+          <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.customers.buttons.assignToFranchise")}><Network size={22} /></button>
         ) : (
-          <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.customers.buttons.createFranchise")}><Plus size={22} /></button>
+          <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.customers.buttons.createFranchise")}><Plus size={22} /></button>
         )}
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}

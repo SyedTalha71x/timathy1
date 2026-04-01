@@ -97,10 +97,10 @@ const DaysRemainingBadge = ({ expiryDate, status }) => {
   const { t } = useTranslation();
   if (status === "inactive") return <span className="text-xs text-red-400">{t("admin.demoAccess.card.deactivated")}</span>;
   const days = getDaysRemaining(expiryDate);
-  if (days === null) return <span className="text-xs text-gray-500">—</span>;
+  if (days === null) return <span className="text-xs text-content-faint">—</span>;
   if (days <= 0) return <span className="text-xs text-red-400">{t("admin.demoAccess.card.expired")}</span>;
-  if (days <= 3) return <span className="text-xs text-orange-400 font-medium">{t("admin.demoAccess.card.daysRemaining", { days })}</span>;
-  return <span className="text-xs text-gray-400">{t("admin.demoAccess.card.daysRemaining", { days })}</span>;
+  if (days <= 3) return <span className="text-xs text-primary font-medium">{t("admin.demoAccess.card.daysRemaining", { days })}</span>;
+  return <span className="text-xs text-content-muted">{t("admin.demoAccess.card.daysRemaining", { days })}</span>;
 };
 
 // ============================================
@@ -113,55 +113,55 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
   const ownerFullName = [cfg.studioOwnerFirstName, cfg.studioOwnerLastName].filter(Boolean).join(" ") || "—";
 
   return (
-    <div className="bg-[#2a2a2a] rounded-2xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors">
+    <div className="bg-surface-button rounded-2xl overflow-hidden border border-border hover:border-[#444444] transition-colors">
       <div className="h-1" style={{ backgroundColor: getTemplateColor(demo.template?.id) }} />
       <div className="p-4 md:p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0 flex-1">
             <h3 className="text-sm md:text-base font-semibold text-white truncate">{cfg.studioName}</h3>
-            <p className="text-xs text-gray-500 truncate mt-0.5">{demo.company}</p>
+            <p className="text-xs text-content-faint truncate mt-0.5">{demo.company}</p>
           </div>
           <StatusBadge status={demo.status} />
         </div>
 
         {/* Info rows */}
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <User size={12} className="text-gray-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-content-muted">
+            <User size={12} className="text-content-faint flex-shrink-0" />
             <span className="truncate">{ownerFullName}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Mail size={12} className="text-gray-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-content-muted">
+            <Mail size={12} className="text-content-faint flex-shrink-0" />
             <span className="truncate">{cfg.email}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Clock size={12} className="text-gray-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-content-muted">
+            <Clock size={12} className="text-content-faint flex-shrink-0" />
             <span>{cfg.demoDuration} {t("admin.demoAccess.card.days")}</span>
-            <span className="text-gray-600 mx-1">·</span>
+            <span className="text-content-faint mx-1">·</span>
             <DaysRemainingBadge expiryDate={demo.expiryDate} status={demo.status} />
           </div>
           <div className="flex items-center gap-2">
             <TemplateBadge template={demo.template} />
-            <span className="text-[10px] text-gray-500">{enabled}/{total} {t("admin.demoAccess.card.features")}</span>
+            <span className="text-[10px] text-content-faint">{enabled}/{total} {t("admin.demoAccess.card.features")}</span>
           </div>
         </div>
 
         {/* Stats bar */}
-        <div className="flex items-center gap-4 py-2.5 px-3 bg-[#1A1A1A] rounded-xl mb-4 text-xs">
+        <div className="flex items-center gap-4 py-2.5 px-3 bg-surface-hover rounded-xl mb-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <LogIn size={11} className="text-gray-500" />
-            <span className="text-gray-400">{demo.loginCount ?? 0} <span className="hidden sm:inline">{t("admin.demoAccess.card.loginsLabel")}</span></span>
+            <LogIn size={11} className="text-content-faint" />
+            <span className="text-content-muted">{demo.loginCount ?? 0} <span className="hidden sm:inline">{t("admin.demoAccess.card.loginsLabel")}</span></span>
           </div>
           <div className="w-px h-3 bg-gray-700" />
           <div className="flex items-center gap-1.5">
-            <CalendarDays size={11} className="text-gray-500" />
-            <span className="text-gray-400">{formatDate(demo.createdAt)}</span>
+            <CalendarDays size={11} className="text-content-faint" />
+            <span className="text-content-muted">{formatDate(demo.createdAt)}</span>
           </div>
           {demo.lastLogin && (
             <>
               <div className="w-px h-3 bg-gray-700" />
-              <span className="text-[10px] text-gray-500">{t("admin.demoAccess.card.lastLogin")} {formatDate(demo.lastLogin)}</span>
+              <span className="text-[10px] text-content-faint">{t("admin.demoAccess.card.lastLogin")} {formatDate(demo.lastLogin)}</span>
             </>
           )}
         </div>
@@ -169,7 +169,7 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
         {/* Actions */}
         <div className="flex items-center gap-1.5">
           <div className="relative group flex-1">
-            <button onClick={() => onViewJournal(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors whitespace-nowrap">
+            <button onClick={() => onViewJournal(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-xl text-xs transition-colors whitespace-nowrap">
               <IoIosJournal size={13} />
               <span className="hidden xl:inline truncate">{t("admin.demoAccess.card.journal")}</span>
             </button>
@@ -179,7 +179,7 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
             </div>
           </div>
           <div className="relative group flex-1">
-            <button onClick={() => onEdit(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors whitespace-nowrap">
+            <button onClick={() => onEdit(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-xl text-xs transition-colors whitespace-nowrap">
               <Pencil size={12} />
               <span className="hidden xl:inline truncate">{t("admin.demoAccess.card.edit")}</span>
             </button>
@@ -189,7 +189,7 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
             </div>
           </div>
           <div className="relative group flex-1">
-            <button onClick={() => onResendEmail(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors whitespace-nowrap">
+            <button onClick={() => onResendEmail(demo)} className="w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-xl text-xs transition-colors whitespace-nowrap">
               <Send size={12} />
               <span className="hidden xl:inline truncate">{t("admin.demoAccess.card.email")}</span>
             </button>
@@ -569,7 +569,7 @@ export default function DemoCreationPage() {
   const emailModalDemo = demoToResend || lastCreatedDemo || null;
 
   return (
-    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 md:p-6 transition-all duration-500 ease-in-out flex-1">
+    <div className="min-h-screen rounded-3xl bg-surface-base text-white p-4 md:p-6 transition-all duration-500 ease-in-out flex-1">
 {/* ======== HEADER ======== */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
@@ -579,20 +579,20 @@ export default function DemoCreationPage() {
           <div className="lg:hidden relative" ref={sortDropdownRef}>
             <button
               onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown); }}
-              className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+              className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
             >
               {getSortIcon()}
               <span>{currentSortLabel}</span>
             </button>
             {showSortDropdown && (
-              <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+              <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("admin.demoAccess.sort.sortBy")}</div>
+                  <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("admin.demoAccess.sort.sortBy")}</div>
                   {sortOptions.map((opt) => (
                     <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value); }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? "text-white bg-gray-800/50" : "text-gray-300"}`}>
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === opt.value ? "text-white bg-gray-800/50" : "text-content-secondary"}`}>
                       <span>{opt.label}</span>
-                      {sortBy === opt.value && <span className="text-gray-400">{sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
+                      {sortBy === opt.value && <span className="text-content-muted">{sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                     </button>
                   ))}
                 </div>
@@ -603,7 +603,7 @@ export default function DemoCreationPage() {
 
         {/* Create button (desktop) */}
         <div className="hidden md:block relative group">
-          <button onClick={startCreation} className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors">
+          <button onClick={startCreation} className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors">
             <Plus size={14} className="sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">{t("admin.demoAccess.createAccess")}</span>
           </button>
@@ -618,12 +618,12 @@ export default function DemoCreationPage() {
       {/* ======== SEARCH ======== */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
           <input type="text" placeholder={t("admin.demoAccess.search.placeholder")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2.5 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors" />
+            className="w-full bg-surface-card outline-none text-sm text-white rounded-xl px-4 py-2.5 pl-9 sm:pl-10 border border-border focus:border-[#3F74FF] transition-colors" />
           {searchQuery && (
             <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-700 rounded-lg transition-colors">
-              <X size={14} className="text-gray-400 hover:text-white" />
+              <X size={14} className="text-content-muted hover:text-content-primary" />
             </button>
           )}
         </div>
@@ -632,16 +632,16 @@ export default function DemoCreationPage() {
       {/* ======== FILTERS ======== */}
       <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
         <button onClick={() => { setFilterStatuses([]); setFilterTemplates([]); }}
-          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatuses.length === 0 && filterTemplates.length === 0 ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatuses.length === 0 && filterTemplates.length === 0 ? "bg-blue-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
           {t("admin.demoAccess.filter.all")} ({demos.length})
         </button>
         <button onClick={() => toggleFilter(filterStatuses, setFilterStatuses, "active")}
-          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatuses.includes("active") ? "bg-green-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatuses.includes("active") ? "bg-green-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
           <div className={`w-1.5 h-1.5 rounded-full ${filterStatuses.includes("active") ? "bg-white" : "bg-green-400"}`} />
           {t("admin.demoAccess.filter.active")} ({activeCount})
         </button>
         <button onClick={() => toggleFilter(filterStatuses, setFilterStatuses, "inactive")}
-          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatuses.includes("inactive") ? "bg-red-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatuses.includes("inactive") ? "bg-red-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
           <div className={`w-1.5 h-1.5 rounded-full ${filterStatuses.includes("inactive") ? "bg-white" : "bg-red-400"}`} />
           {t("admin.demoAccess.filter.inactive")} ({inactiveCount})
         </button>
@@ -650,7 +650,7 @@ export default function DemoCreationPage() {
 
         {demoTemplates.map((tmpl) => (
           <button key={tmpl.id} onClick={() => toggleFilter(filterTemplates, setFilterTemplates, tmpl.id)}
-            className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterTemplates.includes(tmpl.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+            className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterTemplates.includes(tmpl.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
             style={filterTemplates.includes(tmpl.id) ? { backgroundColor: tmpl.color } : {}}>
             <Shield size={12} />
             {tmpl.name}
@@ -660,18 +660,18 @@ export default function DemoCreationPage() {
         {/* Sort (desktop) */}
         <div className="hidden lg:block ml-auto relative" ref={sortDropdownRef}>
           <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown); }}
-            className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
+            className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2">
             {getSortIcon()} <span>{currentSortLabel}</span>
           </button>
           {showSortDropdown && (
-            <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+            <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
               <div className="py-1">
-                <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("admin.demoAccess.sort.sortBy")}</div>
+                <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("admin.demoAccess.sort.sortBy")}</div>
                 {sortOptions.map((opt) => (
                   <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value); }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? "text-white bg-gray-800/50" : "text-gray-300"}`}>
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === opt.value ? "text-white bg-gray-800/50" : "text-content-secondary"}`}>
                     <span>{opt.label}</span>
-                    {sortBy === opt.value && <span className="text-gray-400">{sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
+                    {sortBy === opt.value && <span className="text-content-muted">{sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                   </button>
                 ))}
               </div>
@@ -682,10 +682,10 @@ export default function DemoCreationPage() {
 
       {/* ======== DEMO GRID ======== */}
       {filteredDemos.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-          <Building2 size={48} className="mb-4 text-gray-600" />
+        <div className="flex flex-col items-center justify-center py-16 text-content-faint">
+          <Building2 size={48} className="mb-4 text-content-faint" />
           <p className="text-base font-medium mb-1">{t("admin.demoAccess.empty.title")}</p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-content-faint">
             {searchQuery || filterStatuses.length > 0 || filterTemplates.length > 0 ? t("admin.demoAccess.empty.filterHint") : t("admin.demoAccess.empty.createHint")}
           </p>
         </div>
@@ -701,7 +701,7 @@ export default function DemoCreationPage() {
       )}
 
       {/* ======== FAB (Mobile) ======== */}
-      <button onClick={startCreation} className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.demoAccess.createAccess")}>
+      <button onClick={startCreation} className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label={t("admin.demoAccess.createAccess")}>
         <Plus size={22} />
       </button>
 
@@ -741,26 +741,26 @@ export default function DemoCreationPage() {
       {/* 7. Reactivate — ask for days */}
       {isReactivateModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] rounded-xl max-w-sm w-full border border-gray-800">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+          <div className="bg-surface-hover rounded-xl max-w-sm w-full border border-border">
+            <div className="p-6 border-b border-border flex justify-between items-start">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
                   <Power size={20} className="text-green-400" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{t("admin.demoAccess.reactivateModal.title")}</h2>
-                  <p className="text-gray-400 text-sm mt-1">{t("admin.demoAccess.reactivateModal.subtitle")}</p>
+                  <p className="text-content-muted text-sm mt-1">{t("admin.demoAccess.reactivateModal.subtitle")}</p>
                 </div>
               </div>
               <button
                 onClick={() => { setIsReactivateModalOpen(false); setReactivateDemoId(null); }}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-content-muted hover:text-content-primary transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="p-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">{t("admin.demoAccess.reactivateModal.durationLabel")}</label>
+              <label className="block text-sm font-medium text-content-secondary mb-2">{t("admin.demoAccess.reactivateModal.durationLabel")}</label>
               <div className="relative">
                 <input
                   type="number"
@@ -768,11 +768,11 @@ export default function DemoCreationPage() {
                   max="90"
                   value={reactivateDays}
                   onChange={(e) => setReactivateDays(parseInt(e.target.value) || 7)}
-                  className="w-full bg-[#2A2A2A] border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-green-500"
+                  className="w-full bg-surface-button border border-border rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-green-500"
                 />
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
               </div>
-              <p className="text-xs text-gray-500 mt-2">{t("admin.demoAccess.reactivateModal.durationHint", { days: reactivateDays })}</p>
+              <p className="text-xs text-content-faint mt-2">{t("admin.demoAccess.reactivateModal.durationHint", { days: reactivateDays })}</p>
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => { setIsReactivateModalOpen(false); setReactivateDemoId(null); }}
@@ -795,26 +795,26 @@ export default function DemoCreationPage() {
       {/* 8. Delete Confirmation */}
       {isDeleteModalOpen && demoToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] rounded-xl max-w-sm w-full border border-gray-800">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+          <div className="bg-surface-hover rounded-xl max-w-sm w-full border border-border">
+            <div className="p-6 border-b border-border flex justify-between items-start">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
                   <Trash2 size={20} className="text-red-400" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{t("admin.demoAccess.deleteModal.title")}</h2>
-                  <p className="text-gray-400 text-sm mt-1">{t("admin.demoAccess.deleteModal.subtitle")}</p>
+                  <p className="text-content-muted text-sm mt-1">{t("admin.demoAccess.deleteModal.subtitle")}</p>
                 </div>
               </div>
               <button
                 onClick={() => { setIsDeleteModalOpen(false); setDemoToDelete(null); }}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-content-muted hover:text-content-primary transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="p-6">
-              <p className="text-sm text-gray-300 mb-1">
+              <p className="text-sm text-content-secondary mb-1">
                 {t("admin.demoAccess.deleteModal.confirmMessage")}
               </p>
               <p className="text-sm font-semibold text-white mb-4">
