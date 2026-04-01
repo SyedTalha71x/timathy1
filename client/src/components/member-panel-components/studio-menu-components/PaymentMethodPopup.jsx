@@ -11,10 +11,10 @@ const PaymentMethodPopup = ({ show, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex p-2 pt-8 sm:pt-12 justify-center items-start z-50"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}
+      className="absolute inset-0 bg-black/50 flex p-2 pt-4 justify-center items-start z-50"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4.5rem)" }}
     >
-      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-[75dvh] md:max-h-[80dvh] flex flex-col">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md relative max-h-full flex flex-col">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h2 className="text-xl text-content-primary font-bold">{t("studioMenu.contract.paymentMethod")}</h2>
           <button onClick={() => { haptic.light(); onClose(); }} className="text-content-muted hover:text-content-primary transition-colors">
