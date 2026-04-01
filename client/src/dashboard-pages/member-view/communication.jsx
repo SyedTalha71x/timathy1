@@ -303,12 +303,15 @@ export default function StudioChat() {
     }
   };
 
-  const handleKeyPress = (e) => {
+const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
+      if (window.innerWidth < 768) return;
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }; 
+
+
 
   // ==========================================
   // EMOJI HANDLER
