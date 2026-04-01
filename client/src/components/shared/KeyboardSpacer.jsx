@@ -1,103 +1,145 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 
 /**
  * KeyboardSpacer
  *
- * Uses the VisualViewport API to detect the keyboard height, then:
- * 1. Adds paddingBottom to the scroll container = keyboard height
- * 2. Scrolls the focused input into the visible area
+ * Adds paddingBottom to the parent scroll container when the keyboard opens,
+ * then scrolls the focused input into the visible area.
  *
- * The padding is BEHIND the keyboard — the user can never see it.
- * When the keyboard closes, the padding is removed instantly.
+ * The added padding sits behind the keyboard — invisible while typing.
  *
- * No visible artifacts. No empty space. No modal resizing.
- *
- * Works with `resize: "none"` in capacitor.config.json.
- * Drop inside any scrollable container that has inputs.
+ * Native: Uses @capacitor/keyboard for exact keyboard height.
+ * Web:    Uses focusin/focusout with estimated heights.
  */
+
+const isNative = Capacitor.isNativePlatform();
+
 export default function KeyboardSpacer() {
   const markerRef = useRef(null);
   const containerRef = useRef(null);
   const originalPaddingRef = useRef(null);
-  const keyboardVisibleRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
 
   useEffect(() => {
-    if (window.innerWidth >= 1024) return;
+    const mql = window.matchMedia("(max-width: 1023px)");
+    const onChange = (e) => setIsMobile(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
 
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    const getContainer = () => {
-      if (containerRef.current) return containerRef.current;
+  const getContainer = () => {
+    if (!containerRef.current) {
       containerRef.current = markerRef.current?.parentElement || null;
-      return containerRef.current;
-    };
+    }
+    return containerRef.current;
+  };
 
-    const handleResize = () => {
-      const container = getContainer();
-      if (!container) return;
+  const setPadding = (value) => {
+    const c = getContainer();
+    if (!c) return;
+    if (originalPaddingRef.current === null) {
+      originalPaddingRef.current = c.style.paddingBottom || "";
+    }
+    c.style.paddingBottom = value;
+  };
 
-      // Keyboard height = difference between layout viewport and visual viewport
-      const keyboardHeight = window.innerHeight - vv.height;
-      const isKeyboardOpen = keyboardHeight > 100; // Threshold to avoid false positives
+  const resetPadding = () => {
+    const c = getContainer();
+    if (!c || originalPaddingRef.current === null) return;
+    c.style.paddingBottom = originalPaddingRef.current;
+    originalPaddingRef.current = null;
+  };
 
-      if (isKeyboardOpen && !keyboardVisibleRef.current) {
-        // Keyboard just opened
-        keyboardVisibleRef.current = true;
+  const scrollToInput = (el, delay = 300) => {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, delay);
+  };
 
-        if (originalPaddingRef.current === null) {
-          originalPaddingRef.current = container.style.paddingBottom || "";
-        }
-        container.style.paddingBottom = `${keyboardHeight}px`;
+  // ════════════════════════════════════════════
+  // Native: Capacitor Keyboard plugin
+  // ════════════════════════════════════════════
+  useEffect(() => {
+    if (!isNative || !isMobile) return;
 
-        // Scroll focused input into visible area
-        setTimeout(() => {
-          const el = document.activeElement;
-          if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
-            if (!el.closest("[data-no-spacer]")) {
-              el.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-          }
-        }, 50);
+    let showListener;
+    let hideListener;
 
-      } else if (isKeyboardOpen && keyboardVisibleRef.current) {
-        // Keyboard still open but height changed (e.g. autocomplete bar toggled)
-        container.style.paddingBottom = `${keyboardHeight}px`;
-
-      } else if (!isKeyboardOpen && keyboardVisibleRef.current) {
-        // Keyboard closed
-        keyboardVisibleRef.current = false;
-        container.style.paddingBottom = originalPaddingRef.current || "";
-        originalPaddingRef.current = null;
+    const setup = async () => {
+      let Keyboard;
+      try {
+        const mod = await import("@capacitor/keyboard");
+        Keyboard = mod.Keyboard;
+      } catch {
+        return;
       }
+
+      showListener = await Keyboard.addListener("keyboardWillShow", (info) => {
+        const el = document.activeElement;
+        if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
+        if (el.closest("[data-no-spacer]")) return;
+
+        setPadding(`${info.keyboardHeight}px`);
+        scrollToInput(el, 100);
+      });
+
+      hideListener = await Keyboard.addListener("keyboardWillHide", () => {
+        resetPadding();
+      });
     };
 
-    // Also scroll on focus change while keyboard is open
-    const handleFocusIn = (e) => {
-      if (!keyboardVisibleRef.current) return;
+    setup();
+    return () => {
+      showListener?.remove?.();
+      hideListener?.remove?.();
+      resetPadding();
+    };
+  }, [isMobile]);
+
+  // ════════════════════════════════════════════
+  // Web fallback
+  // ════════════════════════════════════════════
+  useEffect(() => {
+    if (isNative || !isMobile) return;
+
+    const container = markerRef.current?.parentElement;
+    if (!container) return;
+
+    const onFocusIn = (e) => {
       const el = e.target;
       if (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA") return;
       if (el.closest("[data-no-spacer]")) return;
 
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.5) return;
+
+      const type = el.getAttribute("type") || "text";
+      const compact = type === "tel" || type === "number";
+      setPadding(compact ? "30vh" : "45vh");
+      scrollToInput(el);
+    };
+
+    const onFocusOut = () => {
       setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 50);
+        const active = document.activeElement;
+        if (!container.contains(active) ||
+            (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA")) {
+          resetPadding();
+        }
+      }, 100);
     };
 
-    vv.addEventListener("resize", handleResize);
-    document.addEventListener("focusin", handleFocusIn);
-
+    container.addEventListener("focusin", onFocusIn);
+    container.addEventListener("focusout", onFocusOut);
     return () => {
-      vv.removeEventListener("resize", handleResize);
-      document.removeEventListener("focusin", handleFocusIn);
-
-      // Cleanup
-      const container = getContainer();
-      if (container && originalPaddingRef.current !== null) {
-        container.style.paddingBottom = originalPaddingRef.current;
-      }
+      container.removeEventListener("focusin", onFocusIn);
+      container.removeEventListener("focusout", onFocusOut);
+      resetPadding();
     };
-  }, []);
+  }, [isMobile]);
 
+  if (!isMobile) return null;
   return <div ref={markerRef} aria-hidden="true" style={{ height: 0, overflow: "hidden" }} />;
 }
