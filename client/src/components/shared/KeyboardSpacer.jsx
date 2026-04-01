@@ -4,10 +4,14 @@ import { Capacitor } from "@capacitor/core";
 /**
  * KeyboardSpacer — pushes content up when the virtual keyboard opens.
  *
+ * Instead of rendering a visible empty div (which looks like a bug when
+ * scrolling), this component modifies the parent container's paddingBottom.
+ * The result is invisible scroll space — no empty block the user can see.
+ *
  * ┌─────────────────────────────────────────────────────┐
  * │  Native (Capacitor):                                │
  * │    Uses @capacitor/keyboard for the exact keyboard  │
- * │    height in pixels. No guessing, no magic numbers. │
+ * │    height in pixels.                                │
  * │                                                     │
  * │  Web fallback:                                      │
  * │    Estimates height via viewport percentages         │
@@ -21,7 +25,8 @@ import { Capacitor } from "@capacitor/core";
 const isNative = Capacitor.isNativePlatform();
 
 export default function KeyboardSpacer() {
-  const spacerRef = useRef(null);
+  const markerRef = useRef(null);
+  const originalPaddingRef = useRef(null);
   const focusedElRef = useRef(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
 
@@ -32,6 +37,29 @@ export default function KeyboardSpacer() {
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
   }, []);
+
+  // Get the scroll container (parent of this marker)
+  const getContainer = () => markerRef.current?.parentElement;
+
+  // Apply padding to parent instead of using a visible spacer div
+  const applyPadding = (value) => {
+    const container = getContainer();
+    if (!container) return;
+
+    // Save original padding on first use
+    if (originalPaddingRef.current === null) {
+      originalPaddingRef.current = container.style.paddingBottom || "";
+    }
+
+    container.style.paddingBottom = value;
+  };
+
+  const resetPadding = () => {
+    const container = getContainer();
+    if (!container) return;
+    container.style.paddingBottom = originalPaddingRef.current || "";
+    originalPaddingRef.current = null;
+  };
 
   // ════════════════════════════════════════════
   // Native: Capacitor Keyboard plugin
@@ -52,19 +80,15 @@ export default function KeyboardSpacer() {
       }
 
       showListener = await Keyboard.addListener("keyboardWillShow", (info) => {
-        const spacer = spacerRef.current;
-        if (!spacer) return;
+        if (!markerRef.current) return;
 
-        // Check if the focused element is a relevant input
         const el = document.activeElement;
         if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
         if (el.closest("[data-no-spacer]")) return;
 
-        // Set exact keyboard height
-        spacer.style.height = `${info.keyboardHeight}px`;
+        applyPadding(`${info.keyboardHeight}px`);
         focusedElRef.current = el;
 
-        // Scroll the input into view — slight delay to let layout update
         requestAnimationFrame(() => {
           setTimeout(() => {
             focusedElRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -73,8 +97,7 @@ export default function KeyboardSpacer() {
       });
 
       hideListener = await Keyboard.addListener("keyboardWillHide", () => {
-        const spacer = spacerRef.current;
-        if (spacer) spacer.style.height = "0px";
+        resetPadding();
         focusedElRef.current = null;
       });
     };
@@ -84,6 +107,7 @@ export default function KeyboardSpacer() {
     return () => {
       showListener?.remove?.();
       hideListener?.remove?.();
+      resetPadding();
     };
   }, [isMobile]);
 
@@ -93,8 +117,7 @@ export default function KeyboardSpacer() {
   useEffect(() => {
     if (isNative || !isMobile) return;
 
-    const spacer = spacerRef.current;
-    const container = spacer?.parentElement;
+    const container = getContainer();
     if (!container) return;
 
     const onFocusIn = (e) => {
@@ -104,14 +127,12 @@ export default function KeyboardSpacer() {
       if (tag !== "INPUT" && tag !== "TEXTAREA") return;
       if (el.closest("[data-no-spacer]")) return;
 
-      // Only expand if the field is in the lower 50% of the viewport
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight * 0.5) return;
 
-      // Number/tel keyboards are shorter
       const inputType = el.getAttribute("type") || "text";
       const isCompactKeyboard = inputType === "tel" || inputType === "number";
-      spacer.style.height = isCompactKeyboard ? "30vh" : "50vh";
+      applyPadding(isCompactKeyboard ? "30vh" : "50vh");
 
       setTimeout(() => {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -123,7 +144,7 @@ export default function KeyboardSpacer() {
         const active = document.activeElement;
         if (!container.contains(active) ||
             (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA")) {
-          spacer.style.height = "0px";
+          resetPadding();
         }
       }, 100);
     };
@@ -133,15 +154,13 @@ export default function KeyboardSpacer() {
     return () => {
       container.removeEventListener("focusin", onFocusIn);
       container.removeEventListener("focusout", onFocusOut);
+      resetPadding();
     };
   }, [isMobile]);
 
   if (!isMobile) return null;
 
-  return (
-    <div
-      ref={spacerRef}
-      style={{ height: 0, transition: "height 0.25s ease-out" }}
-    />
-  );
+  // Invisible marker — zero height, no visual impact
+  // Only used to find the parent container
+  return <div ref={markerRef} aria-hidden="true" style={{ height: 0, overflow: "hidden" }} />;
 }

@@ -1,13 +1,25 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React from "react";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { haptic } from "../../../utils/haptic";
 import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 
 const PaymentMethodPopup = ({ show, onClose }) => {
   const { t } = useTranslation();
+  const scrollRef = useRef(null);
+
   if (!show) return null;
+
+  // Scroll focused input into view within our scroll container
+  const handleFocusCapture = (e) => {
+    const el = e.target;
+    if (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA") return;
+
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  };
 
   return (
     <div
@@ -24,7 +36,11 @@ const PaymentMethodPopup = ({ show, onClose }) => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1"
+          onFocusCapture={handleFocusCapture}
+        >
           <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">{t("studioMenu.popup.bankDetails")}</div>
 
           <div>
