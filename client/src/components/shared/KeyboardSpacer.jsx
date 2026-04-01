@@ -5,12 +5,10 @@ import { Capacitor } from "@capacitor/core";
  * KeyboardSpacer
  *
  * Calculates the MINIMUM padding needed to scroll the focused input
- * into the visible area above the keyboard. No more, no less.
+ * into the visible area above the keyboard.
  *
- * Top inputs → 0px padding (already visible)
- * Bottom inputs → just enough to scroll them up
- *
- * No wasted space. No visible empty areas.
+ * Uses the input's parent card/wrapper for positioning so the full
+ * context (label, card padding) stays visible — not just the input.
  */
 
 const isNative = Capacitor.isNativePlatform();
@@ -43,56 +41,70 @@ export default function KeyboardSpacer() {
   };
 
   /**
-   * Calculate minimum padding and scroll the input into view.
-   * @param {HTMLElement} input - the focused input
-   * @param {number} keyboardHeight - keyboard height in px
+   * Find the visual "card" wrapper around the input.
+   * Walks up max 5 levels looking for a rounded container with padding.
+   * Falls back to the input itself if nothing found.
    */
+  const findCardWrapper = (input, scrollContainer) => {
+    let node = input.parentElement;
+    let levels = 0;
+    while (node && node !== scrollContainer && levels < 5) {
+      const style = window.getComputedStyle(node);
+      const hasPadding = parseFloat(style.padding) > 8 || parseFloat(style.paddingTop) > 8;
+      const hasRounding = parseFloat(style.borderRadius) > 4;
+      if (hasPadding && hasRounding) return node;
+      node = node.parentElement;
+      levels++;
+    }
+    return input;
+  };
+
   const adjustForInput = (input, keyboardHeight) => {
     const container = getContainer();
     if (!container || !input) return;
 
-    // Save original padding once
     if (originalPaddingRef.current === null) {
       originalPaddingRef.current = container.style.paddingBottom || "";
     }
 
+    // Use the card wrapper for positioning, not just the tiny input
+    const target = findCardWrapper(input, container);
     const containerRect = container.getBoundingClientRect();
-    const inputRect = input.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
 
-    // Visible area = space between container top and keyboard top
+    // Visible area above the keyboard
     const keyboardTop = window.innerHeight - keyboardHeight;
     const visibleTop = containerRect.top;
     const visibleHeight = Math.max(0, keyboardTop - visibleTop);
 
-    // Where we want the input: centered in the visible area, with some margin
-    const margin = 20;
-    const targetY = visibleTop + (visibleHeight / 2) - (inputRect.height / 2);
+    // We want the bottom of the target card to be well above the keyboard
+    const buffer = 40;
+    const targetBottom = targetRect.bottom;
+    const safeZone = keyboardTop - buffer;
 
-    // How far the input currently is from where we want it
-    const currentY = inputRect.top;
-    const scrollNeeded = currentY - targetY;
+    // How far we need to scroll up
+    const scrollNeeded = targetBottom - safeZone;
 
     if (scrollNeeded <= 0) {
-      // Input is already above the target — no padding needed
+      // Already fully visible
       container.style.paddingBottom = originalPaddingRef.current || "";
       return;
     }
 
-    // Check if we CAN scroll that far with current content
+    // Can we scroll that far with existing content?
     const maxScroll = container.scrollHeight - container.clientHeight;
     const currentScroll = container.scrollTop;
     const scrollRoom = maxScroll - currentScroll;
 
-    // Only add padding for the deficit
+    // Only pad the deficit
     const deficit = Math.max(0, scrollNeeded - scrollRoom);
-
     if (deficit > 0) {
-      container.style.paddingBottom = `${deficit + margin}px`;
+      container.style.paddingBottom = `${deficit + buffer}px`;
     }
 
     // Scroll after padding is applied
     requestAnimationFrame(() => {
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      container.scrollBy({ top: scrollNeeded, behavior: "smooth" });
     });
   };
 
@@ -117,8 +129,6 @@ export default function KeyboardSpacer() {
         const el = document.activeElement;
         if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
         if (el.closest("[data-no-spacer]")) return;
-
-        // Small delay so layout settles
         setTimeout(() => adjustForInput(el, info.keyboardHeight), 50);
       });
 
@@ -152,11 +162,9 @@ export default function KeyboardSpacer() {
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight * 0.5) return;
 
-      // Estimate keyboard height
       const type = el.getAttribute("type") || "text";
       const compact = type === "tel" || type === "number";
       const estimated = compact ? window.innerHeight * 0.3 : window.innerHeight * 0.45;
-
       setTimeout(() => adjustForInput(el, estimated), 100);
     };
 
