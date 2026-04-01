@@ -122,18 +122,20 @@ const ClassDetailModal = ({
   onEnrollMember, onRemoveMember, onCancelClass, onCancelSeries, onDeleteClass, onEditClass,
   rooms = [], trainers = [], classTypes = [],
 }) => {
+  // ===== ALL HOOKS FIRST (useState, useEffect, useRef, useMemo) =====
+
   const [activeTab, setActiveTab] = useState("details");
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [cancelScope, setCancelScope] = useState("single"); // "single" | "series"
+  const [cancelScope, setCancelScope] = useState("single");
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const [showRecurringInfo, setShowRecurringInfo] = useState(false);
   const searchInputRef = useRef(null);
   const recurringRef = useRef(null);
 
-  // ─── Local edit state ───
+  // Local edit state
   const [editDate, setEditDate] = useState("");
   const [editHour, setEditHour] = useState("09");
   const [editMinute, setEditMinute] = useState("00");
@@ -141,7 +143,7 @@ const ClassDetailModal = ({
   const [editTrainerId, setEditTrainerId] = useState(null);
   const [editMax, setEditMax] = useState(12);
 
-  // ─── Original values (for change detection) ───
+  // Original values
   const [origDate, setOrigDate] = useState("");
   const [origHour, setOrigHour] = useState("09");
   const [origMinute, setOrigMinute] = useState("00");
@@ -155,58 +157,101 @@ const ClassDetailModal = ({
   const [notifyEntityName, setNotifyEntityName] = useState("");
   const [pendingAction, setPendingAction] = useState(null);
 
-  useEffect(() => { if (showSearch && searchInputRef.current) searchInputRef.current.focus() }, [showSearch]);
+  // ===== NORMALIZE DATA AFTER ALL HOOKS, BEFORE ANY LOGIC THAT USES IT =====
+  const normalizedData = React.useMemo(() => {
+    if (!classData) return null;
+    return {
+      ...classData,
+      id: classData.id || classData._id,
+      _id: classData._id || classData.id,
+      seriesId: classData.seriesId,
+      enrolledMembers: classData.enrolledMembers || classData.participants || [],
+      maxParticipants: classData.maxParticipants || 0,
+      typeName: classData.typeName || classData.classType?.name || "Unknown",
+      startTime: classData.startTime || classData.time || "09:00am",
+      endTime: classData.endTime,
+      date: classData.date,
+      status: classData.status,
+      classStatus: classData.classStatus,
+      isCancelled: classData.isCancelled || classData.status === 'canceled' || false,
+      isPast: classData.isPast || false,
+      bookingType: classData.bookingType,
+      isRecurring: classData.isRecurring || classData.bookingType === 'recurring',
+      staff: classData.staff,
+      trainerId: classData.trainerId || classData.staff?._id || classData.trainer,
+      trainerName: classData.trainerName || (classData.staff ? getStaffName(classData.staff) : "Unknown"),
+      trainerColor: classData.trainerColor,
+      room: classData.room,
+      roomId: classData.roomId,
+      roomName: classData.roomName,
+      duration: classData.duration || 60,
+      typeColor: classData.typeColor || classData.classType?.calenderColor || "#6c5ce7",
+    };
+  }, [classData]);
+
+
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) searchInputRef.current.focus()
+  }, [showSearch]);
 
   // Close recurring popover on outside click
   useEffect(() => {
     if (!showRecurringInfo) return;
-    const h = (e) => { if (recurringRef.current && !recurringRef.current.contains(e.target)) setShowRecurringInfo(false) };
+    const h = (e) => {
+      if (recurringRef.current && !recurringRef.current.contains(e.target))
+        setShowRecurringInfo(false)
+    };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [showRecurringInfo]);
 
   // Initialize local state from classData when modal opens
   useEffect(() => {
-    if (!isOpen || !classData) return;
+    if (!isOpen || !normalizedData) return;
 
-    // Get date in YYYY-MM-DD format
-    const dateStr = classData.date ? fmtDate(new Date(classData.date)) : "";
-
-    // Parse time from API format "11:00am"
-    const startTimeFormatted = parseTimeTo24h(classData.startTime || classData.time || "09:00");
+    const dateStr = normalizedData.date ? fmtDate(new Date(normalizedData.date)) : "";
+    const startTimeFormatted = parseTimeTo24h(normalizedData.startTime || "09:00");
     const [hour, minute] = startTimeFormatted.split(":");
 
     setEditDate(dateStr);
     setEditHour(hour);
     setEditMinute(minute);
-    setEditRoom(classData.roomId || classData.room?._id || classData.room || "");
-    
-    // Get trainer ID from classData
-    const trainerId = classData.trainerId || classData.staff?._id || classData.staff?.id || classData.trainer;
-    setEditTrainerId(trainerId);
-    setEditMax(classData.maxParticipants || 12);
+    setEditRoom(normalizedData.roomId || normalizedData.room?._id || normalizedData.room || "");
+    setEditTrainerId(normalizedData.trainerId);
+    setEditMax(normalizedData.maxParticipants || 12);
 
-    // Store originals
     setOrigDate(dateStr);
     setOrigHour(hour);
     setOrigMinute(minute);
-    setOrigRoom(classData.roomId || classData.room?._id || classData.room || "");
-    setOrigTrainerId(trainerId);
-    setOrigMax(classData.maxParticipants || 12);
-  }, [isOpen, classData?.id]);
+    setOrigRoom(normalizedData.roomId || normalizedData.room?._id || normalizedData.room || "");
+    setOrigTrainerId(normalizedData.trainerId);
+    setOrigMax(normalizedData.maxParticipants || 12);
+  }, [isOpen, normalizedData?.id]);
 
   // Reset on close
   useEffect(() => {
     if (!isOpen) {
-      setActiveTab("details"); setShowSearch(false); setSearchQuery("");
-      setShowDeleteConfirm(false); setShowCancelConfirm(false); setShowUnsavedConfirm(false);
-      setShowRecurringInfo(false); setShowNotify(false); setPendingAction(null);
+      setActiveTab("details");
+      setShowSearch(false);
+      setSearchQuery("");
+      setShowDeleteConfirm(false);
+      setShowCancelConfirm(false);
+      setShowUnsavedConfirm(false);
+      setShowRecurringInfo(false);
+      setShowNotify(false);
+      setPendingAction(null);
     }
   }, [isOpen]);
 
-  if (!isOpen || !classData) return null;
+  // ===== EARLY RETURN AFTER ALL HOOKS =====
+  if (!isOpen || !normalizedData) return null;
 
-  // Normalize trainers data - ensure they have firstName, lastName, id
+  // ===== NOW WE CAN ASSIGN data = normalizedData =====
+  const data = normalizedData;
+
+  // ===== REST OF YOUR COMPONENT LOGIC (derived values, helper functions, etc.) =====
+
+  // Normalize trainers data
   const normalizedTrainers = trainers.map(t => ({
     id: t.id || t._id,
     firstName: t.firstName || t.name?.split(' ')[0] || "Staff",
@@ -217,46 +262,54 @@ const ClassDetailModal = ({
     staffColor: t.staffColor,
   }));
 
-  // Get enrolled members from participants array
-  const enrolledMembers = classData.enrolledMembers || classData.participants || [];
+  // Get enrolled members
+  const enrolledMembers = data.enrolledMembers || [];
   const enrolled = membersData.filter(m => enrolledMembers.some(p => p._id === m._id || p === m._id));
   const available = membersData.filter(m => !enrolledMembers.some(p => p._id === m._id || p === m._id));
   const filtered = available.filter(m => `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()));
-  const spotsLeft = (classData.maxParticipants || 0) - (enrolledMembers.length || 0);
+  const spotsLeft = (data.maxParticipants || 0) - (enrolledMembers.length || 0);
   const isFull = spotsLeft <= 0;
-  const isCancelled = classData.isCancelled || classData.status === 'canceled' || false;
-  const isPast = classData.isPast || false;
+  const isCancelled = data.isCancelled || false;
+  const isPast = data.isPast || false;
   const canEdit = !isPast && !isCancelled;
-  const color = isCancelled ? "#6B7280" : (classData.typeColor || classData.classType?.calenderColor || "#6c5ce7");
-  const hasSeries = classData.isRecurring || classData.bookingType === 'recurring';
-  const seriesClasses = hasSeries && classData.seriesId
-    ? allClassesData.filter(c => c.seriesId === classData.seriesId && !c.isCancelled)
+  const color = isCancelled ? "#6B7280" : data.typeColor;
+  const hasSeries = data.isRecurring;
+  const seriesClasses = hasSeries && data.seriesId
+    ? allClassesData.filter(c => c.seriesId === data.seriesId && !c.isCancelled)
     : [];
   const seriesUpcoming = seriesClasses.filter(c => !c.isPast);
   const seriesTotalEnrolled = seriesClasses.reduce((sum, c) => sum + (c.enrolledMembers?.length || 0), 0);
 
-  // Get the current trainer object for display
-  const currentTrainer = normalizedTrainers.find(t => t.id === editTrainerId) || 
-    (classData.staff ? {
-      id: classData.staff._id,
-      firstName: classData.staff.firstName,
-      lastName: classData.staff.lastName,
-      role: classData.staff.role,
-      color: classData.staff.color,
-      img: classData.staff.img?.url,
+  // Get current trainer
+  const currentTrainer = normalizedTrainers.find(t => t.id === editTrainerId) ||
+    (data.staff ? {
+      id: data.staff._id,
+      firstName: data.staff.firstName,
+      lastName: data.staff.lastName,
+      role: data.staff.role,
+      color: data.staff.color,
+      img: data.staff.img?.url,
     } : null);
 
-  // ─── Change detection ───
+  // Change detection
   const hasScheduleChanges = editDate !== origDate || editHour !== origHour || editMinute !== origMinute;
   const hasChanges = hasScheduleChanges || editRoom !== origRoom || editTrainerId !== origTrainerId || editMax !== origMax;
 
-  // ─── Close with unsaved changes guard ───
+  // Handle close with unsaved changes
   const handleClose = () => {
-    if (hasChanges) { setShowUnsavedConfirm(true); return; }
+    if (hasChanges) {
+      setShowUnsavedConfirm(true);
+      return;
+    }
     onClose();
   };
-  const handleDiscardAndClose = () => { setShowUnsavedConfirm(false); onClose(); };
 
+  const handleDiscardAndClose = () => {
+    setShowUnsavedConfirm(false);
+    onClose();
+  };
+
+  // Format functions
   const formatDate = (ds) => {
     if (!ds) return "N/A";
     const d = typeof ds === "string" ? new Date(ds) : ds;
@@ -270,20 +323,19 @@ const ClassDetailModal = ({
     return `${d}.${m}.${y}`;
   };
 
-  // ─── Recurring info helpers ───
+  // Recurring info helpers
   const dayNames = { "0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday" };
   const freqLabels = { daily: "Daily", weekly: "Weekly", biweekly: "Bi-weekly", monthly: "Monthly" };
   const getRecurringLabel = () => {
     if (!hasSeries) return null;
-    const freq = classData.frequency || classData.recurrencePattern;
-    const day = classData.dayOfWeek ? dayNames[classData.dayOfWeek] : "";
-    const occurrences = classData.occurrence || classData.occurrences;
-    const startDate = classData.startDate;
-    return { freq: freqLabels[freq] || freq, day, occurrences, startDate };
+    const freq = data.frequency || data.recurrencePattern;
+    const day = data.dayOfWeek ? dayNames[data.dayOfWeek] : "";
+    const occurrences = data.occurrence || data.occurrences;
+    return { freq: freqLabels[freq] || freq, day, occurrences };
   };
   const recurringLabel = hasSeries ? getRecurringLabel() : null;
 
-  // ─── Time helpers ───
+  // Time helpers
   const todayStr = fmtDate(new Date());
   const nowHour = new Date().getHours();
   const currentSlotMinute = Math.floor(new Date().getMinutes() / 30) * 30;
@@ -297,7 +349,7 @@ const ClassDetailModal = ({
   };
 
   const calcEndTime = (h, m) => {
-    const duration = classData.duration || 60;
+    const duration = data.duration || 60;
     const total = Number(h) * 60 + Number(m) + duration;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   };
@@ -309,7 +361,6 @@ const ClassDetailModal = ({
     return classStart < slotBoundary;
   };
 
-  // When hour changes, ensure minute is still valid
   const handleHourChange = (newH) => {
     setEditHour(newH);
     const validMinutes = getFilteredMinutes(newH);
@@ -318,14 +369,13 @@ const ClassDetailModal = ({
     }
   };
 
-  // ─── Build changes object ───
+  // Build changes object
   const buildChanges = () => {
     const changes = {};
     const selectedTrainer = normalizedTrainers.find(t => t.id === editTrainerId);
 
     if (editDate !== origDate) changes.date = editDate;
     if (editHour !== origHour || editMinute !== origMinute) {
-      // Convert to backend format "HH:MMam/pm"
       const hour = parseInt(editHour);
       const ampm = hour >= 12 ? 'pm' : 'am';
       const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
@@ -341,19 +391,23 @@ const ClassDetailModal = ({
     return changes;
   };
 
-  // ─── Save Changes ───
+  // Save Changes
   const handleSaveChanges = () => {
     if (!hasChanges) return;
 
-    // Validate: is the selected time in the past?
     if (isTimePast(editDate, editHour, editMinute)) {
       toast.error("Cannot schedule class in the past");
       return;
     }
 
     const changes = buildChanges();
+    const classId = data.id;
 
-    // If schedule changed and there are enrolled members → notify first
+    if (!classId) {
+      toast.error("Unable to identify class");
+      return;
+    }
+
     if (hasScheduleChanges && enrolled.length > 0) {
       const names = enrolled.map(m => `${m.firstName} ${m.lastName}`).join(", ");
       setPendingAction({ type: "reschedule", changes });
@@ -361,15 +415,15 @@ const ClassDetailModal = ({
       setNotifyEntityName(names);
       setShowNotify(true);
     } else {
-      // No schedule change or no enrolled members → save directly
-      onEditClass?.(classData.id, changes);
+      onEditClass?.(classId, changes);
     }
   };
 
-  // ─── Member handlers ───
+  // Member handlers
   const handleEnrollClick = (member) => {
     const name = `${member.firstName} ${member.lastName}`;
-    setPendingAction({ type: "enroll", memberId: member._id || member.id, memberName: name });
+    const memberId = member._id || member.id;
+    setPendingAction({ type: "enroll", memberId, memberName: name });
     setNotifyAction("book");
     setNotifyEntityName(name);
     setShowNotify(true);
@@ -378,18 +432,21 @@ const ClassDetailModal = ({
 
   const handleRemoveClick = (member) => {
     const name = `${member.firstName} ${member.lastName}`;
-    setPendingAction({ type: "remove", memberId: member._id || member.id, memberName: name });
+    const memberId = member._id || member.id;
+    setPendingAction({ type: "remove", memberId, memberName: name });
     setNotifyAction("cancel");
     setNotifyEntityName(name);
     setShowNotify(true);
   };
 
+  // Cancel confirmation
   const handleCancelConfirm = () => {
     setShowCancelConfirm(false);
     const isSeries = cancelScope === "series";
+    const classId = data.id;
+    const seriesId = data.seriesId;
 
     if (isSeries) {
-      // Collect all enrolled members across the series for notify
       const allSeriesMembers = new Set();
       seriesClasses.forEach(c => (c.enrolledMembers || []).forEach(id => allSeriesMembers.add(id)));
       const affectedMembers = membersData.filter(m => allSeriesMembers.has(m._id || m.id));
@@ -401,8 +458,12 @@ const ClassDetailModal = ({
         setNotifyEntityName(names);
         setShowNotify(true);
       } else {
-        onCancelSeries?.(classData.seriesId);
-        onClose();
+        if (seriesId) {
+          onCancelSeries?.(seriesId);
+          onClose();
+        } else {
+          toast.error("Unable to identify series");
+        }
       }
     } else {
       if (enrolled.length > 0) {
@@ -411,45 +472,70 @@ const ClassDetailModal = ({
         setNotifyEntityName(enrolled.map(m => `${m.firstName} ${m.lastName}`).join(", "));
         setShowNotify(true);
       } else {
-        onCancelClass?.(classData.id);
-        onClose();
+        if (classId) {
+          onCancelClass?.(classId);
+          onClose();
+        } else {
+          toast.error("Unable to identify class");
+        }
       }
     }
   };
 
   const handleDeleteConfirm = () => {
     setShowDeleteConfirm(false);
-    onDeleteClass?.(classData.id);
-    onClose();
+    const classId = data.id;
+    if (classId) {
+      onDeleteClass?.(classId);
+      onClose();
+    } else {
+      toast.error("Unable to identify class");
+    }
   };
 
+  // Notify confirm
   const handleNotifyConfirm = (shouldNotify, options) => {
     if (!pendingAction) return;
-    if (pendingAction.type === "enroll") onEnrollMember?.(classData.id, pendingAction.memberId);
-    else if (pendingAction.type === "remove") onRemoveMember?.(classData.id, pendingAction.memberId);
-    else if (pendingAction.type === "cancel") { onCancelClass?.(classData.id); onClose(); }
-    else if (pendingAction.type === "cancel-series") { onCancelSeries?.(classData.seriesId); onClose(); }
-    else if (pendingAction.type === "reschedule") onEditClass?.(classData.id, pendingAction.changes);
+
+    const classId = data.id;
+    const seriesId = data.seriesId;
+
+    if (pendingAction.type === "enroll") {
+      onEnrollMember?.(classId, pendingAction.memberId);
+    }
+    else if (pendingAction.type === "remove") {
+      onRemoveMember?.(classId, pendingAction.memberId);
+    }
+    else if (pendingAction.type === "cancel") {
+      onCancelClass?.(classId);
+      onClose();
+    }
+    else if (pendingAction.type === "cancel-series") {
+      onCancelSeries?.(seriesId);
+      onClose();
+    }
+    else if (pendingAction.type === "reschedule") {
+      onEditClass?.(classId, pendingAction.changes);
+    }
+
     if (shouldNotify) console.log("Notification:", { action: pendingAction.type, options });
     setShowNotify(false);
     setPendingAction(null);
   };
 
-  // Cancel from notify → go back to editing
   const handleNotifyCancel = () => {
     setShowNotify(false);
     setPendingAction(null);
   };
 
-  // Current trainer for display
+  // Display values
   const editTrainer = currentTrainer;
   const editEndTime = calcEndTime(editHour, editMinute);
-  const displayStartTime = formatTimeDisplay(classData.startTime || classData.time || "09:00");
-  const displayEndTime = formatTimeDisplay(classData.endTime || classData.time || "10:00");
+  const displayStartTime = formatTimeDisplay(data.startTime || "09:00");
+  const displayEndTime = formatTimeDisplay(data.endTime || "10:00");
 
-  // For notify modal: show the NEW date/time
   const notifyDate = pendingAction?.type === "reschedule" && pendingAction?.changes?.date
-    ? formatDate(pendingAction.changes.date) : formatDate(classData.date);
+    ? formatDate(pendingAction.changes.date) : formatDate(data.date);
   const notifyTime = pendingAction?.type === "reschedule" && pendingAction?.changes?.time
     ? pendingAction.changes.time
     : `${displayStartTime} - ${displayEndTime}`;
@@ -638,8 +724,8 @@ const ClassDetailModal = ({
                     ) : (
                       <div className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-semibold"
                         style={{ backgroundColor: classData.trainerColor || classData.staff?.staffColor || 'var(--color-primary)' }}>
-                        {classData.trainerName ? 
-                          classData.trainerName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                        {classData.trainerName ?
+                          classData.trainerName.split(' ').map(n => n[0]).join('').toUpperCase() :
                           getStaffInitials(classData.staff)}
                       </div>
                     )}
@@ -793,8 +879,8 @@ const ClassDetailModal = ({
           {canEdit && activeTab === "details" && (
             <button onClick={handleSaveChanges} disabled={!hasChanges}
               className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${hasChanges
-                  ? "text-white bg-primary hover:bg-primary-hover"
-                  : "text-content-faint bg-surface-button cursor-not-allowed"
+                ? "text-white bg-primary hover:bg-primary-hover"
+                : "text-content-faint bg-surface-button cursor-not-allowed"
                 }`}>
               Save Changes
             </button>

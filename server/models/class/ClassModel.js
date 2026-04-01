@@ -30,7 +30,7 @@ const classSchema = new mongoose.Schema({
     },
     room: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Studio'
+        ref: 'room'
     },
     date: {
         type: Date,
@@ -57,6 +57,14 @@ const classSchema = new mongoose.Schema({
         type: String,
         enum: ['upcoming', 'completed', 'canceled', 'past'],
         default: 'upcoming'
+    },
+    isCanceled: {
+        type: Boolean,
+        default: false
+    },
+    isPast: {
+        type: Boolean,
+        default: false
     },
     approvedBy: {
         type: mongoose.Schema.Types.ObjectId,

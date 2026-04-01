@@ -128,7 +128,7 @@ const createStaff = async (req, res, next) => {
       { $addToSet: { users: staff._id } }
     );
 
-    console.log('staff debug', staff)
+
     res.status(200).json({
       message: "Successfully Created",
       staff: staff,
@@ -153,23 +153,23 @@ const loginStaff = async (req, res, next) => {
     // // .populate("studio");
 
     const staff = await UserModel.findOne({ email })
-    .populate('studio','studioName')
-    .select('+password')
+      .populate('studio', 'studioName')
+      .select('+password')
 
     if (!staff) throw new NotFoundError("Invalid Email && studioName");
 
     const isMatch = await bcrypt.compare(password, staff.password);
     if (!isMatch) throw new UnAuthorizedError("Invalid Password");
 
-
+  
     staff.loginHistory.push({
       date: new Date(),
       ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
       device: req.headers['user-agent'],
       action: 'login'
     });
-    // Keep only last 50 records
-    if (staff.loginHistory.length > 10) {
+    // Keep only last 5 records
+    if (staff.loginHistory.length < 5) {
       staff.loginHistory = staff.loginHistory.slice(-10);
     }
 
@@ -201,6 +201,7 @@ const loginStaff = async (req, res, next) => {
       sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+
     res.status(200).json({
       message: "Successfully Logged In",
       token: AccessToken,

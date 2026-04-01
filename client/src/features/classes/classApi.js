@@ -34,6 +34,39 @@ export const deleteCategoryApi = async (id) => {
     const res = await api.delete(`/class/category/${id}`, { withCredentials: true })
     return res.data
 }
+// &&&&&&&&& 
+// ALL Room APIS
+// &&&&&&&&&&&&&&
+
+
+
+// &&& CREATE CATEGORY FOR CLASS-TYPES &&&
+
+export const createRoomApi = async (data) => {
+    const res = await api.post('/class/room/create', data, { withCredentials: true })
+    return res.data
+}
+
+// &&& get All Category &&&
+
+export const getRoomsApi = async () => {
+    const res = await api.get('/class/rooms', { withCredentials: true })
+    return res.data
+}
+
+
+// update category
+export const updateRoomApi = async (id, updateData) => {
+    const res = await api.put(`/class/room/${id}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+// delete category
+
+export const deleteRoomApi = async (id) => {
+    const res = await api.delete(`/class/room/${id}`, { withCredentials: true })
+    return res.data
+}
 
 
 // **********
@@ -100,7 +133,7 @@ export const getAllClassesApi = async () => {
 
 
 export const updateClassApi = async (classId, updateData) => {
-    const res = await api.put(`/class/${classId}`, updateData, { withCredentials: true })
+    const res = await api.put(`/class/update/${classId}`, updateData, { withCredentials: true })
     return res.data
 }
 
@@ -108,31 +141,31 @@ export const updateClassApi = async (classId, updateData) => {
 // $$ Delete Class Data $$
 
 export const deleteClassApi = async (classId) => {
-    const res = await api.delete(`/class/${classId}`, { withCredentials: true })
+    const res = await api.delete(`/class/delete/${classId}`, { withCredentials: true })
     return res.data
 }
 
 
 // add participants in class
 
-export const enrollParticipantApi = async (classId) => {
-    const res = await api.patch(`/class/enroll/${classId}`, { withCredentials: true })
+export const enrollParticipantApi = async (classId, memberId) => {
+    const res = await api.patch(`/class/enroll/${classId}`, { memberIds: [memberId] }, { withCredentials: true })
     return res.data
 }
 
 
 // remove participants from class
 
-export const removeParticipantApi = async (classId) => {
-    const res = await api.patch(`/class/remove-enrolled/${classId}`, { withCredentials: true })
+export const removeParticipantApi = async (classId, memberId) => {
+    const res = await api.patch(`/class/remove-enrolled/${classId}`, { memberIds: [memberId] }, { withCredentials: true })
     return res.data
 }
 
 
 
 // cancel Class 
-export const cancelClassApi = async (classId) => {
-    const res = await api.patch(`/class/cancel/${classId}`, { withCredentials: true })
+export const cancelClassApi = async (classId, cancelType) => {
+    const res = await api.patch(`/class/cancel/${classId}`, { cancelType }, { withCredentials: true })
     return res.data
 }
 

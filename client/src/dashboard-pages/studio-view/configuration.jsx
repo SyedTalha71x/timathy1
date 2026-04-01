@@ -1841,6 +1841,55 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
 
   // save class Type
+  // Add this helper function at the top of your component or in a separate utils file
+  const base64ToFile = (base64, filename = 'image.jpg') => {
+    // Extract the base64 data and mime type
+    const arr = base64.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  // Optional: Compress image before sending to reduce size
+  const compressAndConvertToFile = async (base64, maxWidth = 1920, quality = 0.8, filename = 'image.jpg') => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Resize if too large
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to blob with quality
+        canvas.toBlob((blob) => {
+          const file = new File([blob], filename, { type: 'image/jpeg' });
+          resolve(file);
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = reject;
+      img.src = base64;
+    });
+  };
+
+  // Update your handleSaveClassType function
   const handleSaveClassType = async () => {
     if (!classTypeForm.name.trim()) {
       toast.error("Please enter a name for the class type")
@@ -1855,7 +1904,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return
     }
 
-    // Find the selected category from the categories array (Redux state)
     const selectedCategory = categories.find(cat => cat._id === classTypeForm.category)
 
     if (!selectedCategory) {
@@ -1863,18 +1911,51 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return
     }
 
-    console.log("Selected Category:", selectedCategory)
-
     const formData = new FormData()
     formData.append("name", classTypeForm.name)
-    formData.append("description", classTypeForm.description)
+    formData.append("description", classTypeForm.description || "")
     formData.append("duration", classTypeForm.duration)
-    formData.append("maxPeople", classTypeForm.maxParticipants) // Use maxPeople, not maxParticipants
+    formData.append("maxPeople", classTypeForm.maxParticipants)
     formData.append("calenderColor", classTypeForm.color)
-    formData.append("categoryId", selectedCategory._id) // Send the category ID
+    formData.append("categoryId", selectedCategory._id)
 
+    // Handle image conversion
     if (classTypeForm.image) {
-      formData.append("img", classTypeForm.image)
+      try {
+        // Check if it's a base64 string
+        if (classTypeForm.image.startsWith('data:image')) {
+          // Option 1: Simple conversion without compression
+          const imageFile = base64ToFile(classTypeForm.image, `class-type-${Date.now()}.jpg`);
+          formData.append("img", imageFile);
+
+          // Option 2: With compression (uncomment if you want to compress)
+          // const compressedFile = await compressAndConvertToFile(
+          //     classTypeForm.image,
+          //     1920,
+          //     0.8,
+          //     `class-type-${Date.now()}.jpg`
+          // );
+          // formData.append("img", compressedFile);
+        }
+        // If it's already a File object
+        else if (classTypeForm.image instanceof File) {
+          formData.append("img", classTypeForm.image);
+        }
+      } catch (error) {
+        console.error("Error processing image:", error);
+        toast.error("Failed to process image");
+        return;
+      }
+    }
+
+    // Debug: Log FormData contents
+    console.log("Sending FormData:");
+    for (let pair of formData.entries()) {
+      if (pair[0] === 'img') {
+        console.log(pair[0], 'File:', pair[1].name, 'Size:', pair[1].size, 'Type:', pair[1].type);
+      } else {
+        console.log(pair[0], pair[1]);
+      }
     }
 
     try {
@@ -1892,6 +1973,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       dispatch(getClassTypeThunk()) // Refresh the list
       setShowClassTypeModal(false)
       setEditingClassType(null)
+
+      // Reset form
+      setClassTypeForm({
+        name: "",
+        description: "",
+        category: "",
+        duration: 60,
+        maxParticipants: 20,
+        color: "#3B82F6",
+        image: null
+      })
     } catch (error) {
       console.error("Error saving class type:", error)
       toast.error(error.message || "Failed to save class type")
@@ -3659,7 +3751,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       <div className="flex items-center gap-2 mb-2">
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: type.calendarColor }}
+                          style={{ backgroundColor: type.calenderColor }}
                           title="Calendar color"
                         />
                         <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
@@ -3672,7 +3764,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-3.5 h-3.5" />
-                          max. {type.maxParticipants} participants
+                          max. {type.maxPeople} participants
                         </span>
                       </div>
                     </div>

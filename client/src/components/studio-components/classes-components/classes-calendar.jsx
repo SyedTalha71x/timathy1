@@ -186,9 +186,9 @@ const ClassesCalendar = forwardRef(({
         x: r.left + r.width / 2,
         y: r.top - 4,
         content: {
-          name: cls.typeName,
-          trainer: cls.trainerName || "N/A",
-          room: cls.roomName || "N/A",
+          name: cls.classType.name,
+          trainer: cls.staff?.firstName || "N/A",
+          room: cls.room?.roomName || "N/A",
           time: `${cls.startTime} - ${cls.endTime}`,
           enrolled: cls.enrolledMembers?.length || 0,
           max: cls.maxParticipants || 0,
@@ -224,7 +224,7 @@ const ClassesCalendar = forwardRef(({
     const isCancelled = cls.isCancelled || cls.status === 'canceled';
     const isPast = cls.isPast;
 
-    let bg = cls.calenderColor || "#6c5ce7";
+    let bg = cls.classType?.calenderColor || "#6c5ce7";
     if (isCancelled) { 
       bg = "#6B7280"; 
     }
