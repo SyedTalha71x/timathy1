@@ -4,13 +4,13 @@ import { Capacitor } from "@capacitor/core";
 /**
  * KeyboardSpacer
  *
- * Adds paddingBottom to the parent scroll container when the keyboard opens,
- * then scrolls the focused input into the visible area.
+ * Calculates the MINIMUM padding needed to scroll the focused input
+ * into the visible area above the keyboard. No more, no less.
  *
- * The added padding sits behind the keyboard — invisible while typing.
+ * Top inputs → 0px padding (already visible)
+ * Bottom inputs → just enough to scroll them up
  *
- * Native: Uses @capacitor/keyboard for exact keyboard height.
- * Web:    Uses focusin/focusout with estimated heights.
+ * No wasted space. No visible empty areas.
  */
 
 const isNative = Capacitor.isNativePlatform();
@@ -35,15 +35,6 @@ export default function KeyboardSpacer() {
     return containerRef.current;
   };
 
-  const setPadding = (value) => {
-    const c = getContainer();
-    if (!c) return;
-    if (originalPaddingRef.current === null) {
-      originalPaddingRef.current = c.style.paddingBottom || "";
-    }
-    c.style.paddingBottom = value;
-  };
-
   const resetPadding = () => {
     const c = getContainer();
     if (!c || originalPaddingRef.current === null) return;
@@ -51,11 +42,58 @@ export default function KeyboardSpacer() {
     originalPaddingRef.current = null;
   };
 
-  const scrollToInput = (el, delay = 300) => {
-    if (!el) return;
-    setTimeout(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, delay);
+  /**
+   * Calculate minimum padding and scroll the input into view.
+   * @param {HTMLElement} input - the focused input
+   * @param {number} keyboardHeight - keyboard height in px
+   */
+  const adjustForInput = (input, keyboardHeight) => {
+    const container = getContainer();
+    if (!container || !input) return;
+
+    // Save original padding once
+    if (originalPaddingRef.current === null) {
+      originalPaddingRef.current = container.style.paddingBottom || "";
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const inputRect = input.getBoundingClientRect();
+
+    // Visible area = space between container top and keyboard top
+    const keyboardTop = window.innerHeight - keyboardHeight;
+    const visibleTop = containerRect.top;
+    const visibleHeight = Math.max(0, keyboardTop - visibleTop);
+
+    // Where we want the input: centered in the visible area, with some margin
+    const margin = 20;
+    const targetY = visibleTop + (visibleHeight / 2) - (inputRect.height / 2);
+
+    // How far the input currently is from where we want it
+    const currentY = inputRect.top;
+    const scrollNeeded = currentY - targetY;
+
+    if (scrollNeeded <= 0) {
+      // Input is already above the target — no padding needed
+      container.style.paddingBottom = originalPaddingRef.current || "";
+      return;
+    }
+
+    // Check if we CAN scroll that far with current content
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    const currentScroll = container.scrollTop;
+    const scrollRoom = maxScroll - currentScroll;
+
+    // Only add padding for the deficit
+    const deficit = Math.max(0, scrollNeeded - scrollRoom);
+
+    if (deficit > 0) {
+      container.style.paddingBottom = `${deficit + margin}px`;
+    }
+
+    // Scroll after padding is applied
+    requestAnimationFrame(() => {
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   };
 
   // ════════════════════════════════════════════
@@ -64,8 +102,7 @@ export default function KeyboardSpacer() {
   useEffect(() => {
     if (!isNative || !isMobile) return;
 
-    let showListener;
-    let hideListener;
+    let showListener, hideListener;
 
     const setup = async () => {
       let Keyboard;
@@ -81,8 +118,8 @@ export default function KeyboardSpacer() {
         if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
         if (el.closest("[data-no-spacer]")) return;
 
-        setPadding(`${info.keyboardHeight}px`);
-        scrollToInput(el, 100);
+        // Small delay so layout settles
+        setTimeout(() => adjustForInput(el, info.keyboardHeight), 50);
       });
 
       hideListener = await Keyboard.addListener("keyboardWillHide", () => {
@@ -115,10 +152,12 @@ export default function KeyboardSpacer() {
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight * 0.5) return;
 
+      // Estimate keyboard height
       const type = el.getAttribute("type") || "text";
       const compact = type === "tel" || type === "number";
-      setPadding(compact ? "30vh" : "45vh");
-      scrollToInput(el);
+      const estimated = compact ? window.innerHeight * 0.3 : window.innerHeight * 0.45;
+
+      setTimeout(() => adjustForInput(el, estimated), 100);
     };
 
     const onFocusOut = () => {
