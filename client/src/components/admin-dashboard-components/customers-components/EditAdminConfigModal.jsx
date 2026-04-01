@@ -4,6 +4,7 @@ import { Trash2, X, Plus, ChevronDown, ChevronUp, Pencil, Shield, Check } from "
 import { useEffect, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import toast from "react-hot-toast"
+import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // Note Status Options (studio-context)
 const NOTE_STATUSES = [
@@ -257,7 +258,7 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
 
   return (
     <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000010] overflow-y-auto">
-      <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8">
+      <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -616,6 +617,8 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
               </div>
             )}
           </div>
+
+          <KeyboardSpacer />
 
           {/* Footer */}
           <div className="flex justify-end gap-2 pt-4">

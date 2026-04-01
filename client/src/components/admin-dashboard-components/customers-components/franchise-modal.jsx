@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { X, Upload, Plus, Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react"
 import toast from "react-hot-toast"
+import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // Note Status Options (franchise-context) — labels are i18n keys
 const NOTE_STATUSES = [
@@ -533,6 +534,7 @@ const FranchiseModal = ({
               )}
             </div>
           )}
+          <KeyboardSpacer />
         </div>
 
         {/* ── Sticky Footer ── */}
