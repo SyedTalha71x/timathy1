@@ -28,7 +28,7 @@ const AddFoodModal = ({
           ))}
         </div>
         {addFoodTab === "search" && (
-          <div className="p-4 border-b border-border flex-shrink-0 space-y-3">
+          <div className="p-4 border-b border-border flex-shrink-0 space-y-3" data-no-spacer>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
               <input ref={searchRef} type="text" placeholder={t("nutrition.addFood.searchPlaceholder")} value={searchQuery}
@@ -62,7 +62,7 @@ const AddFoodModal = ({
                     </div>
                   </div>
                   <button onClick={() => toggleFavorite(selectedFood._id || selectedFood.id)}
-                    className={`p-1.5 rounded-lg transition-colors ${isFavorite(selectedFood._id || selectedFood.id) ? "text-yellow-400" : "text-content-faint hover:text-yellow-400"}`}>
+                    className={`p-1.5 rounded-lg transition-colors ${isFavorite(selectedFood._id || selectedFood.id) ? "text-primary" : "text-content-faint hover:text-primary"}`}>
                     <Star className="w-4 h-4" fill={isFavorite(selectedFood._id || selectedFood.id) ? "currentColor" : "none"} />
                   </button>
                 </div>
@@ -113,7 +113,7 @@ const AddFoodModal = ({
                   {favoriteFoods.length > 0 ? favoriteFoods.map((food) => (
                     <button key={food._id || food.id} onClick={() => { setSelectedFood(food); setUnit(food.unit || "") }}
                       className="w-full text-left px-3 py-2.5 hover:bg-surface-hover rounded-lg transition-colors flex justify-between items-center">
-                      <div className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" /><span className="text-sm text-content-primary">{food.name}</span></div>
+                      <div className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-primary" fill="currentColor" /><span className="text-sm text-content-primary">{food.name}</span></div>
                       <span className="text-xs text-content-faint">{Math.round(food.calories || 0)} kcal</span>
                     </button>
                   )) : (
