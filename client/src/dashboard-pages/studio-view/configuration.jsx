@@ -2111,6 +2111,44 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       }
     )
   }
+
+  // Room Handlers
+  const handleAddClassRoom = () => {
+    openAddItemModal(
+      "Add Room",
+      [
+        { key: "name", label: "Room Name", type: "text", placeholder: "e.g. Studio 1, Outdoor", required: true },
+      ],
+      (data) => {
+        const name = data.name.trim()
+        if (!name) return
+        const duplicate = classRooms.find(r => r.toLowerCase() === name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Room already exists")
+          return
+        }
+        setClassRooms([...classRooms, name])
+        toast.success("Room added successfully")
+        closeAddItemModal()
+      }
+    )
+  }
+
+  const handleRemoveClassRoom = (index) => {
+    const roomName = classRooms[index]
+    openDeleteModal(
+      "Delete Room",
+      roomName,
+      "This cannot be undone.",
+      () => {
+        const updated = classRooms.filter((_, i) => i !== index)
+        setClassRooms(updated)
+        toast.success("Room deleted successfully")
+        closeDeleteModal()
+      }
+    )
+  }
+
   // Contract handlers
   const handleAddContractType = () => {
     setEditingContractType({
