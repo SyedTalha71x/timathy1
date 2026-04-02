@@ -107,12 +107,12 @@ const SettingsModal = ({
 
   if (!show) return null
 
-  const panelScroll = "h-full overflow-y-auto p-4 md:p-6"
-  const panelPadding = { WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }
+  const panelScroll = "h-full overflow-y-auto p-4 md:p-6 overscroll-contain"
+  const panelPadding = { WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: 'pan-y', paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 pt-[env(safe-area-inset-top,0px)]">
-      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[88dvh] sm:max-h-[85vh] flex flex-col">
+      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg h-[88dvh] sm:h-auto sm:max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h3 className="text-base font-semibold text-content-primary">{t("nutrition.settings.title")}</h3>
@@ -137,7 +137,7 @@ const SettingsModal = ({
           <div
             ref={swipeRef}
             className="flex h-full"
-            style={{ width: `${tabKeys.length * 100}%`, willChange: 'transform', touchAction: 'pan-y pinch-zoom', transform: `translateX(-${tabKeys.indexOf(settingsTab) * (100 / tabKeys.length)}%)` }}
+            style={{ width: `${tabKeys.length * 100}%`, willChange: 'transform', transform: `translateX(-${tabKeys.indexOf(settingsTab) * (100 / tabKeys.length)}%)` }}
           >
             {/* PROFILE */}
             <div className="h-full" style={{ width: `${100 / tabKeys.length}%` }}>
