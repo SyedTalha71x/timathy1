@@ -15,8 +15,8 @@ const SettingsModal = ({
   const { t } = useTranslation()
   if (!show) return null
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[90dvh] sm:max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 pt-[env(safe-area-inset-top,0px)]">
+      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[88dvh] sm:max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h3 className="text-base font-semibold text-content-primary">{t("nav.settings")}</h3>
           <button onClick={onClose} className="p-1 text-content-muted hover:text-content-primary"><X className="w-5 h-5" /></button>
