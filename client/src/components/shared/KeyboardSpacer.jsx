@@ -7,8 +7,7 @@ import { Capacitor } from "@capacitor/core";
  * Mount ONCE in App.jsx. Handles every input/textarea automatically.
  *
  * Native (iOS/Android):
- *   Listens to 'capacitor-keyboard' custom events already dispatched
- *   by main.jsx — no duplicate Capacitor plugin import needed.
+ *   Listens to 'capacitor-keyboard' custom events from main.jsx.
  *
  * Web fallback:
  *   Uses focusin/focusout with estimated keyboard heights.
@@ -22,15 +21,19 @@ import { Capacitor } from "@capacitor/core";
 
 const isNative = Capacitor.isNativePlatform();
 
+/**
+ * Walk up from an element to find the nearest scrollable ancestor.
+ * 
+ * FIX: Don't require scrollHeight > clientHeight — the container might
+ * not overflow YET (before padding is added). Just check if overflow-y
+ * is set to auto/scroll, which means it COULD scroll.
+ */
 const findScrollParent = (el) => {
   let node = el?.parentElement;
   while (node && node !== document.body && node !== document.documentElement) {
     const style = window.getComputedStyle(node);
     const overflowY = style.overflowY;
-    if (
-      (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") &&
-      node.scrollHeight > node.clientHeight
-    ) {
+    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
       return node;
     }
     node = node.parentElement;
@@ -64,6 +67,7 @@ export default function GlobalKeyboardSpacer() {
 
     const container = findScrollParent(input);
     if (!container) {
+      // No scrollable parent — just try scrollIntoView
       setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
       return;
     }
@@ -82,10 +86,12 @@ export default function GlobalKeyboardSpacer() {
     const containerRect = container.getBoundingClientRect();
     const inputRect = input.getBoundingClientRect();
 
+    // Visible area above keyboard
     const keyboardTop = window.innerHeight - keyboardHeight;
     const visibleTop = containerRect.top;
     const visibleHeight = Math.max(0, keyboardTop - visibleTop);
 
+    // Place input in upper third of visible area
     const buffer = 60;
     const targetY = visibleTop + (visibleHeight / 3);
     const scrollNeeded = inputRect.top - targetY;
@@ -104,14 +110,17 @@ export default function GlobalKeyboardSpacer() {
       container.style.paddingBottom = `${deficit + buffer}px`;
     }
 
+    // Wait for layout to update with new padding, then scroll
     requestAnimationFrame(() => {
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => {
+        input.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 30);
     });
   };
 
-  // ════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   // Native: Listen to custom events from main.jsx
-  // ════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   useEffect(() => {
     if (!isNative || !isMobile) return;
 
@@ -134,9 +143,9 @@ export default function GlobalKeyboardSpacer() {
     };
   }, [isMobile]);
 
-  // ════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   // Web fallback
-  // ════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   useEffect(() => {
     if (isNative || !isMobile) return;
 
@@ -146,7 +155,7 @@ export default function GlobalKeyboardSpacer() {
       if (el.closest("[data-no-spacer]")) return;
 
       const rect = el.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.5) return;
+      if (rect.top < window.innerHeight * 0.4) return;
 
       const type = el.getAttribute("type") || "text";
       const compact = type === "tel" || type === "number";
@@ -160,7 +169,7 @@ export default function GlobalKeyboardSpacer() {
         if (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA" && !active.isContentEditable) {
           resetPadding();
         }
-      }, 100);
+      }, 150);
     };
 
     document.addEventListener("focusin", onFocusIn);
@@ -172,5 +181,6 @@ export default function GlobalKeyboardSpacer() {
     };
   }, [isMobile]);
 
+  // Renders nothing — pure side-effect component
   return null;
 }
