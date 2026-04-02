@@ -34,7 +34,7 @@ const VacationRoutes = require('./VacationRoutes')
 const MedicalHistoryResponseRoutes = require('./MedicalResponseRoutes')
 const ClassRoutes = require('./classes/ClassRoutes')
 const PostRoutes = require('./PostRoutes')
-
+const ContractRoutes = require('./contract/ContractRoutes')
 
 const router = express.Router();
 
@@ -99,6 +99,7 @@ router.use('/vacation', VacationRoutes)
 router.use('/history', MedicalHistoryResponseRoutes)
 router.use('/class', ClassRoutes)
 router.use('/post', PostRoutes)
+router.use('/contract', ContractRoutes)
 
 
 
