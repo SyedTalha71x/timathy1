@@ -4,16 +4,16 @@ const { createPost, getAllPosts, updatePost, deletePost, activePost, deactivateP
 
 
 const { verifyAccessToken } = require('../middleware/verifyToken')
-const {uploadImage} = require('../config/upload')
+const { uploadImage } = require('../config/upload')
 
 const router = express.Router()
 
 router.use(verifyAccessToken)
 
 
-router.post('/create',uploadImage.single('img'), createPost)
+router.post('/create', uploadImage.single('img'), createPost)
 router.get('/', getAllPosts)
-router.put('/:postId', updatePost)
+router.put('/:postId', uploadImage.single('img'), updatePost)
 router.delete('/:postId', deletePost)
 router.patch('/:postId/active', activePost)
 router.patch('/:postId/in-active', deactivatePost)

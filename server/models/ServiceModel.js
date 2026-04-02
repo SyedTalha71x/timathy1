@@ -14,9 +14,8 @@ const serviceSchema = new mongoose.Schema(
     image: { url: String, public_id: String },
     description: String,
     category: {
-      type: String,
-      enum: ['Health Check', 'Wellness', 'Personal Training', 'Recovery', 'Mindfulness', 'Group Class'],
-      required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'appointmentCategory'
     },
     price: {
       type: Number,

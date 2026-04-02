@@ -71,6 +71,7 @@ import CreateContractFormModal from "../../components/studio-components/configur
 import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { updateLoggedInStaffThunk } from '../../features/staff/staffSlice'
+
 import { useSelector, useDispatch } from 'react-redux'
 // all classes Related slices
 import {
@@ -148,7 +149,7 @@ import {
 // ============================================
 import { useStudioConfiguration } from "../../hooks/useStudioConfiguration"
 import { updateStudioThunk } from "../../features/studio/studioSlice"
-import { createAppointmentTypesThunk, deleteAppointmentTypesThunk, updateAppointmentTypesThunk } from "../../features/services/servicesSlice"
+import { createAppointmentTypesThunk, deleteAppointmentTypesThunk, getAppointmentCategoriesThunk, updateAppointmentTypesThunk, createAppointmentCategoryThunk, updateAppointmentCategoryThunk, deleteAppointmentCategoryThunk, } from "../../features/services/servicesSlice"
 
 
 
@@ -459,7 +460,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [searchParams] = useSearchParams()
   const dispatch = useDispatch();
   const { categories = [], types = [], classes = [], loading, rooms = [] } = useSelector((state) => state.classes) || {}
-
+  const { appointmentCategories: reduxAppointmentCategories = [] } = useSelector((state) => state.appointments) || {}
   // console.log('Categories', categories)
   // console.log('Types', types)
   // ============================================
@@ -512,7 +513,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   useEffect(() => {
     dispatch(getClassTypeThunk())
     dispatch(getCategoriesThunk()),
-      dispatch(getAllRoomsThunk())
+      dispatch(getAllRoomsThunk()),
+      dispatch(getAppointmentCategoriesThunk())
   }, [dispatch])
   // ============================================
   // Profile State Variables
@@ -616,7 +618,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   // Appointments
   const [appointmentTypes, setAppointmentTypes] = useState([])
-  const [appointmentCategories, setAppointmentCategories] = useState([])
+  const [appointmentCategories, setAppointmentCategories] = useState(reduxAppointmentCategories)
   const [studioCapacity, setStudioCapacity] = useState(10)
   const [trialTraining, setTrialTraining] = useState({})
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
@@ -779,7 +781,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const desktopContentRef = useRef(null)
   const prevCountryRef = useRef(null)
 
-
+  console.log('appointmentCategories', reduxAppointmentCategories)
   // ============================================
   // Debounced Save Function
   // ============================================
@@ -1753,6 +1755,97 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       }
     )
   }
+
+  // Appointment Category Handlers with Redux Integration
+  const handleAddAppointmentCategory = () => {
+    openAddItemModal(
+      "Add Appointment Category",
+      [
+        { key: "name", label: "Category Name", type: "text", placeholder: "e.g. Training, Consultation", required: true },
+        { key: "description", label: "Description", type: "text", placeholder: "Optional description", required: false },
+      ],
+      async (data) => {
+        const duplicate = appointmentCategories.find(c => c.name?.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Category already exists")
+          return
+        }
+
+        try {
+          const apiData = {
+            category: data.name,
+            description: data.description || ""
+          }
+
+          await dispatch(createAppointmentCategoryThunk(apiData)).unwrap()
+          toast.success("Appointment category created successfully")
+          await dispatch(getAppointmentCategoriesThunk()) // Refresh the list
+          closeAddItemModal()
+        } catch (error) {
+          console.error("Error creating appointment category:", error)
+          toast.error(error.message || "Failed to create category")
+        }
+      }
+    )
+  }
+
+  const handleUpdateAppointmentCategory = async (categoryId, newName) => {
+    if (!categoryId) return
+
+    // Check for duplicates
+    const duplicate = appointmentCategories.find(
+      (c) => c._id !== categoryId && c.name?.toLowerCase() === newName?.toLowerCase()
+    )
+    if (duplicate) {
+      toast.error("Duplicate — Category name already exists")
+      return
+    }
+
+    try {
+      const updateData = {
+        category: newName,
+        description: appointmentCategories.find(c => c._id === categoryId)?.description || ""
+      }
+
+      await dispatch(updateAppointmentCategoryThunk({
+        categoryId: categoryId,
+        updateData: updateData
+      })).unwrap()
+      toast.success("Appointment category updated successfully")
+      await dispatch(getAppointmentCategoriesThunk()) // Refresh the list
+    } catch (error) {
+      console.error("Error updating appointment category:", error)
+      toast.error(error.message || "Failed to update category")
+    }
+  }
+
+  const handleRemoveAppointmentCategory = async (categoryId, index) => {
+    // Check if category is in use by any appointment type
+    const isInUse = appointmentTypes.some(t => t.category === categoryId || t.category?.name === appointmentCategories[index]?.name)
+
+    if (isInUse) {
+      toast.error("Cannot remove — Category is in use by an appointment type")
+      return
+    }
+
+    openDeleteModal(
+      "Delete Category",
+      appointmentCategories[index]?.name,
+      "This cannot be undone.",
+      async () => {
+        try {
+          await dispatch(deleteAppointmentCategoryThunk(categoryId)).unwrap()
+          toast.success("Appointment category deleted successfully")
+          await dispatch(getAppointmentCategoriesThunk()) // Refresh the list
+          closeDeleteModal()
+        } catch (error) {
+          console.error("Error deleting appointment category:", error)
+          toast.error(error.message || "Failed to delete category")
+        }
+      }
+    )
+  }
+
 
   // Category handlers
 
@@ -3463,7 +3556,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   >
                     {/* Image */}
                     <div className="relative aspect-video bg-surface-card">
-                      {type.image?.url ? (
+                      {type.image ? (
                         <img
                           src={type.image?.url}
                           alt={type.name}
@@ -3557,6 +3650,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
         )
 
+      // Replace the appointment-categories case with this:
+
       case "appointment-categories":
         return (
           <div className="space-y-6">
@@ -3565,7 +3660,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               description="Organize appointment types into categories"
               action={
                 <button
-                  onClick={handleAddCategory}
+                  onClick={handleAddAppointmentCategory}
                   className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -3574,67 +3669,81 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
             <SettingsCard>
-              <div className="flex flex-wrap gap-2">
-                {appointmentCategories.map((category, index) => (
-                  <div key={index} className="group relative">
-                    {editingCategory.index === index ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="text"
-                          value={editingCategory.value}
-                          onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              const updated = [...appointmentCategories]
-                              updated[index] = editingCategory.value.trim() || category
-                              setAppointmentCategories(updated)
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-content-muted">Loading categories...</p>
+                </div>
+              ) : appointmentCategories.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No categories configured</p>
+                  <p className="text-sm mt-1">Click "Add Category" to create your first category</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {appointmentCategories.map((category, index) => (
+                    <div key={category._id || index} className="group relative">
+                      {editingCategory.index === index ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={editingCategory.value}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleUpdateAppointmentCategory(category._id, editingCategory.value.trim() || category.name)
+                                setEditingCategory({ index: null, value: "" })
+                              }
+                              if (e.key === 'Escape') {
+                                setEditingCategory({ index: null, value: "" })
+                              }
+                            }}
+                            autoFocus
+                            className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
+                          />
+                          <button
+                            onClick={() => {
+                              handleUpdateAppointmentCategory(category._id, editingCategory.value.trim() || category.name)
                               setEditingCategory({ index: null, value: "" })
-                            }
-                            if (e.key === 'Escape') {
-                              setEditingCategory({ index: null, value: "" })
-                            }
-                          }}
-                          autoFocus
-                          className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
-                        />
-                        <button
-                          onClick={() => {
-                            const updated = [...appointmentCategories]
-                            updated[index] = editingCategory.value.trim() || category
-                            setAppointmentCategories(updated)
-                            setEditingCategory({ index: null, value: "" })
-                          }}
-                          className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                            }}
+                            className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingCategory({ index: null, value: "" })}
+                            className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
+                          onClick={() => setEditingCategory({ index, value: category.name })}
                         >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setEditingCategory({ index: null, value: "" })}
-                          className="p-1 text-red-400 hover:bg-red-500/10 rounded"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
-                        onClick={() => setEditingCategory({ index, value: category })}
-                      >
-                        {category}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleRemoveCategory(index)
-                          }}
-                          className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                          {category.name}
+                          {category.description && (
+                            <Tooltip content={category.description} position="right">
+                              <Info className="w-3 h-3 text-content-faint hover:text-content-secondary cursor-help" />
+                            </Tooltip>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveAppointmentCategory(category._id, index)
+                            }}
+                            className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="text-xs text-content-faint mt-4">
                 Click a category to edit. Categories in use cannot be deleted.
               </p>

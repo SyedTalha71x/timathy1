@@ -115,7 +115,7 @@ const showAllPendingRequests = async (req, res, next) => {
     try {
         const userId = req.user?._id;
 
-        const vacation = await VacationModel.find({ status: 'pending' })
+        const vacation = await VacationModel.find({ status: 'pending' }).populate('staff', 'firstName lastName').populate('studioId', 'studioName')
         return res.status(200).json({
             success: true,
             vacation: vacation

@@ -20,10 +20,10 @@ export const deletePostApi = async (postId) => {
     return res.data
 }
 export const activePostApi = async (postId) => {
-    const res = await api.patch(`/post/${postId}`, { withCredentials: true })
+    const res = await api.patch(`/post/${postId}/active`, { withCredentials: true })
     return res.data
 }
 export const deActivePostApi = async (postId) => {
-    const res = await api.patch(`/post/${postId}`, { withCredentials: true })
+    const res = await api.patch(`/post/${postId}/in-active`, { withCredentials: true })
     return res.data
 }

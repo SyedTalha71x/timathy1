@@ -37,6 +37,26 @@ const stripHtmlTags = (html) => {
   return text.replace(/\s+/g, ' ').trim()
 }
 
+// Helper function to convert base64 to File
+const base64ToFile = (base64, filename = 'image.jpg') => {
+  const arr = base64.split(',')
+  const mime = arr[0].match(/:(.*?);/)[1]
+  const bstr = atob(arr[1])
+  let n = bstr.length
+  const u8arr = new Uint8Array(n)
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  return new File([u8arr], filename, { type: mime })
+}
+
+// Helper function to convert URL to File (for media library images)
+const urlToFile = async (url, filename = 'image.jpg') => {
+  const response = await fetch(url)
+  const blob = await response.blob()
+  return new File([blob], filename, { type: blob.type })
+}
+
 const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
   isOpen,
   onClose,
@@ -49,18 +69,19 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
     title: "",
     content: "",
     status: "Active",
-    image: null,
+    imageFile: null,        // Store File object for new uploads
+    existingImageUrl: null, // Store existing image URL
     tags: [],
   })
   const [showCropModal, setShowCropModal] = useState(false)
   const [tempImage, setTempImage] = useState(null)
   const [originalImage, setOriginalImage] = useState(null)
   const fileInputRef = useRef(null)
-  
+
   // Image source selection state
   const [showImageSourceModal, setShowImageSourceModal] = useState(false)
   const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
-  
+
   // Scheduling state
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [schedule, setSchedule] = useState({
@@ -79,7 +100,8 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
         title: post.title || "",
         content: post.content || "",
         status: post.status || "Active",
-        image: post.image || null,
+        imageFile: null,  // Reset - no new file selected
+        existingImageUrl: post.image || null,  // Store existing image URL
         tags: post.tags || [],
       })
       // Load schedule data from post if it exists
@@ -166,11 +188,16 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
         setShowCropModal(true)
       }
       reader.readAsDataURL(file)
+
+      // Store the actual File object
+      setFormData(prev => ({ ...prev, imageFile: file, existingImageUrl: null }))
     }
   }, [])
 
   const handleCropComplete = useCallback((croppedImage) => {
-    setFormData(prev => ({ ...prev, image: croppedImage }))
+    // Convert base64 to File object
+    const file = base64ToFile(croppedImage, 'cropped-image.jpg')
+    setFormData(prev => ({ ...prev, imageFile: file, existingImageUrl: null }))
     setTempImage(null)
     setShowCropModal(false)
   }, [])
@@ -178,28 +205,35 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
   const handleCropCancel = useCallback(() => {
     setTempImage(null)
     setShowCropModal(false)
-    if (!formData.image && fileInputRef.current) {
+    if (!formData.imageFile && fileInputRef.current) {
       fileInputRef.current.value = ""
       setOriginalImage(null)
     }
-  }, [formData.image])
+  }, [formData.imageFile])
 
   const handleReCrop = useCallback(() => {
-    const imageToEdit = originalImage || formData.image
+    const imageToEdit = originalImage || (formData.imageFile ? URL.createObjectURL(formData.imageFile) : null)
     if (imageToEdit) {
-      if (!originalImage) {
-        setOriginalImage(formData.image)
+      if (!originalImage && formData.imageFile) {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setOriginalImage(reader.result)
+          setTempImage(reader.result)
+          setShowCropModal(true)
+        }
+        reader.readAsDataURL(formData.imageFile)
+      } else {
+        setTempImage(imageToEdit)
+        setShowCropModal(true)
       }
-      setTempImage(imageToEdit)
-      setShowCropModal(true)
     }
-  }, [originalImage, formData.image])
+  }, [originalImage, formData.imageFile])
 
   const handleTagToggle = useCallback((tagId) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.includes(tagId) 
-        ? prev.tags.filter((id) => id !== tagId) 
+      tags: prev.tags.includes(tagId)
+        ? prev.tags.filter((id) => id !== tagId)
         : [...prev.tags, tagId],
     }))
   }, [])
@@ -213,7 +247,11 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
   }, [])
 
   const handleRemoveImage = useCallback(() => {
-    setFormData(prev => ({ ...prev, image: null }))
+    setFormData(prev => ({
+      ...prev,
+      imageFile: null,
+      existingImageUrl: null
+    }))
     setOriginalImage(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
   }, [])
@@ -234,40 +272,55 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
     })
   }, [])
 
-  const handleMediaLibrarySelect = useCallback((imageUrl) => {
-    setOriginalImage(imageUrl)
-    setTempImage(imageUrl)
-    setShowMediaLibraryModal(false)
-    setShowCropModal(true)
+  const handleMediaLibrarySelect = useCallback(async (imageUrl) => {
+    try {
+      // Convert URL to File object
+      const file = await urlToFile(imageUrl, 'library-image.jpg')
+      setFormData(prev => ({ ...prev, imageFile: file, existingImageUrl: null }))
+      setShowMediaLibraryModal(false)
+      // Optionally, you can skip crop for library images
+      // setShowCropModal(true) // Uncomment if you want to crop library images
+    } catch (error) {
+      console.error('Error loading image from library:', error)
+      alert('Failed to load image from library')
+    }
   }, [])
 
   const handleSave = useCallback(() => {
     if (!formData.title.trim() || !stripHtmlTags(formData.content).trim()) return
-    
+
+    // Prepare data for parent component
     const postData = {
-      ...post,
-      ...formData,
+      title: formData.title,
+      content: formData.content,
+      visibility: post?.visibility === 'Members' ? 'members' : 'staff',
+      tags: formData.tags,
       schedule: schedule.type === 'scheduled' ? schedule : null,
     }
+
+    // Only add image property if there's a new file OR explicitly removed
+    if (formData.imageFile) {
+      // New image uploaded
+      postData.image = formData.imageFile;
+    } else if (formData.existingImageUrl === null && !formData.imageFile) {
+      // Image was explicitly removed (user clicked remove)
+      postData.image = null;
+    }
+    // If existingImageUrl exists and no new file, don't send image property at all
+
     onSave(postData)
     onClose()
   }, [formData, schedule, post, onSave, onClose])
-
-  const getScheduleDisplayText = useCallback(() => {
-    if (schedule.type === 'immediate') {
-      return 'Post will be published when saved'
+  // Get display image URL (for preview only)
+  const getDisplayImageUrl = useCallback(() => {
+    if (formData.imageFile) {
+      return URL.createObjectURL(formData.imageFile)
     }
-    
-    let text = `Starts: ${schedule.startDate}`
-    if (schedule.startTime) text += ` at ${schedule.startTime}`
-    
-    if (schedule.hasEndDate && schedule.endDate) {
-      text += ` | Ends: ${schedule.endDate}`
-      if (schedule.endTime) text += ` at ${schedule.endTime}`
+    if (formData.existingImageUrl) {
+      return formData.existingImageUrl
     }
-    
-    return text
-  }, [schedule])
+    return null
+  }, [formData.imageFile, formData.existingImageUrl])
 
   const tagsDisplay = useMemo(() => {
     if (!availableTags || availableTags.length === 0) {
@@ -282,11 +335,10 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             key={tag.id}
             type="button"
             onClick={() => handleTagToggle(tag.id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-              formData.tags.includes(tag.id) 
-                ? "text-white" 
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${formData.tags.includes(tag.id)
+                ? "text-white"
                 : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
-            }`}
+              }`}
             style={{ backgroundColor: formData.tags.includes(tag.id) ? tag.color : undefined }}
           >
             <Tag size={10} />
@@ -298,6 +350,8 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
   }, [availableTags, formData.tags, handleTagToggle])
 
   if (!isOpen) return null
+
+  const displayImageUrl = getDisplayImageUrl()
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1000]">
@@ -319,10 +373,10 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             {/* Cover Image */}
             <div>
               <label className="text-sm text-content-secondary block mb-2">Cover Image</label>
-              {formData.image ? (
+              {displayImageUrl ? (
                 <div className="relative rounded-xl overflow-hidden border border-border bg-surface-dark">
                   <div className="aspect-video">
-                    <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
+                    <img src={displayImageUrl} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
                   </div>
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button

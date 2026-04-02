@@ -38,105 +38,105 @@ import {
 import toast from "../../components/shared/SharedToast"
 import { useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
-import { 
-  getPendingProfileUpdates, 
-  approveProfileUpdate, 
-  rejectProfileUpdate 
-} from "../../features/member/memberSlice"
-
+// import { 
+//   getPendingProfileUpdates, 
+//   approveProfileUpdate, 
+//   rejectProfileUpdate 
+// } from "../../features/member/memberSlice"
+import { fetchAllPendingAppointmentThunk, rejectedAppointmentThunk, approvedAppointmentThunk } from '../../features/appointments/AppointmentSlice'
+import { fetchPendingVacationRequestThunk, approvedVacationRequestThunk, rejectedVacationRequestThunk } from '../../features/staff/staffSlice'
 // Communication imports
 import ChatPopup from "../../components/shared/communication/ChatPopup"
 import MessageTypeSelectionModal from "../../components/shared/communication/MessageTypeSelectionModal"
 import SendEmailModal from "../../components/shared/communication/SendEmailModal"
 import DraftModal from "../../components/shared/communication/DraftModal"
 import { membersData, staffData } from "../../utils/studio-states"
-
 // ============================================
 // Sample Data for Activity Monitor
 // ============================================
-const initialVacationRequests = [
-  {
-    id: "vac-1",
-    staffId: 2,
-    employeeFirstName: "John",
-    employeeLastName: "Trainer",
-    department: "Training",
-    startDate: "2026-02-15",
-    endDate: "2026-02-22",
-    days: 6,
-    reason: "Family vacation",
-    status: "pending",
-    submittedAt: "2026-01-18T10:30:00",
-  },
-  {
-    id: "vac-2",
-    staffId: 5,
-    employeeFirstName: "Lisa",
-    employeeLastName: "Reception",
-    department: "Reception",
-    startDate: "2026-03-01",
-    endDate: "2026-03-05",
-    days: 5,
-    reason: "Personal matters",
-    status: "pending",
-    submittedAt: "2026-01-19T14:15:00",
-  },
-  {
-    id: "vac-3",
-    staffId: 3,
-    employeeFirstName: "Sarah",
-    employeeLastName: "Coach",
-    department: "Training",
-    startDate: "2026-01-25",
-    endDate: "2026-01-26",
-    days: 2,
-    reason: "Medical appointment",
-    status: "approved",
-    submittedAt: "2026-01-15T09:00:00",
-  },
-]
+// const initialVacationRequests = [
+//   {
+//     id: "vac-1",
+//     staffId: 2,
+//     employeeFirstName: "John",
+//     employeeLastName: "Trainer",
+//     department: "Training",
+//     startDate: "2026-02-15",
+//     endDate: "2026-02-22",
+//     days: 6,
+//     reason: "Family vacation",
+//     status: "pending",
+//     submittedAt: "2026-01-18T10:30:00",
+//   },
+//   {
+//     id: "vac-2",
+//     staffId: 5,
+//     employeeFirstName: "Lisa",
+//     employeeLastName: "Reception",
+//     department: "Reception",
+//     startDate: "2026-03-01",
+//     endDate: "2026-03-05",
+//     days: 5,
+//     reason: "Personal matters",
+//     status: "pending",
+//     submittedAt: "2026-01-19T14:15:00",
+//   },
+//   {
+//     id: "vac-3",
+//     staffId: 3,
+//     employeeFirstName: "Sarah",
+//     employeeLastName: "Coach",
+//     department: "Training",
+//     startDate: "2026-01-25",
+//     endDate: "2026-01-26",
+//     days: 2,
+//     reason: "Medical appointment",
+//     status: "approved",
+//     submittedAt: "2026-01-15T09:00:00",
+//   },
+// ]
 
-const initialAppointmentRequests = [
-  {
-    id: "app-1",
-    memberId: 1,
-    memberFirstName: "John",
-    memberLastName: "Doe",
-    appointmentType: "Trial Training",
-    requestedDate: "2026-01-22",
-    requestedTimeStart: "14:00",
-    requestedTimeEnd: "15:00",
-    trainer: "John Trainer",
-    status: "pending",
-    submittedAt: "2026-01-19T16:45:00",
-  },
-  {
-    id: "app-2",
-    memberId: 3,
-    memberFirstName: "Michael",
-    memberLastName: "Johnson",
-    appointmentType: "Nutrition Consultation",
-    requestedDate: "2026-01-23",
-    requestedTimeStart: "10:00",
-    requestedTimeEnd: "10:30",
-    trainer: "Sarah Coach",
-    status: "pending",
-    submittedAt: "2026-01-18T11:20:00",
-  },
-  {
-    id: "app-3",
-    memberId: 4,
-    memberFirstName: "Sarah",
-    memberLastName: "Williams",
-    appointmentType: "Personal Training",
-    requestedDate: "2026-01-21",
-    requestedTimeStart: "09:00",
-    requestedTimeEnd: "10:00",
-    trainer: "John Trainer",
-    status: "approved",
-    submittedAt: "2026-01-17T08:30:00",
-  },
-]
+// const initialAppointmentRequests = [
+//   {
+//     id: "app-1",
+//     memberId: 1,
+//     memberFirstName: "John",
+//     memberLastName: "Doe",
+//     appointmentType: "Trial Training",
+//     requestedDate: "2026-01-22",
+//     requestedTimeStart: "14:00",
+//     requestedTimeEnd: "15:00",
+//     trainer: "John Trainer",
+//     status: "pending",
+//     submittedAt: "2026-01-19T16:45:00",
+//   },
+//   {
+//     id: "app-2",
+//     memberId: 3,
+//     memberFirstName: "Michael",
+//     memberLastName: "Johnson",
+//     appointmentType: "Nutrition Consultation",
+//     requestedDate: "2026-01-23",
+//     requestedTimeStart: "10:00",
+//     requestedTimeEnd: "10:30",
+//     trainer: "Sarah Coach",
+//     status: "pending",
+//     submittedAt: "2026-01-18T11:20:00",
+//   },
+//   {
+//     id: "app-3",
+//     memberId: 4,
+//     memberFirstName: "Sarah",
+//     memberLastName: "Williams",
+//     appointmentType: "Personal Training",
+//     requestedDate: "2026-01-21",
+//     requestedTimeStart: "09:00",
+//     requestedTimeEnd: "10:00",
+//     trainer: "John Trainer",
+//     status: "approved",
+//     submittedAt: "2026-01-17T08:30:00",
+//   },
+// ]
 
 const initialExpiringContracts = [
   {
@@ -400,57 +400,57 @@ const getChangeTypeIcon = (changeType) => {
 // Tab Configuration
 // ============================================
 const tabs = [
-  { 
-    id: "appointments", 
-    label: "Appointment Requests", 
+  {
+    id: "appointments",
+    label: "Appointment Requests",
     icon: CalendarCheck,
     color: "bg-primary",
     lightColor: "bg-primary/10",
     textColor: "text-primary"
   },
-  { 
-    id: "contracts", 
-    label: "Expiring Contracts", 
+  {
+    id: "contracts",
+    label: "Expiring Contracts",
     icon: FileText,
     color: "bg-primary",
     lightColor: "bg-primary/10",
     textColor: "text-primary"
   },
-  { 
-    id: "contractPause", 
-    label: "Contract Pauses", 
+  {
+    id: "contractPause",
+    label: "Contract Pauses",
     icon: PauseCircle,
     color: "bg-primary",
     lightColor: "bg-primary/10",
     textColor: "text-primary"
   },
-  { 
-    id: "memberData", 
-    label: "Member Data Changes", 
+  {
+    id: "memberData",
+    label: "Member Data Changes",
     icon: UserCog,
     color: "bg-primary",
     lightColor: "bg-primary/10",
     textColor: "text-primary"
   },
-  { 
-    id: "bankData", 
-    label: "Bank Data Changes", 
+  {
+    id: "bankData",
+    label: "Bank Data Changes",
     icon: CreditCard,
     color: "bg-primary",
     lightColor: "bg-primary/10",
     textColor: "text-primary"
   },
-  { 
-    id: "vacation", 
-    label: "Vacation Requests", 
+  {
+    id: "vacation",
+    label: "Vacation Requests",
     icon: Calendar,
     color: "bg-secondary",
     lightColor: "bg-secondary/10",
     textColor: "text-secondary"
   },
-  { 
-    id: "emails", 
-    label: "Email Errors", 
+  {
+    id: "emails",
+    label: "Email Errors",
     icon: MailWarning,
     color: "bg-secondary",
     lightColor: "bg-secondary/10",
@@ -508,23 +508,26 @@ const statusFilters = {
 export default function ActivityMonitor() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  
+  // staff vacation
+  const { vacations: initialVacationRequests = [] } = useSelector((state) => state.staff) || {}
+  // appointment
+  const { appointments: initialAppointmentRequests = [] } = useSelector((state) => state.appointments) || {}
   // Get pending profile updates from Redux
-  const { pendingProfileUpdates, loading } = useSelector((state) => state.member || {})
-  
+  // const { pendingProfileUpdates, loading } = useSelector((state) => state.member || {})
+
   // Tab & Filter States
   const [activeTab, setActiveTab] = useState("appointments")
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [showArchived, setShowArchived] = useState(false)
   const [lastRefresh, setLastRefresh] = useState(new Date())
-  
+
   // Sort States
   const [sortBy, setSortBy] = useState("date")
   const [sortDirection, setSortDirection] = useState("desc")
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const sortDropdownRef = useRef(null)
-  
+
   // Data States - Using initial sample data
   const [vacationRequests, setVacationRequests] = useState(initialVacationRequests)
   const [appointmentRequests, setAppointmentRequests] = useState(initialAppointmentRequests)
@@ -533,7 +536,7 @@ export default function ActivityMonitor() {
   const [contractPauseRequests, setContractPauseRequests] = useState(initialContractPauseRequests)
   const [bankDataRequests, setBankDataRequests] = useState(initialBankDataRequests)
   const [memberDataRequests, setMemberDataRequests] = useState(initialMemberDataRequests)
-  
+
   // Modal States
   const [selectedItem, setSelectedItem] = useState(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
@@ -568,6 +571,22 @@ export default function ActivityMonitor() {
     setStatusFilter("all")
     setSearchQuery("")
   }, [activeTab])
+
+
+  useEffect(() => {
+    dispatch(fetchAllPendingAppointmentThunk())
+    dispatch(fetchPendingVacationRequestThunk())
+  }, [dispatch])
+
+  useEffect(() => {
+    // Make sure we're setting arrays, not objects
+    setVacationRequests(Array.isArray(initialVacationRequests) ? initialVacationRequests : [])
+    setAppointmentRequests(Array.isArray(initialAppointmentRequests) ? initialAppointmentRequests : [])
+  }, [initialVacationRequests, initialAppointmentRequests])
+
+
+  console.log('fetch initial appointments', initialAppointmentRequests)
+  console.log('fetch initial vacation', initialVacationRequests)
 
   // ============================================
   // Count Functions
@@ -610,7 +629,7 @@ export default function ActivityMonitor() {
   // ============================================
   const getFilteredData = () => {
     let data = []
-    
+
     switch (activeTab) {
       case "vacation":
         data = [...vacationRequests]
@@ -619,13 +638,13 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(r => 
+          data = data.filter(r =>
             `${r.employeeFirstName} ${r.employeeLastName}`.toLowerCase().includes(query) ||
             r.department.toLowerCase().includes(query)
           )
         }
         break
-        
+
       case "appointments":
         data = [...appointmentRequests]
         if (statusFilter !== "all") {
@@ -633,14 +652,14 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(r => 
+          data = data.filter(r =>
             `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
             r.appointmentType.toLowerCase().includes(query) ||
             r.trainer.toLowerCase().includes(query)
           )
         }
         break
-        
+
       case "contractPause":
         data = [...contractPauseRequests]
         if (statusFilter !== "all") {
@@ -648,14 +667,14 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(r => 
+          data = data.filter(r =>
             `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
             r.reason.toLowerCase().includes(query) ||
             r.membershipType.toLowerCase().includes(query)
           )
         }
         break
-        
+
       case "bankData":
         data = [...bankDataRequests]
         if (statusFilter !== "all") {
@@ -663,13 +682,13 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(r => 
+          data = data.filter(r =>
             `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
             r.changeType.toLowerCase().includes(query)
           )
         }
         break
-        
+
       case "memberData":
         data = [...memberDataRequests]
         if (statusFilter !== "all") {
@@ -677,13 +696,13 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(r => 
+          data = data.filter(r =>
             `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
             r.fieldLabel.toLowerCase().includes(query)
           )
         }
         break
-        
+
       case "contracts":
         data = [...expiringContracts]
         if (statusFilter === "critical") {
@@ -695,13 +714,13 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(c => 
+          data = data.filter(c =>
             `${c.memberFirstName} ${c.memberLastName}`.toLowerCase().includes(query) ||
             c.membershipType.toLowerCase().includes(query)
           )
         }
         break
-        
+
       case "emails":
         data = [...failedEmails]
         if (statusFilter !== "all") {
@@ -709,7 +728,7 @@ export default function ActivityMonitor() {
         }
         if (searchQuery) {
           const query = searchQuery.toLowerCase()
-          data = data.filter(e => 
+          data = data.filter(e =>
             e.recipient.toLowerCase().includes(query) ||
             `${e.recipientFirstName} ${e.recipientLastName}`.toLowerCase().includes(query) ||
             e.subject.toLowerCase().includes(query)
@@ -717,7 +736,7 @@ export default function ActivityMonitor() {
         }
         break
     }
-    
+
     // Sort
     data.sort((a, b) => {
       let comparison = 0
@@ -740,7 +759,7 @@ export default function ActivityMonitor() {
       }
       return sortDirection === "asc" ? comparison : -comparison
     })
-    
+
     return data
   }
 
@@ -749,27 +768,26 @@ export default function ActivityMonitor() {
   // ============================================
   const handleApprove = async (id, type) => {
     if (type === "vacation") {
-      setVacationRequests(prev => 
-        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
-      )
+      dispatch(approvedVacationRequestThunk(id))
+      console.log('request id', id)
       toast.success("Vacation request approved")
     } else if (type === "appointment") {
-      setAppointmentRequests(prev => 
+      setAppointmentRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
       )
       toast.success("Appointment request confirmed")
     } else if (type === "contractPause") {
-      setContractPauseRequests(prev => 
+      setContractPauseRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
       )
       toast.success("Contract pause approved")
     } else if (type === "bankData") {
-      setBankDataRequests(prev => 
+      setBankDataRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
       )
       toast.success("Bank data change approved")
     } else if (type === "memberData") {
-      setMemberDataRequests(prev => 
+      setMemberDataRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
       )
       toast.success("Member data change approved")
@@ -778,27 +796,27 @@ export default function ActivityMonitor() {
 
   const handleReject = async (id, type) => {
     if (type === "vacation") {
-      setVacationRequests(prev => 
+      setVacationRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
       )
       toast.success("Vacation request rejected")
     } else if (type === "appointment") {
-      setAppointmentRequests(prev => 
+      setAppointmentRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
       )
       toast.success("Appointment request rejected")
     } else if (type === "contractPause") {
-      setContractPauseRequests(prev => 
+      setContractPauseRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
       )
       toast.success("Contract pause rejected")
     } else if (type === "bankData") {
-      setBankDataRequests(prev => 
+      setBankDataRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
       )
       toast.success("Bank data change rejected")
     } else if (type === "memberData") {
-      setMemberDataRequests(prev => 
+      setMemberDataRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
       )
       toast.success("Member data change rejected")
@@ -815,7 +833,7 @@ export default function ActivityMonitor() {
   const handleContactMember = (item) => {
     const memberId = item.memberId
     const realMember = memberId ? membersData.find(m => m.id === memberId) : null
-    
+
     const memberData = realMember ? {
       id: realMember.id,
       firstName: realMember.firstName,
@@ -831,7 +849,7 @@ export default function ActivityMonitor() {
       image: null,
       type: 'member'
     }
-    
+
     setSelectedMemberForContact(memberData)
     setShowMessageTypeModal(true)
   }
@@ -897,7 +915,7 @@ export default function ActivityMonitor() {
   const handleSearchMemberForEmail = (query) => {
     if (!query) return []
     const q = query.toLowerCase()
-    return membersData.filter(m => 
+    return membersData.filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -946,7 +964,7 @@ export default function ActivityMonitor() {
     const now = new Date()
     const date = new Date(dateStr)
     const diffInMinutes = Math.floor((now - date) / (1000 * 60))
-    
+
     if (diffInMinutes < 1) return "Just now"
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
@@ -1014,12 +1032,12 @@ export default function ActivityMonitor() {
           <div className="flex items-center gap-3">
             <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Activity Monitor</h1>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <span className="text-xs text-content-muted hidden sm:block">
               Updated: {lastRefresh.toLocaleTimeString("en-GB")}
             </span>
-            
+
             <button
               onClick={handleRefresh}
               className="p-2.5 bg-surface-card hover:bg-surface-button rounded-xl transition-colors"
@@ -1033,52 +1051,52 @@ export default function ActivityMonitor() {
         {/* Stats Overview Cards */}
         <div className="mb-6 overflow-x-auto pb-2 -mx-3 px-3 md:mx-0 md:px-0">
           <div className="flex gap-3 md:grid md:grid-cols-4 lg:grid-cols-7 min-w-max md:min-w-0">
-          {tabs.map((tab) => {
-            const count = counts[tab.id]
-            const pendingCount = count.pending || count.critical || 0
-            const isActive = activeTab === tab.id
-            
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
+            {tabs.map((tab) => {
+              const count = counts[tab.id]
+              const pendingCount = count.pending || count.critical || 0
+              const isActive = activeTab === tab.id
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
                   relative p-4 rounded-2xl transition-all duration-200 text-left min-w-[140px] md:min-w-0
-                  ${isActive 
-                    ? `${tab.color} shadow-lg` 
-                    : 'bg-surface-card hover:bg-surface-hover'
-                  }
+                  ${isActive
+                      ? `${tab.color} shadow-lg`
+                      : 'bg-surface-card hover:bg-surface-hover'
+                    }
                 `}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1 min-h-[68px]">
-                    <p className={`text-xs ${isActive ? 'text-white/70' : 'text-content-muted'} truncate`}>
-                      {tab.label}
-                    </p>
-                    <p className={`text-2xl font-bold mt-1 ${isActive ? 'text-white' : 'text-content-primary'}`}>
-                      {count.total}
-                    </p>
-                    {pendingCount > 0 && (
-                      <p className={`text-xs mt-1 ${isActive ? 'text-white/60' : tab.textColor}`}>
-                        {pendingCount} {tab.id === "contracts" ? "critical" : "pending"}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 min-h-[68px]">
+                      <p className={`text-xs ${isActive ? 'text-white/70' : 'text-content-muted'} truncate`}>
+                        {tab.label}
                       </p>
-                    )}
-                  </div>
-                  <div className={`
+                      <p className={`text-2xl font-bold mt-1 ${isActive ? 'text-white' : 'text-content-primary'}`}>
+                        {count.total}
+                      </p>
+                      {pendingCount > 0 && (
+                        <p className={`text-xs mt-1 ${isActive ? 'text-white/60' : tab.textColor}`}>
+                          {pendingCount} {tab.id === "contracts" ? "critical" : "pending"}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`
                     p-2 rounded-xl flex-shrink-0
                     ${isActive ? 'bg-white/20' : tab.lightColor}
                   `}>
-                    <tab.icon size={18} className={isActive ? 'text-white' : tab.textColor} />
+                      <tab.icon size={18} className={isActive ? 'text-white' : tab.textColor} />
+                    </div>
                   </div>
-                </div>
-                
-                {isActive && (
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-white/50 rounded-t-full" />
-                )}
-              </button>
-            )
-          })}
-        </div>
+
+                  {isActive && (
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-white/50 rounded-t-full" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Search & Filter Bar */}
@@ -1093,89 +1111,87 @@ export default function ActivityMonitor() {
               className="w-full bg-surface-card pl-10 pr-4 py-3 text-sm rounded-xl text-content-primary placeholder-content-faint border border-border outline-none focus:border-primary transition-colors"
             />
           </div>
-          
+
           <div className="flex gap-3">
-          <div className="relative flex-1 sm:flex-none" ref={filterDropdownRef}>
-            <button
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="w-full flex items-center gap-2 px-3 sm:px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors sm:min-w-[140px]"
-            >
-              <Filter size={16} className="text-content-muted" />
-              <span className="text-content-secondary">
-                {statusFilters[activeTab]?.find(f => f.id === statusFilter)?.label || "All"}
-              </span>
-              <ChevronDown size={14} className="text-content-muted ml-auto" />
-            </button>
-            
-            {showFilterDropdown && (
-              <div className="absolute right-0 mt-2 bg-surface-hover border border-border rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
-                <div className="py-1">
-                  <div className="px-3 py-2 text-xs text-content-faint font-medium border-b border-border">
-                    Filter by Status
+            <div className="relative flex-1 sm:flex-none" ref={filterDropdownRef}>
+              <button
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className="w-full flex items-center gap-2 px-3 sm:px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors sm:min-w-[140px]"
+              >
+                <Filter size={16} className="text-content-muted" />
+                <span className="text-content-secondary">
+                  {statusFilters[activeTab]?.find(f => f.id === statusFilter)?.label || "All"}
+                </span>
+                <ChevronDown size={14} className="text-content-muted ml-auto" />
+              </button>
+
+              {showFilterDropdown && (
+                <div className="absolute right-0 mt-2 bg-surface-hover border border-border rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
+                  <div className="py-1">
+                    <div className="px-3 py-2 text-xs text-content-faint font-medium border-b border-border">
+                      Filter by Status
+                    </div>
+                    {statusFilters[activeTab]?.map((filter) => (
+                      <button
+                        key={filter.id}
+                        onClick={() => {
+                          setStatusFilter(filter.id)
+                          setShowFilterDropdown(false)
+                        }}
+                        className={`w-full text-left px-3 py-2.5 text-sm hover:bg-surface-hover transition-colors ${statusFilter === filter.id ? 'text-content-primary bg-surface-hover' : 'text-content-secondary'
+                          }`}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
                   </div>
-                  {statusFilters[activeTab]?.map((filter) => (
-                    <button
-                      key={filter.id}
-                      onClick={() => {
-                        setStatusFilter(filter.id)
-                        setShowFilterDropdown(false)
-                      }}
-                      className={`w-full text-left px-3 py-2.5 text-sm hover:bg-surface-hover transition-colors ${
-                        statusFilter === filter.id ? 'text-content-primary bg-surface-hover' : 'text-content-secondary'
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
                 </div>
-              </div>
-            )}
-          </div>
-          
-          <div className="relative flex-1 sm:flex-none" ref={sortDropdownRef}>
-            <button
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="w-full flex items-center gap-2 px-3 sm:px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors sm:min-w-[130px]"
-            >
-              {sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
-              <span className="text-content-secondary">
-                {sortOptions.find(s => s.value === sortBy)?.label || "Date"}
-              </span>
-              <ChevronDown size={14} className="text-content-muted ml-auto" />
-            </button>
-            
-            {showSortDropdown && (
-              <div className="absolute right-0 mt-2 bg-surface-hover border border-border rounded-xl shadow-xl z-50 min-w-[160px] overflow-hidden">
-                <div className="py-1">
-                  <div className="px-3 py-2 text-xs text-content-faint font-medium border-b border-border">
-                    Sort by
+              )}
+            </div>
+
+            <div className="relative flex-1 sm:flex-none" ref={sortDropdownRef}>
+              <button
+                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                className="w-full flex items-center gap-2 px-3 sm:px-4 py-3 bg-surface-card border border-border rounded-xl text-sm hover:bg-surface-hover transition-colors sm:min-w-[130px]"
+              >
+                {sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                <span className="text-content-secondary">
+                  {sortOptions.find(s => s.value === sortBy)?.label || "Date"}
+                </span>
+                <ChevronDown size={14} className="text-content-muted ml-auto" />
+              </button>
+
+              {showSortDropdown && (
+                <div className="absolute right-0 mt-2 bg-surface-hover border border-border rounded-xl shadow-xl z-50 min-w-[160px] overflow-hidden">
+                  <div className="py-1">
+                    <div className="px-3 py-2 text-xs text-content-faint font-medium border-b border-border">
+                      Sort by
+                    </div>
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          if (sortBy === option.value) {
+                            setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                          } else {
+                            setSortBy(option.value)
+                            setSortDirection("desc")
+                          }
+                          setShowSortDropdown(false)
+                        }}
+                        className={`w-full text-left px-3 py-2.5 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover' : 'text-content-secondary'
+                          }`}
+                      >
+                        <span>{option.label}</span>
+                        {sortBy === option.value && (
+                          sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                        )}
+                      </button>
+                    ))}
                   </div>
-                  {sortOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        if (sortBy === option.value) {
-                          setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-                        } else {
-                          setSortBy(option.value)
-                          setSortDirection("desc")
-                        }
-                        setShowSortDropdown(false)
-                      }}
-                      className={`w-full text-left px-3 py-2.5 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
-                        sortBy === option.value ? 'text-content-primary bg-surface-hover' : 'text-content-secondary'
-                      }`}
-                    >
-                      <span>{option.label}</span>
-                      {sortBy === option.value && (
-                        sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />
-                      )}
-                    </button>
-                  ))}
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1201,7 +1217,7 @@ export default function ActivityMonitor() {
             // Vacation Requests
             filteredData.map((request) => (
               <div
-                key={request.id}
+                key={request._id}
                 className="bg-surface-card rounded-2xl p-4 md:p-5 hover:bg-surface-hover transition-colors"
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1213,11 +1229,11 @@ export default function ActivityMonitor() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-medium text-content-primary">
-                          {request.employeeFirstName} {request.employeeLastName}
+                          {request.staff?.firstName} {request.staff?.lastName}
                         </h3>
                         {getStatusBadge(request.status)}
                       </div>
-                      <p className="text-content-muted text-sm mt-0.5">{request.department}</p>
+                      <p className="text-content-muted text-sm mt-0.5">{request.studioId?.studioName}</p>
                     </div>
                   </div>
 
@@ -1248,14 +1264,14 @@ export default function ActivityMonitor() {
                     {request.status === "pending" ? (
                       <>
                         <button
-                          onClick={() => handleApprove(request.id, "vacation")}
+                          onClick={() => handleApprove(request._id, "vacation")}
                           className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-xl text-white text-sm font-medium transition-colors"
                         >
                           <Check size={16} />
                           <span className="hidden sm:inline">Approve</span>
                         </button>
                         <button
-                          onClick={() => handleReject(request.id, "vacation")}
+                          onClick={() => handleReject(request._id, "vacation")}
                           className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
                         >
                           <X size={16} />
@@ -1275,7 +1291,7 @@ export default function ActivityMonitor() {
             // Appointment Requests
             filteredData.map((request) => (
               <div
-                key={request.id}
+                key={request._id}
                 className="bg-surface-card rounded-2xl p-4 md:p-5 hover:bg-surface-hover transition-colors"
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1286,11 +1302,11 @@ export default function ActivityMonitor() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-medium text-content-primary">
-                          {request.memberFirstName} {request.memberLastName}
+                          {request.member?.firstName} {request.member?.lastName}
                         </h3>
                         {getStatusBadge(request.status)}
                       </div>
-                      <p className="text-content-muted text-sm mt-0.5">{request.appointmentType} with {request.trainer}</p>
+                      <p className="text-content-muted text-sm mt-0.5">{request.appointmentType} with {request.staff?.firstName}</p>
                     </div>
                   </div>
                   <div className="flex-1 grid grid-cols-2 gap-3">

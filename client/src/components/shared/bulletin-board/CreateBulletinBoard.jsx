@@ -183,6 +183,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
         setShowCropModal(true)
       }
       reader.readAsDataURL(file)
+      
     }
   }, [])
 
