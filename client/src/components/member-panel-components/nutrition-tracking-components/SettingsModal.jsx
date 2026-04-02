@@ -108,7 +108,7 @@ const SettingsModal = ({
   if (!show) return null
 
   const panelScroll = "h-full overflow-y-auto p-4 md:p-6 overscroll-contain"
-  const panelPadding = { WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: 'pan-y', paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }
+  const panelPadding = { WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: 'pan-y', paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 pt-[env(safe-area-inset-top,0px)]">
