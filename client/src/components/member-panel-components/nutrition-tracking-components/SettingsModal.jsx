@@ -53,19 +53,19 @@ const SettingsModal = ({
                 </div>
                 <div>
                   <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.age")}</label>
-                  <input type="number" value={profileForm.age} onChange={(e) => setProfileForm((p) => ({ ...p, age: e.target.value }))} placeholder="30"
+                  <input type="number" inputMode="decimal" value={profileForm.age} onChange={(e) => setProfileForm((p) => ({ ...p, age: e.target.value }))} placeholder="30"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.height")}</label>
-                  <input type="number" value={profileForm.height} onChange={(e) => setProfileForm((p) => ({ ...p, height: e.target.value }))} placeholder="175"
+                  <input type="number" inputMode="decimal" value={profileForm.height} onChange={(e) => setProfileForm((p) => ({ ...p, height: e.target.value }))} placeholder="175"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
                 <div>
                   <label className="text-xs text-content-muted mb-1 block">{t("nutrition.settings.weight")}</label>
-                  <input type="number" value={profileForm.weight} onChange={(e) => setProfileForm((p) => ({ ...p, weight: e.target.value }))} placeholder="75"
+                  <input type="number" inputMode="decimal" value={profileForm.weight} onChange={(e) => setProfileForm((p) => ({ ...p, weight: e.target.value }))} placeholder="75"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
               </div>
@@ -135,7 +135,7 @@ const SettingsModal = ({
               {[{ key: "calories", label: t("nutrition.settings.caloriesKcal") }, { key: "protein", label: t("nutrition.settings.proteinG") }, { key: "carbs", label: t("nutrition.settings.carbsG") }, { key: "fats", label: t("nutrition.settings.fatG") }, { key: "waterMl", label: t("nutrition.settings.waterMl") }].map((field) => (
                 <div key={field.key}>
                   <label className="text-sm text-content-secondary block mb-2">{field.label}</label>
-                  <input type="number" value={goalForm[field.key]} onChange={(e) => setGoalForm((p) => ({ ...p, [field.key]: e.target.value }))}
+                  <input type="number" inputMode="decimal" value={goalForm[field.key]} onChange={(e) => setGoalForm((p) => ({ ...p, [field.key]: e.target.value }))}
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                   {field.key === "waterMl" && goalForm.waterMl && (
                     <p className="text-xs text-content-faint mt-1">= {(Number(goalForm.waterMl) / 1000).toFixed(1)}L</p>
@@ -199,7 +199,7 @@ const SettingsModal = ({
 
         {/* Sticky footer buttons — always visible above keyboard */}
         {settingsTab === "profile" && (
-          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}>
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}>
             <button onClick={() => { calculateFromProfile(); setSettingsTab("goals") }}
               className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-2.5 text-sm font-medium transition-colors">
               {t("nutrition.settings.applySetGoals")}
@@ -207,7 +207,7 @@ const SettingsModal = ({
           </div>
         )}
         {settingsTab === "goals" && (
-          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)" }}>
+          <div className="flex-shrink-0 p-4 border-t border-border bg-surface-card" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}>
             <div className="flex gap-3">
               <button onClick={() => setGoalForm({ calories: 2000, protein: 150, carbs: 250, fats: 70, waterMl: 2500 })}
                 className="flex-1 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary text-sm transition-colors">{t("nutrition.settings.reset")}</button>

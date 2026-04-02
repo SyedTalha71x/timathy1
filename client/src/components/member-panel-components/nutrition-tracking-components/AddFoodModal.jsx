@@ -70,7 +70,7 @@ const AddFoodModal = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-content-muted mb-1 block">{t("nutrition.addFood.quantity")}</label>
-                  <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.5" step="0.5"
+                  <input type="number" inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.5" step="0.5"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
                 <div>

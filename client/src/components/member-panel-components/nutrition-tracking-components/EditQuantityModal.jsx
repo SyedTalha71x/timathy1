@@ -15,7 +15,7 @@ const EditQuantityModal = ({ editingFood, setEditingFood, editQuantity, setEditQ
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => setEditQuantity(String(Math.max(0.5, Number(editQuantity) - 0.5)))}
             className="w-10 h-10 rounded-xl bg-surface-button hover:bg-surface-button-hover flex items-center justify-center transition-colors text-content-primary"><Minus className="w-4 h-4" /></button>
-          <input type="number" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} min="0.5" step="0.5"
+          <input type="number" inputMode="decimal" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} min="0.5" step="0.5"
             className="flex-1 bg-surface-dark rounded-xl px-4 py-2.5 text-center text-lg font-semibold text-content-primary border border-transparent focus:border-primary outline-none" />
           <button onClick={() => setEditQuantity(String(Number(editQuantity) + 0.5))}
             className="w-10 h-10 rounded-xl bg-surface-button hover:bg-surface-button-hover flex items-center justify-center transition-colors text-content-primary"><Plus className="w-4 h-4" /></button>

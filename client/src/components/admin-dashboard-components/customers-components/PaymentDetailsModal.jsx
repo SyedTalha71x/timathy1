@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { X, AlertTriangle, CreditCard, Loader2, CheckCircle2, FileText } from "lucide-react"
+import { X, AlertTriangle, CreditCard, Loader2, CheckCircle2 } from "lucide-react"
 
 // ============================================
 // Payment Details Modal – Customer / Studio
@@ -116,8 +116,9 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
         .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
       `}</style>
       <div className="bg-surface-base rounded-2xl w-full max-w-lg relative mx-4 max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="p-6 sm:p-8 flex-1 overflow-y-auto">
-          <div className="flex justify-between items-center mb-6">
+        {/* Fixed Header */}
+        <div className="p-6 sm:p-8 pb-4 flex-shrink-0 border-b border-border">
+          <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                 <CreditCard className="text-primary" size={20} />
@@ -131,6 +132,10 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
               <X className="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-5 flex-1 overflow-y-auto">
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Account Holder */}
@@ -242,25 +247,26 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex justify-end items-center gap-2 mt-8 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-surface-dark text-sm text-content-primary rounded-xl border border-border hover:bg-surface-card transition-colors"
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                type="submit"
-                disabled={!canSave}
-                className={`px-4 py-2 text-sm rounded-xl transition-colors flex items-center gap-2 ${canSave ? "bg-primary text-white hover:bg-primary-hover" : "bg-surface-dark text-content-muted border border-border cursor-not-allowed"}`}
-              >
-                <FileText size={14} />
-                {t("admin.customers.payment.savePayment")}
-              </button>
-            </div>
           </form>
+        </div>
+
+        {/* Sticky Footer */}
+        <div className="flex justify-end items-center gap-2 px-6 sm:px-8 py-4 border-t border-border flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 bg-surface-dark text-sm text-content-primary rounded-xl border border-border hover:bg-surface-card transition-colors"
+          >
+            {t("common.cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSave}
+            className={`px-4 py-2 text-sm rounded-xl transition-colors ${canSave ? "bg-primary text-white hover:bg-primary-hover" : "bg-surface-dark text-content-muted border border-border cursor-not-allowed"}`}
+          >
+            {t("common.save")}
+          </button>
         </div>
       </div>
     </div>
