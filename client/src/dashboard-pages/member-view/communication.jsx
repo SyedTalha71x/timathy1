@@ -303,12 +303,15 @@ export default function StudioChat() {
     }
   };
 
-  const handleKeyPress = (e) => {
+const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
+      if (window.innerWidth < 768) return;
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }; 
+
+
 
   // ==========================================
   // EMOJI HANDLER
@@ -702,9 +705,7 @@ export default function StudioChat() {
         {/* Mobile Input Area */}
         <div className="px-3 pt-2 pb-3 bg-surface-base border-t border-border flex-shrink-0">
           <div className="flex items-center gap-2 bg-surface-dark rounded-xl px-3 py-2">
-            <button onClick={toggleEmojiPicker} className="p-1">
-              <Smile className="w-5 h-5 text-content-secondary" />
-            </button>
+
             <textarea
               ref={mobileTextareaRef}
               value={messageText}

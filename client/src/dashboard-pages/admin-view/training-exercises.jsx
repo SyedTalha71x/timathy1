@@ -385,7 +385,7 @@ export default function AdminTrainingManagement() {
 
   return (
     <div className={`
-      min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
+      min-h-screen rounded-3xl bg-surface-base text-white md:p-6 p-3
       transition-all duration-500 ease-in-out flex-1
       
     `}>
@@ -423,19 +423,19 @@ export default function AdminTrainingManagement() {
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="relative flex-1">
-            <Search className="absolute left-3 text-sm top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-3 text-sm top-1/2 transform -translate-y-1/2 text-content-muted" size={18} />
             <input
               type="text"
               placeholder={t("admin.exercises.search.placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
+              className="w-full bg-surface-card pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-content-faint border border-border outline-none"
             />
           </div>
           <div className="relative">
             <button
               onClick={() => setIsDifficultyDropdownOpen(!isDifficultyDropdownOpen)}
-              className="md:w-auto w-full text-white flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+              className="md:w-auto w-full text-white flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
             >
               <Filter size={16} />
               <span className="truncate">
@@ -447,10 +447,10 @@ export default function AdminTrainingManagement() {
               />
             </button>
             {isDifficultyDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-full text-sm sm:w-48 bg-[#2F2F2F] rounded-xl shadow-lg z-50 border border-gray-700">
+              <div className="absolute right-0 mt-2 w-full text-sm sm:w-48 bg-surface-button rounded-xl shadow-lg z-50 border border-border">
                 <button
                   onClick={() => { setSelectedDifficulty("all"); setIsDifficultyDropdownOpen(false) }}
-                  className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors ${selectedDifficulty === "all" ? "bg-[#3F3F3F]" : ""}`}
+                  className={`w-full px-4 py-3 text-left hover:bg-surface-button-hover transition-colors ${selectedDifficulty === "all" ? "bg-surface-button-hover" : ""}`}
                 >
                   <span className="text-white">{t("admin.exercises.allLevels")}</span>
                 </button>
@@ -458,7 +458,7 @@ export default function AdminTrainingManagement() {
                   <button
                     key={difficulty}
                     onClick={() => { setSelectedDifficulty(difficulty); setIsDifficultyDropdownOpen(false) }}
-                    className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors ${selectedDifficulty === difficulty ? "bg-[#3F3F3F]" : ""}`}
+                    className={`w-full px-4 py-3 text-left hover:bg-surface-button-hover transition-colors ${selectedDifficulty === difficulty ? "bg-surface-button-hover" : ""}`}
                   >
                     <span className="text-white">{getDifficultyLabel(difficulty)}</span>
                   </button>
@@ -474,7 +474,7 @@ export default function AdminTrainingManagement() {
           {filteredVideos.map((video) => (
             <div
               key={video.id}
-              className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors"
+              className="bg-surface-card rounded-xl overflow-hidden hover:bg-surface-hover transition-colors"
             >
               <div className="relative">
                 <img
@@ -495,23 +495,23 @@ export default function AdminTrainingManagement() {
                 <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">
                   {getTranslation(video.name, "en")}
                 </h3>
-                <p className="text-gray-400 text-xs sm:text-sm mb-3 line-clamp-2">
+                <p className="text-content-muted text-xs sm:text-sm mb-3 line-clamp-2">
                   {getTranslation(video.description, "en")}
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
                   {video.targetMuscles.slice(0, 2).map((muscleId, index) => (
-                    <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
+                    <span key={index} className="bg-surface-button text-content-secondary px-2 py-1 rounded text-xs">
                       {getMuscleDisplayName(muscleId)}
                     </span>
                   ))}
                   {video.targetMuscles.length > 2 && (
-                    <span className="text-gray-500 text-xs">+{video.targetMuscles.length - 2}</span>
+                    <span className="text-content-faint text-xs">+{video.targetMuscles.length - 2}</span>
                   )}
                 </div>
 
                 {/* Translation status indicator */}
                 <div className="flex items-center gap-1 mb-3">
-                  <span className="text-gray-600 text-xs mr-1">{t("admin.exercises.translations")}</span>
+                  <span className="text-content-faint text-xs mr-1">{t("admin.exercises.translations")}</span>
                   {["en", "de", "fr", "it", "es"].map((lang) => (
                     <span
                       key={lang}
@@ -526,27 +526,27 @@ export default function AdminTrainingManagement() {
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-gray-500 text-xs">
+                  <div className="text-content-faint text-xs">
                     {video.uploadedAt}
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => { setSelectedVideo(video); setIsViewModalOpen(true) }}
-                      className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                      className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                       title={t("admin.exercises.actions.view")}
                     >
-                      <Eye size={14} className="text-gray-400" />
+                      <Eye size={14} className="text-content-muted" />
                     </button>
                     <button
                       onClick={() => openEditModal(video)}
-                      className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                      className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                       title={t("admin.exercises.actions.edit")}
                     >
-                      <Edit size={14} className="text-gray-400" />
+                      <Edit size={14} className="text-content-muted" />
                     </button>
                     <button
                       onClick={() => { setVideoToDelete(video); setIsDeleteModalOpen(true) }}
-                      className="p-2 bg-[#2F2F2F] hover:bg-red-600/20 rounded-lg transition-colors"
+                      className="p-2 bg-surface-button hover:bg-red-600/20 rounded-lg transition-colors"
                       title={t("admin.exercises.actions.delete")}
                     >
                       <Trash2 size={14} className="text-red-400" />
@@ -560,7 +560,7 @@ export default function AdminTrainingManagement() {
 
         {filteredVideos.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-content-muted mb-4">
               <Dumbbell size={48} className="mx-auto mb-4" />
               <p>{t("admin.exercises.noResults")}</p>
             </div>
@@ -640,7 +640,7 @@ export default function AdminTrainingManagement() {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setIsCreateModalOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label={t("admin.exercises.uploadExercise")}
       >
         <Plus size={22} />

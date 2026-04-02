@@ -23,7 +23,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
   const formattedPrice = Number(product.price).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
-    <div className={`bg-[#2a2a2a] rounded-2xl overflow-hidden relative select-none ${!product.isActive ? 'opacity-60' : ''}`}>
+    <div className={`bg-surface-button rounded-2xl overflow-hidden relative select-none ${!product.isActive ? 'opacity-60' : ''}`}>
       {/* Image Area */}
       <div className="relative w-full h-48 bg-white">
         {product.picture ? (
@@ -34,7 +34,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
             draggable="false"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl bg-[#f0f0f0]">📷</div>
+          <div className="w-full h-full flex items-center justify-center text-content-muted text-4xl bg-gray-100">📷</div>
         )}
 
         {/* Bottom action buttons */}
@@ -43,7 +43,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
             onClick={() => onTogglePin(product.id)}
             className={`p-2 rounded-full transition-colors ${
               product.isPinned 
-                ? 'bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white' 
+                ? 'bg-primary hover:bg-primary-hover text-white' 
                 : 'bg-black/50 hover:bg-black/70 text-white'
             }`}
             title={product.isPinned ? t('admin.marketplace.card.unpinProduct') : t('admin.marketplace.card.pinProduct')}
@@ -70,15 +70,15 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
       </div>
 
       {/* Product Info */}
-      <div className="p-4 bg-[#2a2a2a] text-white">
+      <div className="p-4 bg-surface-button text-white">
         <h3 className="text-base font-medium truncate mb-1">{productName}</h3>
-        <p className="text-sm text-gray-300 mb-1">{product.brandName}</p>
-        <p className="text-sm text-gray-400 mb-2">{t("admin.marketplace.card.articleNo")}: {product.articleNo}</p>
+        <p className="text-sm text-content-secondary mb-1">{product.brandName}</p>
+        <p className="text-sm text-content-muted mb-2">{t("admin.marketplace.card.articleNo")}: {product.articleNo}</p>
         <p className="text-lg font-bold text-white">{formattedPrice}</p>
 
         {/* Translation status indicator */}
         <div className="flex items-center gap-1 mt-2">
-          <span className="text-gray-600 text-xs mr-1">{t("admin.marketplace.card.translations")}:</span>
+          <span className="text-content-faint text-xs mr-1">{t("admin.marketplace.card.translations")}:</span>
           {["en", "de", "fr", "it", "es"].map((lang) => (
             <span
               key={lang}
@@ -93,8 +93,8 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
         </div>
 
         {/* Active/Inactive Toggle */}
-        <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700">
-          <span className="text-sm text-gray-300">{t("admin.marketplace.card.status")}</span>
+        <div className="flex items-center justify-between pt-3 mt-3 border-t border-border">
+          <span className="text-sm text-content-secondary">{t("admin.marketplace.card.status")}</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -103,7 +103,7 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            <span className="ml-3 text-sm font-medium text-gray-300">
+            <span className="ml-3 text-sm font-medium text-content-secondary">
               {product.isActive ? t('common.active') : t('common.inactive')}
             </span>
           </label>
@@ -421,27 +421,27 @@ const Marketplace = () => {
     <div className={`relative ${className}`} ref={sortDropdownRef}>
       <button
         onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown); }}
-        className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+        className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
       >
         {getSortIcon()}
         <span className="hidden sm:inline">{currentSortLabel}</span>
       </button>
 
       {showSortDropdown && (
-        <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+        <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
           <div className="py-1">
-            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
+            <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
             {sortOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value); }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                  sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
+                  sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-content-secondary'
                 }`}
               >
                 <span>{option.label}</span>
                 {sortBy === option.value && (
-                  <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
+                  <span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
                 )}
               </button>
             ))}
@@ -455,7 +455,7 @@ const Marketplace = () => {
   return (
     <>
 <div className={`
-        min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1
+        min-h-screen rounded-3xl bg-surface-base text-white lg:p-3 md:p-3 sm:p-2 p-1
         transition-all duration-500 ease-in-out flex-1
         
       `}>
@@ -468,7 +468,7 @@ const Marketplace = () => {
             </div>
 
             <div className="hidden md:flex items-center gap-2">
-              <button onClick={openAddModal} className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white px-4 sm:px-6 py-2 cursor-pointer rounded-xl font-medium transition-colors duration-200 flex items-center gap-2 text-sm">
+              <button onClick={openAddModal} className="bg-primary hover:bg-primary-hover text-white px-4 sm:px-6 py-2 cursor-pointer rounded-xl font-medium transition-colors duration-200 flex items-center gap-2 text-sm">
                 <FaPlus size={14} />
                 <span>{t("admin.marketplace.addProduct")}</span>
               </button>
@@ -478,31 +478,31 @@ const Marketplace = () => {
           {/* Search Bar */}
           <div className="mb-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
               <input
                 type="text"
                 placeholder={t("admin.marketplace.search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                className="w-full bg-surface-card outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-[#3F74FF] transition-colors"
               />
             </div>
           </div>
 
           {/* Filter and Sort Controls */}
           <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
-            <button onClick={() => setFilterStatus('all')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+            <button onClick={() => setFilterStatus('all')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
               {t("admin.marketplace.filter.all")} ({products.length})
             </button>
-            <button onClick={() => setFilterStatus(filterStatus === 'active' ? 'all' : 'active')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'active' ? "bg-green-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+            <button onClick={() => setFilterStatus(filterStatus === 'active' ? 'all' : 'active')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'active' ? "bg-green-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
               <span className={`w-2 h-2 rounded-full ${filterStatus === 'active' ? 'bg-white' : 'bg-green-500'}`}></span>
               {t("admin.marketplace.filter.active")} ({activeCount})
             </button>
-            <button onClick={() => setFilterStatus(filterStatus === 'inactive' ? 'all' : 'inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'inactive' ? "bg-red-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+            <button onClick={() => setFilterStatus(filterStatus === 'inactive' ? 'all' : 'inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'inactive' ? "bg-red-600 text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
               <span className={`w-2 h-2 rounded-full ${filterStatus === 'inactive' ? 'bg-white' : 'bg-red-500'}`}></span>
               {t("admin.marketplace.filter.inactive")} ({inactiveCount})
             </button>
-            <button onClick={() => setFilterStatus(filterStatus === 'pinned' ? 'all' : 'pinned')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'pinned' ? "bg-[#FF6B35] text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+            <button onClick={() => setFilterStatus(filterStatus === 'pinned' ? 'all' : 'pinned')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'pinned' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>
               <FaThumbtack size={12} className={filterStatus === 'pinned' ? "text-white" : ""} />
               {t("admin.marketplace.filter.pinned")} ({pinnedCount})
             </button>
@@ -513,8 +513,8 @@ const Marketplace = () => {
           <PullToRefresh onRefresh={async () => { haptic.success() }} className="flex-1 overflow-y-auto">
           {products.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg mb-4">{t("admin.marketplace.empty.noProducts")}</p>
-              <button onClick={openAddModal} className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-sm text-white px-6 py-2 rounded-xl flex items-center gap-2 mx-auto">
+              <p className="text-content-muted text-lg mb-4">{t("admin.marketplace.empty.noProducts")}</p>
+              <button onClick={openAddModal} className="bg-primary hover:bg-primary-hover text-sm text-white px-6 py-2 rounded-xl flex items-center gap-2 mx-auto">
                 <FaPlus size={14} />
                 <span>{t("admin.marketplace.addProduct")}</span>
               </button>
@@ -524,9 +524,9 @@ const Marketplace = () => {
               {featuredProducts.length > 0 && (
                 <div className="mb-8">
                   <button onClick={() => setIsFeaturedCollapsed(!isFeaturedCollapsed)} className="flex items-center gap-2 mb-4 group cursor-pointer">
-                    <ChevronDown size={20} className={`text-gray-400 transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} />
-                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">{t("admin.marketplace.sections.featured")}</h2>
-                    <span className="text-sm text-gray-400">({featuredProducts.length})</span>
+                    <ChevronDown size={20} className={`text-content-muted transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} />
+                    <h2 className="text-lg font-semibold text-white group-hover:text-content-secondary transition-colors">{t("admin.marketplace.sections.featured")}</h2>
+                    <span className="text-sm text-content-muted">({featuredProducts.length})</span>
                   </button>
                   {!isFeaturedCollapsed && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -541,9 +541,9 @@ const Marketplace = () => {
               {allProducts.length > 0 && (
                 <div>
                   <button onClick={() => setIsMoreCollapsed(!isMoreCollapsed)} className="flex items-center gap-2 mb-4 group cursor-pointer">
-                    <ChevronDown size={20} className={`text-gray-400 transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} />
-                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">{t("admin.marketplace.sections.moreProducts")}</h2>
-                    <span className="text-sm text-gray-400">({allProducts.length})</span>
+                    <ChevronDown size={20} className={`text-content-muted transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} />
+                    <h2 className="text-lg font-semibold text-white group-hover:text-content-secondary transition-colors">{t("admin.marketplace.sections.moreProducts")}</h2>
+                    <span className="text-sm text-content-muted">({allProducts.length})</span>
                   </button>
                   {!isMoreCollapsed && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -564,7 +564,7 @@ const Marketplace = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-400 text-lg">
+                <p className="text-content-muted text-lg">
                   {filterStatus === 'active' ? t("admin.marketplace.empty.noActive")
                     : filterStatus === 'inactive' ? t("admin.marketplace.empty.noInactive")
                     : filterStatus === 'pinned' ? t("admin.marketplace.empty.noPinned")
@@ -580,7 +580,7 @@ const Marketplace = () => {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={openAddModal}
-        className="md:hidden fixed bottom-4 right-4 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label={t("admin.marketplace.addProduct")}
       >
         <Plus size={22} />

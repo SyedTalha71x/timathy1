@@ -114,9 +114,9 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1001] p-4">
-      <div className="bg-[#1C1C1C] w-full max-w-2xl rounded-xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-surface-base w-full max-w-2xl rounded-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-start">
+        <div className="px-6 py-4 border-b border-border flex justify-between items-start">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className={`p-2 rounded-lg border ${typeConfig.bg} mt-0.5`}>
               <TypeIcon size={18} className={typeConfig.color} />
@@ -125,12 +125,12 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
               <h2 className="text-lg font-semibold text-white">{feedback.subject}</h2>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className={`text-xs font-medium ${typeConfig.color}`}>{getTypeLabel(feedback.type, t)}</span>
-                <span className="text-gray-600">•</span>
-                <span className="text-xs text-gray-400">{localFormatDateTime(feedback.createdAt, getLocaleFromI18n(i18n))}</span>
+                <span className="text-content-faint">•</span>
+                <span className="text-xs text-content-muted">{localFormatDateTime(feedback.createdAt, getLocaleFromI18n(i18n))}</span>
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg ml-2">
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg ml-2">
             <X size={20} />
           </button>
         </div>
@@ -138,35 +138,35 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
         {/* Content */}
         <div className="px-6 py-5 overflow-y-auto flex-1 space-y-5">
           {/* Studio Info */}
-          <div className="bg-[#141414] rounded-xl p-4">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-3">{t("admin.feedback.detail.submittedBy")}</h3>
+          <div className="bg-surface-card rounded-xl p-4">
+            <h3 className="text-xs text-content-faint uppercase tracking-wider mb-3">{t("admin.feedback.detail.submittedBy")}</h3>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                <Building2 size={18} className="text-orange-400" />
+              <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                <Building2 size={18} className="text-primary" />
               </div>
               <div>
                 <p className="text-white font-medium">{feedback.studioName}</p>
-                <p className="text-gray-400 text-sm">{feedback.submittedBy} · {getRoleLabel(feedback.role, t)}</p>
+                <p className="text-content-muted text-sm">{feedback.submittedBy} · {getRoleLabel(feedback.role, t)}</p>
               </div>
             </div>
           </div>
 
           {/* Message */}
           <div>
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t("admin.feedback.detail.message")}</h3>
-            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{feedback.message}</p>
+            <h3 className="text-xs text-content-faint uppercase tracking-wider mb-2">{t("admin.feedback.detail.message")}</h3>
+            <p className="text-content-secondary text-sm leading-relaxed whitespace-pre-wrap">{feedback.message}</p>
           </div>
 
           {/* Rating */}
           {feedback.rating > 0 && (
             <div>
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t("admin.feedback.detail.rating")}</h3>
+              <h3 className="text-xs text-content-faint uppercase tracking-wider mb-2">{t("admin.feedback.detail.rating")}</h3>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
                     size={18}
-                    className={feedback.rating >= star ? "text-orange-500 fill-orange-500" : "text-zinc-700"}
+                    className={feedback.rating >= star ? "text-primary fill-primary" : "text-zinc-700"}
                   />
                 ))}
               </div>
@@ -175,7 +175,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 
           {/* Status Change */}
           <div>
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t("admin.feedback.detail.status")}</h3>
+            <h3 className="text-xs text-content-faint uppercase tracking-wider mb-2">{t("admin.feedback.detail.status")}</h3>
             <div className="flex flex-wrap gap-2">
               {Object.entries(FEEDBACK_STATUSES).map(([key, config]) => (
                 <button
@@ -184,7 +184,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                     feedback.status === key
                       ? `${config.color} text-white border-transparent`
-                      : "bg-[#141414] text-gray-400 border-gray-700 hover:border-gray-500"
+                      : "bg-surface-card text-content-muted border-border hover:border-border"
                   }`}
                 >
                   {getStatusLabelFb(key, t)}
@@ -195,7 +195,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-800">
+        <div className="px-6 py-4 border-t border-border">
           <button
             onClick={onClose}
             className="w-full px-4 py-2.5 bg-gray-700 text-white text-sm font-medium rounded-xl hover:bg-gray-600 transition-colors"
@@ -309,16 +309,16 @@ const Feedback = () => {
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || t("admin.feedback.sort.newest")
 
   return (
-    <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
+    <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1">
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">{t("admin.feedback.title")}</h1>
-          <p className="text-gray-400 text-sm mt-1 hidden sm:block">{t("admin.feedback.description")}</p>
+          <p className="text-content-muted text-sm mt-1 hidden sm:block">{t("admin.feedback.description")}</p>
         </div>
         <button
           onClick={handleRefresh}
-          className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+          className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
         >
           <RefreshCw size={16} />
           <span className="hidden sm:inline">{t("common.refresh")}</span>
@@ -327,28 +327,28 @@ const Feedback = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-6">
-        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
-          <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.total")}</p>
+        <div className="bg-surface-base rounded-xl p-2.5 sm:p-4">
+          <p className="text-content-muted text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.total")}</p>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.total}</p>
         </div>
-        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+        <div className="bg-surface-base rounded-xl p-2.5 sm:p-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500"></div>
-            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.new")}</p>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary"></div>
+            <p className="text-content-muted text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.new")}</p>
           </div>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.new}</p>
         </div>
-        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+        <div className="bg-surface-base rounded-xl p-2.5 sm:p-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-yellow-500"></div>
-            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.review")}</p>
+            <p className="text-content-muted text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.review")}</p>
           </div>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.inReview}</p>
         </div>
-        <div className="bg-[#1C1C1C] rounded-xl p-2.5 sm:p-4">
+        <div className="bg-surface-base rounded-xl p-2.5 sm:p-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></div>
-            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.resolved")}</p>
+            <p className="text-content-muted text-[10px] sm:text-xs uppercase tracking-wider">{t("admin.feedback.stats.resolved")}</p>
           </div>
           <p className="text-lg sm:text-2xl font-bold text-white mt-0.5 sm:mt-1">{stats.resolved}</p>
         </div>
@@ -357,13 +357,13 @@ const Feedback = () => {
       {/* Search Bar */}
       <div className="mb-4 sm:mb-6">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-faint" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t("admin.feedback.search.placeholder")}
-            className="w-full bg-[#141414] border border-[#333333] rounded-xl pl-10 pr-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+            className="w-full bg-surface-card border border-border rounded-xl pl-10 pr-4 py-2.5 text-white text-sm placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -375,7 +375,7 @@ const Feedback = () => {
           {/* Filters Toggle - Clickable to expand/collapse */}
           <button
             onClick={() => setFiltersExpanded(!filtersExpanded)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-content-muted hover:text-content-primary transition-colors"
           >
             <Filter size={14} />
             <span className="text-xs sm:text-sm font-medium">{t("admin.feedback.filters.title")}</span>
@@ -385,7 +385,7 @@ const Feedback = () => {
             />
             {/* Show active filter count when collapsed */}
             {!filtersExpanded && activeFilterCount > 0 && (
-              <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+              <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full">
                 {activeFilterCount}
               </span>
             )}
@@ -398,7 +398,7 @@ const Feedback = () => {
                 e.stopPropagation()
                 setShowSortDropdown(!showSortDropdown)
               }}
-              className="px-3 sm:px-4 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
             >
               {sortBy === "newest" || sortBy === "oldest" ? (
                 sortBy === "newest" ? <ArrowDown size={14} className="text-white" /> : <ArrowUp size={14} className="text-white" />
@@ -410,9 +410,9 @@ const Feedback = () => {
 
             {/* Sort Dropdown */}
             {showSortDropdown && (
-              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+              <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                  <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
                     {t("admin.feedback.sort.sortBy")}
                   </div>
                   {sortOptions.map((option) => (
@@ -423,10 +423,10 @@ const Feedback = () => {
                         setSortBy(option.value)
                         setShowSortDropdown(false)
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                         sortBy === option.value
                           ? "text-white bg-gray-800/50"
-                          : "text-gray-300"
+                          : "text-content-secondary"
                       }`}
                     >
                       <span>{option.label}</span>
@@ -446,8 +446,8 @@ const Feedback = () => {
               onClick={() => setFilterStatuses([])}
               className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                 filterStatuses.length === 0
-                  ? "bg-orange-500 text-white"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  ? "bg-primary text-white"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
             >
               {t("common.all")} ({feedbackList.length})
@@ -459,8 +459,8 @@ const Feedback = () => {
                 onClick={() => toggleStatus(key)}
                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                   filterStatuses.includes(key)
-                    ? "bg-orange-500 text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    ? "bg-primary text-white"
+                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                 }`}
               >
                 {getStatusLabelFb(key, t)} ({feedbackList.filter((fb) => fb.status === key).length})
@@ -475,8 +475,8 @@ const Feedback = () => {
               onClick={() => setFilterTypes([])}
               className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                 filterTypes.length === 0
-                  ? "bg-orange-500 text-white"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  ? "bg-primary text-white"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
             >
               {t("admin.feedback.allTypes")}
@@ -488,8 +488,8 @@ const Feedback = () => {
                 onClick={() => toggleType(key)}
                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
                   filterTypes.includes(key)
-                    ? "bg-orange-500 text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    ? "bg-primary text-white"
+                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                 }`}
               >
                 {getTypeLabel(key, t)} ({feedbackList.filter((fb) => fb.type === key).length})
@@ -503,10 +503,10 @@ const Feedback = () => {
       <PullToRefresh onRefresh={handleRefresh} className="flex-1 overflow-y-auto">
       <div className="space-y-3">
         {filteredFeedback.length === 0 ? (
-          <div className="bg-[#1C1C1C] rounded-xl p-12 text-center">
-            <MessageCircle size={40} className="text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">{t("admin.feedback.empty.title")}</p>
-            <p className="text-gray-600 text-xs mt-1">{t("admin.feedback.empty.description")}</p>
+          <div className="bg-surface-base rounded-xl p-12 text-center">
+            <MessageCircle size={40} className="text-content-faint mx-auto mb-3" />
+            <p className="text-content-muted text-sm">{t("admin.feedback.empty.title")}</p>
+            <p className="text-content-faint text-xs mt-1">{t("admin.feedback.empty.description")}</p>
           </div>
         ) : (
           filteredFeedback.map((fb) => {
@@ -518,7 +518,7 @@ const Feedback = () => {
               <div
                 key={fb.id}
                 onClick={() => { haptic.light(); setSelectedFeedback(fb) }}
-                className="bg-[#1C1C1C] rounded-xl p-4 hover:bg-[#222222] transition-colors cursor-pointer group"
+                className="bg-surface-base rounded-xl p-4 hover:bg-surface-hover transition-colors cursor-pointer group"
               >
                 <div className="flex items-start gap-3">
                   {/* Type Icon */}
@@ -531,7 +531,7 @@ const Feedback = () => {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-white font-medium text-sm truncate">{fb.subject}</h3>
-                        <p className="text-gray-500 text-xs mt-0.5 line-clamp-1">{fb.message}</p>
+                        <p className="text-content-faint text-xs mt-0.5 line-clamp-1">{fb.message}</p>
                       </div>
 
                       {/* Status Badge */}
@@ -539,25 +539,25 @@ const Feedback = () => {
                         <span className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium ${statusConfig.color} text-white`}>
                           {getStatusLabelFb(fb.status, t)}
                         </span>
-                        <Eye size={14} className="text-gray-600 group-hover:text-gray-400 transition-colors hidden sm:block" />
+                        <Eye size={14} className="text-content-faint group-hover:text-content-muted transition-colors hidden sm:block" />
                       </div>
                     </div>
 
                     {/* Meta Row */}
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <Building2 size={12} className="text-orange-400" />
+                      <div className="flex items-center gap-1.5 text-xs text-content-muted">
+                        <Building2 size={12} className="text-primary" />
                         <span>{fb.studioName}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-content-faint">
                         <User size={12} />
                         <span>{fb.submittedBy}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-content-faint">
                         <Calendar size={12} />
                         <span>{localFormatDate(fb.createdAt, getLocaleFromI18n(i18n))}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-content-faint">
                         <Clock size={12} />
                         <span>{localFormatTime(fb.createdAt, getLocaleFromI18n(i18n))}</span>
                       </div>
@@ -567,7 +567,7 @@ const Feedback = () => {
                             <Star
                               key={star}
                               size={10}
-                              className={fb.rating >= star ? "text-orange-500 fill-orange-500" : "text-zinc-700"}
+                              className={fb.rating >= star ? "text-primary fill-primary" : "text-zinc-700"}
                             />
                           ))}
                         </div>
@@ -583,7 +583,7 @@ const Feedback = () => {
 
       {/* Results Count */}
       {filteredFeedback.length > 0 && (
-        <p className="text-gray-600 text-xs text-center mt-4">
+        <p className="text-content-faint text-xs text-center mt-4">
           {t("admin.feedback.results", { filtered: filteredFeedback.length, total: feedbackList.length })}
         </p>
       )}

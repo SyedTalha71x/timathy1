@@ -393,7 +393,7 @@ const handleLogout = () => {
                               
                               <button
                                 onClick={() => handleNavigation(subItem.to)}
-                                className={`flex items-center gap-3 text-sm open_sans_font relative w-full group transition-all duration-300 ${
+                                className={`flex items-center gap-3 text-[13px] open_sans_font relative w-full group transition-all duration-300 ${
                                   isCollapsed 
                                     ? "justify-center px-2 py-1.5" 
                                     : "text-left px-4 py-2"
@@ -458,7 +458,7 @@ const handleLogout = () => {
                                   </div>
                                 )}
                                 
-                                {!isCollapsed && <span className="transition-colors">{subItem.label}</span>}
+                                {!isCollapsed && <span className="transition-colors truncate">{subItem.label}</span>}
                               </button>
                             </li>
                           )

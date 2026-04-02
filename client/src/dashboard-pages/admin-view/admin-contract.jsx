@@ -49,6 +49,7 @@ import { studioDataNew } from "../../utils/admin-panel-states/customers-states"
 import { useTranslation } from "react-i18next"
 import { haptic } from "../../utils/haptic"
 import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
+import PullToRefresh from "../../components/shared/PullToRefresh"
 // Status Tag Component - matches members.jsx
 const StatusTag = ({ 
   status, 
@@ -1849,7 +1850,7 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
           </div>
 
         {/* Content */}
-        <div className="open_sans_font">
+        <PullToRefresh onRefresh={async () => {}} className="open_sans_font">
           {viewMode === "list" ? (
             // LIST VIEW
             <>
@@ -2396,12 +2397,12 @@ export default function AdminContractList({ studioId: studioIdProp = null, studi
               )}
             </div>
           )}
-        </div>
+        </PullToRefresh>
 
         {/* Floating Action Button - Mobile */}
         <button
           onClick={handleAddContract}
-          className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
+          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           aria-label={t("admin.contract.createContract")}
         >
           <Plus size={22} />

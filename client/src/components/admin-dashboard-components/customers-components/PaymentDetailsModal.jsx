@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { X, AlertTriangle, CreditCard, Loader2, CheckCircle2, FileText } from "lucide-react"
+import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // ============================================
 // Payment Details Modal – Customer / Studio
@@ -115,8 +116,8 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
         .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
         .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
       `}</style>
-      <div className="bg-surface-base rounded-2xl w-full max-w-lg relative overflow-hidden mx-4">
-        <div className="p-6 sm:p-8">
+      <div className="bg-surface-base rounded-2xl w-full max-w-lg relative mx-4 max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="p-6 sm:p-8 flex-1 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -260,6 +261,7 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
                 {t("admin.customers.payment.savePayment")}
               </button>
             </div>
+            <KeyboardSpacer />
           </form>
         </div>
       </div>

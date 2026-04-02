@@ -1,15 +1,46 @@
 import { useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 
 /**
- * Drop at the bottom of any scrollable popup container.
- * Only active on mobile/tablet (< 1024px) — desktop has no virtual keyboard.
- * Only expands when an INPUT or TEXTAREA in the lower portion of the
- * screen is focused. Ignores SELECT elements and anything inside
- * a [data-no-spacer] wrapper (e.g. CustomSelect components).
- * Uses a smaller spacer for number/tel keyboards.
+ * GlobalKeyboardSpacer
+ *
+ * Mount ONCE in App.jsx. Handles every input/textarea automatically.
+ *
+ * Native (iOS/Android):
+ *   Listens to 'capacitor-keyboard' custom events already dispatched
+ *   by main.jsx — no duplicate Capacitor plugin import needed.
+ *
+ * Web fallback:
+ *   Uses focusin/focusout with estimated keyboard heights.
+ *
+ * How it works:
+ *   1. Keyboard opens → finds the focused input
+ *   2. Walks up to find the nearest scrollable container
+ *   3. Adds MINIMUM paddingBottom needed to scroll input into view
+ *   4. Keyboard closes → removes padding
  */
-export default function KeyboardSpacer() {
-  const spacerRef = useRef(null);
+
+const isNative = Capacitor.isNativePlatform();
+
+const findScrollParent = (el) => {
+  let node = el?.parentElement;
+  while (node && node !== document.body && node !== document.documentElement) {
+    const style = window.getComputedStyle(node);
+    const overflowY = style.overflowY;
+    if (
+      (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") &&
+      node.scrollHeight > node.clientHeight
+    ) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  return null;
+};
+
+export default function GlobalKeyboardSpacer() {
+  const activeContainerRef = useRef(null);
+  const originalPaddingRef = useRef(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
 
   useEffect(() => {
@@ -19,56 +50,127 @@ export default function KeyboardSpacer() {
     return () => mql.removeEventListener("change", onChange);
   }, []);
 
-  useEffect(() => {
-    if (!isMobile) return;
+  const resetPadding = () => {
+    const c = activeContainerRef.current;
+    if (!c || originalPaddingRef.current === null) return;
+    c.style.paddingBottom = originalPaddingRef.current;
+    originalPaddingRef.current = null;
+    activeContainerRef.current = null;
+  };
 
-    const spacer = spacerRef.current;
-    const container = spacer?.parentElement;
-    if (!container) return;
+  const adjustForInput = (input, keyboardHeight) => {
+    if (!input) return;
+    if (input.closest("[data-no-spacer]")) return;
+
+    const container = findScrollParent(input);
+    if (!container) {
+      setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+      return;
+    }
+
+    // Switched containers → reset old one
+    if (activeContainerRef.current && activeContainerRef.current !== container) {
+      resetPadding();
+    }
+
+    activeContainerRef.current = container;
+
+    if (originalPaddingRef.current === null) {
+      originalPaddingRef.current = container.style.paddingBottom || "";
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const inputRect = input.getBoundingClientRect();
+
+    const keyboardTop = window.innerHeight - keyboardHeight;
+    const visibleTop = containerRect.top;
+    const visibleHeight = Math.max(0, keyboardTop - visibleTop);
+
+    const buffer = 60;
+    const targetY = visibleTop + (visibleHeight / 3);
+    const scrollNeeded = inputRect.top - targetY;
+
+    if (scrollNeeded <= 0) {
+      container.style.paddingBottom = originalPaddingRef.current || "";
+      return;
+    }
+
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    const currentScroll = container.scrollTop;
+    const scrollRoom = maxScroll - currentScroll;
+    const deficit = Math.max(0, scrollNeeded - scrollRoom);
+
+    if (deficit > 0) {
+      container.style.paddingBottom = `${deficit + buffer}px`;
+    }
+
+    requestAnimationFrame(() => {
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
+
+  // ════════════════════════════════════════════
+  // Native: Listen to custom events from main.jsx
+  // ════════════════════════════════════════════
+  useEffect(() => {
+    if (!isNative || !isMobile) return;
+
+    const onKeyboard = (e) => {
+      const { height, visible } = e.detail;
+
+      if (visible) {
+        const el = document.activeElement;
+        if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
+        setTimeout(() => adjustForInput(el, height), 50);
+      } else {
+        resetPadding();
+      }
+    };
+
+    window.addEventListener("capacitor-keyboard", onKeyboard);
+    return () => {
+      window.removeEventListener("capacitor-keyboard", onKeyboard);
+      resetPadding();
+    };
+  }, [isMobile]);
+
+  // ════════════════════════════════════════════
+  // Web fallback
+  // ════════════════════════════════════════════
+  useEffect(() => {
+    if (isNative || !isMobile) return;
 
     const onFocusIn = (e) => {
       const el = e.target;
-      const tag = el.tagName;
-
-      // Only text inputs and textareas — selects use native picker
-      if (tag !== "INPUT" && tag !== "TEXTAREA") return;
-
-      // Ignore inputs inside [data-no-spacer] wrappers (e.g. CustomSelect)
+      if (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA") return;
       if (el.closest("[data-no-spacer]")) return;
 
-      // Only expand if the field is in the lower 50% of the viewport
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight * 0.5) return;
 
-      // Number/tel keyboards are shorter — use less space
-      const inputType = el.getAttribute("type") || "text";
-      const isCompactKeyboard = inputType === "tel" || inputType === "number";
-      spacer.style.height = isCompactKeyboard ? "30vh" : "50vh";
-
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 60);
+      const type = el.getAttribute("type") || "text";
+      const compact = type === "tel" || type === "number";
+      const estimated = compact ? window.innerHeight * 0.3 : window.innerHeight * 0.45;
+      setTimeout(() => adjustForInput(el, estimated), 100);
     };
 
     const onFocusOut = () => {
       setTimeout(() => {
         const active = document.activeElement;
-        if (!container.contains(active) ||
-            (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA")) {
-          spacer.style.height = "0px";
+        if (active.tagName !== "INPUT" && active.tagName !== "TEXTAREA" && !active.isContentEditable) {
+          resetPadding();
         }
       }, 100);
     };
 
-    container.addEventListener("focusin", onFocusIn);
-    container.addEventListener("focusout", onFocusOut);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
     return () => {
-      container.removeEventListener("focusin", onFocusIn);
-      container.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      resetPadding();
     };
   }, [isMobile]);
 
-  if (!isMobile) return null;
-
-  return <div ref={spacerRef} style={{ height: 0 }} />;
+  return null;
 }

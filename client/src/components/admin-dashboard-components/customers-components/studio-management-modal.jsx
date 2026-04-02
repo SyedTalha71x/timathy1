@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { X, Search, ArrowRight, ArrowLeft, Edit, Building, Check } from "lucide-react"
+import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // ── Avatars (same as assign-studios-modal) ──
 const StudioAvatar = ({ name }) => {
@@ -204,6 +205,7 @@ const StudioManagementModal = ({
                   {t("admin.customers.studioMgmt.noMatch", { search: assignedSearch })}
                 </div>
               )}
+              <KeyboardSpacer />
             </div>
           </div>
 
@@ -239,6 +241,7 @@ const StudioManagementModal = ({
                   {t("admin.customers.studioMgmt.noMatch", { search: unassignedSearch })}
                 </div>
               )}
+              <KeyboardSpacer />
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ import { updateUserData } from "../../features/auth/authSlice"
 import useCountries from "../../hooks/useCountries"
 import { Capacitor } from "@capacitor/core"
 import { haptic } from "../../utils/haptic"
+import { Mail, MapPin, Phone, X } from "lucide-react"
 import PullToRefresh from "../../components/shared/PullToRefresh"
 import toast from "../../components/shared/SharedToast"
 
@@ -95,6 +96,7 @@ const StudioMenu = () => {
   const [expandedSection, setExpandedSection] = useState(null)
   const [showMailConfirm, setShowMailConfirm] = useState(false)
   const [showMapConfirm, setShowMapConfirm] = useState(false)
+  const [showPhoneConfirm, setShowPhoneConfirm] = useState(false)
   const swipeRef = useRef(null)
   const activeSectionRef = useRef(activeSection)
   activeSectionRef.current = activeSection
@@ -731,7 +733,7 @@ const StudioMenu = () => {
                       <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                       </svg>
-                      <a href={`tel:${studio?.phone || "+493012345678"}`} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors">{studio?.phone || "+49 30 1234 5678"}</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); setShowPhoneConfirm(true) }} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors cursor-pointer">{studio?.phone || "+49 30 1234 5678"}</a>
                     </div>
                     <button
                       onClick={handleCopyPhone}
@@ -1318,13 +1320,12 @@ const StudioMenu = () => {
       {/* Mail provider action sheet */}
       {showMailConfirm && (
         <div
-          className="absolute inset-0 z-50 flex items-end justify-center"
+          className="absolute inset-0 z-[60]"
           onClick={() => setShowMailConfirm(false)}
         >
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
-            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            className="absolute bottom-0 left-0 right-0 lg:bottom-auto lg:top-1/2 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-lg"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => {
               e.currentTarget._startY = e.touches[0].clientY
@@ -1349,25 +1350,37 @@ const StudioMenu = () => {
               }
             }}
           >
-            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+            <div className="bg-surface-card rounded-t-2xl lg:rounded-xl pt-3 lg:pt-0">
+              <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-2 lg:hidden" />
 
-            <div className="px-4 pb-3 border-b border-border">
-              <h4 className="text-sm font-semibold text-content-primary">{t("studioMenu.info.sendEmail")}</h4>
-              <p className="text-xs text-content-faint">{studioEmail}</p>
-            </div>
-
-            <div className="p-3 pb-4 space-y-1">
-              {mailProviders.map((provider) => (
-                <button
-                  key={provider.label}
-                  onClick={() => openMailWith(provider)}
-                  className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{provider.label}</p>
+              <div className="px-4 lg:px-6 pb-3 lg:pb-4 lg:pt-4 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.sendEmail")}</h4>
+                    <p className="text-xs lg:text-sm text-content-faint">{studioEmail}</p>
                   </div>
-                </button>
-              ))}
+                  <button onClick={() => setShowMailConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 lg:p-4">
+                {mailProviders.map((provider) => (
+                  <button
+                    key={provider.label}
+                    onClick={() => openMailWith(provider)}
+                    className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                  >
+                    <Mail className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                    <div>
+                      <p className="text-sm lg:text-base font-medium">{provider.label}</p>
+                    </div>
+                  </button>
+                ))}
+
+                <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
+              </div>
             </div>
           </div>
         </div>
@@ -1376,13 +1389,12 @@ const StudioMenu = () => {
       {/* Map provider action sheet */}
       {showMapConfirm && (
         <div
-          className="absolute inset-0 z-50 flex items-end justify-center"
+          className="absolute inset-0 z-[60]"
           onClick={() => setShowMapConfirm(false)}
         >
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative bg-surface-card rounded-t-2xl w-full max-w-lg"
-            style={{ marginBottom: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }}
+            className="absolute bottom-0 left-0 right-0 lg:bottom-auto lg:top-1/2 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-lg"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => {
               e.currentTarget._startY = e.touches[0].clientY
@@ -1407,25 +1419,106 @@ const StudioMenu = () => {
               }
             }}
           >
-            <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mt-3 mb-2" />
+            <div className="bg-surface-card rounded-t-2xl lg:rounded-xl pt-3 lg:pt-0">
+              <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-2 lg:hidden" />
 
-            <div className="px-4 pb-3 border-b border-border">
-              <h4 className="text-sm font-semibold text-content-primary">{t("studioMenu.info.openInMaps")}</h4>
-              <p className="text-xs text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}</p>
+              <div className="px-4 lg:px-6 pb-3 lg:pb-4 lg:pt-4 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.openInMaps")}</h4>
+                    <p className="text-xs lg:text-sm text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}</p>
+                  </div>
+                  <button onClick={() => setShowMapConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 lg:p-4">
+                {mapProviders.map((provider) => (
+                  <button
+                    key={provider.label}
+                    onClick={() => openMapWith(provider)}
+                    className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                  >
+                    <MapPin className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                    <div>
+                      <p className="text-sm lg:text-base font-medium">{provider.label}</p>
+                    </div>
+                  </button>
+                ))}
+
+                <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
+              </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="p-3 pb-4 space-y-1">
-              {mapProviders.map((provider) => (
+      {/* Phone action sheet */}
+      {showPhoneConfirm && (
+        <div
+          className="absolute inset-0 z-[60]"
+          onClick={() => setShowPhoneConfirm(false)}
+        >
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            className="absolute bottom-0 left-0 right-0 lg:bottom-auto lg:top-1/2 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-lg"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              e.currentTarget._startY = e.touches[0].clientY
+              e.currentTarget._currentY = e.touches[0].clientY
+              e.currentTarget.style.transition = "none"
+            }}
+            onTouchMove={(e) => {
+              const dy = e.touches[0].clientY - e.currentTarget._startY
+              e.currentTarget._currentY = e.touches[0].clientY
+              if (dy > 0) {
+                e.currentTarget.style.transform = `translateY(${dy}px)`
+              }
+            }}
+            onTouchEnd={(e) => {
+              const dy = e.currentTarget._currentY - e.currentTarget._startY
+              e.currentTarget.style.transition = "transform 0.2s ease-out"
+              if (dy > 80) {
+                e.currentTarget.style.transform = "translateY(100%)"
+                setTimeout(() => setShowPhoneConfirm(false), 200)
+              } else {
+                e.currentTarget.style.transform = "translateY(0)"
+              }
+            }}
+          >
+            <div className="bg-surface-card rounded-t-2xl lg:rounded-xl pt-3 lg:pt-0">
+              <div className="w-10 h-1 bg-surface-hover rounded-full mx-auto mb-2 lg:hidden" />
+
+              <div className="px-4 lg:px-6 pb-3 lg:pb-4 lg:pt-4 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.phoneTitle")}</h4>
+                    <p className="text-xs lg:text-sm text-content-faint">{studio?.phone || "+49 30 1234 5678"}</p>
+                  </div>
+                  <button onClick={() => setShowPhoneConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 lg:p-4">
                 <button
-                  key={provider.label}
-                  onClick={() => openMapWith(provider)}
-                  className="w-full text-left px-4 py-3.5 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 transition-colors"
+                  onClick={() => {
+                    setShowPhoneConfirm(false)
+                    window.location.href = `tel:${studio?.phone || "+493012345678"}`
+                  }}
+                  className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
                 >
+                  <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
                   <div>
-                    <p className="text-sm font-medium">{provider.label}</p>
+                    <p className="text-sm lg:text-base font-medium">{t("studioMenu.info.call")}</p>
                   </div>
                 </button>
-              ))}
+
+                <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
+              </div>
             </div>
           </div>
         </div>

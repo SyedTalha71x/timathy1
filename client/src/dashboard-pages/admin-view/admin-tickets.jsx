@@ -212,7 +212,7 @@ const AdminTicketsSystem = () => {
             case "High": return "text-red-400"
             case "Medium": return "text-yellow-400"
             case "Low": return "text-green-400"
-            default: return "text-gray-400"
+            default: return "text-content-muted"
         }
     }
 
@@ -234,29 +234,29 @@ const AdminTicketsSystem = () => {
         <div className={`relative ${className}`} ref={sortDropdownRef}>
             <button
                 onClick={(e) => { e.stopPropagation(); haptic.light(); setShowSortDropdown(!showSortDropdown) }}
-                className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
             >
                 {getSortIcon()}
                 <span>{currentSortLabel}</span>
             </button>
 
             {showSortDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
                             {t("common.sortBy")}
                         </div>
                         {sortOptions.map((option) => (
                             <button
                                 key={option.value}
                                 onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
-                                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                                    sortBy === option.value ? "text-white bg-gray-800/50" : "text-gray-300"
+                                className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
+                                    sortBy === option.value ? "text-white bg-gray-800/50" : "text-content-secondary"
                                 }`}
                             >
                                 <span>{option.label}</span>
                                 {sortBy === option.value && (
-                                    <span className="text-gray-400">
+                                    <span className="text-content-muted">
                                         {sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                                     </span>
                                 )}
@@ -269,7 +269,7 @@ const AdminTicketsSystem = () => {
     )
 
     return (
-        <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+        <div className="min-h-screen rounded-3xl bg-surface-base text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
 
             {/* ── Header ─────────────────────────────────────── */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -280,7 +280,7 @@ const AdminTicketsSystem = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleRefresh}
-                        className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                        className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
                     >
                         <RefreshCw size={16} />
                         <span className="hidden sm:inline">{t("common.refresh")}</span>
@@ -291,13 +291,13 @@ const AdminTicketsSystem = () => {
             {/* ── Search Bar ─────────────────────────────────── */}
             <div className="mb-4">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
                     <input
                         type="text"
                         placeholder={t("admin.tickets.search.placeholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                        className="w-full bg-surface-card outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-[#3F74FF] transition-colors"
                     />
                 </div>
             </div>
@@ -307,7 +307,7 @@ const AdminTicketsSystem = () => {
                 <div className="flex items-center justify-between mb-2">
                     <button
                         onClick={() => { haptic.light(); setFiltersExpanded(!filtersExpanded) }}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                        className="flex items-center gap-2 text-content-muted hover:text-content-primary transition-colors"
                     >
                         <Filter size={14} />
                         <span className="text-xs sm:text-sm font-medium">{t("common.filters")}</span>
@@ -333,7 +333,7 @@ const AdminTicketsSystem = () => {
                             className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                                 statusFilter === "all"
                                     ? "bg-blue-600 text-white"
-                                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                             }`}
                         >
                             {t("admin.tickets.status.all")}
@@ -349,12 +349,12 @@ const AdminTicketsSystem = () => {
                                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
                                     statusFilter === key
                                         ? "bg-blue-600 text-white"
-                                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                                 }`}
                             >
                                 {label}
                                 {statusCounts[key] ? (
-                                    <span className={`text-[11px] ${statusFilter === key ? "text-blue-200" : "text-gray-500"}`}>
+                                    <span className={`text-[11px] ${statusFilter === key ? "text-blue-200" : "text-content-faint"}`}>
                                         ({statusCounts[key]})
                                     </span>
                                 ) : null}
@@ -375,13 +375,13 @@ const AdminTicketsSystem = () => {
                                 className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                                     priorityFilter === key
                                         ? `${activeColor} text-white`
-                                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                                 }`}
                             >
                                 {label}
                                 {priorityCounts[key] ? (
                                     <span className={`text-[11px] ml-1 ${
-                                        priorityFilter === key ? "opacity-80" : "text-gray-500"
+                                        priorityFilter === key ? "opacity-80" : "text-content-faint"
                                     }`}>
                                         ({priorityCounts[key]})
                                     </span>
@@ -399,7 +399,7 @@ const AdminTicketsSystem = () => {
                         <div
                             key={ticket.id}
                             onClick={() => handleTicketClick(ticket)}
-                            className="bg-[#161616] rounded-lg p-3 sm:p-4 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
+                            className="bg-surface-card rounded-lg p-3 sm:p-4 cursor-pointer transition-colors hover:bg-surface-hover"
                         >
                             <div className="flex justify-between items-start mb-1.5 min-w-0">
                                 <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
@@ -407,11 +407,11 @@ const AdminTicketsSystem = () => {
                                 </h3>
                             </div>
 
-                            <p className="text-sm text-gray-400 mb-2">{ticket.studioName}</p>
+                            <p className="text-sm text-content-muted mb-2">{ticket.studioName}</p>
 
-                            <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
-                                <span>{t("admin.tickets.list.created")}: <span className="text-gray-300">{formatDateString(ticket.createdDate)}</span></span>
-                                <span>{t("admin.tickets.list.updated")}: <span className="text-gray-300">{formatDateString(ticket.lastUpdated)}</span></span>
+                            <div className="flex items-center gap-4 text-xs text-content-muted flex-wrap mb-2">
+                                <span>{t("admin.tickets.list.created")}: <span className="text-content-secondary">{formatDateString(ticket.createdDate)}</span></span>
+                                <span>{t("admin.tickets.list.updated")}: <span className="text-content-secondary">{formatDateString(ticket.lastUpdated)}</span></span>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -429,13 +429,13 @@ const AdminTicketsSystem = () => {
                 {/* ── Empty State ────────────────────────────────── */}
                 {sortedTickets.length === 0 && (
                     <div className="text-center py-16">
-                        <div className="text-gray-500 mb-6">
+                        <div className="text-content-faint mb-6">
                             <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
                         </div>
-                        <h3 className="text-xl font-medium text-gray-300 mb-3">{t("admin.tickets.empty.title")}</h3>
-                        <p className="text-gray-500 mb-6">{t("admin.tickets.empty.description")}</p>
+                        <h3 className="text-xl font-medium text-content-secondary mb-3">{t("admin.tickets.empty.title")}</h3>
+                        <p className="text-content-faint mb-6">{t("admin.tickets.empty.description")}</p>
                     </div>
                 )}
             </PullToRefresh>

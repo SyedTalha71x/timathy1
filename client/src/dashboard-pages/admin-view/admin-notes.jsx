@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Tag, Pin, PinOff } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import TagManagerModal from "../../components/shared/TagManagerModal"
@@ -13,7 +13,7 @@ import { demoNotes, notesTagsData } from "../../utils/admin-panel-states/notes-s
 import { useTranslation } from "react-i18next"
 import PullToRefresh from "../../components/shared/PullToRefresh"
 import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
-import { haptic } from "../../utils/haptic"
+
 // Helper function to strip HTML tags and normalize whitespace for preview
 const stripHtmlTags = (html) => {
   if (!html) return ''
@@ -329,18 +329,18 @@ const NoteOverlayItem = ({ note, availableTags }) => {
   const stripText = stripHtmlTags(note.content)
   return (
     <div
-      className="bg-gray-800/95 rounded-xl border border-orange-500/50 shadow-2xl"
+      className="bg-gray-800/95 rounded-xl border border-primary/50 shadow-2xl"
       style={{ boxShadow: '0 12px 32px rgba(249, 115, 22, 0.25)', width: 'var(--note-list-width, 300px)' }}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
-        <div className="text-orange-400 mt-0.5 flex-shrink-0 p-1">
+        <div className="text-primary mt-0.5 flex-shrink-0 p-1">
           <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
         </div>
         <div className="flex-1 min-w-0 overflow-hidden">
-          <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
+          <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-content-faint italic'}`}>
             {note.title || t("admin.notes.untitled")}
           </h4>
-          <p className="text-xs text-gray-400 mt-1 truncate">{stripText || t("admin.notes.noContent")}</p>
+          <p className="text-xs text-content-muted mt-1 truncate">{stripText || t("admin.notes.noContent")}</p>
           {note.tags && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {note.tags.slice(0, 3).map(tagId => {
@@ -357,7 +357,7 @@ const NoteOverlayItem = ({ note, availableTags }) => {
   )
 }
 
-const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags }) => {
+const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags, wasDraggingRef }) => {
   const { t } = useTranslation()
   const {
     attributes,
@@ -370,30 +370,41 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags 
 
   const style = {
     transform: transform ? `translate3d(0, ${Math.round(transform.y)}px, 0)` : undefined,
-    transition,
-    opacity: isDragging ? 0.4 : 1,
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 50 : 'auto',
   }
 
   const stripText = stripHtmlTags(note.content)
+
+  const handleClick = (e) => {
+    // Prevent note selection if we just finished dragging
+    if (wasDraggingRef?.current) return
+    // Prevent click if the drag handle was clicked
+    if (e.target.closest('[data-drag-handle]')) return
+    onClick?.()
+  }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative cursor-pointer select-none border-b border-gray-800 ${
+      className={`group relative cursor-pointer select-none border-b border-border ${
         isSelected 
           ? 'bg-gray-800/80' 
-          : 'hover:bg-gray-800/50 active:bg-gray-800/70'
+          : 'hover:bg-surface-hover/50 active:bg-gray-800/70'
       } ${isDragging ? 'pointer-events-none' : ''}`}
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
         {/* Drag Handle */}
         <div
+          data-drag-handle
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-orange-500/30"
+          className="cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-primary mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-primary/30"
           style={{ WebkitTapHighlightColor: 'transparent' }}
+          onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
         </div>
@@ -401,16 +412,16 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags 
         {/* Note Content */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
+            <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-content-faint italic'}`}>
               {note.title || t("admin.notes.untitled")}
             </h4>
             {note.isPinned && (
-              <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-0.5" />
+              <Pin size={12} className="text-primary fill-primary flex-shrink-0 mt-0.5" />
             )}
           </div>
           
           <p 
-            className="text-xs text-gray-400 mb-2"
+            className="text-xs text-content-muted mb-2"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 2,
@@ -438,7 +449,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags 
                 ) : null
               })}
               {note.tags.length > 4 && (
-                <span className="text-[10px] text-gray-500">+{note.tags.length - 4}</span>
+                <span className="text-[10px] text-content-faint">+{note.tags.length - 4}</span>
               )}
             </div>
           )}
@@ -475,10 +486,10 @@ export default function NotesApp() {
   // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: { distance: 5 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 8 },
+      activationConstraint: { delay: 150, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -487,6 +498,7 @@ export default function NotesApp() {
 
   // Track actively dragged note for DragOverlay
   const [activeId, setActiveId] = useState(null)
+  const wasDraggingRef = useRef(false)
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -593,7 +605,6 @@ export default function NotesApp() {
 
   // Save current note
   const saveCurrentNote = () => {
-    haptic.success()
     if (!selectedNote) return
 
     const updatedNote = {
@@ -621,13 +632,12 @@ export default function NotesApp() {
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || t("admin.notes.sort.date")
 
   const toggleSortDirection = () => {
-    haptic.light()
     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
   }
 
   const getSortIcon = () => {
     if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
+      return <ArrowUpDown size={14} className="text-content-muted" />
     }
     return sortDirection === 'asc' 
       ? <ArrowUp size={14} className="text-white" />
@@ -635,7 +645,6 @@ export default function NotesApp() {
   }
 
   const handleSortOptionClick = (newSortBy) => {
-    haptic.light()
     if (newSortBy === 'custom') {
       setSortBy('custom')
       setShowSortDropdown(false)
@@ -649,12 +658,10 @@ export default function NotesApp() {
 
   // Tag Management
   const handleAddTag = (newTag) => {
-    haptic.success()
     setAvailableTags([...availableTags, newTag])
   }
 
   const handleDeleteTag = (tagId) => {
-    haptic.warning()
     setNotes(prev => prev.map(note => ({
       ...note,
       tags: note.tags?.filter(t => t !== tagId) || []
@@ -664,7 +671,6 @@ export default function NotesApp() {
 
   // Create new note
   const handleCreateNote = () => {
-    haptic.success()
     const note = {
       id: Date.now(),
       title: '',
@@ -696,7 +702,6 @@ export default function NotesApp() {
 
   // Delete note
   const deleteNote = (noteId) => {
-    haptic.warning()
     setNotes(prev => prev.filter(note => note.id !== noteId))
     if (selectedNote?.id === noteId) setSelectedNote(null)
   }
@@ -720,7 +725,6 @@ export default function NotesApp() {
 
   // Toggle pin
   const togglePin = (noteId) => {
-    haptic.light()
     setNotes(prev => prev.map(note =>
       note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
     ))
@@ -731,7 +735,6 @@ export default function NotesApp() {
 
   // Toggle tag
   const toggleTag = (tagId) => {
-    haptic.light()
     setEditedTags(prev =>
       prev.includes(tagId)
         ? prev.filter(t => t !== tagId)
@@ -742,22 +745,39 @@ export default function NotesApp() {
 
   // Handle drag end
   const handleDragStart = (event) => {
-    haptic.light()
+    wasDraggingRef.current = true
     setActiveId(event.active.id)
   }
 
   const handleDragEnd = (event) => {
-    haptic.light()
     setActiveId(null)
     const { active, over } = event
+    
+    // Reset drag flag after a short delay so onClick doesn't fire
+    setTimeout(() => { wasDraggingRef.current = false }, 50)
+
     if (!over || active.id === over.id) return
 
     setSortBy('custom')
     setNotes(prev => {
-      const oldIndex = prev.findIndex(note => note.id === active.id)
-      const newIndex = prev.findIndex(note => note.id === over.id)
-      return arrayMove(prev, oldIndex, newIndex)
+      // Build the new order based on displayed currentNotes order
+      const displayedIds = getCurrentNotes().map(n => n.id)
+      const oldIndex = displayedIds.indexOf(active.id)
+      const newIndex = displayedIds.indexOf(over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      
+      const reorderedIds = arrayMove(displayedIds, oldIndex, newIndex)
+      
+      // Rebuild full notes array: reordered visible notes first, then hidden notes
+      const reorderedVisible = reorderedIds.map(id => prev.find(n => n.id === id)).filter(Boolean)
+      const hiddenNotes = prev.filter(n => !displayedIds.includes(n.id))
+      return [...reorderedVisible, ...hiddenNotes]
     })
+  }
+
+  const handleDragCancel = () => {
+    setActiveId(null)
+    setTimeout(() => { wasDraggingRef.current = false }, 50)
   }
 
   // Get current notes (filtered, sorted)
@@ -812,7 +832,7 @@ export default function NotesApp() {
 
   return (
     <>
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <h1 className="text-xl md:text-2xl font-bold text-white">{t("admin.notes.title")}</h1>
@@ -821,13 +841,13 @@ export default function NotesApp() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 min-h-0 overflow-hidden">
           {/* Sidebar */}
-          <div className="w-full md:w-[22rem] flex flex-col bg-[#161616] rounded-xl border border-gray-800 h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
+          <div className="w-full md:w-[22rem] flex flex-col bg-surface-card rounded-xl border border-border h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
             {/* Desktop Buttons */}
             <div className="hidden md:flex p-3 gap-2">
               <div className="relative group">
                 <button
                   onClick={handleCreateNote}
-                  className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors font-medium"
+                  className="bg-primary hover:bg-primary-hover text-sm text-white px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors font-medium"
                 >
                   <Plus size={16} />
                   <span>{t("admin.notes.newNote")}</span>
@@ -842,7 +862,7 @@ export default function NotesApp() {
               <div className="relative flex-1 max-w-[180px]" ref={desktopSortDropdownRef}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
-                  className="w-full px-3 py-2.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-sm hover:bg-[#3F3F3F] transition-colors flex items-center justify-between gap-2"
+                  className="w-full px-3 py-2.5 bg-surface-button text-content-secondary rounded-xl text-sm hover:bg-surface-button-hover transition-colors flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     {getSortIcon()}
@@ -850,18 +870,18 @@ export default function NotesApp() {
                   </div>
                 </button>
                 {showSortDropdown && (
-                  <div className="absolute left-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-full w-max">
+                  <div className="absolute left-0 top-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-full w-max">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
                           onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-content-secondary'}`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && option.value !== 'custom' && (
-                            <span className="text-gray-400 ml-3">
+                            <span className="text-content-muted ml-3">
                               {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </span>
                           )}
@@ -876,7 +896,7 @@ export default function NotesApp() {
               <div className="relative group">
                 <button
                   onClick={() => setShowTagsModal(true)}
-                  className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors font-medium"
+                  className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors font-medium"
                 >
                   <Tag size={16} />
                   <span className="hidden sm:inline">{t("admin.notes.tags")}</span>
@@ -889,15 +909,15 @@ export default function NotesApp() {
             </div>
 
             {/* Search + Mobile Buttons */}
-            <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-gray-800 flex gap-2">
+            <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-border flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={14} />
                 <input
                   type="text"
                   placeholder={t("admin.notes.search.placeholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-blue-500 transition-colors"
+                  className="w-full bg-surface-dark outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-border focus:border-primary transition-colors"
                 />
               </div>
               
@@ -905,23 +925,23 @@ export default function NotesApp() {
               <div className="md:hidden relative" ref={sortDropdownRef}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
-                  className="w-10 h-10 flex items-center justify-center bg-[#2F2F2F] text-gray-300 rounded-lg hover:bg-[#3F3F3F] transition-colors"
+                  className="w-10 h-10 flex items-center justify-center bg-surface-button text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors"
                 >
                   <ArrowUpDown size={14} />
                 </button>
                 {showSortDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute right-0 top-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">{t("common.sortBy")}</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
                           onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-content-secondary'}`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && option.value !== 'custom' && (
-                            <span className="text-gray-400 ml-3">
+                            <span className="text-content-muted ml-3">
                               {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </span>
                           )}
@@ -935,21 +955,21 @@ export default function NotesApp() {
               {/* Mobile Tags */}
               <button
                 onClick={() => setShowTagsModal(true)}
-                className="md:hidden w-10 h-10 flex items-center justify-center bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 rounded-lg transition-colors"
+                className="md:hidden w-10 h-10 flex items-center justify-center bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-lg transition-colors"
               >
                 <Tag size={16} />
               </button>
             </div>
 
             {/* Notes List */}
-            <div className="flex-1 overflow-y-auto">
+            <PullToRefresh onRefresh={async () => {}} className="flex-1 overflow-y-auto">
               {currentNotes.length === 0 ? (
-                <div className="p-6 md:p-8 text-center text-gray-500">
+                <div className="p-6 md:p-8 text-center text-content-faint">
                   <p className="text-sm">{t("admin.notes.empty.title")}</p>
                   <p className="text-xs mt-2">{t("admin.notes.empty.description")}</p>
                 </div>
               ) : (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis]} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
                   <SortableContext items={noteIds} strategy={verticalListSortingStrategy}>
                     {currentNotes.map(note => (
                       <SortableNoteItem
@@ -958,10 +978,11 @@ export default function NotesApp() {
                         isSelected={selectedNote?.id === note.id}
                         onClick={() => setSelectedNote(note)}
                         availableTags={availableTags}
+                        wasDraggingRef={wasDraggingRef}
                       />
                     ))}
                   </SortableContext>
-                  <DragOverlay dropAnimation={{ duration: 200, easing: "ease-out" }}>
+                  <DragOverlay dropAnimation={{ duration: 150, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
                     {activeId ? (
                       <NoteOverlayItem
                         note={currentNotes.find(n => n.id === activeId)}
@@ -971,15 +992,15 @@ export default function NotesApp() {
                   </DragOverlay>
                 </DndContext>
               )}
-            </div>
+            </PullToRefresh>
           </div>
 
           {/* Desktop Editor */}
-          <div className="hidden md:flex flex-1 flex-col bg-[#161616] rounded-xl border border-gray-800 min-w-0 max-h-[calc(100vh-200px)]">
+          <div className="hidden md:flex flex-1 flex-col bg-surface-card rounded-xl border border-border min-w-0 max-h-[calc(100vh-200px)]">
             {selectedNote ? (
               <>
                 {/* Note Header */}
-                <div className="p-4 md:p-6 border-b border-gray-800 flex-shrink-0">
+                <div className="p-4 md:p-6 border-b border-border flex-shrink-0">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-0">
                       <input
@@ -988,9 +1009,9 @@ export default function NotesApp() {
                         value={editedTitle}
                         onChange={(e) => { setEditedTitle(e.target.value); setHasUnsavedChanges(true) }}
                         placeholder={t("admin.notes.untitled")}
-                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1 truncate"
+                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-border focus:border-primary transition-all pb-1 truncate"
                       />
-                      <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
+                      <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-content-faint">
                         <span>{t("common.created")}: {formatDateTime(selectedNote.createdAt)}</span>
                         {selectedNote.updatedAt !== selectedNote.createdAt && (
                           <span>{t("common.updated")}: {formatDateTime(selectedNote.updatedAt)}</span>
@@ -1001,21 +1022,21 @@ export default function NotesApp() {
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => togglePin(selectedNote.id)}
-                        className={`p-2 rounded-lg hover:bg-gray-800 transition-colors ${selectedNote.isPinned ? 'text-orange-400' : 'text-gray-400 hover:text-white'}`}
+                        className={`p-2 rounded-lg hover:bg-surface-hover transition-colors ${selectedNote.isPinned ? 'text-primary' : 'text-content-muted hover:text-content-primary'}`}
                         title={selectedNote.isPinned ? t("common.unpin") : t("common.pin")}
                       >
                         {selectedNote.isPinned ? <Pin size={18} className="fill-current" /> : <PinOff size={18} />}
                       </button>
                       <button
                         onClick={duplicateNote}
-                        className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        className="text-content-muted hover:text-content-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
                         title={t("common.duplicate")}
                       >
                         <Copy size={18} />
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(selectedNote)}
-                        className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        className="text-content-muted hover:text-red-500 p-2 rounded-lg hover:bg-surface-hover transition-colors"
                         title={t("common.delete")}
                       >
                         <Trash2 size={18} />
@@ -1030,7 +1051,7 @@ export default function NotesApp() {
                         <button
                           key={tag.id}
                           onClick={() => toggleTag(tag.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                           style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
                         >
                           <Tag size={10} />
@@ -1041,7 +1062,7 @@ export default function NotesApp() {
                     {availableTags.length > 6 && (
                       <button
                         onClick={() => setShowAllTags(!showAllTags)}
-                        className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                        className="mt-2 text-sm text-primary hover:text-primary transition-colors"
                       >
                         {showAllTags ? t("admin.notes.showLess") : t("admin.notes.showMore", { count: availableTags.length - 6 })}
                       </button>
@@ -1065,14 +1086,14 @@ export default function NotesApp() {
             ) : (
               <div className="flex-1 flex items-center justify-center p-4 md:p-8 text-center">
                 <div>
-                  <div className="text-gray-600 mb-4">
+                  <div className="text-content-faint mb-4">
                     <Edit size={40} className="mx-auto md:w-12 md:h-12" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-400 mb-2">{t("admin.notes.noNoteSelected")}</h3>
-                  <p className="text-xs md:text-sm text-gray-500 mb-6">{t("admin.notes.selectNoteHint")}</p>
+                  <h3 className="text-lg md:text-xl font-semibold text-content-muted mb-2">{t("admin.notes.noNoteSelected")}</h3>
+                  <p className="text-xs md:text-sm text-content-faint mb-6">{t("admin.notes.selectNoteHint")}</p>
                   <button
                     onClick={handleCreateNote}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
+                    className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
                   >
                     <Plus size={16} />
                     {t("admin.notes.newNote")}
@@ -1097,12 +1118,12 @@ export default function NotesApp() {
 
       {/* Mobile Editor Overlay */}
       {selectedNote && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[9999] flex flex-col">
+        <div className="md:hidden fixed inset-0 bg-surface-base z-[9999] flex flex-col">
           {/* Mobile Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
             <button
               onClick={() => setSelectedNote(null)}
-              className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1111,15 +1132,15 @@ export default function NotesApp() {
             
             <div className="flex items-center gap-3">
               {selectedNote.isPinned && (
-                <button onClick={() => togglePin(selectedNote.id)} className="text-orange-400 p-1 hover:bg-gray-800 rounded-lg transition-colors">
-                  <Pin size={20} className="fill-orange-400" />
+                <button onClick={() => togglePin(selectedNote.id)} className="text-primary p-1 hover:bg-surface-hover rounded-lg transition-colors">
+                  <Pin size={20} className="fill-primary" />
                 </button>
               )}
               
               <div className="relative" ref={mobileActionsMenuRef}>
                 <button
                   onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
-                  className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                  className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -1127,24 +1148,24 @@ export default function NotesApp() {
                 </button>
 
                 {showMobileActionsMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg min-w-[180px] z-50">
+                  <div className="absolute top-full right-0 mt-2 bg-surface-hover border border-border rounded-lg shadow-lg min-w-[180px] z-50">
                     <div className="py-1">
                       <button
                         onClick={() => { togglePin(selectedNote.id); setShowMobileActionsMenu(false) }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         {selectedNote.isPinned ? <><PinOff size={16} /><span>{t("admin.notes.unpinNote")}</span></> : <><Pin size={16} /><span>{t("admin.notes.pinNote")}</span></>}
                       </button>
                       <button
                         onClick={() => { duplicateNote(); setShowMobileActionsMenu(false) }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         <Copy size={16} /><span>{t("common.duplicate")}</span>
                       </button>
-                      <div className="border-t border-gray-700 my-1"></div>
+                      <div className="border-t border-border my-1"></div>
                       <button
                         onClick={() => { setDeleteConfirm(selectedNote); setShowMobileActionsMenu(false) }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500"
                       >
                         <Trash2 size={16} /><span>{t("common.delete")}</span>
                       </button>
@@ -1157,16 +1178,16 @@ export default function NotesApp() {
 
           {/* Mobile Content */}
           <div className="flex-1 overflow-y-auto mobile-note-scroll">
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-border">
               <input
                 type="text"
                 data-title-input
                 value={editedTitle}
                 onChange={(e) => { setEditedTitle(e.target.value); setHasUnsavedChanges(true) }}
                 placeholder={t("admin.notes.untitled")}
-                className="w-full bg-transparent text-xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1"
+                className="w-full bg-transparent text-xl font-bold text-white outline-none border-b-2 border-transparent hover:border-border focus:border-primary transition-all pb-1"
               />
-              <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+              <div className="flex flex-wrap gap-3 mt-2 text-xs text-content-faint">
                 <span>{t("common.created")}: {formatDateTime(selectedNote.createdAt)}</span>
                 {selectedNote.updatedAt !== selectedNote.createdAt && (
                   <span>{t("common.updated")}: {formatDateTime(selectedNote.updatedAt)}</span>
@@ -1175,9 +1196,9 @@ export default function NotesApp() {
             </div>
 
             {/* Tags */}
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-300">{t("admin.notes.tags")}</label>
+                <label className="text-sm font-medium text-content-secondary">{t("admin.notes.tags")}</label>
                 <button onClick={() => setShowTagsModal(true)} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
                   {t("admin.notes.manageTags")}
                 </button>
@@ -1187,7 +1208,7 @@ export default function NotesApp() {
                   <button
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${editedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                     style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
                   >
                     <Tag size={10} />
@@ -1198,7 +1219,7 @@ export default function NotesApp() {
               {availableTags.length > 4 && (
                 <button
                   onClick={() => setShowAllTags(!showAllTags)}
-                  className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                  className="mt-2 text-sm text-primary hover:text-primary transition-colors"
                 >
                   {showAllTags ? t("admin.notes.showLess") : t("admin.notes.showMore", { count: availableTags.length - 4 })}
                 </button>
@@ -1234,7 +1255,7 @@ export default function NotesApp() {
       {/* Mobile FAB */}
       <button
         onClick={handleCreateNote}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
       >
         <Plus size={22} />
       </button>

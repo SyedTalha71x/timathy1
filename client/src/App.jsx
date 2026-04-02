@@ -89,6 +89,7 @@ import MemberClasses from './dashboard-pages/member-view/classes'
 import { connectSocket, disconnectSocket } from "./services/socket";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
+import GlobalKeyboardSpacer from "./components/shared/KeyboardSpacer";
 
 
 
@@ -152,6 +153,7 @@ function App() {
   // }, []);
   return (
     <>
+      <GlobalKeyboardSpacer />
       {!isAuthOrDashboardPage && <Header />}
       <Routes>
         {/* ═══════════════════════════════════════════════════════════════════
