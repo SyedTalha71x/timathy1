@@ -38,7 +38,7 @@ const SettingsModal = ({
     const idx = tabKeys.indexOf(settingsTab)
     el.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
     el.style.transform = `translateX(-${idx * (100 / tabKeys.length)}%)`
-  }, [settingsTab])
+  }, [settingsTab, show])
 
   // Touch swipe handlers
   useEffect(() => {
@@ -103,7 +103,7 @@ const SettingsModal = ({
       el.removeEventListener('touchmove', onMove)
       el.removeEventListener('touchend', onEnd)
     }
-  }, [setSettingsTab])
+  }, [setSettingsTab, show])
 
   if (!show) return null
 
@@ -133,7 +133,7 @@ const SettingsModal = ({
         </div>
 
         {/* Swipe Panels */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-h-0">
           <div
             ref={swipeRef}
             className="flex h-full"
