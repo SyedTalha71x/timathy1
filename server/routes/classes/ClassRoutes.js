@@ -48,8 +48,8 @@ router.delete('/category/:id', deleteCategory);
 // ==================== ROOM ROUTES ====================
 router.post('/room/create', createRoom);
 router.get('/rooms', getAllRoom);
-router.put('/room/:id', updateRoom);
-router.delete('/room/:id', deleteRoom);
+router.put('/room/:roomId', updateRoom);
+router.delete('/room/:roomId', deleteRoom);
 
 // ==================== CLASS-TYPES ROUTES ====================
 router.post('/type/create', uploadImage.single('img'), createClassType)

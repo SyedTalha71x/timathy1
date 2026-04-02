@@ -151,16 +151,16 @@ const getAllRoom = async (req, res, next) => {
 
 const updateRoom = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { roomId } = req.params
 
         const { room } = req.body;
 
-        const roomToUpdate = await RoomModel.findById(id);
+        const roomToUpdate = await RoomModel.findById(roomId);
         if (!roomToUpdate) {
-            return res.status(404).json({ success: false, message: "Category not found" });
+            return res.status(404).json({ success: false, message: "Room not found" });
         }
 
-        const updateRoom = await RoomModel.findByIdAndUpdate(id, { roomName: room }, { new: true });
+        const updateRoom = await RoomModel.findByIdAndUpdate(roomId, { roomName: room }, { new: true });
 
         res.status(200).json({
             success: true,
@@ -177,14 +177,14 @@ const updateRoom = async (req, res, next) => {
 
 const deleteRoom = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { roomId } = req.params
 
-        const roomToDelete = await RoomModel.findById(id);
+        const roomToDelete = await RoomModel.findById(roomId);
         if (!roomToDelete) {
             return res.status(404).json({ success: false, message: "Room not found" });
         }
 
-        await RoomModel.findByIdAndDelete(id);
+        await RoomModel.findByIdAndDelete(roomId);
 
         res.status(200).json({
             success: true,

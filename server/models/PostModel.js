@@ -18,7 +18,7 @@ const postSchema = new mongoose.Schema({
     }],
     schedule: {
         type: String,
-        enum: ['immediately', 'schedule']
+        enum: ['immediately', 'scheduled']
     },
     scheduleDate: {
         type: Date,
@@ -29,19 +29,28 @@ const postSchema = new mongoose.Schema({
     scheduleEndTime: {
         type: String
     },
-    isDeactivated: {
+    isActive: {
         type: Boolean,
         default: false
     },
     status: {
         type: String,
-        enum: ['active', 'inactive'],
+        enum: ['active', 'inactive', 'scheduled'],
         default: 'active'
     },
+
     postType: {
         type: String,
-        enum: ['staff', 'member'],
+        enum: ['private', 'public'],
         default: 'staff'
+    },
+    studioId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Studio'
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, { timestamps: true })
 

@@ -17,6 +17,8 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, 
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ExternalSidebarContext } from "../../layouts/studio-view/studio-view-layout";
+import { useDispatch, useSelector } from "react-redux"
+import { fetchStudioServices } from "../../features/services/servicesSlice"
 
 // Sortable Product/Service Card Component
 const SortableItemCard = ({ item, children, isDragDisabled }) => {
@@ -27,9 +29,9 @@ const SortableItemCard = ({ item, children, isDragDisabled }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: item.id,
-    disabled: isDragDisabled 
+    disabled: isDragDisabled
   })
 
   const style = {
@@ -44,8 +46,8 @@ const SortableItemCard = ({ item, children, isDragDisabled }) => {
   return (
     <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-border/30' : ''}`}>
       {!isDragDisabled && (
-        <div 
-          {...attributes} 
+        <div
+          {...attributes}
           {...listeners}
           className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 md:p-1.5 rounded-lg z-20 touch-none bg-black/50 hover:bg-black/60 shadow-lg"
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -79,9 +81,12 @@ const getTextSizeClass = (text, isCard = false) => {
 }
 
 const Selling = () => {
+
+  const { services: reduxServices = [] } = useSelector((state) => state.services) || {}
+  const dispatch = useDispatch()
   // Use context to communicate sidebar state to dashboard layout
   const { isExternalSidebarOpen: isRightSidebarOpen, setIsExternalSidebarOpen: setIsRightSidebarOpen } = useContext(ExternalSidebarContext)
-  
+
   const [dropdownOpen, setDropdownOpen] = useState(null)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -129,7 +134,7 @@ const Selling = () => {
   const [showMemberResults, setShowMemberResults] = useState(false)
 
   const [products, setProducts] = useState(productsMainData)
-  const [services, setServices] = useState(serviceMainData)
+  const [services, setServices] = useState(reduxServices)
   const [salesHistory, setSalesHistory] = useState(sellingMainData)
 
   const [salesFilter, setSalesFilter] = useState({
@@ -145,6 +150,10 @@ const Selling = () => {
     { id: 3, name: "Mike Johnson", type: "Full Member" },
   ])
 
+
+  useEffect(() => {
+    dispatch(fetchStudioServices())
+  }, [dispatch])
   // DnD sensors - same as Bulletin Board
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -202,7 +211,7 @@ const Selling = () => {
     } else {
       setIsRightSidebarOpen(false)
     }
-    
+
     // Only auto-open when resizing TO desktop, never auto-close
     // This prevents the sidebar from closing when mobile keyboard opens
     const handleResize = () => {
@@ -211,7 +220,7 @@ const Selling = () => {
       }
       // Don't auto-close on mobile - sidebar should only close via explicit user action (X button or checkout)
     }
-    
+
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -221,10 +230,10 @@ const Selling = () => {
     const handleKeyDown = (e) => {
       // Ignore if user is typing in an input or textarea
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return
-      
+
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return
-      
+
       // ESC key - Close modals
       if (e.key === 'Escape') {
         if (showCheckoutConfirmModal) {
@@ -248,7 +257,7 @@ const Selling = () => {
           return
         }
       }
-      
+
       // C key - Create new product/service
       if (e.key === 'c' || e.key === 'C') {
         if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal && !showCheckoutConfirmModal) {
@@ -256,7 +265,7 @@ const Selling = () => {
           openAddModal()
         }
       }
-      
+
       // J key - Open Journal
       if (e.key === 'j' || e.key === 'J') {
         if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal && !showCheckoutConfirmModal) {
@@ -265,7 +274,7 @@ const Selling = () => {
         }
       }
     }
-    
+
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isModalOpen, isDeleteModalOpen, showHistoryModalMain, showCreateTempMemberModal, showCheckoutConfirmModal])
@@ -277,11 +286,11 @@ const Selling = () => {
   // Handle drag end for reordering - Bulletin Board style
   const handleDragEnd = (event) => {
     const { active, over } = event
-    
+
     if (active.id !== over?.id) {
       const items = activeTab === "services" ? services : products
       const setItems = activeTab === "services" ? setServices : setProducts
-      
+
       if (sortBy !== 'custom') {
         const currentOrder = getFilteredAndSortedItems()
         const oldIndex = currentOrder.findIndex((item) => item.id === active.id)
@@ -316,7 +325,7 @@ const Selling = () => {
     if (sortBy === 'custom') {
       return <ArrowUpDown size={14} className="text-content-muted" />
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />
   }
@@ -579,8 +588,8 @@ const Selling = () => {
         originalSaleId: saleId,
       }
 
-      const updatedSales = prev.map((sale) => 
-        sale.id === saleId 
+      const updatedSales = prev.map((sale) =>
+        sale.id === saleId
           ? { ...sale, canCancel: false, isCancelled: true }
           : sale
       )
@@ -648,18 +657,18 @@ const Selling = () => {
 
   const downloadInvoice = (sale) => {
     const hasCustomer = sale.member && sale.member !== "No Member"
-    
+
     let totalNet = 0
     let totalVat19 = 0
     let totalVat7 = 0
     let totalGross = 0
-    
+
     sale.items.forEach(item => {
       const itemTotal = (item.price || 0) * item.quantity
       const vatRate = item.vatRate || 19
       const netAmount = itemTotal / (1 + vatRate / 100)
       const vatAmount = itemTotal - netAmount
-      
+
       totalNet += netAmount
       totalGross += itemTotal
       if (vatRate === 7) {
@@ -750,14 +759,14 @@ Payment: ${sale.paymentMethod}
   // Get filtered and sorted items - Bulletin Board style
   const getFilteredAndSortedItems = () => {
     const filtered = getFilteredItems()
-    
+
     if (sortBy === 'custom') {
       return filtered
     }
-    
+
     return [...filtered].sort((a, b) => {
       let comparison = 0
-      
+
       if (sortBy === 'name') {
         comparison = a.name.localeCompare(b.name)
       } else if (sortBy === 'price') {
@@ -765,7 +774,7 @@ Payment: ${sale.paymentMethod}
       } else if (sortBy === 'articalNo') {
         comparison = (a.articalNo || '').localeCompare(b.articalNo || '')
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison
     })
   }
@@ -798,7 +807,7 @@ Payment: ${sale.paymentMethod}
           <div className="flex sm:items-center justify-between mb-4 gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Selling</h1>
-              
+
               {/* Sort Button - Mobile: next to title */}
               <div className="md:hidden relative" ref={sortDropdownRef}>
                 <button
@@ -898,22 +907,20 @@ Payment: ${sale.paymentMethod}
           <div className="flex border-b border-border-subtle mb-4">
             <button
               onClick={() => setActiveTab("products")}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                activeTab === "products" 
-                  ? "text-content-primary border-b-2 border-primary" 
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeTab === "products"
+                ? "text-content-primary border-b-2 border-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               <MdOutlineProductionQuantityLimits size={18} />
               Products
             </button>
             <button
               onClick={() => setActiveTab("services")}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                activeTab === "services" 
-                  ? "text-content-primary border-b-2 border-primary" 
-                  : "text-content-muted hover:text-content-primary"
-              }`}
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeTab === "services"
+                ? "text-content-primary border-b-2 border-primary"
+                : "text-content-muted hover:text-content-primary"
+                }`}
             >
               <RiServiceFill size={18} />
               Services
@@ -1001,7 +1008,7 @@ Payment: ${sale.paymentMethod}
                       <div className="relative w-full aspect-video overflow-hidden rounded-t-2xl">
                         {item.image ? (
                           <img
-                            src={item.image || "/placeholder.svg"}
+                            src={item.img?.url || "/placeholder.svg"}
                             alt={item.name}
                             className="object-cover w-full h-full pointer-events-none"
                             draggable="false"
@@ -1083,7 +1090,7 @@ Payment: ${sale.paymentMethod}
                             <p className="text-lg font-bold text-content-primary whitespace-nowrap">
                               {formatCurrency(item.price)}
                             </p>
-                            
+
                             {/* 3-dot menu - Bulletin Board style */}
                             <div className="relative dropdown-container">
                               <button
@@ -1099,29 +1106,29 @@ Payment: ${sale.paymentMethod}
                               </button>
                               {dropdownOpen === item.id && (
                                 <div className="absolute right-0 bottom-full mb-2 bg-surface-base border border-border-subtle rounded-lg shadow-lg py-1 z-30 min-w-[140px]">
-                                  <button 
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       openEditModal(item)
-                                    }} 
+                                    }}
                                     className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Edit size={14} /> Edit
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       handleDuplicateItem(item)
-                                    }} 
+                                    }}
                                     className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Copy size={14} /> Duplicate
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       openDeleteModal(item)
-                                    }} 
+                                    }}
                                     className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Trash2 size={14} /> Delete

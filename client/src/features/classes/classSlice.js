@@ -75,9 +75,9 @@ export const getAllRoomsThunk = createAsyncThunk('/room/get-rooms', async (_, { 
 })
 
 // &&& update Room &&&
-export const updateRoomThunk = createAsyncThunk('/room/update-room', async ({ id, updateData }, { rejectWithValue }) => {
+export const updateRoomThunk = createAsyncThunk('/room/update-room', async ({ roomId, updateData }, { rejectWithValue }) => {
     try {
-        const res = await classApi.updateRoomApi(id, updateData)
+        const res = await classApi.updateRoomApi(roomId, updateData)
         return res.room
     }
     catch (error) {
@@ -86,10 +86,10 @@ export const updateRoomThunk = createAsyncThunk('/room/update-room', async ({ id
 })
 
 // &&& delete Room &&&
-export const deleteRoomThunk = createAsyncThunk('/room/delete-room', async (id, { rejectWithValue }) => {
+export const deleteRoomThunk = createAsyncThunk('/room/delete-room', async (roomId, { rejectWithValue }) => {
     try {
-        const res = await classApi.deleteRoomApi(id)
-        return { id, message: res.message }
+        const res = await classApi.deleteRoomApi(roomId)
+        return { roomId, message: res.message }
     }
     catch (error) {
         return rejectWithValue(error.response?.data)

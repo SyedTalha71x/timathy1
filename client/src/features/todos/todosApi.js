@@ -62,3 +62,20 @@ export const deleteTask = async (todoId) => {
     const res = await api.delete(`/todos/${todoId}`, { withCredentials: true })
     return res.data;
 }
+// ===========
+// update Tag
+// ===========
+
+export const updateTag = async (tagId, updateData) => {
+    const res = await api.put(`/todos/${tagId}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+// ==========
+// Delete Tag
+// ==========
+
+export const deleteTag = async (tagId) => {
+    const res = await api.delete(`/todos/${tagId}`, { withCredentials: true })
+    return res.data;
+}

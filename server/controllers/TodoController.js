@@ -61,6 +61,40 @@ const getTags = async (req, res, next) => {
     }
 }
 
+const updateTag = async (req, res, next) => {
+    try {
+        const { tagId } = req.params;
+        const { name } = req.body
+        const tags = await TagsModel.findByIdAndUpdate(tagId, {
+            name: name
+        }, { new: true })
+
+        return res.status(200).json({
+            success: true,
+            tags: tags
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+const deleteTag = async (req, res, next) => {
+    try {
+        const { tagId } = req.params;
+
+        const tags = await TagsModel.findByIdAndDelete(tagId)
+
+        return res.status(200).json({
+            success: true,
+            message: "Tag Deleted SuccessFully"
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+
 // ======================
 // create todos
 // ======================
@@ -459,6 +493,9 @@ module.exports = {
     // tags related controller
     createTags,
     getTags,
+    updateTag,
+    deleteTag,
+    // todos
     createTodos,
     getTodos,
     getTodoById,

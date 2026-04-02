@@ -22,7 +22,7 @@ import websiteReducer from '../features/website/websiteSlice'
 import supportReducer from '../features/supportCenter/supportSlice'
 
 import classReducers from '../features/classes/classSlice'
-
+import postReducers from '../features/bulletinBoard/bulletinSlice'
 
 
 
@@ -50,6 +50,7 @@ export const store = configureStore({
         medical: medicalReducer,
         website: websiteReducer,
         support: supportReducer,
-        classes: classReducers
+        classes: classReducers,
+        posts: postReducers
     }
 })

@@ -1,13 +1,14 @@
 /* eslint-disable no-unused-vars */
 import { useCallback, useState, useRef, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import { Toaster } from "react-hot-toast"
 import { Search, Plus, ArrowUpDown, ArrowUp, ArrowDown, Tag, Info, Eye, Edit, Copy, Trash2, GripVertical, Calendar, Clock } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import toast from "react-hot-toast"
 
 import { trainingVideosData } from "../../utils/studio-states/training-states"
-import { defaultTags, defaultPosts } from "../../utils/studio-states/bulletin-board-states"
 
 import DeleteBulletinModal from "../../components/shared/bulletin-board/DeleteBulletinBoard"
 import ViewBulletinModal from "../../components/shared/bulletin-board/ViewBulletinBoard"
@@ -15,21 +16,38 @@ import TagManagerModal from "../../components/shared/TagManagerModal";
 import OptimizedEditBulletinModal from "../../components/shared/bulletin-board/EditBulletinBoard"
 import OptimizedCreateBulletinModal from "../../components/shared/bulletin-board/CreateBulletinBoard"
 
+import {
+  getAllPostThunk,
+  createPostThunk,
+  activePostThunk,
+  deActivatedPostThunk,
+  deletePostThunk,
+  updatePostThunk,
+  clearError,
+  clearPosts,
+  setSelectedPost,
+  setPagination
+} from '../../features/bulletinBoard/bulletinSlice'
+
+import {
+  getTagsThunk,
+  createTagsThunk,
+  updateTagThunk,
+  deleteTagThunk
+} from '../../features/todos/todosSlice'
+
 // Helper function to strip HTML tags for preview/search, preserving line breaks
 const stripHtmlTags = (html) => {
   if (!html) return ''
-  // Replace block-level elements and br with newlines
   let text = html
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
     .replace(/<\/div>/gi, '\n')
     .replace(/<\/li>/gi, '\n')
     .replace(/<\/h[1-6]>/gi, '\n')
-  // Remove remaining HTML tags
   const tmp = document.createElement('div')
   tmp.innerHTML = text
   text = tmp.textContent || tmp.innerText || ''
-  // Clean up multiple newlines and trim
   return text.replace(/\n{3,}/g, '\n\n').trim()
 }
 
@@ -50,22 +68,6 @@ const formatScheduleTime = (time) => {
   return `${formattedHour}:${minutes} ${ampm}`
 }
 
-// Get full schedule tooltip text
-const getScheduleTooltipText = (schedule) => {
-  if (!schedule) return ''
-  let text = ''
-  if (schedule.type === 'scheduled' && schedule.startDate) {
-    text += `Starts: ${formatScheduleDate(schedule.startDate)}`
-    if (schedule.startTime) text += ` at ${formatScheduleTime(schedule.startTime)}`
-  }
-  if (schedule.hasEndDate && schedule.endDate) {
-    if (text) text += '\n'
-    text += `Ends: ${formatScheduleDate(schedule.endDate)}`
-    if (schedule.endTime) text += ` at ${formatScheduleTime(schedule.endTime)}`
-  }
-  return text
-}
-
 // Sortable Post Card Component
 const SortablePostCard = ({ post, children, isDragDisabled }) => {
   const {
@@ -75,9 +77,9 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: post.id,
-    disabled: isDragDisabled 
+  } = useSortable({
+    id: post._id || post.id,
+    disabled: isDragDisabled
   })
 
   const style = {
@@ -92,8 +94,8 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
   return (
     <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-primary/30' : ''}`}>
       {!isDragDisabled && (
-        <div 
-          {...attributes} 
+        <div
+          {...attributes}
           {...listeners}
           className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-content-primary active:text-primary p-1 rounded active:bg-primary/30 z-20 touch-none bg-surface-dark/60 shadow"
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -107,19 +109,24 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
 }
 
 const BulletinBoard = () => {
-  const [tags, setTags] = useState(defaultTags)
+  const dispatch = useDispatch()
+
+  // Redux state
+  const { posts: reduxPosts, loading, error, pagination } = useSelector((state) => state.post || { posts: [], loading: false, error: null, pagination: {} })
+  const { tags: reduxTags, loading: tagsLoading } = useSelector((state) => state.todos || { tags: [], loading: false })
+
+  // Use tags from Redux
+  const [tags, setTags] = useState([])
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
 
   // Tab state - "member" or "staff"
   const [activeTab, setActiveTab] = useState("member")
 
-  const [posts, setPosts] = useState(defaultPosts)
-
-  const trainingVideos = trainingVideosData
+  const [localPosts, setLocalPosts] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [selectedPost, setSelectedPost] = useState(null)
+  const [selectedPost, setSelectedPostState] = useState(null)
   const [viewingPost, setViewingPost] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(null)
 
@@ -134,6 +141,56 @@ const BulletinBoard = () => {
 
   const sortDropdownRef = useRef(null)
   const infoTooltipRef = useRef(null)
+
+  // Load posts and tags from API on mount
+  useEffect(() => {
+    dispatch(getAllPostThunk())
+    dispatch(getTagsThunk())
+  }, [dispatch])
+
+  // Update local posts when redux posts change
+  useEffect(() => {
+    if (reduxPosts && reduxPosts.length > 0) {
+      const transformedPosts = reduxPosts.map(post => ({
+        id: post._id,
+        _id: post._id,
+        title: post.title,
+        content: post.content,
+        status: post.status === 'active' ? 'Active' : post.status === 'scheduled' ? 'Scheduled' : 'Inactive',
+        tags: post.tags || [],
+        image: post.img?.url || null,
+        visibility: post.postType === 'public' ? 'Members' : 'Staff',
+        author: post.createdBy?.firstName + ' ' + post.createdBy?.lastName || 'Unknown',
+        createdAt: post.publishedAt || post.createdAt,
+        updatedAt: post.updatedAt,
+        schedule: post.scheduleDate ? {
+          type: 'scheduled',
+          startDate: post.scheduleDate,
+          startTime: post.scheduleTime,
+          hasEndDate: !!post.scheduleEndTime,
+          endDate: post.scheduleEndTime,
+          endTime: post.scheduleEndTime
+        } : null,
+        createdBy: post.createdBy?._id
+      }))
+      setLocalPosts(transformedPosts)
+    }
+  }, [reduxPosts])
+
+  // Update local tags when redux tags change
+  useEffect(() => {
+    if (reduxTags && reduxTags.length > 0) {
+      // Transform API tags to match component format
+      const transformedTags = reduxTags.map(tag => ({
+        id: tag._id,
+        _id: tag._id,
+        name: tag.name,
+        color: tag.color || '#3B82F6',
+        description: tag.description || ''
+      }))
+      setTags(transformedTags)
+    }
+  }, [reduxTags])
 
   // DnD sensors
   const sensors = useSensors(
@@ -170,7 +227,6 @@ const BulletinBoard = () => {
       if (infoTooltipRef.current && !infoTooltipRef.current.contains(event.target)) {
         setShowInfoTooltip(false)
       }
-      // Close schedule popup when clicking outside
       if (schedulePopupPostId && !event.target.closest('[data-schedule-popup]')) {
         setSchedulePopupPostId(null)
       }
@@ -182,28 +238,19 @@ const BulletinBoard = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
-      // Ignore if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('.ql-editor')) return
-      
-      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return
-      
-      // Ignore if any modal is open
       if (showCreateModal || showEditModal || showDeleteModal || viewingPost || isTagManagerOpen) return
-      
-      // C key - Create Post
+
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault()
         setShowCreateModal(true)
       }
-      
-      // T key - Open Tag Manager
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setIsTagManagerOpen(true)
       }
     }
-    
     document.addEventListener('keydown', handleKeyPress)
     return () => document.removeEventListener('keydown', handleKeyPress)
   }, [showCreateModal, showEditModal, showDeleteModal, viewingPost, isTagManagerOpen])
@@ -211,20 +258,19 @@ const BulletinBoard = () => {
   // Handle drag end for reordering
   const handleDragEnd = (event) => {
     const { active, over } = event
-    
     if (active.id !== over?.id) {
       if (sortBy !== 'custom') {
         const currentOrder = getFilteredAndSortedPosts()
-        const oldIndex = currentOrder.findIndex((item) => item.id === active.id)
-        const newIndex = currentOrder.findIndex((item) => item.id === over.id)
+        const oldIndex = currentOrder.findIndex((item) => (item._id || item.id) === active.id)
+        const newIndex = currentOrder.findIndex((item) => (item._id || item.id) === over.id)
         const newOrder = arrayMove(currentOrder, oldIndex, newIndex)
-        const filteredOutPosts = posts.filter(p => !currentOrder.find(cp => cp.id === p.id))
-        setPosts([...newOrder, ...filteredOutPosts])
+        const filteredOutPosts = localPosts.filter(p => !currentOrder.find(cp => (cp._id || cp.id) === (p._id || p.id)))
+        setLocalPosts([...newOrder, ...filteredOutPosts])
         setSortBy('custom')
       } else {
-        setPosts((items) => {
-          const oldIndex = items.findIndex((item) => item.id === active.id)
-          const newIndex = items.findIndex((item) => item.id === over.id)
+        setLocalPosts((items) => {
+          const oldIndex = items.findIndex((item) => (item._id || item.id) === active.id)
+          const newIndex = items.findIndex((item) => (item._id || item.id) === over.id)
           return arrayMove(items, oldIndex, newIndex)
         })
       }
@@ -236,7 +282,6 @@ const BulletinBoard = () => {
       setSortBy('custom')
       setShowSortDropdown(false)
     } else if (sortBy === newSortBy) {
-      // If same option clicked, toggle direction but keep dropdown open
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
     } else {
       setSortBy(newSortBy)
@@ -248,7 +293,7 @@ const BulletinBoard = () => {
     if (sortBy === 'custom') {
       return <ArrowUpDown size={14} className="text-content-muted" />
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp size={14} className="text-content-primary" />
       : <ArrowDown size={14} className="text-content-primary" />
   }
@@ -264,95 +309,179 @@ const BulletinBoard = () => {
     return `${dateStr} ${timeStr}`
   }
 
-  const handleAddTag = (newTag) => {
-    setTags([...tags, newTag])
+  // Tag CRUD operations with API
+  const handleAddTag = async (newTag) => {
+    try {
+      const tagData = {
+        name: newTag.name,
+        color: newTag.color || '#3B82F6',
+        description: newTag.description || ''
+      }
+      const result = await dispatch(createTagsThunk(tagData)).unwrap()
+      toast.success('Tag created successfully')
+      await dispatch(getTagsThunk()) // Refresh tags list
+      return result
+    } catch (error) {
+      toast.error(error.message || 'Failed to create tag')
+      throw error
+    }
   }
 
-  const handleDeleteTag = (tagId) => {
-    setTags(tags.filter((tag) => tag.id !== tagId))
-    setPosts(
-      posts.map((post) => ({
-        ...post,
-        tags: post.tags.filter((id) => id !== tagId),
-      })),
-    )
+  const handleUpdateTag = async (tagId, updatedData) => {
+    try {
+      await dispatch(updateTagThunk({ tagId, updateData: updatedData })).unwrap()
+      toast.success('Tag updated successfully')
+      await dispatch(getTagsThunk()) // Refresh tags list
+    } catch (error) {
+      toast.error(error.message || 'Failed to update tag')
+      throw error
+    }
   }
 
-  const handleCreatePost = useCallback((formData) => {
-    if (formData.title.trim() && stripHtmlTags(formData.content).trim()) {
-      // Status automatisch basierend auf Schedule setzen
-      let finalStatus = formData.status
-      if (formData.schedule && formData.schedule.type === 'scheduled') {
-        finalStatus = 'Scheduled'
-      }
-      
-      const newPost = {
-        id: Date.now(),
-        ...formData,
-        status: finalStatus,
-        // Schedule nur speichern wenn type === 'scheduled'
-        schedule: (formData.schedule && formData.schedule.type === 'scheduled') 
-          ? formData.schedule 
-          : null,
-        visibility: activeTab === "member" ? "Members" : "Staff",
-        author: "Current User",
-        createdAt: Date.now(),
-        createdBy: "current-user",
-      }
-      setPosts(prev => [newPost, ...prev])
-    }
-  }, [activeTab])
+  const handleDeleteTag = async (tagId) => {
+    try {
+      await dispatch(deleteTagThunk(tagId)).unwrap()
+      toast.success('Tag deleted successfully')
+      await dispatch(getTagsThunk()) // Refresh tags list
 
-  const handleEditPost = useCallback((formData) => {
-    if (formData.title.trim() && stripHtmlTags(formData.content).trim() && selectedPost) {
-      // Status automatisch basierend auf Schedule setzen
-      let finalStatus = formData.status
-      if (formData.schedule && formData.schedule.type === 'scheduled') {
-        finalStatus = 'Scheduled'
-      } else if (selectedPost.status === 'Scheduled') {
-        // Wenn vorher Scheduled war und jetzt nicht mehr, auf Active setzen
-        finalStatus = 'Active'
-      }
-      
-      setPosts(prev => prev.map((post) =>
-        post.id === selectedPost.id ? { 
-          ...post, 
-          ...formData,
-          status: finalStatus,
-          // Schedule nur speichern wenn type === 'scheduled'
-          schedule: (formData.schedule && formData.schedule.type === 'scheduled') 
-            ? formData.schedule 
-            : null,
-          updatedAt: Date.now() 
-        } : post
-      ))
-      setSelectedPost(null)
+      // Also remove tag from all posts that have it
+      setLocalPosts(prevPosts =>
+        prevPosts.map(post => ({
+          ...post,
+          tags: post.tags.filter(id => id !== tagId)
+        }))
+      )
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete tag')
+      throw error
     }
-  }, [selectedPost])
+  }
 
+  const handleCreatePost = useCallback(async (formValues) => {
+    if (formValues.title?.trim() && stripHtmlTags(formValues.content)?.trim()) {
+      try {
+        const postData = new FormData();
+        postData.append('title', formValues.title);
+        postData.append('content', formValues.content);
+        postData.append('postType', activeTab === "member" ? "public" : "staff");
+        postData.append('schedule', formValues.schedule?.type === 'scheduled' ? 'scheduled' : 'immediate');
+
+        if (formValues.schedule?.type === 'scheduled') {
+          postData.append('scheduleDate', formValues.schedule?.startDate || '');
+          postData.append('scheduleTime', formValues.schedule?.startTime || '');
+          if (formValues.schedule?.hasEndDate) {
+            postData.append('scheduleEndTime', formValues.schedule?.endDate || '');
+          }
+        }
+
+        postData.append('status', formValues.schedule?.type === 'scheduled' ? 'scheduled' : 'active');
+
+        // Handle tags (send as JSON string)
+        if (formValues.tags && formValues.tags.length > 0) {
+          postData.append('tagsId', JSON.stringify(formValues.tags));
+        } else {
+          postData.append('tagsId', JSON.stringify([]));
+        }
+
+        // Handle image if present
+        if (formValues.image && formValues.image instanceof File) {
+          postData.append('img', formValues.image);
+        }
+
+        await dispatch(createPostThunk(postData)).unwrap();
+        toast.success('Post created successfully');
+        await dispatch(getAllPostThunk()); // Refresh list
+        setShowCreateModal(false);
+      } catch (error) {
+        console.error('Create post error:', error);
+        toast.error(error.message || 'Failed to create post');
+      }
+    } else {
+      toast.error('Please fill in title and content');
+    }
+  }, [dispatch, activeTab]);
+
+  const handleEditPost = useCallback(async (formValues) => {
+    if (formValues.title?.trim() && stripHtmlTags(formValues.content)?.trim() && selectedPost) {
+      try {
+        const updateData = new FormData();
+        updateData.append('title', formValues.title);
+        updateData.append('content', formValues.content);
+        updateData.append('postType', formValues.visibility === 'Members' ? 'public' : 'staff');
+        updateData.append('schedule', formValues.schedule?.type === 'scheduled' ? 'scheduled' : 'immediate');
+
+        if (formValues.schedule?.type === 'scheduled') {
+          updateData.append('scheduleDate', formValues.schedule?.startDate || '');
+          updateData.append('scheduleTime', formValues.schedule?.startTime || '');
+          if (formValues.schedule?.hasEndDate) {
+            updateData.append('scheduleEndTime', formValues.schedule?.endDate || '');
+          }
+        }
+
+        if (formValues.tags && formValues.tags.length > 0) {
+          updateData.append('tagsId', JSON.stringify(formValues.tags));
+        }
+
+        // Handle new image if uploaded
+        if (formValues.image && formValues.image instanceof File) {
+          updateData.append('img', formValues.image);
+        }
+
+        await dispatch(updatePostThunk({
+          postId: selectedPost._id || selectedPost.id,
+          updateData
+        })).unwrap();
+
+        toast.success('Post updated successfully');
+        await dispatch(getAllPostThunk());
+        setShowEditModal(false);
+        setSelectedPostState(null);
+      } catch (error) {
+        toast.error(error.message || 'Failed to update post');
+      }
+    }
+  }, [dispatch, selectedPost]);
   const openEditModal = useCallback((post) => {
-    setSelectedPost(post)
+    setSelectedPostState(post)
     setShowEditModal(true)
     setDropdownOpen(null)
   }, [])
 
-  const handleDeletePost = () => {
-    setPosts(posts.filter((post) => post.id !== selectedPost.id))
-    setShowDeleteModal(false)
-    setSelectedPost(null)
+  const handleDeletePost = async () => {
+    if (selectedPost) {
+      try {
+        await dispatch(deletePostThunk(selectedPost._id || selectedPost.id)).unwrap()
+        toast.success('Post deleted successfully')
+        await dispatch(getAllPostThunk()) // Refresh list
+        setShowDeleteModal(false)
+        setSelectedPostState(null)
+      } catch (error) {
+        toast.error(error.message || 'Failed to delete post')
+      }
+    }
   }
 
-  const handleStatusToggle = (postId, e) => {
+  const handleStatusToggle = async (postId, e) => {
     if (e) e.stopPropagation()
-    setPosts(posts.map(post =>
-      post.id === postId
-        ? { ...post, status: post.status === "Active" ? "Inactive" : "Active" }
-        : post
-    ))
+    const post = localPosts.find(p => (p._id || p.id) === postId)
+    if (post) {
+      try {
+        if (post.status === 'Active') {
+          await dispatch(deActivatedPostThunk(postId)).unwrap()
+          toast.success('Post deactivated')
+        } else if (post.status === 'Inactive') {
+          await dispatch(activePostThunk(postId)).unwrap()
+          toast.success('Post activated')
+        }
+        await dispatch(getAllPostThunk()) // Refresh list
+      } catch (error) {
+        toast.error(error.message || 'Failed to update post status')
+      }
+    }
   }
 
   const openDeleteModal = (post) => {
-    setSelectedPost(post)
+    setSelectedPostState(post)
     setShowDeleteModal(true)
     setDropdownOpen(null)
   }
@@ -362,21 +491,32 @@ const BulletinBoard = () => {
     setDropdownOpen(dropdownOpen === postId ? null : postId)
   }
 
-  const handleDuplicatePost = (post) => {
-    const duplicatedPost = {
-      ...post,
-      id: Date.now(),
-      title: `${post.title} (Copy)`,
-      createdAt: Date.now(),
-      createdBy: "current-user",
+  const handleDuplicatePost = async (post) => {
+    try {
+      const postData = {
+        title: `${post.title} (Copy)`,
+        content: post.content,
+        postType: post.visibility === 'Members' ? 'public' : 'staff',
+        schedule: post.schedule?.type === 'scheduled' ? 'scheduled' : 'immediately',
+        scheduleDate: post.schedule?.startDate,
+        scheduleTime: post.schedule?.startTime,
+        scheduleEndTime: post.schedule?.hasEndDate ? post.schedule?.endDate : null,
+        tagsId: post.tags,
+        status: 'active'
+      }
+
+      await dispatch(createPostThunk(postData)).unwrap()
+      toast.success('Post duplicated successfully')
+      await dispatch(getAllPostThunk()) // Refresh list
+      setDropdownOpen(null)
+    } catch (error) {
+      toast.error(error.message || 'Failed to duplicate post')
     }
-    setPosts([duplicatedPost, ...posts])
-    setDropdownOpen(null)
   }
 
   // Filter and sort posts
   const getFilteredAndSortedPosts = () => {
-    let filtered = posts.filter((post) => {
+    let filtered = localPosts.filter((post) => {
       const tabVisibility = activeTab === "member" ? "Members" : "Staff"
       if (post.visibility !== tabVisibility) return false
 
@@ -420,8 +560,19 @@ const BulletinBoard = () => {
   }
 
   const filteredPosts = getFilteredAndSortedPosts()
-  const postIds = filteredPosts.map(post => post.id)
+  const postIds = filteredPosts.map(post => post._id || post.id)
   const isDragDisabled = searchQuery !== '' || filterStatus !== 'all'
+
+  if (loading && localPosts.length === 0) {
+    return (
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-content-muted">Loading posts...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -445,7 +596,7 @@ const BulletinBoard = () => {
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex items-center gap-3">
             <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Bulletin Board</h1>
-            
+
             {/* Info Tooltip */}
             <div className="relative" ref={infoTooltipRef}>
               <button
@@ -554,7 +705,7 @@ const BulletinBoard = () => {
           <button onClick={() => setFilterStatus('scheduled')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'scheduled' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>Scheduled</button>
           <button onClick={() => setFilterStatus('inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'inactive' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>Inactive</button>
           <button onClick={() => setIsTagManagerOpen(true)} className="md:hidden px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors bg-surface-button text-content-secondary hover:bg-surface-button-hover flex items-center gap-1.5"><Tag size={14} />Tags</button>
-          
+
           {/* Sort - Desktop */}
           <div className="hidden md:block ml-auto relative" ref={sortDropdownRef}>
             <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }} className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2">
@@ -591,11 +742,11 @@ const BulletinBoard = () => {
                 const isInactive = post.status === "Inactive"
                 const isScheduled = post.status === "Scheduled"
                 return (
-                  <SortablePostCard key={post.id} post={post} isDragDisabled={isDragDisabled}>
+                  <SortablePostCard key={post._id || post.id} post={post} isDragDisabled={isDragDisabled}>
                     <div className={`flex flex-col select-none h-full ${isInactive ? 'post-inactive' : ''} ${isScheduled ? 'post-scheduled' : ''}`}>
-                      <div 
+                      <div
                         className="bg-surface-hover rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border hover:border-border p-4 md:p-6 relative h-full flex flex-col"
-                        onClick={() => dropdownOpen === post.id && setDropdownOpen(null)}
+                        onClick={() => dropdownOpen === (post._id || post.id) && setDropdownOpen(null)}
                       >
 
                         {/* Cover Image */}
@@ -619,9 +770,9 @@ const BulletinBoard = () => {
                         {post.tags && post.tags.length > 0 && (
                           <div className="flex gap-1 flex-wrap mb-2">
                             {post.tags.map((tagId) => {
-                              const tag = tags.find((t) => t.id === tagId)
+                              const tag = tags.find((t) => t.id === tagId || t._id === tagId)
                               return tag ? (
-                                <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>
+                                <span key={tag.id || tag._id} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>
                                   {tag.name}
                                 </span>
                               ) : null
@@ -629,40 +780,38 @@ const BulletinBoard = () => {
                           </div>
                         )}
 
-                        {/* Content Preview - Plain text with line breaks preserved */}
+                        {/* Content Preview */}
                         <p className={`text-xs md:text-sm text-content-muted break-words whitespace-pre-line ${post.image ? 'line-clamp-3' : 'line-clamp-[8]'}`}>
                           {stripHtmlTags(post.content)}
                         </p>
 
-                        {/* Created and Author - single line, above separator */}
+                        {/* Created and Author */}
                         <p className="text-[11px] text-content-faint mt-auto pt-3">
                           Created: {formatDateTime(post.createdAt)} • By {post.author}
                         </p>
 
-                        {/* Status Bar with Toggle, Eye and Menu */}
+                        {/* Status Bar */}
                         <div className="flex items-center justify-between pt-3 border-t border-border">
-                          {/* Left: Status Toggle */}
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-content-muted">Status:</span>
                             {post.status === "Scheduled" ? (
-                              <div 
-                                className="relative flex items-center gap-2" 
+                              <div
+                                className="relative flex items-center gap-2"
                                 data-schedule-popup
-                                onMouseEnter={() => setSchedulePopupPostId(post.id)}
+                                onMouseEnter={() => setSchedulePopupPostId(post._id || post.id)}
                                 onMouseLeave={() => setSchedulePopupPostId(null)}
                               >
                                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    setSchedulePopupPostId(schedulePopupPostId === post.id ? null : post.id)
+                                    setSchedulePopupPostId(schedulePopupPostId === (post._id || post.id) ? null : (post._id || post.id))
                                   }}
                                   className="text-xs font-medium text-primary cursor-pointer hover:text-primary-hover transition-colors"
                                 >
                                   Scheduled
                                 </button>
-                                {/* Popup for schedule info */}
-                                {post.schedule && schedulePopupPostId === post.id && (
+                                {post.schedule && schedulePopupPostId === (post._id || post.id) && (
                                   <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-surface-hover border border-border rounded-lg shadow-xl z-50 whitespace-nowrap">
                                     <div className="text-xs space-y-1">
                                       {post.schedule.startDate && (
@@ -684,7 +833,7 @@ const BulletinBoard = () => {
                               </div>
                             ) : (
                               <>
-                                <button onClick={(e) => handleStatusToggle(post.id, e)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? 'bg-primary' : 'bg-surface-button'}`}>
+                                <button onClick={(e) => handleStatusToggle(post._id || post.id, e)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? 'bg-primary' : 'bg-surface-button'}`}>
                                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
                                 <span className="text-xs font-medium text-content-secondary min-w-[50px]">{post.status}</span>
@@ -692,63 +841,51 @@ const BulletinBoard = () => {
                             )}
                           </div>
 
-                          {/* Right: Eye and 3-dot menu */}
                           <div className="flex items-center gap-1">
-                            {/* Eye icon for preview */}
                             <button onClick={() => setViewingPost(post)} className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-hover transition-colors" title="Preview Post">
                               <Eye size={16} />
                             </button>
 
-                            {/* Three dots dropdown */}
                             <div className="relative">
-                              <button 
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  toggleDropdown(post.id, e)
-                                }} 
+                                  toggleDropdown(post._id || post.id, e)
+                                }}
                                 className="text-content-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                               >
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                 </svg>
                               </button>
-                              {dropdownOpen === post.id && (
+                              {dropdownOpen === (post._id || post.id) && (
                                 <div className="absolute right-0 bottom-full mb-2 bg-surface-card border border-border rounded-lg shadow-lg py-1 z-30 min-w-[140px]">
-                                  <button 
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       setDropdownOpen(null)
-                                      setSelectedPost(post)
-                                      setShowEditModal(true)
-                                    }} 
+                                      openEditModal(post)
+                                    }}
                                     className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Edit size={14} /> Edit
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       setDropdownOpen(null)
-                                      const duplicatedPost = {
-                                        ...post,
-                                        id: Date.now(),
-                                        title: `${post.title} (Copy)`,
-                                        createdAt: Date.now(),
-                                        createdBy: "current-user",
-                                      }
-                                      setPosts(prev => [duplicatedPost, ...prev])
-                                    }} 
+                                      handleDuplicatePost(post)
+                                    }}
                                     className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Copy size={14} /> Duplicate
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       setDropdownOpen(null)
-                                      setSelectedPost(post)
-                                      setShowDeleteModal(true)
-                                    }} 
+                                      openDeleteModal(post)
+                                    }}
                                     className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Trash2 size={14} /> Delete
@@ -784,11 +921,41 @@ const BulletinBoard = () => {
         )}
 
         {/* Modals */}
-        <OptimizedCreateBulletinModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onCreate={handleCreatePost} availableTags={tags} onOpenTagManager={() => setIsTagManagerOpen(true)} />
-        <OptimizedEditBulletinModal isOpen={showEditModal} onClose={() => { setShowEditModal(false); setSelectedPost(null) }} post={selectedPost} onSave={handleEditPost} availableTags={tags} onOpenTagManager={() => setIsTagManagerOpen(true)} />
-        <DeleteBulletinModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} post={selectedPost} onDelete={handleDeletePost} />
-        <ViewBulletinModal isOpen={!!viewingPost} onClose={() => setViewingPost(null)} post={viewingPost} allTags={tags} />
-        <TagManagerModal isOpen={isTagManagerOpen} onClose={() => setIsTagManagerOpen(false)} tags={tags} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag} />
+        <OptimizedCreateBulletinModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreatePost}
+          availableTags={tags}
+          onOpenTagManager={() => setIsTagManagerOpen(true)}
+        />
+        <OptimizedEditBulletinModal
+          isOpen={showEditModal}
+          onClose={() => { setShowEditModal(false); setSelectedPostState(null) }}
+          post={selectedPost}
+          onSave={handleEditPost}
+          availableTags={tags}
+          onOpenTagManager={() => setIsTagManagerOpen(true)}
+        />
+        <DeleteBulletinModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          post={selectedPost}
+          onDelete={handleDeletePost}
+        />
+        <ViewBulletinModal
+          isOpen={!!viewingPost}
+          onClose={() => setViewingPost(null)}
+          post={viewingPost}
+          allTags={tags}
+        />
+        <TagManagerModal
+          isOpen={isTagManagerOpen}
+          onClose={() => setIsTagManagerOpen(false)}
+          tags={reduxTags}
+          onAddTag={handleAddTag}
+          onUpdateTag={handleUpdateTag}
+          onDeleteTag={handleDeleteTag}
+        />
       </div>
 
       {/* Floating Action Button - Mobile */}

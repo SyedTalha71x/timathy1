@@ -22,6 +22,7 @@ export default function TagManagerModal({ isOpen, onClose, tags: tagsProp, onAdd
   const { tags: reduxTags = [] } = useSelector((state) => state.todos || {})
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
 
+
   // Use tags prop if provided (e.g. from DocumentManagementModal),
   // otherwise fall back to Redux store (e.g. from To-Do)
   const tags = tagsProp || reduxTags
@@ -51,7 +52,7 @@ export default function TagManagerModal({ isOpen, onClose, tags: tagsProp, onAdd
 
   if (!isOpen) return null
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     if (newTagName && newTagName.trim()) {
       onAddTag({
         id: `tag-${Date.now()}`,
@@ -61,6 +62,7 @@ export default function TagManagerModal({ isOpen, onClose, tags: tagsProp, onAdd
       setNewTagName("")
       setNewTagColor(primaryColor)
       toast.success(t("documents.toast.tagCreated"))
+      await dispatch(getTagsThunk())
     }
   }
 
