@@ -784,7 +784,8 @@
       "customFoodCount": "{{count}} alimenti personalizzati creati",
       "applySetGoals": "Applica e imposta obiettivi",
       "reset": "Reimposta",
-      "saveGoals": "Salva obiettivi"
+      "saveGoals": "Salva obiettivi",
+      "title": "Impostazioni nutrizione"
     },
     "streak": {
       "title": "La tua serie",

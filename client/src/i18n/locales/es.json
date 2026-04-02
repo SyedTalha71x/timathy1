@@ -784,7 +784,8 @@
       "customFoodCount": "{{count}} alimentos personalizados creados",
       "applySetGoals": "Aplicar y establecer objetivos",
       "reset": "Restablecer",
-      "saveGoals": "Guardar objetivos"
+      "saveGoals": "Guardar objetivos",
+      "title": "Ajustes de nutrición"
     },
     "streak": {
       "title": "Tu racha",

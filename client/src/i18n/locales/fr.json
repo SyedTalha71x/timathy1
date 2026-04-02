@@ -784,7 +784,8 @@
       "customFoodCount": "{{count}} aliments personnalisés créés",
       "applySetGoals": "Appliquer et définir les objectifs",
       "reset": "Réinitialiser",
-      "saveGoals": "Enregistrer les objectifs"
+      "saveGoals": "Enregistrer les objectifs",
+      "title": "Paramètres nutritionnels"
     },
     "streak": {
       "title": "Votre série",

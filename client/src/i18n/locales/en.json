@@ -784,7 +784,8 @@
       "customFoodCount": "{{count}} custom foods created",
       "applySetGoals": "Apply & Set Goals",
       "reset": "Reset",
-      "saveGoals": "Save Goals"
+      "saveGoals": "Save Goals",
+      "title": "Nutrition Settings"
     },
     "streak": {
       "title": "Your Streak",

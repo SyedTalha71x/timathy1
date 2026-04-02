@@ -18,7 +18,7 @@ const SettingsModal = ({
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 pt-[env(safe-area-inset-top,0px)]">
       <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg max-h-[88dvh] sm:max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-          <h3 className="text-base font-semibold text-content-primary">{t("nav.settings")}</h3>
+          <h3 className="text-base font-semibold text-content-primary">{t("nutrition.settings.title")}</h3>
           <button onClick={onClose} className="p-1 text-content-muted hover:text-content-primary"><X className="w-5 h-5" /></button>
         </div>
 
@@ -34,7 +34,7 @@ const SettingsModal = ({
           })}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}>
           {/* PROFILE TAB */}
           {settingsTab === "profile" && (
             <div className="space-y-4">
@@ -171,7 +171,7 @@ const SettingsModal = ({
                       </div>
                       <div className="flex items-center gap-1 ml-3 flex-shrink-0">
                         <button onClick={() => toggleFavorite(food.id)}
-                          className={`p-1.5 rounded-lg transition-colors ${isFavorite(food.id) ? "text-yellow-400" : "text-content-faint hover:text-yellow-400"}`}>
+                          className={`p-1.5 rounded-lg transition-colors ${isFavorite(food.id) ? "text-primary" : "text-content-faint hover:text-primary"}`}>
                           <Star className="w-3.5 h-3.5" fill={isFavorite(food.id) ? "currentColor" : "none"} />
                         </button>
                         <button onClick={() => { setShowSettings(false); openCustomFood("settings", food) }}

@@ -784,7 +784,8 @@
       "customFoodCount": "{{count}} eigene Lebensmittel erstellt",
       "applySetGoals": "Übernehmen & Ziele setzen",
       "reset": "Zurücksetzen",
-      "saveGoals": "Ziele speichern"
+      "saveGoals": "Ziele speichern",
+      "title": "Ernährungs-Einstellungen"
     },
     "streak": {
       "title": "Deine Serie",
