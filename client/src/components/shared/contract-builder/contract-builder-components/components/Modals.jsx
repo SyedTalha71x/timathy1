@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useTranslation } from "react-i18next";
 import ColorPickerModal from '../../../../shared/ColorPickerModal';
+import { VARIABLE_TRANSLATION_KEYS } from '../constants/elementConstants';
 import {
   FileIcon, ChevronLeftIcon, ChevronRightIcon,
   ZoomInIcon, ZoomOutIcon,
@@ -79,6 +81,7 @@ const HEADER_FOOTER_HORIZONTAL_PADDING = 20; // 20px left/right padding
 
 // Header/Footer Editor with State Management
 const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId }) => {
+  const { t } = useTranslation();
   const editorRef = useRef(null);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
@@ -486,14 +489,14 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
     <div className="space-y-3">
       {/* Formatting Toolbar */}
       <div className="bg-surface-hover border border-border rounded-xl p-2 flex flex-wrap gap-2 items-center">
-        <div className="text-xs font-medium text-content-secondary mr-2">Format:</div>
+        <div className="text-xs font-medium text-content-secondary mr-2">{t("contractBuilder.modals.format")}</div>
         
         {/* Font Family */}
         <select
           value={currentFontFamily}
           onChange={(e) => applyFormat('fontName', e.target.value)}
           className="text-xs bg-surface-dark border border-transparent rounded-xl px-2 py-1 text-content-primary font-medium outline-none focus:border-primary transition-colors"
-          title="Font Family"
+          title={t("contractBuilder.properties.fontFamily")}
         >
           <option value="Arial, sans-serif">Arial</option>
           <option value="'Times New Roman', serif">Times New Roman</option>
@@ -510,7 +513,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
           value={currentFontSize}
           onChange={(e) => handleFontSizeChange(parseInt(e.target.value) || 10)}
           className="w-16 text-xs bg-surface-dark border border-transparent rounded-xl px-2 py-1 text-content-primary font-medium outline-none focus:border-primary transition-colors"
-          title="Font Size"
+          title={t("contractBuilder.properties.fontSize")}
         />
 
         {/* Color */}
@@ -519,7 +522,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
           value={currentColor}
           onChange={(e) => applyFormat('foreColor', e.target.value)}
           className="w-8 h-8 border border-border rounded-xl cursor-pointer"
-          title="Text Color"
+          title={t("contractBuilder.properties.fontColor")}
         />
 
         <div className="w-px h-6 bg-border" />
@@ -528,7 +531,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         <button
           onClick={() => applyFormat('bold')}
           className={`p-1.5 rounded-xl ${isBold ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
-          title="Bold (Ctrl+B)"
+          title={t("contractBuilder.properties.bold")}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
@@ -538,7 +541,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         <button
           onClick={() => applyFormat('italic')}
           className={`p-1.5 rounded-xl ${isItalic ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
-          title="Italic (Ctrl+I)"
+          title={t("contractBuilder.properties.italic")}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="19" y1="4" x2="10" y2="4"></line>
@@ -549,7 +552,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         <button
           onClick={() => applyFormat('underline')}
           className={`p-1.5 rounded-xl ${isUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
-          title="Underline (Ctrl+U)"
+          title={t("contractBuilder.properties.underline")}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -563,7 +566,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         <button
           onClick={() => applyFormat('justifyLeft')}
           className={`p-1.5 rounded-xl ${currentAlignment === 'left' ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
-          title="Align Left"
+          title={t("contractBuilder.properties.alignLeft")}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="17" y1="10" x2="3" y2="10"></line>
@@ -575,7 +578,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         <button
           onClick={() => applyFormat('justifyCenter')}
           className={`p-1.5 rounded-xl ${currentAlignment === 'center' ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
-          title="Align Center"
+          title={t("contractBuilder.properties.alignCenter")}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="10" x2="6" y2="10"></line>
@@ -587,7 +590,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
         <button
           onClick={() => applyFormat('justifyRight')}
           className={`p-1.5 rounded-xl ${currentAlignment === 'right' ? 'bg-primary/20 text-primary' : 'bg-surface-card text-content-secondary hover:bg-surface-hover'}`}
-          title="Align Right"
+          title={t("contractBuilder.properties.alignRight")}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="21" y1="10" x2="7" y2="10"></line>
@@ -601,7 +604,7 @@ const HeaderFooterEditorWithState = ({ content, onChange, placeholder, editorId 
       {/* Editor Area */}
       <div>
         <label className="block text-sm font-medium text-content-primary mb-2">
-          {editorId.includes('header') ? 'Header Content' : 'Footer Content'}
+          {editorId.includes('header') ? t('contractBuilder.headerFooter.headerContent') : t('contractBuilder.headerFooter.footerContent')}
         </label>
         
         <div className="border border-border rounded-xl bg-white relative" style={{ width: `${CONTENT_WIDTH_PX + 16}px`, padding: '8px' }}>
@@ -718,6 +721,7 @@ const Modals = ({
   showHotkeysModal,
   setShowHotkeysModal
 }) => {
+  const { t } = useTranslation();
   // Preview header/footer refs and measured heights
   const previewHeaderRef = useRef(null);
   const previewFooterRef = useRef(null);
@@ -1166,7 +1170,7 @@ const Modals = ({
       
       const hasCustomLabel = modifiedElement.label && !['Variable Field (Input)', 'Variable Field (System)'].includes(modifiedElement.label);
       // Placeholder wie im Builder, aber unsichtbar wenn kein custom Label
-      const placeholderText = modifiedElement.type === 'text' ? 'Variable Field (Input)...' : 'Variable Field (System)...';
+      const placeholderText = modifiedElement.type === 'text' ? t('contractBuilder.placeholders.variableInput') : t('contractBuilder.placeholders.variableSystem');
       
       return (
         <div className="flex flex-col h-full w-full p-0">
@@ -1232,7 +1236,7 @@ const Modals = ({
       
       const hasCustomLabel = modifiedElement.label && !['Variable Field (Input)', 'Variable Field (System)'].includes(modifiedElement.label);
       // Placeholder wie im Builder, aber unsichtbar wenn kein custom Label
-      const placeholderText = modifiedElement.type === 'text' ? 'Variable Field (Input)...' : 'Variable Field (System)...';
+      const placeholderText = modifiedElement.type === 'text' ? t('contractBuilder.placeholders.variableInput') : t('contractBuilder.placeholders.variableSystem');
       
       return (
         <div className="flex flex-col h-full w-full p-0">
@@ -1549,7 +1553,7 @@ const Modals = ({
         <div className="bg-surface-card rounded-xl w-full max-w-7xl h-[95vh] flex flex-col">
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-xl font-semibold text-content-primary">
-              Contract Preview - {contractPages[previewPage]?.title || `Page ${previewPage + 1}`}
+              {t("contractBuilder.preview.contractPreview")} - {contractPages[previewPage]?.title || `${t("contractBuilder.preview.page")} ${previewPage + 1}`}
               {page?.locked && <span className="text-content-muted ml-2">(PDF)</span>}
             </h2>
             <div className="flex items-center gap-4">
@@ -1558,21 +1562,21 @@ const Modals = ({
                 <button
                   onClick={() => setPreviewMode('builder')}
                   className={`p-1.5 rounded-xl ${previewMode === 'builder' ? 'bg-primary/20 text-primary' : 'text-content-secondary hover:bg-surface-hover'}`}
-                  title="Builder View"
+                  title={t("contractBuilder.preview.builderView")}
                 >
                   <LayoutIcon size={16} />
                 </button>
                 <button
                   onClick={() => setPreviewMode('filled')}
                   className={`p-1.5 rounded-xl ${previewMode === 'filled' ? 'bg-primary/20 text-primary' : 'text-content-secondary hover:bg-surface-hover'}`}
-                  title="Filled Preview"
+                  title={t("contractBuilder.preview.filledPreview")}
                 >
                   <CheckSquareIcon size={16} />
                 </button>
                 <button
                   onClick={() => setPreviewMode('empty')}
                   className={`p-1.5 rounded-xl ${previewMode === 'empty' ? 'bg-primary/20 text-primary' : 'text-content-secondary hover:bg-surface-hover'}`}
-                  title="Empty Preview"
+                  title={t("contractBuilder.preview.emptyPreview")}
                 >
                   <FileTextIcon size={16} />
                 </button>
@@ -1587,7 +1591,7 @@ const Modals = ({
                   <ChevronLeftIcon size={20} />
                 </button>
                 <span className="text-sm font-medium text-content-primary flex items-center gap-2">
-                  Page {previewPage + 1} of {contractPages.length}
+                  {t("contractBuilder.preview.pageOf", { current: previewPage + 1, total: contractPages.length })}
                 </span>
                 <button
                   onClick={() => setPreviewPage(prev => Math.min(contractPages.length - 1, prev + 1))}
@@ -1598,7 +1602,7 @@ const Modals = ({
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <KeyboardTooltip label="Zoom Out" shortcut="Ctrl+Scroll ↓">
+                <KeyboardTooltip label={t("contractBuilder.toolbar.zoomOut")} shortcut="Ctrl+Scroll ↓">
                   <button
                     onClick={() => setPreviewZoom(prev => Math.max(0.4, prev - 0.1))}
                     className="p-2 text-content-secondary hover:bg-surface-hover rounded-xl"
@@ -1607,7 +1611,7 @@ const Modals = ({
                   </button>
                 </KeyboardTooltip>
                 <span className="text-sm font-medium text-content-primary">{Math.round(previewZoom * 100)}%</span>
-                <KeyboardTooltip label="Zoom In" shortcut="Ctrl+Scroll ↑">
+                <KeyboardTooltip label={t("contractBuilder.toolbar.zoomIn")} shortcut="Ctrl+Scroll ↑">
                   <button
                     onClick={() => setPreviewZoom(prev => Math.min(1.0, prev + 0.1))}
                     className="p-2 text-content-secondary hover:bg-surface-hover rounded-xl"
@@ -1621,7 +1625,7 @@ const Modals = ({
                   onClick={() => setShowPreview(false)}
                   className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
-                  Close
+                  {t("contractBuilder.modals.close")}
                 </button>
               </div>
             </div>
@@ -1749,7 +1753,7 @@ const Modals = ({
                 {!page?.locked && page?.elements.length === 0 && (
                   <div className="text-center py-12 text-content-muted">
                     <FileIcon size={48} className="mx-auto mb-4" />
-                    <p>No elements on this page</p>
+                    <p>{t("contractBuilder.canvas.noElements")}</p>
                   </div>
                 )}
               </div>
@@ -1795,9 +1799,9 @@ const Modals = ({
         <div className="bg-surface-card rounded-xl w-full max-w-md">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-content-primary">Add Page</h2>
+              <h2 className="text-xl font-semibold text-content-primary">{t("contractBuilder.modals.addPage")}</h2>
               <button
-                onClick={() => { setShowAddPageModal(false); setNewPageName('Contract Page'); }}
+                onClick={() => { setShowAddPageModal(false); setNewPageName(t('contractBuilder.pages.contractPage')); }}
                 className="text-content-muted hover:text-content-primary transition-colors"
               >
                 <XIcon size={20} />
@@ -1805,7 +1809,7 @@ const Modals = ({
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Page Name</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.modals.pageName")}</label>
                 <input
                   ref={newPageNameInputRef}
                   type="text"
@@ -1818,11 +1822,11 @@ const Modals = ({
                     } else if (e.key === 'Escape') {
                       e.preventDefault();
                       setShowAddPageModal(false);
-                      setNewPageName('Contract Page');
+                      setNewPageName(t('contractBuilder.pages.contractPage'));
                     }
                   }}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
-                  placeholder="Contract Page"
+                  placeholder={t("contractBuilder.pages.contractPage")}
                   autoFocus
                 />
               </div>
@@ -1830,17 +1834,17 @@ const Modals = ({
                 <button
                   onClick={() => {
                     setShowAddPageModal(false);
-                    setNewPageName('Contract Page');
+                    setNewPageName(t('contractBuilder.pages.contractPage'));
                   }}
                   className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
-                  Cancel
+                  {t("contractBuilder.modals.cancel")}
                 </button>
                 <button
                   onClick={() => addPage(newPageName)}
                   className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
                 >
-                  Add
+                  {t("contractBuilder.modals.add")}
                 </button>
               </div>
             </div>
@@ -1858,7 +1862,7 @@ const Modals = ({
         <div className="bg-surface-card rounded-xl w-full max-w-md">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-content-primary">Create Folder</h2>
+              <h2 className="text-xl font-semibold text-content-primary">{t("contractBuilder.modals.createFolder")}</h2>
               <button
                 onClick={() => { setShowCreateFolderModal(false); setNewFolderName(''); setNewFolderColor('#3b82f6'); }}
                 className="text-content-muted hover:text-content-primary transition-colors"
@@ -1868,18 +1872,18 @@ const Modals = ({
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Folder Name</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.modals.folderName")}</label>
                 <input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
-                  placeholder="My Folder"
+                  placeholder={t("contractBuilder.folders.myFolder")}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Folder Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.modals.folderColor")}</label>
                 <button
                   type="button"
                   onClick={() => setFolderColorPicker({ isOpen: true, target: 'create' })}
@@ -1898,13 +1902,13 @@ const Modals = ({
                   }}
                   className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
-                  Cancel
+                  {t("contractBuilder.modals.cancel")}
                 </button>
                 <button
                   onClick={() => createFolder(newFolderName, newFolderColor)}
                   className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
                 >
-                  Create Folder
+                  {t("contractBuilder.modals.createFolder")}
                 </button>
               </div>
             </div>
@@ -1922,7 +1926,7 @@ const Modals = ({
         <div className="bg-surface-card rounded-xl w-full max-w-md">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-content-primary">Edit Folder</h2>
+              <h2 className="text-xl font-semibold text-content-primary">{t("contractBuilder.modals.editFolder")}</h2>
               <button
                 onClick={() => { setShowEditFolderModal(false); setEditingFolderId(null); }}
                 className="text-content-muted hover:text-content-primary transition-colors"
@@ -1932,18 +1936,18 @@ const Modals = ({
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Folder Name</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.modals.folderName")}</label>
                 <input
                   type="text"
                   value={editingFolderName}
                   onChange={(e) => setEditingFolderName(e.target.value)}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
-                  placeholder="My Folder"
+                  placeholder={t("contractBuilder.folders.myFolder")}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Folder Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.modals.folderColor")}</label>
                 <button
                   type="button"
                   onClick={() => setFolderColorPicker({ isOpen: true, target: 'edit' })}
@@ -1963,7 +1967,7 @@ const Modals = ({
                   }}
                   className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
-                  Cancel
+                  {t("contractBuilder.modals.cancel")}
                 </button>
                 <button
                   onClick={() => {
@@ -1976,7 +1980,7 @@ const Modals = ({
                   }}
                   className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
                 >
-                  Save Changes
+                  {t("contractBuilder.modals.saveChanges")}
                 </button>
               </div>
             </div>
@@ -1993,7 +1997,7 @@ const Modals = ({
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
         <div className="bg-surface-card rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
           <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold text-content-primary">Header/Footer Settings</h2>
+            <h2 className="text-xl font-semibold text-content-primary">{t("contractBuilder.headerFooter.settingsTitle")}</h2>
             <button
               onClick={() => setHeaderFooterSettingsOpen(false)}
               className="text-content-muted hover:text-content-primary transition-colors"
@@ -2011,7 +2015,7 @@ const Modals = ({
                 onClick={() => setHeaderSettingsExpanded(!headerSettingsExpanded)}
               >
                 <h3 className="text-lg font-medium text-content-primary flex items-center gap-2">
-                  Header (global)
+                  {t("contractBuilder.modals.headerGlobal")}
                   <ChevronRight 
                     size={18} 
                     className={`transform transition-transform ${headerSettingsExpanded ? 'rotate-90' : ''}`}
@@ -2041,7 +2045,7 @@ const Modals = ({
                   />
                   
                   <div className="space-y-3 border-t pt-4">
-                    <label className="block text-sm font-medium text-content-primary">Show header on:</label>
+                    <label className="block text-sm font-medium text-content-primary">{t("contractBuilder.modals.showHeaderOn")}</label>
                     <div className="space-y-2">
                       <label className="flex items-center gap-2">
                         <input
@@ -2055,7 +2059,7 @@ const Modals = ({
                           })}
                           className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-content-primary">All Pages</span>
+                        <span className="text-sm text-content-primary">{t("contractBuilder.headerFooter.allPages")}</span>
                       </label>
                       <label className="flex items-center gap-2">
                         <input
@@ -2069,7 +2073,7 @@ const Modals = ({
                           })}
                           className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-content-primary">First Page Only</span>
+                        <span className="text-sm text-content-primary">{t("contractBuilder.headerFooter.firstPageOnly")}</span>
                       </label>
                     </div>
                   </div>
@@ -2084,7 +2088,7 @@ const Modals = ({
                 onClick={() => setFooterSettingsExpanded(!footerSettingsExpanded)}
               >
                 <h3 className="text-lg font-medium text-content-primary flex items-center gap-2">
-                  Footer (global)
+                  {t("contractBuilder.modals.footerGlobal")}
                   <ChevronRight 
                     size={18} 
                     className={`transform transition-transform ${footerSettingsExpanded ? 'rotate-90' : ''}`}
@@ -2114,7 +2118,7 @@ const Modals = ({
                   />
                   
                   <div className="space-y-3 border-t pt-4">
-                    <label className="block text-sm font-medium text-content-primary">Show footer on:</label>
+                    <label className="block text-sm font-medium text-content-primary">{t("contractBuilder.modals.showFooterOn")}</label>
                     <div className="space-y-2">
                       <label className="flex items-center gap-2">
                         <input
@@ -2128,7 +2132,7 @@ const Modals = ({
                           })}
                           className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-content-primary">All Pages</span>
+                        <span className="text-sm text-content-primary">{t("contractBuilder.headerFooter.allPages")}</span>
                       </label>
                       <label className="flex items-center gap-2">
                         <input
@@ -2142,7 +2146,7 @@ const Modals = ({
                           })}
                           className="text-primary focus:ring-0"
                         />
-                        <span className="text-sm text-content-primary">First Page Only</span>
+                        <span className="text-sm text-content-primary">{t("contractBuilder.headerFooter.firstPageOnly")}</span>
                       </label>
                     </div>
                   </div>
@@ -2156,7 +2160,7 @@ const Modals = ({
               onClick={() => setHeaderFooterSettingsOpen(false)}
               className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
             >
-              Save & Close
+              {t("contractBuilder.modals.saveAndClose")}
             </button>
           </div>
         </div>
@@ -2171,7 +2175,7 @@ const Modals = ({
       <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
         <div className="bg-surface-card rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
           <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold text-content-primary">Crop Image</h2>
+            <h2 className="text-xl font-semibold text-content-primary">{t("contractBuilder.modals.cropImage")}</h2>
             <button
               onClick={() => setShowImageCropModal(false)}
               className="text-content-muted hover:text-content-primary transition-colors"
@@ -2182,7 +2186,7 @@ const Modals = ({
           
           <div className="flex-1 overflow-y-auto p-6">
             <div className="text-sm text-content-secondary mb-4 bg-primary/10 border border-primary/30 rounded p-3">
-              <strong>Tip:</strong> Drag the frame to move the crop area. Drag the corners/edges to resize it.
+              <strong>{t("contractBuilder.tip")}</strong> {t("contractBuilder.tipCropImage")}
               {(cropLeft > 0 || cropTop > 0 || cropRight > 0 || cropBottom > 0) && (
                 <div className="mt-2 text-xs text-primary">
                   Current crop: Left {cropLeft.toFixed(0)}%, Top {cropTop.toFixed(0)}%, Right {cropRight.toFixed(0)}%, Bottom {cropBottom.toFixed(0)}%
@@ -2269,7 +2273,7 @@ const Modals = ({
                 }}
                 className="px-4 py-2 bg-surface-hover text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
-                Reset
+                {t("contractBuilder.modals.reset")}
               </button>
               <button
                 onClick={() => {
@@ -2280,7 +2284,7 @@ const Modals = ({
                 }}
                 className="px-4 py-2 bg-surface-hover text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
-                Center
+                {t("contractBuilder.modals.center")}
               </button>
             </div>
             <div className="flex gap-2">
@@ -2288,13 +2292,13 @@ const Modals = ({
                 onClick={() => setShowImageCropModal(false)}
                 className="px-4 py-2 bg-surface-hover text-content-primary rounded-xl hover:bg-surface-button-hover"
               >
-                Cancel
+                {t("contractBuilder.modals.cancel")}
               </button>
               <button
                 onClick={handleApplyCrop}
                 className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover"
               >
-                Apply
+                {t("contractBuilder.modals.apply")}
               </button>
             </div>
           </div>
@@ -2322,8 +2326,8 @@ const Modals = ({
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-content-primary">Validation Warning</h2>
-                <p className="text-sm text-content-secondary mt-1">Potential issues have been found</p>
+                <h2 className="text-xl font-semibold text-content-primary">{t("contractBuilder.modals.validationWarning")}</h2>
+                <p className="text-sm text-content-secondary mt-1">{t("contractBuilder.modals.validationSubtitle")}</p>
               </div>
             </div>
             <button
@@ -2342,7 +2346,7 @@ const Modals = ({
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 <div className="text-sm text-content-primary">
-                  <strong>Important:</strong> Data from input fields without an assigned variable will not be captured during contract creation and therefore will not be saved when creating a member.
+                  <strong>{t("contractBuilder.important")}</strong> {t("contractBuilder.tipVariableWarning")}
                 </div>
               </div>
             </div>
@@ -2356,10 +2360,10 @@ const Modals = ({
                   </svg>
                   <div className="flex-1">
                     <h3 className="text-base font-semibold text-content-primary mb-2">
-                      Unassigned Variables ({unassignedVariables.length})
+                      {t("contractBuilder.modals.unassignedVarsTitle")} ({unassignedVariables.length})
                     </h3>
                     <p className="text-sm text-content-secondary mb-3">
-                      These variables are currently not assigned to any field and will not be considered during contract creation.
+                      {t("contractBuilder.modals.unassignedVariables")}
                     </p>
                     <div className="bg-surface-hover border border-border rounded-xl p-4 max-h-48 overflow-y-auto">
                       <div className="space-y-2">
@@ -2372,7 +2376,7 @@ const Modals = ({
                             }`}>
                               {item.type}
                             </span>
-                            <span className="text-content-primary font-medium">{item.variable}</span>
+                            <span className="text-content-primary font-medium">{t(VARIABLE_TRANSLATION_KEYS[item.variable]) || item.variable}</span>
                           </div>
                         ))}
                       </div>
@@ -2391,10 +2395,10 @@ const Modals = ({
                   </svg>
                   <div className="flex-1">
                     <h3 className="text-base font-semibold text-content-primary mb-2">
-                      Fields Without Assigned Variable ({fieldsWithoutVariables.length})
+                      {t("contractBuilder.modals.fieldsWithoutVarsTitle")} ({fieldsWithoutVariables.length})
                     </h3>
                     <p className="text-sm text-content-secondary mb-3">
-                      These fields have no assigned variable and will not capture any data during contract creation.
+                      {t("contractBuilder.modals.unassignedFields")}
                     </p>
                     <div className="bg-surface-hover border border-border rounded-xl p-4 max-h-48 overflow-y-auto">
                       <div className="space-y-3">
@@ -2406,7 +2410,7 @@ const Modals = ({
                                   ? 'bg-primary/10 text-primary' 
                                   : 'bg-primary/20 text-primary'
                               }`}>
-                                {item.fieldType}
+                                {item.fieldType === "System" ? t("contractBuilder.variables.system") : t("contractBuilder.variables.input")}
                               </span>
                               <div className="flex-1">
                                 <div className="text-content-primary font-medium">{item.fieldLabel}</div>
@@ -2431,20 +2435,20 @@ const Modals = ({
                 onClick={() => setShowValidationWarning(false)}
                 className="px-6 py-2.5 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors font-medium"
               >
-                Cancel
+                {t("contractBuilder.modals.cancel")}
               </button>
               <button
                 onClick={handleSaveAnyway}
                 className="px-6 py-2.5 bg-primary/10 text-primary border border-primary/30 rounded-xl hover:bg-primary/20 transition-colors font-medium"
               >
-                Save
+                {t("contractBuilder.modals.save")}
               </button>
               {handleSaveAndCloseAnyway && (
                 <button
                   onClick={handleSaveAndCloseAnyway}
                   className="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium"
                 >
-                  Save & Close
+                  {t("contractBuilder.modals.saveAndClose")}
                 </button>
               )}
             </div>
@@ -2462,7 +2466,7 @@ const Modals = ({
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
         <div className="bg-surface-card rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
           <div className="flex justify-between items-center p-6 border-b">
-            <h2 className="text-2xl font-semibold text-content-primary">Keyboard Shortcuts</h2>
+            <h2 className="text-2xl font-semibold text-content-primary">{t("contractBuilder.hotkeys.title")}</h2>
             <button
               onClick={() => setShowHotkeysModal(false)}
               className="text-content-muted hover:text-content-primary transition-colors"
@@ -2477,31 +2481,31 @@ const Modals = ({
               {/* Navigation & Views */}
               <div>
                 <h3 className="text-lg font-semibold text-content-primary mb-3">
-                  Navigation & Views
+                  {t("contractBuilder.hotkeys.navigationViews")}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">New Page</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.newPage")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">N</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Add PDF</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.addPdf")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">A</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Preview Contract</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.previewContract")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">P</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Header/Footer Settings</span>
+                    <span className="text-content-secondary">{t("contractBuilder.headerFooter.settingsTitle")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">H</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Next Page (Canvas & Preview)</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.nextPage")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">→</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Previous Page (Canvas & Preview)</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.previousPage")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">←</kbd>
                   </div>
                 </div>
@@ -2510,18 +2514,18 @@ const Modals = ({
               {/* Element Editing */}
               <div>
                 <h3 className="text-lg font-semibold text-content-primary mb-3">
-                  Element Editing
+                  {t("contractBuilder.hotkeys.elementEditing")}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Copy Element</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.copyElement")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">C</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Delete Element</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.deleteElement")}</span>
                     <div className="flex gap-2">
                       <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Del</kbd>
-                      <span className="text-content-muted">or</span>
+                      <span className="text-content-muted">{t("contractBuilder.hotkeys.or")}</span>
                       <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Backspace</kbd>
                     </div>
                   </div>
@@ -2531,15 +2535,15 @@ const Modals = ({
               {/* Zoom */}
               <div>
                 <h3 className="text-lg font-semibold text-content-primary mb-3">
-                  Zoom
+                  {t("contractBuilder.hotkeys.zoom")}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Zoom In (Canvas & Preview)</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.zoomInCanvas")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Scroll ↑</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Zoom Out (Canvas & Preview)</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.zoomOutCanvas")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Scroll ↓</kbd>
                   </div>
                 </div>
@@ -2548,22 +2552,22 @@ const Modals = ({
               {/* Save & History */}
               <div>
                 <h3 className="text-lg font-semibold text-content-primary mb-3">
-                  Save & History
+                  {t("contractBuilder.hotkeys.saveHistory")}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Save Contract</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.saveContract")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + S</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Undo</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.undo")}</span>
                     <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Z</kbd>
                   </div>
                   <div className="flex justify-between items-center py-2 px-3 bg-surface-hover rounded-xl">
-                    <span className="text-content-secondary">Redo</span>
+                    <span className="text-content-secondary">{t("contractBuilder.hotkeys.redo")}</span>
                     <div className="flex gap-2">
                       <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Y</kbd>
-                      <span className="text-content-muted">or</span>
+                      <span className="text-content-muted">{t("contractBuilder.hotkeys.or")}</span>
                       <kbd className="px-3 py-1 bg-surface-dark text-content-primary border border-border rounded-xl shadow-sm font-mono text-sm">Ctrl + Shift + Z</kbd>
                     </div>
                   </div>
@@ -2572,12 +2576,12 @@ const Modals = ({
 
               {/* Notes */}
               <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-                <h4 className="font-semibold text-primary mb-2">Note</h4>
+                <h4 className="font-semibold text-primary mb-2">{t("contractBuilder.hotkeys.note")}</h4>
                 <ul className="text-sm text-primary space-y-1">
-                  <li>• Shortcuts work only when no input field is focused</li>
-                  <li>• Shortcuts are disabled when modals are open (except in Preview)</li>
-                  <li>• Arrow keys (← →) work in both Canvas and Preview mode for page navigation</li>
-                  <li>• On Mac, use <kbd className="px-2 py-0.5 bg-surface-dark text-content-primary border border-border rounded font-mono text-xs">Cmd</kbd> instead of <kbd className="px-2 py-0.5 bg-surface-dark text-content-primary border border-border rounded font-mono text-xs">Ctrl</kbd></li>
+                  <li>• {t("contractBuilder.hotkeys.noteShortcuts")}</li>
+                  <li>• {t("contractBuilder.hotkeys.noteModals")}</li>
+                  <li>• {t("contractBuilder.hotkeys.noteArrowKeys")}</li>
+                  <li>• {t("contractBuilder.hotkeys.noteMac")} <kbd className="px-2 py-0.5 bg-surface-dark text-content-primary border border-border rounded font-mono text-xs">Cmd</kbd> {t("contractBuilder.hotkeys.noteMacInsteadOf")} <kbd className="px-2 py-0.5 bg-surface-dark text-content-primary border border-border rounded font-mono text-xs">Ctrl</kbd></li>
                 </ul>
               </div>
 
@@ -2589,7 +2593,7 @@ const Modals = ({
               onClick={() => setShowHotkeysModal(false)}
               className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
             >
-              Got it!
+              {t("contractBuilder.modals.gotIt")}
             </button>
           </div>
         </div>
@@ -2620,7 +2624,7 @@ const Modals = ({
           }
         }}
         currentColor={folderColorPicker.target === 'edit' ? editingFolderColor : newFolderColor}
-        title="Folder Color"
+        title={t("contractBuilder.folders.folderColor")}
       />
     </>
   );

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from 'antd';
 import toast from '../../../../shared/SharedToast';
 import { CONTENT_WIDTH_PX, CONTENT_HEIGHT_PX, clampElementBounds, calculateDynamicContentArea } from '../utils/layoutUtils';
@@ -19,12 +20,13 @@ export const useElementManagement = (
   setFolders, // NEW: Need setFolders to clear folders when deleting all elements
   setSelectedFolder
 ) => {
+  const { t } = useTranslation();
   const [showAllElements, setShowAllElements] = useState(true);
 
   const addElement = useCallback((type) => {
     const currentPageData = contractPages[currentPage];
     if (currentPageData?.locked) {
-      toast.info('Elements cannot be added to PDF pages');
+      toast.info(t('contractBuilder.elements.cannotAddToPdf'));
       return;
     }
 
@@ -355,7 +357,7 @@ export const useElementManagement = (
         element = {
           ...baseElement,
           src: '',
-          alt: 'Image/Logo...',
+          alt: t('contractBuilder.placeholders.imageLogo'),
           maintainAspectRatio: true,
           fileName: '',
           x: 0,
@@ -571,15 +573,15 @@ export const useElementManagement = (
 
  const removeAllElements = useCallback(() => {
   if (contractPages[currentPage]?.elements.length === 0) {
-    toast.info('There are no elements to delete.');
+    toast.info(t('contractBuilder.properties.noElementsToDelete'));
     return;
   }
 
   Modal.confirm({
-    title: "Delete All Elements",
-    content: "Are you sure you want to delete all elements on this page? This will also delete any folders on this page.",
-    okText: "Yes, delete all",
-    cancelText: "Cancel",
+    title: t("contractBuilder.properties.deleteAll"),
+    content: t("contractBuilder.properties.deleteAllConfirm"),
+    okText: t("contractBuilder.properties.yesDeleteAll"),
+    cancelText: t("common.cancel"),
     okType: "danger",
     onOk: () => {
       // 1. LÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶schen der Elemente auf der Seite

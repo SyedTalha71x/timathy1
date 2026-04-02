@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from 'antd';
 import toast from '../../../../shared/SharedToast';
 
@@ -13,9 +14,10 @@ export const usePageManagement = (
   setShowAddPageModal,
   setNewPageName
 ) => {
+  const { t } = useTranslation();
   const addPage = useCallback((newPageName) => {
     // Add defensive check
-    const title = (typeof newPageName === 'string' ? newPageName.trim() : '') || 'Contract Page';
+    const title = (typeof newPageName === 'string' ? newPageName.trim() : '') || t('contractBuilder.pages.contractPage');
     
     const newPage = {
       id: nextPageId.current++,
@@ -31,7 +33,7 @@ export const usePageManagement = (
     
     // Close modal and reset input
     setShowAddPageModal(false);
-    setNewPageName('Contract Page');
+    setNewPageName(t('contractBuilder.pages.contractPage'));
   }, [contractPages, setContractPages, saveToHistory, nextPageId, setCurrentPage, setShowAddPageModal, setNewPageName]);
 
   const movePage = useCallback((fromIndex, toIndex) => {
@@ -104,10 +106,10 @@ export const usePageManagement = (
     
     if (page?.locked) {
       Modal.confirm({
-        title: "Delete PDF Pages",
+        title: t("contractBuilder.pages.deletePdfTitle"),
         content: `Do you want to delete all ${page.pdfTotalPages} pages from "${page.pdfFileName}"? PDF pages can only be deleted as a complete block.`,
-        okText: "Yes, delete entire block",
-        cancelText: "Cancel",
+        okText: t("contractBuilder.pages.yesDeleteBlock"),
+        cancelText: t("common.cancel"),
         okType: "danger",
         onOk: () => {
           const pdfFileName = page.pdfFileName;
@@ -127,15 +129,15 @@ export const usePageManagement = (
     }
     
     if (contractPages.length === 1) {
-      toast.info('The contract must have at least one page');
+      toast.info(t('contractBuilder.pages.minOnePage'));
       return;
     }
 
     Modal.confirm({
-      title: "Delete Page",
-      content: "Are you sure you want to delete this page?",
-      okText: "Yes, delete",
-      cancelText: "Cancel",
+      title: t("contractBuilder.pages.deletePageTitle"),
+      content: t("contractBuilder.pages.deletePageConfirm"),
+      okText: t("contractBuilder.pages.yesDelete"),
+      cancelText: t("common.cancel"),
       okType: "danger",
       onOk: () => {
         const newPages = contractPages.filter((_, i) => i !== pageIndex);

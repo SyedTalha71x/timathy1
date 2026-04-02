@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { FileTextIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { 
   PAGE_WIDTH_PX, 
   PAGE_HEIGHT_PX, 
@@ -41,6 +42,7 @@ const CanvasArea = ({
   handleResizeStart,
   isResizing
 }) => {
+  const { t } = useTranslation();
   const headerRef = useRef(null);
   const footerRef = useRef(null);
 
@@ -321,9 +323,9 @@ const CanvasArea = ({
               <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-8">
                 <div className="text-center">
                   <FileTextIcon size={48} className="mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium text-gray-500 mb-2">Empty Contract Page</h3>
+                  <h3 className="text-lg font-medium text-gray-500 mb-2">{t("contractBuilder.canvas.emptyTitle")}</h3>
                   <p className="text-sm text-gray-400 mb-6">
-                    Add elements from the sidebar to create your contract
+                    {t("contractBuilder.canvas.emptyDescription")}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { Modal } from 'antd';
+import { useTranslation } from 'react-i18next';
 import toast from '../../../../shared/SharedToast';
 
 export const useFolderManagement = (
@@ -12,9 +13,10 @@ export const useFolderManagement = (
   saveToHistory,
   nextFolderId
 ) => {
+  const { t } = useTranslation();
   const createFolder = useCallback((folderName, folderColor) => {
     if (!folderName || !folderName.trim()) {
-      toast.info('Please enter a folder name');
+      toast.info(t('contractBuilder.folders.enterFolderName'));
       return;
     }
 
@@ -129,7 +131,7 @@ export const useFolderManagement = (
       };
       
       modalInstance = Modal.confirm({
-        title: "Delete Folder",
+        title: t("contractBuilder.folders.deleteFolder"),
         content: (
           <div>
             <p>This folder contains {folder.elementIds.length} element(s).</p>
@@ -162,10 +164,10 @@ export const useFolderManagement = (
     } else {
       // Folder is empty - Delete directly
       Modal.confirm({
-        title: "Delete Folder",
+        title: t("contractBuilder.folders.deleteFolder"),
         content: `Do you really want to delete the folder "${folder.name}"?`,
-        okText: "Yes, delete",
-        cancelText: "Cancel",
+        okText: t("contractBuilder.pages.yesDelete"),
+        cancelText: t("common.cancel"),
         okType: "danger",
         onOk: () => {
           const newFolders = folders.filter(f => f.id !== folderId);
@@ -196,7 +198,7 @@ export const useFolderManagement = (
 
   const saveEditFolder = useCallback((folderId, editingFolderName, editingFolderColor) => {
     if (!editingFolderName || !editingFolderName.trim()) {
-      toast.info('Please enter a folder name');
+      toast.info(t('contractBuilder.folders.enterFolderName'));
       return false;
     }
 
@@ -205,7 +207,7 @@ export const useFolderManagement = (
       color: editingFolderColor 
     });
     
-    toast.success('Changes have been saved');
+    toast.success(t('contractBuilder.folders.changesSaved'));
     
     return true;
   }, [updateFolder]);

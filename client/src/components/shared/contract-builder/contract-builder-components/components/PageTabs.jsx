@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GripVerticalIcon, EditIcon, TrashIcon } from 'lucide-react';
 
 const PageTabs = ({
@@ -19,6 +20,7 @@ const PageTabs = ({
   handlePageDrop,
   handlePageDragEnd
 }) => {
+  const { t } = useTranslation();
   const tabsContainerRef = useRef(null);
   const tabRefs = useRef({});
 
@@ -169,7 +171,7 @@ const PageTabs = ({
                     setEditingPageTitle(index);
                   }}
                   className="text-content-muted hover:text-primary p-1 rounded hover:bg-primary/10"
-                  title="Rename page"
+                  title={t("contractBuilder.pages.renamePage")}
                   onDragStart={(e) => e.stopPropagation()}
                   draggable={false}
                 >

@@ -412,7 +412,7 @@ export default function AdminTrainingManagement() {
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors"
+              className="flex items-center gap-2 text-sm px-4 cursor-pointer py-2 bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors"
             >
               <Plus size={18} />
               {t("admin.exercises.uploadExercise")}

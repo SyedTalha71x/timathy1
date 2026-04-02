@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import { useSelector, useDispatch } from "react-redux"
 import { updateUserData, updatedPassword, logout } from "../../features/auth/authSlice"
 import { updateReminders } from "../../features/notification/notificationSlice"
-import { notification } from "antd"
+import toast from "../../components/shared/SharedToast"
 import { haptic } from "../../utils/haptic"
 import { useNavigate } from "react-router-dom"
 import {
@@ -200,41 +200,41 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
   const handleRequestEmailChange = async () => {
     const { newEmail, currentPassword } = accountSettings
     if (!newEmail) {
-      return notification.error({ message: t("settings.email.missingEmail"), description: t("settings.email.missingEmailDesc") })
+      return toast.error(t("settings.email.missingEmail"))
     }
     if (!currentPassword) {
-      return notification.error({ message: t("settings.email.passwordRequired"), description: t("settings.email.passwordRequiredDesc") })
+      return toast.error(t("settings.email.passwordRequired"))
     }
     try {
       await dispatch(updateUserData({ email: newEmail, currentPassword })).unwrap()
       haptic.success()
-      notification.success({ message: t("settings.email.changeRequested"), description: t("settings.email.changeRequestedDesc") })
+      toast.success(t("settings.email.changeRequested"))
       setAccountSettings({ ...accountSettings, newEmail: "", currentPassword: "" })
     } catch (err) {
       haptic.error()
-      notification.error({ message: t("settings.email.changeFailed"), description: err.message || t("settings.errors.somethingWrong") })
+      toast.error(t("settings.email.changeFailed"))
     }
   }
 
   const handleRequestPasswordChange = async () => {
     const { currentPassword, newPassword, confirmPassword } = accountSettings
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return notification.error({ message: t("settings.password.missingFields"), description: t("settings.password.missingFieldsDesc") })
+      return toast.error(t("settings.password.missingFields"))
     }
     if (newPassword !== confirmPassword) {
-      return notification.error({ message: t("settings.password.mismatch"), description: t("settings.password.mismatchDesc") })
+      return toast.error(t("settings.password.mismatch"))
     }
     if (newPassword.length < 8) {
-      return notification.error({ message: t("settings.password.weakPassword"), description: t("settings.password.weakPasswordDesc") })
+      return toast.error(t("settings.password.weakPassword"))
     }
     try {
       await dispatch(updatedPassword({ oldPassword: currentPassword, newPassword })).unwrap()
       haptic.success()
-      notification.success({ message: t("settings.password.changed"), description: t("settings.password.changedDesc") })
+      toast.success(t("settings.password.changed"))
       setAccountSettings({ ...accountSettings, currentPassword: "", newPassword: "", confirmPassword: "" })
     } catch (err) {
       haptic.error()
-      notification.error({ message: t("settings.password.changeFailed"), description: err.message || t("settings.errors.somethingWrong") })
+      toast.error(t("settings.password.changeFailed"))
     }
   }
 
@@ -256,7 +256,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     const data = reminderData || notificationSettings.appointmentReminders
     dispatch(updateReminders({ reminderData: data }))
       .unwrap()
-      .catch((err) => notification.error({ message: t("settings.errors.updateFailed"), description: err.message || t("settings.errors.couldNotSave") }))
+      .catch((err) => toast.error(t("settings.errors.updateFailed")))
   }
 
   const handleToggleAppointmentReminders = (checked) => {
@@ -267,7 +267,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     setNotificationSettings(updated)
     dispatch(updateReminders({ reminderData: updated.appointmentReminders }))
       .unwrap()
-      .catch((err) => notification.error({ message: t("settings.errors.updateFailed"), description: err.message || t("settings.errors.couldNotSave") }))
+      .catch((err) => toast.error(t("settings.errors.updateFailed")))
   }
 
   const handleUpdateGeneralNotification = (category, field, value) => {
@@ -331,7 +331,7 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
       navigate("/login", { replace: true })
     } catch (err) {
       haptic.error()
-      notification.error({ message: t("settings.errors.logoutFailed"), description: err.message || t("settings.errors.somethingWrong") })
+      toast.error(t("settings.errors.logoutFailed"))
     }
   }
 
@@ -340,13 +340,13 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
     try {
       haptic.warning()
       // TODO: dispatch(deleteAccount()) when backend endpoint is ready
-      notification.success({ message: t("settings.deleteAccount.deleted"), description: t("settings.deleteAccount.deletedDesc") })
+      toast.success(t("settings.deleteAccount.deleted"))
       setShowDeleteConfirm(false)
       setDeleteConfirmText("")
       navigate("/login", { replace: true })
     } catch (err) {
       haptic.error()
-      notification.error({ message: t("settings.deleteAccount.deletionFailed"), description: err.message || t("settings.errors.couldNotDelete") })
+      toast.error(t("settings.deleteAccount.deletionFailed"))
     }
   }
 

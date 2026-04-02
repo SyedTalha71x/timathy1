@@ -47,7 +47,7 @@ import dayjs from "dayjs"
 
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
-import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
+import CreateContractFormModal from "../../components/shared/contract-builder/CreateContractFormModal"
 import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
 import DeleteModal from "../../components/shared/DeleteModal"
 import LanguageTabs, { emptyTranslations } from "../../components/shared/LanguageTabs"
