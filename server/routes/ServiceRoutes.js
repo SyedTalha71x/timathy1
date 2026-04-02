@@ -5,8 +5,14 @@ const {
   deleteService,
   getServiceById,
   getAllServices,
-  updateService
+  updateService,
   //   studioServices 
+
+  // all category
+  createCategory,
+  getAllCategories,
+  updateCategory,
+  deleteCategory
 } = require('../controllers/ServiceController');
 const { verifyAccessToken } = require('../middleware/verifyToken');
 const { isAdmin } = require('../middleware/RoleCheck');
@@ -27,6 +33,18 @@ router.get('/:id', verifyAccessToken, getServiceById);
 
 // Delete a service
 router.delete('/:id', verifyAccessToken, deleteService);
-router.put('/:id', verifyAccessToken, updateService);
+router.put('/:id', verifyAccessToken, uploadImage.single('image'), updateService);
+
+
+
+
+
+
+// appointment categories
+
+router.post('/category/create', verifyAccessToken, createCategory);
+router.get('/categories', verifyAccessToken, getAllCategories);
+router.put('/category/:id', verifyAccessToken, updateCategory);
+router.delete('/category/:id', verifyAccessToken, deleteCategory);
 
 module.exports = router;

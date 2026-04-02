@@ -125,7 +125,7 @@ const getStudioByMemberId = async (req, res, next) => {
           { path: "documents", select: 'displayName' },
         ]
       })
-      .populate('services', 'img name description price duration')
+      .populate('services', 'image name description price duration')
       .populate('leads', "firstName lastName email phone role staffRole gender img username about")
 
     if (!studio) throw new NotFoundError("Studio not found");

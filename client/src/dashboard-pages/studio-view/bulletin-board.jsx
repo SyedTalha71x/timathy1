@@ -112,7 +112,7 @@ const BulletinBoard = () => {
   const dispatch = useDispatch()
 
   // Redux state
-  const { posts: reduxPosts, loading, error, pagination } = useSelector((state) => state.post || { posts: [], loading: false, error: null, pagination: {} })
+  const { posts: reduxPosts = [], loading, error, pagination } = useSelector((state) => state.posts || { posts: [], loading: false, error: null, pagination: {} })
   const { tags: reduxTags, loading: tagsLoading } = useSelector((state) => state.todos || { tags: [], loading: false })
 
   // Use tags from Redux
@@ -176,6 +176,8 @@ const BulletinBoard = () => {
       setLocalPosts(transformedPosts)
     }
   }, [reduxPosts])
+
+
 
   // Update local tags when redux tags change
   useEffect(() => {
@@ -407,7 +409,7 @@ const BulletinBoard = () => {
         const updateData = new FormData();
         updateData.append('title', formValues.title);
         updateData.append('content', formValues.content);
-        updateData.append('postType', formValues.visibility === 'Members' ? 'public' : 'staff');
+        updateData.append('postType', formValues.visibility === 'members' ? 'public' : 'staff');
         updateData.append('schedule', formValues.schedule?.type === 'scheduled' ? 'scheduled' : 'immediate');
 
         if (formValues.schedule?.type === 'scheduled') {
@@ -441,6 +443,8 @@ const BulletinBoard = () => {
       }
     }
   }, [dispatch, selectedPost]);
+
+  
   const openEditModal = useCallback((post) => {
     setSelectedPostState(post)
     setShowEditModal(true)
@@ -739,7 +743,7 @@ const BulletinBoard = () => {
           <SortableContext items={postIds} strategy={rectSortingStrategy}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
               {filteredPosts.map((post) => {
-                const isInactive = post.status === "Inactive"
+                const isInactive = post.status === "inactive"
                 const isScheduled = post.status === "Scheduled"
                 return (
                   <SortablePostCard key={post._id || post.id} post={post} isDragDisabled={isDragDisabled}>
@@ -769,14 +773,11 @@ const BulletinBoard = () => {
                         {/* Tags */}
                         {post.tags && post.tags.length > 0 && (
                           <div className="flex gap-1 flex-wrap mb-2">
-                            {post.tags.map((tagId) => {
-                              const tag = tags.find((t) => t.id === tagId || t._id === tagId)
-                              return tag ? (
-                                <span key={tag.id || tag._id} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>
-                                  {tag.name}
-                                </span>
-                              ) : null
-                            })}
+                            {post.tags.map((tag) => (
+                              <span key={tag.id || tag._id} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>
+                                {tag.name}
+                              </span>
+                            ))}
                           </div>
                         )}
 

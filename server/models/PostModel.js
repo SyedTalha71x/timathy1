@@ -18,7 +18,7 @@ const postSchema = new mongoose.Schema({
     }],
     schedule: {
         type: String,
-        enum: ['immediately', 'scheduled']
+        enum: ['immediate', 'scheduled']
     },
     scheduleDate: {
         type: Date,

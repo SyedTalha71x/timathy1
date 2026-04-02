@@ -676,13 +676,15 @@ const getAllPendingAppointment = async (req, res, next) => {
     try {
         const userId = req.user?._id;
         const studioId = req.user?.studio
-        const appointment = await AppointmentModel.find({ studio: studioId, status: 'pending' })
+        const appointments = await AppointmentModel.find({ studio: studioId, status: 'pending' })
+            .populate('member', 'firstName lastName')
+            .populate('studio', 'studioName')
 
-        if (appointment.length === 0) throw new NotFoundError("No Appointment Found")
+        if (appointments.length === 0) throw new NotFoundError("No Appointment Found")
         return res.status(200).json({
             success: true,
-            count: appointment.length,
-            appointment: appointment
+            count: appointments.length,
+            appointments: appointments
         })
     }
     catch (error) {

@@ -270,7 +270,7 @@ function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       mobile: "",
- 
+
     },
     staff: {
       roles: DEFAULT_STAFF_ROLES,
@@ -312,17 +312,16 @@ function loadConfigFromDefaults({ studioId = null, mode = "studio" } = {}) {
       iban: "",
       bic: "",
     },
-    services: (studioData.services || []).map((service) => ({
+    services: Array.isArray(studioId.services) ? studioId.services.map(service => ({
       _id: service._id,
       name: service.name,
-      description: service.description,
+      description: service.description || "",
       price: service.price,
-      // optional fields if later populated
-      duration: service.duration,
-      interval: service.interval,
-      category: service.category,
-      image: service.image,
-    })),
+      duration: service.duration || 60,
+      interval: service.interval || 60,
+      category: service.category || "",
+      image: service.image?.url || service.image || null,
+    })) : [],
     leads: [],
     notes: [],
     appearance: DEFAULT_APPEARANCE_SETTINGS,

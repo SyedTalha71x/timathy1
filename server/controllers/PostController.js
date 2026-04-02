@@ -172,46 +172,75 @@ const updatePost = async (req, res, next) => {
         }
 
         // Check if user owns this post or has permission
-        if (existingPost.createdBy.toString() !== userId.toString()) {
-            throw new UnAuthorizedError('You are not authorized to update this post');
-        }
+        // if (existingPost.createdBy.toString() !== userId.toString()) {
+        //     throw new UnAuthorizedError('You are not authorized to update this post');
+        // }
 
-        // Prepare update data
+        // Prepare update data - ONLY include fields that are explicitly provided
         let updateData = {};
 
-        // Update basic fields if provided
-        if (title !== undefined) updateData.title = title;
-        if (content !== undefined) updateData.content = content;
-        if (schedule !== undefined) updateData.schedule = schedule;
-        if (postType !== undefined) updateData.postType = postType;
-        if (status !== undefined) updateData.status = status;
+        // Check each field with hasOwnProperty or !== undefined
+        if (title !== undefined && title !== null) updateData.title = title;
+        if (content !== undefined && content !== null) updateData.content = content;
+        if (schedule !== undefined && schedule !== null) updateData.schedule = schedule;
+        if (postType !== undefined && postType !== null) updateData.postType = postType;
+        if (status !== undefined && status !== null) updateData.status = status;
 
-        // Process tags if provided
-        if (tagsId !== undefined) {
-            const tagsIdArray = Array.isArray(tagsId) ? tagsId : [tagsId];
-            const validTags = await TagsModel.find({
-                _id: { $in: tagsIdArray },
-                studioId: studioId
-            });
+        // Process tags if provided (and not empty array)
+        if (tagsId !== undefined && tagsId !== null) {
+            let tagsIdArray = [];
 
-            if (validTags.length !== tagsIdArray.length) {
-                throw new BadRequestError("One or more tag IDs are invalid or don't belong to this studio");
+            // Handle different types of tagsId input
+            if (typeof tagsId === 'string') {
+                try {
+                    // Try to parse as JSON (for stringified array)
+                    tagsIdArray = JSON.parse(tagsId);
+                } catch {
+                    // If parsing fails, treat as single ID
+                    tagsIdArray = [tagsId];
+                }
+            } else if (Array.isArray(tagsId)) {
+                tagsIdArray = tagsId;
+            } else if (typeof tagsId === 'object' && tagsId !== null) {
+                tagsIdArray = [tagsId];
             }
-            updateData.tags = validTags.map(tag => tag._id);
+
+            // Only validate if there are tags
+            if (tagsIdArray.length > 0) {
+                const validTags = await TagsModel.find({
+                    _id: { $in: tagsIdArray },
+                    studioId: studioId
+                });
+
+                if (validTags.length !== tagsIdArray.length) {
+                    throw new BadRequestError("One or more tag IDs are invalid or don't belong to this studio");
+                }
+                updateData.tags = validTags.map(tag => tag._id);
+            } else {
+                // If empty array is provided, clear the tags
+                updateData.tags = [];
+            }
         }
 
-        // Handle schedule changes
-        if (schedule === 'scheduled' && scheduleDate && scheduleTime) {
-            const scheduledDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
-            if (scheduledDateTime <= new Date()) {
-                throw new BadRequestError('Scheduled time must be in the future');
+        // Handle schedule changes - only if schedule is provided and it's 'scheduled'
+        if (schedule !== undefined && schedule !== null) {
+            if (schedule === 'scheduled' && scheduleDate && scheduleTime) {
+                const scheduledDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
+                if (scheduledDateTime <= new Date()) {
+                    throw new BadRequestError('Scheduled time must be in the future');
+                }
+                updateData.scheduleDate = scheduledDateTime;
+                updateData.scheduleEndTime = scheduleEndTime || null;
+            } else if (schedule === 'immediate') {
+                // If immediate, clear schedule dates
+                updateData.scheduleDate = null;
+                updateData.scheduleEndTime = null;
             }
-            updateData.scheduleDate = scheduledDateTime;
-            updateData.scheduleEndTime = scheduleEndTime || null;
         }
 
-        // Handle image update if new image is provided
-        if (img && req.file) {
+        // Handle image update - check if img field was provided and file exists
+        if (req.file) {
+            // Upload new image to Cloudinary
             const imageData = await uploadToCloudinary(req.file.buffer);
             updateData.img = {
                 url: imageData.secure_url,
@@ -249,10 +278,10 @@ const deletePost = async (req, res, next) => {
         const post = await PostModel.findById(postId);
         if (!post) throw new NotFoundError("Post not found");
 
-        // Check if user owns this post or has admin privileges
-        if (post.createdBy.toString() !== userId.toString() && role !== 'admin') {
-            throw new UnAuthorizedError('You are not authorized to delete this post');
-        }
+        // // Check if user owns this post or has admin privileges
+        // if (post.createdBy.toString() !== userId.toString() || role !== 'staff') {
+        //     throw new UnAuthorizedError('You are not authorized to delete this post');
+        // }
 
         // Delete the post
         await PostModel.findByIdAndDelete(postId);
@@ -340,7 +369,7 @@ const getAllPosts = async (req, res, next) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const posts = await PostModel.find(query)
-            .populate('tags', 'name')
+            .populate('tags', 'name color')
             .populate('createdBy', 'firstName lastName email')
             .sort({ createdAt: -1 })
             .skip(skip)

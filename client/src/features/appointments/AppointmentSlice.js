@@ -121,6 +121,38 @@ export const deleteAppointmentThunk = createAsyncThunk("appointment/delete", asy
 
 
 
+// get all pending appointments 
+
+export const fetchAllPendingAppointmentThunk = createAsyncThunk('/appointment/pendings', async (_, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.getAllPendingAppointmentsApi()
+        return res.appointments
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const approvedAppointmentThunk = createAsyncThunk('/appointment/approved-appointment', async (appointmentId, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.approvedAppointmentApi(appointmentId)
+        return res.appointment
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const rejectedAppointmentThunk = createAsyncThunk('/appointment/rejected-appointment', async (appointmentId, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.rejectedAppointmentApi(appointmentId)
+        return res.appointment
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+
 
 const appointmentSlice = createSlice({
     name: 'appointment',
@@ -142,6 +174,19 @@ const appointmentSlice = createSlice({
                     state.appointments = action.payload
             })
             .addCase(fetchMyAppointments.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload
+            })
+            // fetch pending appointments
+            .addCase(fetchAllPendingAppointmentThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(fetchAllPendingAppointmentThunk.fulfilled, (state, action) => {
+                state.loading = false,
+                    state.appointments = action.payload
+            })
+            .addCase(fetchAllPendingAppointmentThunk.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload
             })
@@ -286,6 +331,37 @@ const appointmentSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.message
             })
+
+            // approved Slice
+            .addCase(approvedAppointmentThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(approvedAppointmentThunk.fulfilled, (state, action) => {
+                state.loading = false,
+                    state.appointments = action.payload
+            })
+            .addCase(approvedAppointmentThunk.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload
+            })
+            // rejected Slice
+            .addCase(rejectedAppointmentThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(rejectedAppointmentThunk.fulfilled, (state, action) => {
+                state.loading = false,
+                    state.appointments = action.payload
+            })
+            .addCase(rejectedAppointmentThunk.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload
+            })
+
+
+
+
     }
 })
 

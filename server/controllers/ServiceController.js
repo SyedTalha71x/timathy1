@@ -4,7 +4,7 @@ const { StaffModel } = require('../models/Discriminators');
 const { BadRequestError, NotFoundError, UnAuthorizedError } = require('../middleware/error/httpErrors');
 const StudioModel = require('../models/StudioModel');
 const UserModel = require('../models/UserModel');
-
+const { AppointmentCategoryModel } = require('../models/AppointmentModel')
 const createService = async (req, res, next) => {
   try {
     const userId = req.user?._id;
@@ -166,11 +166,113 @@ const updateService = async (req, res, next) => {
 }
 
 
+
+
+
+// ********
+// CREATE CATEGORY CONTROLLER
+// ********
+
+// *** create Categories ***
+
+const createCategory = async (req, res, next) => {
+  try {
+    const studioId = req.user?.studio;
+
+    const { category, description } = req.body;
+
+    const newCategory = await AppointmentCategoryModel.create({
+      categoryName: category,
+      description,
+      studio: studioId
+    });
+    res.status(201).json({
+      success: true,
+      category: newCategory
+    });
+
+  }
+  catch (error) {
+    next(error);
+  }
+}
+
+
+// *** get all Categories ***
+const getAllCategories = async (req, res, next) => {
+  try {
+    const studioId = req.user?.studio;
+
+    const categories = await AppointmentCategoryModel.find({ studio: studioId });
+    res.status(200).json({
+      success: true,
+      categories: categories
+    });
+
+  }
+  catch (error) {
+    next(error);
+  }
+}
+
+// *** update category ***
+
+const updateCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const { category } = req.body;
+
+    const categoryToUpdate = await AppointmentCategoryModel.findById(id);
+    if (!categoryToUpdate) {
+      return res.status(404).json({ success: false, message: "Category not found" });
+    }
+
+    const updateCategory = await AppointmentCategoryModel.findByIdAndUpdate(id, { categoryName: category }, { new: true });
+
+    res.status(200).json({
+      success: true,
+      category: updateCategory
+    });
+  }
+  catch (error) {
+    next(error)
+  }
+}
+
+
+// *** Delete Category ***
+
+const deleteCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const categoryToDelete = await AppointmentCategoryModel.findById(id);
+    if (!categoryToDelete) {
+      return res.status(404).json({ success: false, message: "Category not found" });
+    }
+
+    await AppointmentCategoryModel.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Category deleted successfully"
+    });
+  }
+  catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createService,
   deleteService,
   getAllServices,
   getServiceById,
   //   studioServices,
-  updateService
+  updateService,
+  createCategory,
+  getAllCategories,
+  updateCategory,
+  deleteCategory
 };

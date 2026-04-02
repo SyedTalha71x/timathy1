@@ -32,8 +32,8 @@ router.delete("/:appointmentId", verifyAccessToken, isStaff, deleteAppointmentBy
 
 
 // all new
-router.patch('/approved/:appointmentId', approvedAppointment)
-router.patch('/rejected/:appointmentId', rejectedAppointment)
+router.patch('/approved/:appointmentId', isStaff, approvedAppointment)
+router.patch('/rejected/:appointmentId', isStaff, rejectedAppointment)
 router.get('/pending', getAllPendingAppointment)
 
 module.exports = router

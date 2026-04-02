@@ -26,3 +26,38 @@ export const deleteAppointmentTypes = async (id) => {
     const res = await api.delete(`/service/${id}`, { withCredentials: true })
     return res.data;
 }
+
+
+// &&&&&&&&& 
+// ALL Appointment CATEGORY APIS
+// &&&&&&&&&&&&&&
+
+
+
+// &&& CREATE CATEGORY FOR CLASS-TYPES &&&
+
+export const createCategoryApi = async (data) => {
+    const res = await api.post('/service/category/create', data, { withCredentials: true })
+    return res.data
+}
+
+// &&& get All Category &&&
+
+export const getCategoryApi = async () => {
+    const res = await api.get('/service/categories', { withCredentials: true })
+    return res.data
+}
+
+
+// update category
+export const updateCategoryApi = async (id, updateData) => {
+    const res = await api.put(`/service/category/${id}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+// delete category
+
+export const deleteCategoryApi = async (id) => {
+    const res = await api.delete(`/service/category/${id}`, { withCredentials: true })
+    return res.data
+}

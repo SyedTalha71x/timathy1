@@ -64,3 +64,21 @@ export const deleteAppointment = async (appointmentId) => {
     const res = await api.delete(`/appointment/${appointmentId}`, { withCredentials: true })
     return res.data
 }
+
+
+
+
+export const getAllPendingAppointmentsApi = async () => {
+    const res = await api.get('/appointment/pending', { withCredentials: true })
+    return res.data
+}
+
+
+export const approvedAppointmentApi = async (appointmentId) => {
+    const res = await api.patch(`/appointment/approved/${appointmentId}`, { withCredentials: true })
+    return res.data
+}
+export const rejectedAppointmentApi = async (appointmentId) => {
+    const res = await api.patch(`/appointment/rejected/${appointmentId}`, { withCredentials: true })
+    return res.data
+}
