@@ -772,6 +772,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const qrCodeRef = useRef(null)
   const mobileContentRef = useRef(null)
   const desktopContentRef = useRef(null)
+  const prevCountryRef = useRef(null)
 
 
   // ============================================
@@ -1249,10 +1250,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Live-sync appearance settings to CSS
   // ============================================
 
-  // Sync theme (light / dark)
+  // Sync theme (light / dark) — only when value actually changes
   useEffect(() => {
     if (!appearance.theme) return
     const root = document.documentElement
+
+    // Skip if theme is already applied
+    const isCurrentlyLight = root.classList.contains("light")
+    if ((appearance.theme === "light") === isCurrentlyLight) return
 
     if (appearance.theme === "light") {
       root.classList.add("light")
@@ -1265,10 +1270,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     localStorage.setItem("theme", appearance.theme)
   }, [appearance.theme])
 
-  // Sync primary color
+  // Sync primary color — only when value actually changes
   useEffect(() => {
     if (!appearance.primaryColor || !/^#[0-9A-Fa-f]{6}$/.test(appearance.primaryColor)) return
     const root = document.documentElement
+
+    // Skip if color is already set to this value
+    const currentColor = root.style.getPropertyValue("--color-primary").trim()
+    if (currentColor === appearance.primaryColor) return
 
     root.style.setProperty("--color-primary", appearance.primaryColor)
 
@@ -1407,9 +1416,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     fetchCountries()
   }, [])
 
-  // Fetch public holidays when country changes
+  // Fetch public holidays only when country actually changes (not on every mount)
   useEffect(() => {
-    if (studioCountry) {
+    if (studioCountry && studioCountry !== prevCountryRef.current) {
+      prevCountryRef.current = studioCountry
       fetchPublicHolidays(studioCountry)
     }
   }, [studioCountry])
