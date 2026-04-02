@@ -3,7 +3,7 @@ const cron = require('node-cron');
 const { AppointmentModel } = require('../models/AppointmentModel');
 const { MemberModel } = require('../models/Discriminators');
 const shiftModel = require('../models/ShiftModel');
-
+const PostModel = require('../models/PostModel')
 // Update past appointments
 const updatePastAppointments = async () => {
     try {
@@ -126,9 +126,37 @@ const updateShifts = async () => {
         return { error: error.message };
     }
 }
+
+// Example cron job function to publish scheduled posts
+const publishScheduledPosts = async () => {
+    try {
+        const now = new Date();
+        console.log(`Running Post update at: ${now.toISOString()}`);
+
+        // Find all scheduled posts whose schedule time has passed
+        const postsToPublish = await PostModel.find({
+            status: 'scheduled',
+            scheduleDate: { $lte: now }
+        });
+
+        for (const post of postsToPublish) {
+            post.status = 'active';
+            post.publishedAt = now;
+            await post.save();
+
+            console.log(`Published scheduled post: ${post._id}`);
+        }
+    } catch (error) {
+        console.error('Error publishing scheduled posts:', error);
+    }
+};
+
+// Run every minute (using node-cron or similar)
+
 // Run once immediately on startup
 const runInitialUpdates = async () => {
     // console.log('Running initial updates on startup...');
+    await publishScheduledPosts();
     await updatePastAppointments();
     await updateTemporaryMember();
     await updateShifts()
@@ -136,28 +164,8 @@ const runInitialUpdates = async () => {
 
 // Schedule cron jobs
 const startCronJobs = () => {
-    // Run every hour at minute 0
-    // cron.schedule('0 * * * *', async () => {
-    //     console.log('=== Hourly Cron Job Started ===');
-    //     try {
-    //         await updatePastAppointments();
-    //         await updateTemporaryMember();
-    //     } catch (error) {
-    //         console.error('Cron job execution error:', error);
-    //     }
-    //     console.log('=== Hourly Cron Job Completed ===');
-    // });
 
-    // // Optional: Run every 5 minutes for more frequent updates
-    // cron.schedule('*/5 * * * *', async () => {
-    //     console.log('=== 5-Minute Cron Job Started ===');
-    //     try {
-    //         await updatePastAppointments();
-    //     } catch (error) {
-    //         console.error('5-minute cron error:', error);
-    //     }
-    // });
-
+    cron.schedule('0 * * * *', publishScheduledPosts);
     // Run at midnight for daily maintenance
     cron.schedule('0 0 * * *', async () => {
         console.log('=== Daily Maintenance Cron Started ===');

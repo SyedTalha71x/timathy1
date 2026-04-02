@@ -83,6 +83,10 @@ import {
   updateClassTypeThunk,
   deleteClassTypeThunk,
   createClassThunk,
+  createRoomThunk,
+  getAllRoomsThunk,
+  updateRoomThunk,
+  deleteRoomThunk,
 } from '../../features/classes/classSlice'
 
 // ============================================
@@ -190,7 +194,7 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "trial-training", label: "Trial Training" },
     ],
   },
-{
+  {
     id: "classes",
     label: "Classes",
     icon: Timer,
@@ -454,7 +458,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // URL Search Params
   const [searchParams] = useSearchParams()
   const dispatch = useDispatch();
-  const { categories = [], types = [], classes = [], loading } = useSelector((state) => state.classes) || {}
+  const { categories = [], types = [], classes = [], loading, rooms = [] } = useSelector((state) => state.classes) || {}
 
   // console.log('Categories', categories)
   // console.log('Types', types)
@@ -507,7 +511,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   useEffect(() => {
     dispatch(getClassTypeThunk())
-    dispatch(getCategoriesThunk())
+    dispatch(getCategoriesThunk()),
+      dispatch(getAllRoomsThunk())
   }, [dispatch])
   // ============================================
   // Profile State Variables
@@ -624,7 +629,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [classCategories, setClassCategories] = useState([])
   const [classCalendarSettings, setClassCalendarSettings] = useState({})
   const [editingClassCategory, setEditingClassCategory] = useState({ index: null, value: "" })
-  const [classRooms, setClassRooms] = useState(["Studio 1", "Studio 2", "Outdoor"])
+  const [classRooms, setClassRooms] = useState([])
   const [editingClassRoom, setEditingClassRoom] = useState({ index: null, value: "" })
   const [showClassTypeModal, setShowClassTypeModal] = useState(false)
   const [editingClassType, setEditingClassType] = useState(null)
@@ -1461,9 +1466,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       // Get the ISO code from map, or use the original if it's already a valid code
       const isoCountryCode = countryCodeMap[cleanCountry] || cleanCountry.toUpperCase();
 
-      console.log('Original country:', countryCode);
-      console.log('Mapped to ISO code:', isoCountryCode);
-
       const currentYear = new Date().getFullYear();
       const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${isoCountryCode}`);
 
@@ -1753,6 +1755,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }, [categories])
 
   useEffect(() => {
+    if (rooms && rooms.length > 0) {
+      // Map rooms to the format expected by the UI
+      const formattedRooms = rooms.map(cat => cat.name)
+      setClassRooms(formattedRooms)
+    }
+  }, [categories])
+
+  useEffect(() => {
     if (types && types.length > 0) {
       // Map class types to the format expected by the UI
       const formattedTypes = types.map(type => ({
@@ -1789,6 +1799,24 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     )
   }
 
+  const handleAddRoom = async () => {
+    openAddItemModal(
+      "Add Class Room",
+      [
+        { key: "name", label: "Room Name", type: "text", placeholder: "e.g. Studio One, Studio 2", required: true },
+      ],
+      (data) => {
+        const duplicate = classRooms.find(c => c.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Class Room already exists")
+          return
+        }
+        setClassRooms([...classRooms, data.name])
+        closeAddItemModal()
+        toast.success("Room created")
+      }
+    )
+  }
   const handleRemoveCategory = (index) => {
     const category = appointmentCategories[index]
     if (appointmentTypes.some(t => t.category === category)) {
@@ -2049,6 +2077,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     )
   }
 
+
   const handleUpdateClassCategory = async (index, newName) => {
     const categoryToUpdate = categories[index]
     if (!categoryToUpdate) return
@@ -2111,6 +2140,145 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       }
     )
   }
+
+
+
+  // ++++++++++++++
+  // ALL room Related functions
+  // ++++++++++++++++++
+  const handleAddClassRoom = () => {
+    openAddItemModal(
+      "Add Class Room",
+      [
+        { key: "name", label: "Class Room Name", type: "text", placeholder: "e.g. Studio 1, Yoga Room", required: true },
+
+      ],
+      async (data) => {
+        const duplicate = rooms.find(r => r.roomName?.toLowerCase() === data.name.toLowerCase())
+        if (duplicate) {
+          toast.error("Duplicate — Category already exists")
+          return
+        }
+
+        try {
+
+          const apiData = {
+            room: data.name,
+          }
+
+          await dispatch(createRoomThunk(apiData)).unwrap()
+          toast.success("Room created successfully")
+          dispatch(getAllRoomsThunk()) // Refresh the list
+          closeAddItemModal()
+        } catch (error) {
+          console.error("Error creating category:", error)
+          toast.error(error.message || "Failed to create category")
+        }
+      }
+    )
+  }
+
+  // ++++++++ Update Room +++++++++++
+
+  const handleUpdateClassRoom = async (index, newName) => {
+    // Validate index and rooms array
+    if (!rooms || !Array.isArray(rooms) || index >= rooms.length) {
+      toast.error("Invalid room reference");
+      return;
+    }
+
+    const roomToUpdate = rooms[index];
+    if (!roomToUpdate || !roomToUpdate._id) {
+      toast.error("Room not found");
+      return;
+    }
+
+    // Check for duplicates
+    const duplicate = rooms.find(
+      (c, i) => i !== index && c.roomName?.toLowerCase() === newName?.toLowerCase()
+    );
+
+    if (duplicate) {
+      toast.error("Duplicate — Room name already exists");
+      return;
+    }
+
+    try {
+      const updateData = {
+        room: newName,
+      };
+
+      await dispatch(updateRoomThunk({
+        roomId: roomToUpdate._id,
+        updateData
+      })).unwrap();
+      toast.success("Room updated successfully");
+      await dispatch(getAllRoomsThunk()); // Refresh the list
+    } catch (error) {
+      console.error("Error updating Room:", error);
+      toast.error(error.message || "Failed to update room");
+    }
+  }
+
+  // room Remove
+  const handleRemoveClassRoom = async (index) => {
+    // Check if rooms array exists and index is valid
+    if (!rooms || !Array.isArray(rooms) || index >= rooms.length) {
+      console.error("Invalid room index or rooms array");
+      toast.error("Cannot remove room - Invalid room reference");
+      return;
+    }
+
+    const room = rooms[index];
+
+    // Verify room exists and has required properties
+    if (!room || !room._id) {
+      console.error("Room not found or missing _id:", room);
+      toast.error("Cannot remove room - Room data is invalid");
+      return;
+    }
+
+    // Check if room is in use by any class type
+    const isInUse = types.some(t => {
+      // Handle different possible data structures
+      if (!t) return false;
+
+      // Check if room ID matches directly
+      if (t.room === room._id) return true;
+
+      // Check if t.room is an object with roomName or _id
+      if (t.room && typeof t.room === 'object') {
+        if (t.room._id === room._id) return true;
+        if (t.room.roomName === room.roomName) return true;
+      }
+
+      return false;
+    });
+
+    if (isInUse) {
+      toast.error("Cannot remove — Room is in use by a class type");
+      return;
+    }
+
+    openDeleteModal(
+      "Delete Room",
+      room.roomName,
+      "This cannot be undone.",
+      async () => {
+        try {
+          await dispatch(deleteRoomThunk(room._id)).unwrap();
+          toast.success("Room deleted successfully");
+          await dispatch(getAllRoomsThunk()); // Refresh the list
+          closeDeleteModal();
+        } catch (error) {
+          console.error("Error deleting room:", error);
+          toast.error(error.message || "Failed to delete room");
+        }
+      }
+    );
+  }
+
+
   // Contract handlers
   const handleAddContractType = () => {
     setEditingContractType({
@@ -2347,7 +2515,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return handleAddCategory
       case "class-types":
         return () => handleOpenClassTypeModal(null)
-  case "class-categories":
+      case "class-categories":
         return handleAddClassCategory
       case "class-rooms":
         return handleAddClassRoom
@@ -3891,7 +4059,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
         )
 
- case "class-rooms":
+      case "class-rooms":
         return (
           <div className="space-y-6">
             <SectionHeader
@@ -3908,12 +4076,21 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
             <SettingsCard>
-              {classRooms.length === 0 ? (
-                <p className="text-sm text-content-muted text-center py-8">No rooms yet. Add your first room above.</p>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-content-muted">Loading rooms...</p>
+                </div>
+              ) : rooms.length === 0 ? (
+                <div className="text-center py-8 text-content-muted">
+                  <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No rooms configured</p>
+                  <p className="text-sm mt-1">Click "Add Room" to create your first room</p>
+                </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {classRooms.map((room, index) => (
-                    <div key={index} className="group relative">
+                  {rooms.map((room, index) => (
+                    <div key={room._id || index} className="group relative">
                       {editingClassRoom.index === index ? (
                         <div className="flex items-center gap-1">
                           <input
@@ -3922,21 +4099,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onChange={(e) => setEditingClassRoom({ ...editingClassRoom, value: e.target.value })}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                const updated = [...classRooms]
-                                updated[index] = editingClassRoom.value.trim() || room
-                                setClassRooms(updated)
+                                // Update room name via API
+                                handleUpdateClassRoom(index, editingClassRoom.value.trim() || room.roomName)
                                 setEditingClassRoom({ index: null, value: "" })
                               }
-                              if (e.key === 'Escape') setEditingClassRoom({ index: null, value: "" })
+                              if (e.key === 'Escape') {
+                                setEditingClassRoom({ index: null, value: "" })
+                              }
                             }}
                             autoFocus
                             className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-40"
                           />
                           <button
                             onClick={() => {
-                              const updated = [...classRooms]
-                              updated[index] = editingClassRoom.value.trim() || room
-                              setClassRooms(updated)
+                              handleUpdateClassRoom(room._id, editingClassRoom.value.trim() || room.roomName)
                               setEditingClassRoom({ index: null, value: "" })
                             }}
                             className="p-1 text-green-400 hover:bg-green-500/10 rounded"
@@ -3947,17 +4123,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onClick={() => setEditingClassRoom({ index: null, value: "" })}
                             className="p-1 text-red-400 hover:bg-red-500/10 rounded"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3 h-3" />
                           </button>
                         </div>
                       ) : (
                         <div
                           className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
-                          onClick={() => setEditingClassRoom({ index, value: room })}
+                          onClick={() => setEditingClassRoom({ index, value: room.roomName })}
                         >
-                          {room}
+                          {room.roomName}
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleRemoveClassRoom(index) }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveClassRoom(index)
+                            }}
                             className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-3 h-3" />

@@ -8,6 +8,19 @@ import PostSchedulerModal from './PostSchedulerModal'
 import ImageSourceModal from '../../shared/image-handler/ImageSourceModal'
 import MediaLibraryPickerModal from '../../shared/image-handler/MediaLibraryPickerModal'
 
+// Helper function to convert dataURL to File
+function dataURLtoFile(dataurl, filename) {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+}
+
 // Quill editor configuration - compact toolbar
 const QUILL_MODULES = {
   toolbar: [
@@ -48,12 +61,13 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
     title: "",
     content: "",
     status: "Active",
-    image: null,
+    image: null, // This will store File object
     tags: [],
   })
   const [showCropModal, setShowCropModal] = useState(false)
   const [tempImage, setTempImage] = useState(null)
   const [originalImage, setOriginalImage] = useState(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
   const fileInputRef = useRef(null)
   
   // Image source selection state
@@ -81,6 +95,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
         image: null,
         tags: [],
       })
+      setImagePreviewUrl(null)
       setSchedule({
         type: 'immediate',
         startDate: '',
@@ -91,6 +106,15 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       })
     }
   }, [isOpen])
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl)
+      }
+    }
+  }, [imagePreviewUrl])
 
   // Editor styles - compact
   useEffect(() => {
@@ -163,10 +187,20 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
   }, [])
 
   const handleCropComplete = useCallback((croppedImage) => {
-    setFormData(prev => ({ ...prev, image: croppedImage }))
+    // Convert cropped base64 to File object
+    const imageFile = dataURLtoFile(croppedImage, `post-cover-${Date.now()}.jpg`);
+    
+    // Create preview URL
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+    const previewUrl = URL.createObjectURL(imageFile)
+    setImagePreviewUrl(previewUrl)
+    
+    setFormData(prev => ({ ...prev, image: imageFile }))
     setTempImage(null)
     setShowCropModal(false)
-  }, [])
+  }, [imagePreviewUrl])
 
   const handleCropCancel = useCallback(() => {
     setTempImage(null)
@@ -178,13 +212,21 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
   }, [formData.image])
 
   const handleReCrop = useCallback(() => {
-    const imageToEdit = originalImage || formData.image
+    const imageToEdit = originalImage || (formData.image ? URL.createObjectURL(formData.image) : null)
     if (imageToEdit) {
-      if (!originalImage) {
-        setOriginalImage(formData.image)
+      if (!originalImage && formData.image) {
+        // Convert File to base64 for cropping
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setOriginalImage(reader.result)
+          setTempImage(reader.result)
+          setShowCropModal(true)
+        }
+        reader.readAsDataURL(formData.image)
+      } else {
+        setTempImage(imageToEdit)
+        setShowCropModal(true)
       }
-      setTempImage(imageToEdit)
-      setShowCropModal(true)
     }
   }, [originalImage, formData.image])
 
@@ -206,10 +248,14 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
   }, [])
 
   const handleRemoveImage = useCallback(() => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
     setFormData(prev => ({ ...prev, image: null }))
+    setImagePreviewUrl(null)
     setOriginalImage(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
-  }, [])
+  }, [imagePreviewUrl])
 
   const handleScheduleSave = useCallback((newSchedule) => {
     setSchedule(newSchedule)
@@ -228,10 +274,21 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
   }, [])
 
   const handleMediaLibrarySelect = useCallback((imageUrl) => {
-    setOriginalImage(imageUrl)
-    setTempImage(imageUrl)
-    setShowMediaLibraryModal(false)
-    setShowCropModal(true)
+    // Fetch the image from URL and convert to File
+    fetch(imageUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        const file = new File([blob], `library-image-${Date.now()}.jpg`, { type: 'image/jpeg' })
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setOriginalImage(reader.result)
+          setTempImage(reader.result)
+          setShowMediaLibraryModal(false)
+          setShowCropModal(true)
+        }
+        reader.readAsDataURL(file)
+      })
+      .catch(err => console.error('Error loading image:', err))
   }, [])
 
   const handleCreate = useCallback(() => {
@@ -314,7 +371,7 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
               {formData.image ? (
                 <div className="relative rounded-xl overflow-hidden border border-border bg-surface-dark">
                   <div className="aspect-video">
-                    <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
+                    <img src={imagePreviewUrl} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
                   </div>
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button

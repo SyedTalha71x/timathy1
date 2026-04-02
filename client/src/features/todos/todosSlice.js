@@ -27,6 +27,31 @@ export const getTagsThunk = createAsyncThunk('/tags/all', async (_, { rejectWith
     }
 })
 
+// =========
+// delete Task Thunk
+//           =========
+export const deleteTagThunk = createAsyncThunk('/tag/delete', async (tagId, { rejectWithValue }) => {
+    try {
+        const res = await todosApi.deleteTag(tagId)
+        return res.message
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+// ===========
+//     update Task Thunk
+//             =========
+export const updateTagThunk = createAsyncThunk('/tag/update-tag', async ({ tagId, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await todosApi.updateTag(tagId, updateData)
+        return res.tag
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
 // =======================
 // all task Thunk
 // ======================
@@ -141,6 +166,45 @@ const taskSlice = createSlice({
                 state.loading = false,
                     state.error = action.payload?.message
             })
+            // update slice
+            .addCase(updateTagThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(updateTagThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // If the API returns the updated task, update it in the array
+                if (action.payload && action.payload._id) {
+                    const index = state.tags.findIndex(t => t._id === action.payload._id);
+                    if (index !== -1) {
+                        state.tags[index] = action.payload;
+                    } else {
+                        state.tags.push(action.payload);
+                    }
+                }
+            })
+            .addCase(updateTagThunk.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload?.message
+            })
+            // delete Task Slice
+            .addCase(deleteTagThunk.pending, (state) => {
+                state.loading = true,
+                    state.error = null
+            })
+            .addCase(deleteTagThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // Remove the deleted task from the array
+                state.tags = state.tags.filter(tag => tag._id !== action.payload);
+            })
+            .addCase(deleteTagThunk.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload?.message
+            })
+
+
+
+
             // =================
             // create task
             // ================= 
@@ -170,6 +234,9 @@ const taskSlice = createSlice({
                 state.loading = false,
                     state.error = action.payload?.message
             })
+
+
+
 
             // completed thunk
             .addCase(completedTaskThunk.pending, (state) => {

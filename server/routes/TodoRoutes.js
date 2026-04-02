@@ -4,8 +4,8 @@ const {
     createTags,
     getTags,
     // getTagById,
-    // updateTag,
-    // deleteTag,
+    updateTag,
+    deleteTag,
 
     // Todo controllers
     createTodos,
@@ -39,7 +39,8 @@ router.patch('/:todoId/canceled', markAsCanceled)
 // ========== Tags Routes ============
 router.post('/tags/create', createTags)
 router.get('/tags/all', getTags)
-
+router.delete('/:tagId', deleteTag)   // Delete todo
+router.put('/:tagId', updateTag)
 
 
 module.exports = router

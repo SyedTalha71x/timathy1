@@ -26,7 +26,8 @@ import {
   getTagsThunk,
   updateTaskThunk,
   deleteTaskThunk,
-  // deleteTagThunk
+  deleteTagThunk,
+  updateTagThunk
 } from '../../features/todos/todosSlice'
 import { fetchAllStaffThunk } from '../../features/staff/staffSlice'
 // @dnd-kit imports

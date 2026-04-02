@@ -56,15 +56,15 @@ export const getRoomsApi = async () => {
 
 
 // update category
-export const updateRoomApi = async (id, updateData) => {
-    const res = await api.put(`/class/room/${id}`, updateData, { withCredentials: true })
+export const updateRoomApi = async (roomId, updateData) => {
+    const res = await api.put(`/class/room/${roomId}`, updateData, { withCredentials: true })
     return res.data
 }
 
 // delete category
 
-export const deleteRoomApi = async (id) => {
-    const res = await api.delete(`/class/room/${id}`, { withCredentials: true })
+export const deleteRoomApi = async (roomId) => {
+    const res = await api.delete(`/class/room/${roomId}`, { withCredentials: true })
     return res.data
 }
 

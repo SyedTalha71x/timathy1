@@ -26,4 +26,13 @@ const isManager = (req, res, next) => {
   next();
 };
 
-module.exports = { isAdmin, isStaff, isMember, isManager };
+const isPermission = (req, res, next) => {
+  if (!req.user?.permission) {
+    return res.status(403).json({
+      error: "You doesn't have permission for this access"
+    })
+  }
+  next()
+}
+
+module.exports = { isAdmin, isStaff, isMember, isManager, isPermission };
