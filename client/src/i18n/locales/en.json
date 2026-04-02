@@ -1572,29 +1572,29 @@
       "newTask": "New Task",
       "create": "Create",
       "placeholder": "What needs to be done?",
-      "inputPlaceholder": "New task… (Press Enter to add)",
-      "noDate": "No due date",
-      "noTags": "No tags",
+      "taskTitlePlaceholder": "Task title...",
+      "inputPlaceholder": "Add a new task...",
       "dueDateTime": "Due Date & Time",
       "reminder": "Reminder",
       "tags": "Tags",
+      "noTags": "No tags selected",
+      "noDate": "No date",
       "addTags": "Add Tags",
       "manageTags": "Manage Tags",
-      "columns": {
+      "setDueDate": "Set Due Date",
+      "backToTasks": "Back to tasks",
+      "moreActions": "More actions",
+      "repeating": "Repeating",
+      "clearDateTime": "Clear date & time",
+      "canceledClickRestore": "Canceled — click to restore",
+      "status": {
         "ongoing": "Open",
         "completed": "Completed",
         "canceled": "Canceled"
       },
-      "sort": {
-        "sortBy": "Sort by",
-        "custom": "Custom",
-        "title": "Title",
-        "dueDate": "Due Date",
-        "recent": "Recent"
-      },
       "actions": {
         "markComplete": "Mark Complete",
-        "setOngoing": "Reopen",
+        "setOngoing": "Set Open",
         "cancelTask": "Cancel Task",
         "pinTask": "Pin Task",
         "unpinTask": "Unpin Task",
@@ -1602,18 +1602,22 @@
         "setRepeat": "Set Repeat",
         "delete": "Delete"
       },
+      "columns": {
+        "ongoing": "Open",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      },
       "empty": {
         "ongoing": "No open tasks",
         "completed": "No completed tasks",
         "canceled": "No canceled tasks"
       },
-      "backToTasks": "Back to Tasks",
-      "canceledClickRestore": "Canceled — click to restore",
-      "clearDateTime": "Clear Date & Time",
-      "moreActions": "More Actions",
-      "repeating": "Repeating",
-      "setDueDate": "Set Due Date",
-      "taskTitlePlaceholder": "Task title..."
+      "sort": {
+        "custom": "Custom Order",
+        "title": "Title",
+        "dueDate": "Due Date",
+        "recent": "Recently Added"
+      }
     },
     "notes": {
       "title": "Notes",

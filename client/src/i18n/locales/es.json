@@ -1572,48 +1572,52 @@
       "newTask": "Nueva tarea",
       "create": "Crear",
       "placeholder": "¿Qué hay que hacer?",
-      "inputPlaceholder": "Nueva tarea… (Enter para añadir)",
-      "noDate": "Sin fecha de vencimiento",
-      "noTags": "Sin etiquetas",
+      "taskTitlePlaceholder": "Título de la tarea...",
+      "inputPlaceholder": "Agregar nueva tarea...",
       "dueDateTime": "Fecha y hora de vencimiento",
       "reminder": "Recordatorio",
       "tags": "Etiquetas",
-      "addTags": "Añadir etiquetas",
+      "noTags": "Sin etiquetas seleccionadas",
+      "noDate": "Sin fecha",
+      "addTags": "Agregar etiquetas",
       "manageTags": "Gestionar etiquetas",
-      "columns": {
-        "ongoing": "Abierto",
-        "completed": "Completado",
-        "canceled": "Cancelado"
-      },
-      "sort": {
-        "sortBy": "Ordenar por",
-        "custom": "Personalizado",
-        "title": "Título",
-        "dueDate": "Fecha de vencimiento",
-        "recent": "Reciente"
-      },
-      "actions": {
-        "markComplete": "Marcar como completado",
-        "setOngoing": "Reabrir",
-        "cancelTask": "Cancelar tarea",
-        "pinTask": "Fijar tarea",
-        "unpinTask": "Desfijar tarea",
-        "duplicate": "Duplicar",
-        "setRepeat": "Configurar repetición",
-        "delete": "Eliminar"
-      },
-      "empty": {
-        "ongoing": "No hay tareas abiertas",
-        "completed": "No hay tareas completadas",
-        "canceled": "No hay tareas canceladas"
-      },
-      "backToTasks": "Volver a tareas",
-      "canceledClickRestore": "Cancelada — clic para restaurar",
-      "clearDateTime": "Borrar fecha y hora",
+      "setDueDate": "Establecer fecha",
+      "backToTasks": "Volver a las tareas",
       "moreActions": "Más acciones",
       "repeating": "Repetitiva",
-      "setDueDate": "Establecer fecha límite",
-      "taskTitlePlaceholder": "Título de la tarea..."
+      "clearDateTime": "Borrar fecha y hora",
+      "canceledClickRestore": "Cancelada — clic para restaurar",
+      "status": {
+        "ongoing": "Abierta",
+        "completed": "Completada",
+        "canceled": "Cancelada"
+      },
+      "actions": {
+        "markComplete": "Completar",
+        "setOngoing": "Marcar como abierta",
+        "cancelTask": "Cancelar",
+        "pinTask": "Fijar",
+        "unpinTask": "Desfijar",
+        "duplicate": "Duplicar",
+        "setRepeat": "Repetir",
+        "delete": "Eliminar"
+      },
+      "columns": {
+        "ongoing": "Abierta",
+        "completed": "Completadas",
+        "canceled": "Canceladas"
+      },
+      "empty": {
+        "ongoing": "Sin tareas abiertas",
+        "completed": "Sin tareas completadas",
+        "canceled": "Sin tareas canceladas"
+      },
+      "sort": {
+        "custom": "Orden personalizado",
+        "title": "Título",
+        "dueDate": "Fecha de vencimiento",
+        "recent": "Recién agregadas"
+      }
     },
     "notes": {
       "title": "Notas",

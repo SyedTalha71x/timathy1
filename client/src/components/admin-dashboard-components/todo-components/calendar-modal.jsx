@@ -182,6 +182,24 @@ const CalendarModal = ({
     onClose();
   };
 
+  // Mobile: auto-save on close (no explicit save button)
+  const handleMobileClose = () => {
+    const result = {
+      date: tempDate,
+      time: tempTime,
+      reminder: tempReminder,
+      repeat: tempRepeat,
+      customReminder: showCustomReminder ? { value: customValue, unit: customUnit } : null,
+      repeatEnd: tempRepeat ? {
+        type: repeatEndType,
+        date: repeatEndDate,
+        occurrences: repeatOccurrences
+      } : null
+    };
+    onSave(result);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const handleClear = () => {
@@ -203,18 +221,48 @@ const CalendarModal = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-2 md:p-4 pt-8 md:pt-4">
-      <div className="bg-[#181818] rounded-xl shadow-lg w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-[80] md:p-4"
+      onClick={handleMobileClose}
+    >
+      <div
+        className="bg-[#181818] rounded-t-2xl md:rounded-xl shadow-lg w-full md:max-w-md max-h-[85dvh] md:max-h-[90vh] flex flex-col animate-slide-up md:animate-none"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => {
+          e.currentTarget._startY = e.touches[0].clientY
+          e.currentTarget._currentY = e.touches[0].clientY
+          e.currentTarget.style.transition = "none"
+        }}
+        onTouchMove={(e) => {
+          const dy = e.touches[0].clientY - e.currentTarget._startY
+          e.currentTarget._currentY = e.touches[0].clientY
+          if (dy > 0) e.currentTarget.style.transform = `translateY(${dy}px)`
+        }}
+        onTouchEnd={(e) => {
+          const dy = e.currentTarget._currentY - e.currentTarget._startY
+          e.currentTarget.style.transition = "transform 0.2s ease-out"
+          if (dy > 80) {
+            e.currentTarget.style.transform = "translateY(100%)"
+            setTimeout(() => handleMobileClose(), 200)
+          } else {
+            e.currentTarget.style.transform = "translateY(0)"
+          }
+        }}
+      >
+        {/* Drag handle - mobile */}
+        <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mt-3 mb-1 md:hidden" />
+
         {/* Header */}
-        <div className="flex justify-between items-center p-4 md:p-6 pb-4 md:pb-5 flex-shrink-0 border-b border-gray-700">
+        <div className="flex justify-between items-center px-4 pb-4 pt-2 md:p-6 md:pb-5 flex-shrink-0 border-b border-gray-700">
           <h2 className="text-white text-lg font-semibold">{t("todo.calendar.title")}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="hidden md:block text-gray-400 hover:text-white transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pt-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pt-4"
+          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           {/* Calendar Section */}
           <div className="mb-5 bg-[#101010] rounded-xl p-4">
             <div className="flex justify-between items-center mb-4">
@@ -405,24 +453,17 @@ const CalendarModal = ({
           </div>
         </div>
 
-        {/* Footer Buttons */}
-        <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-gray-700 bg-[#181818] rounded-b-xl">
-          <div className="flex justify-center mb-3 md:hidden">
-            <button onClick={handleClear} className="px-3 py-1.5 text-red-400 hover:text-red-300 text-xs hover:bg-red-500/10 rounded-lg transition-colors">
-              {t("todo.calendar.clearAll")}
-            </button>
-          </div>
-          
+        {/* Footer Buttons — desktop only, mobile auto-saves on close */}
+        <div className="hidden md:block flex-shrink-0 p-6 pt-4 border-t border-gray-700 bg-[#181818] rounded-b-xl">
           <div className="flex justify-between items-center">
-            <button onClick={handleClear} className="hidden md:block px-4 py-2 text-red-400 hover:text-red-300 text-sm hover:bg-red-500/10 rounded-xl transition-colors">
+            <button onClick={handleClear} className="px-4 py-2 text-red-400 hover:text-red-300 text-sm hover:bg-red-500/10 rounded-xl transition-colors">
               {t("todo.calendar.clearAll")}
             </button>
-            
-            <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-end">
-              <button onClick={onClose} className="flex-1 md:flex-none px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors">
+            <div className="flex gap-3">
+              <button onClick={onClose} className="px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors">
                 {t("common.cancel")}
               </button>
-              <button onClick={handleOK} className="flex-1 md:flex-none px-4 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors whitespace-nowrap">
+              <button onClick={handleOK} className="px-4 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors whitespace-nowrap">
                 {t("common.save")}
               </button>
             </div>
@@ -445,6 +486,11 @@ const CalendarModal = ({
         .custom-scrollbar::-webkit-scrollbar-track { background: #2F2F2F; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #777; }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
       `}</style>
     </div>
   );

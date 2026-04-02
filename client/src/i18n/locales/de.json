@@ -1568,52 +1568,56 @@
       }
     },
     "todo": {
-      "title": "To-Do",
+      "title": "Aufgaben",
       "newTask": "Neue Aufgabe",
       "create": "Erstellen",
       "placeholder": "Was muss erledigt werden?",
-      "inputPlaceholder": "Neue Aufgabe… (Enter zum Hinzufügen)",
-      "noDate": "Kein Fälligkeitsdatum",
-      "noTags": "Keine Tags",
+      "taskTitlePlaceholder": "Aufgabentitel...",
+      "inputPlaceholder": "Neue Aufgabe hinzufügen...",
       "dueDateTime": "Fälligkeitsdatum & Uhrzeit",
       "reminder": "Erinnerung",
       "tags": "Tags",
+      "noTags": "Keine Tags ausgewählt",
+      "noDate": "Kein Datum",
       "addTags": "Tags hinzufügen",
       "manageTags": "Tags verwalten",
+      "setDueDate": "Fälligkeitsdatum setzen",
+      "backToTasks": "Zurück zu den Aufgaben",
+      "moreActions": "Weitere Aktionen",
+      "repeating": "Wiederholend",
+      "clearDateTime": "Datum & Uhrzeit löschen",
+      "canceledClickRestore": "Storniert — klicken zum Wiederherstellen",
+      "status": {
+        "ongoing": "Offen",
+        "completed": "Abgeschlossen",
+        "canceled": "Storniert"
+      },
+      "actions": {
+        "markComplete": "Abschließen",
+        "setOngoing": "Auf Offen setzen",
+        "cancelTask": "Stornieren",
+        "pinTask": "Anheften",
+        "unpinTask": "Lösen",
+        "duplicate": "Duplizieren",
+        "setRepeat": "Wiederholung setzen",
+        "delete": "Löschen"
+      },
       "columns": {
         "ongoing": "Offen",
         "completed": "Abgeschlossen",
-        "canceled": "Abgebrochen"
-      },
-      "sort": {
-        "sortBy": "Sortieren nach",
-        "custom": "Benutzerdefiniert",
-        "title": "Titel",
-        "dueDate": "Fälligkeitsdatum",
-        "recent": "Neueste"
-      },
-      "actions": {
-        "markComplete": "Als erledigt markieren",
-        "setOngoing": "Wieder öffnen",
-        "cancelTask": "Aufgabe abbrechen",
-        "pinTask": "Aufgabe anheften",
-        "unpinTask": "Aufgabe lösen",
-        "duplicate": "Duplizieren",
-        "setRepeat": "Wiederholung einstellen",
-        "delete": "Löschen"
+        "canceled": "Storniert"
       },
       "empty": {
         "ongoing": "Keine offenen Aufgaben",
         "completed": "Keine abgeschlossenen Aufgaben",
-        "canceled": "Keine abgebrochenen Aufgaben"
+        "canceled": "Keine stornierten Aufgaben"
       },
-      "backToTasks": "Zurück zu Aufgaben",
-      "canceledClickRestore": "Abgebrochen — klicken zum Wiederherstellen",
-      "clearDateTime": "Datum & Uhrzeit löschen",
-      "moreActions": "Weitere Aktionen",
-      "repeating": "Wiederholend",
-      "setDueDate": "Fälligkeitsdatum setzen",
-      "taskTitlePlaceholder": "Aufgabentitel..."
+      "sort": {
+        "custom": "Eigene Reihenfolge",
+        "title": "Titel",
+        "dueDate": "Fälligkeitsdatum",
+        "recent": "Zuletzt hinzugefügt"
+      }
     },
     "notes": {
       "title": "Notizen",

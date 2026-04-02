@@ -1572,48 +1572,52 @@
       "newTask": "Nouvelle tâche",
       "create": "Créer",
       "placeholder": "Que faut-il faire ?",
-      "inputPlaceholder": "Nouvelle tâche… (Entrée pour ajouter)",
-      "noDate": "Pas de date d'échéance",
-      "noTags": "Pas de tags",
+      "taskTitlePlaceholder": "Titre de la tâche...",
+      "inputPlaceholder": "Ajouter une tâche...",
       "dueDateTime": "Date et heure d'échéance",
       "reminder": "Rappel",
-      "tags": "Tags",
-      "addTags": "Ajouter des tags",
-      "manageTags": "Gérer les tags",
-      "columns": {
-        "ongoing": "Ouvert",
-        "completed": "Terminé",
-        "canceled": "Annulé"
-      },
-      "sort": {
-        "sortBy": "Trier par",
-        "custom": "Personnalisé",
-        "title": "Titre",
-        "dueDate": "Date d'échéance",
-        "recent": "Récent"
+      "tags": "Étiquettes",
+      "noTags": "Aucune étiquette sélectionnée",
+      "noDate": "Pas de date",
+      "addTags": "Ajouter des étiquettes",
+      "manageTags": "Gérer les étiquettes",
+      "setDueDate": "Définir la date",
+      "backToTasks": "Retour aux tâches",
+      "moreActions": "Plus d'actions",
+      "repeating": "Récurrente",
+      "clearDateTime": "Effacer date et heure",
+      "canceledClickRestore": "Annulée — cliquer pour restaurer",
+      "status": {
+        "ongoing": "Ouverte",
+        "completed": "Terminée",
+        "canceled": "Annulée"
       },
       "actions": {
-        "markComplete": "Marquer comme terminé",
-        "setOngoing": "Rouvrir",
-        "cancelTask": "Annuler la tâche",
-        "pinTask": "Épingler la tâche",
-        "unpinTask": "Désépingler la tâche",
+        "markComplete": "Terminer",
+        "setOngoing": "Marquer ouverte",
+        "cancelTask": "Annuler",
+        "pinTask": "Épingler",
+        "unpinTask": "Détacher",
         "duplicate": "Dupliquer",
-        "setRepeat": "Définir la répétition",
+        "setRepeat": "Répéter",
         "delete": "Supprimer"
+      },
+      "columns": {
+        "ongoing": "Ouverte",
+        "completed": "Terminées",
+        "canceled": "Annulées"
       },
       "empty": {
         "ongoing": "Aucune tâche ouverte",
         "completed": "Aucune tâche terminée",
         "canceled": "Aucune tâche annulée"
       },
-      "backToTasks": "Retour aux tâches",
-      "canceledClickRestore": "Annulée — cliquer pour restaurer",
-      "clearDateTime": "Effacer date et heure",
-      "moreActions": "Plus d'actions",
-      "repeating": "Récurrente",
-      "setDueDate": "Définir la date d'échéance",
-      "taskTitlePlaceholder": "Titre de la tâche..."
+      "sort": {
+        "custom": "Ordre personnalisé",
+        "title": "Titre",
+        "dueDate": "Date d'échéance",
+        "recent": "Récemment ajoutées"
+      }
     },
     "notes": {
       "title": "Notes",

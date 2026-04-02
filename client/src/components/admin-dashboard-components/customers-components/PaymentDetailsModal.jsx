@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { X, AlertTriangle, CreditCard, Loader2, CheckCircle2, FileText } from "lucide-react"
-import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // ============================================
 // Payment Details Modal – Customer / Studio
@@ -261,7 +260,6 @@ export default function PaymentDetailsModal({ studio, onClose, onSave }) {
                 {t("admin.customers.payment.savePayment")}
               </button>
             </div>
-            <KeyboardSpacer />
           </form>
         </div>
       </div>

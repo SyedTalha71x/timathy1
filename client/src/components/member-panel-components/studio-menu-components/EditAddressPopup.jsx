@@ -4,7 +4,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { haptic } from "../../../utils/haptic";
 import { FormField, FormActions } from "./FormComponents";
-import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 import CustomSelect from "../../../components/shared/CustomSelect";
 
 const EditAddressPopup = ({ show, data, onChange, onSave, onClose, countries, countriesLoading }) => {
@@ -67,7 +66,6 @@ const EditAddressPopup = ({ show, data, onChange, onSave, onClose, countries, co
               disabled={countriesLoading}
             />
           </div>
-          <KeyboardSpacer />
         </div>
 
         <FormActions onSave={onSave} onCancel={onClose} />

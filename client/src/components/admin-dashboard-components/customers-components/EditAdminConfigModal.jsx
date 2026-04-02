@@ -4,7 +4,6 @@ import { Trash2, X, Plus, ChevronDown, ChevronUp, Pencil, Shield, Check } from "
 import { useEffect, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import toast from "react-hot-toast"
-import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // Note Status Options (studio-context)
 const NOTE_STATUSES = [
@@ -618,7 +617,6 @@ const EditAdminConfigModal = ({ isOpen, onClose, studio, onSave, initialTab = "d
             )}
           </div>
 
-          <KeyboardSpacer />
 
           {/* Footer */}
           <div className="flex justify-end gap-2 pt-4">

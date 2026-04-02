@@ -8,7 +8,6 @@ import { updateReminders } from "../../features/notification/notificationSlice"
 import { notification } from "antd"
 import { haptic } from "../../utils/haptic"
 import { useNavigate } from "react-router-dom"
-import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 import {
   ChevronRight,
   ChevronLeft,
@@ -1124,7 +1123,6 @@ Last updated: ${studio?.updatedAt ? new Date(studio.updatedAt).toDateString() : 
           {/* Mobile Content Area */}
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
             {renderSectionContent()}
-            <KeyboardSpacer />
           </div>
 
           {/* Spacer for bottom bar — collapses when keyboard opens */}

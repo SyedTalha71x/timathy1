@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import OrgaGymLogo from "../../public/OrgaGym Logo.svg";
-import NavBarLanguageDropdown from "./LanguageDropdown";
+import LanguageDropdown from "../layouts/LanguageDropdown";
 
 export default function NavBar({ mobileMenuOpen, setMobileMenuOpen }) {
   const navigate = useNavigate();
@@ -112,14 +112,14 @@ export default function NavBar({ mobileMenuOpen, setMobileMenuOpen }) {
                 >
                   Login
                 </button>
-                <NavBarLanguageDropdown isMobile={false} />
+                <LanguageDropdown variant="flag" />
               </div>
             )}
 
             {/* Mobile Header - Sprachdropdown und Menu Button */}
             {!isDemoPage && (
               <div className="md:hidden flex items-center gap-2">
-                <NavBarLanguageDropdown isMobile={true} />
+                <LanguageDropdown variant="flag" isMobile />
                 <button 
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="p-2 text-white relative z-50"
@@ -129,10 +129,17 @@ export default function NavBar({ mobileMenuOpen, setMobileMenuOpen }) {
               </div>
             )}
 
-            {/* Auf Demo-Seite: Nur Sprachdropdown (nur Flagge) */}
+            {/* Auf Demo-Seite: Sprachdropdown + Close Button */}
             {isDemoPage && (
-              <div className="flex items-center">
-                <NavBarLanguageDropdown isMobile={false} />
+              <div className="flex items-center gap-2">
+                <LanguageDropdown variant="flag" isMobile />
+                <button
+                  onClick={() => navigate("/")}
+                  className="p-2 text-white relative z-50"
+                  aria-label="Close"
+                >
+                  <X className="w-6 h-6" />
+                </button>
               </div>
             )}
           </div>
@@ -162,9 +169,6 @@ export default function NavBar({ mobileMenuOpen, setMobileMenuOpen }) {
                   >
                     Login
                   </button>
-                  <div className="flex justify-center pt-2">
-                    <NavBarLanguageDropdown isMobile={true} />
-                  </div>
                 </div>
               </div>
             </div>

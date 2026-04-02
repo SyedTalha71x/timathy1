@@ -1572,48 +1572,52 @@
       "newTask": "Nuova attività",
       "create": "Crea",
       "placeholder": "Cosa c'è da fare?",
-      "inputPlaceholder": "Nuova attività… (Invio per aggiungere)",
-      "noDate": "Nessuna scadenza",
-      "noTags": "Nessun tag",
+      "taskTitlePlaceholder": "Titolo attività...",
+      "inputPlaceholder": "Aggiungi attività...",
       "dueDateTime": "Data e ora di scadenza",
       "reminder": "Promemoria",
-      "tags": "Tag",
-      "addTags": "Aggiungi tag",
-      "manageTags": "Gestisci tag",
-      "columns": {
-        "ongoing": "Aperto",
-        "completed": "Completato",
-        "canceled": "Annullato"
-      },
-      "sort": {
-        "sortBy": "Ordina per",
-        "custom": "Personalizzato",
-        "title": "Titolo",
-        "dueDate": "Data di scadenza",
-        "recent": "Recente"
+      "tags": "Etichette",
+      "noTags": "Nessuna etichetta selezionata",
+      "noDate": "Nessuna data",
+      "addTags": "Aggiungi etichette",
+      "manageTags": "Gestisci etichette",
+      "setDueDate": "Imposta data",
+      "backToTasks": "Torna alle attività",
+      "moreActions": "Altre azioni",
+      "repeating": "Ricorrente",
+      "clearDateTime": "Cancella data e ora",
+      "canceledClickRestore": "Annullata — clicca per ripristinare",
+      "status": {
+        "ongoing": "Aperta",
+        "completed": "Completata",
+        "canceled": "Annullata"
       },
       "actions": {
-        "markComplete": "Segna come completato",
-        "setOngoing": "Riaprire",
-        "cancelTask": "Annulla attività",
-        "pinTask": "Fissa attività",
-        "unpinTask": "Sgancia attività",
+        "markComplete": "Completa",
+        "setOngoing": "Imposta aperta",
+        "cancelTask": "Annulla",
+        "pinTask": "Fissa",
+        "unpinTask": "Sgancia",
         "duplicate": "Duplica",
-        "setRepeat": "Imposta ripetizione",
+        "setRepeat": "Ripeti",
         "delete": "Elimina"
+      },
+      "columns": {
+        "ongoing": "Aperta",
+        "completed": "Completate",
+        "canceled": "Annullate"
       },
       "empty": {
         "ongoing": "Nessuna attività aperta",
         "completed": "Nessuna attività completata",
         "canceled": "Nessuna attività annullata"
       },
-      "backToTasks": "Torna alle attività",
-      "canceledClickRestore": "Annullata — clicca per ripristinare",
-      "clearDateTime": "Cancella data e ora",
-      "moreActions": "Altre azioni",
-      "repeating": "Ricorrente",
-      "setDueDate": "Imposta scadenza",
-      "taskTitlePlaceholder": "Titolo attività..."
+      "sort": {
+        "custom": "Ordine personalizzato",
+        "title": "Titolo",
+        "dueDate": "Data di scadenza",
+        "recent": "Aggiunte di recente"
+      }
     },
     "notes": {
       "title": "Note",

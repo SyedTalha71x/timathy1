@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 // components/CustomModal.jsx
-import KeyboardSpacer from "./KeyboardSpacer"
 
 export default function CustomModal({ 
     isOpen, 
@@ -31,7 +30,6 @@ export default function CustomModal({
   
           <div className="flex-1 overflow-y-auto p-6">
             {children}
-            <KeyboardSpacer />
           </div>
   
           {footer && (
