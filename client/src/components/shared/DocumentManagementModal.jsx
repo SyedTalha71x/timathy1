@@ -453,7 +453,7 @@ export default function DocumentManagementModal({
   const [isUploading, setIsUploading] = useState(false)
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
-  const [viewingDocument, setViewingDocument] = useState(null)
+  const [viewingDocument, setViewingDocument] = useState([])
   const [activeSection, setActiveSection] = useState("general")
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
   const [documentToDelete, setDocumentToDelete] = useState(null)
@@ -480,21 +480,24 @@ export default function DocumentManagementModal({
     }
   }, [isOpen, dispatch])
 
-  // Refresh documents function
-  const refreshDocuments = async () => {
+  // Refresh both documents and medical histories
+  const refreshAllData = async () => {
     if (!entityId) {
       console.error('No entity ID found');
       return;
     }
 
+    toast.loading(t("documents.toast.refreshing", "Refreshing data..."), { id: 'refresh' });
+
     try {
-      const result = await dispatch(getDocumentsByEntityThunk({
+      // Refresh documents
+      const docsResult = await dispatch(getDocumentsByEntityThunk({
         entityType,
         entityId: entityId
       })).unwrap();
 
-      if (result && Array.isArray(result)) {
-        const formattedDocs = result.map(doc => ({
+      if (docsResult && Array.isArray(docsResult)) {
+        const formattedDocs = docsResult.map(doc => ({
           id: doc._id,
           name: doc.displayName || doc.originalName,
           type: doc.originalName?.split('.').pop().toLowerCase() || 'file',
@@ -507,58 +510,52 @@ export default function DocumentManagementModal({
         }));
         setDocuments(formattedDocs);
       }
+
+      // Refresh medical histories
+      const historyResult = await dispatch(getResponsesByEntityThunk({
+        entityType,
+        entityId: entityId
+      })).unwrap();
+
+      let historiesData = null;
+      if (historyResult?.data && Array.isArray(historyResult.data)) {
+        historiesData = historyResult.data;
+      } else if (historyResult?.responses && Array.isArray(historyResult.responses)) {
+        historiesData = historyResult.responses;
+      } else if (Array.isArray(historyResult)) {
+        historiesData = historyResult;
+      }
+
+      if (historiesData && historiesData.length > 0) {
+        const formattedHistories = historiesData.map(history => ({
+          id: history._id,
+          name: history.title || 'Medical History',
+          type: "medicalHistory",
+          size: "N/A",
+          uploadDate: new Date(history.createdAt).toISOString().split('T')[0],
+          section: "medicalHistory",
+          tags: history.tags || [],
+          answers: history.answers,
+          signature: history.signature,
+          signed: !!history.signature,
+          formTemplateId: history.formTemplateId
+        }));
+        setMedicalHistories(formattedHistories);
+      } else {
+        setMedicalHistories([]);
+      }
+
+      toast.success(t("documents.toast.refreshSuccess", "Data refreshed successfully"), { id: 'refresh' });
     } catch (error) {
-      console.error('Error refreshing documents:', error);
+      console.error('Error refreshing data:', error);
+      toast.error(t("documents.toast.refreshFailed", "Failed to refresh data"), { id: 'refresh' });
     }
   };
 
   // Load documents and medical histories when modal opens
   useEffect(() => {
     if (isOpen && entity && entityId) {
-      refreshDocuments();
-
-      // Fetch medical histories
-      const fetchHistories = async () => {
-        try {
-          const result = await dispatch(getResponsesByEntityThunk({
-            entityType,
-            entityId: entityId
-          })).unwrap();
-
-          let historiesData = null;
-          if (result?.data && Array.isArray(result.data)) {
-            historiesData = result.data;
-          } else if (result?.responses && Array.isArray(result.responses)) {
-            historiesData = result.responses;
-          } else if (Array.isArray(result)) {
-            historiesData = result;
-          }
-
-          if (historiesData && historiesData.length > 0) {
-            const formattedHistories = historiesData.map(history => ({
-              id: history._id,
-              name: history.title || 'Medical History',
-              type: "medicalHistory",
-              size: "N/A",
-              uploadDate: new Date(history.createdAt).toISOString().split('T')[0],
-              section: "medicalHistory",
-              tags: history.tags || [],
-              answers: history.answers,
-              signature: history.signature,
-              signed: !!history.signature,
-              formTemplateId: history.formTemplateId
-            }));
-            setMedicalHistories(formattedHistories);
-          } else {
-            setMedicalHistories([]);
-          }
-        } catch (error) {
-          console.error('Error fetching medical histories:', error);
-          setMedicalHistories([]);
-        }
-      };
-
-      fetchHistories();
+      refreshAllData();
 
       // Fetch available form templates
       const fetchForms = async () => {
@@ -571,7 +568,18 @@ export default function DocumentManagementModal({
             formsData = result;
           }
           if (formsData && formsData.length > 0) {
-            setAvailableForms(formsData);
+            // Map _id to id for each item in each section to make radio buttons work
+            const mappedForms = formsData.map(form => ({
+              ...form,
+              sections: form.sections?.map(section => ({
+                ...section,
+                items: section.items?.map(item => ({
+                  ...item,
+                  id: item._id // Add id field mapped from _id
+                }))
+              }))
+            }));
+            setAvailableForms(mappedForms);
           } else {
             setAvailableForms([]);
           }
@@ -608,7 +616,6 @@ export default function DocumentManagementModal({
   const handleUploadClick = () => {
     fileInputRef.current?.click()
   }
-
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files)
@@ -655,8 +662,8 @@ export default function DocumentManagementModal({
       })).unwrap()
 
       if (result.success && result.documents) {
-        // Refresh documents immediately after upload
-        await refreshDocuments();
+        // Refresh all data immediately after upload
+        await refreshAllData();
         toast.success(t("documents.toast.uploaded", { count: files.length }))
       } else {
         toast.error(t("documents.toast.uploadFailed", "Upload failed: Invalid response from server"))
@@ -695,7 +702,7 @@ export default function DocumentManagementModal({
       const result = await dispatch(createResponseThunk({
         entityType,
         entityId: entityId,
-        data: {
+        responseData: {
           formTemplateId: selectedForm._id,
           answers: formAnswers,
           signature: signature,
@@ -707,20 +714,9 @@ export default function DocumentManagementModal({
       })).unwrap()
 
       if (result.success) {
-        const newHistory = {
-          id: result.data._id,
-          name: result.data.title,
-          type: "medicalHistory",
-          size: "N/A",
-          uploadDate: new Date(result.data.createdAt).toISOString().split('T')[0],
-          section: "medicalHistory",
-          tagsId: result.data.tags || [],
-          answers: result.data.answers,
-          signature: result.data.signature,
-          signed: !!result.data.signature
-        }
-
-        setMedicalHistories(prev => [newHistory, ...prev])
+        // Refresh all data after submission
+        await refreshAllData();
+        
         toast.success(t("documents.toast.medicalSubmitted", "Medical history submitted successfully"))
         setShowFormModal(false)
         setSelectedForm(null)
@@ -752,15 +748,17 @@ export default function DocumentManagementModal({
       try {
         if (documentToDelete.type === "medicalHistory") {
           await dispatch(deleteResponseThunk(documentToDelete.id)).unwrap();
-          setMedicalHistories(prev => prev.filter((doc) => doc.id !== documentToDelete.id));
         } else {
           await dispatch(deleteDocumentThunk({
             entityType: entityType,
             entityId: entityId,
             documentId: documentToDelete.id
           })).unwrap();
-          setDocuments(prev => prev.filter((doc) => doc.id !== documentToDelete.id));
         }
+        
+        // Refresh all data after deletion
+        await refreshAllData();
+        
         toast.success(t("documents.toast.deleted"));
       } catch (error) {
         console.error('Delete error:', error);
@@ -795,8 +793,8 @@ export default function DocumentManagementModal({
     try {
       if (originalDoc.type === "medicalHistory") {
         await dispatch(updateResponseThunk({
-          id: docId,
-          data: { title: newDocName.trim() }
+          responseId: docId,
+          updateData: { title: newDocName.trim() }
         })).unwrap();
         setMedicalHistories(prev => prev.map((doc) =>
           doc.id === docId ? { ...doc, name: newDocName.trim() } : doc
@@ -962,8 +960,8 @@ export default function DocumentManagementModal({
           sectionAnswers.forEach(item => {
             const answer = doc.answers[item.id]
             const displayAnswer = answer === true || answer === 'yes' ? 'Yes' :
-                                  answer === false || answer === 'no' ? 'No' :
-                                  answer === 'dontknow' ? "Don't know" : String(answer)
+              answer === false || answer === 'no' ? 'No' :
+                answer === 'dontknow' ? "Don't know" : String(answer)
 
             checkPageBreak(12)
 
@@ -1009,8 +1007,8 @@ export default function DocumentManagementModal({
 
         unknownAnswers.forEach(([id, answer], idx) => {
           const displayAnswer = answer === true || answer === 'yes' ? 'Yes' :
-                                answer === false || answer === 'no' ? 'No' :
-                                answer === 'dontknow' ? "Don't know" : String(answer)
+            answer === false || answer === 'no' ? 'No' :
+              answer === 'dontknow' ? "Don't know" : String(answer)
 
           checkPageBreak(10)
 
@@ -1693,7 +1691,7 @@ export default function DocumentManagementModal({
                     <div key={section.id} className="bg-surface-dark p-4 rounded-xl">
                       <h5 className="text-content-primary font-medium mb-3">{section.name}</h5>
                       {section.items?.map((item, itemIdx) => (
-                        <div key={item.id} className="mb-3">
+                        <div key={item.id || item._id} className="mb-3">
                           <label className="block text-content-secondary text-sm mb-2">
                             {item.text}
                             {item.required && <span className="text-red-500 ml-1">*</span>}
@@ -1701,20 +1699,57 @@ export default function DocumentManagementModal({
                           {item.type === 'yesno' && (
                             <div className="flex gap-4">
                               <label className="flex items-center gap-2">
-                                <input type="radio" name={`question-${item.id}`} value="yes" onChange={(e) => setFormAnswers(prev => ({ ...prev, [item.id]: e.target.value }))} />
+                                <input
+                                  type="radio"
+                                  name={`question-${item.id || item._id}`}
+                                  value="yes"
+                                  checked={formAnswers[item.id || item._id] === "yes"}
+                                  onChange={(e) => setFormAnswers(prev => ({ 
+                                    ...prev, 
+                                    [item.id || item._id]: e.target.value 
+                                  }))}
+                                />
                                 <span>{t("common.yes", "Yes")}</span>
                               </label>
                               <label className="flex items-center gap-2">
-                                <input type="radio" name={`question-${item.id}`} value="no" onChange={(e) => setFormAnswers(prev => ({ ...prev, [item.id]: e.target.value }))} />
+                                <input
+                                  type="radio"
+                                  name={`question-${item.id || item._id}`}
+                                  value="no"
+                                  checked={formAnswers[item.id || item._id] === "no"}
+                                  onChange={(e) => setFormAnswers(prev => ({ 
+                                    ...prev, 
+                                    [item.id || item._id]: e.target.value 
+                                  }))}
+                                />
                                 <span>{t("common.no", "No")}</span>
                               </label>
+                              {item.allowDontKnow && (
+                                <label className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    name={`question-${item.id || item._id}`}
+                                    value="dontknow"
+                                    checked={formAnswers[item.id || item._id] === "dontknow"}
+                                    onChange={(e) => setFormAnswers(prev => ({ 
+                                      ...prev, 
+                                      [item.id || item._id]: e.target.value 
+                                    }))}
+                                  />
+                                  <span>{t("common.dontKnow", "Don't know")}</span>
+                                </label>
+                              )}
                             </div>
                           )}
                           {item.type === 'text' && (
                             <textarea
                               className="w-full p-2 bg-surface-card border border-border rounded-lg text-content-primary"
                               rows="3"
-                              onChange={(e) => setFormAnswers(prev => ({ ...prev, [item.id]: e.target.value }))}
+                              value={formAnswers[item.id || item._id] || ''}
+                              onChange={(e) => setFormAnswers(prev => ({ 
+                                ...prev, 
+                                [item.id || item._id]: e.target.value 
+                              }))}
                             />
                           )}
                         </div>
@@ -1728,6 +1763,7 @@ export default function DocumentManagementModal({
                       type="text"
                       className="w-full p-2 bg-surface-card border border-border rounded-lg text-content-primary"
                       placeholder={t("documents.medicalForm.signaturePlaceholder", "Type your full name as signature")}
+                      value={signature || ''}
                       onChange={(e) => setSignature(e.target.value)}
                     />
                   </div>
@@ -1773,7 +1809,7 @@ export default function DocumentManagementModal({
                   {isUploading ? t("documents.uploading") : t("documents.upload")}
                 </button>
                 <button
-                  onClick={refreshDocuments}
+                  onClick={refreshAllData}
                   className="text-sm gap-2 px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors w-full sm:w-auto flex items-center justify-center"
                   title={t("documents.refresh", "Refresh Documents")}
                 >

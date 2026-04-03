@@ -2,7 +2,7 @@
 const MedicalHistoryResponse = require("../../models/documents/MedicalResponseFormModel");
 const MedicalHistoryModel = require("../../models/documents/MedicalHistoryModel");
 const { StaffModel, MemberModel } = require("../../models/Discriminators");
-
+const TagsModel = require('../../models/TagsModel')
 // Create a new medical history response (filled form)
 const createResponse = async (req, res) => {
     try {
@@ -30,7 +30,7 @@ const createResponse = async (req, res) => {
 
         // Create response
         const response = new MedicalHistoryResponse({
-            formTemplateId,
+            formTemplateId: formTemplateId,
             entityType,
             entityId,
             entityName: entityName || `${entity.firstName} ${entity.lastName}`,
@@ -81,6 +81,8 @@ const getResponsesByEntity = async (req, res) => {
             isActive: true
         })
             .populate('formTemplateId')
+            .populate('answers')
+
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -126,8 +128,9 @@ const getResponseById = async (req, res) => {
 // Update response
 const updateResponse = async (req, res) => {
     try {
+        const studioId = req.user?.studio;
         const { id } = req.params;
-        const { answers, signature, signatureLocation } = req.body;
+        const { answers, signature, signatureLocation, tagsId } = req.body;
 
         const response = await MedicalHistoryResponse.findById(id);
         if (!response) {
@@ -136,11 +139,26 @@ const updateResponse = async (req, res) => {
                 message: "Response not found"
             });
         }
+        let tagsArray = [];
+        if (tagsId) {
+            const tagsIdArray = Array.isArray(tagsId) ? tagsId : [tagsId];
+            const validTags = await TagsModel.find({
+                _id: { $in: tagsIdArray },
+                studioId: studioId
+            });
+
+            if (validTags.length !== tagsIdArray.length) {
+                throw new BadRequestError("One or more tag IDs are invalid or don't belong to this studio");
+            }
+
+            tagsArray = validTags.map(tag => tag._id);
+        }
+
 
         if (answers) response.answers = answers;
         if (signature) response.signature = signature;
         if (signatureLocation) response.signatureLocation = signatureLocation;
-
+        if (tagsId) response.tags = tagsArray
         await response.save();
 
         res.status(200).json({
