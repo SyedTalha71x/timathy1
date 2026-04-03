@@ -7,10 +7,14 @@ const { Server } = require('socket.io')
 const server = http.Server(app);
 
 
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+];
+
 const io = new Server(server, {
     cors: {
-        // origin: process.env.FRONTEND_URL,  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
-        origin: 'http://localhost:5173',  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
+        origin: allowedOrigins,
         methods: ["GET", "POST"],
         credentials: true
     }
