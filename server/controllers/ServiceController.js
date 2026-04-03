@@ -107,7 +107,9 @@ const getAllServices = async (req, res, next) => {
 const getServiceById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const service = await ServiceModel.findById(id).populate('createdBy', 'firstName lastName role');
+    const service = await ServiceModel.findById(id)
+    .populate('createdBy', 'firstName lastName role')
+    .populate('category', 'categoryName');
     if (!service) throw new NotFoundError('Service not found');
 
     return res.status(200).json({

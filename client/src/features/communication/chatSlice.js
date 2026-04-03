@@ -79,8 +79,38 @@ export const fetchStudioChatThunk = createAsyncThunk('/chat/studio/fetch-chat', 
 })
 
 
-export const deleteMessageThunk = createAsyncThunk()
+export const deleteMessageThunk = createAsyncThunk('/chat/message/delete', async (messageId, { rejectWithValue }) => {
+  try {
+    const res = await chatApi.deleteMessageApi(messageId)
+    return res.message
+  }
+  catch (error) {
+    return rejectWithValue(error.res?.data)
+  }
+})
 
+
+// member chats thunks
+export const fetchMemberChatThunk = createAsyncThunk('/chat/fetch/member-chats', async (_, { rejectWithValue }) => {
+  try {
+    const res = await chatApi.fetchMemberChatApi()
+    return res.chat
+  }
+  catch (error) {
+    return rejectWithValue(error.response?.data)
+  }
+})
+
+// fetch staff chats thunk
+export const fetchStaffAllChatThunk = createAsyncThunk('/chat/fetch/staff-chats', async (_, { rejectWithValue }) => {
+  try {
+    const res = await chatApi.fetchStaffAllChatApi()
+    return res.chats
+  }
+  catch (error) {
+    return rejectWithValue(error.response?.data)
+  }
+})
 
 // ------------------ SLICE ------------------
 
@@ -178,6 +208,16 @@ const chatSlice = createSlice({
       .addCase(sendMessageThunk.rejected, (state, action) => {
         state.error = action.payload?.message
       })
+      // Delete Message
+      .addCase(deleteMessageThunk.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(deleteMessageThunk.fulfilled, (state, action) => {
+        state.messages = action.payload
+      })
+      .addCase(deleteMessageThunk.rejected, (state, action) => {
+        state.error = action.payload?.message
+      })
 
       // FETCH STUDIO CHATS 
       .addCase(fetchStudioChatThunk.pending, (state) => {
@@ -187,6 +227,26 @@ const chatSlice = createSlice({
         state.chats = action.payload
       })
       .addCase(fetchStudioChatThunk.rejected, (state, action) => {
+        state.error = action.payload?.message
+      })
+      // FETCH Staff CHATS 
+      .addCase(fetchStaffAllChatThunk.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(fetchStaffAllChatThunk.fulfilled, (state, action) => {
+        state.chats = action.payload
+      })
+      .addCase(fetchStaffAllChatThunk.rejected, (state, action) => {
+        state.error = action.payload?.message
+      })
+      // FETCH Member CHAT
+      .addCase(fetchMemberChatThunk.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(fetchMemberChatThunk.fulfilled, (state, action) => {
+        state.chats = action.payload
+      })
+      .addCase(fetchMemberChatThunk.rejected, (state, action) => {
         state.error = action.payload?.message
       })
 

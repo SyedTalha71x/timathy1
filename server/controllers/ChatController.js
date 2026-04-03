@@ -12,29 +12,29 @@ const UserModel = require('../models/UserModel');
 // --------------------------------------------------------------
 const accessChat = async (req, res, next) => {
     try {
-        const { reciverId } = req.body;
+        const { receiverId } = req.body;
         const userId = req.user?._id;
 
-        if (!reciverId) throw new BadRequestError("Invalid ReciverId");
-        if (reciverId.toString() === userId.toString()) {
+        if (!receiverId) throw new BadRequestError("Invalid receiverId");
+        if (receiverId.toString() === userId.toString()) {
             throw new BadRequestError('You cannot create chat with yourself');
         }
         let chat = await chatModel.findOne({
             isGroupChat: false,
             users: {
-                $all: [userId, reciverId]
+                $all: [userId, receiverId]
             }
         })
             .populate('users', 'firstName lastName');
 
         if (!chat) {
             chat = await chatModel.create({
-                users: [userId, reciverId],
+                users: [userId, receiverId],
                 isGroupChat: false
             });
             chat = await chat.populate('users', 'firstName lastName')
             await UserModel.updateMany(
-                { _id: { $in: [userId, reciverId] } },
+                { _id: { $in: [userId, receiverId] } },
                 { $addToSet: { chats: chat._id } } // prevents duplicate
             );
         }
@@ -98,19 +98,39 @@ const sendMessage = async (req, res, next) => {
         const chat = await chatModel.findById(chatId);
         if (!chat) throw new BadRequestError("Chat not found");
 
-        // 🔐 Authorization
+        // 🔐 MEMBER: Can only send to their OWN studio chat
         if (req.user.role === "member") {
             if (chat.member?.toString() !== userId.toString()) {
-                throw new BadRequestError("Not authorized");
+                throw new BadRequestError("Members can only chat through their assigned studio");
+            }
+            // Optional: Check if message goes to studio (not directly to staff)
+            if (!chat.studio) {
+                throw new BadRequestError("Invalid chat type for member");
             }
         }
 
+        // 🔐 STAFF: Can reply to studio chats OR staff chats OR group chats
         if (req.user.role === "staff") {
-            if (chat.studio?.toString() !== req.user?.studio.toString()) {
-                throw new BadRequestError("Not authorized");
+            // Allow staff to reply to:
+            // 1. Studio chats (chat.studio exists)
+            // 2. Staff 1-1 chats (users array includes staff)
+            // 3. Group chats (isGroupChat true)
+
+            const isStudioChat = !!chat.studio;
+            const isStaffChat = chat.users?.includes(userId);
+            const isGroupChat = chat.isGroupChat;
+
+            if (!isStudioChat && !isStaffChat && !isGroupChat) {
+                throw new BadRequestError("Staff cannot reply to this chat type");
+            }
+
+            // If it's a studio chat, verify studio matches
+            if (isStudioChat && chat.studio?.toString() !== req.user?.studio.toString()) {
+                throw new BadRequestError("Not authorized for this studio chat");
             }
         }
 
+        // Create and send message (rest of your existing code)
         const message = await messageModel.create({
             chat: chatId,
             sender: userId,
@@ -180,6 +200,25 @@ const fetchMessages = async (req, res, next) => {
     }
 };
 
+
+
+// Delete message 
+const deleteMessage = async (req, res, next) => {
+    try {
+        const { messageId } = req.params;
+        const message = await messageModel.findById(messageId)
+
+        await messageModel.findByIdAndDelete(messageId)
+        return res.status(200).json({
+            success: true,
+            message: "Deleted successfully"
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
 // --------------------------------
 // studio chat Access 
 // --------------------------------
@@ -243,11 +282,94 @@ const fetchStudioChat = async (req, res, next) => {
     }
 }
 
+
+// --------------------------------------------------------------
+//  Fetch ALL chats for logged-in user (Member or Staff)
+// --------------------------------------------------------------
+// Staff sees ALL studio-member chats + their 1-1 + group chats
+// Member only has ONE chat - their studio chat
+const fetchMemberChat = async (req, res, next) => {
+    try {
+        const memberId = req.user?._id;
+
+        const chat = await chatModel.findOne({
+            member: memberId
+        })
+            .populate('member', 'firstName lastName img')
+            .populate('studio', 'name')
+            .populate({
+                path: 'messages',  // if you have messages reference
+                options: { sort: { createdAt: -1 } }
+            });
+
+        if (!chat) {
+            return res.status(200).json({
+                success: true,
+                chat: null,
+                message: "No studio chat assigned yet"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            chat: chat
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+const fetchStaffAllChats = async (req, res, next) => {
+    try {
+        const staffId = req.user?._id;
+        const studioId = req.user?.studio;
+
+        // Get ALL chats relevant to this staff
+        const chats = await chatModel.find({
+            $or: [
+                { studio: studioId },           // All studio-member chats
+                { users: staffId },             // Staff's 1-1 with other staff
+                {
+                    isGroupChat: true,
+                    users: staffId              // Group chats staff is in
+                }
+            ]
+        })
+            .populate('member', 'firstName lastName img')  // for studio-member chats
+            .populate('users', 'firstName lastName img role')  // for 1-1 & group
+            .populate('studio', 'name')
+            .sort({ updatedAt: -1 });
+
+        // Add metadata about chat type
+        const enrichedChats = chats.map(chat => ({
+            ...chat.toObject(),
+            chatCategory: chat.studio ? 'studio-member' :
+                (chat.isGroupChat ? 'group' : 'one-to-one'),
+            canReply: true,  // Staff can reply to all
+            replyVia: chat.studio ? 'studio' : 'direct'
+        }));
+
+        return res.status(200).json({
+            success: true,
+            count: enrichedChats.length,
+            chats: enrichedChats
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     fetchMessages,
-    createGroupChat,
     sendMessage,
+    deleteMessage,
+    createGroupChat,
     accessChat,
     accessStudioChat,
-    fetchStudioChat
+    fetchStudioChat,
+    fetchMemberChat,
+    fetchStaffAllChats
 }

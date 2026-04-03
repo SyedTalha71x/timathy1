@@ -23,7 +23,7 @@ import supportReducer from '../features/supportCenter/supportSlice'
 
 import classReducers from '../features/classes/classSlice'
 import postReducers from '../features/bulletinBoard/bulletinSlice'
-
+import contractReducers from '../features/contract/contractSlice'
 
 
 
@@ -51,6 +51,7 @@ export const store = configureStore({
         website: websiteReducer,
         support: supportReducer,
         classes: classReducers,
-        posts: postReducers
+        posts: postReducers,
+        contracts: contractReducers
     }
 })
