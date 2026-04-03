@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import i18n from "i18next";
 import {
   TextIcon, FileTextIcon, CheckSquareIcon, SignatureIcon,
   TypeIcon, MinusIcon, ImageIcon, DatabaseIcon,
@@ -84,7 +85,7 @@ export const renderElementContent = (element, isSelected = false) => {
       const headingContent = element.content && 
         !['Heading...', 'Subheading...'].includes(element.content) 
         ? element.content 
-        : (element.type === 'heading' ? 'Heading...' : 'Subheading...');
+        : (element.type === 'heading' ? i18n.t('contractBuilder.placeholders.heading') : i18n.t('contractBuilder.placeholders.subheading'));
       
       return (
         <div style={{
@@ -131,10 +132,10 @@ export const renderElementContent = (element, isSelected = false) => {
       const inputUnderline = element.inputUnderline || false;
       const inputCapsLock = element.inputCapsLock || false;
       
-      const hasCustomLabel = element.label && !['Variable Field (Input)', 'Variable Field (System)'].includes(element.label);
+      const hasCustomLabel = element.label && ![i18n.t('contractBuilder.elements.variableFieldInput'), i18n.t('contractBuilder.elements.variableFieldSystem')].includes(element.label);
       const labelText = hasCustomLabel
         ? element.label
-        : (element.type === 'text' ? 'Variable Field (Input)...' : 'Variable Field (System)...');
+        : (element.type === 'text' ? i18n.t('contractBuilder.placeholders.variableInput') : i18n.t('contractBuilder.placeholders.variableSystem'));
       const finalLabelColor = hasCustomLabel ? labelColor : '#9ca3af';
       
       const displayText = element.variable ? `{${element.variable}}` : '';
@@ -194,7 +195,7 @@ export const renderElementContent = (element, isSelected = false) => {
       const isPlaceholder = !element.content || element.content === 'Paragraph...';
       const textareaContent = !isPlaceholder 
         ? element.content 
-        : 'Paragraph...';
+        : i18n.t('contractBuilder.placeholders.paragraph');
       
       let listStyle = 'none';
       let paddingLeft = '0';
@@ -212,13 +213,13 @@ export const renderElementContent = (element, isSelected = false) => {
       
       const renderListContent = () => {
         if (isPlaceholder) {
-          return 'Paragraph...';
+          return i18n.t('contractBuilder.placeholders.paragraph');
         }
         
         const lines = element.content.split('\n').filter(line => line.trim() !== '');
         
         if (lines.length === 0) {
-          return 'Paragraph...';
+          return i18n.t('contractBuilder.placeholders.paragraph');
         }
         
         if (textAlign !== 'left' && isList) {
@@ -279,7 +280,7 @@ export const renderElementContent = (element, isSelected = false) => {
 
       const renderPlainContent = () => {
         if (isPlaceholder) {
-          return 'Paragraph...';
+          return i18n.t('contractBuilder.placeholders.paragraph');
         }
         
         const lines = element.content.split('\n');
@@ -328,11 +329,11 @@ export const renderElementContent = (element, isSelected = false) => {
     case 'checkbox':
       const checkboxLabel = element.label && element.label !== 'Checkbox Title...'
         ? element.label
-        : 'Checkbox Title...';
+        : i18n.t('contractBuilder.placeholders.checkboxTitle');
       
       const checkboxDescription = element.showDescription && element.description && element.description !== 'Description...'
         ? element.description
-        : (element.showDescription ? 'Description...' : null);
+        : (element.showDescription ? i18n.t('contractBuilder.placeholders.description') : null);
       
       const checkboxTitleFontFamily = element.checkboxTitleFontFamily || element.checkboxFontFamily || 'Arial, sans-serif';
       const checkboxDescriptionFontFamily = element.checkboxDescriptionFontFamily || element.checkboxFontFamily || 'Arial, sans-serif';
@@ -453,7 +454,7 @@ export const renderElementContent = (element, isSelected = false) => {
       
       const signatureBelowText = element.showBelowSignature && element.belowSignatureText && element.belowSignatureText !== 'Location, Date/Signature...'
         ? element.belowSignatureText
-        : 'Location, Date/Signature...';
+        : i18n.t('contractBuilder.placeholders.signatureLocation');
       
       // Separate font families with fallback to signatureFontFamily
       const locationFontFamily = element.locationFontFamily || element.signatureFontFamily || 'Arial, sans-serif';
@@ -595,7 +596,7 @@ export const renderElementContent = (element, isSelected = false) => {
         <div className="flex flex-col items-center justify-center h-full w-full p-1">
           <div className="text-gray-400 text-center border-2 border-dashed border-gray-300 rounded-xl w-full h-full flex flex-col items-center justify-center gap-1">
             <ImageIcon size={48} className="mx-auto text-gray-300" />
-            <span className="text-xs text-gray-400">Insert image here</span>
+            <span className="text-xs text-gray-400">{i18n.t("contractBuilder.canvas.insertImage")}</span>
             {element.fileName && (
               <span className="text-xs text-gray-500">
                 Last file: {element.fileName}
@@ -766,7 +767,7 @@ export const renderElementContent = (element, isSelected = false) => {
       );
 
     default:
-      return <div className="text-gray-900">Unknown element type</div>;
+      return <div className="text-gray-900">{i18n.t("contractBuilder.canvas.unknownElement")}</div>;
   }
 };
 /**
@@ -961,7 +962,7 @@ export const renderBuilderElement = (
             zIndex: 20,
             pointerEvents: 'auto'
           }}>
-            <KeyboardTooltip label="Remove" shortcut="Del">
+            <KeyboardTooltip label={i18n.t("contractBuilder.properties.remove")} shortcut="Del">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -972,7 +973,7 @@ export const renderBuilderElement = (
                 <TrashIcon size={14} />
               </button>
             </KeyboardTooltip>
-            <KeyboardTooltip label="Copy" shortcut="C">
+            <KeyboardTooltip label={i18n.t("contractBuilder.properties.copy")} shortcut="C">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1024,7 +1025,7 @@ export const renderBuilderElement = (
                     handleResizeStart(element.id, 'rotate', e);
                   }}
                   className="hover:bg-primary p-1 rounded"
-                  title="Rotate"
+                  title={i18n.t("contractBuilder.properties.rotate")}
                   style={{ cursor: 'grab' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">

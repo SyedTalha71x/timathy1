@@ -4,7 +4,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { X, Search, ArrowRight, Check, Building, Network, ChevronDown } from "lucide-react"
-import KeyboardSpacer from "../../shared/KeyboardSpacer"
 
 // ── Avatars ──
 const StudioAvatar = ({ name }) => {
@@ -259,7 +258,6 @@ const AssignStudioModal = ({
               </div>
             )}
           </div>
-          <KeyboardSpacer />
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import i18n from 'i18next';
 /**
  * Calculate the required dimensions for text-based elements
  * This ensures text elements auto-resize to fit their content
@@ -34,7 +35,7 @@ export function calculateHeadingDimensions(element) {
     element.content === 'Heading...' || element.content === 'Subheading...';
   
   // Always use placeholder text for dimension calculation when empty
-  const placeholderText = element.type === 'heading' ? 'Heading...' : 'Subheading...';
+  const placeholderText = element.type === 'heading' ? i18n.t('contractBuilder.placeholders.heading') : i18n.t('contractBuilder.placeholders.subheading');
   const content = isPlaceholder ? placeholderText : element.content;
   
   const fontSize = element.fontSize || (element.type === 'heading' ? 24 : 18);
@@ -67,7 +68,7 @@ export function calculateHeadingDimensions(element) {
  * Note: Paragraph elements always use full width (643px) - only height adjusts dynamically
  */
 export function calculateTextareaDimensions(element, maxWidth = 643) {
-  const content = element.content || 'Paragraph...';
+  const content = element.content || i18n.t('contractBuilder.placeholders.paragraph');
   const fontSize = element.fontSize || 14;
   const fontFamily = element.fontFamily || 'Arial, sans-serif';
   const fontWeight = element.bold ? 'bold' : 'normal';
@@ -108,7 +109,7 @@ export function calculateTextareaDimensions(element, maxWidth = 643) {
  * Note: Variable fields can GROW when text gets longer, but never SHRINK below their initial/current width
  */
 export function calculateTextFieldDimensions(element) {
-  const labelText = element.label || 'Variable Field...';
+  const labelText = element.label || i18n.t('contractBuilder.placeholders.variableInput');
   const labelFontSize = element.labelFontSize || 14;
   const labelFontFamily = element.labelFontFamily || 'Arial, sans-serif';
   const labelFontWeight = element.labelBold ? 'bold' : 'normal';
@@ -145,7 +146,7 @@ export function calculateTextFieldDimensions(element) {
  * Calculate dimensions for checkbox elements
  */
 export function calculateCheckboxDimensions(element) {
-  const labelText = element.label || 'Checkbox Title...';
+  const labelText = element.label || i18n.t('contractBuilder.placeholders.checkboxTitle');
   const labelFontSize = element.checkboxTitleSize || element.checkboxLabelSize || 16;
   const titleFontFamily = element.checkboxTitleFontFamily || element.checkboxFontFamily || 'Arial, sans-serif';
   const titleFontWeight = element.titleBold ? 'bold' : 'normal';

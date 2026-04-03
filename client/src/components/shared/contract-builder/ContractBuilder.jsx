@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from '../../shared/SharedToast';
 import {
   FileIcon, FilePlusIcon, SaveIcon, FolderIcon,
@@ -72,6 +73,7 @@ const scrollbarStyles = `
 `;
 
 const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) => {
+  const { t } = useTranslation();
   // Remap variable labels for admin context
   const activeSystemVars = useMemo(() => {
     if (!isAdmin) return SYSTEM_VARIABLES;
@@ -88,7 +90,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
     contractForm?.pages || [
       {
         id: 1,
-        title: 'Contract Page',
+        title: t('contractBuilder.pages.contractPage'),
         elements: [],
         backgroundImage: null,
       }
@@ -105,13 +107,13 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
   const [activeTab, setActiveTab] = useState('properties');
   const [showPreview, setShowPreview] = useState(false);
   const [headerFooterSettingsOpen, setHeaderFooterSettingsOpen] = useState(false);
-  const [contractName, setContractName] = useState(contractForm?.name || 'Unnamed Contract');
+  const [contractName, setContractName] = useState(contractForm?.name || t('contractBuilder.unnamed'));
   const [previewPage, setPreviewPage] = useState(0);
   const [editingContractName, setEditingContractName] = useState(false);
   const [canvasZoom, setCanvasZoom] = useState(1.0);
   const [previewZoom, setPreviewZoom] = useState(0.6);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
-  const [newPageName, setNewPageName] = useState('Contract Page');
+  const [newPageName, setNewPageName] = useState(t('contractBuilder.pages.contractPage'));
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showEditFolderModal, setShowEditFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -470,7 +472,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
   }, [validateVariables]);
 
   const performSave = useCallback(() => {
-    toast.success('Contract saved successfully.');
+    toast.success(t('contractBuilder.toast.saved'));
 
     if (onUpdate) {
       const updatedForm = {
@@ -487,7 +489,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
     setShowValidationWarning(false);
   }, [contractPages, folders, globalHeader, globalFooter, contractName, contractForm, onUpdate]);
 
-  // performSave + close the builder (used by "Save & Close" in validation modal)
+  // performSave + close the builder (used by "{t("contractBuilder.saveAndClose")}" in validation modal)
   const performSaveAndClose = useCallback(() => {
     performSave();
     onClose?.();
@@ -498,7 +500,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
     setShowCloseConfirmModal(true);
   }, []);
 
-  // Handler for Save & Close - validates like handleSave but also closes
+  // Handler for {t("contractBuilder.saveAndClose")} - validates like handleSave but also closes
   const handleSaveAndClose = useCallback(() => {
     const warnings = validateVariables();
     const hasWarnings = warnings.unassignedVariables.length > 0 || 
@@ -518,6 +520,12 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
   // Image Upload Handler
   const handleImageUpload = useCallback((elementId, file) => {
     if (!file) return;
+    
+    const allowedTypes = ['image/png', 'image/jpeg'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(t('contractBuilder.toast.onlyPngJpg'));
+      return;
+    }
     
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -573,7 +581,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
       };
       
       img.onerror = () => {
-        console.error('Failed to load image for dimensions');
+        console.error(t('contractBuilder.toast.failedImage'));
         const newPages = contractPages.map((page, pIdx) => {
           if (pIdx !== currentPage) return page;
           const newElements = page.elements.map(el => {
@@ -599,7 +607,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
     };
     
     reader.onerror = () => {
-      console.error('Failed to read file');
+      console.error(t('contractBuilder.toast.failedFile'));
     };
     
     reader.readAsDataURL(file);
@@ -618,10 +626,15 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
   useEffect(() => {
     if (contractForm?.pages && contractForm?.id !== initializedFormRef.current) {
       initializedFormRef.current = contractForm.id;
-      // Sanitize page titles: remove trailing " 1" from default "Contract Page 1" on initial pages
+      // Sanitize page titles: remove trailing " 1" from default page names
+      const contractPageTranslated = t('contractBuilder.pages.contractPage');
       const sanitizedPages = contractForm.pages.map((page, idx) => {
-        if (idx === 0 && page.title === 'Contract Page 1') {
-          return { ...page, title: 'Contract Page' };
+        if (idx === 0 && (
+          page.title === contractPageTranslated + ' 1' ||
+          page.title === 'Contract Page 1' ||
+          page.title === 'Contract Page'
+        )) {
+          return { ...page, title: contractPageTranslated };
         }
         return page;
       });
@@ -1148,7 +1161,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
             <div className="bg-surface-card rounded-xl w-full max-w-md mx-4 shadow-2xl">
               <div className="flex justify-between items-center p-6 pb-2">
-                <h3 className="text-lg font-bold text-content-primary">Close Contract Builder?</h3>
+                <h3 className="text-lg font-bold text-content-primary">{t("contractBuilder.discard.closeTitle")}</h3>
                 <button
                   onClick={() => setShowCloseConfirmModal(false)}
                   className="text-content-muted hover:text-content-primary transition-colors p-1 rounded-lg hover:bg-surface-hover"
@@ -1156,7 +1169,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
                   <XIcon size={18} />
                 </button>
               </div>
-              <p className="text-content-faint px-6 mb-6">Do you want to save your changes before closing?</p>
+              <p className="text-content-faint px-6 mb-6">{t("contractBuilder.discard.closeMessage")}</p>
               <div className="flex gap-3 px-6 pb-6">
                 <button
                   onClick={() => {
@@ -1164,13 +1177,13 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
                   }}
                   className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
-                  Discard
+                  {t("contractBuilder.discard.discard")}
                 </button>
                 <button
                   onClick={handleSaveAndClose}
                   className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
                 >
-                  Save & Close
+                  {t("contractBuilder.saveAndClose")}
                 </button>
               </div>
             </div>
@@ -1182,7 +1195,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]">
             <div className="bg-surface-card rounded-xl w-full max-w-sm mx-4 shadow-2xl">
               <div className="flex justify-between items-center p-6 pb-2">
-                <h3 className="text-lg font-bold text-content-primary">Discard Changes?</h3>
+                <h3 className="text-lg font-bold text-content-primary">{t("contractBuilder.discard.discardTitle")}</h3>
                 <button
                   onClick={() => setShowDiscardConfirmModal(false)}
                   className="text-content-muted hover:text-content-primary transition-colors p-1 rounded-lg hover:bg-surface-hover"
@@ -1190,13 +1203,13 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
                   <XIcon size={18} />
                 </button>
               </div>
-              <p className="text-content-faint px-6 mb-6">All unsaved changes will be lost. This action cannot be undone.</p>
+              <p className="text-content-faint px-6 mb-6">{t("contractBuilder.discard.message")}</p>
               <div className="flex gap-3 px-6 pb-6">
                 <button
                   onClick={() => setShowDiscardConfirmModal(false)}
                   className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                 >
-                  Go Back
+                  {t("contractBuilder.discard.goBack")}
                 </button>
                 <button
                   onClick={() => {
@@ -1206,7 +1219,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose, isAdmin = false }) =
                   }}
                   className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors"
                 >
-                  Discard
+                  {t("contractBuilder.discard.discard")}
                 </button>
               </div>
             </div>

@@ -3,7 +3,6 @@
 import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { haptic } from "../../../utils/haptic";
-import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 
 const PaymentMethodPopup = ({ show, onClose }) => {
   const { t } = useTranslation();
@@ -67,7 +66,6 @@ const PaymentMethodPopup = ({ show, onClose }) => {
             </p>
           </div>
 
-          <KeyboardSpacer />
         </div>
 
         <div className="flex justify-end gap-2 pt-4 mt-auto flex-shrink-0">

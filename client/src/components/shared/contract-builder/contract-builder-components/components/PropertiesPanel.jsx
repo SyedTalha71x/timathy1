@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import ColorPickerModal from '../../../../shared/ColorPickerModal';
+import { VARIABLE_TRANSLATION_KEYS } from '../constants/elementConstants';
 import {
   SettingsIcon, LayersIcon, FolderIcon, FolderPlusIcon,
   TrashIcon, EditIcon, XIcon, GripVerticalIcon,
@@ -223,6 +225,7 @@ const PropertiesPanel = ({
   imageInputRefs,
   handleImageUpload
 }) => {
+  const { t } = useTranslation();
   // Helper function to handle number input - only allows integers
   const handleNumberInput = (e) => {
     const key = e.key;
@@ -337,7 +340,7 @@ const PropertiesPanel = ({
           <div className="text-center">
             <FileIcon size={32} className="mx-auto mb-3 text-content-faint" />
             <p className="text-center text-content-secondary">
-              PDF pages cannot be edited.
+              {t("contractBuilder.properties.pdfReadonly")}
             </p>
           </div>
         </div>
@@ -351,7 +354,7 @@ const PropertiesPanel = ({
         <div className="p-6 text-content-muted text-sm h-full flex items-center justify-center">
           <div className="text-center">
             <SettingsIcon size={24} className="mx-auto mb-3 text-content-faint" />
-            <p className="text-center text-content-secondary">Select an element to edit its properties.</p>
+            <p className="text-center text-content-secondary">{t("contractBuilder.properties.selectElement")}</p>
           </div>
         </div>
       );
@@ -368,22 +371,22 @@ const PropertiesPanel = ({
     return (
       <div className="p-4 space-y-4">
         <div className="border-b pb-3 mb-4">
-          <h3 className="text-lg font-semibold text-content-primary">Element Properties</h3>
+          <h3 className="text-lg font-semibold text-content-primary">{t("contractBuilder.properties.elementProperties")}</h3>
           <p className="text-xs text-content-muted mt-1">
-            {element.type === 'text' ? 'Variable Field (Input)' :
-             element.type === 'system-text' ? 'Variable Field (System)' :
-             element.type === 'textarea' ? 'Paragraph' :
-             element.type === 'checkbox' ? 'Checkbox' :
-             element.type === 'heading' ? 'Heading' :
-             element.type === 'subheading' ? 'Subheading' :
-             element.type === 'signature' ? 'Signature' :
-             element.type === 'image' ? 'Image' :
-             element.type === 'rectangle' ? 'Rectangle' :
-             element.type === 'circle' ? 'Circle' :
-             element.type === 'triangle' ? 'Triangle' :
-             element.type === 'semicircle' ? 'Semicircle' :
+            {element.type === 'text' ? t('contractBuilder.elements.variableFieldInput') :
+             element.type === 'system-text' ? t('contractBuilder.elements.variableFieldSystem') :
+             element.type === 'textarea' ? t('contractBuilder.elements.paragraph') :
+             element.type === 'checkbox' ? t('contractBuilder.elements.checkbox') :
+             element.type === 'heading' ? t('contractBuilder.elements.heading') :
+             element.type === 'subheading' ? t('contractBuilder.elements.subheading') :
+             element.type === 'signature' ? t('contractBuilder.elements.signature') :
+             element.type === 'image' ? t('contractBuilder.elements.imageLogo') :
+             element.type === 'rectangle' ? t('contractBuilder.elements.rectangle') :
+             element.type === 'circle' ? t('contractBuilder.elements.circle') :
+             element.type === 'triangle' ? t('contractBuilder.elements.triangle') :
+             element.type === 'semicircle' ? t('contractBuilder.elements.semicircle') :
              element.type === 'arrow' ? 'Arrow' :
-             element.type === 'divider' ? 'Divider' : element.type}
+             element.type === 'divider' ? t('contractBuilder.elements.divider') : element.type}
           </p>
         </div>
 
@@ -398,7 +401,7 @@ const PropertiesPanel = ({
               className="primary-check"
             />
             <label htmlFor={`required-${element.id}`} className="text-sm font-medium text-content-primary">
-              Required Field
+              {t("contractBuilder.properties.requiredField")}
               <span className="text-primary ml-1">*</span>
             </label>
           </div>
@@ -413,7 +416,7 @@ const PropertiesPanel = ({
     <div className="flex items-center gap-2 flex-1">
       <MoveIcon size={18} className="text-primary" />
       <h4 className="text-sm font-bold text-content-primary uppercase tracking-wide m-0 p-0 leading-relaxed"> {/* m-0 p-0 und leading-relaxed */}
-        Position
+        {t("contractBuilder.properties.position")}
       </h4>
     </div>
     <ChevronRightIcon 
@@ -426,7 +429,7 @@ const PropertiesPanel = ({
     <div className="mt-3 pb-3 px-2 space-y-4 bg-surface-hover rounded-xl p-3">
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label className="text-xs font-semibold text-content-secondary">X Position</label>
+          <label className="text-xs font-semibold text-content-secondary">{t("contractBuilder.properties.xPosition")}</label>
           <span className="text-xs font-medium text-content-primary">{Math.round(element.x)}px</span>
         </div>
         <input
@@ -455,7 +458,7 @@ const PropertiesPanel = ({
 
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label className="text-xs font-semibold text-content-secondary">Y Position</label>
+          <label className="text-xs font-semibold text-content-secondary">{t("contractBuilder.properties.yPosition")}</label>
           <span className="text-xs font-medium text-content-primary">{Math.round(element.y)}px</span>
         </div>
         <input
@@ -487,7 +490,7 @@ const PropertiesPanel = ({
         <div className="space-y-2 pt-2 border-t border-border">
           <div className="flex justify-between items-center">
             <label className="text-xs font-semibold text-content-secondary">
-              Rotation
+              {t("contractBuilder.properties.rotation")}
             </label>
             <span className="text-xs font-medium text-content-primary">{element.rotation || 0}</span>
           </div>
@@ -528,7 +531,7 @@ const PropertiesPanel = ({
     <div className="flex items-center gap-2 flex-1">
       <MaximizeIcon size={18} className="text-primary" />
       <h4 className="text-sm font-bold text-content-primary uppercase tracking-wide m-0 p-0 leading-relaxed">
-        Size
+        {t("contractBuilder.properties.size")}
       </h4>
     </div>
     <ChevronRightIcon 
@@ -541,7 +544,7 @@ const PropertiesPanel = ({
     <div className="mt-3 pb-3 px-2 space-y-4 bg-surface-hover rounded-xl p-3">
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label className="text-xs font-semibold text-content-secondary">Width</label>
+          <label className="text-xs font-semibold text-content-secondary">{t("contractBuilder.properties.width")}</label>
           <span className="text-xs font-medium text-content-primary">{Math.round(element.width)}px</span>
         </div>
         <input
@@ -581,7 +584,7 @@ const PropertiesPanel = ({
       {element.height !== undefined && (
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-semibold text-content-secondary">Height</label>
+            <label className="text-xs font-semibold text-content-secondary">{t("contractBuilder.properties.height")}</label>
             <span className="text-xs font-medium text-content-primary">{Math.round(element.height)}px</span>
           </div>
           <input
@@ -621,7 +624,7 @@ const PropertiesPanel = ({
     <div className="flex items-center gap-2 flex-1">
       <FileTextIcon size={18} className="text-primary" />
       <h4 className="text-sm font-bold text-content-primary uppercase tracking-wide m-0 p-0 leading-relaxed">
-        Content
+        {t("contractBuilder.properties.content")}
       </h4>
     </div>
     <ChevronRightIcon 
@@ -645,7 +648,7 @@ const PropertiesPanel = ({
               className="primary-check"
             />
             <label htmlFor={`show-title-${element.id}`} className="text-sm font-medium text-content-primary">
-              Show Title
+              {t("contractBuilder.properties.showTitle")}
             </label>
           </div>
 
@@ -653,19 +656,19 @@ const PropertiesPanel = ({
           {element.showTitle !== false && (
             <div className="space-y-3 border-l-2 border-primary/30 pl-3">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Title</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.title")}</label>
                 <input
                   type="text"
                   value={element.label || ''}
                   onChange={(e) => updateElement(element.id, 'label', e.target.value)}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
-                  placeholder={element.type === 'text' ? 'Variable Field (Input)' : 'Variable Field (System)'}
+                  placeholder={element.type === 'text' ? t('contractBuilder.elements.variableFieldInput') : t('contractBuilder.elements.variableFieldSystem')}
                 />
               </div>
 
               {/* Title Font Family */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Title Font Family</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.titleFontFamily")}</label>
                 <select
                   value={element.labelFontFamily || 'Arial, sans-serif'}
                   onChange={(e) => updateElement(element.id, 'labelFontFamily', e.target.value)}
@@ -682,7 +685,7 @@ const PropertiesPanel = ({
               {/* Title Font Size */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-content-primary">Title Font Size</label>
+                  <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.titleFontSize")}</label>
                   <span className="text-xs font-medium text-content-secondary">{element.labelFontSize || 14}px</span>
                 </div>
                 <input
@@ -698,26 +701,26 @@ const PropertiesPanel = ({
 
               {/* Title Formatting Buttons */}
               <div>
-                <label className="block text-sm font-medium text-content-primary mb-2">Title Formatting</label>
+                <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.titleFormatting")}</label>
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateElement(element.id, 'labelBold', !element.labelBold)}
                     className={`p-2 rounded-xl ${element.labelBold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Bold"
+                    title={t("contractBuilder.properties.bold")}
                   >
                     <BoldIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'labelItalic', !element.labelItalic)}
                     className={`p-2 rounded-xl ${element.labelItalic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Italic"
+                    title={t("contractBuilder.properties.italic")}
                   >
                     <ItalicIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'labelUnderline', !element.labelUnderline)}
                     className={`p-2 rounded-xl ${element.labelUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Underline"
+                    title={t("contractBuilder.properties.underline")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -727,7 +730,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'labelCapsLock', !element.labelCapsLock)}
                     className={`p-2 rounded-xl ${element.labelCapsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Uppercase (Caps Lock)"
+                    title={t("contractBuilder.properties.uppercase")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -738,10 +741,10 @@ const PropertiesPanel = ({
 
               {/* Title Color */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Title Text Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.titleColor")}</label>
                 <button
                   type="button"
-                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'labelColor', currentColor: element.labelColor || '#111827', title: 'Title Text Color' })}
+                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'labelColor', currentColor: element.labelColor || '#111827', title: t('contractBuilder.properties.titleColor') })}
                   className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
                 >
                   <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.labelColor || '#111827' }} />
@@ -759,32 +762,32 @@ const PropertiesPanel = ({
                 <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 a1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                Link to a Variable
+                {t("contractBuilder.properties.linkVariable")}
               </label>
               <select
                 value={element.variable || ''}
                 onChange={(e) => updateElement(element.id, 'variable', e.target.value)}
                 className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border-2 border-primary focus:border-primary transition-colors font-medium"
               >
-                <option value="" className="text-content-primary">No Variable</option>
+                <option value="" className="text-content-primary">{t("contractBuilder.properties.noVariable")}</option>
                 {availableVariables.map(variable => (
                   <option 
                     key={variable} 
                     value={variable} 
                     className="text-content-primary"
                   >
-                    {variable}
+                    {t(VARIABLE_TRANSLATION_KEYS[variable]) || variable}
                   </option>
                 ))}
               </select>
               <p className="text-xs text-content-muted mt-2 font-medium">
-                This setting is important for contract creation.
+                {t("contractBuilder.properties.variableImportant")}
               </p>
             </div>
 
             {/* Variable Font Family */}
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Variable/Input Font Family</label>
+              <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.variableInputFontFamily")}</label>
               <select
                 value={element.inputFontFamily || 'Arial, sans-serif'}
                 onChange={(e) => updateElement(element.id, 'inputFontFamily', e.target.value)}
@@ -801,7 +804,7 @@ const PropertiesPanel = ({
             {/* Variable Font Size */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-content-primary">Variable/Input Font Size</label>
+                <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.variableInputFontSize")}</label>
                 <span className="text-xs font-medium text-content-secondary">{element.inputFontSize || 14}px</span>
               </div>
               <input
@@ -817,26 +820,26 @@ const PropertiesPanel = ({
 
             {/* Variable Formatting Buttons */}
             <div>
-              <label className="block text-sm font-medium text-content-primary mb-2">Variable/Input Formatting</label>
+              <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.variableInputFormatting")}</label>
               <div className="flex gap-2 mb-3">
                 <button
                   onClick={() => updateElement(element.id, 'inputBold', !element.inputBold)}
                   className={`p-2 rounded-xl ${element.inputBold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                  title="Bold"
+                  title={t("contractBuilder.properties.bold")}
                 >
                   <BoldIcon size={16} />
                 </button>
                 <button
                   onClick={() => updateElement(element.id, 'inputItalic', !element.inputItalic)}
                   className={`p-2 rounded-xl ${element.inputItalic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                  title="Italic"
+                  title={t("contractBuilder.properties.italic")}
                 >
                   <ItalicIcon size={16} />
                 </button>
                 <button
                   onClick={() => updateElement(element.id, 'inputUnderline', !element.inputUnderline)}
                   className={`p-2 rounded-xl ${element.inputUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                  title="Underline"
+                  title={t("contractBuilder.properties.underline")}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -846,7 +849,7 @@ const PropertiesPanel = ({
                 <button
                   onClick={() => updateElement(element.id, 'inputCapsLock', !element.inputCapsLock)}
                   className={`p-2 rounded-xl ${element.inputCapsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                  title="Uppercase (Caps Lock)"
+                  title={t("contractBuilder.properties.uppercase")}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -857,10 +860,10 @@ const PropertiesPanel = ({
 
             {/* Variable Color */}
             <div>
-              <label className="text-sm text-content-secondary block mb-2">Variable/Input Text Color</label>
+              <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.variableInputColor")}</label>
               <button
                 type="button"
-                onClick={() => setColorPickerConfig({ isOpen: true, property: 'inputColor', currentColor: element.inputColor || '#374151', title: 'Variable/Input Text Color' })}
+                onClick={() => setColorPickerConfig({ isOpen: true, property: 'inputColor', currentColor: element.inputColor || '#374151', title: t('contractBuilder.properties.variableInputColor') })}
                 className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
               >
                 <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.inputColor || '#374151' }} />
@@ -884,7 +887,7 @@ const PropertiesPanel = ({
               className="primary-check"
             />
             <label htmlFor={`show-title-${element.id}`} className="text-sm font-medium text-content-primary">
-              Show Title
+              {t("contractBuilder.properties.showTitle")}
             </label>
           </div>
 
@@ -892,19 +895,19 @@ const PropertiesPanel = ({
           {element.showTitle !== false && (
             <div className="space-y-3 border-l-2 border-primary/30 pl-3">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Checkbox Title</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.checkboxTitle")}</label>
                 <input
                   type="text"
                   value={element.label || ''}
                   onChange={(e) => updateElement(element.id, 'label', e.target.value)}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
-                  placeholder="Checkbox Title..."
+                  placeholder={t("contractBuilder.placeholders.checkboxTitle")}
                 />
               </div>
 
               {/* Title Font Family */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Title Font Family</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.titleFontFamily")}</label>
                 <select
                   value={element.checkboxTitleFontFamily || element.checkboxFontFamily || 'Arial, sans-serif'}
                   onChange={(e) => updateElement(element.id, 'checkboxTitleFontFamily', e.target.value)}
@@ -921,7 +924,7 @@ const PropertiesPanel = ({
               {/* Title Font Size */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-content-primary">Title Font Size</label>
+                  <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.titleFontSize")}</label>
                   <span className="text-xs font-medium text-content-secondary">{element.checkboxTitleSize || 16}px</span>
                 </div>
                 <input
@@ -937,26 +940,26 @@ const PropertiesPanel = ({
 
               {/* Title Formatting Buttons */}
               <div>
-                <label className="block text-sm font-medium text-content-primary mb-2">Title Formatting</label>
+                <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.titleFormatting")}</label>
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateElement(element.id, 'titleBold', !element.titleBold)}
                     className={`p-2 rounded-xl ${element.titleBold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Bold"
+                    title={t("contractBuilder.properties.bold")}
                   >
                     <BoldIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'titleItalic', !element.titleItalic)}
                     className={`p-2 rounded-xl ${element.titleItalic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Italic"
+                    title={t("contractBuilder.properties.italic")}
                   >
                     <ItalicIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'titleUnderline', !element.titleUnderline)}
                     className={`p-2 rounded-xl ${element.titleUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Underline"
+                    title={t("contractBuilder.properties.underline")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -966,7 +969,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'titleCapsLock', !element.titleCapsLock)}
                     className={`p-2 rounded-xl ${element.titleCapsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Uppercase (Caps Lock)"
+                    title={t("contractBuilder.properties.uppercase")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -977,10 +980,10 @@ const PropertiesPanel = ({
 
               {/* Title Color */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Title Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.titleColor")}</label>
                 <button
                   type="button"
-                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'titleColor', currentColor: element.titleColor || '#000000', title: 'Title Color' })}
+                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'titleColor', currentColor: element.titleColor || '#000000', title: t('contractBuilder.properties.titleColor') })}
                   className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
                 >
                   <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.titleColor || '#000000' }} />
@@ -1000,7 +1003,7 @@ const PropertiesPanel = ({
               className="primary-check"
             />
             <label htmlFor={`show-description-${element.id}`} className="text-sm font-medium text-content-primary">
-              Show Description
+              {t("contractBuilder.properties.showDescription")}
             </label>
           </div>
 
@@ -1008,7 +1011,7 @@ const PropertiesPanel = ({
           {element.showDescription !== false && (
             <div className="space-y-3 border-l-2 border-primary/30 pl-3">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Checkbox Description</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.checkboxDescription")}</label>
                 <textarea
                   value={element.description || ''}
                   onChange={(e) => {
@@ -1028,14 +1031,14 @@ const PropertiesPanel = ({
                   }}
                   className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors resize-none overflow-hidden"
                   rows="3"
-                  placeholder="Description..."
+                  placeholder={t("contractBuilder.placeholders.description")}
                   style={{ whiteSpace: 'pre-wrap', minHeight: '72px' }}
                 />
               </div>
 
               {/* Description Font Family */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Description Font Family</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.descFontFamily")}</label>
                 <select
                   value={element.checkboxDescriptionFontFamily || element.checkboxFontFamily || 'Arial, sans-serif'}
                   onChange={(e) => updateElement(element.id, 'checkboxDescriptionFontFamily', e.target.value)}
@@ -1052,7 +1055,7 @@ const PropertiesPanel = ({
               {/* Description Font Size */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-content-primary">Description Font Size</label>
+                  <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.descFontSize")}</label>
                   <span className="text-xs font-medium text-content-secondary">{element.checkboxDescriptionSize || 14}px</span>
                 </div>
                 <input
@@ -1068,26 +1071,26 @@ const PropertiesPanel = ({
 
               {/* Description Formatting Buttons */}
               <div>
-                <label className="block text-sm font-medium text-content-primary mb-2">Description Formatting</label>
+                <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.descFormatting")}</label>
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateElement(element.id, 'descriptionBold', !element.descriptionBold)}
                     className={`p-2 rounded-xl ${element.descriptionBold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Bold"
+                    title={t("contractBuilder.properties.bold")}
                   >
                     <BoldIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'descriptionItalic', !element.descriptionItalic)}
                     className={`p-2 rounded-xl ${element.descriptionItalic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Italic"
+                    title={t("contractBuilder.properties.italic")}
                   >
                     <ItalicIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'descriptionUnderline', !element.descriptionUnderline)}
                     className={`p-2 rounded-xl ${element.descriptionUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Underline"
+                    title={t("contractBuilder.properties.underline")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -1097,7 +1100,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'descriptionCapsLock', !element.descriptionCapsLock)}
                     className={`p-2 rounded-xl ${element.descriptionCapsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Uppercase (Caps Lock)"
+                    title={t("contractBuilder.properties.uppercase")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -1108,10 +1111,10 @@ const PropertiesPanel = ({
 
               {/* Description Color */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Description Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.descColor")}</label>
                 <button
                   type="button"
-                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'descriptionColor', currentColor: element.descriptionColor || '#374151', title: 'Description Color' })}
+                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'descriptionColor', currentColor: element.descriptionColor || '#374151', title: t('contractBuilder.properties.descColor') })}
                   className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
                 >
                   <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.descriptionColor || '#374151' }} />
@@ -1128,8 +1131,8 @@ const PropertiesPanel = ({
         <>
           <div>
             <label className="text-sm text-content-secondary block mb-2">
-              {element.type === 'heading' ? 'Heading' : 
-               element.type === 'subheading' ? 'Subheading' : 'Content'}
+              {element.type === 'heading' ? t('contractBuilder.elements.heading') : 
+               element.type === 'subheading' ? t('contractBuilder.elements.subheading') : t('contractBuilder.properties.content')}
             </label>
             {element.type === 'textarea' ? (
               <textarea
@@ -1137,7 +1140,7 @@ const PropertiesPanel = ({
                 onChange={(e) => updateElement(element.id, 'content', e.target.value)}
                 className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                 rows="4"
-                placeholder={element.type === 'textarea' ? 'Paragraph...' : ''}
+                placeholder={element.type === 'textarea' ? t('contractBuilder.placeholders.paragraph') : ''}
               />
             ) : (
               <input
@@ -1145,13 +1148,13 @@ const PropertiesPanel = ({
                 value={element.content || ''}
                 onChange={(e) => updateElement(element.id, 'content', e.target.value)}
                 className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
-                placeholder={element.type === 'heading' ? 'Heading...' : 'Subheading...'}
+                placeholder={element.type === 'heading' ? t('contractBuilder.placeholders.heading') : t('contractBuilder.placeholders.subheading')}
               />
             )}
           </div>
 
           <div>
-            <label className="text-sm text-content-secondary block mb-2">Font Family</label>
+            <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.fontFamily")}</label>
             <select
               value={element.fontFamily || 'Arial, sans-serif'}
               onChange={(e) => updateElement(element.id, 'fontFamily', e.target.value)}
@@ -1166,10 +1169,10 @@ const PropertiesPanel = ({
           </div>
 
           <div>
-            <label className="text-sm text-content-secondary block mb-2">Font Color</label>
+            <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.fontColor")}</label>
             <button
               type="button"
-              onClick={() => setColorPickerConfig({ isOpen: true, property: 'color', currentColor: element.color || '#000000', title: 'Font Color' })}
+              onClick={() => setColorPickerConfig({ isOpen: true, property: 'color', currentColor: element.color || '#000000', title: t('contractBuilder.properties.fontColor') })}
               className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
             >
               <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.color || '#000000' }} />
@@ -1179,7 +1182,7 @@ const PropertiesPanel = ({
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-content-primary">Font size</label>
+              <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.fontSize")}</label>
               <span className="text-xs font-medium text-content-secondary">
                 {element.type === 'heading' ? (element.fontSize || 24) :
                  element.type === 'subheading' ? (element.fontSize || 18) :
@@ -1203,21 +1206,21 @@ const PropertiesPanel = ({
             <button
               onClick={() => updateElement(element.id, 'bold', !element.bold)}
               className={`p-2 rounded-xl ${element.bold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-              title="Bold"
+              title={t("contractBuilder.properties.bold")}
             >
               <BoldIcon size={16} />
             </button>
             <button
               onClick={() => updateElement(element.id, 'italic', !element.italic)}
               className={`p-2 rounded-xl ${element.italic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-              title="Italic"
+              title={t("contractBuilder.properties.italic")}
             >
               <ItalicIcon size={16} />
             </button>
             <button
               onClick={() => updateElement(element.id, 'underline', !element.underline)}
               className={`p-2 rounded-xl ${element.underline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-              title="Underline"
+              title={t("contractBuilder.properties.underline")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -1227,7 +1230,7 @@ const PropertiesPanel = ({
             <button
               onClick={() => updateElement(element.id, 'capsLock', !element.capsLock)}
               className={`p-2 rounded-xl ${element.capsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-              title="Uppercase (Caps Lock)"
+              title={t("contractBuilder.properties.uppercase")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -1236,19 +1239,19 @@ const PropertiesPanel = ({
           </div>
 
           <div className="pt-4">
-            <label className="block text-sm font-medium text-content-primary mb-2">Alignment</label>
+            <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.alignment")}</label>
             <div className="flex gap-2">
               <button
                 onClick={() => updateElement(element.id, 'alignment', 'left')}
                 className={`p-2 rounded-xl ${element.alignment === 'left' || !element.alignment ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                title="Left-aligned"
+                title={t("contractBuilder.properties.alignLeft")}
               >
                 <AlignLeftIcon size={16} />
               </button>
               <button
                 onClick={() => updateElement(element.id, 'alignment', 'center')}
                 className={`p-2 rounded-xl ${element.alignment === 'center' ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                title="Centered"
+                title={t("contractBuilder.properties.alignCenter")}
               >
                 <AlignCenterIcon size={16} />
               </button>
@@ -1265,12 +1268,12 @@ const PropertiesPanel = ({
           {element.type === 'textarea' && (
             <>
               <div className="pt-4">
-                <label className="block text-sm font-medium text-content-primary mb-2">List Format</label>
+                <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.listFormat")}</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => updateElement(element.id, 'listStyle', 'none')}
                     className={`p-2 rounded-xl ${element.listStyle === 'none' || !element.listStyle ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="No List"
+                    title={t("contractBuilder.properties.noList")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <line x1="3" y1="6" x2="21" y2="6" />
@@ -1281,7 +1284,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'listStyle', 'bullet')}
                     className={`p-2 rounded-xl ${element.listStyle === 'bullet' ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Bullets"
+                    title={t("contractBuilder.properties.bullets")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                       <circle cx="5" cy="6" r="2" />
@@ -1295,7 +1298,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'listStyle', 'number')}
                     className={`p-2 rounded-xl ${element.listStyle === 'number' ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Numbered List"
+                    title={t("contractBuilder.properties.numberedList")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <text x="3" y="8" fontSize="8" fill="currentColor" stroke="none">1.</text>
@@ -1308,13 +1311,13 @@ const PropertiesPanel = ({
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-content-muted">
-                  Tip: Use line breaks (Enter key) for list items.
+                  {t("contractBuilder.properties.tipListBreaks")}
                 </div>
               </div>
 
               <div className="space-y-2 pt-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-content-primary">Line Spacing</label>
+                  <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.lineSpacing")}</label>
                   <span className="text-xs font-medium text-content-secondary">{element.lineHeight || 1.5}</span>
                 </div>
                 <input
@@ -1327,9 +1330,9 @@ const PropertiesPanel = ({
                   className="w-full h-2 bg-surface-button-hover rounded-xl appearance-none cursor-pointer"
                 />
                 <div className="flex justify-between text-xs text-content-muted mt-1">
-                  <span>Tight</span>
-                  <span>Normal</span>
-                  <span>Wide</span>
+                  <span>{t("contractBuilder.properties.tight")}</span>
+                  <span>{t("contractBuilder.properties.normal")}</span>
+                  <span>{t("contractBuilder.properties.wide")}</span>
                 </div>
               </div>
             </>
@@ -1341,11 +1344,11 @@ const PropertiesPanel = ({
       {element.type === 'image' && (
         <>
           <div>
-            <label className="block text-sm font-medium text-content-primary mb-2">Upload Image</label>
+            <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.uploadImage")}</label>
             <div className="relative">
               <input
                 type="file"
-                accept="image/*"
+                accept="image/png, image/jpeg"
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
@@ -1367,10 +1370,10 @@ const PropertiesPanel = ({
                   {element.fileName ? (
                     <span className="text-sm text-content-secondary font-medium truncate">{element.fileName}</span>
                   ) : (
-                    <span className="text-sm text-content-muted">Select file...</span>
+                    <span className="text-sm text-content-muted">{t("contractBuilder.properties.selectFile")}</span>
                   )}
                 </div>
-                <span className="text-xs text-primary font-medium ml-2 flex-shrink-0">Browse</span>
+                <span className="text-xs text-primary font-medium ml-2 flex-shrink-0">{t("contractBuilder.properties.browse")}</span>
               </label>
             </div>
           </div>
@@ -1392,7 +1395,7 @@ const PropertiesPanel = ({
                     <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/>
                     <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/>
                   </svg>
-                  Crop Image
+                  {t("contractBuilder.properties.cropImage")}
                 </button>
               </div>
               
@@ -1410,7 +1413,7 @@ const PropertiesPanel = ({
                       <rect x="3" y="3" width="18" height="18" rx="2"/>
                       <path d="M9 9l6 6M15 9l-6 6"/>
                     </svg>
-                    Lock Aspect Ratio
+                    {t("contractBuilder.properties.lockAspectRatio")}
                   </label>
                 </div>
                 <p className="text-xs text-content-muted mt-2">
@@ -1426,25 +1429,25 @@ const PropertiesPanel = ({
       {element.type === 'divider' && (
         <>
           <div>
-            <label className="text-sm text-content-secondary block mb-2">Line Color</label>
+            <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.lineColor")}</label>
             <button
               type="button"
-              onClick={() => setColorPickerConfig({ isOpen: true, property: 'lineColor', currentColor: element.lineColor || '#000000', title: 'Line Color' })}
+              onClick={() => setColorPickerConfig({ isOpen: true, property: 'lineColor', currentColor: element.lineColor || '#000000', title: t('contractBuilder.properties.lineColor') })}
               className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
             >
               <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.lineColor || '#000000' }} />
               <span className="text-content-primary">{element.lineColor || '#000000'}</span>
             </button>
             <div className="mt-4">
-              <label className="text-sm text-content-secondary block mb-2">Line Style</label>
+              <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.lineStyle")}</label>
               <select
                 value={element.lineStyle || 'solid'}
                 onChange={(e) => updateElement(element.id, 'lineStyle', e.target.value)}
                 className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
               >
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
+                <option value="solid">{t("contractBuilder.properties.solid")}</option>
+                <option value="dashed">{t("contractBuilder.properties.dashed")}</option>
+                <option value="dotted">{t("contractBuilder.properties.dotted")}</option>
               </select>
             </div>
           </div>
@@ -1464,7 +1467,7 @@ const PropertiesPanel = ({
               className="primary-check"
             />
             <label htmlFor={`show-location-date-${element.id}`} className="text-sm font-medium text-content-primary">
-              Show Location and Date
+              {t("contractBuilder.properties.showLocationDate")}
             </label>
           </div>
 
@@ -1472,7 +1475,7 @@ const PropertiesPanel = ({
           {element.showLocationDate !== false && (
             <div className="space-y-3 border-l-2 border-primary/30 pl-3">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Location</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.location")}</label>
                 <input
                   type="text"
                   value={element.location || ''}
@@ -1492,14 +1495,14 @@ const PropertiesPanel = ({
                   className="primary-check"
                 />
                 <label htmlFor={`show-date-${element.id}`} className="text-sm font-medium text-content-primary">
-                  Show Date
+                  {t("contractBuilder.properties.showDate")}
                 </label>
               </div>
 
               {/* Date Format - nur wenn showDate aktiviert */}
               {element.showDate !== false && (
                 <div>
-                  <label className="text-sm text-content-secondary block mb-2">Date Format</label>
+                  <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.dateFormat")}</label>
                   <select
                     value={element.dateFormat || 'de-DE'}
                     onChange={(e) => updateElement(element.id, 'dateFormat', e.target.value)}
@@ -1515,7 +1518,7 @@ const PropertiesPanel = ({
 
               {/* Location Font Family */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Location & Date Font Family</label>
+                <label className="text-sm text-content-secondary block mb-2">Location & Date {t("contractBuilder.properties.fontFamily")}</label>
                 <select
                   value={element.locationFontFamily || element.signatureFontFamily || 'Arial, sans-serif'}
                   onChange={(e) => updateElement(element.id, 'locationFontFamily', e.target.value)}
@@ -1532,7 +1535,7 @@ const PropertiesPanel = ({
               {/* Location Font Size */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-content-primary">Location & Date Font Size</label>
+                  <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.locDateFontSize")}</label>
                   <span className="text-xs font-medium text-content-secondary">{element.signatureFontSize || 14}px</span>
                 </div>
                 <input
@@ -1548,26 +1551,26 @@ const PropertiesPanel = ({
 
               {/* Location Formatting Buttons */}
               <div>
-                <label className="block text-sm font-medium text-content-primary mb-2">Location & Date Formatting</label>
+                <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.locDateFormatting")}</label>
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateElement(element.id, 'locationBold', !element.locationBold)}
                     className={`p-2 rounded-xl ${element.locationBold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Bold"
+                    title={t("contractBuilder.properties.bold")}
                   >
                     <BoldIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'locationItalic', !element.locationItalic)}
                     className={`p-2 rounded-xl ${element.locationItalic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Italic"
+                    title={t("contractBuilder.properties.italic")}
                   >
                     <ItalicIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'locationUnderline', !element.locationUnderline)}
                     className={`p-2 rounded-xl ${element.locationUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Underline"
+                    title={t("contractBuilder.properties.underline")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -1577,7 +1580,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'locationCapsLock', !element.locationCapsLock)}
                     className={`p-2 rounded-xl ${element.locationCapsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Uppercase (Caps Lock)"
+                    title={t("contractBuilder.properties.uppercase")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -1588,10 +1591,10 @@ const PropertiesPanel = ({
 
               {/* Location Color */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Location & Date Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.locDateColor")}</label>
                 <button
                   type="button"
-                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'locationColor', currentColor: element.locationColor || '#374151', title: 'Location & Date Color' })}
+                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'locationColor', currentColor: element.locationColor || '#374151', title: t('contractBuilder.properties.locDateColor') })}
                   className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
                 >
                   <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.locationColor || '#374151' }} />
@@ -1611,7 +1614,7 @@ const PropertiesPanel = ({
               className="primary-check"
             />
             <label htmlFor={`show-below-signature-${element.id}`} className="text-sm font-medium text-content-primary">
-              Show Text Below Signature
+              {t("contractBuilder.properties.showBelowSignature")}
             </label>
           </div>
 
@@ -1619,7 +1622,7 @@ const PropertiesPanel = ({
           {element.showBelowSignature !== false && (
             <div className="space-y-3 border-l-2 border-primary/30 pl-3">
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Text Below Signature</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.belowSignatureText")}</label>
                 <input
                   type="text"
                   value={element.belowSignatureText || ''}
@@ -1631,7 +1634,7 @@ const PropertiesPanel = ({
 
               {/* Below Text Font Family */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Below Text Font Family</label>
+                <label className="text-sm text-content-secondary block mb-2">Below Text {t("contractBuilder.properties.fontFamily")}</label>
                 <select
                   value={element.belowTextFontFamily || element.signatureFontFamily || 'Arial, sans-serif'}
                   onChange={(e) => updateElement(element.id, 'belowTextFontFamily', e.target.value)}
@@ -1648,7 +1651,7 @@ const PropertiesPanel = ({
               {/* Below Text Font Size */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-content-primary">Below Text Font Size</label>
+                  <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.belowTextFontSize")}</label>
                   <span className="text-xs font-medium text-content-secondary">{element.belowTextFontSize || 14}px</span>
                 </div>
                 <input
@@ -1664,26 +1667,26 @@ const PropertiesPanel = ({
 
               {/* Below Text Formatting Buttons */}
               <div>
-                <label className="block text-sm font-medium text-content-primary mb-2">Below Text Formatting</label>
+                <label className="block text-sm font-medium text-content-primary mb-2">{t("contractBuilder.properties.belowTextFormatting")}</label>
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateElement(element.id, 'belowTextBold', !element.belowTextBold)}
                     className={`p-2 rounded-xl ${element.belowTextBold ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Bold"
+                    title={t("contractBuilder.properties.bold")}
                   >
                     <BoldIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'belowTextItalic', !element.belowTextItalic)}
                     className={`p-2 rounded-xl ${element.belowTextItalic ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Italic"
+                    title={t("contractBuilder.properties.italic")}
                   >
                     <ItalicIcon size={16} />
                   </button>
                   <button
                     onClick={() => updateElement(element.id, 'belowTextUnderline', !element.belowTextUnderline)}
                     className={`p-2 rounded-xl ${element.belowTextUnderline ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Underline"
+                    title={t("contractBuilder.properties.underline")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
@@ -1693,7 +1696,7 @@ const PropertiesPanel = ({
                   <button
                     onClick={() => updateElement(element.id, 'belowTextCapsLock', !element.belowTextCapsLock)}
                     className={`p-2 rounded-xl ${element.belowTextCapsLock ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-content-secondary'}`}
-                    title="Uppercase (Caps Lock)"
+                    title={t("contractBuilder.properties.uppercase")}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 21h18M6 13l6-8 6 8M8 13h8" />
@@ -1704,10 +1707,10 @@ const PropertiesPanel = ({
 
               {/* Below Text Color */}
               <div>
-                <label className="text-sm text-content-secondary block mb-2">Below Text Color</label>
+                <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.belowTextColor")}</label>
                 <button
                   type="button"
-                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'belowTextColor', currentColor: element.belowTextColor || '#374151', title: 'Below Text Color' })}
+                  onClick={() => setColorPickerConfig({ isOpen: true, property: 'belowTextColor', currentColor: element.belowTextColor || '#374151', title: t('contractBuilder.properties.belowTextColor') })}
                   className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
                 >
                   <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.belowTextColor || '#374151' }} />
@@ -1723,10 +1726,10 @@ const PropertiesPanel = ({
       {['rectangle', 'circle', 'triangle', 'semicircle', 'arrow'].includes(element.type) && (
         <>
           <div>
-            <label className="text-sm text-content-secondary block mb-2">Background Color</label>
+            <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.backgroundColor")}</label>
             <button
               type="button"
-              onClick={() => setColorPickerConfig({ isOpen: true, property: 'backgroundColor', currentColor: element.backgroundColor || '#f3f4f6', title: 'Background Color' })}
+              onClick={() => setColorPickerConfig({ isOpen: true, property: 'backgroundColor', currentColor: element.backgroundColor || '#f3f4f6', title: t('contractBuilder.properties.backgroundColor') })}
               className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
             >
               <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.backgroundColor || '#f3f4f6' }} />
@@ -1735,10 +1738,10 @@ const PropertiesPanel = ({
           </div>
 
           <div>
-            <label className="text-sm text-content-secondary block mb-2">Border Color</label>
+            <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.borderColor")}</label>
             <button
               type="button"
-              onClick={() => setColorPickerConfig({ isOpen: true, property: 'borderColor', currentColor: element.borderColor || '#000000', title: 'Border Color' })}
+              onClick={() => setColorPickerConfig({ isOpen: true, property: 'borderColor', currentColor: element.borderColor || '#000000', title: t('contractBuilder.properties.borderColor') })}
               className="w-full flex items-center gap-3 bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent hover:border-border transition-colors"
             >
               <div className="w-6 h-6 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: element.borderColor || '#000000' }} />
@@ -1748,7 +1751,7 @@ const PropertiesPanel = ({
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-content-primary">Border Width</label>
+              <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.borderWidth")}</label>
               <span className="text-xs font-medium text-content-secondary">{element.borderWidth ?? 2}px</span>
             </div>
             <input
@@ -1777,15 +1780,15 @@ const PropertiesPanel = ({
           </div>
           
           <div className="mt-4">
-            <label className="text-sm text-content-secondary block mb-2">Border Style</label>
+            <label className="text-sm text-content-secondary block mb-2">{t("contractBuilder.properties.borderStyle")}</label>
             <select
               value={element.lineStyle || 'solid'}
               onChange={(e) => updateElement(element.id, 'lineStyle', e.target.value)}
               className="w-full bg-surface-dark rounded-xl px-4 py-2 text-sm text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
             >
-              <option value="solid">Solid</option>
-              <option value="dashed">Dashed</option>
-              <option value="dotted">Dotted</option>
+              <option value="solid">{t("contractBuilder.properties.solid")}</option>
+              <option value="dashed">{t("contractBuilder.properties.dashed")}</option>
+              <option value="dotted">{t("contractBuilder.properties.dotted")}</option>
             </select>
           </div>
 
@@ -1793,7 +1796,7 @@ const PropertiesPanel = ({
           {element.type === 'rectangle' && (
             <div className="space-y-2 pt-4">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-content-primary">Border Radius (Rounded Corners)</label>
+                <label className="text-sm font-medium text-content-primary">{t("contractBuilder.properties.borderRadius")}</label>
                 <span className="text-xs font-medium text-content-secondary">{element.borderRadius || 0}px</span>
               </div>
               <input
@@ -1820,8 +1823,8 @@ const PropertiesPanel = ({
                 className="w-full bg-surface-dark rounded-xl px-2 py-1 text-sm text-content-primary mt-1 outline-none border border-transparent focus:border-primary transition-colors"
               />
               <div className="flex justify-between text-xs text-content-muted mt-1">
-                <span>Sharp</span>
-                <span>Rounded</span>
+                <span>{t("contractBuilder.properties.sharp")}</span>
+                <span>{t("contractBuilder.properties.rounded")}</span>
               </div>
             </div>
           )}
@@ -1899,18 +1902,18 @@ const PropertiesPanel = ({
             <button
               onClick={() => setShowCreateFolderModal(true)}
               className="text-sm text-primary hover:text-primary flex items-center gap-1 px-2 py-1 bg-primary/10 rounded-xl"
-              title="Create Folder"
+              title={t("contractBuilder.folders.createFolder")}
               disabled={isPdfPage}
             >
               <FolderPlusIcon size={14} />
-              Create Folder
+              {t("contractBuilder.modals.createFolder")}
             </button>
           </div>
           <div className="flex gap-1">
             <button
               onClick={removeAllElements}
               className="text-sm text-content-muted hover:text-content-primary flex items-center gap-1 px-2 py-1 bg-surface-hover rounded-xl"
-              title="Delete all element"
+              title={t("contractBuilder.properties.deleteAll")}
               disabled={isPdfPage}
             >
               <TrashIcon size={14} />
@@ -1921,7 +1924,7 @@ const PropertiesPanel = ({
         {allItems.length === 0 ? (
           <div className="text-center py-8 text-content-muted">
             <LayersIcon size={32} className="mx-auto mb-2 text-content-faint" />
-            <p className="text-sm">No elements or folders available.</p>
+            <p className="text-sm">{t("contractBuilder.properties.noElementsOrFolders")}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -1990,7 +1993,7 @@ const PropertiesPanel = ({
                             }
                           }}
                           className="text-content-muted hover:text-primary p-1 rounded hover:bg-surface-hover"
-                          title="Edit Folder"
+                          title={t("contractBuilder.folders.editFolder")}
                           disabled={isPdfPage}
                         >
                           <EditIcon size={14} />
@@ -2003,7 +2006,7 @@ const PropertiesPanel = ({
                             }
                           }}
                           className="text-content-muted hover:text-content-primary p-1 rounded hover:bg-surface-hover"
-                          title="Delete Folder"
+                          title={t("contractBuilder.folders.deleteFolder")}
                           disabled={isPdfPage}
                         >
                           <TrashIcon size={14} />
@@ -2078,20 +2081,20 @@ const PropertiesPanel = ({
                           {element.type === 'semicircle' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-content-muted flex-shrink-0"><path d="M3 12 A9 9 0 0 1 21 12 Z"/></svg>}
                           {element.type === 'arrow' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-content-muted flex-shrink-0"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
                           <span className="font-medium text-sm text-content-primary truncate min-w-0">
-                            {element.type === 'text' ? 'Variable Field (Input)' :
-                             element.type === 'system-text' ? 'Variable Field (System)' :
-                             element.type === 'textarea' ? 'Paragraph' :
-                             element.type === 'checkbox' ? 'Checkbox' :
-                             element.type === 'heading' ? 'Heading' :
-                             element.type === 'subheading' ? 'Subheading' :
-                             element.type === 'signature' ? 'Signature' :
-                             element.type === 'image' ? 'Image' :
-                             element.type === 'rectangle' ? 'Rectangle' :
-                             element.type === 'circle' ? 'Circle' :
-                             element.type === 'triangle' ? 'Triangle' :
-                             element.type === 'semicircle' ? 'Semicircle' :
-                             element.type === 'arrow' ? 'Arrow' :
-                             element.type === 'divider' ? 'Divider' : element.type}
+                            {element.type === 'text' ? t('contractBuilder.elements.variableFieldInput') :
+                             element.type === 'system-text' ? t('contractBuilder.elements.variableFieldSystem') :
+                             element.type === 'textarea' ? t('contractBuilder.elements.paragraph') :
+                             element.type === 'checkbox' ? t('contractBuilder.elements.checkbox') :
+                             element.type === 'heading' ? t('contractBuilder.elements.heading') :
+                             element.type === 'subheading' ? t('contractBuilder.elements.subheading') :
+                             element.type === 'signature' ? t('contractBuilder.elements.signature') :
+                             element.type === 'image' ? t('contractBuilder.elements.imageLogo') :
+                             element.type === 'rectangle' ? t('contractBuilder.elements.rectangle') :
+                             element.type === 'circle' ? t('contractBuilder.elements.circle') :
+                             element.type === 'triangle' ? t('contractBuilder.elements.triangle') :
+                             element.type === 'semicircle' ? t('contractBuilder.elements.semicircle') :
+                             element.type === 'arrow' ? t('contractBuilder.elements.arrow') :
+                             element.type === 'divider' ? t('contractBuilder.elements.divider') : element.type}
                           </span>
                           {element.required && element.type !== 'system-text' && (
                             <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded flex-shrink-0">
@@ -2104,9 +2107,9 @@ const PropertiesPanel = ({
                         </div>
                         {element.variable && (
                           <div className="text-xs mt-1 flex items-center gap-2 min-w-0">
-                            <span className="text-content-muted flex-shrink-0">Variable:</span>
-                            <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded font-medium truncate" title={element.variable}>
-                              {element.variable}
+                            <span className="text-content-muted flex-shrink-0">{t("contractBuilder.properties.variable")}</span>
+                            <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded font-medium truncate" title={t(VARIABLE_TRANSLATION_KEYS[element.variable]) || element.variable}>
+                              {t(VARIABLE_TRANSLATION_KEYS[element.variable]) || element.variable}
                             </span>
                           </div>
                         )}
@@ -2121,7 +2124,7 @@ const PropertiesPanel = ({
                           }
                         }}
                         className="text-content-muted hover:text-primary p-1"
-                        title="Remove from Folder"
+                        title={t("contractBuilder.folders.removeFromFolder")}
                         disabled={isPdfPage}
                       >
                         <XIcon size={14} />
@@ -2134,7 +2137,7 @@ const PropertiesPanel = ({
                           }
                         }}
                         className="text-content-muted hover:text-content-primary p-1"
-                        title="Delete"
+                        title={t("contractBuilder.properties.delete")}
                         disabled={isPdfPage}
                       >
                         <TrashIcon size={14} />
@@ -2186,20 +2189,20 @@ const PropertiesPanel = ({
                           {element.type === 'semicircle' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-content-muted"><path d="M3 12 A9 9 0 0 1 21 12 Z"/></svg>}
                           {element.type === 'arrow' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-content-muted"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
                           <span className="font-medium text-sm text-content-primary truncate">
-                            {element.type === 'text' ? 'Variable Field (Input)' :
-                             element.type === 'system-text' ? 'Variable Field (System)' :
-                             element.type === 'textarea' ? 'Paragraph' :
-                             element.type === 'checkbox' ? 'Checkbox' :
-                             element.type === 'heading' ? 'Heading' :
-                             element.type === 'subheading' ? 'Subheading' :
-                             element.type === 'signature' ? 'Signature' :
-                             element.type === 'image' ? 'Image' :
-                             element.type === 'rectangle' ? 'Rectangle' :
-                             element.type === 'circle' ? 'Circle' :
-                             element.type === 'triangle' ? 'Triangle' :
-                             element.type === 'semicircle' ? 'Semicircle' :
-                             element.type === 'arrow' ? 'Arrow' :
-                             element.type === 'divider' ? 'Divider' : element.type}
+                            {element.type === 'text' ? t('contractBuilder.elements.variableFieldInput') :
+                             element.type === 'system-text' ? t('contractBuilder.elements.variableFieldSystem') :
+                             element.type === 'textarea' ? t('contractBuilder.elements.paragraph') :
+                             element.type === 'checkbox' ? t('contractBuilder.elements.checkbox') :
+                             element.type === 'heading' ? t('contractBuilder.elements.heading') :
+                             element.type === 'subheading' ? t('contractBuilder.elements.subheading') :
+                             element.type === 'signature' ? t('contractBuilder.elements.signature') :
+                             element.type === 'image' ? t('contractBuilder.elements.imageLogo') :
+                             element.type === 'rectangle' ? t('contractBuilder.elements.rectangle') :
+                             element.type === 'circle' ? t('contractBuilder.elements.circle') :
+                             element.type === 'triangle' ? t('contractBuilder.elements.triangle') :
+                             element.type === 'semicircle' ? t('contractBuilder.elements.semicircle') :
+                             element.type === 'arrow' ? t('contractBuilder.elements.arrow') :
+                             element.type === 'divider' ? t('contractBuilder.elements.divider') : element.type}
                           </span>
                           {element.required && element.type !== 'system-text' && (
                             <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded flex-shrink-0">
@@ -2212,9 +2215,9 @@ const PropertiesPanel = ({
                         </div>
                         {element.variable && (
                           <div className="text-xs mt-1 flex items-center gap-2">
-                            <span className="text-content-muted">Variable:</span>
-                            <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded font-medium" title={element.variable}>
-                              {element.variable}
+                            <span className="text-content-muted">{t("contractBuilder.properties.variable")}</span>
+                            <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded font-medium" title={t(VARIABLE_TRANSLATION_KEYS[element.variable]) || element.variable}>
+                              {t(VARIABLE_TRANSLATION_KEYS[element.variable]) || element.variable}
                             </span>
                           </div>
                         )}
@@ -2229,7 +2232,7 @@ const PropertiesPanel = ({
                           }
                         }}
                         className="text-content-muted hover:text-content-primary p-1"
-                        title="Delete"
+                        title={t("contractBuilder.properties.delete")}
                         disabled={isPdfPage}
                       >
                         <TrashIcon size={14} />
@@ -2243,7 +2246,7 @@ const PropertiesPanel = ({
         )}
         
         <div className="mt-4 p-3 bg-primary/10 border border-primary/30 rounded-xl text-xs text-primary">
-          <strong>Tip:</strong> Drag elements onto folders to add them. Drag them out of folders to remove them.
+          <strong>{t("contractBuilder.tip")}</strong> {t("contractBuilder.tipDragElements")}
         </div>
       </div>
     );
@@ -2259,8 +2262,8 @@ const PropertiesPanel = ({
             <div className="absolute inset-0 bg-surface-card bg-opacity-95 z-50 flex items-center justify-center">
               <div className="text-center p-4">
                 <FileIcon size={48} className="mx-auto mb-3 text-content-faint" />
-                <p className="text-white font-medium mb-1">PDF page selected.</p>
-                <p className="text-content-faint text-sm">PDF pages cannot be edited.</p>
+                <p className="text-white font-medium mb-1">{t("contractBuilder.properties.pdfSelected")}</p>
+                <p className="text-content-faint text-sm">{t("contractBuilder.properties.pdfReadonly")}</p>
               </div>
             </div>
           )}
@@ -2276,7 +2279,7 @@ const PropertiesPanel = ({
                 onClick={() => setActiveTab('properties')}
               >
                 <SettingsIcon size={16} />
-                Settings
+                {t("contractBuilder.properties.settings")}
               </button>
               <button
                 className={`flex-1 px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 ${
@@ -2287,7 +2290,7 @@ const PropertiesPanel = ({
                 onClick={() => setActiveTab('content')}
               >
                 <LayersIcon size={16} />
-                Layers
+                {t("contractBuilder.properties.layers")}
               </button>
             </div>
           </div>

@@ -14,7 +14,7 @@ const AddFoodModal = ({
   if (!show) return null
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-md h-[95dvh] sm:h-auto sm:max-h-[85vh] flex flex-col">
+      <div className="bg-surface-card rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[82dvh] sm:h-auto sm:max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h3 className="text-base font-semibold text-content-primary">{t("nutrition.addFood.addTo", { meal: t(mealLabels[addFoodMeal]) })}</h3>
           <button onClick={onClose} className="p-1 text-content-muted hover:text-content-primary transition-colors"><X className="w-5 h-5" /></button>
@@ -28,7 +28,7 @@ const AddFoodModal = ({
           ))}
         </div>
         {addFoodTab === "search" && (
-          <div className="p-4 border-b border-border flex-shrink-0 space-y-3">
+          <div className="p-4 border-b border-border flex-shrink-0 space-y-3" data-no-spacer>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
               <input ref={searchRef} type="text" placeholder={t("nutrition.addFood.searchPlaceholder")} value={searchQuery}
@@ -62,7 +62,7 @@ const AddFoodModal = ({
                     </div>
                   </div>
                   <button onClick={() => toggleFavorite(selectedFood._id || selectedFood.id)}
-                    className={`p-1.5 rounded-lg transition-colors ${isFavorite(selectedFood._id || selectedFood.id) ? "text-yellow-400" : "text-content-faint hover:text-yellow-400"}`}>
+                    className={`p-1.5 rounded-lg transition-colors ${isFavorite(selectedFood._id || selectedFood.id) ? "text-primary" : "text-content-faint hover:text-primary"}`}>
                     <Star className="w-4 h-4" fill={isFavorite(selectedFood._id || selectedFood.id) ? "currentColor" : "none"} />
                   </button>
                 </div>
@@ -70,7 +70,7 @@ const AddFoodModal = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-content-muted mb-1 block">{t("nutrition.addFood.quantity")}</label>
-                  <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.5" step="0.5"
+                  <input type="number" inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.5" step="0.5"
                     className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary border border-transparent focus:border-primary outline-none" />
                 </div>
                 <div>
@@ -113,7 +113,7 @@ const AddFoodModal = ({
                   {favoriteFoods.length > 0 ? favoriteFoods.map((food) => (
                     <button key={food._id || food.id} onClick={() => { setSelectedFood(food); setUnit(food.unit || "") }}
                       className="w-full text-left px-3 py-2.5 hover:bg-surface-hover rounded-lg transition-colors flex justify-between items-center">
-                      <div className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" /><span className="text-sm text-content-primary">{food.name}</span></div>
+                      <div className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-primary" fill="currentColor" /><span className="text-sm text-content-primary">{food.name}</span></div>
                       <span className="text-xs text-content-faint">{Math.round(food.calories || 0)} kcal</span>
                     </button>
                   )) : (

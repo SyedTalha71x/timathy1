@@ -67,7 +67,7 @@ import ColorPickerModal from "../../components/shared/ColorPickerModal"
 import AppointmentTypeModal from "../../components/studio-components/configuration-components/AppointmentTypeModal"
 import ClassTypeModal from "../../components/studio-components/configuration-components/ClassTypeModal"
 import ContractTypeModal from "../../components/studio-components/configuration-components/ContractTypeModal"
-import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
+import CreateContractFormModal from "../../components/shared/contract-builder/CreateContractFormModal"
 import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { updateLoggedInStaffThunk } from '../../features/staff/staffSlice'

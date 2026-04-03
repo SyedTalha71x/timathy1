@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
 import { X, Palette } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import ColorPickerModal from "./ColorPickerModal"
 
 // Read the primary color from the global CSS variable --color-primary
@@ -34,6 +35,7 @@ const SharedFolderModal = ({
   showDefaultCheckbox = false,
   title
 }) => {
+  const { t } = useTranslation()
   const resolvedDefault = defaultColor || getPrimaryColor()
 
   const [folderName, setFolderName] = useState("")
@@ -63,12 +65,12 @@ const SharedFolderModal = ({
     e?.preventDefault()
 
     if (!folderName.trim()) {
-      setError("Please enter a folder name")
+      setError(t("common.folderModal.errorEmpty"))
       return
     }
 
     if (folderName.trim().length < 2) {
-      setError("Folder name must be at least 2 characters")
+      setError(t("common.folderModal.errorMinLength"))
       return
     }
 
@@ -93,7 +95,7 @@ const SharedFolderModal = ({
 
   if (!isOpen) return null
 
-  const modalTitle = title || (isEditMode ? "Edit Folder" : "Create Folder")
+  const modalTitle = title || (isEditMode ? t("common.folderModal.editTitle") : t("common.folderModal.createTitle"))
 
   return (
     <>
@@ -122,7 +124,7 @@ const SharedFolderModal = ({
           <div className="p-4 space-y-4">
             {/* Folder Name */}
             <div>
-              <label className="block text-sm text-content-muted mb-1.5">Folder Name</label>
+              <label className="block text-sm text-content-muted mb-1.5">{t("common.folderModal.folderName")}</label>
               <input
                 type="text"
                 value={folderName}
@@ -133,7 +135,7 @@ const SharedFolderModal = ({
                 className={`w-full bg-surface-dark border rounded-xl py-2.5 px-4 text-content-primary focus:outline-none transition-colors ${
                   error ? "border-red-500" : "border-border focus:border-primary"
                 }`}
-                placeholder="Enter folder name"
+                placeholder={t("common.folderModal.folderNamePlaceholder")}
                 autoFocus
                 maxLength={50}
               />
@@ -145,7 +147,7 @@ const SharedFolderModal = ({
             {/* Color Picker */}
             {showColorPicker && (
               <div>
-                <label className="block text-sm text-content-muted mb-1.5">Color</label>
+                <label className="block text-sm text-content-muted mb-1.5">{t("common.folderModal.color")}</label>
                 <button
                   type="button"
                   onClick={() => setShowColorPickerModal(true)}
@@ -157,7 +159,7 @@ const SharedFolderModal = ({
                   />
                   <div className="flex-1 text-left">
                     <p className="text-sm text-content-primary font-mono uppercase">{folderColor}</p>
-                    <p className="text-xs text-content-faint">Click to change color</p>
+                    <p className="text-xs text-content-faint">{t("common.folderModal.clickToChangeColor")}</p>
                   </div>
                   <Palette size={18} className="text-content-muted" />
                 </button>
@@ -173,7 +175,7 @@ const SharedFolderModal = ({
                   onChange={(e) => setIsDefault(e.target.checked)}
                   className="primary-check"
                 />
-                <span className="text-content-secondary text-sm">Set as default folder</span>
+                <span className="text-content-secondary text-sm">{t("common.folderModal.setAsDefault")}</span>
               </label>
             )}
 
@@ -184,14 +186,14 @@ const SharedFolderModal = ({
                 onClick={onClose}
                 className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
                 className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors"
               >
-                {isEditMode ? 'Save' : 'Create'}
+                {isEditMode ? t("common.folderModal.save") : t("common.folderModal.create")}
               </button>
             </div>
           </div>
@@ -204,7 +206,7 @@ const SharedFolderModal = ({
         onClose={() => setShowColorPickerModal(false)}
         onSelectColor={(color) => setFolderColor(color)}
         currentColor={folderColor}
-        title="Folder Color"
+        title={t("common.folderModal.folderColor")}
       />
     </>
   )

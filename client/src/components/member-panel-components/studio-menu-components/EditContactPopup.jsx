@@ -4,7 +4,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { haptic } from "../../../utils/haptic";
 import { FormField, FormActions } from "./FormComponents";
-import KeyboardSpacer from "../../../components/shared/KeyboardSpacer";
 
 const EditContactPopup = ({ show, data, onChange, onSave, onClose }) => {
   const { t } = useTranslation();
@@ -28,7 +27,6 @@ const EditContactPopup = ({ show, data, onChange, onSave, onClose }) => {
           <FormField label={t("studioMenu.personal.email")} type="email" value={data.email} onChange={(e) => onChange("email", e.target.value)} required />
           <FormField label={t("studioMenu.personal.mobileNumber")} type="tel" value={data.phone} onChange={(e) => onChange("phone", e.target.value)} placeholder="+49 123 456789" />
           <FormField label={t("studioMenu.personal.telephoneNumber")} type="tel" value={data.telephoneNumber} onChange={(e) => onChange("telephoneNumber", e.target.value)} placeholder="030 12345678" />
-          <KeyboardSpacer />
         </div>
 
         <FormActions onSave={onSave} onCancel={onClose} />

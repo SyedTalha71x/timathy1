@@ -21,7 +21,7 @@ const CustomFoodModal = ({ show, onClose, editingCustomId, customForm, setCustom
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-content-muted mb-1 block">{t("nutrition.customFood.servingSize")}</label>
-              <input type="text" value={customForm.servingSize} onChange={(e) => setCustomForm((p) => ({ ...p, servingSize: e.target.value }))} placeholder="100"
+              <input type="text" inputMode="decimal" value={customForm.servingSize} onChange={(e) => setCustomForm((p) => ({ ...p, servingSize: e.target.value }))} placeholder="100"
                 className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary placeholder-content-faint border border-transparent focus:border-primary outline-none" />
             </div>
             <div>
@@ -31,14 +31,14 @@ const CustomFoodModal = ({ show, onClose, editingCustomId, customForm, setCustom
           </div>
           <div>
             <label className="text-xs text-content-muted mb-1 block">{t("nutrition.customFood.caloriesKcal")} <span className="text-red-400">*</span></label>
-            <input type="number" value={customForm.calories} onChange={(e) => setCustomForm((p) => ({ ...p, calories: e.target.value }))} placeholder="0"
+            <input type="number" inputMode="decimal" value={customForm.calories} onChange={(e) => setCustomForm((p) => ({ ...p, calories: e.target.value }))} placeholder="0"
               className="w-full bg-surface-dark rounded-xl px-4 py-2.5 text-sm text-content-primary placeholder-content-faint border border-transparent focus:border-primary outline-none" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             {[{ key: "protein", label: t("nutrition.macros.protein") }, { key: "carbs", label: t("nutrition.macros.carbs") }, { key: "fats", label: t("nutrition.macros.fat") }].map((f) => (
               <div key={f.key}>
                 <label className="text-[10px] text-content-faint mb-1 block">{f.label} (g)</label>
-                <input type="number" value={customForm[f.key]} onChange={(e) => setCustomForm((p) => ({ ...p, [f.key]: e.target.value }))} placeholder="0"
+                <input type="number" inputMode="decimal" value={customForm[f.key]} onChange={(e) => setCustomForm((p) => ({ ...p, [f.key]: e.target.value }))} placeholder="0"
                   className="w-full bg-surface-dark rounded-xl px-3 py-2 text-sm text-content-primary placeholder-content-faint border border-transparent focus:border-primary outline-none text-center" />
               </div>
             ))}

@@ -157,7 +157,7 @@ const ViewLeadDetailsModal = ({
   )
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
+    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-start md:items-center justify-center z-[1000] pt-[env(safe-area-inset-top,0px)] p-2 md:p-0">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
         {/* Sticky Header */}
         <div className="p-4 md:p-6 pb-0 flex-shrink-0">

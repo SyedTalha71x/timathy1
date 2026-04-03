@@ -220,7 +220,7 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
                 : 'text-content-muted hover:text-content-primary'
             }`}
           >
-            Presets
+            {t('common.colorPicker.presets')}
           </button>
           <button
             onClick={() => setActiveTab('custom')}
@@ -340,13 +340,13 @@ export default function ColorPickerModal({ isOpen, onClose, onSelectColor, curre
             onClick={onClose}
             className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleConfirm}
             className="px-4 py-2 text-sm bg-primary hover:bg-primary-hover text-white rounded-xl transition-colors"
           >
-            Confirm
+            {t('common.colorPicker.confirm')}
           </button>
         </div>
       </div>

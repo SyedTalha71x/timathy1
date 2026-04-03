@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from '../../../../shared/SharedToast';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -7,12 +8,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 
 export const usePDFProcessor = (contractPages, setContractPages, saveToHistory, nextPageId) => {
+  const { t } = useTranslation();
   const [isPdfProcessing, setIsPdfProcessing] = useState(false);
   const [pdfInputRef, setPdfInputRef] = useState(null);
 
   const handlePdfUpload = async (file) => {
     if (!file || file.type !== 'application/pdf') {
-      toast.error('Please select a PDF file');
+      toast.error(t('contractBuilder.pdf.selectFile'));
       return;
     }
 
@@ -82,7 +84,7 @@ export const usePDFProcessor = (contractPages, setContractPages, saveToHistory, 
       
     } catch (error) {
       console.error('PDF processing error:', error);
-      toast.error('The PDF could not be processed');
+      toast.error(t('contractBuilder.pdf.processingError'));
     } finally {
       setIsPdfProcessing(false);
     }

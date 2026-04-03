@@ -2140,17 +2140,15 @@ export default function TodoApp() {
         )}
 
         {/* Calendar Modal */}
-        <div className={calendarModal.isOpen ? "fixed inset-0 z-[80]" : ""}>
-          <CalendarModal
-            isOpen={calendarModal.isOpen}
-            onClose={handleCalendarClose}
-            onSave={handleCalendarSave}
-            initialDate={calendarModal.initialDate}
-            initialTime={calendarModal.initialTime}
-            initialReminder={calendarModal.initialReminder}
-            initialRepeat={calendarModal.initialRepeat}
-          />
-        </div>
+        <CalendarModal
+          isOpen={calendarModal.isOpen}
+          onClose={handleCalendarClose}
+          onSave={handleCalendarSave}
+          initialDate={calendarModal.initialDate}
+          initialTime={calendarModal.initialTime}
+          initialReminder={calendarModal.initialReminder}
+          initialRepeat={calendarModal.initialRepeat}
+        />
       </div>
     </>
   )

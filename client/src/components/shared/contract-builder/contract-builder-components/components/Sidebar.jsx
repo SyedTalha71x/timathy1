@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from 'antd';
 import { EditIcon, FileIcon, HelpCircle } from 'lucide-react';
 
@@ -16,17 +17,18 @@ const Sidebar = ({
   currentPage,
   setShowHotkeysModal  // NEU: Für Hotkeys-Modal
 }) => {
+  const { t } = useTranslation();
   const isPdfPage = contractPages?.[currentPage]?.locked;
   
   return (
     <div className="hidden lg:flex lg:w-64 bg-surface-card border-r border-border flex-col shadow-sm">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold text-lg text-content-primary">Contract Builder</h2>
+          <h2 className="font-semibold text-lg text-content-primary">{t("contractBuilder.title")}</h2>
           <button
             onClick={() => setShowHotkeysModal(true)}
             className="text-content-muted hover:text-primary p-1 rounded-xl hover:bg-surface-hover transition-colors"
-            title="Keyboard Shortcuts"
+            title={t("contractBuilder.keyboardShortcuts")}
           >
             <HelpCircle size={18} />
           </button>
@@ -55,11 +57,11 @@ const Sidebar = ({
                   onUpdate(updatedForm);
                 } else if (e.key === 'Escape') {
                   setEditingContractName(false);
-                  setContractName(contractForm?.name || 'Unnamed Contract');
+                  setContractName(contractForm?.name || t('contractBuilder.unnamed'));
                 }
               }}
               className="text-sm flex-1"
-              placeholder="Contract name"
+              placeholder={t("contractBuilder.contractName")}
               autoFocus
             />
           ) : (
@@ -68,7 +70,7 @@ const Sidebar = ({
               <button
                 onClick={() => setEditingContractName(true)}
                 className="text-content-muted hover:text-primary p-1"
-                title="Rename contract"
+                title={t("contractBuilder.renameContract")}
               >
                 <EditIcon size={14} />
               </button>
@@ -83,16 +85,16 @@ const Sidebar = ({
           <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center">
             <div className="text-center p-4">
               <FileIcon size={48} className="mx-auto mb-3 text-white/80" />
-              <p className="text-white font-medium mb-1">PDF page selected.</p>
-              <p className="text-white/80 text-sm">PDF pages cannot be edited.</p>
+              <p className="text-white font-medium mb-1">{t("contractBuilder.properties.pdfSelected")}</p>
+              <p className="text-white/80 text-sm">{t("contractBuilder.properties.pdfReadonly")}</p>
             </div>
           </div>
         )}
         
         {ELEMENT_CATEGORIES.map(category => (
-          <div key={category.category} className="mb-6">
+          <div key={t(category.category)} className="mb-6">
             <h3 className="font-medium text-sm text-content-primary mb-2 uppercase tracking-wide">
-              {category.category}
+              {t(category.category)}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {category.types.map(type => (
@@ -103,7 +105,7 @@ const Sidebar = ({
                   disabled={isPdfPage}
                 >
                   <span className="mb-1 text-content-primary">{type.icon}</span>
-                  <span className="text-xs text-content-primary">{type.label}</span>
+                  <span className="text-xs text-content-primary">{t(type.label)}</span>
                 </button>
               ))}
             </div>

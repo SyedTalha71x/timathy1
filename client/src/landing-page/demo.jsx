@@ -14,8 +14,7 @@ import {
   Shield,
   Zap,
   Building2,
-  Globe,
-  X
+  Globe
 } from "lucide-react";
 import NavBar from "./navbar";
 
@@ -157,14 +156,6 @@ export default function Demo() {
         />
 
         {/* Close Button - oben rechts */}
-        <button
-          onClick={handleClose}
-          className="fixed top-6 right-6 z-50 bg-white/10 hover:bg-white/20 backdrop-blur-xl rounded-full p-2 md:p-3 transition-all duration-300 hover:scale-110 border border-white/20 group"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-orange-400 transition-colors" />
-        </button>
-
         {/* Hero Section mit kompaktem Header - weiter oben */}
         <section className="relative pt-4 md:pt-6 pb-8 md:pb-12">
           <div className="max-w-7xl mx-auto px-4 md:px-6">

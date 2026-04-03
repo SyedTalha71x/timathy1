@@ -47,7 +47,7 @@ import dayjs from "dayjs"
 
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
-import CreateContractFormModal from "../../components/studio-components/configuration-components/CreateContractFormModal"
+import CreateContractFormModal from "../../components/shared/contract-builder/CreateContractFormModal"
 import AdminContractTypeModal from "../../components/admin-dashboard-components/configuration-components/AdminContractTypeModal"
 import DeleteModal from "../../components/shared/DeleteModal"
 import LanguageTabs, { emptyTranslations } from "../../components/shared/LanguageTabs"
@@ -56,7 +56,6 @@ import { useTranslation } from "react-i18next"
 import DatePickerField from "../../components/shared/DatePickerField"
 import toast from "../../components/shared/SharedToast"
 import { haptic } from "../../utils/haptic"
-import KeyboardSpacer from "../../components/shared/KeyboardSpacer"
 import PullToRefresh from "../../components/shared/PullToRefresh"
 // Import configuration defaults from admin-panel-states (Single Source of Truth)
 import {
@@ -2773,7 +2772,6 @@ const ConfigurationPage = () => {
         {/* Content Area */}
         <PullToRefresh onRefresh={async () => {}} className="flex-1 overflow-y-auto p-6">
           {renderSectionContent()}
-          <KeyboardSpacer />
         </PullToRefresh>
       </div>
 
