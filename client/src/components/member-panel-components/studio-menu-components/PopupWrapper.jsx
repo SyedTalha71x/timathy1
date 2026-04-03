@@ -19,7 +19,24 @@ const PopupWrapper = ({ title, onClose, children }) => {
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6">
-          <div className="text-content-secondary space-y-2 text-sm sm:text-base">{children}</div>
+          <div className="wysiwyg-content text-content-secondary text-sm sm:text-base">{children}</div>
+          <style>{`
+            .wysiwyg-content h1 { font-size: 1.5em; font-weight: 700; margin: 0.5em 0; color: var(--color-content-primary); }
+            .wysiwyg-content h2 { font-size: 1.25em; font-weight: 600; margin: 0.5em 0; color: var(--color-content-primary); }
+            .wysiwyg-content h3 { font-size: 1.1em; font-weight: 600; margin: 0.5em 0; color: var(--color-content-primary); }
+            .wysiwyg-content p { margin: 0.4em 0; line-height: 1.6; }
+            .wysiwyg-content ul, .wysiwyg-content ol { padding-left: 1.5em; margin: 0.4em 0; }
+            .wysiwyg-content li { margin: 0.2em 0; }
+            .wysiwyg-content ul li { list-style-type: disc; }
+            .wysiwyg-content ol li { list-style-type: decimal; }
+            .wysiwyg-content a { color: var(--color-primary); text-decoration: underline; }
+            .wysiwyg-content strong { font-weight: 700; }
+            .wysiwyg-content em { font-style: italic; }
+            .wysiwyg-content u { text-decoration: underline; }
+            .wysiwyg-content s { text-decoration: line-through; }
+            .wysiwyg-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 0.5em 0; }
+            .wysiwyg-content blockquote { border-left: 3px solid var(--color-border); padding-left: 1em; margin: 0.5em 0; color: var(--color-content-muted); }
+          `}</style>
         </div>
       </div>
     </div>
