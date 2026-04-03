@@ -646,7 +646,7 @@ const StudioMenu = () => {
             <Card className="overflow-hidden !p-0">
               <div
                 onClick={() => { haptic.light(); setShowMapConfirm(true) }}
-                className="relative h-48 sm:h-56 md:h-72 cursor-pointer active:opacity-90 transition-opacity overflow-hidden"
+                className="relative h-48 sm:h-56 md:h-72 cursor-pointer overflow-hidden"
               >
                 {studio && (
                   <iframe
