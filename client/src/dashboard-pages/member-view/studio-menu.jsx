@@ -433,6 +433,40 @@ const StudioMenu = () => {
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
 
+  // Static map via OpenStreetMap tiles (no API key needed)
+  const [mapTiles, setMapTiles] = useState(null)
+  const [mapError, setMapError] = useState(false)
+  useEffect(() => {
+    if (!studio?.street || !studio?.city) return
+    const addr = `${studio.street}, ${studio.zipCode || ""} ${studio.city}, ${studio.country || ""}`
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr)}&format=json&limit=1`, {
+      headers: { "Accept": "application/json" }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data?.[0]) {
+          const lat = parseFloat(data[0].lat)
+          const lon = parseFloat(data[0].lon)
+          const zoom = 16
+          // Convert lat/lng to tile coordinates
+          const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom))
+          const latRad = lat * Math.PI / 180
+          const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom))
+          // Build a 6x3 grid of tiles centered on the location
+          const tiles = []
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -2; dx <= 3; dx++) {
+              tiles.push(`https://tile.openstreetmap.org/${zoom}/${x + dx}/${y + dy}.png`)
+            }
+          }
+          setMapTiles({ urls: tiles, cols: 6 })
+        } else {
+          setMapError(true)
+        }
+      })
+      .catch(() => setMapError(true))
+  }, [studio?.street, studio?.city, studio?.zipCode, studio?.country])
+
   const handleCopyPhone = async () => {
     try {
       const phones = [studio?.phone, studio?.telephone].filter(Boolean).join(" / ")
@@ -647,22 +681,37 @@ const StudioMenu = () => {
             <Card className="overflow-hidden !p-0">
               <div
                 onClick={() => { haptic.light(); setShowMapConfirm(true) }}
-                className="relative h-48 sm:h-56 md:h-72 cursor-pointer overflow-hidden isolate"
+                className="relative h-48 sm:h-56 md:h-72 cursor-pointer overflow-hidden bg-surface-hover"
               >
-                {studio && (
-                  <iframe
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(studioAddress)}&output=embed&z=15`}
-                    width="115%"
-                    height="140%"
-                    style={{ border: 0, pointerEvents: "none", marginTop: "-8%", marginLeft: "-5%", transform: "translateZ(0)", backfaceVisibility: "hidden" }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    tabIndex={-1}
-                    aria-hidden="true"
-                  />
+                {mapTiles && !mapError ? (
+                  <div
+                    className="pointer-events-none absolute"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${mapTiles.cols}, 256px)`,
+                      gridTemplateRows: "repeat(3, 256px)",
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    {mapTiles.urls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt=""
+                        className="w-[256px] h-[256px] block"
+                        draggable="false"
+                        loading="lazy"
+                        onError={() => setMapError(true)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <MapPin className="w-12 h-12 text-content-faint opacity-30" />
+                  </div>
                 )}
-                {/* Click layer over iframe */}
-                <div className="absolute inset-0" style={{ transform: "translateZ(0)" }} />
 
                 {/* Address overlay */}
                 <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
