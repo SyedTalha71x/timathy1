@@ -18,8 +18,8 @@ const PopupWrapper = ({ title, onClose, children }) => {
             </svg>
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto mx-4 sm:mx-5 md:mx-6 mb-4 sm:mb-5 md:mb-6 rounded-xl bg-white">
-          <div className="wysiwyg-content text-gray-700 text-sm sm:text-base p-4 sm:p-5 pb-6 sm:pb-7">{children}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto mx-4 sm:mx-5 md:mx-6 mb-4 sm:mb-5 md:mb-6 rounded-xl bg-white">
+          <div className="wysiwyg-content text-gray-700 text-sm sm:text-base p-4 sm:p-5 pb-8 sm:pb-10">{children}</div>
           <style>{`
             .wysiwyg-content h1 { font-size: 1.5em; font-weight: 700; margin: 0.5em 0; color: #1a1a1a; }
             .wysiwyg-content h2 { font-size: 1.25em; font-weight: 600; margin: 0.5em 0; color: #1a1a1a; }

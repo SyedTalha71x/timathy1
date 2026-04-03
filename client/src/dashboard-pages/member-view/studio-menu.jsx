@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import ImprintPopup from "../../components/member-panel-components/studio-menu-components/ImprintPopup"
 import TermsPopup from "../../components/member-panel-components/studio-menu-components/TermsPopup"
@@ -433,9 +433,23 @@ const StudioMenu = () => {
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
 
-  // Static map via OpenStreetMap tiles (no API key needed)
-  const [mapTiles, setMapTiles] = useState(null)
+  // Static map via CartoDB tiles (no API key needed, theme-aware)
+  const [mapCoords, setMapCoords] = useState(null)
   const [mapError, setMapError] = useState(false)
+  const [mapTheme, setMapTheme] = useState(() =>
+    document.documentElement.classList.contains("light") ? "light_all" : "dark_all"
+  )
+
+  // Watch for theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setMapTheme(document.documentElement.classList.contains("light") ? "light_all" : "dark_all")
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+    return () => observer.disconnect()
+  }, [])
+
+  // Geocode address
   useEffect(() => {
     if (!studio?.street || !studio?.city) return
     const addr = `${studio.street}, ${studio.zipCode || ""} ${studio.city}, ${studio.country || ""}`
@@ -448,24 +462,29 @@ const StudioMenu = () => {
           const lat = parseFloat(data[0].lat)
           const lon = parseFloat(data[0].lon)
           const zoom = 16
-          // Convert lat/lng to tile coordinates
           const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom))
           const latRad = lat * Math.PI / 180
           const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom))
-          // Build a 6x3 grid of tiles centered on the location
-          const tiles = []
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -2; dx <= 3; dx++) {
-              tiles.push(`https://tile.openstreetmap.org/${zoom}/${x + dx}/${y + dy}.png`)
-            }
-          }
-          setMapTiles({ urls: tiles, cols: 6 })
+          setMapCoords({ x, y, zoom })
         } else {
           setMapError(true)
         }
       })
       .catch(() => setMapError(true))
   }, [studio?.street, studio?.city, studio?.zipCode, studio?.country])
+
+  // Build tile URLs from coords + theme
+  const mapTiles = useMemo(() => {
+    if (!mapCoords) return null
+    const { x, y, zoom } = mapCoords
+    const urls = []
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -2; dx <= 3; dx++) {
+        urls.push(`https://a.basemaps.cartocdn.com/${mapTheme}/${zoom}/${x + dx}/${y + dy}@2x.png`)
+      }
+    }
+    return { urls, cols: 6 }
+  }, [mapCoords, mapTheme])
 
   const handleCopyPhone = async () => {
     try {
