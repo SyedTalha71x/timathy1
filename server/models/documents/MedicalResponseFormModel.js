@@ -9,7 +9,7 @@ const MedicalHistoryResponseSchema = new mongoose.Schema(
             ref: "MedicalHistoryForm",
             required: true
         },
-        
+
         // Reference to the entity (staff or member)
         entityType: {
             type: String,
@@ -21,53 +21,53 @@ const MedicalHistoryResponseSchema = new mongoose.Schema(
             required: true,
             refPath: 'entityType'
         },
-        
+
         // Entity display name
         entityName: {
             type: String,
             required: true
         },
-        
+
         // Form title (copied from template at creation time)
         title: {
             type: String,
             required: true
         },
-        
+
         // Answers to the form
         answers: {
             type: mongoose.Schema.Types.Mixed,
             default: {}
         },
-        
+
         // Signature data
         signature: {
             type: String,
             required: true
         },
-        
+
         signatureDate: {
             type: Date,
             default: Date.now
         },
-        
+
         signatureLocation: {
             type: String,
             default: ""
         },
-        
+
         // Status
         status: {
             type: String,
             enum: ['draft', 'completed', 'archived'],
             default: 'completed'
         },
-        
+
         isActive: {
             type: Boolean,
             default: true
         },
-        
+
         // Who created this response
         createdBy: {
             userId: {
@@ -75,7 +75,11 @@ const MedicalHistoryResponseSchema = new mongoose.Schema(
                 ref: 'User'
             },
             userName: String
-        }
+        },
+        tags: [{
+            type: mongoose.Schema.Types.ObjectId,
+            reg: 'Tags'
+        }]
     },
     { timestamps: true }
 );

@@ -165,7 +165,7 @@ const runInitialUpdates = async () => {
 // Schedule cron jobs
 const startCronJobs = () => {
 
-    cron.schedule('0 * * * *', publishScheduledPosts);
+    cron.schedule('*/30 * * * *', publishScheduledPosts);
     // Run at midnight for daily maintenance
     cron.schedule('0 0 * * *', async () => {
         console.log('=== Daily Maintenance Cron Started ===');

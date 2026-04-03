@@ -72,6 +72,36 @@ import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { updateLoggedInStaffThunk } from '../../features/staff/staffSlice'
 
+// contract
+
+import {
+  // bonus
+  createBonusReasonThunk,
+  updateBonusReasonThunk,
+  deleteBonusReasonThunk,
+  fetchBonusReasonThunk,
+  // pause 
+  createPauseReasonThunk,
+  updatePauseReasonThunk,
+  deletePauseReasonThunk,
+  fetchPauseReasonThunk,
+
+  // change
+  createChangeReasonThunk,
+  updateChangeReasonThunk,
+  deleteChangeReasonThunk,
+  fetchChangeReasonThunk,
+
+  // renew
+  createRenewReasonThunk,
+  updateRenewReasonThunk,
+  deleteRenewReasonThunk,
+  fetchRenewReasonThunk
+
+
+} from '../../features/contract/contractSlice'
+
+
 import { useSelector, useDispatch } from 'react-redux'
 // all classes Related slices
 import {
@@ -461,6 +491,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const dispatch = useDispatch();
   const { categories = [], types = [], classes = [], loading, rooms = [] } = useSelector((state) => state.classes) || {}
   const { appointmentCategories: reduxAppointmentCategories = [] } = useSelector((state) => state.appointments) || {}
+
+  // contract reason
+  const { pauseReasons: reduxPauseReason = [], changeReasons: reduxChangeReason = [], renewReasons: reduxRenewReason = [], bonusReasons: reduxBonusReason = [] } = useSelector((state) => state.contracts)
+
+
   // console.log('Categories', categories)
   // console.log('Types', types)
   // ============================================
@@ -514,7 +549,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     dispatch(getClassTypeThunk())
     dispatch(getCategoriesThunk()),
       dispatch(getAllRoomsThunk()),
-      dispatch(getAppointmentCategoriesThunk())
+      dispatch(getAppointmentCategoriesThunk()),
+      dispatch(fetchBonusReasonThunk()),
+      dispatch(fetchChangeReasonThunk())
+    dispatch(fetchPauseReasonThunk())
+    dispatch(fetchRenewReasonThunk())
   }, [dispatch])
   // ============================================
   // Profile State Variables
@@ -732,10 +771,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false)
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
-  const [contractPauseReasons, setContractPauseReasons] = useState([])
-  const [contractChangeReasons, setContractChangeReasons] = useState([])
-  const [contractRenewReasons, setContractRenewReasons] = useState([])
-  const [contractBonusTimeReasons, setContractBonusTimeReasons] = useState([])
+  const [contractPauseReasons, setContractPauseReasons] = useState(reduxPauseReason)
+  const [contractChangeReasons, setContractChangeReasons] = useState(reduxChangeReason)
+  const [contractRenewReasons, setContractRenewReasons] = useState(reduxRenewReason)
+  const [contractBonusTimeReasons, setContractBonusTimeReasons] = useState(reduxBonusReason)
 
   // Communication Settings
   const [settings, setSettings] = useState({})
@@ -781,7 +820,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const desktopContentRef = useRef(null)
   const prevCountryRef = useRef(null)
 
-  console.log('appointmentCategories', reduxAppointmentCategories)
+
   // ============================================
   // Debounced Save Function
   // ============================================
@@ -835,14 +874,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           formData.append(backendField, value?.toString() || '');
         }
 
-        console.log('Saving field with FormData:', backendField, value);
 
         const result = await dispatch(updateStudioThunk({
           studioId: config.studio._id,
           data: formData
         })).unwrap();
 
-        console.log('Save successful:', result);
         toast.success(`${field} updated`, { autoClose: 2000 });
 
       } catch (error) {
@@ -892,14 +929,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         }
       });
 
-      console.log('Saving multiple fields with FormData');
+
 
       const result = await dispatch(updateStudioThunk({
         studioId: config.studio._id,
         data: formData
       })).unwrap();
 
-      console.log('Bulk save successful:', result);
+
       toast.success('Studio updated successfully');
 
     } catch (error) {
@@ -988,8 +1025,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       data: formData
     }))
       .unwrap()
-      .then(res => console.log('Logo updated:', res))
-      .catch(err => console.error('Logo update failed:', err));
+
   };
   const handleStudioNameChange = (value) => {
     setStudioName(value);
@@ -1106,8 +1142,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       data: formData
     }))
       .unwrap()
-      .then(res => console.log('Opening hours updated:', res))
-      .catch(err => console.error('Update failed:', err));
+
   };
   // ============================================
   // Closing days handlers
@@ -1218,10 +1253,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setDefaultAppointmentLimit(config.contracts?.settings?.defaultAppointmentLimit || 0)
     setContractTypes(config.contracts?.types || [])
     setContractForms(config.contracts?.forms || [])
-    setContractPauseReasons(config.contracts?.pauseReasons || [])
-    setContractChangeReasons(config.contracts?.changeReasons || DEFAULT_CONTRACT_CHANGE_REASONS)
-    setContractRenewReasons(config.contracts?.renewReasons || DEFAULT_CONTRACT_RENEW_REASONS)
-    setContractBonusTimeReasons(config.contracts?.bonusTimeReasons || DEFAULT_CONTRACT_BONUS_TIME_REASONS)
+    setContractPauseReasons(config.contracts?.pauseReasons || reduxPauseReason)
+    setContractChangeReasons(config.contracts?.changeReasons || reduxChangeReason)
+    setContractRenewReasons(config.contracts?.renewReasons || reduxRenewReason)
+    setContractBonusTimeReasons(config.contracts?.bonusTimeReasons || reduxBonusReason)
 
     // Communication
     setSettings(config.communication?.settings || {})
@@ -2533,7 +2568,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }
 
   // Reason handlers (contract pause/change/renew/bonus)
-  const handleAddPauseReason = () => {
+  const handleAddPauseReason = async () => {
     openAddItemModal(
       "Add Pause Reason",
       [
@@ -2541,53 +2576,66 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         { key: "maxDays", label: "Max Pause Duration", type: "number", suffix: "days", min: 1, defaultValue: 30 },
       ],
       (data) => {
+        dispatch(createPauseReasonThunk({
+          name: data.name,
+          maxDuration: data.maxDays
+        }))
         setContractPauseReasons([...contractPauseReasons, { name: data.name, maxDays: data.maxDays }])
         closeAddItemModal()
         toast.success("Pause reason created")
       }
     )
+    await dispatch(fetchPauseReasonThunk())
   }
 
-  const handleAddChangeReason = () => {
+  const handleAddChangeReason = async () => {
     openAddItemModal(
       "Add Change Reason",
       [
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Upgrade, Downgrade", required: true },
       ],
       (data) => {
+        dispatch(createChangeReasonThunk(data))
         setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: data.name }])
         closeAddItemModal()
         toast.success("Change reason created")
       }
     )
+    await dispatch(fetchChangeReasonThunk())
   }
 
-  const handleAddRenewReason = () => {
+  const handleAddRenewReason = async () => {
     openAddItemModal(
       "Add Renew Reason",
       [
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Satisfied, New Goals", required: true },
       ],
       (data) => {
+
+        dispatch(createRenewReasonThunk(data))
+
         setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: data.name }])
         closeAddItemModal()
         toast.success("Renew reason created")
-      }
+      },
     )
+    await dispatch(fetchRenewReasonThunk())
   }
 
-  const handleAddBonusTimeReason = () => {
+  const handleAddBonusTimeReason = async () => {
     openAddItemModal(
       "Add Bonus Time Reason",
       [
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Referral, Promotion", required: true },
       ],
       (data) => {
+        dispatch(createBonusReasonThunk(data));
         setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: data.name }])
         closeAddItemModal()
         toast.success("Bonus time reason created")
       }
     )
+    await dispatch(fetchBonusReasonThunk())
   }
 
   // Navigate to section

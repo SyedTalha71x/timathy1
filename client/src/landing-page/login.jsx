@@ -166,38 +166,38 @@ export default function SignInPage() {
     e.preventDefault()
 
     const config = LOGIN_TYPES[activeLoginType]
-     const currentFormData = formData[activeLoginType]
+    const currentFormData = formData[activeLoginType]
 
-     // STUDIO LOGIN (REAL AUTH - temporarily disabled)
-     if (activeLoginType === "studio") {
-       try {
-       const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
-       dispatch(fetchAllAppointments())
-       dispatch(fetchAllMember());
-         dispatch(fetchStudioServices())
-         dispatch(fetchMyStudio())
-         navigate(config.redirectPath)
-       } catch (err) {
-         console.error(err)
-         alert(err?.message || "Invalid email or password")
-       }
-       return
-     }
+    // STUDIO LOGIN (REAL AUTH - temporarily disabled)
+    if (activeLoginType === "studio") {
+      try {
+        const res = await dispatch(staffLoginThunk(currentFormData)).unwrap()
+        dispatch(fetchAllAppointments())
+        dispatch(fetchAllMember());
+        dispatch(fetchStudioServices())
+        dispatch(fetchMyStudio())
+        navigate(config.redirectPath)
+      } catch (err) {
+        console.error(err)
+        alert(err?.message || "Invalid email or password")
+      }
+      return
+    }
 
     // MEMBER LOGIN (REAL AUTH - temporarily disabled)
-     if (activeLoginType === "member") {
-       try {
-         const res = await dispatch(memberLogin(currentFormData)).unwrap()
-         dispatch(fetchMyAppointments())
-         dispatch(fetchStudioServices())
-         dispatch(fetchMyStudio())
-         navigate(config.redirectPath)
-       } catch (err) {
-         console.error(err)
-         alert(err?.message || "Invalid email or password")
-       }
-       return
-     }
+    if (activeLoginType === "member") {
+      try {
+        const res = await dispatch(memberLogin(currentFormData)).unwrap()
+        dispatch(fetchMyAppointments())
+        dispatch(fetchStudioServices())
+        dispatch(fetchMyStudio())
+        navigate(config.redirectPath)
+      } catch (err) {
+        console.error(err)
+        alert(err?.message || "Invalid email or password")
+      }
+      return
+    }
 
     // TEMPORARY: Direkt weiterleiten für alle Typen
     navigate(config.redirectPath)

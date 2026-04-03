@@ -42,18 +42,20 @@ import {
   RefreshCw,
 } from "lucide-react"
 
-import { ToastContainer } from "react-toastify"
+import { ToastContainer, toast } from "react-toastify"
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../../public/communication-bg.svg"
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 
 import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberContingentDataNew, memberHistoryNew, membersNew, memberRelationsNew, preConfiguredMessagesNew, settingsNew, staffChatListNew, appointmentTypesData, freeAppointmentsData, availableMembersLeadsMain, staffData, getLastMessage, getLastMessageContent, getLastMessageTime, getUnreadCount, isChatRead, getLastMessageStatus, relationOptionsMain } from "../../utils/studio-states"
-import { membersData } from "../../utils/studio-states"
+
+import { fetchMessagesThunk, fetchStaffAllChatThunk, fetchStudioChatThunk, accessChatThunk, accessStudioChatThunk, sendMessageThunk, deleteMessageThunk, createGroupThunk, setActiveChat, receiveSocketMessage } from '../../features/communication/chatSlice'
+import { socket } from '../../services/socket'
+import { useDispatch, useSelector } from 'react-redux'
 
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
@@ -71,19 +73,13 @@ import EditAppointmentModalMain from '../../components/shared/appointments/EditA
 import ViewMemberModal from "../../components/shared/members/ViewMemberModal"
 import ViewStaffModal from "../../components/shared/ViewStaffModal"
 
-
-// ==========================================
-// EMAIL REPLY MODAL - moved to SendEmailReplyModal.jsx
-// ==========================================
-
-
 // ==========================================
 // HIGHLIGHTED TEXT COMPONENT - for dates/times
 // ==========================================
 const HighlightedText = ({ text, isUserMessage }) => {
   if (!text) return null;
-  
-  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|ÃƒÆ’Ã‚Â¼bermorgen|today|tomorrow|yesterday))/gi;
+
+  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|übermorgen|today|tomorrow|yesterday))/gi;
 
   const parts = text.split(dateTimeRegex);
   const matches = text.match(dateTimeRegex) || [];
@@ -97,10 +93,10 @@ const HighlightedText = ({ text, isUserMessage }) => {
   parts.forEach((part, index) => {
     if (part) {
       const isMatch = matches.some(match => match.toLowerCase() === part.toLowerCase());
-      
+
       if (isMatch) {
         result.push(
-          <span 
+          <span
             key={`match-${index}`}
             className={`border-b ${isUserMessage ? 'border-white/60' : 'border-border'}`}
             style={{ borderBottomStyle: 'dotted', paddingBottom: '1px', whiteSpace: 'pre-wrap' }}
@@ -134,11 +130,10 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
     xl: "w-20 h-20 text-2xl",
   }
 
-  // Blue for staff, Orange for members
   const bgColor = isStaff ? "bg-primary" : "bg-primary"
 
   return (
-    <div 
+    <div
       className={`${bgColor} rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
@@ -150,23 +145,23 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
 // ==========================================
 // MOBILE EMAIL ITEM COMPONENT
 // ==========================================
-const MobileEmailItem = ({ 
-  email, 
-  emailTab, 
-  selectedEmailIds, 
-  toggleEmailSelection, 
-  handleEmailItemClick, 
-  formatEmailTime, 
+const MobileEmailItem = ({
+  email,
+  emailTab,
+  selectedEmailIds,
+  toggleEmailSelection,
+  handleEmailItemClick,
+  formatEmailTime,
   truncateEmailText,
   moveEmailToTrash
 }) => {
   const [touchStart, setTouchStart] = useState(null)
   const [showActions, setShowActions] = useState(false)
-  
+
   const handleTouchStart = (e) => {
     setTouchStart(e.touches[0].clientX)
   }
-  
+
   const handleTouchEnd = (e) => {
     if (touchStart !== null) {
       const diff = e.changedTouches[0].clientX - touchStart
@@ -178,17 +173,16 @@ const MobileEmailItem = ({
       setTouchStart(null)
     }
   }
-  
+
   return (
-    <div 
+    <div
       className="relative overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div 
-        className={`flex items-center gap-3 px-4 py-3 border-b border-border active:bg-surface-hover transition-transform duration-200 ${
-          showActions ? '-translate-x-20' : 'translate-x-0'
-        }`}
+      <div
+        className={`flex items-center gap-3 px-4 py-3 border-b border-border active:bg-surface-hover transition-transform duration-200 ${showActions ? '-translate-x-20' : 'translate-x-0'
+          }`}
         onClick={() => {
           if (!showActions) {
             handleEmailItemClick(email)
@@ -196,18 +190,17 @@ const MobileEmailItem = ({
         }}
       >
         {/* Selection Checkbox */}
-        <div 
+        <div
           className="flex-shrink-0"
           onClick={(e) => {
             e.stopPropagation()
             toggleEmailSelection(email.id)
           }}
         >
-          <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${
-            selectedEmailIds.includes(email.id)
-              ? "bg-primary"
-              : "border-2 border-border"
-          }`}>
+          <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${selectedEmailIds.includes(email.id)
+            ? "bg-primary"
+            : "border-2 border-border"
+            }`}>
             {selectedEmailIds.includes(email.id) && (
               <Check size={14} className="text-content-primary" />
             )}
@@ -251,12 +244,11 @@ const MobileEmailItem = ({
           )}
         </div>
       </div>
-      
+
       {/* Swipe Actions */}
-      <div className={`absolute right-0 top-0 bottom-0 flex items-center transition-opacity duration-200 ${
-        showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}>
-        <button 
+      <div className={`absolute right-0 top-0 bottom-0 flex items-center transition-opacity duration-200 ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}>
+        <button
           className="h-full w-20 bg-red-500 flex items-center justify-center"
           onClick={(e) => {
             e.stopPropagation()
@@ -279,11 +271,22 @@ const truncateText = (text, maxLength = 50) => {
 };
 
 export default function Communications() {
-  // Router hooks for external navigation
+  // ==========================================
+  // REDUX & ROUTER HOOKS
+  // ==========================================
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // UI States
+
+  const { user } = useSelector((state) => state.auth) || {};
+  const { studio } = useSelector((state) => state.studios) || {};
+  const chatState = useSelector((state) => state.chats) || {};
+  const { messages: reduxMessages = [], loading: chatLoading } = chatState;
+  const { members: membersData = [] } = useSelector((state) => state.member) || {};
+
+  // ==========================================
+  // UI STATES
+  // ==========================================
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [showChatDropdown, setShowChatDropdown] = useState(false)
@@ -294,14 +297,14 @@ export default function Communications() {
   const [showReactionPicker, setShowReactionPicker] = useState(null)
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
   const [open, setOpen] = useState(false)
-  
+
   // Chat feature states
   const [activeMessageMenu, setActiveMessageMenu] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
 
   // Navigation States
-  const [chatType, setChatType] = useState("member")
+  const [chatType, setChatType] = useState("company") // Changed default to "company" for staff
   const [activeScreen, setActiveScreen] = useState("chat")
   const [settingsTab, setSettingsTab] = useState("notifications")
 
@@ -314,15 +317,23 @@ export default function Communications() {
   const [pinnedChats, setPinnedChats] = useState(new Set())
   const [searchMember, setSearchMember] = useState("")
   const [messageReactions, setMessageReactions] = useState({})
-  const [mobileContextMenu, setMobileContextMenu] = useState(null) // { messageId, x, y }
+  const [mobileContextMenu, setMobileContextMenu] = useState(null)
   const [longPressTimer, setLongPressTimer] = useState(null)
   const [showCopiedToast, setShowCopiedToast] = useState(false)
 
-  // Email States
+  // ==========================================
+  // API & SOCKET STATES
+  // ==========================================
+  const [isConnected, setIsConnected] = useState(false)
+  const [chatListLoaded, setChatListLoaded] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [apiError, setApiError] = useState(null)
+
+  // Email States (unchanged)
   const [emailList, setEmailList] = useState(() => ({
     ...emailListNew,
-    error: emailListNew.error || [], // Ensure error folder exists
-    trash: emailListNew.trash || []  // Ensure trash folder exists
+    error: emailListNew.error || [],
+    trash: emailListNew.trash || []
   }))
   const [emailTemplates, setEmailTemplates] = useState(emailTemplatesNew)
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
@@ -332,13 +343,12 @@ export default function Communications() {
     body: "",
   })
 
-  // Modal States
+  // Modal States (unchanged)
   const [showEmailModal, setShowEmailModal] = useState(false)
-  const [editingDraft, setEditingDraft] = useState(null) // Track draft being edited
+  const [editingDraft, setEditingDraft] = useState(null)
   const [showBroadcastModal, setShowBroadcastModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
-  // const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
@@ -357,7 +367,7 @@ export default function Communications() {
   const [newRelationMain, setNewRelationMain] = useState({ category: "", member: null })
   const [memberRelationsState, setMemberRelationsState] = useState(memberRelationsNew)
 
-  // Email States (native integration)
+  // Email States
   const [emailTab, setEmailTab] = useState("inbox")
   const [selectedEmail, setSelectedEmail] = useState(null)
   const [emailSearchQuery, setEmailSearchQuery] = useState("")
@@ -366,6 +376,7 @@ export default function Communications() {
   const [selectedEmailIds, setSelectedEmailIds] = useState([])
   const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false)
   const [emailsToDelete, setEmailsToDelete] = useState([])
+
   // Data States
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(appointmentNotificationTypesNew)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
@@ -421,48 +432,41 @@ export default function Communications() {
   const reactionPickerRef = useRef(null)
   const emojiPickerRef = useRef(null)
 
-  // Chat list states - initialized from imported data
+  // Legacy states (kept for compatibility)
   const [companyChatListState, setCompanyChatListState] = useState(
     companyChatListNew.map(chat => ({ ...chat, markedUnread: chat.markedUnread || false }))
   )
   const [staffChatListState, setStaffChatListState] = useState(
     staffChatListNew.map(chat => ({ ...chat, markedUnread: chat.markedUnread || false }))
   )
-  
-  // Constants (for backwards compatibility references)
   const memberChatList = memberChatListNew
   const currentBillingPeriod = "04.14.25 - 04.18.2025"
 
-  // EFFECTS SECTION
-  
-  // Disable parent scrolling and reset scroll position when this component is mounted
+  // ==========================================
+  // DEBUG LOGGING HELPER
+  // ==========================================
+  const debugLog = (source, message, data = null) => {
+    const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+    console.log(`[${timestamp}] [Communications:${source}] ${message}`, data ? data : '');
+  };
+
+  // ==========================================
+  // EFFECTS - DISABLE PARENT SCROLLING
+  // ==========================================
   useEffect(() => {
-    // Reset scroll position to top immediately
     window.scrollTo(0, 0);
-    
-    // Find the main container element
     const mainContainer = document.querySelector('main');
     const originalOverflow = mainContainer?.style.overflow;
-    const originalScrollTop = mainContainer?.scrollTop;
-    
     if (mainContainer) {
-      // Reset scroll position of main container
       mainContainer.scrollTop = 0;
-      // Disable scrolling
       mainContainer.style.overflow = 'hidden';
     }
-    
-    // Also reset any parent scrollable containers
     const dashboardContent = document.querySelector('.dashboard-content');
     if (dashboardContent) {
       dashboardContent.scrollTop = 0;
     }
-    
-    // Reset body scroll as well
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
-    
-    // Cleanup: restore overflow when component unmounts
     return () => {
       if (mainContainer) {
         mainContainer.style.overflow = originalOverflow || '';
@@ -470,7 +474,7 @@ export default function Communications() {
     };
   }, []);
 
-  // Detect keyboard open/close for mobile input bar positioning
+  // Detect keyboard open/close
   useEffect(() => {
     const onFocusIn = (e) => {
       const tag = e.target?.tagName?.toLowerCase()
@@ -494,186 +498,217 @@ export default function Communications() {
     }
   }, [])
 
-  // Helper function to check if today is someone's birthday
-  const checkIfBirthday = (dateOfBirth) => {
-    if (!dateOfBirth) return false;
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    return today.getMonth() === birthDate.getMonth() &&
-      today.getDate() === birthDate.getDate();
+  // ==========================================
+  // LOAD STAFF CHATS FROM API
+  // ==========================================
+  const loadStaffChats = async () => {
+    debugLog('loadStaffChats', 'Starting to load staff chats...');
+    try {
+      const result = await dispatch(fetchStaffAllChatThunk()).unwrap();
+      debugLog('loadStaffChats', 'API Response received', { count: result?.length || 0 });
+
+      if (!result || !Array.isArray(result)) {
+        debugLog('loadStaffChats', 'Invalid API response format', result);
+        setApiError('Invalid response from server');
+        return;
+      }
+
+      const transformed = result.map(chat => ({
+        _id: chat._id,
+        id: chat._id,
+        name: getChatDisplayName(chat),
+        logo: getChatAvatar(chat),
+        chatType: chat.chatCategory || getChatCategory(chat),
+        isGroupChat: chat.isGroupChat || false,
+        chatName: chat.chatName,
+        member: chat.member,
+        users: chat.users,
+        studio: chat.studio,
+        lastMessage: chat.lastMessage || '',
+        updatedAt: chat.updatedAt,
+        createdAt: chat.createdAt,
+        markedUnread: false,
+        messages: [],
+        isBirthday: false,
+        dateOfBirth: null,
+        isArchived: false
+      }));
+
+      setChatList(transformed);
+      setChatListLoaded(true);
+      debugLog('loadStaffChats', 'Chats loaded successfully', { count: transformed.length });
+
+      // Show success toast
+      toast.success(`${transformed.length} chats loaded`);
+
+    } catch (error) {
+      debugLog('loadStaffChats', 'ERROR loading chats', error);
+      setApiError(error?.message || 'Failed to load chats');
+      toast.error('Failed to load chats: ' + (error?.message || 'Unknown error'));
+    }
   };
 
-  // Track if member chat list was already initialized
-  const memberChatInitializedRef = useRef(false);
+  // Helper functions for chat display
+  const getChatDisplayName = (chat) => {
+    if (chat.isGroupChat) return chat.chatName || "Group Chat";
+    if (chat.member) return `${chat.member.firstName || ''} ${chat.member.lastName || ''}`.trim() || "Member";
+    if (chat.users && Array.isArray(chat.users)) {
+      const otherUser = chat.users.find(u => u?._id !== user?._id);
+      if (otherUser) return `${otherUser.firstName || ''} ${otherUser.lastName || ''}`.trim() || "Staff";
+    }
+    if (chat.studio) return studio?.studioName || "Studio Chat";
+    return "Unknown Chat";
+  };
 
-  // Single useEffect to handle chat list initialization based on chatType
+  const getChatAvatar = (chat) => {
+    if (chat.member?.img) return chat.member.img;
+    if (chat.member?.image) return chat.member.image;
+    if (chat.users && Array.isArray(chat.users)) {
+      const otherUser = chat.users.find(u => u?._id !== user?._id);
+      if (otherUser?.img) return otherUser.img;
+      if (otherUser?.image) return otherUser.image;
+    }
+    return null;
+  };
+
+  const getChatCategory = (chat) => {
+    if (chat.isGroupChat) return "group";
+    if (chat.member) return "studio-member";
+    return "one-to-one";
+  };
+
+  // Load chats when component mounts or chatType changes
   useEffect(() => {
-    if (chatType === "member" && !memberChatInitializedRef.current) {
-      memberChatInitializedRef.current = true;
-      
-      // Start with existing chat data (which has messages)
-      // IMPORTANT: Use memberId as the chat id for consistency
-      const existingChats = memberChatListNew.map(chat => {
-        const member = membersData.find(m => m.id === chat.memberId);
-        return {
-          ...chat,
-          id: chat.memberId, // Use memberId as the unique identifier
-          logo: chat.logo || member?.image || null,
-          dateOfBirth: member?.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
-          isBirthday: checkIfBirthday(member?.dateOfBirth),
-          markedUnread: chat.markedUnread || false,
-        };
-      });
-      
-      // Get IDs of members who already have chats
-      const existingMemberIds = existingChats.map(chat => chat.memberId);
-      
-      // Add remaining active members without existing chats
-      const additionalChats = membersData
-        .filter(member => member.isActive && !member.isArchived && !existingMemberIds.includes(member.id))
-        .map(member => ({
-          id: member.id, // Use member.id as the chat id (same as memberId)
-          memberId: member.id,
-          name: `${member.firstName} ${member.lastName}`,
-          email: member.email,
-          logo: member.image || null,
-          dateOfBirth: member.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
-          messages: [],
-          isBirthday: checkIfBirthday(member.dateOfBirth),
-          isArchived: false,
-          markedUnread: false,
-        }));
-    
-      setChatList([...existingChats, ...additionalChats]);
+    if (chatType === "company" && !chatListLoaded) {
+      debugLog('useEffect', 'Chat type is company, loading staff chats');
+      loadStaffChats();
+    } else if (chatType === "member") {
+      debugLog('useEffect', 'Chat type is member, using mock data for now');
+      setChatListLoaded(true);
     }
-    // Note: For "staff" and "company" chatTypes, we use staffChatListState and companyChatListState directly
-    // via getCombinedChatList(), so we don't need to set chatList here
-  }, [chatType]);
+  }, [chatType, chatListLoaded]);
 
-  // Handle navigation from ChatPopup or other components
-  // Stored in ref to prevent re-triggering
-  const pendingNavigationRef = useRef(null);
-  const hasProcessedNavigationRef = useRef(false);
-  
-  // Store navigation state when it arrives
+  // ==========================================
+  // SOCKET.IO SETUP
+  // ==========================================
   useEffect(() => {
-    if (location.state?.openChatId && location.state?.openChatType && !hasProcessedNavigationRef.current) {
-      pendingNavigationRef.current = {
-        openChatId: location.state.openChatId,
-        openChatType: location.state.openChatType
-      };
-      // Clear navigation state immediately to prevent issues
-      navigate(location.pathname, { replace: true, state: {} });
-    } else if (location.state?.openChatType && !location.state?.openChatId) {
-      // Handle tab-only navigation (e.g. from sidebar notification section headers)
-      const targetType = location.state.openChatType;
-      if (chatType !== targetType) {
-        setChatType(targetType);
-      }
-      // Reset to chat list view
-      setActiveScreen("chat");
-      setSelectedChat(null);
-      setIsMessagesOpen(true);
-      // Clear navigation state immediately to prevent issues
-      navigate(location.pathname, { replace: true, state: {} });
+    if (!socket || !user?._id) {
+      debugLog('socket', 'Socket or user not available', { socket: !!socket, userId: user?._id });
+      return;
     }
-  }, [location.state]);
 
-  // Process pending navigation after chat lists are loaded
+    debugLog('socket', 'Setting up socket connection for user', user._id);
+    socket.emit("setup", user._id);
+
+    socket.on("connected", () => {
+      debugLog('socket', 'Socket connected successfully');
+      setIsConnected(true);
+      toast.success('Connected to chat server');
+    });
+
+    socket.on("disconnect", () => {
+      debugLog('socket', 'Socket disconnected');
+      setIsConnected(false);
+      toast.warning('Disconnected from chat server');
+    });
+
+    const handleNewMessage = (newMessage) => {
+      debugLog('socket', 'New message received via socket', newMessage);
+      dispatch(receiveSocketMessage(newMessage));
+
+      // Update local messages if this chat is open
+      if (selectedChat?._id === newMessage.chat?._id) {
+        const transformedMsg = transformMessage(newMessage);
+        setMessages(prev => [...prev, transformedMsg]);
+        debugLog('socket', 'Added message to current chat');
+      }
+
+      // Update chat list with last message
+      setChatList(prev => prev.map(chat =>
+        chat._id === newMessage.chat?._id
+          ? { ...chat, lastMessage: newMessage.content, updatedAt: new Date() }
+          : chat
+      ));
+    };
+
+    socket.on("new message", handleNewMessage);
+
+    return () => {
+      debugLog('socket', 'Cleaning up socket listeners');
+      socket.off("connected");
+      socket.off("disconnect");
+      socket.off("new message", handleNewMessage);
+    };
+  }, [user, dispatch, selectedChat]);
+
+  // ==========================================
+  // JOIN CHAT ROOM WHEN SELECTED
+  // ==========================================
   useEffect(() => {
-    if (!pendingNavigationRef.current || hasProcessedNavigationRef.current) return;
-    
-    const { openChatId, openChatType } = pendingNavigationRef.current;
-    
-    // Check if we have the necessary data loaded
-    const hasMemberData = chatList.length > 0;
-    const hasStaffData = staffChatListState.length > 0;
-    
-    if ((openChatType === "member" && !hasMemberData) || 
-        (openChatType === "company" && !hasStaffData)) {
-      return; // Wait for data to load
+    if (!socket || !selectedChat?._id) {
+      return;
     }
-    
-    // Mark as processed
-    hasProcessedNavigationRef.current = true;
-    pendingNavigationRef.current = null;
-    
-    // Set the correct chat type first (without triggering re-initialization)
-    if (chatType !== openChatType) {
-      setChatType(openChatType);
-    }
-    
-    // Small delay to ensure chatType change is reflected
-    setTimeout(() => {
-      let targetChat = null;
-      
-      if (openChatType === "member") {
-        // Find in member chat list - check both id and memberId with type coercion
-        const searchId = Number(openChatId);
-        targetChat = chatList.find(c => 
-          c.id === searchId || 
-          c.memberId === searchId ||
-          c.id === openChatId || 
-          c.memberId === openChatId
-        );
-        
-        // Don't create new chats - the initialization already adds all active members
-        if (targetChat) {
-          // Mark messages as read and select chat
-          const updatedMessages = (targetChat.messages || []).map(msg => ({
-            ...msg,
-            status: msg.sender !== "You" ? "read" : msg.status
-          }));
-          const updatedChat = { ...targetChat, messages: updatedMessages, markedUnread: false };
-          setSelectedChat(updatedChat);
-          setMessages(updatedMessages);
-          
-          // Update chat list
-          setChatList(prevList => prevList.map(c => 
-            (c.id === targetChat.id || c.memberId === targetChat.memberId) ? updatedChat : c
-          ));
-        }
-      } else if (openChatType === "company") {
-        // Find in staff chat list
-        const searchId = Number(openChatId);
-        targetChat = staffChatListState.find(c => 
-          c.id === searchId || 
-          c.staffId === searchId ||
-          c.id === openChatId || 
-          c.staffId === openChatId
-        );
-        
-        if (targetChat) {
-          const updatedMessages = (targetChat.messages || []).map(msg => ({
-            ...msg,
-            status: msg.sender !== "You" ? "read" : msg.status
-          }));
-          const updatedChat = { ...targetChat, messages: updatedMessages, markedUnread: false };
-          setSelectedChat(updatedChat);
-          setMessages(updatedMessages);
-          
-          // Update staff chat list
-          setStaffChatListState(prevList => prevList.map(c => 
-            (c.id === targetChat.id || c.staffId === targetChat.staffId) ? updatedChat : c
-          ));
-        }
-      }
-      
-      // Set UI state to show the chat
-      if (targetChat) {
-        setIsMessagesOpen(false);
-        setActiveScreen("chat");
-        setReplyingTo(null);
-        setSearchMember("");
-      }
-      
-      // Reset the flag after a delay so new navigations can work
-      setTimeout(() => {
-        hasProcessedNavigationRef.current = false;
-      }, 1000);
-    }, 150);
-  }, [chatList, staffChatListState]);
 
+    debugLog('joinRoom', 'Joining chat room', selectedChat._id);
+    socket.emit("join chat", selectedChat._id);
+
+    return () => {
+      debugLog('joinRoom', 'Leaving chat room', selectedChat._id);
+      socket.emit("leave chat", selectedChat._id);
+    };
+  }, [selectedChat?._id]);
+
+  // ==========================================
+  // FETCH MESSAGES WHEN CHAT IS SELECTED
+  // ==========================================
+  const loadMessages = async (chatId) => {
+    debugLog('loadMessages', 'Fetching messages for chat', chatId);
+    try {
+      const result = await dispatch(fetchMessagesThunk(chatId)).unwrap();
+      debugLog('loadMessages', 'Messages received', { count: result?.length || 0 });
+
+      if (!result || !Array.isArray(result)) {
+        debugLog('loadMessages', 'Invalid messages response', result);
+        return;
+      }
+
+      const transformedMessages = result.map(transformMessage);
+      setMessages(transformedMessages);
+
+    } catch (error) {
+      debugLog('loadMessages', 'ERROR loading messages', error);
+      toast.error('Failed to load messages: ' + (error?.message || 'Unknown error'));
+    }
+  };
+
+  const transformMessage = (msg) => ({
+    id: msg._id,
+    _id: msg._id,
+    sender: msg.sender?._id === user?._id ? "You" : (msg.sender?.firstName || "Other"),
+    senderId: msg.sender?._id,
+    content: msg.content,
+    text: msg.content,
+    time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+    timestamp: msg.createdAt,
+    createdAt: msg.createdAt,
+    status: msg.status || "read",
+    isDeleted: msg.isDeleted || false,
+    replyTo: msg.replyTo ? {
+      id: msg.replyTo._id,
+      content: msg.replyTo.content,
+      sender: msg.replyTo.sender?.firstName || "Unknown"
+    } : null
+  });
+
+  useEffect(() => {
+    if (selectedChat?._id) {
+      loadMessages(selectedChat._id);
+    }
+  }, [selectedChat?._id]);
+
+  // ==========================================
+  // AUTO-SCROLL
+  // ==========================================
   useEffect(() => {
     if (messagesEndRef.current) {
       const messagesContainer = messagesEndRef.current.closest('.overflow-y-auto');
@@ -684,42 +719,6 @@ export default function Communications() {
   }, [messages]);
 
   useEffect(() => {
-    setSettings((prev) => ({
-      ...prev,
-      birthdaySendApp: typeof prev.birthdaySendApp === "boolean" ? prev.birthdaySendApp : false,
-      birthdaySendEmail: typeof prev.birthdaySendEmail === "boolean" ? prev.birthdaySendEmail : false,
-    }))
-
-    setAppointmentNotificationTypes((prev) => ({
-      ...prev,
-      confirmation: {
-        ...(prev.confirmation || {}),
-        sendApp: typeof prev.confirmation?.sendApp === "boolean" ? prev.confirmation.sendApp : false,
-        sendEmail: typeof prev.confirmation?.sendEmail === "boolean" ? prev.confirmation.sendEmail : false,
-      },
-      cancellation: {
-        ...(prev.cancellation || {}),
-        sendApp: typeof prev.cancellation?.sendApp === "boolean" ? prev.cancellation.sendApp : false,
-        sendEmail: typeof prev.cancellation?.sendEmail === "boolean" ? prev.cancellation.sendEmail : false,
-      },
-      rescheduled: {
-        ...(prev.rescheduled || {}),
-        sendApp: typeof prev.rescheduled?.sendApp === "boolean" ? prev.rescheduled.sendApp : false,
-        sendEmail: typeof prev.rescheduled?.sendEmail === "boolean" ? prev.rescheduled.sendEmail : false,
-      },
-      reminder: {
-        ...(prev.reminder || {}),
-        enabled: typeof prev.reminder?.enabled === "boolean" ? prev.reminder.enabled : false,
-        template: typeof prev.reminder?.template === "string" ? prev.reminder.template : "",
-        hoursBefore: typeof prev.reminder?.hoursBefore === "number" ? prev.reminder.hoursBefore : 24,
-        sendApp: typeof prev.reminder?.sendApp === "boolean" ? prev.reminder.sendApp : false,
-        sendEmail: typeof prev.reminder?.sendEmail === "boolean" ? prev.reminder.sendEmail : false,
-      },
-    }))
-  }, [])
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
@@ -728,48 +727,179 @@ export default function Communications() {
     }
   }, [messages])
 
+  // ==========================================
+  // SEND MESSAGE - REAL API
+  // ==========================================
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedChat?._id || sendingMessage) {
+      debugLog('sendMessage', 'Blocked - conditions not met', {
+        hasText: !!messageText.trim(),
+        hasChat: !!selectedChat?._id,
+        isSending: sendingMessage
+      });
+      return;
+    }
+
+    const messageContent = messageText.trim();
+    const tempId = `temp-${Date.now()}`;
+
+    debugLog('sendMessage', 'Sending message', { chatId: selectedChat._id, content: messageContent });
+    setSendingMessage(true);
+
+    // Create optimistic message
+    const tempMessage = {
+      id: tempId,
+      _id: tempId,
+      sender: "You",
+      senderId: user?._id,
+      content: messageContent,
+      text: messageContent,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      status: "sending",
+      isDeleted: false,
+      replyTo: replyingTo ? {
+        id: replyingTo.id,
+        content: replyingTo.content,
+        sender: replyingTo.sender
+      } : null
+    };
+
+    // Add to UI immediately
+    setMessages(prev => [...prev, tempMessage]);
+    setMessageText("");
+    setReplyingTo(null);
+    setShowEmojiPicker(false);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '32px';
+    }
+    if (mobileTextareaRef.current) {
+      mobileTextareaRef.current.style.height = '32px';
+    }
+
+    // Auto-scroll
+    setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+      if (mobileMessagesContainerRef.current) {
+        mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
+      }
+    }, 50);
+
+    try {
+      const messageData = {
+        chatId: selectedChat._id,
+        content: messageContent,
+        replyTo: replyingTo?._id || null
+      };
+
+      // Emit via socket for real-time
+      if (socket && isConnected) {
+        debugLog('sendMessage', 'Emitting via socket');
+        socket.emit("new message", messageData);
+      }
+
+      // Save to backend
+      debugLog('sendMessage', 'Calling sendMessageThunk');
+      const result = await dispatch(sendMessageThunk(messageData)).unwrap();
+      debugLog('sendMessage', 'Message sent successfully', result);
+
+      // Replace temp message with real one
+      setMessages(prev => prev.map(msg =>
+        msg.id === tempId ? transformMessage(result) : msg
+      ));
+
+      // Update chat list last message
+      setChatList(prev => prev.map(chat =>
+        chat._id === selectedChat._id
+          ? { ...chat, lastMessage: messageContent, updatedAt: new Date() }
+          : chat
+      ));
+
+    } catch (error) {
+      debugLog('sendMessage', 'ERROR sending message', error);
+      toast.error('Failed to send message: ' + (error?.message || 'Unknown error'));
+      // Mark as failed
+      setMessages(prev => prev.map(msg =>
+        msg.id === tempId ? { ...msg, status: "failed" } : msg
+      ));
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // ==========================================
+  // SELECT CHAT
+  // ==========================================
+  const handleChatSelect = (chat) => {
+    debugLog('handleChatSelect', 'Selecting chat', { chatId: chat.id, name: chat.name });
+
+    // Find full chat data
+    const fullChat = chatList.find(c => c._id === chat.id || c.id === chat.id);
+
+    if (fullChat) {
+      setSelectedChat(fullChat);
+      setIsMessagesOpen(false);
+      setActiveScreen("chat");
+      setReplyingTo(null);
+      setSearchMember("");
+      dispatch(setActiveChat(fullChat));
+
+      // Mark as read in UI
+      setChatList(prev => prev.map(c =>
+        (c._id === fullChat._id || c.id === fullChat.id)
+          ? { ...c, markedUnread: false }
+          : c
+      ));
+
+      debugLog('handleChatSelect', 'Chat selected successfully', fullChat);
+    } else {
+      debugLog('handleChatSelect', 'Chat not found in list', chat);
+    }
+  };
+
+  // ==========================================
+  // CLICK OUTSIDE HANDLERS
+  // ==========================================
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpen(false)
       }
 
-      // Emoji Picker - improved detection for Shadow DOM and Web Components
       if (showEmojiPicker) {
         const isInsideEmojiPicker = emojiPickerRef.current?.contains(event.target);
         const isEmojiButton = event.target.closest('button[aria-label="Add emoji"]');
-        
-        // Check for emoji-mart elements - they use Web Components with Shadow DOM
-        // composedPath() gives us all elements including those in Shadow DOM
         const path = event.composedPath ? event.composedPath() : [];
-        const isInEmojiMartPath = path.some(el => 
-          el.tagName === 'EM-EMOJI-PICKER' || 
+        const isInEmojiMartPath = path.some(el =>
+          el.tagName === 'EM-EMOJI-PICKER' ||
           el.classList?.contains('emoji-mart') ||
           (el.getAttribute && el.getAttribute('data-emoji-picker'))
         );
-        
-        const isEmojiMartElement = event.target.closest('em-emoji-picker') || 
-                                    event.target.tagName === 'EM-EMOJI-PICKER' ||
-                                    event.target.closest('.emoji-mart');
-        
+        const isEmojiMartElement = event.target.closest('em-emoji-picker') ||
+          event.target.tagName === 'EM-EMOJI-PICKER' ||
+          event.target.closest('.emoji-mart');
+
         if (!isInsideEmojiPicker && !isEmojiButton && !isEmojiMartElement && !isInEmojiMartPath) {
           setShowEmojiPicker(false);
         }
       }
 
       if (messageMenuRef.current && !messageMenuRef.current.contains(event.target) &&
-          !event.target.closest('.message-menu-trigger')) {
+        !event.target.closest('.message-menu-trigger')) {
         setActiveMessageMenu(null);
       }
 
       if (reactionPickerRef.current && !reactionPickerRef.current.contains(event.target)) {
-        // Check composedPath for Shadow DOM elements
         const path = event.composedPath ? event.composedPath() : [];
-        const isInEmojiMartPath = path.some(el => 
-          el.tagName === 'EM-EMOJI-PICKER' || 
+        const isInEmojiMartPath = path.some(el =>
+          el.tagName === 'EM-EMOJI-PICKER' ||
           el.classList?.contains('emoji-mart')
         );
-        
         if (!event.target.closest('em-emoji-picker') && !isInEmojiMartPath) {
           setShowReactionPicker(null);
         }
@@ -807,8 +937,9 @@ export default function Communications() {
     }
   }, [])
 
-  // FUNCTIONS SECTION
-
+  // ==========================================
+  // LEGACY FUNCTIONS (kept for compatibility)
+  // ==========================================
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template)
     setEmailData({
@@ -821,9 +952,7 @@ export default function Communications() {
 
   const handleArchiveChat = (chatId, e) => {
     e.stopPropagation();
-    
     const chatToArchive = chatList.find((chat) => chat.id === chatId);
-    
     if (chatToArchive) {
       setMembers((prevMembers) =>
         prevMembers.map((member) =>
@@ -832,23 +961,18 @@ export default function Communications() {
             : member
         )
       );
-      
       setArchivedChats((prev) => [...prev, { ...chatToArchive, isArchived: true }]);
-      
       setChatList((prevList) => prevList.filter((chat) => chat.id !== chatId));
-      
       if (selectedChat && selectedChat.id === chatId) {
         setSelectedChat(null);
         setIsMessagesOpen(true);
       }
     }
-    
     setShowChatMenu(null);
   };
 
   const handleRestoreChat = (chatId) => {
     const chatToRestore = archivedChats.find((chat) => chat.id === chatId);
-    
     if (chatToRestore) {
       setMembers((prevMembers) =>
         prevMembers.map((member) =>
@@ -857,14 +981,10 @@ export default function Communications() {
             : member
         )
       );
-      
       setChatList((prev) => [...prev, { ...chatToRestore, isArchived: false }]);
-      
       setArchivedChats((prev) => prev.filter((chat) => chat.id !== chatId));
-      
       handleChatSelect(chatToRestore);
     }
-    
     setShowArchive(false);
   };
 
@@ -884,7 +1004,6 @@ export default function Communications() {
 
   const handleMarkChatAsRead = (chatId, e, isCompanyChat = false) => {
     e.stopPropagation()
-    
     const updateChat = (chat) => {
       if (chat.id === chatId) {
         const updatedMessages = (chat.messages || []).map(msg => ({
@@ -895,9 +1014,7 @@ export default function Communications() {
       }
       return chat;
     };
-    
     if (isCompanyChat) {
-      // Check if it's the main studio chat or a staff chat
       if (chatId === 100) {
         setCompanyChatListState(prev => prev.map(updateChat));
       } else {
@@ -911,16 +1028,13 @@ export default function Communications() {
 
   const handleMarkChatAsUnread = (chatId, e, isCompanyChat = false) => {
     e.stopPropagation()
-    
     const updateChat = (chat) => {
       if (chat.id === chatId) {
         return { ...chat, markedUnread: true };
       }
       return chat;
     };
-    
     if (isCompanyChat) {
-      // Check if it's the main studio chat or a staff chat
       if (chatId === 100) {
         setCompanyChatListState(prev => prev.map(updateChat));
       } else {
@@ -934,30 +1048,20 @@ export default function Communications() {
 
   const handleViewMember = (chatId, e) => {
     if (e) e.stopPropagation();
-
-    if (chatType === "company") {
-      return;
-    }
-
-    // First, find the chat to get the memberId
+    if (chatType === "company") return;
     const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId);
-    
     let member = null;
     if (chat) {
-      // Use memberId from chat if available, otherwise fall back to chat.id
       const memberIdToFind = chat.memberId || chat.id;
       member = members.find((m) => m.id === memberIdToFind);
-      
-      // Fallback: try to find by name
       if (!member) {
-        member = members.find((m) => 
-          m.name === chat.name || 
+        member = members.find((m) =>
+          m.name === chat.name ||
           `${m.firstName} ${m.lastName}` === chat.name ||
           m.title === chat.name
         );
       }
     }
-
     if (member) {
       setSelectedMemberForConfirmation(member);
       setShowMemberConfirmation(true);
@@ -969,7 +1073,6 @@ export default function Communications() {
 
   const handleConfirmViewMember = () => {
     if (selectedMemberForConfirmation) {
-      // Navigate to Members page with filter state
       navigate('/dashboard/members', {
         state: {
           filterMemberId: selectedMemberForConfirmation.id,
@@ -982,28 +1085,20 @@ export default function Communications() {
     setSelectedMemberForConfirmation(null);
   };
 
-  // Handle viewing staff from chat
   const handleViewStaff = (chatId, e) => {
     if (e) e.stopPropagation();
-
-    // Find the staff chat
     const chat = staffChatListState.find((c) => c.id === chatId);
-    
     let staff = null;
     if (chat) {
-      // Use staffId from chat if available
       const staffIdToFind = chat.staffId || chat.id;
       staff = staffData.find((s) => s.id === staffIdToFind);
-      
-      // Fallback: try to find by name
       if (!staff) {
-        staff = staffData.find((s) => 
+        staff = staffData.find((s) =>
           `${s.firstName} ${s.lastName}` === chat.name ||
           s.name === chat.name
         );
       }
     }
-
     if (staff) {
       setSelectedStaffForConfirmation(staff);
       setShowStaffConfirmation(true);
@@ -1015,7 +1110,6 @@ export default function Communications() {
 
   const handleConfirmViewStaff = () => {
     if (selectedStaffForConfirmation) {
-      // Navigate to Staff page with filter state
       navigate('/dashboard/staff', {
         state: {
           filterStaffId: selectedStaffForConfirmation.id,
@@ -1028,184 +1122,15 @@ export default function Communications() {
     setSelectedStaffForConfirmation(null);
   };
 
-  // ==========================================
-  // MESSAGE HANDLING FUNCTIONS
-  // ==========================================
-
-  const handleSendMessage = () => {
-    if (!messageText.trim() || !selectedChat) return
-    const now = new Date();
-    const newMessage = {
-      id: Date.now(),
-      sender: "You",
-      content: messageText,
-      time: now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      timestamp: now.toISOString(),
-      isUnread: false,
-      status: "sent",
-      isDeleted: false,
-      replyTo: replyingTo ? {
-        id: replyingTo.id,
-        content: replyingTo.content,
-        sender: replyingTo.sender
-      } : null
-    }
-    setMessages([...messages, newMessage])
-    
-    // Update the appropriate chat list based on chatType
-    if (chatType === "member") {
-      // Update chatList for member chats
-      setChatList((prevList) =>
-        prevList.map((chat) =>
-          chat.id === selectedChat.id
-            ? {
-              ...chat,
-              messages: [...(chat.messages || []), newMessage],
-            }
-            : chat,
-        ),
-      )
-    } else if (chatType === "company") {
-      // Update company or staff chat state
-      if (selectedChat.id === 100 || selectedChat.isCompany) {
-        // Company chat
-        setCompanyChatListState((prevList) =>
-          prevList.map((chat) =>
-            chat.id === selectedChat.id
-              ? {
-                ...chat,
-                messages: [...(chat.messages || []), newMessage],
-              }
-              : chat,
-          ),
-        )
-      } else {
-        // Staff chat
-        setStaffChatListState((prevList) =>
-          prevList.map((chat) =>
-            chat.id === selectedChat.id
-              ? {
-                ...chat,
-                messages: [...(chat.messages || []), newMessage],
-              }
-              : chat,
-          ),
-        )
-      }
-    }
-
-    // Also update selectedChat to reflect the new message
-    setSelectedChat(prev => prev ? {
-      ...prev,
-      messages: [...(prev.messages || []), newMessage]
-    } : prev);
-
-    if (archivedChats.some((chat) => chat.id === selectedChat.id)) {
-      handleRestoreChat(selectedChat.id)
-    }
-
-    setMessageText("")
-    setReplyingTo(null)
-    setShowEmojiPicker(false)
-
-    // Reset textarea height for both desktop and mobile
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '32px';
-    }
-    if (mobileTextareaRef.current) {
-      mobileTextareaRef.current.style.height = '32px';
-    }
-
-    // Auto-scroll to bottom for both desktop and mobile
-    setTimeout(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
-      if (mobileMessagesContainerRef.current) {
-        mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
-      }
-    }, 50);
-
-    setTimeout(() => {
-      setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
-      // Also update in the appropriate chat list
-      if (chatType === "member") {
-        setChatList((prevList) =>
-          prevList.map((chat) =>
-            chat.id === selectedChat.id
-              ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg) }
-              : chat
-          )
-        )
-      } else if (chatType === "company") {
-        if (selectedChat.id === 100 || selectedChat.isCompany) {
-          setCompanyChatListState((prevList) =>
-            prevList.map((chat) =>
-              chat.id === selectedChat.id
-                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg) }
-                : chat
-            )
-          )
-        } else {
-          setStaffChatListState((prevList) =>
-            prevList.map((chat) =>
-              chat.id === selectedChat.id
-                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg) }
-                : chat
-            )
-          )
-        }
-      }
-    }, 1000)
-
-    setTimeout(() => {
-      setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "read" } : msg)))
-      // Also update in the appropriate chat list
-      if (chatType === "member") {
-        setChatList((prevList) =>
-          prevList.map((chat) =>
-            chat.id === selectedChat.id
-              ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "read" } : msg) }
-              : chat
-          )
-        )
-      } else if (chatType === "company") {
-        if (selectedChat.id === 100 || selectedChat.isCompany) {
-          setCompanyChatListState((prevList) =>
-            prevList.map((chat) =>
-              chat.id === selectedChat.id
-                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "read" } : msg) }
-                : chat
-            )
-          )
-        } else {
-          setStaffChatListState((prevList) =>
-            prevList.map((chat) =>
-              chat.id === selectedChat.id
-                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "read" } : msg) }
-                : chat
-            )
-          )
-        }
-      }
-    }, 3000)
-  }
-
-  // Handle reaction with full emoji picker (like ChatPopup)
+  // Reaction handlers
   const handleReaction = (messageId, emoji) => {
     setMessageReactions((prev) => {
       const newReactions = { ...prev };
-      
-      // Toggle reaction - if same emoji clicked, remove it
       if (newReactions[messageId] === emoji) {
         delete newReactions[messageId];
       } else {
         newReactions[messageId] = emoji;
       }
-      
       return newReactions;
     });
     setShowReactionPicker(null);
@@ -1221,20 +1146,17 @@ export default function Communications() {
     });
   };
 
-  // Delete message - mark as deleted instead of removing
   const handleDeleteMessage = (messageId) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId 
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId
         ? { ...msg, isDeleted: true, content: "" }
         : msg
     ));
-    // Remove reactions for deleted message
     setMessageReactions(prev => {
       const newReactions = { ...prev };
       delete newReactions[messageId];
       return newReactions;
     });
-    // Update the appropriate chat list based on chatType
     if (chatType === "member") {
       setChatList((prevList) =>
         prevList.map((chat) =>
@@ -1309,11 +1231,9 @@ export default function Communications() {
     setMobileContextMenu(null);
   };
 
-  // Mobile Long Press handlers
   const handleTouchStart = (message, e) => {
     if (message.isDeleted) return;
     const timer = setTimeout(() => {
-      // Vibrate if supported
       if (navigator.vibrate) navigator.vibrate(50);
       setMobileContextMenu({ messageId: message.id, message });
     }, 500);
@@ -1344,13 +1264,15 @@ export default function Communications() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // ==========================================
+  // EMAIL FUNCTIONS (unchanged)
+  // ==========================================
   const handleEmailClick = () => {
     setActiveScreen("email-frontend")
     setSelectedChat(null)
     setIsMessagesOpen(false)
   }
 
-  // Email helper functions
   const getEmailFolderCount = (folderId) => {
     if (folderId === "archive") {
       return Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived).length
@@ -1358,7 +1280,6 @@ export default function Communications() {
     return (emailList[folderId] || []).filter(e => !e?.isArchived).length
   }
 
-  // Get unread count for a specific folder
   const getUnreadCountForFolder = (folderId) => {
     if (folderId === "archive") {
       return Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived && !e.isRead).length
@@ -1366,7 +1287,6 @@ export default function Communications() {
     return (emailList[folderId] || []).filter(e => !e.isRead && !e?.isArchived).length
   }
 
-  // Get total unread emails from all folders (except trash)
   const getTotalUnreadEmails = () => {
     let count = 0
     Object.keys(emailList).forEach(folder => {
@@ -1389,57 +1309,43 @@ export default function Communications() {
   const getFilteredEmails = (includePinned = true) => {
     let emails = emailList[emailTab] || []
     if (!Array.isArray(emails)) emails = []
-
     if (emailTab === "archive") {
       emails = Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived)
     }
-
     if (emailSearchQuery.trim()) {
       const query = emailSearchQuery.toLowerCase()
-      emails = emails.filter(e => 
+      emails = emails.filter(e =>
         e.subject?.toLowerCase().includes(query) ||
         e.sender?.toLowerCase().includes(query) ||
         e.recipient?.toLowerCase().includes(query)
       )
     }
-
     if (emailTab !== "archive") {
       emails = emails.filter(e => e && !e.isArchived)
     }
-
-    // Filter out pinned if not including them
     if (!includePinned) {
       emails = emails.filter(e => !e.isPinned)
     }
-
     return emails.sort((a, b) => new Date(b.time) - new Date(a.time))
   }
 
   const handleEmailItemClick = (email) => {
-    // Check if this is a draft - open in SendEmailModal instead
     if (emailTab === "draft" || email.status === "Draft") {
-      // Parse recipients from draft
-      const toRecipients = email.recipientEmail 
-        ? email.recipientEmail.split(",").map(e => e.trim()).filter(Boolean).map(email => ({ 
-            email, 
-            name: email,
-            isManual: true 
-          }))
+      const toRecipients = email.recipientEmail
+        ? email.recipientEmail.split(",").map(e => e.trim()).filter(Boolean).map(email => ({
+          email,
+          name: email,
+          isManual: true
+        }))
         : []
-      
-      // Set email data for the modal
       setEmailData({
         subject: email.subject || "",
         body: email.body || "",
       })
-      
-      // Store draft reference for deletion after sending
       setEditingDraft(email)
       setShowEmailModal(true)
       return
     }
-    
-    // Mark as read when opening the email
     if (!email.isRead) {
       setEmailList(prev => {
         const newList = { ...prev }
@@ -1450,7 +1356,6 @@ export default function Communications() {
         })
         return newList
       })
-      // Update selectedEmail with isRead: true
       setSelectedEmail({ ...email, isRead: true })
     } else {
       setSelectedEmail(email)
@@ -1467,7 +1372,6 @@ export default function Communications() {
       })
       return newList
     })
-    // Also update selectedEmail if it's the one being updated
     if (selectedEmail?.id === emailId) {
       setSelectedEmail(prev => prev ? { ...prev, ...updates } : null)
     }
@@ -1477,8 +1381,6 @@ export default function Communications() {
     setEmailList(prev => {
       let emailToMove = null
       let sourceFolder = null
-      
-      // Find the email and its folder (including error folder, but not trash)
       Object.keys(prev).forEach(folder => {
         if (folder !== "trash" && Array.isArray(prev[folder])) {
           const email = prev[folder].find(e => e.id === emailId)
@@ -1488,10 +1390,7 @@ export default function Communications() {
           }
         }
       })
-      
       if (!emailToMove || !sourceFolder) return prev
-      
-      // Create new state with email moved to trash
       return {
         ...prev,
         [sourceFolder]: prev[sourceFolder].filter(e => e.id !== emailId),
@@ -1501,9 +1400,7 @@ export default function Communications() {
     if (selectedEmail?.id === emailId) setSelectedEmail(null)
   }
 
-  // Retry sending a failed email
   const retryFailedEmail = (email) => {
-    // Move from error to sent with updated timestamp
     setEmailList(prev => ({
       ...prev,
       error: (prev.error || []).filter(e => e.id !== email.id),
@@ -1512,7 +1409,6 @@ export default function Communications() {
     if (selectedEmail?.id === email.id) setSelectedEmail(null)
   }
 
-  // Delete permanently from trash only
   const permanentlyDeleteEmail = (emailId) => {
     setEmailList(prev => ({
       ...prev,
@@ -1523,20 +1419,14 @@ export default function Communications() {
 
   const handleEmailReply = (email) => {
     if (!email) return
-    
-    // Try to find the sender in members or staff data
     const senderEmail = email.senderEmail || ""
     const senderName = email.sender || ""
-    
-    // Search for sender in membersData
-    let senderData = membersData.find(m => 
+    let senderData = membersData.find(m =>
       m.email?.toLowerCase() === senderEmail.toLowerCase()
     )
-    
-    // If not found in members, search in staffData
     let initialRecipient = null
     if (!senderData) {
-      const staffMember = staffData.find(s => 
+      const staffMember = staffData.find(s =>
         s.email?.toLowerCase() === senderEmail.toLowerCase()
       )
       if (staffMember) {
@@ -1561,8 +1451,6 @@ export default function Communications() {
         type: 'member'
       }
     }
-    
-    // If no match found, create manual entry
     if (!initialRecipient) {
       const nameParts = senderName.split(' ')
       initialRecipient = {
@@ -1574,34 +1462,27 @@ export default function Communications() {
         isManual: true
       }
     }
-    
     setReplyInitialRecipient(initialRecipient)
     setShowReplyModal(true)
   }
 
-  // Close reply modal
   const closeReplyModal = () => {
     setShowReplyModal(false)
     setReplyInitialRecipient(null)
   }
 
-  // Handle send reply from modal
   const handleSendReply = (replyPayload) => {
     setEmailList(prev => ({ ...prev, sent: [replyPayload, ...(prev.sent || [])] }))
   }
 
-  // Handle save reply as draft from modal
   const handleSaveReplyAsDraft = (draftPayload) => {
     setEmailList(prev => ({ ...prev, draft: [draftPayload, ...(prev.draft || [])] }))
   }
 
-  // Search members and staff for email (used by Reply Modal)
   const handleSearchMemberForReply = (query) => {
     if (!query) return []
     const q = query.toLowerCase()
-    
-    // Search in members
-    const memberResults = membersData.filter(m => 
+    const memberResults = membersData.filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -1615,9 +1496,7 @@ export default function Communications() {
       image: m.image || m.avatar,
       type: 'member'
     }))
-    
-    // Search in staff (staffData uses 'img' not 'image')
-    const staffResults = staffData.filter(s => 
+    const staffResults = staffData.filter(s =>
       s.firstName?.toLowerCase().includes(q) ||
       s.lastName?.toLowerCase().includes(q) ||
       s.email?.toLowerCase().includes(q) ||
@@ -1628,10 +1507,9 @@ export default function Communications() {
       name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
       firstName: s.firstName,
       lastName: s.lastName,
-      image: s.img, // staffData uses 'img' field
+      image: s.img,
       type: 'staff'
     }))
-    
     return [...memberResults, ...staffResults].slice(0, 10)
   }
 
@@ -1653,17 +1531,11 @@ export default function Communications() {
   }
 
   const handleMoveEmailToFolder = (emailId, targetFolder) => {
-    // Don't allow moving regular emails to draft folder
-    if (targetFolder === 'draft') {
-      return
-    }
-    
+    if (targetFolder === 'draft') return
     setEmailList(prev => {
       const newList = { ...prev }
       let emailToMove = null
       let sourceFolder = null
-      
-      // Find and remove email from current folder
       Object.keys(newList).forEach(folder => {
         if (Array.isArray(newList[folder])) {
           const idx = newList[folder].findIndex(e => e.id === emailId || e.id === parseInt(emailId))
@@ -1674,9 +1546,7 @@ export default function Communications() {
           }
         }
       })
-      
       if (emailToMove && targetFolder !== sourceFolder) {
-        // Handle special folder logic
         if (targetFolder === 'archive') {
           emailToMove.isArchived = true
         } else {
@@ -1685,58 +1555,47 @@ export default function Communications() {
         if (targetFolder === 'trash') {
           emailToMove.deletedAt = new Date().toISOString()
         }
-        
-        // Add to target folder
         if (!newList[targetFolder]) newList[targetFolder] = []
         newList[targetFolder] = [emailToMove, ...newList[targetFolder]]
       }
-      
       return newList
     })
-    
     if (selectedEmail?.id === emailId || selectedEmail?.id === parseInt(emailId)) {
       setSelectedEmail(null)
     }
   }
 
-  // Get pinned emails for current folder
   const getPinnedEmails = () => {
     let emails = emailList[emailTab] || []
     if (!Array.isArray(emails)) emails = []
-
     if (emailTab === "archive") {
       emails = Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived)
     } else {
       emails = emails.filter(e => e && !e.isArchived)
     }
-
     if (emailSearchQuery.trim()) {
       const query = emailSearchQuery.toLowerCase()
-      emails = emails.filter(e => 
+      emails = emails.filter(e =>
         e.subject?.toLowerCase().includes(query) ||
         e.sender?.toLowerCase().includes(query) ||
         e.recipient?.toLowerCase().includes(query)
       )
     }
-
     return emails.filter(e => e.isPinned).sort((a, b) => new Date(b.time) - new Date(a.time))
   }
 
-  // Toggle email selection
   const toggleEmailSelection = (emailId) => {
-    setSelectedEmailIds(prev => 
-      prev.includes(emailId) 
+    setSelectedEmailIds(prev =>
+      prev.includes(emailId)
         ? prev.filter(id => id !== emailId)
         : [...prev, emailId]
     )
   }
 
-  // Select all emails in current view
   const selectAllEmails = () => {
     const allEmails = [...getPinnedEmails(), ...getFilteredEmails(false)]
     const allIds = allEmails.map(e => e.id)
     const allSelected = allIds.every(id => selectedEmailIds.includes(id))
-    
     if (allSelected) {
       setSelectedEmailIds([])
     } else {
@@ -1744,13 +1603,12 @@ export default function Communications() {
     }
   }
 
-  // Bulk actions
   const bulkMarkAsRead = (isRead) => {
     setEmailList(prev => {
       const newList = { ...prev }
       Object.keys(newList).forEach(folder => {
         if (Array.isArray(newList[folder])) {
-          newList[folder] = newList[folder].map(email => 
+          newList[folder] = newList[folder].map(email =>
             selectedEmailIds.includes(email.id) ? { ...email, isRead } : email
           )
         }
@@ -1769,7 +1627,6 @@ export default function Communications() {
 
   const bulkDelete = () => {
     if (emailTab === "trash") {
-      // Show confirmation for permanent deletion
       setEmailsToDelete(selectedEmailIds)
       setShowPermanentDeleteConfirm(true)
     } else {
@@ -1789,10 +1646,9 @@ export default function Communications() {
     setShowPermanentDeleteConfirm(false)
   }
 
-  // Save email as draft from SendEmailModal
   const handleSaveEmailAsDraft = (draftData) => {
     const draft = {
-      id: draftData.id || Date.now(), // Use existing ID if updating, otherwise create new
+      id: draftData.id || Date.now(),
       sender: "FitLife Studio",
       senderEmail: "studio@fitlife.com",
       recipient: draftData.toRecipients?.map(r => r.name || r.email).join(", ") || "",
@@ -1808,16 +1664,13 @@ export default function Communications() {
       status: "Draft",
       attachments: draftData.attachments?.map(a => ({ name: a.name, size: a.size, type: a.type })) || [],
     }
-    
     setEmailList(prev => {
-      // If updating existing draft, replace it
       if (draftData.id) {
         return {
           ...prev,
           draft: (prev.draft || []).map(d => d.id === draftData.id ? draft : d)
         }
       }
-      // Otherwise add new draft
       return {
         ...prev,
         draft: [draft, ...(prev.draft || [])]
@@ -1826,20 +1679,16 @@ export default function Communications() {
   }
 
   const handleSendEmail = (emailDataWithAttachments) => {
-    // SendEmailModal liefert to als Array, also prÃƒÆ’Ã‚Â¼fen wir die LÃƒÆ’Ã‚Â¤nge
-    const toEmails = Array.isArray(emailDataWithAttachments.to) 
-      ? emailDataWithAttachments.to 
+    const toEmails = Array.isArray(emailDataWithAttachments.to)
+      ? emailDataWithAttachments.to
       : [emailDataWithAttachments.to].filter(Boolean);
-    
     if (toEmails.length === 0 || !emailDataWithAttachments.subject || !emailDataWithAttachments.body) {
       alert("Please fill in all required email fields");
       return;
     }
-
     const bodyWithSignature = settings.emailSignature
       ? `${emailDataWithAttachments.body}<br><br>${settings.emailSignature}`
       : emailDataWithAttachments.body;
-
     const newEmail = {
       id: Date.now(),
       recipient: toEmails.join(", "),
@@ -1854,8 +1703,6 @@ export default function Communications() {
       isArchived: false,
       attachments: emailDataWithAttachments.attachments || []
     };
-
-    // If editing a draft, delete it first
     if (editingDraft) {
       setEmailList(prev => ({
         ...prev,
@@ -1869,7 +1716,6 @@ export default function Communications() {
         sent: [newEmail, ...prev.sent]
       }));
     }
-
     alert("Email sent successfully!");
     setEmailData({ to: "", subject: "", body: "" });
     setShowEmailModal(false);
@@ -1928,13 +1774,10 @@ export default function Communications() {
   const handleEditAppointment = (appointment) => {
     const memberId = appointment.memberId;
     const member = membersData.find(m => m.id === memberId);
-
     const fullAppointment = {
       ...appointment,
       name: member ? `${member.firstName} ${member.lastName}` : "Member",
-      // Include member image for avatar display
       memberImage: member?.image || null,
-      // Include member note data for special note icon
       memberNote: member?.note || "",
       memberNoteImportance: member?.noteImportance || "unimportant",
       memberNoteStartDate: member?.noteStartDate || "",
@@ -1947,7 +1790,6 @@ export default function Communications() {
         endDate: null,
       },
     };
-
     setSelectedAppointmentData(fullAppointment);
     setShowSelectedAppointmentModal(true);
     setShowAppointmentModal(false);
@@ -1960,17 +1802,8 @@ export default function Communications() {
 
   const handleBroadcast = (broadcastData) => {
     const { message, recipients, settings } = broadcastData;
-
-    if (!message) {
-      return;
-    }
-
-    if (recipients.length === 0) {
-      return;
-    }
-
-    // Broadcast sent - no alert, no screen change
-    // The BroadcastModal handles its own success state
+    if (!message) return;
+    if (recipients.length === 0) return;
     console.log(`Broadcast sent to ${recipients.length} recipients via ${settings.broadcastEmail ? "Email" : "Push"}`);
   }
 
@@ -1988,65 +1821,7 @@ export default function Communications() {
     }
     setPreConfiguredMessages([...preConfiguredMessages, messageToAdd])
     setSelectedMessage(messageToAdd)
-    // setShowCreateMessageModal(false)
     setNewMessage({ title: "", message: "", folderId: 1 })
-  }
-
-  const handleChatSelect = (chat) => {
-    // Handle new chats (members not yet in chat list)
-    if (chat.isNewChat && chatType === "member") {
-      // Get member data for dateOfBirth
-      const member = membersData.find(m => m.id === chat.memberId);
-      
-      // Create a proper chat entry and add to chatList
-      // Use memberId as the chat id for consistency
-      const newChat = {
-        id: chat.memberId, // Use memberId as the unique identifier
-        memberId: chat.memberId,
-        name: chat.name,
-        logo: chat.logo,
-        dateOfBirth: member?.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
-        isBirthday: chat.isBirthday || false,
-        isArchived: false,
-        markedUnread: false,
-        messages: []
-      };
-      setChatList(prevList => [newChat, ...prevList]);
-      setSelectedChat(newChat);
-      setMessages([]);
-    } else {
-      // Mark messages as read when opening chat and clear markedUnread flag
-      const updatedMessages = (chat.messages || []).map(msg => ({
-        ...msg,
-        status: msg.sender !== "You" ? "read" : msg.status
-      }));
-      
-      const updatedChat = { ...chat, messages: updatedMessages, markedUnread: false };
-      setSelectedChat(updatedChat);
-      setMessages(updatedMessages);
-      
-      // Update the appropriate chat list based on type
-      if (chatType === "member") {
-        setChatList(prevList => prevList.map(c => 
-          c.id === chat.id ? updatedChat : c
-        ));
-      } else if (chatType === "company") {
-        // Update company or staff chat state
-        if (chat.id === 100 || chat.isCompany) {
-          setCompanyChatListState(prevList => prevList.map(c => 
-            c.id === chat.id ? updatedChat : c
-          ));
-        } else {
-          setStaffChatListState(prevList => prevList.map(c => 
-            c.id === chat.id ? updatedChat : c
-          ));
-        }
-      }
-    }
-    setIsMessagesOpen(false);
-    setActiveScreen("chat");
-    setReplyingTo(null);
-    setSearchMember(""); // Clear search after selection
   }
 
   const handleCancelAppointment = (id) => {
@@ -2090,8 +1865,6 @@ export default function Communications() {
     alert("Settings saved successfully!")
   }
 
-
-
   const handleAddBillingPeriod = () => {
     if (newBillingPeriod.trim() && selectedChat) {
       const updatedContingent = { ...memberContingentData }
@@ -2109,9 +1882,7 @@ export default function Communications() {
   const handleSearchMemberForEmail = (query) => {
     if (!query) return []
     const q = query.toLowerCase()
-    
-    // Search in members
-    const memberResults = membersData.filter(m => 
+    const memberResults = membersData.filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -2125,9 +1896,7 @@ export default function Communications() {
       image: m.image || m.avatar,
       type: 'member'
     }))
-    
-    // Search in staff (staffData uses 'img' not 'image')
-    const staffResults = staffData.filter(s => 
+    const staffResults = staffData.filter(s =>
       s.firstName?.toLowerCase().includes(q) ||
       s.lastName?.toLowerCase().includes(q) ||
       s.email?.toLowerCase().includes(q) ||
@@ -2138,10 +1907,9 @@ export default function Communications() {
       name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
       firstName: s.firstName,
       lastName: s.lastName,
-      image: s.img, // staffData uses 'img' field
+      image: s.img,
       type: 'staff'
     }))
-    
     return [...memberResults, ...staffResults].slice(0, 10)
   }
 
@@ -2156,7 +1924,6 @@ export default function Communications() {
 
   const getSortedChatList = () => {
     const list = getCombinedChatList();
-    // Filter out archived chats
     const activeChats = list.filter(chat => {
       if (chat.type === 'separator') return true;
       return !archivedChats.some(archived => archived.id === chat.id);
@@ -2164,7 +1931,6 @@ export default function Communications() {
     return activeChats;
   };
 
-  // Get pinned and unpinned chats separately
   const getPinnedAndUnpinnedChats = () => {
     const allChats = getSortedChatList();
     const pinned = allChats.filter(chat => chat.type !== 'separator' && pinnedChats.has(chat.id));
@@ -2174,55 +1940,41 @@ export default function Communications() {
 
   const getCombinedChatList = () => {
     if (chatType === "company") {
-      // For company/studio tab, use state-managed lists
-      const allStaffChats = staffData.map(staff => {
-        // Check if there's an existing chat for this staff member in state
-        const existingChat = staffChatListState.find(chat => chat.staffId === staff.id);
-        if (existingChat) {
-          return {
-            ...existingChat,
-            dateOfBirth: staff.dateOfBirth || existingChat.dateOfBirth || null,
-            isBirthday: checkIfBirthday(staff.dateOfBirth) || existingChat.isBirthday
-          };
+      // For staff view - use API data
+      const studioMemberChats = chatList.filter(chat => chat.chatType === "studio-member");
+      const oneToOneChats = chatList.filter(chat => chat.chatType === "one-to-one");
+      const groupChats = chatList.filter(chat => chat.chatType === "group");
+
+      const result = [];
+      if (studioMemberChats.length > 0) result.push(...studioMemberChats);
+      if (oneToOneChats.length > 0) {
+        if (studioMemberChats.length > 0) result.push({ id: "separator", type: "separator" });
+        result.push(...oneToOneChats);
+      }
+      if (groupChats.length > 0) {
+        if (studioMemberChats.length > 0 || oneToOneChats.length > 0) {
+          result.push({ id: "group-separator", type: "separator" });
         }
-        // Create a new empty chat entry for staff without existing chat
-        return {
-          id: 100 + staff.id,
-          staffId: staff.id,
-          name: `${staff.firstName} ${staff.lastName}`,
-          logo: staff.image || null,
-          dateOfBirth: staff.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
-          isBirthday: checkIfBirthday(staff.dateOfBirth),
-          isArchived: false,
-          markedUnread: false,
-          messages: []
-        };
-      });
-      return [...companyChatListState, { id: "separator", type: "separator" }, ...allStaffChats];
+        result.push(...groupChats);
+      }
+      return result;
     } else if (chatType === "member") {
-      // For member tab, use chatList which has the updated read/unread states
-      return chatList;
+      return chatList.filter(chat => chat.chatType === "studio-member");
     }
-  
-    return staffChatListState;
+    return chatList;
   };
 
-  // Extended search that includes members/staff not in chat list
   const getSearchResults = () => {
     if (!searchMember) return [];
-    
     const lowerQuery = searchMember.toLowerCase();
     const existingChats = getCombinedChatList().filter((chat) =>
       chat.type !== 'separator' && chat.name?.toLowerCase().includes(lowerQuery)
     );
-    
     if (chatType === "member") {
-      // Also search for members who don't have a chat yet
-      // Use memberId for consistency (id === memberId for member chats)
       const existingMemberIds = chatList.map(chat => chat.memberId);
       const newMemberChats = membersData
-        .filter(member => 
-          member.isActive && 
+        .filter(member =>
+          member.isActive &&
           !member.isArchived &&
           !existingMemberIds.includes(member.id) &&
           `${member.firstName} ${member.lastName}`.toLowerCase().includes(lowerQuery)
@@ -2232,25 +1984,29 @@ export default function Communications() {
           memberId: member.id,
           name: `${member.firstName} ${member.lastName}`,
           logo: member.image || null,
-          dateOfBirth: member.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
+          dateOfBirth: member.dateOfBirth || null,
           isBirthday: checkIfBirthday(member.dateOfBirth),
           isArchived: false,
-          isNewChat: true, // Flag to indicate this is a new chat
+          isNewChat: true,
           messages: []
         }));
-      
       return [...existingChats, ...newMemberChats];
     }
-    
     return existingChats;
+  };
+
+  const checkIfBirthday = (dateOfBirth) => {
+    if (!dateOfBirth) return false;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    return today.getMonth() === birthDate.getMonth() &&
+      today.getDate() === birthDate.getDate();
   };
 
   const searchResults = getSearchResults();
 
-  // Calculate total unread messages for each tab
   const getTotalUnreadCount = (type) => {
     if (type === "member") {
-      // Count chats with unread messages OR manually marked as unread
       return chatList.reduce((total, chat) => {
         const unreadCount = getUnreadCount(chat);
         if (unreadCount > 0) return total + unreadCount;
@@ -2258,7 +2014,6 @@ export default function Communications() {
         return total;
       }, 0);
     } else if (type === "company") {
-      // Count unread messages from company + staff chats
       const companyUnread = companyChatListState.reduce((total, chat) => {
         const unreadCount = getUnreadCount(chat);
         if (unreadCount > 0) return total + unreadCount;
@@ -2283,7 +2038,6 @@ export default function Communications() {
         typesSet.add(app.type);
       }
     });
-
     const typesArray = Array.from(typesSet).map(type => {
       const firstApp = appointmentsNew.find(app => app.type === type);
       return {
@@ -2292,7 +2046,6 @@ export default function Communications() {
         duration: 30
       };
     });
-
     return typesArray;
   };
 
@@ -2325,16 +2078,14 @@ export default function Communications() {
     return periods
   }
 
-  // Use appointmentTypesData from app-states.jsx instead of generating from appointments
   const appointmentTypes = appointmentTypesData;
 
-  // Search members function for CreateAppointmentModal
   const searchMembersMain = (query) => {
     if (!query || query.trim() === "") return [];
     const lowerQuery = query.toLowerCase();
     return membersData
-      .filter(member => 
-        member.isActive && 
+      .filter(member =>
+        member.isActive &&
         !member.isArchived &&
         (
           member.firstName?.toLowerCase().includes(lowerQuery) ||
@@ -2357,16 +2108,13 @@ export default function Communications() {
       }));
   };
 
-  // Get relations count for a member
   const getRelationsCount = (memberId) => {
     const relations = memberRelationsState[memberId];
     if (!relations) return 0;
     return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0);
   };
 
-  // Handle edit member for special notes and relations in CreateAppointmentModal
   const handleEditMember = (member, tab = "note") => {
-    // Find the full member data from membersData
     const fullMember = membersData.find(m => m.id === member.id) || member;
     const memberData = {
       ...fullMember,
@@ -2385,18 +2133,14 @@ export default function Communications() {
     setShowEditMemberModal(true);
   };
 
-  // Handle input change for edit form
   const handleEditInputChange = (field, value) => {
     setEditFormMain(prev => ({ ...prev, [field]: value }));
   };
 
-  // Handle save from EditMemberModal
   const handleSaveEditedMember = () => {
-    // Update members data (in a real app, this would be an API call)
-    setMembers(prevMembers => 
+    setMembers(prevMembers =>
       prevMembers.map(m => m.id === editingMember.id ? { ...m, ...editFormMain } : m)
     );
-    // Update relations
     setMemberRelationsState(prev => ({
       ...prev,
       [editingMember.id]: editingRelationsMain
@@ -2405,10 +2149,8 @@ export default function Communications() {
     setEditingMember(null);
   };
 
-  // Handle add relation
   const handleAddRelationMain = () => {
     if (!newRelationMain.category || !newRelationMain.member) return;
-    
     setEditingRelationsMain(prev => {
       const category = newRelationMain.category;
       const existingRelations = prev[category] || [];
@@ -2420,7 +2162,6 @@ export default function Communications() {
     setNewRelationMain({ category: "", member: null });
   };
 
-  // Handle delete relation
   const handleDeleteRelationMain = (category, memberId) => {
     setEditingRelationsMain(prev => ({
       ...prev,
@@ -2428,47 +2169,37 @@ export default function Communications() {
     }));
   };
 
-  // Handle archive member (placeholder)
   const handleArchiveMemberMain = () => {
-    // Placeholder - implement if needed
     console.log("Archive member:", editingMember?.id);
   };
 
-  // Handle unarchive member (placeholder)
   const handleUnarchiveMemberMain = () => {
-    // Placeholder - implement if needed
     console.log("Unarchive member:", editingMember?.id);
   };
 
   // ==========================================
-  // CHAT ITEM COMPONENT - with orange stripe for selected
+  // CHAT ITEM COMPONENT
   // ==========================================
   const ChatItem = ({ chat, isSelected, onSelect, onMenuClick, index, totalChats }) => {
     const chatItemRef = useRef(null);
     const isCompanyChat = chatType === "company";
-    // Staff chats are in the company/studio tab but NOT the main studio group (ID 100)
     const isStaffChat = chatType === "company" && chat.id !== 100;
-    
-    // Parse name for InitialsAvatar
+
     const nameParts = chat.name?.split(" ") || [];
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
-    
-    // Determine if we should show image or InitialsAvatar
+
     const showImage = (chat.id === 100 && chat.logo) || (chat.logo && chat.logo !== DefaultAvatar && !chat.logo?.includes('placeholder'));
-    
-    // Check if menu should open upwards (for items in lower half of list)
+
     const shouldOpenUpward = () => {
       if (chatItemRef.current) {
         const rect = chatItemRef.current.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
-        // If the bottom of the item is in the lower 40% of viewport, open upward
         return rect.bottom > viewportHeight * 0.6;
       }
-      // Fallback: if index is more than 60% of total, open upward
       return index >= totalChats * 0.6;
     };
-    
+
     return (
       <div
         ref={chatItemRef}
@@ -2476,13 +2207,12 @@ export default function Communications() {
         className={`
           relative flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none
           transition-all duration-200 group border-b border-border
-          ${isSelected 
-            ? "bg-surface-card border-l-2 border-l-primary" 
+          ${isSelected
+            ? "bg-surface-card border-l-2 border-l-primary"
             : "hover:bg-surface-card border-l-2 border-l-transparent"
           }
         `}
       >
-        {/* Avatar */}
         <div className="relative flex-shrink-0">
           {showImage ? (
             <img
@@ -2499,7 +2229,6 @@ export default function Communications() {
               }}
             />
           ) : chat.id === 100 ? (
-            /* Special Studio Avatar - Use DefaultAvatar image */
             <img
               src={chat.logo || DefaultAvatar}
               alt="Studio"
@@ -2517,7 +2246,7 @@ export default function Communications() {
               }}
               className="cursor-pointer"
             >
-              <InitialsAvatar 
+              <InitialsAvatar
                 firstName={firstName}
                 lastName={lastName}
                 size="lg"
@@ -2525,8 +2254,7 @@ export default function Communications() {
               />
             </div>
           )}
-          {/* Birthday Badge */}
-          <BirthdayBadge 
+          <BirthdayBadge
             show={chat.isBirthday}
             dateOfBirth={chat.dateOfBirth}
             size="md"
@@ -2534,9 +2262,7 @@ export default function Communications() {
           />
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Row 1: Name + New Chat Badge */}
           <div className="flex items-center gap-2">
             <span className={`font-medium truncate ${isSelected ? 'text-primary' : 'text-content-primary'}`}>
               {chat.name}
@@ -2545,42 +2271,26 @@ export default function Communications() {
               <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">New</span>
             )}
           </div>
-          
-          {/* Row 2: Message Preview - dynamically computed from messages */}
           <p className="text-sm text-content-muted truncate mt-0.5">
-            {getLastMessageContent(chat)}
+            {chat.lastMessage || "No messages yet"}
           </p>
-          
-          {/* Row 3: Time - dynamically computed from messages */}
           <div className="flex items-center gap-1 text-content-faint mt-1.5">
             <Clock size={12} />
-            <span className="text-xs">{getLastMessageTime(chat) || "No messages"}</span>
+            <span className="text-xs">{chat.updatedAt ? new Date(chat.updatedAt).toLocaleTimeString() : "No messages"}</span>
           </div>
         </div>
 
-        {/* Right side: Icons stacked vertically - positioned to align with message preview */}
         <div className="flex flex-col items-center gap-1 flex-shrink-0 w-[24px] mt-1">
-          {/* Unread indicator - shows count or dot based on state */}
           <div className="h-[18px] flex items-center justify-center">
-            {getUnreadCount(chat) > 0 ? (
-              // Real unread messages - show count
-              <span className="bg-primary text-white text-[10px] rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center font-medium">
-                {getUnreadCount(chat)}
-              </span>
-            ) : chat.markedUnread ? (
-              // Manually marked as unread - show dot without number
+            {chat.markedUnread ? (
               <span className="bg-primary rounded-full h-[10px] w-[10px]" />
             ) : (
-              <span className="w-[18px]" /> 
+              <span className="w-[18px]" />
             )}
           </div>
-          
-          {/* Checkmarks - dynamically computed from last message status */}
           <div className="w-[18px] h-[18px] flex items-center justify-center">
-            {getMessageStatusIcon(getLastMessageStatus(chat))}
+            {/* Status icon placeholder */}
           </div>
-          
-          {/* Horizontal 3-dot menu - available for all chats */}
           <div className="h-[18px] flex items-center justify-center">
             <button
               onClick={(e) => {
@@ -2596,28 +2306,23 @@ export default function Communications() {
           </div>
         </div>
 
-        {/* Chat Menu Dropdown */}
         {showChatMenu === chat.id && (
           <div
             ref={chatMenuRef}
-            className={`absolute right-4 w-48 bg-surface-base border border-border rounded-lg shadow-lg py-1 z-20 ${
-              shouldOpenUpward() ? 'bottom-16' : 'top-16'
-            }`}
+            className={`absolute right-4 w-48 bg-surface-base border border-border rounded-lg shadow-lg py-1 z-20 ${shouldOpenUpward() ? 'bottom-16' : 'top-16'
+              }`}
           >
-            {/* Mark as read/unread - available for all chat types */}
             <button
               className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
               onClick={(e) => {
-                const hasUnread = getUnreadCount(chat) > 0 || chat.markedUnread;
+                const hasUnread = chat.markedUnread;
                 hasUnread ? handleMarkChatAsRead(chat.id, e, isCompanyChat) : handleMarkChatAsUnread(chat.id, e, isCompanyChat);
               }}
             >
-              {(getUnreadCount(chat) > 0 || chat.markedUnread) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              Mark as {(getUnreadCount(chat) > 0 || chat.markedUnread) ? "read" : "unread"}
+              {chat.markedUnread ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              Mark as {chat.markedUnread ? "read" : "unread"}
             </button>
-            
-            {/* Additional options - only for member chats */}
-            {/* Member-specific actions */}
+
             {!isCompanyChat && !isStaffChat && (
               <>
                 <button
@@ -2643,7 +2348,6 @@ export default function Communications() {
                 </button>
               </>
             )}
-            {/* Staff-specific actions */}
             {isStaffChat && (
               <button
                 className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
@@ -2659,23 +2363,37 @@ export default function Communications() {
     );
   };
 
+  // ==========================================
+  // RENDER
+  // ==========================================
   return (
     <div className="relative flex h-[92vh] max-h-[92vh] bg-surface-base text-content-secondary rounded-3xl overflow-hidden">
       <ToastContainer />
 
-      {/* Chat List Sidebar - Fixed height container */}
+      {/* Connection Status Bar */}
+      {!isConnected && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500/90 text-black text-xs text-center py-1">
+          ⚡ Connecting to chat server...
+        </div>
+      )}
+
+      {apiError && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-xs px-3 py-1 rounded-full">
+          Error: {apiError}
+        </div>
+      )}
+
+      {/* Chat List Sidebar */}
       <div
         className={`fixed md:relative inset-y-0 left-0 md:w-[400px] w-full md:rounded-none rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           } bg-surface-base z-30 select-none md:top-0 top-[52px] md:h-[92vh] h-[calc(100vh-52px)] md:border-r md:border-border`}
         style={{ display: 'flex', flexDirection: 'column' }}
       >
-        {/* Header Section - Fixed, doesn't scroll */}
         <div className="flex-shrink-0 p-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-content-primary">Messenger</h1>
           </div>
 
-          {/* Tabs - Equal width, full width */}
           <div className="mb-4">
             <div className="flex bg-surface-card rounded-xl border border-border p-1 w-full overflow-hidden">
               <button
@@ -2692,9 +2410,8 @@ export default function Communications() {
                 <User size={16} className="mr-2" />
                 Member
                 {getTotalUnreadCount("member") > 0 && (
-                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${
-                    chatType === "member" && activeScreen !== "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
-                  }`}>
+                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${chatType === "member" && activeScreen !== "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
+                    }`}>
                     {getTotalUnreadCount("member")}
                   </span>
                 )}
@@ -2713,9 +2430,8 @@ export default function Communications() {
                 <Building2 size={16} className="mr-2" />
                 Studio
                 {getTotalUnreadCount("company") > 0 && (
-                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${
-                    chatType === "company" && activeScreen !== "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
-                  }`}>
+                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${chatType === "company" && activeScreen !== "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
+                    }`}>
                     {getTotalUnreadCount("company")}
                   </span>
                 )}
@@ -2727,9 +2443,8 @@ export default function Communications() {
                 <Mail size={16} className="mr-2" />
                 Email
                 {getTotalUnreadEmails() > 0 && (
-                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${
-                    activeScreen === "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
-                  }`}>
+                  <span className={`absolute top-0.5 right-0.5 text-[10px] rounded-full h-4 w-4 flex items-center justify-center ${activeScreen === "email-frontend" ? "bg-white text-primary" : "bg-primary text-white"
+                    }`}>
                     {getTotalUnreadEmails()}
                   </span>
                 )}
@@ -2737,7 +2452,6 @@ export default function Communications() {
             </div>
           </div>
 
-          {/* Search - Conditional based on screen */}
           {activeScreen !== "email-frontend" ? (
             <>
               <div className="relative mb-4">
@@ -2750,8 +2464,6 @@ export default function Communications() {
                   className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 border border-border focus:border-primary transition-colors"
                 />
               </div>
-
-              {/* Archive Button - Only for Member Chat */}
               {chatType === "member" && (
                 <button
                   onClick={() => setShowArchive(true)}
@@ -2764,7 +2476,6 @@ export default function Communications() {
             </>
           ) : (
             <>
-              {/* Email Search */}
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                 <input
@@ -2775,8 +2486,6 @@ export default function Communications() {
                   className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 border border-border focus:border-primary transition-colors"
                 />
               </div>
-
-              {/* Send Email Button */}
               <button
                 onClick={() => setShowEmailModal(true)}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-sm text-white font-medium transition-colors w-full mb-4"
@@ -2788,17 +2497,19 @@ export default function Communications() {
           )}
         </div>
 
-        {/* Content Area - Chat List OR Email Folders */}
         {activeScreen !== "email-frontend" ? (
-          /* Chat List - ONLY this area scrolls */
-          <div 
+          <div
             className="flex-1 overflow-y-auto custom-scrollbar"
             style={{ minHeight: 0 }}
             onWheel={(e) => e.stopPropagation()}
           >
             <div className="px-4 pb-24 space-y-2">
-              {searchMember && searchResults.length > 0
-                ? searchResults.map((chat, index) => (
+              {chatLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : searchMember && searchResults.length > 0 ? (
+                searchResults.map((chat, index) => (
                   chat.type !== "separator" && (
                     <ChatItem
                       key={`search-${chat.id}-${index}`}
@@ -2811,66 +2522,60 @@ export default function Communications() {
                     />
                   )
                 ))
-                : (() => {
-                  const { pinned, unpinned } = getPinnedAndUnpinnedChats();
-                  return (
-                    <>
-                      {/* Pinned Section */}
-                      {pinned.length > 0 && (
-                        <>
-                          <div className="flex items-center gap-2 px-2 py-1">
-                            <Pin size={12} className="text-amber-500 fill-amber-500" />
-                            <span className="text-xs text-amber-500 font-medium">Pinned</span>
-                            <div className="flex-1 h-px bg-amber-500/30"></div>
-                          </div>
-                          {pinned.map((chat, index) => (
-                            <ChatItem
-                              key={`pinned-${chat.id}-${index}`}
-                              chat={chat}
-                              isSelected={selectedChat?.id === chat.id}
-                              onSelect={handleChatSelect}
-                              onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
-                              index={index}
-                              totalChats={pinned.length + unpinned.length}
-                            />
-                          ))}
-                          {/* Divider between pinned and unpinned */}
-                          <div className="flex items-center px-2 py-1 mt-2">
-                            <div className="flex-1 h-px bg-surface-button"></div>
-                          </div>
-                        </>
-                      )}
-                      
-                      {/* Unpinned Chats */}
-                      {unpinned.map((chat, index) => {
-                        if (chat.type === "separator") {
-                          return (
-                            <div key="separator" className="border-t border-border my-2">
-                              <div className="text-xs text-content-faint text-center py-2">Staff Chats</div>
-                            </div>
-                          )
-                        }
-
-                        return (
+              ) : (() => {
+                const { pinned, unpinned } = getPinnedAndUnpinnedChats();
+                return (
+                  <>
+                    {pinned.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-2 px-2 py-1">
+                          <Pin size={12} className="text-amber-500 fill-amber-500" />
+                          <span className="text-xs text-amber-500 font-medium">Pinned</span>
+                          <div className="flex-1 h-px bg-amber-500/30"></div>
+                        </div>
+                        {pinned.map((chat, index) => (
                           <ChatItem
-                            key={`${chatType}-${chat.id}-${index}`}
+                            key={`pinned-${chat.id}-${index}`}
                             chat={chat}
                             isSelected={selectedChat?.id === chat.id}
                             onSelect={handleChatSelect}
                             onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
-                            index={pinned.length + index}
+                            index={index}
                             totalChats={pinned.length + unpinned.length}
                           />
-                        );
-                      })}
-                    </>
-                  );
-                })()}
+                        ))}
+                        <div className="flex items-center px-2 py-1 mt-2">
+                          <div className="flex-1 h-px bg-surface-button"></div>
+                        </div>
+                      </>
+                    )}
+                    {unpinned.map((chat, index) => {
+                      if (chat.type === "separator") {
+                        return (
+                          <div key="separator" className="border-t border-border my-2">
+                            <div className="text-xs text-content-faint text-center py-2">Staff Chats</div>
+                          </div>
+                        )
+                      }
+                      return (
+                        <ChatItem
+                          key={`${chatType}-${chat.id}-${index}`}
+                          chat={chat}
+                          isSelected={selectedChat?.id === chat.id}
+                          onSelect={handleChatSelect}
+                          onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                          index={pinned.length + index}
+                          totalChats={pinned.length + unpinned.length}
+                        />
+                      );
+                    })}
+                  </>
+                );
+              })()}
             </div>
           </div>
         ) : (
-          /* Email Folders List */
-          <div 
+          <div
             className="flex-1 overflow-y-auto custom-scrollbar select-none"
             style={{ minHeight: 0 }}
           >
@@ -2880,7 +2585,7 @@ export default function Communications() {
                 const totalCount = getEmailFolderCount(folder.id)
                 const unreadCount = getUnreadCountForFolder(folder.id)
                 const isActive = emailTab === folder.id
-                
+
                 return (
                   <button
                     key={folder.id}
@@ -2890,9 +2595,7 @@ export default function Communications() {
                       setSelectedEmailIds([])
                     }}
                     onDragOver={(e) => {
-                      // Don't allow dropping on draft, error, or trash folders
                       if (folder.id === 'draft' || folder.id === 'error' || folder.id === 'trash') return
-                      // Don't allow dragging from draft, error, or trash folders
                       if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') return
                       e.preventDefault()
                       e.currentTarget.classList.add('bg-surface-button-hover')
@@ -2903,20 +2606,17 @@ export default function Communications() {
                     onDrop={(e) => {
                       e.preventDefault()
                       e.currentTarget.classList.remove('bg-surface-button-hover')
-                      // Don't allow dropping on draft, error, or trash folders
                       if (folder.id === 'draft' || folder.id === 'error' || folder.id === 'trash') return
-                      // Don't allow dragging from draft, error, or trash folders
                       if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') return
                       const emailId = e.dataTransfer.getData('emailId')
                       if (emailId && folder.id !== emailTab) {
                         handleMoveEmailToFolder(emailId, folder.id)
                       }
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors border-l-2 ${
-                      isActive 
-                        ? "bg-surface-card border-l-primary text-content-primary" 
-                        : "border-l-transparent text-content-muted hover:bg-surface-hover hover:text-content-primary"
-                    }`}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors border-l-2 ${isActive
+                      ? "bg-surface-card border-l-primary text-content-primary"
+                      : "border-l-transparent text-content-muted hover:bg-surface-hover hover:text-content-primary"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon size={18} className={isActive ? "text-primary" : ""} />
@@ -2936,7 +2636,6 @@ export default function Communications() {
           </div>
         )}
 
-        {/* Floating Broadcast Button - Desktop only, within sidebar */}
         <div className="hidden md:block absolute bottom-6 right-6 z-50">
           <button
             onClick={() => setShowBroadcastModal(true)}
@@ -2947,7 +2646,7 @@ export default function Communications() {
         </div>
       </div>
 
-      {/* Main Chat Area - Desktop only, Mobile uses Fullscreen Overlay */}
+      {/* Main Chat Area - Desktop */}
       <div className="hidden md:flex flex-1 flex-col min-w-0 h-[92vh] max-h-[92vh] overflow-hidden">
         {!selectedChat && activeScreen === "chat" && (
           <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -2965,11 +2664,9 @@ export default function Communications() {
 
         {selectedChat && activeScreen === "chat" && (
           <div className="flex flex-col h-full overflow-hidden">
-            {/* Chat Header */}
             <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0 select-none">
               <div className="flex items-center gap-3">
-                {/* Clickable Profile Container */}
-                <div 
+                <div
                   className={`flex items-center gap-3 px-3 py-2 bg-surface-dark rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
                   onClick={(e) => {
                     const isStaffChat = chatType === "company" && selectedChat.id !== 100;
@@ -2981,7 +2678,6 @@ export default function Communications() {
                   }}
                 >
                   <div className="relative">
-                    {/* Show image for studio chat or real uploaded images */}
                     {selectedChat.id === 100 ? (
                       <img
                         src={selectedChat.logo || DefaultAvatar}
@@ -2995,14 +2691,14 @@ export default function Communications() {
                         className="w-11 h-11 rounded-xl object-cover"
                       />
                     ) : (
-                      <InitialsAvatar 
+                      <InitialsAvatar
                         firstName={selectedChat.name?.split(" ")[0] || ""}
                         lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""}
                         size="md"
                         isStaff={chatType === "company" && selectedChat.id !== 100}
                       />
                     )}
-                    <BirthdayBadge 
+                    <BirthdayBadge
                       show={selectedChat.isBirthday}
                       dateOfBirth={selectedChat.dateOfBirth}
                       size="md"
@@ -3026,255 +2722,146 @@ export default function Communications() {
               </div>
             </div>
 
-            {/* Messages Area - Scrollable, fills remaining space */}
             <div
               ref={messagesContainerRef}
               className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
               style={{ minHeight: 0 }}
             >
-              {messages.map((message) => (
-                <div key={message.id} className={`flex items-start gap-2 ${message.sender === "You" ? "justify-end" : ""} group`}>
-                  
-                  {/* Menu button - LEFT side for own messages */}
-                  {message.sender === "You" && !message.isDeleted && (
-                    <div className="relative flex-shrink-0">
-                      <button
-                        onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                        className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
-                      >
-                        <MoreVertical size={18} className="text-content-muted" />
-                      </button>
-                      
-                      {/* Menu for own messages - appears to the right of button */}
-                      {activeMessageMenu === message.id && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-[1099]"
-                            onClick={() => setActiveMessageMenu(null)}
-                          />
-                          <div
-                            ref={messageMenuRef}
-                            className="absolute top-0 left-full ml-1 z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
-                          >
-                            <button
-                              onClick={() => handleReplyToMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
-                            >
-                              <Reply size={14} />
-                              Reply
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setShowReactionPicker(message.id);
-                                setActiveMessageMenu(null);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
-                            >
-                              <Smile size={14} />
-                              React
-                            </button>
-
-                            <button
-                              onClick={() => handleCopyMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
-                            >
-                              <Copy size={14} />
-                              Copy
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setShowDeleteConfirm(message.id);
-                                setActiveMessageMenu(null);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-red-400 flex items-center gap-2"
-                            >
-                              <Trash2 size={14} />
-                              Delete
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""} max-w-lg`}>
-                    {/* Sender name ONLY for main studio group chat (ID 100) */}
-                    {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
-                      <div className="text-xs text-content-faint font-medium mb-1">
-                        {message.sender}
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mb-4">
+                    <MessageCircle className="w-8 h-8 text-content-faint" />
+                  </div>
+                  <p className="text-content-faint">No messages yet</p>
+                  <p className="text-xs text-content-faint mt-1">Send a message to start the conversation</p>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <div key={message.id} className={`flex items-start gap-2 ${message.sender === "You" ? "justify-end" : ""} group`}>
+                    {message.sender === "You" && !message.isDeleted && (
+                      <div className="relative flex-shrink-0">
+                        <button
+                          onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
+                          className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
+                        >
+                          <MoreVertical size={18} className="text-content-muted" />
+                        </button>
+                        {activeMessageMenu === message.id && (
+                          <>
+                            <div className="fixed inset-0 z-[1099]" onClick={() => setActiveMessageMenu(null)} />
+                            <div ref={messageMenuRef} className="absolute top-0 left-full ml-1 z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border">
+                              <button onClick={() => handleReplyToMessage(message)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2">
+                                <Reply size={14} /> Reply
+                              </button>
+                              <button onClick={() => { setShowReactionPicker(message.id); setActiveMessageMenu(null); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2">
+                                <Smile size={14} /> React
+                              </button>
+                              <button onClick={() => handleCopyMessage(message)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2">
+                                <Copy size={14} /> Copy
+                              </button>
+                              <button onClick={() => { setShowDeleteConfirm(message.id); setActiveMessageMenu(null); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-red-400 flex items-center gap-2">
+                                <Trash2 size={14} /> Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
 
-                    <div
-                      className={`rounded-xl p-3 ${
-                        message.isDeleted
-                          ? "bg-surface-hover text-content-faint italic"
-                          : message.sender === "You"
-                            ? "bg-primary"
-                            : "bg-surface-dark"
-                      }`}
-                    >
-                      {/* Reply/Quote Preview */}
-                      {message.replyTo && !message.isDeleted && (
-                        <div
-                          className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${
-                            message.sender === 'You'
-                              ? "bg-primary/50 border-l-white"
-                              : "bg-surface-button border-l-primary"
-                          }`}
-                        >
-                          <p className={`font-semibold mb-0.5 text-xs ${message.sender === 'You' ? 'text-white' : 'text-content-primary'}`}>
-                            {message.replyTo.sender === 'You' ? 'You' : message.replyTo.sender}
-                          </p>
-                          <p className={`${message.sender === 'You' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
-                            {truncateText(message.replyTo.content, 50)}
-                          </p>
+                    <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""} max-w-lg`}>
+                      {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
+                        <div className="text-xs text-content-faint font-medium mb-1">{message.sender}</div>
+                      )}
+                      <div className={`rounded-xl p-3 ${message.isDeleted ? "bg-surface-hover text-content-faint italic" : message.sender === "You" ? "bg-primary" : "bg-surface-dark"}`}>
+                        {message.replyTo && !message.isDeleted && (
+                          <div className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${message.sender === 'You' ? "bg-primary/50 border-l-white" : "bg-surface-button border-l-primary"}`}>
+                            <p className={`font-semibold mb-0.5 text-xs ${message.sender === 'You' ? 'text-white' : 'text-content-primary'}`}>
+                              {message.replyTo.sender === 'You' ? 'You' : message.replyTo.sender}
+                            </p>
+                            <p className={`${message.sender === 'You' ? 'text-white/80' : 'text-content-muted'} text-xs`}>
+                              {truncateText(message.replyTo.content, 50)}
+                            </p>
+                          </div>
+                        )}
+                        <p className={`text-sm ${message.isDeleted ? "" : message.sender === "You" ? "text-white" : "text-content-primary"}`} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                          {message.isDeleted ? (
+                            <span className="flex items-center gap-1.5"><Trash2 size={14} /> The message was deleted.</span>
+                          ) : (
+                            <HighlightedText text={message.content} isUserMessage={message.sender === 'You'} />
+                          )}
+                        </p>
+                        <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${message.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"}`}>
+                          <span>{message.time || formatTimestamp(message.timestamp)}</span>
+                          {message.sender === "You" && !message.isDeleted && (
+                            <span className="ml-1">
+                              {message.status === "read" ? <CheckCheck className="w-3.5 h-3.5 text-white" /> :
+                                message.status === "delivered" ? <CheckCheck className="w-3.5 h-3.5" /> :
+                                  message.status === "sending" ? <div className="animate-pulse w-3.5 h-3.5 rounded-full bg-white/50" /> :
+                                    <Check className="w-3.5 h-3.5" />}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {messageReactions[message.id] && !message.isDeleted && (
+                        <div className={`flex gap-1 ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
+                          <button onClick={(e) => removeReaction(message.id, e)} className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors group/reaction">
+                            <span>{messageReactions[message.id]}</span>
+                            <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-content-muted">×</span>
+                          </button>
                         </div>
                       )}
-
-                      {/* Message Content */}
-                      <p 
-                        className={`text-sm ${message.isDeleted ? "" : message.sender === "You" ? "text-white" : "text-content-primary"}`}
-                        style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-                      >
-                        {message.isDeleted ? (
-                          <span className="flex items-center gap-1.5">
-                            <Trash2 size={14} />
-                            The message was deleted.
-                          </span>
-                        ) : (
-                          <HighlightedText text={message.content} isUserMessage={message.sender === 'You'} />
-                        )}
-                      </p>
-
-                      {/* Time and status */}
-                      <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${
-                        message.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"
-                      }`}>
-                        <span>{message.time || formatTimestamp(message.timestamp)}</span>
-                        {message.sender === "You" && !message.isDeleted && (
-                          <span className="ml-1">
-                            {message.status === "read" ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-white" />
-                            ) : message.status === "delivered" ? (
-                              <CheckCheck className="w-3.5 h-3.5" />
-                            ) : (
-                              <Check className="w-3.5 h-3.5" />
-                            )}
-                          </span>
-                        )}
-                      </div>
                     </div>
 
-                    {/* Reaction Display */}
-                    {messageReactions[message.id] && !message.isDeleted && (
-                      <div className={`flex gap-1 ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
+                    {message.sender !== "You" && !message.isDeleted && (
+                      <div className="relative flex-shrink-0">
                         <button
-                          onClick={(e) => removeReaction(message.id, e)}
-                          className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors group/reaction"
-                          title="Click to remove"
+                          onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
+                          className={`message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg ${selectedChat?.id === 100 ? "mt-7" : "mt-2"}`}
                         >
-                          <span>{messageReactions[message.id]}</span>
-                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-content-muted">ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢</span>
+                          <MoreVertical size={18} className="text-content-muted" />
                         </button>
+                        {activeMessageMenu === message.id && (
+                          <>
+                            <div className="fixed inset-0 z-[1099]" onClick={() => setActiveMessageMenu(null)} />
+                            <div ref={messageMenuRef} className="absolute top-0 right-full mr-1 z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border">
+                              <button onClick={() => handleReplyToMessage(message)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2">
+                                <Reply size={14} /> Reply
+                              </button>
+                              <button onClick={() => { setShowReactionPicker(message.id); setActiveMessageMenu(null); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2">
+                                <Smile size={14} /> React
+                              </button>
+                              <button onClick={() => handleCopyMessage(message)} className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2">
+                                <Copy size={14} /> Copy
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
-
-                  {/* Menu button - RIGHT side for received messages */}
-                  {message.sender !== "You" && !message.isDeleted && (
-                    <div className="relative flex-shrink-0">
-                      <button
-                        onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                        className={`message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg ${
-                          selectedChat?.id === 100 ? "mt-7" : "mt-2"
-                        }`}
-                      >
-                        <MoreVertical size={18} className="text-content-muted" />
-                      </button>
-                      
-                      {/* Menu for received messages - appears to the left of button */}
-                      {activeMessageMenu === message.id && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-[1099]"
-                            onClick={() => setActiveMessageMenu(null)}
-                          />
-                          <div
-                            ref={messageMenuRef}
-                            className="absolute top-0 right-full mr-1 z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
-                          >
-                            <button
-                              onClick={() => handleReplyToMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
-                            >
-                              <Reply size={14} />
-                              Reply
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setShowReactionPicker(message.id);
-                                setActiveMessageMenu(null);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
-                            >
-                              <Smile size={14} />
-                              React
-                            </button>
-
-                            <button
-                              onClick={() => handleCopyMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
-                            >
-                              <Copy size={14} />
-                              Copy
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))
+              )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Reply Preview Bar */}
             {replyingTo && (
               <div className="px-4 py-3 bg-surface-hover border-t border-border flex-shrink-0">
                 <div className="flex items-center gap-3 bg-surface-button rounded-xl p-3">
                   <div className="w-1 h-10 bg-primary rounded-full"></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-primary text-xs font-semibold">
-                      Replying to {replyingTo.sender === 'You' ? 'yourself' : replyingTo.sender}
-                    </p>
+                    <p className="text-primary text-xs font-semibold">Replying to {replyingTo.sender === 'You' ? 'yourself' : replyingTo.sender}</p>
                     <p className="text-content-secondary text-sm truncate">{truncateText(replyingTo.content, 50)}</p>
                   </div>
-                  <button
-                    onClick={cancelReply}
-                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
+                  <button onClick={cancelReply} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg"><X size={16} /></button>
                 </div>
               </div>
             )}
 
-            {/* Input Area - Fixed at bottom like WhatsApp */}
             <div className="px-4 pt-4 pb-6 border-t border-border flex-shrink-0 bg-surface-base relative">
               <div className="flex items-end gap-2 bg-surface-dark rounded-xl p-2">
-                <button
-                  className="p-2 hover:bg-surface-button rounded-full flex items-center justify-center flex-shrink-0"
-                  aria-label="Add emoji"
-                  onClick={() => setShowEmojiPicker(prev => !prev)}
-                  type="button"
-                >
+                <button className="p-2 hover:bg-surface-button rounded-full" onClick={() => setShowEmojiPicker(prev => !prev)}>
                   <Smile className="w-6 h-6 text-content-secondary" />
                 </button>
-
                 <textarea
                   ref={textareaRef}
                   placeholder="Type your message here..."
@@ -3294,466 +2881,108 @@ export default function Communications() {
                   onChange={(e) => setMessageText(e.target.value)}
                   style={{ height: '32px' }}
                 />
-
                 <button
-                  className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
-                    messageText.trim() 
-                      ? 'bg-primary hover:bg-primary-hover text-white' 
-                      : 'text-content-faint cursor-not-allowed'
-                  }`}
-                  aria-label="Send message"
+                  className={`p-2 rounded-lg transition-colors ${messageText.trim() && !sendingMessage ? 'bg-primary hover:bg-primary-hover text-white' : 'text-content-faint cursor-not-allowed'}`}
                   onClick={handleSendMessage}
-                  disabled={!messageText.trim()}
-                  type="button"
+                  disabled={!messageText.trim() || sendingMessage}
                 >
-                  <Send className="w-6 h-6" />
+                  {sendingMessage ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> : <Send className="w-6 h-6" />}
                 </button>
               </div>
-
-              {/* Desktop Emoji Picker */}
               {showEmojiPicker && (
-                <div 
-                  ref={emojiPickerRef}
-                  className="absolute bottom-full mb-2 left-4 z-[1020]"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
-                  <Picker
-                    data={data}
-                    onEmojiSelect={(emoji) => {
-                      setMessageText(prev => prev + emoji.native);
-                    }}
-                    theme="dark"
-                    previewPosition="none"
-                    skinTonePosition="none"
-                    perLine={8}
-                    maxFrequentRows={2}
-                  />
+                <div ref={emojiPickerRef} className="absolute bottom-full mb-2 left-4 z-[1020]" onMouseDown={(e) => e.stopPropagation()}>
+                  <Picker data={data} onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji.native)} theme="dark" previewPosition="none" skinTonePosition="none" perLine={8} maxFrequentRows={2} />
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Email View - Desktop */}
+        {/* Email View - Desktop (unchanged) */}
         {activeScreen === "email-frontend" && (
           <div className="flex h-full select-none">
-            {/* Email List - Fixed width, always visible separator */}
             <div className="w-[400px] flex-shrink-0 border-r border-border flex flex-col">
-              {/* Bulk Actions Header */}
               {(getPinnedEmails().length > 0 || getFilteredEmails(false).length > 0) && (
                 <div className="px-3 py-2 border-b border-border flex items-center gap-2">
-                  <button
-                    onClick={selectAllEmails}
-                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-hover rounded-lg transition-colors"
-                  >
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                      selectedEmailIds.length > 0 && selectedEmailIds.length === [...getPinnedEmails(), ...getFilteredEmails(false)].length
-                        ? "bg-primary border-primary"
-                        : selectedEmailIds.length > 0
-                        ? "bg-primary/50 border-primary"
-                        : "border-border"
-                    }`}>
-                      {selectedEmailIds.length > 0 && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+                  <button onClick={selectAllEmails} className="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-hover rounded-lg">
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${selectedEmailIds.length > 0 && selectedEmailIds.length === [...getPinnedEmails(), ...getFilteredEmails(false)].length ? "bg-primary border-primary" : selectedEmailIds.length > 0 ? "bg-primary/50 border-primary" : "border-border"}`}>
+                      {selectedEmailIds.length > 0 && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                     </div>
-                    <span className="text-xs text-content-muted">
-                      {selectedEmailIds.length > 0 ? `${selectedEmailIds.length} selected` : "Select all"}
-                    </span>
+                    <span className="text-xs text-content-muted">{selectedEmailIds.length > 0 ? `${selectedEmailIds.length} selected` : "Select all"}</span>
                   </button>
-                  
-                  {/* Bulk Action Buttons */}
                   {selectedEmailIds.length > 0 && (
                     <div className="flex items-center gap-1 ml-auto">
-                      {/* Read/Unread/Archive - only for inbox, sent, archive folders */}
                       {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
                         <>
-                          <button
-                            onClick={() => bulkMarkAsRead(true)}
-                            className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
-                            title="Mark as read"
-                          >
-                            <MailCheck size={16} />
-                          </button>
-                          <button
-                            onClick={() => bulkMarkAsRead(false)}
-                            className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
-                            title="Mark as unread"
-                          >
-                            <MailOpen size={16} />
-                          </button>
-                          <button
-                            onClick={bulkArchive}
-                            className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
-                            title="Archive"
-                          >
-                            <Archive size={16} />
-                          </button>
+                          <button onClick={() => bulkMarkAsRead(true)} className="p-1.5 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><MailCheck size={16} /></button>
+                          <button onClick={() => bulkMarkAsRead(false)} className="p-1.5 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><MailOpen size={16} /></button>
+                          <button onClick={bulkArchive} className="p-1.5 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><Archive size={16} /></button>
                         </>
                       )}
-                      <button
-                        onClick={bulkDelete}
-                        className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-red-400"
-                        title={emailTab === "trash" ? "Delete permanently" : "Delete"}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <button onClick={bulkDelete} className="p-1.5 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-red-400"><Trash2 size={16} /></button>
                     </div>
                   )}
                 </div>
               )}
-
               <div className="flex-1 overflow-y-auto">
                 {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                    <div className="w-16 h-16 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4">
-                      <Mail className="w-8 h-8 text-content-faint" />
-                    </div>
+                    <div className="w-16 h-16 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4"><Mail className="w-8 h-8 text-content-faint" /></div>
                     <p className="text-content-muted text-sm">No emails in this folder</p>
                   </div>
                 ) : (
                   <div className="px-2 py-2 select-none">
-                    {/* Pinned Emails Section */}
                     {getPinnedEmails().length > 0 && (
                       <>
-                        <div className="flex items-center gap-2 px-2 py-1">
-                          <Pin size={12} className="text-primary fill-primary" />
-                          <span className="text-xs text-primary font-medium">Pinned</span>
-                          <div className="flex-1 h-px bg-primary/30"></div>
-                        </div>
+                        <div className="flex items-center gap-2 px-2 py-1"><Pin size={12} className="text-primary fill-primary" /><span className="text-xs text-primary font-medium">Pinned</span><div className="flex-1 h-px bg-primary/30"></div></div>
                         {getPinnedEmails().map((email) => (
-                          <div
-                            key={email.id}
-                            draggable={emailTab !== 'draft' && emailTab !== 'error' && emailTab !== 'trash'}
-                            onDragStart={(e) => {
-                              // Prevent dragging from draft, error, or trash folders
-                              if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') {
-                                e.preventDefault()
-                                return
-                              }
-                              e.dataTransfer.setData('emailId', email.id.toString())
-                              e.currentTarget.classList.add('opacity-50')
-                            }}
-                            onDragEnd={(e) => {
-                              e.currentTarget.classList.remove('opacity-50')
-                            }}
-                            onClick={(e) => {
-                              if (e.target.closest('.email-checkbox')) return
-                              handleEmailItemClick(email)
-                            }}
-                            className={`
-                              relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
-                              transition-all duration-200 group border-b border-border
-                              ${selectedEmail?.id === email.id 
-                                ? "bg-surface-card border-l-2 border-l-primary" 
-                                : "hover:bg-surface-card border-l-2 border-l-transparent"
-                              }
-                            `}
-                          >
-                            {/* Checkbox */}
-                            <div 
-                              className="email-checkbox flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleEmailSelection(email.id)
-                              }}
-                            >
-                              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
-                                selectedEmailIds.includes(email.id)
-                                  ? "bg-primary border-primary"
-                                  : "border-border hover:border-border"
-                              }`}>
-                                {selectedEmailIds.includes(email.id) && (
-                                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Email Icon */}
-                            <div className="relative flex-shrink-0">
-                              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-hover">
-                                <Mail size={20} className="text-content-faint" />
-                              </div>
-                              {!email.isRead && (
-                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full" />
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2 mb-0.5">
-                                <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-primary' : 'text-content-primary'}`}>
-                                  {emailTab === "sent" ? email.recipient : email.sender}
-                                </span>
-                                <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>
-                                  {email.subject || "(No subject)"}
-                                </p>
-                                {email.status === "Draft" && (
-                                  <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>
-                                )}
-                              </div>
-                              <p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body)}</p>
-                              {email.attachments?.length > 0 && (
-                                <div className="flex items-center gap-1 mt-1.5 text-xs text-content-faint select-none">
-                                  <Paperclip size={12} />
-                                  <span>{email.attachments.length}</span>
-                                </div>
-                              )}
-                            </div>
+                          <div key={email.id} draggable={emailTab !== 'draft' && emailTab !== 'error' && emailTab !== 'trash'} onDragStart={(e) => { if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') { e.preventDefault(); return; } e.dataTransfer.setData('emailId', email.id.toString()); e.currentTarget.classList.add('opacity-50'); }} onDragEnd={(e) => e.currentTarget.classList.remove('opacity-50')} onClick={(e) => { if (e.target.closest('.email-checkbox')) return; handleEmailItemClick(email); }} className={`relative flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 group border-b border-border ${selectedEmail?.id === email.id ? "bg-surface-card border-l-2 border-l-primary" : "hover:bg-surface-card border-l-2 border-l-transparent"}`}>
+                            <div className="email-checkbox flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleEmailSelection(email.id); }}><div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${selectedEmailIds.includes(email.id) ? "bg-primary border-primary" : "border-border hover:border-border"}`}>{selectedEmailIds.includes(email.id) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}</div></div>
+                            <div className="relative flex-shrink-0"><div className="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-hover"><Mail size={20} className="text-content-faint" /></div>{!email.isRead && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full" />}</div>
+                            <div className="flex-1 min-w-0"><div className="flex items-center justify-between gap-2 mb-0.5"><span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-primary' : 'text-content-primary'}`}>{emailTab === "sent" ? email.recipient : email.sender}</span><span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span></div><div className="flex items-center gap-2"><p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>{email.subject || "(No subject)"}</p>{email.status === "Draft" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Draft</span>}</div><p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body)}</p>{email.attachments?.length > 0 && <div className="flex items-center gap-1 mt-1.5 text-xs text-content-faint"><Paperclip size={12} /><span>{email.attachments.length}</span></div>}</div>
                           </div>
                         ))}
-                        {/* Divider between pinned and unpinned */}
-                        {getFilteredEmails(false).length > 0 && (
-                          <div className="flex items-center px-2 py-1 mt-2">
-                            <div className="flex-1 h-px bg-surface-button"></div>
-                          </div>
-                        )}
+                        {getFilteredEmails(false).length > 0 && <div className="flex items-center px-2 py-1 mt-2"><div className="flex-1 h-px bg-surface-button"></div></div>}
                       </>
                     )}
-
-                    {/* Unpinned Emails */}
                     {getFilteredEmails(false).map((email) => (
-                      <div
-                        key={email.id}
-                        draggable={emailTab !== 'draft' && emailTab !== 'error' && emailTab !== 'trash'}
-                        onDragStart={(e) => {
-                          // Prevent dragging from draft, error, or trash folders
-                          if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') {
-                            e.preventDefault()
-                            return
-                          }
-                          e.dataTransfer.setData('emailId', email.id.toString())
-                          e.currentTarget.classList.add('opacity-50')
-                        }}
-                        onDragEnd={(e) => {
-                          e.currentTarget.classList.remove('opacity-50')
-                        }}
-                        onClick={(e) => {
-                          if (e.target.closest('.email-checkbox')) return
-                          handleEmailItemClick(email)
-                        }}
-                        className={`
-                          relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
-                          transition-all duration-200 group border-b border-border
-                          ${selectedEmail?.id === email.id 
-                            ? "bg-surface-card border-l-2 border-l-primary" 
-                            : "hover:bg-surface-card border-l-2 border-l-transparent"
-                          }
-                        `}
-                      >
-                        {/* Checkbox */}
-                        <div 
-                          className="email-checkbox flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleEmailSelection(email.id)
-                          }}
-                        >
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
-                            selectedEmailIds.includes(email.id)
-                              ? "bg-primary border-primary"
-                              : "border-border hover:border-border"
-                          }`}>
-                            {selectedEmailIds.includes(email.id) && (
-                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Email Icon */}
-                        <div className="relative flex-shrink-0">
-                          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-hover">
-                            <Mail size={20} className="text-content-faint" />
-                          </div>
-                          {!email.isRead && (
-                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full" />
-                          )}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-0.5">
-                            <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-primary' : 'text-content-primary'}`}>
-                              {emailTab === "sent" ? email.recipient : email.sender}
-                            </span>
-                            <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>
-                              {email.subject || "(No subject)"}
-                            </p>
-                            {email.status === "Draft" && (
-                              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body)}</p>
-                          {email.attachments?.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1.5 text-xs text-content-faint select-none">
-                              <Paperclip size={12} />
-                              <span>{email.attachments.length}</span>
-                            </div>
-                          )}
-                        </div>
+                      <div key={email.id} draggable={emailTab !== 'draft' && emailTab !== 'error' && emailTab !== 'trash'} onDragStart={(e) => { if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') { e.preventDefault(); return; } e.dataTransfer.setData('emailId', email.id.toString()); e.currentTarget.classList.add('opacity-50'); }} onDragEnd={(e) => e.currentTarget.classList.remove('opacity-50')} onClick={(e) => { if (e.target.closest('.email-checkbox')) return; handleEmailItemClick(email); }} className={`relative flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 group border-b border-border ${selectedEmail?.id === email.id ? "bg-surface-card border-l-2 border-l-primary" : "hover:bg-surface-card border-l-2 border-l-transparent"}`}>
+                        <div className="email-checkbox flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleEmailSelection(email.id); }}><div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${selectedEmailIds.includes(email.id) ? "bg-primary border-primary" : "border-border hover:border-border"}`}>{selectedEmailIds.includes(email.id) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}</div></div>
+                        <div className="relative flex-shrink-0"><div className="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-hover"><Mail size={20} className="text-content-faint" /></div>{!email.isRead && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full" />}</div>
+                        <div className="flex-1 min-w-0"><div className="flex items-center justify-between gap-2 mb-0.5"><span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-primary' : 'text-content-primary'}`}>{emailTab === "sent" ? email.recipient : email.sender}</span><span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span></div><div className="flex items-center gap-2"><p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>{email.subject || "(No subject)"}</p>{email.status === "Draft" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Draft</span>}</div><p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body)}</p>{email.attachments?.length > 0 && <div className="flex items-center gap-1 mt-1.5 text-xs text-content-faint"><Paperclip size={12} /><span>{email.attachments.length}</span></div>}</div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Email Detail View */}
             {selectedEmail ? (
               <div className="flex-1 flex flex-col min-w-0 select-text">
-                {/* Email Header */}
                 <div className="p-4 border-b border-border flex-shrink-0">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      {selectedEmail.isPinned && (
-                        <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg">
-                          <Pin size={12} />
-                          Pinned
-                        </span>
-                      )}
-                    </div>
+                    <div className="flex items-center gap-2">{selectedEmail.isPinned && <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg"><Pin size={12} />Pinned</span>}</div>
                     <div className="flex items-center gap-1">
-                      {/* Retry button for failed emails */}
-                      {emailTab === "error" && (
-                        <button
-                          onClick={() => retryFailedEmail(selectedEmail)}
-                          className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
-                          title="Retry Send"
-                        >
-                          <RefreshCw size={18} />
-                        </button>
-                      )}
-                      {/* Reply button - not for drafts, error, or trash */}
-                      {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
-                        <button
-                          onClick={() => handleEmailReply(selectedEmail)}
-                          className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
-                          title="Reply"
-                        >
-                          <Reply size={18} />
-                        </button>
-                      )}
-                      {/* Pin button - not for trash or error */}
-                      {emailTab !== "trash" && emailTab !== "error" && (
-                        <button
-                          onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
-                          className={`p-2 hover:bg-surface-button-hover rounded-lg transition-colors ${selectedEmail.isPinned ? "text-amber-500" : "text-content-muted hover:text-content-primary"}`}
-                          title={selectedEmail.isPinned ? "Unpin" : "Pin"}
-                        >
-                          {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
-                        </button>
-                      )}
-                      {/* Archive button - not for trash or error */}
-                      {emailTab !== "trash" && emailTab !== "error" && (
-                        <button
-                          onClick={() => {
-                            updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
-                            setSelectedEmail(null)
-                          }}
-                          className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
-                          title={selectedEmail.isArchived ? "Unarchive" : "Archive"}
-                        >
-                          <Archive size={18} />
-                        </button>
-                      )}
-                      {/* Delete button - permanent for trash only, move to trash for others including error */}
-                      <button
-                        onClick={() => {
-                          if (emailTab === "trash") {
-                            setEmailsToDelete([selectedEmail.id])
-                            setShowPermanentDeleteConfirm(true)
-                          } else {
-                            moveEmailToTrash(selectedEmail.id)
-                          }
-                        }}
-                        className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-red-400"
-                        title={emailTab === "trash" ? "Delete Permanently" : "Delete"}
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {emailTab === "error" && <button onClick={() => retryFailedEmail(selectedEmail)} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><RefreshCw size={18} /></button>}
+                      {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && <button onClick={() => handleEmailReply(selectedEmail)} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><Reply size={18} /></button>}
+                      {emailTab !== "trash" && emailTab !== "error" && <button onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })} className={`p-2 hover:bg-surface-button-hover rounded-lg ${selectedEmail.isPinned ? "text-amber-500" : "text-content-muted hover:text-content-primary"}`}>{selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}</button>}
+                      {emailTab !== "trash" && emailTab !== "error" && <button onClick={() => { updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived }); setSelectedEmail(null); }} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><Archive size={18} /></button>}
+                      <button onClick={() => { if (emailTab === "trash") { setEmailsToDelete([selectedEmail.id]); setShowPermanentDeleteConfirm(true); } else { moveEmailToTrash(selectedEmail.id); } }} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-red-400"><Trash2 size={18} /></button>
                     </div>
                   </div>
-
                   <h2 className="text-xl font-semibold text-content-primary mb-3">{selectedEmail.subject}</h2>
-                  
                   <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-content-primary font-medium">{selectedEmail.sender}</p>
-                      {selectedEmail.senderEmail && (
-                        <p className="text-xs text-content-faint">&lt;{selectedEmail.senderEmail}&gt;</p>
-                      )}
-                      <p className="text-xs text-content-faint mt-1">
-                        To: {selectedEmail.recipient}
-                        {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
-                        {selectedEmail.cc && <span> ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ CC: {selectedEmail.cc}</span>}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-content-faint">{new Date(selectedEmail.time).toLocaleString()}</p>
-                      {selectedEmail.status === "Failed" && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded mt-1 bg-red-500/20 text-red-400">
-                          Failed
-                        </span>
-                      )}
-                    </div>
+                    <div><p className="text-sm text-content-primary font-medium">{selectedEmail.sender}</p>{selectedEmail.senderEmail && <p className="text-xs text-content-faint">&lt;{selectedEmail.senderEmail}&gt;</p>}<p className="text-xs text-content-faint mt-1">To: {selectedEmail.recipient}{selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}{selectedEmail.cc && <span> • CC: {selectedEmail.cc}</span>}</p></div>
+                    <div className="text-right"><p className="text-xs text-content-faint">{new Date(selectedEmail.time).toLocaleString()}</p>{selectedEmail.status === "Failed" && <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded mt-1 bg-red-500/20 text-red-400">Failed</span>}</div>
                   </div>
                 </div>
-
-                {/* Email Body */}
                 <div className="flex-1 overflow-y-auto p-6">
-                  {/* Attachments - Show at top */}
-                  {selectedEmail.attachments?.length > 0 && (
-                    <div className="mb-6 pb-4 border-b border-border select-none">
-                      <p className="text-sm font-medium text-content-muted mb-3 flex items-center gap-2">
-                        <Paperclip size={16} />
-                        Attachments ({selectedEmail.attachments.length})
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedEmail.attachments.map((file, index) => (
-                          <div 
-                            key={index}
-                            className="flex items-center gap-2 px-3 py-2 bg-surface-hover rounded-lg border border-border hover:border-border cursor-pointer transition-colors"
-                          >
-                            <Paperclip size={14} className="text-content-faint" />
-                            <span className="text-sm text-content-secondary">{file.name || file}</span>
-                            {file.size && <span className="text-xs text-content-faint">({file.size})</span>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Email Content */}
-                  <div 
-                    className="max-w-none bg-white p-6 rounded-xl"
-                    style={{ 
-                      color: 'var(--color-content-primary)',
-                      fontSize: '14px',
-                      lineHeight: '1.5',
-                      fontFamily: 'Arial, sans-serif'
-                    }}
-                    dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
-                  />
+                  {selectedEmail.attachments?.length > 0 && <div className="mb-6 pb-4 border-b border-border select-none"><p className="text-sm font-medium text-content-muted mb-3 flex items-center gap-2"><Paperclip size={16} />Attachments ({selectedEmail.attachments.length})</p><div className="flex flex-wrap gap-2">{selectedEmail.attachments.map((file, index) => <div key={index} className="flex items-center gap-2 px-3 py-2 bg-surface-hover rounded-lg border border-border"><Paperclip size={14} className="text-content-faint" /><span className="text-sm text-content-secondary">{file.name || file}</span>{file.size && <span className="text-xs text-content-faint">({file.size})</span>}</div>)}</div></div>}
+                  <div className="max-w-none bg-white p-6 rounded-xl" style={{ color: 'var(--color-content-primary)', fontSize: '14px', lineHeight: '1.5', fontFamily: 'Arial, sans-serif' }} dangerouslySetInnerHTML={{ __html: selectedEmail.body }} />
                 </div>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center h-full text-center p-6">
-                <div className="w-24 h-24 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4">
-                  <Mail className="w-12 h-12 text-content-faint" />
-                </div>
+                <div className="w-24 h-24 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4"><Mail className="w-12 h-12 text-content-faint" /></div>
                 <h3 className="text-content-primary font-medium text-lg mb-2">No email selected</h3>
                 <p className="text-content-faint text-sm">Select an email from the list to view its contents</p>
               </div>
@@ -3762,65 +2991,12 @@ export default function Communications() {
         )}
       </div>
 
-      {/* Broadcast Modal - Overlay on top of everything */}
+      {/* Broadcast Modal */}
       {showBroadcastModal && (
         <div className="fixed inset-0 z-[100] hidden md:flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowBroadcastModal(false)} />
           <div className="relative z-10 w-full h-full max-w-[95vw] max-h-[95vh] m-4">
-            <BroadcastModal
-              onClose={() => setShowBroadcastModal(false)}
-              broadcastFolders={broadcastFolders}
-              preConfiguredMessages={preConfiguredMessages}
-              chatList={chatList}
-              archivedChats={archivedChats}
-              settings={settings}
-              onBroadcast={handleBroadcast}
-              onCreateMessage={(messageData) => {
-                const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
-                const newMessage = {
-                  id: newId,
-                  ...messageData
-                }
-                setPreConfiguredMessages([...preConfiguredMessages, newMessage])
-              }}
-              onUpdateMessage={(messageData) => {
-                setPreConfiguredMessages(prev =>
-                  prev.map(msg =>
-                    msg.id === messageData.id ? messageData : msg
-                  )
-                )
-              }}
-              onDeleteMessage={(messageId) => {
-                setPreConfiguredMessages(prev =>
-                  prev.filter(msg => msg.id !== messageId)
-                )
-              }}
-              onCreateFolder={(folderName) => {
-                const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1
-                setBroadcastFolders([...broadcastFolders, {
-                  id: newId,
-                  name: folderName,
-                  messages: []
-                }])
-              }}
-              onUpdateFolder={(folderId, folderName) => {
-                setBroadcastFolders(prev =>
-                  prev.map(folder =>
-                    folder.id === folderId
-                      ? { ...folder, name: folderName }
-                      : folder
-                  )
-                )
-              }}
-              onDeleteFolder={(folderId) => {
-                setBroadcastFolders(prev =>
-                  prev.filter(folder => folder.id !== folderId)
-                )
-                setPreConfiguredMessages(prev =>
-                  prev.filter(msg => msg.folderId !== folderId)
-                )
-              }}
-            />
+            <BroadcastModal onClose={() => setShowBroadcastModal(false)} broadcastFolders={broadcastFolders} preConfiguredMessages={preConfiguredMessages} chatList={chatList} archivedChats={archivedChats} settings={settings} onBroadcast={handleBroadcast} onCreateMessage={(messageData) => { const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1; setPreConfiguredMessages([...preConfiguredMessages, { id: newId, ...messageData }]); }} onUpdateMessage={(messageData) => setPreConfiguredMessages(prev => prev.map(msg => msg.id === messageData.id ? messageData : msg))} onDeleteMessage={(messageId) => setPreConfiguredMessages(prev => prev.filter(msg => msg.id !== messageId))} onCreateFolder={(folderName) => { const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1; setBroadcastFolders([...broadcastFolders, { id: newId, name: folderName, messages: [] }]); }} onUpdateFolder={(folderId, folderName) => setBroadcastFolders(prev => prev.map(folder => folder.id === folderId ? { ...folder, name: folderName } : folder))} onDeleteFolder={(folderId) => { setBroadcastFolders(prev => prev.filter(folder => folder.id !== folderId)); setPreConfiguredMessages(prev => prev.filter(msg => msg.folderId !== folderId)); }} />
           </div>
         </div>
       )}
@@ -3828,1031 +3004,146 @@ export default function Communications() {
       {/* Mobile Broadcast Modal */}
       {showBroadcastModal && (
         <div className="md:hidden fixed inset-0 bg-surface-base z-[100] flex flex-col overflow-auto">
-          <BroadcastModal
-            onClose={() => setShowBroadcastModal(false)}
-            broadcastFolders={broadcastFolders}
-            preConfiguredMessages={preConfiguredMessages}
-            chatList={chatList}
-            archivedChats={archivedChats}
-            settings={settings}
-            onBroadcast={handleBroadcast}
-            onCreateMessage={(messageData) => {
-              const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
-              const newMessage = {
-                id: newId,
-                ...messageData
-              }
-              setPreConfiguredMessages([...preConfiguredMessages, newMessage])
-            }}
-            onUpdateMessage={(messageData) => {
-              setPreConfiguredMessages(prev =>
-                prev.map(msg =>
-                  msg.id === messageData.id ? messageData : msg
-                )
-              )
-            }}
-            onDeleteMessage={(messageId) => {
-              setPreConfiguredMessages(prev =>
-                prev.filter(msg => msg.id !== messageId)
-              )
-            }}
-            onCreateFolder={(folderName) => {
-              const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1
-              setBroadcastFolders([...broadcastFolders, {
-                id: newId,
-                name: folderName,
-                messages: []
-              }])
-            }}
-            onUpdateFolder={(folderId, folderName) => {
-              setBroadcastFolders(prev =>
-                prev.map(folder =>
-                  folder.id === folderId
-                    ? { ...folder, name: folderName }
-                    : folder
-                )
-              )
-            }}
-            onDeleteFolder={(folderId) => {
-              setBroadcastFolders(prev =>
-                prev.filter(folder => folder.id !== folderId)
-              )
-              setPreConfiguredMessages(prev =>
-                prev.filter(msg => msg.folderId !== folderId)
-              )
-            }}
-          />
+          <BroadcastModal onClose={() => setShowBroadcastModal(false)} broadcastFolders={broadcastFolders} preConfiguredMessages={preConfiguredMessages} chatList={chatList} archivedChats={archivedChats} settings={settings} onBroadcast={handleBroadcast} onCreateMessage={(messageData) => { const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1; setPreConfiguredMessages([...preConfiguredMessages, { id: newId, ...messageData }]); }} onUpdateMessage={(messageData) => setPreConfiguredMessages(prev => prev.map(msg => msg.id === messageData.id ? messageData : msg))} onDeleteMessage={(messageId) => setPreConfiguredMessages(prev => prev.filter(msg => msg.id !== messageId))} onCreateFolder={(folderName) => { const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1; setBroadcastFolders([...broadcastFolders, { id: newId, name: folderName, messages: [] }]); }} onUpdateFolder={(folderId, folderName) => setBroadcastFolders(prev => prev.map(folder => folder.id === folderId ? { ...folder, name: folderName } : folder))} onDeleteFolder={(folderId) => { setBroadcastFolders(prev => prev.filter(folder => folder.id !== folderId)); setPreConfiguredMessages(prev => prev.filter(msg => msg.folderId !== folderId)); }} />
         </div>
       )}
 
-      {/* Mobile Fullscreen Chat Overlay - same as notes.jsx */}
+      {/* Mobile Fullscreen Chat Overlay */}
       {selectedChat && activeScreen === "chat" && (
         <div className="md:hidden fixed inset-x-0 top-0 bottom-0 bg-surface-base z-[60] flex flex-col">
-          {/* Mobile Chat Header with Back Button */}
           <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setSelectedChat(null);
-                  setMessages([]);
-                  setIsMessagesOpen(true);
-                }}
-                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg transition-colors"
-                aria-label="Back to chat list"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              {/* Profile Container */}
-              <div 
-                className={`flex items-center gap-2 px-2 py-1.5 bg-surface-dark rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
-                onClick={(e) => {
-                  const isStaffChat = chatType === "company" && selectedChat.id !== 100;
-                  if (isStaffChat) {
-                    handleViewStaff(selectedChat.id, e);
-                  } else if (chatType !== "company") {
-                    handleViewMember(selectedChat.id, e);
-                  }
-                }}
-              >
+              <button onClick={() => { setSelectedChat(null); setMessages([]); setIsMessagesOpen(true); }} className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+              <div className={`flex items-center gap-2 px-2 py-1.5 bg-surface-dark rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`} onClick={(e) => { const isStaffChat = chatType === "company" && selectedChat.id !== 100; if (isStaffChat) handleViewStaff(selectedChat.id, e); else if (chatType !== "company") handleViewMember(selectedChat.id, e); }}>
                 <div className="relative">
-                  {selectedChat.id === 100 ? (
-                    <img
-                      src={selectedChat.logo || DefaultAvatar}
-                      alt="Studio"
-                      className="w-8 h-8 rounded-lg object-cover"
-                    />
-                  ) : selectedChat.logo && selectedChat.logo !== DefaultAvatar && !selectedChat.logo?.includes('placeholder') ? (
-                    <img
-                      src={selectedChat.logo}
-                      alt="Current chat avatar"
-                      className="w-8 h-8 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <InitialsAvatar 
-                      firstName={selectedChat.name?.split(" ")[0] || ""}
-                      lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""}
-                      size="sm"
-                      isStaff={chatType === "company" && selectedChat.id !== 100}
-                    />
-                  )}
-                  <BirthdayBadge 
-                    show={selectedChat.isBirthday}
-                    dateOfBirth={selectedChat.dateOfBirth}
-                    size="sm"
-                    className="absolute -top-1 -right-1"
-                  />
+                  {selectedChat.id === 100 ? <img src={selectedChat.logo || DefaultAvatar} alt="Studio" className="w-8 h-8 rounded-lg object-cover" /> : selectedChat.logo && selectedChat.logo !== DefaultAvatar && !selectedChat.logo?.includes('placeholder') ? <img src={selectedChat.logo} alt="Avatar" className="w-8 h-8 rounded-lg object-cover" /> : <InitialsAvatar firstName={selectedChat.name?.split(" ")[0] || ""} lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""} size="sm" isStaff={chatType === "company" && selectedChat.id !== 100} />}
+                  <BirthdayBadge show={selectedChat.isBirthday} dateOfBirth={selectedChat.dateOfBirth} size="sm" className="absolute -top-1 -right-1" />
                 </div>
-                <span className="font-medium text-content-primary text-sm truncate max-w-[150px]">
-                  {selectedChat.name}
-                </span>
+                <span className="font-medium text-content-primary text-sm truncate max-w-[150px]">{selectedChat.name}</span>
               </div>
             </div>
-            
-            {/* Calendar Button */}
-            {chatType !== "company" && (
-              <button
-                className="text-primary hover:text-primary-hover p-1.5"
-                aria-label="View appointments"
-                onClick={handleCalendarClick}
-              >
-                <Calendar className="w-5 h-5" />
-              </button>
-            )}
+            {chatType !== "company" && <button className="text-primary hover:text-primary-hover p-1.5" onClick={handleCalendarClick}><Calendar className="w-5 h-5" /></button>}
           </div>
-
-          {/* Mobile Messages Area */}
-          <div
-            ref={mobileMessagesContainerRef}
-            className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3"
-            style={{ minHeight: 0 }}
-          >
-            {messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-content-faint">
-                <p>No messages yet</p>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === "You" ? "justify-end" : "justify-start"}`}>
-                  <div className={`flex flex-col ${message.sender === "You" ? "items-end" : "items-start"} max-w-[80%] min-w-0`}>
-                    {/* Sender name for group chats */}
-                    {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
-                      <span className="text-xs text-content-faint font-medium mb-1 px-1">
-                        {message.sender}
-                      </span>
-                    )}
-
-                    {/* Message bubble with Long Press */}
-                    <div
-                      className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${
-                        message.isDeleted
-                          ? "bg-surface-hover"
-                          : message.sender === "You"
-                            ? "bg-primary"
-                            : "bg-surface-button"
-                      }`}
-                      style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }}
-                      onTouchStart={(e) => handleTouchStart(message, e)}
-                      onTouchEnd={handleTouchEnd}
-                      onTouchMove={handleTouchMove}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        if (!message.isDeleted) {
-                          setMobileContextMenu({ messageId: message.id, message });
-                        }
-                      }}
-                    >
-                      {/* Reply preview */}
-                      {message.replyTo && !message.isDeleted && (
-                        <div 
-                          className={`mb-2 pl-2 border-l-2 ${
-                            message.sender === "You" 
-                              ? "border-white/40" 
-                              : "border-border"
-                          }`}
-                        >
-                          <p className={`text-xs font-medium ${message.sender === "You" ? "text-white/80" : "text-content-muted"}`}>
-                            {message.replyTo.sender}
-                          </p>
-                          <p className={`text-xs truncate max-w-[200px] ${message.sender === "You" ? "text-white/60" : "text-content-faint"}`}>
-                            {message.replyTo.content || message.replyTo.text}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {/* Message content */}
-                      <p 
-                        className={`text-sm ${
-                          message.isDeleted 
-                            ? "text-content-faint italic" 
-                            : message.sender === "You" ? "text-white" : "text-content-primary"
-                        }`}
-                        style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
-                      >
-                        {message.isDeleted 
-                          ? "This message was deleted" 
-                          : (message.content || message.text || "")
-                        }
-                      </p>
-                      
-                      {/* Time and status */}
-                      <div className={`text-[11px] mt-1 flex items-center gap-1 ${
-                        message.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"
-                      }`}>
-                        <span>{message.time || formatTimestamp(message.timestamp)}</span>
-                        {message.sender === "You" && !message.isDeleted && (
-                          <span className="ml-1">
-                            {message.status === "read" ? (
-                              <CheckCheck className="w-3 h-3 text-white" />
-                            ) : message.status === "delivered" ? (
-                              <CheckCheck className="w-3 h-3" />
-                            ) : (
-                              <Check className="w-3 h-3" />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Reaction Display */}
-                    {messageReactions[message.id] && !message.isDeleted && (
-                      <div className={`flex gap-1 mt-1 ${message.sender === "You" ? "justify-end" : ""}`}>
-                        <button
-                          onClick={(e) => removeReaction(message.id, e)}
-                          className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors"
-                        >
-                          <span>{messageReactions[message.id]}</span>
-                        </button>
-                      </div>
-                    )}
+          <div ref={mobileMessagesContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3" style={{ minHeight: 0 }}>
+            {messages.length === 0 ? <div className="flex items-center justify-center h-full text-content-faint"><p>No messages yet</p></div> : messages.map((message) => (
+              <div key={message.id} className={`flex ${message.sender === "You" ? "justify-end" : "justify-start"}`}>
+                <div className={`flex flex-col ${message.sender === "You" ? "items-end" : "items-start"} max-w-[80%] min-w-0`}>
+                  {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && <span className="text-xs text-content-faint font-medium mb-1 px-1">{message.sender}</span>}
+                  <div className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${message.isDeleted ? "bg-surface-hover" : message.sender === "You" ? "bg-primary" : "bg-surface-button"}`} style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }} onTouchStart={(e) => handleTouchStart(message, e)} onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove} onContextMenu={(e) => { e.preventDefault(); if (!message.isDeleted) setMobileContextMenu({ messageId: message.id, message }); }}>
+                    {message.replyTo && !message.isDeleted && <div className={`mb-2 pl-2 border-l-2 ${message.sender === "You" ? "border-white/40" : "border-border"}`}><p className={`text-xs font-medium ${message.sender === "You" ? "text-white/80" : "text-content-muted"}`}>{message.replyTo.sender}</p><p className={`text-xs truncate max-w-[200px] ${message.sender === "You" ? "text-white/60" : "text-content-faint"}`}>{message.replyTo.content || message.replyTo.text}</p></div>}
+                    <p className={`text-sm ${message.isDeleted ? "text-content-faint italic" : message.sender === "You" ? "text-white" : "text-content-primary"}`} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{message.isDeleted ? "This message was deleted" : (message.content || message.text || "")}</p>
+                    <div className={`text-[11px] mt-1 flex items-center gap-1 ${message.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"}`}><span>{message.time || formatTimestamp(message.timestamp)}</span>{message.sender === "You" && !message.isDeleted && <span className="ml-1">{message.status === "read" ? <CheckCheck className="w-3 h-3 text-white" /> : message.status === "delivered" ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />}</span>}</div>
                   </div>
+                  {messageReactions[message.id] && !message.isDeleted && <div className={`flex gap-1 mt-1 ${message.sender === "You" ? "justify-end" : ""}`}><button onClick={(e) => removeReaction(message.id, e)} className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button"><span>{messageReactions[message.id]}</span></button></div>}
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
-
-          {/* Mobile Reply Preview */}
           {replyingTo && (
             <div className="px-4 py-2 bg-surface-hover border-t border-border flex items-center gap-3">
-              <div className="flex-1 pl-3 border-l-2 border-primary">
-                <p className="text-xs font-medium text-primary">{replyingTo.sender}</p>
-                <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.content || replyingTo.text, 50)}</p>
-              </div>
-              <button
-                onClick={cancelReply}
-                className="text-content-muted hover:text-content-primary p-1"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex-1 pl-3 border-l-2 border-primary"><p className="text-xs font-medium text-primary">{replyingTo.sender}</p><p className="text-xs text-content-muted truncate">{truncateText(replyingTo.content || replyingTo.text, 50)}</p></div>
+              <button onClick={cancelReply} className="text-content-muted hover:text-content-primary p-1"><X className="w-4 h-4" /></button>
             </div>
           )}
-
-          {/* Mobile Input Area - Multi-line with auto-resize */}
           <div className="px-2 pt-1.5 pb-2.5 bg-surface-base border-t border-border flex-shrink-0 relative" style={{ paddingBottom: keyboardOpen ? '0.625rem' : 'calc(0.625rem + env(safe-area-inset-bottom, 0px))' }}>
-            {showEmojiPicker && (
-              <div 
-                ref={emojiPickerRef}
-                className="absolute bottom-full mb-2 left-3 z-[201]"
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              >
-                <Picker 
-                  data={data} 
-                  onEmojiSelect={(emoji) => {
-                    setMessageText(prev => prev + emoji.native);
-                  }}
-                  theme="dark"
-                  previewPosition="none"
-                  skinTonePosition="none"
-                  perLine={8}
-                  maxFrequentRows={2}
-                />
-              </div>
-            )}
+            {showEmojiPicker && <div ref={emojiPickerRef} className="absolute bottom-full mb-2 left-3 z-[201]" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}><Picker data={data} onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji.native)} theme="dark" previewPosition="none" skinTonePosition="none" perLine={8} maxFrequentRows={2} /></div>}
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-surface-dark px-3 py-2 rounded-xl border border-border flex items-center">
-                <textarea
-                  ref={mobileTextareaRef}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onInput={(e) => {
-                    e.target.style.height = "20px";
-                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder="Type a message..."
-                  className="w-full bg-transparent text-content-primary outline-none text-xs resize-none max-h-[120px] leading-5 placeholder:text-content-faint"
-                  rows={1}
-                  style={{ height: '20px' }}
-                />
+                <textarea ref={mobileTextareaRef} value={messageText} onChange={(e) => setMessageText(e.target.value)} onInput={(e) => { e.target.style.height = "20px"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} placeholder="Type a message..." className="w-full bg-transparent text-content-primary outline-none text-xs resize-none max-h-[120px] leading-5 placeholder:text-content-faint" rows={1} style={{ height: '20px' }} />
               </div>
-              <button
-                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-                  messageText.trim() 
-                    ? 'bg-primary hover:bg-primary-hover text-white' 
-                    : 'bg-surface-button text-content-faint'
-                }`}
-                aria-label="Send message"
-                onClick={handleSendMessage}
-                disabled={!messageText.trim()}
-                type="button"
-              >
-                <Send className="w-4 h-4" />
-              </button>
+              <button className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${messageText.trim() && !sendingMessage ? 'bg-primary hover:bg-primary-hover text-white' : 'bg-surface-button text-content-faint'}`} onClick={handleSendMessage} disabled={!messageText.trim() || sendingMessage}>{sendingMessage ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> : <Send className="w-4 h-4" />}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Mobile Context Menu Modal */}
+      {/* Mobile Context Menu */}
       {mobileContextMenu && (
-        <div 
-          className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center"
-          onClick={() => setMobileContextMenu(null)}
-        >
+        <div className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center" onClick={() => setMobileContextMenu(null)}>
           <div className="absolute inset-0 bg-black/50" />
-          <div 
-            className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Handle bar */}
+          <div className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-8" onClick={(e) => e.stopPropagation()}>
             <div className="w-10 h-1 bg-surface-button rounded-full mx-auto mb-4" />
-            
             <div className="space-y-1">
-              <button
-                onClick={() => {
-                  handleReplyToMessage(mobileContextMenu.message);
-                  setMobileContextMenu(null);
-                }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"
-              >
-                <Reply size={20} />
-                Reply
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowReactionPicker(mobileContextMenu.messageId);
-                  setMobileContextMenu(null);
-                }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"
-              >
-                <Smile size={20} />
-                React
-              </button>
-
-              <button
-                onClick={() => {
-                  handleCopyMessage(mobileContextMenu.message);
-                }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"
-              >
-                <Copy size={20} />
-                Copy
-              </button>
-
-              {mobileContextMenu.message?.sender === 'You' && (
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirm(mobileContextMenu.messageId);
-                    setMobileContextMenu(null);
-                  }}
-                  className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-red-400 flex items-center gap-3"
-                >
-                  <Trash2 size={20} />
-                  Delete
-                </button>
-              )}
+              <button onClick={() => { handleReplyToMessage(mobileContextMenu.message); setMobileContextMenu(null); }} className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"><Reply size={20} />Reply</button>
+              <button onClick={() => { setShowReactionPicker(mobileContextMenu.messageId); setMobileContextMenu(null); }} className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"><Smile size={20} />React</button>
+              <button onClick={() => handleCopyMessage(mobileContextMenu.message)} className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"><Copy size={20} />Copy</button>
+              {mobileContextMenu.message?.sender === 'You' && <button onClick={() => { setShowDeleteConfirm(mobileContextMenu.messageId); setMobileContextMenu(null); }} className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-red-400 flex items-center gap-3"><Trash2 size={20} />Delete</button>}
             </div>
-
-            <button
-              onClick={() => setMobileContextMenu(null)}
-              className="w-full mt-4 px-4 py-3 text-base bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary font-medium"
-            >
-              Cancel
-            </button>
+            <button onClick={() => setMobileContextMenu(null)} className="w-full mt-4 px-4 py-3 text-base bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-primary font-medium">Cancel</button>
           </div>
         </div>
       )}
 
-      {/* Global Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
           <div className="bg-surface-button rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-border">
             <h4 className="text-content-primary font-medium mb-2">Delete Message?</h4>
             <p className="text-content-muted text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDeleteMessage(showDeleteConfirm)}
-                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
-              >
-                Delete
-              </button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover">Cancel</button>
+              <button onClick={() => handleDeleteMessage(showDeleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600">Delete</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Global Reaction Picker (for both Desktop and Mobile) */}
+      {/* Reaction Picker */}
       {showReactionPicker && (
         <>
-          <div
-            className="fixed inset-0 z-[9998] bg-black/50"
-            onClick={() => setShowReactionPicker(null)}
-          />
-          <div
-            ref={reactionPickerRef}
-            className="fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)}
-              theme="dark"
-              previewPosition="none"
-              skinTonePosition="none"
-              perLine={8}
-              maxFrequentRows={2}
-            />
+          <div className="fixed inset-0 z-[9998] bg-black/50" onClick={() => setShowReactionPicker(null)} />
+          <div ref={reactionPickerRef} className="fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+            <Picker data={data} onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)} theme="dark" previewPosition="none" skinTonePosition="none" perLine={8} maxFrequentRows={2} />
           </div>
         </>
       )}
 
-      {/* Mobile Email List View - Shows when no email is selected */}
+      {/* Mobile Email Views */}
       {activeScreen === "email-frontend" && !selectedEmail && (
         <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
-          {/* Mobile Email Header */}
           <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  setActiveScreen("chat")
-                  setIsMessagesOpen(true)
-                }}
-                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h2 className="text-lg font-semibold text-content-primary">Email</h2>
-            </div>
-            <button
-              onClick={() => setShowEmailModal(true)}
-              className="p-2 bg-primary hover:bg-primary-hover rounded-xl transition-colors"
-            >
-              <Send size={18} className="text-content-primary" />
-            </button>
+            <div className="flex items-center gap-3"><button onClick={() => { setActiveScreen("chat"); setIsMessagesOpen(true); }} className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-lg font-semibold text-content-primary">Email</h2></div>
+            <button onClick={() => setShowEmailModal(true)} className="p-2 bg-primary hover:bg-primary-hover rounded-xl"><Send size={18} className="text-content-primary" /></button>
           </div>
-
-          {/* Mobile Email Folder Tabs - Horizontal Scroll */}
-          <div className="border-b border-border flex-shrink-0">
-            <div className="flex overflow-x-auto px-2 py-2 gap-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {emailFolders.map((folder) => {
-                const Icon = folder.icon
-                const unreadCount = getUnreadCountForFolder(folder.id)
-                const isActive = emailTab === folder.id
-                
-                return (
-                  <button
-                    key={folder.id}
-                    onClick={() => {
-                      setEmailTab(folder.id)
-                      setSelectedEmailIds([])
-                    }}
-                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      isActive 
-                        ? "bg-primary text-white" 
-                        : "bg-surface-hover text-content-muted active:bg-surface-button"
-                    }`}
-                  >
-                    <Icon size={16} />
-                    <span>{folder.label}</span>
-                    {unreadCount > 0 && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        isActive ? "bg-white/20 text-white" : "bg-primary text-white"
-                      }`}>
-                        {unreadCount}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Mobile Email Search */}
-          <div className="px-3 py-2 border-b border-border flex-shrink-0">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
-              <input
-                type="text"
-                placeholder="Search emails..."
-                value={emailSearchQuery}
-                onChange={(e) => setEmailSearchQuery(e.target.value)}
-                className="w-full bg-surface-hover text-content-primary text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-            </div>
-          </div>
-
-          {/* Mobile Bulk Actions - Only show when emails are selected */}
-          {selectedEmailIds.length > 0 && (
-            <div className="px-3 py-2 bg-surface-card border-b border-border flex items-center justify-between flex-shrink-0">
-              <button
-                onClick={() => setSelectedEmailIds([])}
-                className="text-sm text-content-muted flex items-center gap-1"
-              >
-                <X size={16} />
-                {selectedEmailIds.length} selected
-              </button>
-              <div className="flex items-center gap-2">
-                {/* Read/Unread/Archive - only for inbox, sent, archive folders */}
-                {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
-                  <>
-                    <button
-                      onClick={() => bulkMarkAsRead(true)}
-                      className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted"
-                      title="Mark as read"
-                    >
-                      <MailCheck size={18} />
-                    </button>
-                    <button
-                      onClick={() => bulkMarkAsRead(false)}
-                      className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted"
-                      title="Mark as unread"
-                    >
-                      <MailOpen size={18} />
-                    </button>
-                    <button
-                      onClick={bulkArchive}
-                      className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted"
-                      title="Archive"
-                    >
-                      <Archive size={18} />
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={bulkDelete}
-                  className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-red-400"
-                  title={emailTab === "trash" ? "Delete permanently" : "Delete"}
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Mobile Email List */}
-          <div className="flex-1 overflow-y-auto select-none">
-            {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                <div className="w-20 h-20 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4">
-                  <Mail className="w-10 h-10 text-content-faint" />
-                </div>
-                <h3 className="text-content-primary font-medium text-lg mb-2">No emails</h3>
-                <p className="text-content-faint text-sm">No emails in this folder</p>
-              </div>
-            ) : (
-              <div className="pb-20">
-                {/* Pinned Emails Section */}
-                {getPinnedEmails().length > 0 && (
-                  <>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-surface-dark">
-                      <Pin size={12} className="text-primary fill-primary" />
-                      <span className="text-xs text-primary font-medium">Pinned</span>
-                      <div className="flex-1 h-px bg-primary/30"></div>
-                    </div>
-                    {getPinnedEmails().map((email) => (
-                      <MobileEmailItem 
-                        key={email.id} 
-                        email={email} 
-                        emailTab={emailTab}
-                        selectedEmailIds={selectedEmailIds}
-                        toggleEmailSelection={toggleEmailSelection}
-                        handleEmailItemClick={handleEmailItemClick}
-                        formatEmailTime={formatEmailTime}
-                        truncateEmailText={truncateEmailText}
-                        moveEmailToTrash={moveEmailToTrash}
-                      />
-                    ))}
-                  </>
-                )}
-                
-                {/* Regular Emails */}
-                {getPinnedEmails().length > 0 && getFilteredEmails(false).length > 0 && (
-                  <div className="h-px bg-surface-hover mx-4 my-2" />
-                )}
-                {getFilteredEmails(false).map((email) => (
-                  <MobileEmailItem 
-                    key={email.id} 
-                    email={email} 
-                    emailTab={emailTab}
-                    selectedEmailIds={selectedEmailIds}
-                    toggleEmailSelection={toggleEmailSelection}
-                    handleEmailItemClick={handleEmailItemClick}
-                    formatEmailTime={formatEmailTime}
-                    truncateEmailText={truncateEmailText}
-                    moveEmailToTrash={moveEmailToTrash}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <div className="border-b border-border flex-shrink-0"><div className="flex overflow-x-auto px-2 py-2 gap-1" style={{ scrollbarWidth: 'none' }}>{emailFolders.map((folder) => { const Icon = folder.icon; const unreadCount = getUnreadCountForFolder(folder.id); const isActive = emailTab === folder.id; return <button key={folder.id} onClick={() => { setEmailTab(folder.id); setSelectedEmailIds([]); }} className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-primary text-white" : "bg-surface-hover text-content-muted"}`}><Icon size={16} /><span>{folder.label}</span>{unreadCount > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-primary text-white"}`}>{unreadCount}</span>}</button> })}</div></div>
+          <div className="px-3 py-2 border-b border-border flex-shrink-0"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" /><input type="text" placeholder="Search emails..." value={emailSearchQuery} onChange={(e) => setEmailSearchQuery(e.target.value)} className="w-full bg-surface-hover text-content-primary text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-primary/50" /></div></div>
+          {selectedEmailIds.length > 0 && <div className="px-3 py-2 bg-surface-card border-b border-border flex items-center justify-between flex-shrink-0"><button onClick={() => setSelectedEmailIds([])} className="text-sm text-content-muted flex items-center gap-1"><X size={16} />{selectedEmailIds.length} selected</button><div className="flex items-center gap-2">{emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && <><button onClick={() => bulkMarkAsRead(true)} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted"><MailCheck size={18} /></button><button onClick={() => bulkMarkAsRead(false)} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted"><MailOpen size={18} /></button><button onClick={bulkArchive} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted"><Archive size={18} /></button></>}<button onClick={bulkDelete} className="p-2 hover:bg-surface-button-hover rounded-lg text-red-400"><Trash2 size={18} /></button></div></div>}
+          <div className="flex-1 overflow-y-auto select-none">{getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? <div className="flex flex-col items-center justify-center h-full text-center p-6"><div className="w-20 h-20 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4"><Mail className="w-10 h-10 text-content-faint" /></div><h3 className="text-content-primary font-medium text-lg mb-2">No emails</h3><p className="text-content-faint text-sm">No emails in this folder</p></div> : <div className="pb-20">{getPinnedEmails().length > 0 && <><div className="flex items-center gap-2 px-4 py-2 bg-surface-dark"><Pin size={12} className="text-primary fill-primary" /><span className="text-xs text-primary font-medium">Pinned</span><div className="flex-1 h-px bg-primary/30"></div></div>{getPinnedEmails().map((email) => <MobileEmailItem key={email.id} email={email} emailTab={emailTab} selectedEmailIds={selectedEmailIds} toggleEmailSelection={toggleEmailSelection} handleEmailItemClick={handleEmailItemClick} formatEmailTime={formatEmailTime} truncateEmailText={truncateEmailText} moveEmailToTrash={moveEmailToTrash} />)}</>}{getPinnedEmails().length > 0 && getFilteredEmails(false).length > 0 && <div className="h-px bg-surface-hover mx-4 my-2" />}{getFilteredEmails(false).map((email) => <MobileEmailItem key={email.id} email={email} emailTab={emailTab} selectedEmailIds={selectedEmailIds} toggleEmailSelection={toggleEmailSelection} handleEmailItemClick={handleEmailItemClick} formatEmailTime={formatEmailTime} truncateEmailText={truncateEmailText} moveEmailToTrash={moveEmailToTrash} />)}</div>}</div>
         </div>
       )}
 
-      {/* Mobile Fullscreen Email Overlay */}
       {activeScreen === "email-frontend" && selectedEmail && (
         <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
-          {/* Mobile Email Header */}
           <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSelectedEmail(null)}
-                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <span className="font-medium text-content-primary text-sm">Email</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {/* Retry button for failed emails */}
-              {emailTab === "error" && (
-                <button
-                  onClick={() => retryFailedEmail(selectedEmail)}
-                  className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"
-                >
-                  <RefreshCw size={18} />
-                </button>
-              )}
-              {/* Pin button - not for trash or error */}
-              {emailTab !== "trash" && emailTab !== "error" && (
-                <button
-                  onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
-                  className={`p-2 hover:bg-surface-button-hover rounded-lg ${selectedEmail.isPinned ? "text-primary" : "text-content-muted hover:text-content-primary"}`}
-                >
-                  {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
-                </button>
-              )}
-              {/* Archive button - not for trash or error */}
-              {emailTab !== "trash" && emailTab !== "error" && (
-                <button
-                  onClick={() => {
-                    updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
-                    setSelectedEmail(null)
-                  }}
-                  className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"
-                >
-                  <Archive size={18} />
-                </button>
-              )}
-              {/* Delete button */}
-              <button
-                onClick={() => {
-                  if (emailTab === "trash") {
-                    setEmailsToDelete([selectedEmail.id])
-                    setShowPermanentDeleteConfirm(true)
-                  } else {
-                    moveEmailToTrash(selectedEmail.id)
-                  }
-                }}
-                className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-red-400"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
+            <div className="flex items-center gap-3"><button onClick={() => setSelectedEmail(null)} className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button><span className="font-medium text-content-primary text-sm">Email</span></div>
+            <div className="flex items-center gap-1">{emailTab === "error" && <button onClick={() => retryFailedEmail(selectedEmail)} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><RefreshCw size={18} /></button>}{emailTab !== "trash" && emailTab !== "error" && <button onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })} className={`p-2 hover:bg-surface-button-hover rounded-lg ${selectedEmail.isPinned ? "text-primary" : "text-content-muted hover:text-content-primary"}`}>{selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}</button>}{emailTab !== "trash" && emailTab !== "error" && <button onClick={() => { updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived }); setSelectedEmail(null); }} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"><Archive size={18} /></button>}<button onClick={() => { if (emailTab === "trash") { setEmailsToDelete([selectedEmail.id]); setShowPermanentDeleteConfirm(true); } else { moveEmailToTrash(selectedEmail.id); } }} className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-red-400"><Trash2 size={18} /></button></div>
           </div>
-
-          {/* Email Content */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <h2 className="text-lg font-semibold text-content-primary mb-3">{selectedEmail.subject}</h2>
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-sm text-content-primary font-medium">{selectedEmail.sender}</p>
-                {selectedEmail.senderEmail && (
-                  <p className="text-xs text-content-faint">&lt;{selectedEmail.senderEmail}&gt;</p>
-                )}
-                <p className="text-xs text-content-faint mt-1">
-                  To: {selectedEmail.recipient}
-                  {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
-                </p>
-              </div>
-              <p className="text-xs text-content-faint">{formatEmailTime(selectedEmail.time)}</p>
-            </div>
-            
-            {/* Attachments - Show at top */}
-            {selectedEmail.attachments?.length > 0 && (
-              <div className="mb-4 pb-4 border-b border-border select-none">
-                <p className="text-sm font-medium text-content-muted mb-2 flex items-center gap-2">
-                  <Paperclip size={14} />
-                  Attachments ({selectedEmail.attachments.length})
-                </p>
-                <div className="space-y-2">
-                  {selectedEmail.attachments.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-surface-hover rounded-lg">
-                      <Paperclip size={14} className="text-content-faint" />
-                      <span className="text-sm text-content-secondary">{file.name || file}</span>
-                      {file.size && <span className="text-xs text-content-faint">({file.size})</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Email Content */}
-            <div 
-              className="max-w-none bg-white p-4 rounded-xl"
-              style={{ 
-                color: 'var(--color-content-primary)',
-                fontSize: '14px',
-                lineHeight: '1.5',
-                fontFamily: 'Arial, sans-serif'
-              }}
-              dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
-            />
-          </div>
-
-          {/* Mobile Action Button - Reply for inbox/sent, Retry for error */}
-          {emailTab !== "trash" && emailTab !== "draft" && (
-            <div className="p-3 border-t border-border bg-surface-card">
-              {emailTab === "error" ? (
-                <button
-                  onClick={() => retryFailedEmail(selectedEmail)}
-                  className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
-                >
-                  <RefreshCw size={16} />
-                  Retry Send
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleEmailReply(selectedEmail)}
-                  className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
-                >
-                  <Reply size={16} />
-                  Reply
-                </button>
-              )}
-            </div>
-          )}
+          <div className="flex-1 overflow-y-auto p-4"><h2 className="text-lg font-semibold text-content-primary mb-3">{selectedEmail.subject}</h2><div className="flex items-start justify-between mb-4"><div><p className="text-sm text-content-primary font-medium">{selectedEmail.sender}</p>{selectedEmail.senderEmail && <p className="text-xs text-content-faint">&lt;{selectedEmail.senderEmail}&gt;</p>}<p className="text-xs text-content-faint mt-1">To: {selectedEmail.recipient}{selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}</p></div><p className="text-xs text-content-faint">{formatEmailTime(selectedEmail.time)}</p></div>{selectedEmail.attachments?.length > 0 && <div className="mb-4 pb-4 border-b border-border select-none"><p className="text-sm font-medium text-content-muted mb-2 flex items-center gap-2"><Paperclip size={14} />Attachments ({selectedEmail.attachments.length})</p><div className="space-y-2">{selectedEmail.attachments.map((file, index) => <div key={index} className="flex items-center gap-2 px-3 py-2 bg-surface-hover rounded-lg"><Paperclip size={14} className="text-content-faint" /><span className="text-sm text-content-secondary">{file.name || file}</span>{file.size && <span className="text-xs text-content-faint">({file.size})</span>}</div>)}</div></div>}<div className="max-w-none bg-white p-4 rounded-xl" style={{ color: 'var(--color-content-primary)', fontSize: '14px', lineHeight: '1.5', fontFamily: 'Arial, sans-serif' }} dangerouslySetInnerHTML={{ __html: selectedEmail.body }} /></div>
+          {emailTab !== "trash" && emailTab !== "draft" && <div className="p-3 border-t border-border bg-surface-card">{emailTab === "error" ? <button onClick={() => retryFailedEmail(selectedEmail)} className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"><RefreshCw size={16} />Retry Send</button> : <button onClick={() => handleEmailReply(selectedEmail)} className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"><Reply size={16} />Reply</button>}</div>}
         </div>
       )}
 
       {/* Copied Toast */}
-      {showCopiedToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-content-primary px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
-          Copied!
-        </div>
-      )}
+      {showCopiedToast && <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-content-primary px-4 py-2 rounded-lg shadow-lg text-sm font-medium">Copied!</div>}
 
-      {/* Floating Broadcast Button - Mobile Only (on chat list or email list) */}
-      {((activeScreen === "chat" && !selectedChat) || (activeScreen === "email-frontend" && !selectedEmail)) && (
-        <button
-          onClick={() => setShowBroadcastModal(true)}
-          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[70]"
-          aria-label="Broadcast Message"
-        >
-          <IoIosMegaphone size={22} />
-        </button>
-      )}
+      {/* Floating Broadcast Button - Mobile */}
+      {((activeScreen === "chat" && !selectedChat) || (activeScreen === "email-frontend" && !selectedEmail)) && <button onClick={() => setShowBroadcastModal(true)} className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[70]"><IoIosMegaphone size={22} /></button>}
 
-      {/* Modals - rendered outside of flex layout flow */}
+      {/* Modals */}
       <>
-        <ShowAppointmentModal
-          isOpen={showAppointmentModal}
-          selectedMemberMain={selectedMember}
-          appointmentTypesMain={appointmentTypes}
-          getMemberAppointmentsMain={getMemberAppointments}
-          handleEditAppointmentMain={handleEditAppointment}
-          handleDeleteAppointmentMain={handleCancelAppointment}
-          handleManageContingentMain={handleManageContingent}
-          handleCreateNewAppointmentMain={handleCreateNewAppointment}
-          currentBillingPeriodMain={currentBillingPeriod}
-          memberContingent={memberContingentData}
-          onClose={() => {
-            setShowAppointmentModal(false)
-            setSelectedMember(null)
-          }}
-        />
-
-        {/* SendEmailModal - wrapped for mobile z-index compatibility */}
-          <SendEmailModal
-            showEmailModal={showEmailModal}
-            handleCloseEmailModal={() => {
-              setShowEmailModal(false)
-              setEditingDraft(null)
-              setEmailData({ to: "", subject: "", body: "" })
-            }}
-            handleSendEmail={handleSendEmail}
-            emailData={emailData}
-            setEmailData={setEmailData}
-            handleSearchMemberForEmail={handleSearchMemberForEmail}
-            signature={settings?.emailSignature || ""}
-            editingDraft={editingDraft}
-            onSaveAsDraft={handleSaveEmailAsDraft}
-          />
-    
-
-      {/* Email Reply Modal */}
-      <SendEmailReplyModal
-        isOpen={showReplyModal}
-        onClose={closeReplyModal}
-        originalEmail={selectedEmail}
-        initialRecipient={replyInitialRecipient}
-        searchMembers={handleSearchMemberForReply}
-        onSendReply={handleSendReply}
-        onSaveAsDraft={handleSaveReplyAsDraft}
-      />
-
-      {/* Permanent Delete Confirmation Modal */}
-      {showPermanentDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[90] p-4">
-          <div className="bg-surface-card rounded-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
-                <Trash2 className="w-6 h-6 text-red-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-content-primary">Delete Permanently?</h3>
-                <p className="text-sm text-content-faint">This action cannot be undone</p>
-              </div>
-            </div>
-            <p className="text-content-muted text-sm mb-6">
-              {emailsToDelete.length === 1 
-                ? "Are you sure you want to permanently delete this email? This action cannot be undone."
-                : `Are you sure you want to permanently delete ${emailsToDelete.length} emails? This action cannot be undone.`
-              }
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowPermanentDeleteConfirm(false)
-                  setEmailsToDelete([])
-                }}
-                className="px-4 py-2.5 bg-surface-button-hover hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmPermanentDelete}
-                className="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete Permanently
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ArchiveModal
-        showArchive={showArchive}
-        setShowArchive={setShowArchive}
-        archivedChats={archivedChats}
-        handleRestoreChat={(id) => handleRestoreChat(id)}
-        chatType={chatType}
-      />
-
-
-      {showCreateAppointmentModal && (
-        <CreateAppointmentModal
-          isOpen={showCreateAppointmentModal}
-          onClose={() => setShowCreateAppointmentModal(false)}
-          appointmentTypesMain={appointmentTypes}
-          onSubmit={handleAddAppointmentSubmit}
-          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
-          setNotifyActionMain={setNotifyAction}
-          freeAppointmentsMain={freeAppointmentsData}
-          availableMembersLeads={availableMembersLeadsMain}
-          searchMembersMain={searchMembersMain}
-          selectedMemberMain={selectedChat && chatType === "member" ? (() => {
-            const member = membersData.find(m => m.id === selectedChat.id);
-            return {
-              id: selectedChat.id,
-              name: selectedChat.name,
-              firstName: member?.firstName || selectedChat.name?.split(" ")[0] || "",
-              lastName: member?.lastName || selectedChat.name?.split(" ").slice(1).join(" ") || "",
-              image: selectedChat.logo,
-              title: selectedChat.name,
-              note: member?.note || "",
-              noteImportance: member?.noteImportance || "unimportant",
-              noteStartDate: member?.noteStartDate || "",
-              noteEndDate: member?.noteEndDate || "",
-            };
-          })() : null}
-          memberCredits={selectedChat && chatType === "member" ? memberContingentData[selectedChat.id] : null}
-          currentBillingPeriod={currentBillingPeriod}
-          memberRelations={memberRelationsState}
-          onOpenEditMemberModal={handleEditMember}
-        />
-      )}
-
-      {showSelectedAppointmentModal && selectedAppointmentData && (
-        <EditAppointmentModalMain
-          selectedAppointmentMain={selectedAppointmentData}
-          setSelectedAppointmentMain={setSelectedAppointmentData}
-          appointmentTypesMain={appointmentTypes}
-          freeAppointmentsMain={freeAppointmentsData}
-          handleAppointmentChange={handleAppointmentChange}
-          appointmentsMain={appointments}
-          setAppointmentsMain={setAppointments}
-          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
-          setNotifyActionMain={setNotifyAction}
-          onDelete={handleDeleteAppointment}
-          onOpenEditMemberModal={handleEditMember}
-          memberRelations={memberRelationsState}
-          onClose={() => {
-            setShowSelectedAppointmentModal(false);
-            setSelectedAppointmentData(null);
-          }}
-        />
-      )}
-
-      {/* CreateMessageModal removed - using BroadcastModal instead
-      <CreateMessageModal
-        show={showCreateMessageModal}
-        setShow={setShowCreateMessageModal}
-        broadcastFolders={broadcastFolders}
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        handleSaveNewMessage={handleSaveNewMessage}
-      />
-      */}
-
-      <ContingentModal
-  showContingentModalMain={showContingentModal}
-  setShowContingentModalMain={setShowContingentModal}
-  selectedMemberForAppointmentsMain={selectedMember}
-  getBillingPeriodsMain={getBillingPeriods}
-  selectedBillingPeriodMain={selectedBillingPeriod}
-  handleBillingPeriodChange={setSelectedBillingPeriod}
-  setShowAddBillingPeriodModalMain={setShowAddBillingPeriodModal}
-  tempContingentMain={tempContingent}
-  setTempContingentMain={setTempContingent}
-  currentBillingPeriodMain={currentBillingPeriod}
-  handleSaveContingentMain={handleSaveContingent}
-/>
-
-     <AddBillingPeriodModal
-  open={showAddBillingPeriodModal}
-  onClose={() => setShowAddBillingPeriodModal(false)}
-  newBillingPeriodMain={newBillingPeriod}
-  setNewBillingPeriodMain={setNewBillingPeriod}
-  onAdd={handleAddBillingPeriod}
-/>
-
-      <NotifyModal
-        isOpen={isNotifyMemberOpen}
-        onClose={() => setIsNotifyMemberOpen(false)}
-        notifyAction={notifyAction}
-      />
-
-      <ViewMemberModal
-        isOpen={showMemberConfirmation}
-        onClose={() => {
-          setShowMemberConfirmation(false);
-          setSelectedMemberForConfirmation(null);
-        }}
-        onConfirm={handleConfirmViewMember}
-        member={selectedMemberForConfirmation}
-        onEditMember={(member, tab) => {
-          // Keep confirmation modal open, just open edit modal on top
-          handleEditMember(member, tab);
-        }}
-        relationsCount={selectedMemberForConfirmation ? getRelationsCount(selectedMemberForConfirmation.id) : 0}
-      />
-
-      <ViewStaffModal
-        isOpen={showStaffConfirmation}
-        onClose={() => {
-          setShowStaffConfirmation(false);
-          setSelectedStaffForConfirmation(null);
-        }}
-        onConfirm={handleConfirmViewStaff}
-        staff={selectedStaffForConfirmation}
-      />
-
-      {/* Edit Member Modal for Special Notes and Relations */}
-      <EditMemberModalMain
-        isOpen={showEditMemberModal}
-        onClose={() => {
-          setShowEditMemberModal(false);
-          setEditingMember(null);
-        }}
-        selectedMemberMain={editingMember}
-        editModalTabMain={editMemberInitialTab}
-        setEditModalTabMain={setEditMemberInitialTab}
-        editFormMain={editFormMain}
-        handleInputChangeMain={handleEditInputChange}
-        handleEditSubmitMain={handleSaveEditedMember}
-        editingRelationsMain={editingRelationsMain}
-        setEditingRelationsMain={setEditingRelationsMain}
-        newRelationMain={newRelationMain}
-        setNewRelationMain={setNewRelationMain}
-        availableMembersLeadsMain={availableMembersLeadsMain}
-        relationOptionsMain={relationOptionsMain}
-        handleAddRelationMain={handleAddRelationMain}
-        memberRelationsMain={memberRelationsState}
-        handleDeleteRelationMain={handleDeleteRelationMain}
-        handleArchiveMemberMain={handleArchiveMemberMain}
-        handleUnarchiveMemberMain={handleUnarchiveMemberMain}
-      />
+        <ShowAppointmentModal isOpen={showAppointmentModal} selectedMemberMain={selectedMember} appointmentTypesMain={appointmentTypes} getMemberAppointmentsMain={getMemberAppointments} handleEditAppointmentMain={handleEditAppointment} handleDeleteAppointmentMain={handleCancelAppointment} handleManageContingentMain={handleManageContingent} handleCreateNewAppointmentMain={handleCreateNewAppointment} currentBillingPeriodMain={currentBillingPeriod} memberContingent={memberContingentData} onClose={() => { setShowAppointmentModal(false); setSelectedMember(null); }} />
+        <SendEmailModal showEmailModal={showEmailModal} handleCloseEmailModal={() => { setShowEmailModal(false); setEditingDraft(null); setEmailData({ to: "", subject: "", body: "" }); }} handleSendEmail={handleSendEmail} emailData={emailData} setEmailData={setEmailData} handleSearchMemberForEmail={handleSearchMemberForEmail} signature={settings?.emailSignature || ""} editingDraft={editingDraft} onSaveAsDraft={handleSaveEmailAsDraft} />
+        <SendEmailReplyModal isOpen={showReplyModal} onClose={closeReplyModal} originalEmail={selectedEmail} initialRecipient={replyInitialRecipient} searchMembers={handleSearchMemberForReply} onSendReply={handleSendReply} onSaveAsDraft={handleSaveReplyAsDraft} />
+        {showPermanentDeleteConfirm && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[90] p-4"><div className="bg-surface-card rounded-xl w-full max-w-md p-6"><div className="flex items-center gap-3 mb-4"><div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center"><Trash2 className="w-6 h-6 text-red-400" /></div><div><h3 className="text-lg font-semibold text-content-primary">Delete Permanently?</h3><p className="text-sm text-content-faint">This action cannot be undone</p></div></div><p className="text-content-muted text-sm mb-6">{emailsToDelete.length === 1 ? "Are you sure you want to permanently delete this email?" : `Are you sure you want to permanently delete ${emailsToDelete.length} emails?`}</p><div className="flex justify-end gap-3"><button onClick={() => { setShowPermanentDeleteConfirm(false); setEmailsToDelete([]); }} className="px-4 py-2.5 bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium">Cancel</button><button onClick={confirmPermanentDelete} className="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium flex items-center gap-2"><Trash2 className="w-4 h-4" />Delete Permanently</button></div></div></div>}
+        <ArchiveModal showArchive={showArchive} setShowArchive={setShowArchive} archivedChats={archivedChats} handleRestoreChat={(id) => handleRestoreChat(id)} chatType={chatType} />
+        {showCreateAppointmentModal && <CreateAppointmentModal isOpen={showCreateAppointmentModal} onClose={() => setShowCreateAppointmentModal(false)} appointmentTypesMain={appointmentTypes} onSubmit={handleAddAppointmentSubmit} setIsNotifyMemberOpenMain={setIsNotifyMemberOpen} setNotifyActionMain={setNotifyAction} freeAppointmentsMain={freeAppointmentsData} availableMembersLeads={availableMembersLeadsMain} searchMembersMain={searchMembersMain} selectedMemberMain={selectedChat && chatType === "member" ? (() => { const member = membersData.find(m => m.id === selectedChat.id); return { id: selectedChat.id, name: selectedChat.name, firstName: member?.firstName || selectedChat.name?.split(" ")[0] || "", lastName: member?.lastName || selectedChat.name?.split(" ").slice(1).join(" ") || "", image: selectedChat.logo, title: selectedChat.name, note: member?.note || "", noteImportance: member?.noteImportance || "unimportant", noteStartDate: member?.noteStartDate || "", noteEndDate: member?.noteEndDate || "" }; })() : null} memberCredits={selectedChat && chatType === "member" ? memberContingentData[selectedChat.id] : null} currentBillingPeriod={currentBillingPeriod} memberRelations={memberRelationsState} onOpenEditMemberModal={handleEditMember} />}
+        {showSelectedAppointmentModal && selectedAppointmentData && <EditAppointmentModalMain selectedAppointmentMain={selectedAppointmentData} setSelectedAppointmentMain={setSelectedAppointmentData} appointmentTypesMain={appointmentTypes} freeAppointmentsMain={freeAppointmentsData} handleAppointmentChange={handleAppointmentChange} appointmentsMain={appointments} setAppointmentsMain={setAppointments} setIsNotifyMemberOpenMain={setIsNotifyMemberOpen} setNotifyActionMain={setNotifyAction} onDelete={handleDeleteAppointment} onOpenEditMemberModal={handleEditMember} memberRelations={memberRelationsState} onClose={() => { setShowSelectedAppointmentModal(false); setSelectedAppointmentData(null); }} />}
+        <ContingentModal showContingentModalMain={showContingentModal} setShowContingentModalMain={setShowContingentModal} selectedMemberForAppointmentsMain={selectedMember} getBillingPeriodsMain={getBillingPeriods} selectedBillingPeriodMain={selectedBillingPeriod} handleBillingPeriodChange={setSelectedBillingPeriod} setShowAddBillingPeriodModalMain={setShowAddBillingPeriodModal} tempContingentMain={tempContingent} setTempContingentMain={setTempContingent} currentBillingPeriodMain={currentBillingPeriod} handleSaveContingentMain={handleSaveContingent} />
+        <AddBillingPeriodModal open={showAddBillingPeriodModal} onClose={() => setShowAddBillingPeriodModal(false)} newBillingPeriodMain={newBillingPeriod} setNewBillingPeriodMain={setNewBillingPeriod} onAdd={handleAddBillingPeriod} />
+        <NotifyModal isOpen={isNotifyMemberOpen} onClose={() => setIsNotifyMemberOpen(false)} notifyAction={notifyAction} />
+        <ViewMemberModal isOpen={showMemberConfirmation} onClose={() => { setShowMemberConfirmation(false); setSelectedMemberForConfirmation(null); }} onConfirm={handleConfirmViewMember} member={selectedMemberForConfirmation} onEditMember={(member, tab) => handleEditMember(member, tab)} relationsCount={selectedMemberForConfirmation ? getRelationsCount(selectedMemberForConfirmation.id) : 0} />
+        <ViewStaffModal isOpen={showStaffConfirmation} onClose={() => { setShowStaffConfirmation(false); setSelectedStaffForConfirmation(null); }} onConfirm={handleConfirmViewStaff} staff={selectedStaffForConfirmation} />
+        <EditMemberModalMain isOpen={showEditMemberModal} onClose={() => { setShowEditMemberModal(false); setEditingMember(null); }} selectedMemberMain={editingMember} editModalTabMain={editMemberInitialTab} setEditModalTabMain={setEditMemberInitialTab} editFormMain={editFormMain} handleInputChangeMain={handleEditInputChange} handleEditSubmitMain={handleSaveEditedMember} editingRelationsMain={editingRelationsMain} setEditingRelationsMain={setEditingRelationsMain} newRelationMain={newRelationMain} setNewRelationMain={setNewRelationMain} availableMembersLeadsMain={availableMembersLeadsMain} relationOptionsMain={relationOptionsMain} handleAddRelationMain={handleAddRelationMain} memberRelationsMain={memberRelationsState} handleDeleteRelationMain={handleDeleteRelationMain} handleArchiveMemberMain={handleArchiveMemberMain} handleUnarchiveMemberMain={handleUnarchiveMemberMain} />
       </>
     </div>
   )

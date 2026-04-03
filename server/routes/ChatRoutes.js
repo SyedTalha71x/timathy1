@@ -7,7 +7,10 @@ const {
     sendMessage,
     fetchMessages,
     accessStudioChat,
-    fetchStudioChat
+    fetchStudioChat,
+    fetchMemberChat,
+    fetchStaffAllChats,
+    deleteMessage
 } = require('../controllers/ChatController');
 
 const { verifyAccessToken } = require('../middleware/verifyToken');
@@ -16,6 +19,9 @@ const { isStaff, isMember } = require('../middleware/RoleCheck')
 // -------------------------------------
 // USER ↔ USER CHAT (existing)
 // -------------------------------------
+
+router.get('/member', verifyAccessToken, fetchMemberChat)
+router.get('/all', verifyAccessToken, fetchStaffAllChats)
 
 router.post('/access-chat', verifyAccessToken, accessChat);
 router.post('/group-chat', verifyAccessToken, createGroupChat);
@@ -42,5 +48,6 @@ router.post('/send-message', verifyAccessToken, sendMessage);
 // Get messages of a chat
 router.get('/message/:chatId', verifyAccessToken, fetchMessages);
 
+router.delete('/message/:messageId', verifyAccessToken, deleteMessage)
 
 module.exports = router;
