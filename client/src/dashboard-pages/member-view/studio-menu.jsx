@@ -566,11 +566,6 @@ const StudioMenu = () => {
     { label: "Google Maps", getUrl: (addr) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}` },
   ]
 
-  const handleAddressClick = (e) => {
-    e.preventDefault()
-    setShowMapConfirm(true)
-  }
-
   const openMapWith = (provider) => {
     setShowMapConfirm(false)
     window.location.href = provider.getUrl(studioAddress)
@@ -647,22 +642,37 @@ const StudioMenu = () => {
           <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
-            {/* Map */}
+            {/* Map — tap to open in Maps app */}
             <Card className="overflow-hidden !p-0">
-              <div className="relative h-48 sm:h-56 md:h-72">
+              <div
+                onClick={() => { haptic.light(); setShowMapConfirm(true) }}
+                className="relative h-48 sm:h-56 md:h-72 cursor-pointer group"
+              >
                 {studio && (
                   <iframe
                     src={`https://www.google.com/maps?q=${encodeURIComponent(studioAddress)}&output=embed`}
                     width="100%"
                     height="100%"
-                    style={{ border: 0 }}
+                    style={{ border: 0, pointerEvents: "none" }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
+                    tabIndex={-1}
+                    aria-hidden="true"
                   />
                 )}
-                <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
-                  <p className="text-sm font-semibold">{studio?.street}</p>
-                  <p className="text-xs text-content-secondary">{studio?.zipCode} {studio?.city}</p>
+
+                {/* Invisible click layer over the iframe */}
+                <div className="absolute inset-0 bg-transparent group-active:bg-black/10 transition-colors" />
+
+                {/* Address label + open hint */}
+                <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
+                  <div className="bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
+                    <p className="text-sm font-semibold">{studio?.street}</p>
+                    <p className="text-xs text-white/70">{studio?.zipCode} {studio?.city}</p>
+                  </div>
+                  <div className="bg-primary/90 backdrop-blur-sm text-white p-2 rounded-lg flex-shrink-0">
+                    <MapPin className="w-4 h-4" />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -776,17 +786,7 @@ const StudioMenu = () => {
                       )}
                     </button>
                   </div>
-                  <div className="flex items-center gap-3 bg-surface-hover rounded-lg p-3">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                    <button
-                      onClick={handleAddressClick}
-                      className="text-sm text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors text-left"
-                    >
-                      {studio?.street}, {studio?.zipCode} {studio?.city}
-                    </button>
-                  </div>
+
                 </div>
               </Card>
             </div>
