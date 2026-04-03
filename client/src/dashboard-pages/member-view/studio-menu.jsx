@@ -435,7 +435,8 @@ const StudioMenu = () => {
 
   const handleCopyPhone = async () => {
     try {
-      await navigator.clipboard.writeText(studio?.phone || "")
+      const phones = [studio?.phone, studio?.telephone].filter(Boolean).join(" / ")
+      await navigator.clipboard.writeText(phones)
       haptic.light()
       setCopiedPhone(true)
       setTimeout(() => setCopiedPhone(false), 2000)
@@ -646,14 +647,14 @@ const StudioMenu = () => {
             <Card className="overflow-hidden !p-0">
               <div
                 onClick={() => { haptic.light(); setShowMapConfirm(true) }}
-                className="relative h-48 sm:h-56 md:h-72 cursor-pointer overflow-hidden"
+                className="relative h-48 sm:h-56 md:h-72 cursor-pointer overflow-hidden isolate"
               >
                 {studio && (
                   <iframe
                     src={`https://www.google.com/maps?q=${encodeURIComponent(studioAddress)}&output=embed&z=15`}
                     width="115%"
                     height="140%"
-                    style={{ border: 0, pointerEvents: "none", marginTop: "-8%", marginLeft: "-5%" }}
+                    style={{ border: 0, pointerEvents: "none", marginTop: "-8%", marginLeft: "-5%", transform: "translateZ(0)", backfaceVisibility: "hidden" }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     tabIndex={-1}
@@ -661,12 +662,12 @@ const StudioMenu = () => {
                   />
                 )}
                 {/* Click layer over iframe */}
-                <div className="absolute inset-0" />
+                <div className="absolute inset-0" style={{ transform: "translateZ(0)" }} />
 
                 {/* Address overlay */}
                 <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
                   <p className="text-sm font-semibold">{studio?.street}</p>
-                  <p className="text-xs text-white/70">{studio?.zipCode} {studio?.city}</p>
+                  <p className="text-xs text-white/70">{studio?.zipCode} {studio?.city}{studio?.country ? `, ${studio.country}` : ""}</p>
                 </div>
               </div>
             </Card>
@@ -737,7 +738,7 @@ const StudioMenu = () => {
                       <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                       </svg>
-                      <a href="#" onClick={(e) => { e.preventDefault(); setShowPhoneConfirm(true) }} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors cursor-pointer">{studio?.phone || "+49 30 1234 5678"}</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); setShowPhoneConfirm(true) }} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors cursor-pointer">{[studio?.phone, studio?.telephone].filter(Boolean).join(" / ") || "+49 30 1234 5678"}</a>
                     </div>
                     <button
                       onClick={handleCopyPhone}
@@ -1420,7 +1421,7 @@ const StudioMenu = () => {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.openInMaps")}</h4>
-                    <p className="text-xs lg:text-sm text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}</p>
+                    <p className="text-xs lg:text-sm text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}{studio?.country ? `, ${studio.country}` : ""}</p>
                   </div>
                   <button onClick={() => setShowMapConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
                     <X className="w-5 h-5" />
@@ -1489,7 +1490,7 @@ const StudioMenu = () => {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.phoneTitle")}</h4>
-                    <p className="text-xs lg:text-sm text-content-faint">{studio?.phone || "+49 30 1234 5678"}</p>
+                    <p className="text-xs lg:text-sm text-content-faint">{[studio?.phone, studio?.telephone].filter(Boolean).join(" / ")}</p>
                   </div>
                   <button onClick={() => setShowPhoneConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
                     <X className="w-5 h-5" />
@@ -1498,18 +1499,36 @@ const StudioMenu = () => {
               </div>
 
               <div className="p-3 lg:p-4">
-                <button
-                  onClick={() => {
-                    setShowPhoneConfirm(false)
-                    window.location.href = `tel:${studio?.phone || "+493012345678"}`
-                  }}
-                  className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
-                >
-                  <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
-                  <div>
-                    <p className="text-sm lg:text-base font-medium">{t("studioMenu.info.call")}</p>
-                  </div>
-                </button>
+                {studio?.phone && (
+                  <button
+                    onClick={() => {
+                      setShowPhoneConfirm(false)
+                      window.location.href = `tel:${studio.phone}`
+                    }}
+                    className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                  >
+                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                    <div>
+                      <p className="text-sm lg:text-base font-medium">{studio.phone}</p>
+                      <p className="text-xs text-content-faint">{t("studioMenu.info.telephone", "Telephone")}</p>
+                    </div>
+                  </button>
+                )}
+                {studio?.telephone && (
+                  <button
+                    onClick={() => {
+                      setShowPhoneConfirm(false)
+                      window.location.href = `tel:${studio.telephone}`
+                    }}
+                    className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                  >
+                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                    <div>
+                      <p className="text-sm lg:text-base font-medium">{studio.telephone}</p>
+                      <p className="text-xs text-content-faint">{t("studioMenu.info.mobile", "Mobile")}</p>
+                    </div>
+                  </button>
+                )}
 
                 <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
               </div>
