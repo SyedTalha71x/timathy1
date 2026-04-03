@@ -1172,7 +1172,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       description: '',
       _id: Date.now().toString()
     };
-    const updatedDays = [...closingDays, newDay];
+    const updatedDays = [newDay, ...closingDays];
     setClosingDays(updatedDays);
     saveStudioChanges({ closingDays: updatedDays });
   };

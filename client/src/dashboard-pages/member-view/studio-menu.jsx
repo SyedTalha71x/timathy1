@@ -642,41 +642,34 @@ const StudioMenu = () => {
           <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
-            {/* Location — map preview + address, tap to open in Maps app */}
-            <div
-              onClick={() => { haptic.light(); setShowMapConfirm(true) }}
-              className="bg-surface-card rounded-xl shadow-lg border border-border overflow-hidden cursor-pointer active:opacity-90 transition-opacity"
-            >
-              {/* Map preview */}
-              <div className="relative h-36 sm:h-44 md:h-56 overflow-hidden">
+            {/* Location — tap to open in Maps app */}
+            <Card className="overflow-hidden !p-0">
+              <div
+                onClick={() => { haptic.light(); setShowMapConfirm(true) }}
+                className="relative h-48 sm:h-56 md:h-72 cursor-pointer active:opacity-90 transition-opacity overflow-hidden"
+              >
                 {studio && (
                   <iframe
                     src={`https://www.google.com/maps?q=${encodeURIComponent(studioAddress)}&output=embed&z=15`}
-                    width="100%"
-                    height="130%"
-                    style={{ border: 0, pointerEvents: "none", marginTop: "-6%" }}
+                    width="115%"
+                    height="140%"
+                    style={{ border: 0, pointerEvents: "none", marginTop: "-8%", marginLeft: "-5%" }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     tabIndex={-1}
                     aria-hidden="true"
                   />
                 )}
-                {/* Click layer */}
+                {/* Click layer over iframe */}
                 <div className="absolute inset-0" />
-              </div>
 
-              {/* Address row */}
-              <div className="flex items-center gap-3 px-4 py-3 border-t border-border">
-                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-content-primary truncate">{studio?.street}</p>
-                  <p className="text-xs text-content-muted">{studio?.zipCode} {studio?.city}</p>
+                {/* Address overlay */}
+                <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
+                  <p className="text-sm font-semibold">{studio?.street}</p>
+                  <p className="text-xs text-white/70">{studio?.zipCode} {studio?.city}</p>
                 </div>
-                <svg className="w-4 h-4 text-content-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
               </div>
-            </div>
+            </Card>
 
             {/* Opening Hours + Contact — side by side on desktop */}
             <div className="grid gap-4 md:grid-cols-2">
