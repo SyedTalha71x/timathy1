@@ -125,7 +125,15 @@ const getStudioByMemberId = async (req, res, next) => {
           { path: "documents", select: 'displayName' },
         ]
       })
-      .populate('services', 'image name description price duration')
+      .populate('services', 'image name description price link vatRate')
+      .populate({
+        path: 'appointmentTypes',
+        select: 'name image category contingentUsed  description duration interval slot maxParallel calenderColor createdBy',
+        populate: [
+          { path: 'category', select: 'categoryName description' },
+          { path: "createdBy", select: "firstName lastName img" }
+        ]
+      })
       .populate('leads', "firstName lastName email phone role staffRole gender img username about")
 
     if (!studio) throw new NotFoundError("Studio not found");

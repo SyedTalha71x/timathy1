@@ -112,6 +112,12 @@ const studioSchema = new mongoose.Schema(
         ref: 'Service'
       }
     ],
+    appointmentTypes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AppointmentTypes'
+      }
+    ],
     leads: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'lead'

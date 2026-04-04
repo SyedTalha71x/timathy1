@@ -6,17 +6,29 @@ const { createAppointment,
     allAppointments,
     appointmentByMemberId,
     createAppointmentByStaff,
-    createBookingTrailByStaff,
     createBlockedAppointment,
+    createBookingTrailByStaff,
     updateAppointmentById,
     deleteAppointmentById,
+    getAllPendingAppointment,
     approvedAppointment,
     rejectedAppointment,
-    getAllPendingAppointment } = require('../controllers/AppointmentController')
+
+    // appointment Types
+    createAppointmentTypes,
+    updateAppointmentTypes,
+    deleteAppointmentTypes,
+    getAppointmentTypes,
+    getAppointmentTypeById,
+    bulkDeleteAppointmentTypes } = require('../controllers/AppointmentController')
 const { verifyAccessToken } = require('../middleware/verifyToken')
 const { isStaff } = require('../middleware/RoleCheck')
+const { uploadImage } = require('../config/upload') // Add this for file upload
 const router = express.Router()
 
+// ========================
+// EXISTING APPOINTMENT ROUTES (unchanged)
+// ========================
 router.post('/create', verifyAccessToken, createAppointment)
 router.post('/block', verifyAccessToken, isStaff, createBlockedAppointment);
 router.post('/create/:memberId', verifyAccessToken, createAppointmentByStaff);
@@ -28,12 +40,29 @@ router.post('/trial/:leadId', verifyAccessToken, createBookingTrailByStaff);
 router.put("/:appointmentId", verifyAccessToken, isStaff, updateAppointmentById)
 router.delete("/:appointmentId", verifyAccessToken, isStaff, deleteAppointmentById)
 
-
-
-
-// all new
+// Appointment status routes
 router.patch('/approved/:appointmentId', isStaff, approvedAppointment)
 router.patch('/rejected/:appointmentId', isStaff, rejectedAppointment)
 router.get('/pending', getAllPendingAppointment)
+
+// ========================
+// NEW APPOINTMENT TYPES ROUTES
+// ========================
+// Get all appointment types for a studio
+router.get('/types', verifyAccessToken, isStaff, getAppointmentTypes)
+// Get single appointment type by ID
+router.get('/types/:typeId', verifyAccessToken, isStaff, getAppointmentTypeById)
+
+// Create appointment type (with image upload)
+router.post('/types/create', verifyAccessToken, isStaff, uploadImage.single('image'), createAppointmentTypes)
+
+// Update appointment type (with optional image upload)
+router.put('/types/:typeId', verifyAccessToken, isStaff, uploadImage.single('image'), updateAppointmentTypes)
+
+// Delete appointment type
+router.delete('/types/:typeId', verifyAccessToken, isStaff, deleteAppointmentTypes)
+
+// Bulk delete appointment types
+router.post('/types/bulk-delete', verifyAccessToken, isStaff, bulkDeleteAppointmentTypes)
 
 module.exports = router

@@ -7,10 +7,8 @@ import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon'
 import DatePickerField from '../DatePickerField';
 import NotifyModalMain from '../NotifyModal';
 import { useDispatch, useSelector } from "react-redux";
-import { fetchStudioServices } from "../../../features/services/servicesSlice";
-import { createdAppointmentByStaff } from "../../../features/appointments/AppointmentSlice"
 import { fetchAllMember } from "../../../features/member/memberSlice";
-// import { createAppointment } from "../../../features/appointments/AppointmentApi";
+
 const MAX_PARTICIPANTS = 5;
 
 // Helper function to extract hex color from various formats
@@ -188,9 +186,8 @@ const MemberTagInput = ({
   );
 };
 
-// Appointment Type Dropdown
+// Appointment Type Dropdown - FIXED to accept appointmentTypes prop correctly
 const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showTrialTypes = false }) => {
-
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -199,12 +196,12 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
     ? appointmentTypes
     : appointmentTypes.filter(t => !t.isTrialType);
 
-  const selectedType = filteredTypes.find(t => t.name === value);
-
-
+  const selectedType = filteredTypes.find(t => t.name === value || t._id === value);
 
   useEffect(() => {
-    const handleClickOutside = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false); };
+    const handleClickOutside = (e) => { 
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false); 
+    };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -224,11 +221,16 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
       {isOpen && (
         <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
           {filteredTypes.map((type) => (
-            <button key={type.name} onClick={() => { onChange(type.name); setIsOpen(false); }}
-              className={`w-full text-left p-3 flex items-center gap-3 ${value === type.name ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`}>
+            <button 
+              key={type._id || type.name} 
+              onClick={() => { onChange(type._id || type.name); setIsOpen(false); }}
+              className={`w-full text-left p-3 flex items-center gap-3 ${(value === type.name || value === type._id) ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`}>
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getColorHex(type) }} />
-              <div className="flex-1"><div className="text-sm text-content-primary">{type.name}</div><div className="text-xs text-content-faint">{type.duration} min</div></div>
-              {value === type.name && <Check size={16} className="text-primary" />}
+              <div className="flex-1">
+                <div className="text-sm text-content-primary">{type.name}</div>
+                <div className="text-xs text-content-faint">{type.duration} min</div>
+              </div>
+              {(value === type.name || value === type._id) && <Check size={16} className="text-primary" />}
             </button>
           ))}
         </div>
@@ -240,20 +242,18 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
 const AddAppointmentModal = ({
   isOpen, onClose, appointmentTypesMain = [], onSubmit,
   setIsNotifyMemberOpenMain, setNotifyActionMain,
-  // Also accept alternative prop names from calendar.jsx
   setIsNotifyMemberOpen, setNotifyAction,
   freeAppointmentsMain = [], availableMembersLeads = [], searchMembersMain, selectedMemberMain = null,
   memberCredits = null, currentBillingPeriod = "March 2025",
-  onOpenEditMemberModal, // Callback to open EditMemberModal with specific tab
-  memberRelations = {}, // Relations data for members
-  selectedDate = null, // Pre-selected date from MiniCalendar or Calendar click
-  selectedTime = null, // Pre-selected time slot from Calendar click (e.g., "09:00")
+  onOpenEditMemberModal,
+  memberRelations = {},
+  selectedDate = null,
+  selectedTime = null,
 }) => {
-  const { services } = useSelector((state) => state.services || {});
   const { members } = useSelector((state) => state.member || []);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  
   useEffect(() => {
-    dispatch(fetchStudioServices());
     dispatch(fetchAllMember());
   }, [dispatch]);
 
@@ -265,17 +265,13 @@ const AddAppointmentModal = ({
     return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
   };
 
-
-
-  // generate slots randomly
   // Generate time slots for a day based on studio hours and appointment duration
-  // Generate time slots for multiple blocks with AM/PM display
   const generateSlots = (blocks) => {
     if (!Array.isArray(blocks)) {
       blocks = [
-        { start: "09:00", end: "12:00", duration: 60 },  // morning
-        { start: "13:00", end: "16:00", duration: 60 },  // afternoon
-        { start: "17:00", end: "20:00", duration: 60 }   // evening
+        { start: "09:00", end: "12:00", duration: 60 },
+        { start: "13:00", end: "16:00", duration: 60 },
+        { start: "17:00", end: "20:00", duration: 60 }
       ];
     }
 
@@ -302,7 +298,7 @@ const AddAppointmentModal = ({
         allSlots.push({
           start: startTime,
           end: endTime,
-          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}` // for dropdown display
+          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}`
         });
 
         hour = tempHour;
@@ -313,8 +309,6 @@ const AddAppointmentModal = ({
     return allSlots;
   };
 
-
-  // Format selectedDate to YYYY-MM-DD string
   const getFormattedDate = (date) => {
     if (!date) return "";
     const d = new Date(date);
@@ -324,10 +318,8 @@ const AddAppointmentModal = ({
     return `${year}-${month}-${day}`;
   };
 
-  // Extract time from selectedTime (handles formats like "09:00" or "09:00 - 09:30")
   const getInitialTime = (time) => {
     if (!time) return "";
-    // If it's a range, take the start time
     if (time.includes("-")) {
       return time.split("-")[0].trim();
     }
@@ -341,7 +333,6 @@ const AddAppointmentModal = ({
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [pendingAppointmentData, setPendingAppointmentData] = useState(null);
 
-  // Recurring options state
   const [recurringOptions, setRecurringOptions] = useState({
     frequency: "weekly",
     dayOfWeek: initialDate ? String(new Date(initialDate).getDay()) : "1",
@@ -351,8 +342,9 @@ const AddAppointmentModal = ({
 
   const [appointmentData, setAppointmentData] = useState({
     date: initialDate,
-    timeSlot: { start: initialTime, end: "" }, // store object instead of string
+    timeSlot: { start: initialTime, end: "" },
     type: "",
+    appointmentTypeId: "", // Add this field for storing the ID
     members: selectedMemberMain ? [{
       id: selectedMemberMain._id,
       name: selectedMemberMain.name || selectedMemberMain.title,
@@ -366,19 +358,19 @@ const AddAppointmentModal = ({
       noteEndDate: selectedMemberMain.noteEndDate || "",
     }] : []
   });
-  // Update appointmentData when modal opens with new selectedDate or selectedTime
+
   useEffect(() => {
     if (!isOpen) return;
 
     const newDate = getFormattedDate(selectedDate);
     const newTime = getInitialTime(selectedTime);
 
-    // Reset and set new values when modal opens
     setAppointmentData(prev => ({
       ...prev,
       date: newDate || prev.date,
       timeSlot: { start: newTime || "", end: "" },
       type: "",
+      appointmentTypeId: "",
       members: selectedMemberMain ? [{
         id: selectedMemberMain._id, name: selectedMemberMain.name || selectedMemberMain.title,
         firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
@@ -398,15 +390,25 @@ const AddAppointmentModal = ({
     }
   }, [isOpen, selectedDate, selectedTime]);
 
-  // Early return AFTER all hooks
   if (!isOpen) return null;
 
   const updateAppointment = (field, value) => setAppointmentData({ ...appointmentData, [field]: value });
 
+  // Handle appointment type selection - store both name and ID
+  const handleTypeChange = (typeIdOrName) => {
+    const selectedType = appointmentTypesMain.find(t => t._id === typeIdOrName || t.name === typeIdOrName);
+    if (selectedType) {
+      setAppointmentData({ 
+        ...appointmentData, 
+        type: selectedType.name,
+        appointmentTypeId: selectedType._id 
+      });
+    }
+  };
+
   const updateRecurringOptions = (field, value) => {
     setRecurringOptions(prev => {
       const next = { ...prev, [field]: value };
-      // Auto-sync dayOfWeek from startDate when switching to weekly
       if (field === "frequency" && value === "weekly" && prev.startDate) {
         next.dayOfWeek = String(new Date(prev.startDate).getDay());
       }
@@ -419,31 +421,24 @@ const AddAppointmentModal = ({
   };
 
   const handleSearchMembers = (query) => {
-    // If you have a custom search function, use it
     if (searchMembersMain) return searchMembersMain(query);
-
-    // If query is empty, return all members
     if (!query || query.trim() === "") {
       return members;
     }
-
-    // Otherwise, filter members by name
     return members.filter((m) =>
       m.name?.toLowerCase().includes(query.toLowerCase()) ||
       `${m.firstName} ${m.lastName}`.toLowerCase().includes(query.toLowerCase())
     );
   };
 
-  // const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);
   const availableSlots = generateSlots();
 
-  // Helper: generate all recurring dates based on frequency, startDate, and occurrences
   const generateRecurringDates = (options) => {
     const dates = [];
     const { frequency, startDate, dayOfWeek, occurrences } = options;
     if (!startDate || !occurrences) return [startDate];
 
-    const start = new Date(startDate + "T12:00:00"); // noon to avoid timezone issues
+    const start = new Date(startDate + "T12:00:00");
 
     for (let i = 0; i < occurrences; i++) {
       const current = new Date(start);
@@ -452,7 +447,6 @@ const AddAppointmentModal = ({
         current.setDate(start.getDate() + i);
       } else if (frequency === "weekly") {
         current.setDate(start.getDate() + (i * 7));
-        // Adjust to the correct day of week if needed
         if (i === 0 && dayOfWeek !== undefined) {
           const targetDay = parseInt(dayOfWeek);
           const currentDay = current.getDay();
@@ -461,7 +455,6 @@ const AddAppointmentModal = ({
             current.setDate(current.getDate() + diff);
           }
         } else if (i > 0 && dayOfWeek !== undefined) {
-          // For subsequent weeks, calculate from the first adjusted date
           const targetDay = parseInt(dayOfWeek);
           const firstDate = new Date(start);
           const firstDayDiff = targetDay - firstDate.getDay();
@@ -482,17 +475,14 @@ const AddAppointmentModal = ({
     return dates;
   };
 
-   // ===========================================
-  // Prepare appointment data but don't submit yet - show notify modal first
-  // ===========================================
   const handleBook = () => {
-    if (!appointmentData.type || appointmentData.members.length === 0 || !appointmentData.timeSlot.start) {
+    if (!appointmentData.appointmentTypeId || appointmentData.members.length === 0 || !appointmentData.timeSlot.start) {
       alert("Please complete all fields");
       return;
     }
 
-    const selectedType = services.find(t => t.name === appointmentData.type);
-    if (!selectedType._id) {
+    const selectedType = appointmentTypesMain.find(t => t._id === appointmentData.appointmentTypeId);
+    if (!selectedType || !selectedType._id) {
       alert("Invalid service selected");
       return;
     }
@@ -505,9 +495,10 @@ const AddAppointmentModal = ({
       end = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
     }
 
+    // Use appointmentTypeId instead of serviceId
     const payload = {
       memberId: appointmentData.members[0]?.id,
-      serviceId: selectedType?._id,
+      appointmentTypeId: selectedType._id, // Changed from serviceId
       date: showRecurringOptions ? recurringOptions.startDate : appointmentData.date,
       timeSlotId: { start, end },
       view: selectedType.view || "upcoming",
@@ -515,37 +506,30 @@ const AddAppointmentModal = ({
       frequency: showRecurringOptions ? recurringOptions.frequency : undefined,
       occurrences: showRecurringOptions ? recurringOptions.occurrences : 1
     };
+    
     setPendingAppointmentData(payload);
     setShowNotifyModal(true);
   };
 
-  // ===========================================
-  // Confirm booking after optional notification
-  // ===========================================
   const handleConfirmBooking = (shouldNotify, notificationOptions) => {
-    if (pendingAppointmentData) { onSubmit(pendingAppointmentData) }
-    
+    if (pendingAppointmentData) { 
+      onSubmit(pendingAppointmentData); 
+    }
     setShowNotifyModal(false);
     setPendingAppointmentData(null);
     onClose();
-
     if (shouldNotify) console.log("Notify members:", notificationOptions);
   };
 
-  // Cancel booking from notify modal - go back to form
   const handleCancelNotify = () => {
     setShowNotifyModal(false);
     setPendingAppointmentData(null);
-    // Don't close the main modal - let user continue editing
   };
 
-  // Get member names for notify modal display
   const getMemberNames = () => {
     if (!pendingAppointmentData) return "";
-
     const member = appointmentData.members[0];
     if (!member) return "";
-
     return member.name || `${member.firstName} ${member.lastName}`;
   };
 
@@ -564,7 +548,11 @@ const AddAppointmentModal = ({
           </div>
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
-            <AppointmentTypeDropdown value={appointmentData.type} onChange={(t) => updateAppointment("type", t)} appointmentTypes={services} />
+            <AppointmentTypeDropdown 
+              value={appointmentData.appointmentTypeId || appointmentData.type} 
+              onChange={handleTypeChange} 
+              appointmentTypes={appointmentTypesMain} 
+            />
           </div>
 
           {/* Booking Type Toggle */}
@@ -594,7 +582,6 @@ const AddAppointmentModal = ({
               </div>
               <div>
                 <label className="block text-xs text-content-faint mb-2">Time Slot</label>
-                {/* // Time dropdown */}
                 <select
                   value={appointmentData.timeSlot.start}
                   onChange={(e) => {
@@ -693,7 +680,6 @@ const AddAppointmentModal = ({
                 </div>
               </div>
 
-              {/* Frequency description */}
               <div className="text-xs text-content-faint">
                 {recurringOptions.frequency === "daily" && "Creates an appointment every day starting from the selected date."}
                 {recurringOptions.frequency === "weekly" && "Creates an appointment every week on the selected day."}
@@ -712,7 +698,7 @@ const AddAppointmentModal = ({
         <div className="px-6 py-4 border-t border-border flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Cancel</button>
           <button disabled={
-            !appointmentData.type ||
+            !appointmentData.appointmentTypeId ||
             !appointmentData.members.length ||
             (!showRecurringOptions
               ? (!appointmentData.date || !appointmentData.timeSlot.start)
@@ -724,7 +710,6 @@ const AddAppointmentModal = ({
         </div>
       </div>
 
-      {/* Notify Member Modal (shared component) */}
       <NotifyModalMain
         isOpen={showNotifyModal}
         onClose={handleCancelNotify}

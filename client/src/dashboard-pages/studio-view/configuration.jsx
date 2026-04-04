@@ -179,7 +179,21 @@ import {
 // ============================================
 import { useStudioConfiguration } from "../../hooks/useStudioConfiguration"
 import { updateStudioThunk } from "../../features/studio/studioSlice"
-import { createAppointmentTypesThunk, deleteAppointmentTypesThunk, getAppointmentCategoriesThunk, updateAppointmentTypesThunk, createAppointmentCategoryThunk, updateAppointmentCategoryThunk, deleteAppointmentCategoryThunk, } from "../../features/services/servicesSlice"
+import {
+
+  getAppointmentCategoriesThunk,
+  createAppointmentCategoryThunk,
+  updateAppointmentCategoryThunk,
+  deleteAppointmentCategoryThunk,
+
+  // appointmentTypes
+  createAppointmentTypesThunk,
+  updateAppointmentTypesThunk,
+  getAppointmentTypesThunk,
+  deleteAppointmentTypesThunk,
+
+
+} from "../../features/appointments/AppointmentSlice"
 
 
 
@@ -490,7 +504,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [searchParams] = useSearchParams()
   const dispatch = useDispatch();
   const { categories = [], types = [], classes = [], loading, rooms = [] } = useSelector((state) => state.classes) || {}
-  const { appointmentCategories: reduxAppointmentCategories = [] } = useSelector((state) => state.appointments) || {}
+  const { appointmentCategories: reduxAppointmentCategories = [], appointmentTypes: reduxAppointmentTypes = [] } = useSelector((state) => state.appointments) || {}
 
   // contract reason
   const { pauseReasons: reduxPauseReason = [], changeReasons: reduxChangeReason = [], renewReasons: reduxRenewReason = [], bonusReasons: reduxBonusReason = [] } = useSelector((state) => state.contracts)
@@ -535,7 +549,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         cat.sections.some(sec => sec.id === sectionParam)
       )
       if (category) {
-        setActiveCategory(category.id)
+        setActiveCategory(category._id)
         setActiveSection(sectionParam)
         setMobileShowContent(true)
         setExpandedCategories(prev =>
@@ -554,6 +568,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       dispatch(fetchChangeReasonThunk())
     dispatch(fetchPauseReasonThunk())
     dispatch(fetchRenewReasonThunk())
+    dispatch(getAppointmentTypesThunk())
   }, [dispatch])
   // ============================================
   // Profile State Variables
@@ -656,11 +671,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [allStaff, setAllStaff] = useState([])
 
   // Appointments
-  const [appointmentTypes, setAppointmentTypes] = useState([])
+  const [appointmentTypes, setAppointmentTypes] = useState(reduxAppointmentTypes)
   const [appointmentCategories, setAppointmentCategories] = useState(reduxAppointmentCategories)
   const [studioCapacity, setStudioCapacity] = useState(10)
   const [trialTraining, setTrialTraining] = useState({})
-  const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
+  const [editingCategory, setEditingCategory] = useState({ _id: null, value: "" })
 
   // Calendar Settings
   const [calendarSettings, setCalendarSettings] = useState({})
@@ -669,9 +684,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [classTypes, setClassTypes] = useState([])
   const [classCategories, setClassCategories] = useState([])
   const [classCalendarSettings, setClassCalendarSettings] = useState({})
-  const [editingClassCategory, setEditingClassCategory] = useState({ index: null, value: "" })
+  const [editingClassCategory, setEditingClassCategory] = useState({ _id: null, value: "" })
   const [classRooms, setClassRooms] = useState([])
-  const [editingClassRoom, setEditingClassRoom] = useState({ index: null, value: "" })
+  const [editingClassRoom, setEditingClassRoom] = useState({ _id: null, value: "" })
   const [showClassTypeModal, setShowClassTypeModal] = useState(false)
   const [editingClassType, setEditingClassType] = useState(null)
   const [classTypeForm, setClassTypeForm] = useState({
@@ -771,10 +786,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false)
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
-  const [contractPauseReasons, setContractPauseReasons] = useState(reduxPauseReason)
-  const [contractChangeReasons, setContractChangeReasons] = useState(reduxChangeReason)
-  const [contractRenewReasons, setContractRenewReasons] = useState(reduxRenewReason)
-  const [contractBonusTimeReasons, setContractBonusTimeReasons] = useState(reduxBonusReason)
+  const [contractPauseReasons, setContractPauseReasons] = useState([])
+  const [contractChangeReasons, setContractChangeReasons] = useState([])
+  const [contractRenewReasons, setContractRenewReasons] = useState([])
+  const [contractBonusTimeReasons, setContractBonusTimeReasons] = useState([])
 
   // Communication Settings
   const [settings, setSettings] = useState({})
@@ -900,6 +915,54 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   }, [debouncedSave]);
 
 
+  useEffect(() => {
+    if (reduxAppointmentCategories && reduxAppointmentCategories.length > 0) {
+      setAppointmentCategories(reduxAppointmentCategories);
+    }
+  }, [reduxAppointmentCategories]);
+
+  useEffect(() => {
+    if (reduxPauseReason.length > 0) {
+      // Map _id to id and reasonName to name
+      const mappedReasons = reduxPauseReason.map(reason => ({
+        id: reason._id,
+        name: reason.reasonName,
+        maxDuration: reason.maxDuration
+      }));
+      setContractPauseReasons(mappedReasons);
+    }
+  }, [reduxPauseReason]);
+
+  useEffect(() => {
+    if (reduxChangeReason.length > 0) {
+      const mappedReasons = reduxChangeReason.map(reason => ({
+        id: reason._id,
+        name: reason.reasonName
+      }));
+      setContractChangeReasons(mappedReasons);
+    }
+  }, [reduxChangeReason]);
+
+  useEffect(() => {
+    if (reduxRenewReason.length > 0) {
+      const mappedReasons = reduxRenewReason.map(reason => ({
+        id: reason._id,
+        name: reason.reasonName
+      }));
+      setContractRenewReasons(mappedReasons);
+    }
+  }, [reduxRenewReason]);
+
+  useEffect(() => {
+    if (reduxBonusReason.length > 0) {
+      const mappedReasons = reduxBonusReason.map(reason => ({
+        id: reason._id,
+        name: reason.reasonName
+      }));
+      setContractBonusTimeReasons(mappedReasons);
+    }
+  }, [reduxBonusReason]);
+
   // ============================================
   // Save multiple fields at once
   // ============================================
@@ -978,28 +1041,28 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ========================
   // All AppointmentType Data
   // ========================
-  useEffect(() => {
-    if (config?.services?.length) {
-      const mapped = config.services.map(service => ({
-        id: service._id,
-        name: service.name,
-        description: service.description,
-        price: service.price,
-        // fallback/defaults for missing fields
-        duration: service.duration ?? 30, // or any default
-        interval: service.interval ?? 30,
-        category: service.category ?? "General",
-        image: service.image?.url ?? null,
-        calenderColor: service.calenderColor ?? "#10b981", // default green
-        slotsRequired: service.slot ?? 1,
-        maxParallel: service.maxSimultaneous ?? 1,
-        contingentUsage: service.contingentUsage ?? 1,
-      }));
+  // useEffect(() => {
+  //   if (config?.appointmentTypes?.length) {
+  //     const mapped = config.appointmentTypes.map(service => ({
+  //       id: service._id,
+  //       name: service.name,
+  //       description: service.description,
 
-      console.log("Mapped Appointment Types:", mapped);
-      setAppointmentTypes(mapped);
-    }
-  }, [config]);
+  //       // fallback/defaults for missing fields
+  //       duration: service.duration ?? 30, // or any default
+  //       interval: service.interval ?? 30,
+  //       category: service.category?.categoryName ?? "General",
+  //       image: service.image?.url ?? null,
+  //       calenderColor: service.calenderColor ?? "#10b981", // default green
+  //       slotsRequired: service.slot ?? 1,
+  //       maxParallel: service.maxParalled ?? 1,
+  //       contingentUsage: service.contingentUsage ?? 1,
+  //     }));
+
+  //     console.log("Mapped Appointment Types:", mapped);
+  //     setAppointmentTypes(mapped);
+  //   }
+  // }, [config]);
 
   // console.log('Appointment Type',appointmentTypes)
 
@@ -1225,8 +1288,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setAllStaff(config.staff?.allStaff || [])
 
     // Appointments
-    setAppointmentTypes(config.appointments?.types || [])
-    setAppointmentCategories(config.appointments?.categories || [])
+    // setAppointmentTypes(config.services ||duxServices)
+    // setAppointmentCategories(config.appointments?.categories || [])
     setStudioCapacity(config.appointments?.capacity || 10)
     setTrialTraining(config.appointments?.trialTraining || {})
     setCalendarSettings(config.appointments?.calendarSettings || {})
@@ -1253,10 +1316,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setDefaultAppointmentLimit(config.contracts?.settings?.defaultAppointmentLimit || 0)
     setContractTypes(config.contracts?.types || [])
     setContractForms(config.contracts?.forms || [])
-    setContractPauseReasons(config.contracts?.pauseReasons || reduxPauseReason)
-    setContractChangeReasons(config.contracts?.changeReasons || reduxChangeReason)
-    setContractRenewReasons(config.contracts?.renewReasons || reduxRenewReason)
-    setContractBonusTimeReasons(config.contracts?.bonusTimeReasons || reduxBonusReason)
+
 
     // Communication
     setSettings(config.communication?.settings || {})
@@ -1730,66 +1790,141 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       return
     }
 
-    const data = {
-      ...appointmentTypeForm,
-      studio: studioId, // must send this
-    };
+    // Get the category ID correctly
+    let categoryId = appointmentTypeForm.category;
+
+    // If category is an object with _id, extract it
+    if (typeof categoryId === 'object' && categoryId._id) {
+      categoryId = categoryId._id;
+    }
+    // If category is a string that matches a category name, find its ID
+    else if (typeof categoryId === 'string' && categoryId !== "") {
+      const foundCategory = reduxAppointmentCategories.find(c => c.categoryName === categoryId || c._id === categoryId);
+      if (foundCategory) {
+        categoryId = foundCategory._id;
+      } else {
+        toast.error("Please select a valid category");
+        return;
+      }
+    }
+
+    if (!categoryId || categoryId === "") {
+      toast.error("Please select a category");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", appointmentTypeForm.name);
+    formData.append("description", appointmentTypeForm.description || "");
+    formData.append("duration", appointmentTypeForm.duration);
+    formData.append("interval", appointmentTypeForm.interval);
+    formData.append("slot", appointmentTypeForm.slot);
+    formData.append("maxParallel", appointmentTypeForm.maxSimultaneous);
+    formData.append("calenderColor", appointmentTypeForm.calenderColor);
+    formData.append("contingentUsage", appointmentTypeForm.contingentUsage);
+    formData.append("categoryId", categoryId);
+
+    // Handle image if present
+    if (appointmentTypeForm.image) {
+      if (typeof appointmentTypeForm.image === 'string' && appointmentTypeForm.image.startsWith('data:')) {
+        // Convert base64 to blob
+        const imageFile = base64ToFile(appointmentTypeForm.image, `appointment-type-${Date.now()}.jpg`);
+        formData.append("image", imageFile);
+      } else if (appointmentTypeForm.image instanceof File) {
+        formData.append("image", appointmentTypeForm.image);
+      }
+    }
 
     if (editingAppointmentType) {
       dispatch(updateAppointmentTypesThunk({
-        id: editingAppointmentType._id,
-        updateData: data,
-      }));
-      toast.success("Appointment type updated");
+        typeId: editingAppointmentType._id,
+        updateData: formData,
+      })).unwrap()
+        .then(() => {
+          toast.success("Appointment type updated");
+          dispatch(getAppointmentTypesThunk()); // Refresh the list
+          setShowAppointmentTypeModal(false);
+          setEditingAppointmentType(null);
+          // Reset form
+          setAppointmentTypeForm({
+            name: "",
+            description: "",
+            duration: 30,
+            maxSimultaneous: 1,
+            slot: 1,
+            calenderColor: "#FF843E",
+            interval: 30,
+            category: "",
+            image: null,
+            contingentUsage: 1,
+          });
+        })
+        .catch((error) => {
+          toast.error(error.message || "Failed to update appointment type");
+        });
     } else {
-      dispatch(createAppointmentTypesThunk(data));
-      toast.success("Appointment type created");
+      dispatch(createAppointmentTypesThunk(formData)).unwrap()
+        .then(() => {
+          toast.success("Appointment type created");
+          dispatch(getAppointmentTypesThunk()); // Refresh the list
+          setShowAppointmentTypeModal(false);
+          // Reset form
+          setAppointmentTypeForm({
+            name: "",
+            description: "",
+            duration: 30,
+            maxSimultaneous: 1,
+            slot: 1,
+            calenderColor: "#FF843E",
+            interval: 30,
+            category: "",
+            image: null,
+            contingentUsage: 1,
+          });
+        })
+        .catch((error) => {
+          toast.error(error.message || "Failed to create appointment type");
+        });
     }
-
-    setShowAppointmentTypeModal(false)
-    setEditingAppointmentType(null)
   }
 
   const handleDeleteAppointmentType = (id) => {
-    const type = appointmentTypes.find(t => t.id === id)
+    const type = reduxAppointmentTypes.find(t => t._id === id)
+
     openDeleteModal(
       "Delete Appointment Type",
       type?.name || "this appointment type",
       "This cannot be undone.",
       () => {
-        setAppointmentTypes(appointmentTypes.filter(t => t._id !== id))
-        dispatch(deleteAppointmentTypesThunk(appointmentTypes._id));
-        closeDeleteModal()
-        toast.success("Appointment type deleted")
+        dispatch(deleteAppointmentTypesThunk({ typeId: id })).unwrap()
+          .then(() => {
+            toast.success("Appointment type deleted");
+            dispatch(getAppointmentTypesThunk()); // Refresh the list
+            closeDeleteModal();
+          })
+          .catch((error) => {
+            toast.error(error.message || "Failed to delete appointment type");
+          });
       }
     )
   }
 
   const handleAddAppointmentType = () => {
-    handleOpenAppointmentTypeModal(null)
+    handleOpenAppointmentTypeModal()
   }
 
   const handleUpdateAppointmentType = (index, field, value) => {
     const updated = [...appointmentTypes]
     updated[index][field] = value
 
-
+    dispatch(updateAppointmentTypesThunk({
+      appointmentId: appointmentTypes._id,
+      updateData: updated
+    }))
     setAppointmentTypes(updated)
   }
 
-  const handleRemoveAppointmentType = (index) => {
-    const type = appointmentTypes[index]
-    openDeleteModal(
-      "Remove Appointment Type",
-      type?.name || "this appointment type",
-      "This cannot be undone.",
-      () => {
-        setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))
-        closeDeleteModal()
-        toast.success("Appointment type removed")
-      }
-    )
-  }
+
 
   // Appointment Category Handlers with Redux Integration
   const handleAddAppointmentCategory = () => {
@@ -1843,7 +1978,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       }
 
       await dispatch(updateAppointmentCategoryThunk({
-        categoryId: categoryId,
+        id: categoryId,
         updateData: updateData
       })).unwrap()
       toast.success("Appointment category updated successfully")
@@ -1854,32 +1989,40 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     }
   }
 
-  const handleRemoveAppointmentCategory = async (categoryId, index) => {
+  const handleRemoveAppointmentCategory = async (categoryId) => {
+    // Find the category
+    const categoryToDelete = reduxAppointmentCategories.find(c => c._id === categoryId);
+    if (!categoryToDelete) return;
+
     // Check if category is in use by any appointment type
-    const isInUse = appointmentTypes.some(t => t.category === categoryId || t.category?.name === appointmentCategories[index]?.name)
+    const isInUse = reduxAppointmentTypes.some(t => {
+      if (!t.category) return false;
+      // Check if category matches by ID or name
+      return t.category === categoryId || t.category?._id === categoryId || t.category?.categoryName === categoryToDelete.categoryName;
+    });
 
     if (isInUse) {
-      toast.error("Cannot remove — Category is in use by an appointment type")
-      return
+      toast.error("Cannot remove — Category is in use by an appointment type");
+      return;
     }
 
     openDeleteModal(
       "Delete Category",
-      appointmentCategories[index]?.name,
+      categoryToDelete.categoryName,
       "This cannot be undone.",
       async () => {
         try {
-          await dispatch(deleteAppointmentCategoryThunk(categoryId)).unwrap()
-          toast.success("Appointment category deleted successfully")
-          await dispatch(getAppointmentCategoriesThunk()) // Refresh the list
-          closeDeleteModal()
+          await dispatch(deleteAppointmentCategoryThunk(categoryId)).unwrap();
+          toast.success("Appointment category deleted successfully");
+          await dispatch(getAppointmentCategoriesThunk()); // Refresh the list
+          closeDeleteModal();
         } catch (error) {
-          console.error("Error deleting appointment category:", error)
-          toast.error(error.message || "Failed to delete category")
+          console.error("Error deleting appointment category:", error);
+          toast.error(error.message || "Failed to delete category");
         }
       }
-    )
-  }
+    );
+  };
 
 
   // Category handlers
@@ -1924,7 +2067,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       [
         { key: "name", label: "Category Name", type: "text", placeholder: "e.g. Strength, Cardio", required: true },
       ],
-      (data) => {
+      async (data) => {
         const duplicate = appointmentCategories.find(c => c.toLowerCase() === data.name.toLowerCase())
         if (duplicate) {
           toast.error("Duplicate — Category already exists")
@@ -2575,17 +2718,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Medical, Vacation", required: true },
         { key: "maxDays", label: "Max Pause Duration", type: "number", suffix: "days", min: 1, defaultValue: 30 },
       ],
-      (data) => {
-        dispatch(createPauseReasonThunk({
+      async (data) => {
+        await dispatch(createPauseReasonThunk({
           name: data.name,
           maxDuration: data.maxDays
-        }))
-        setContractPauseReasons([...contractPauseReasons, { name: data.name, maxDays: data.maxDays }])
-        closeAddItemModal()
-        toast.success("Pause reason created")
+        })).unwrap();
+        await dispatch(fetchPauseReasonThunk()); // refresh list
+        closeAddItemModal();
+        toast.success("Pause reason created");
       }
     )
-    await dispatch(fetchPauseReasonThunk())
   }
 
   const handleAddChangeReason = async () => {
@@ -2594,14 +2736,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       [
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Upgrade, Downgrade", required: true },
       ],
-      (data) => {
+      async (data) => {
         dispatch(createChangeReasonThunk(data))
-        setContractChangeReasons([...contractChangeReasons, { id: Date.now(), name: data.name }])
+
         closeAddItemModal()
         toast.success("Change reason created")
+        await dispatch(fetchChangeReasonThunk())
       }
     )
-    await dispatch(fetchChangeReasonThunk())
   }
 
   const handleAddRenewReason = async () => {
@@ -2610,16 +2752,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       [
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Satisfied, New Goals", required: true },
       ],
-      (data) => {
+      async (data) => {
 
         dispatch(createRenewReasonThunk(data))
-
-        setContractRenewReasons([...contractRenewReasons, { id: Date.now(), name: data.name }])
         closeAddItemModal()
         toast.success("Renew reason created")
+        await dispatch(fetchRenewReasonThunk())
       },
     )
-    await dispatch(fetchRenewReasonThunk())
   }
 
   const handleAddBonusTimeReason = async () => {
@@ -2628,14 +2768,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       [
         { key: "name", label: "Reason", type: "text", placeholder: "e.g. Referral, Promotion", required: true },
       ],
-      (data) => {
+      async (data) => {
         dispatch(createBonusReasonThunk(data));
-        setContractBonusTimeReasons([...contractBonusTimeReasons, { id: Date.now(), name: data.name }])
         closeAddItemModal()
         toast.success("Bonus time reason created")
+        await dispatch(fetchBonusReasonThunk())
       }
     )
-    await dispatch(fetchBonusReasonThunk())
   }
 
   // Navigate to section
@@ -3580,7 +3719,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
 
-            {config?.service?.length === 0 ? (
+            {reduxAppointmentTypes.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-12 text-content-muted">
                   <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -3597,7 +3736,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </SettingsCard>
             ) : (
               <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-                {config?.services.map((type) => (
+                {reduxAppointmentTypes.map((type) => (
                   <div
                     key={type._id}
                     className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
@@ -3621,7 +3760,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       {/* Category badge - blue like member view */}
                       {type.category && (
                         <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                          {type.category}
+                          {typeof type.category === 'object' ? type.category.categoryName : type.category}
                         </div>
                       )}
 
@@ -3685,7 +3824,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteAppointmentType(type.id)}
+                        onClick={() => handleDeleteAppointmentType(type)}
                         className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3698,8 +3837,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
         )
 
-      // Replace the appointment-categories case with this:
-
+      //  appointment-categories:
       case "appointment-categories":
         return (
           <div className="space-y-6">
@@ -3722,7 +3860,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                   <p className="text-content-muted">Loading categories...</p>
                 </div>
-              ) : appointmentCategories.length === 0 ? (
+              ) : reduxAppointmentCategories.length === 0 ? (
                 <div className="text-center py-8 text-content-muted">
                   <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No categories configured</p>
@@ -3730,9 +3868,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {appointmentCategories.map((category, index) => (
-                    <div key={category._id || index} className="group relative">
-                      {editingCategory.index === index ? (
+                  {reduxAppointmentCategories.map((category) => (
+                    <div key={category._id} className="group relative">
+                      {editingCategory._id === category._id ? (
                         <div className="flex items-center gap-1">
                           <input
                             type="text"
@@ -3740,11 +3878,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                handleUpdateAppointmentCategory(category._id, editingCategory.value.trim() || category.name)
-                                setEditingCategory({ index: null, value: "" })
+                                handleUpdateAppointmentCategory(category._id, editingCategory.value.trim() || category.categoryName);
+                                setEditingCategory({ _id: null, value: "" });
                               }
                               if (e.key === 'Escape') {
-                                setEditingCategory({ index: null, value: "" })
+                                setEditingCategory({ _id: null, value: "" });
                               }
                             }}
                             autoFocus
@@ -3752,15 +3890,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           />
                           <button
                             onClick={() => {
-                              handleUpdateAppointmentCategory(category._id, editingCategory.value.trim() || category.name)
-                              setEditingCategory({ index: null, value: "" })
+                              handleUpdateAppointmentCategory(category._id, editingCategory.value.trim() || category.categoryName);
+                              setEditingCategory({ _id: null, value: "" });
                             }}
                             className="p-1 text-green-400 hover:bg-green-500/10 rounded"
                           >
                             <Check className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setEditingCategory({ index: null, value: "" })}
+                            onClick={() => setEditingCategory({ _id: null, value: "" })}
                             className="p-1 text-red-400 hover:bg-red-500/10 rounded"
                           >
                             <X className="w-4 h-4" />
@@ -3769,9 +3907,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       ) : (
                         <div
                           className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
-                          onClick={() => setEditingCategory({ index, value: category.name })}
+                          onClick={() => setEditingCategory({ _id: category._id, value: category.categoryName })}
                         >
-                          {category.name}
+                          {category.categoryName}
                           {category.description && (
                             <Tooltip content={category.description} position="right">
                               <Info className="w-3 h-3 text-content-faint hover:text-content-secondary cursor-help" />
@@ -3780,7 +3918,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRemoveAppointmentCategory(category._id, index)
+                              handleRemoveAppointmentCategory(category._id);
                             }}
                             className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
@@ -3797,7 +3935,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </p>
             </SettingsCard>
           </div>
-        )
+        );
 
       case "trial-training":
         return (
@@ -5176,7 +5314,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               ) : (
                 <div className="space-y-3">
                   {contractPauseReasons.map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                    <div key={reason.id || index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
                       <input
                         type="text"
                         value={reason.name}
@@ -5184,16 +5322,34 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           const updated = [...contractPauseReasons]
                           updated[index].name = e.target.value
                           setContractPauseReasons(updated)
+                          // TODO: Call update API
                         }}
                         placeholder="Reason name"
                         className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
+                      {reason.maxDuration !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={reason.maxDuration}
+                            onChange={(e) => {
+                              const updated = [...contractPauseReasons]
+                              updated[index].maxDuration = parseInt(e.target.value)
+                              setContractPauseReasons(updated)
+                            }}
+                            className="w-20 bg-surface-hover text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
+                            placeholder="Max days"
+                          />
+                          <span className="text-xs text-content-faint">days</span>
+                        </div>
+                      )}
                       <button
                         onClick={() => openDeleteModal(
                           "Delete Pause Reason",
                           reason.name || "this reason",
                           "This cannot be undone.",
-                          () => {
+                          async () => {
+                            // TODO: Call delete API
                             setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
                             closeDeleteModal()
                             toast.success("Pause reason deleted")

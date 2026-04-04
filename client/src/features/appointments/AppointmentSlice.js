@@ -151,7 +151,92 @@ export const rejectedAppointmentThunk = createAsyncThunk('/appointment/rejected-
     }
 })
 
+// &&&&&&&&&&&&&&
+//  ALL APPOINTMENT CATEGORIES THUNKS
+// &&&&&&&&&&&&&&&&&&&
 
+// &&& Create  Appointment Category &&&
+export const createAppointmentCategoryThunk = createAsyncThunk('/appointment/category/create-category', async (data, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.createCategoryApi(data)
+        return res.category
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+// &&& Get  Appointment Categories &&&
+export const getAppointmentCategoriesThunk = createAsyncThunk('/appointment/category/get-appointment-categories', async (_, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.getCategoryApi();
+        return res.categories
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+// &&& update Appointment Category &&&
+export const updateAppointmentCategoryThunk = createAsyncThunk('/appointment/category/update-category', async ({ id, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.updateCategoryApi(id, updateData)
+        return res.category
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+// &&& delete Appointment Category &&&
+export const deleteAppointmentCategoryThunk = createAsyncThunk('/appointment/category/delete-category', async (id, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.deleteCategoryApi(id)
+        return { id, message: res.message }
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+
+export const createAppointmentTypesThunk = createAsyncThunk('/appointment/types/create', async (data, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.createAppointmentTypesApi(data)
+        return res.type
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const updateAppointmentTypesThunk = createAsyncThunk('/appointment/types/update-type', async ({ typeId, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.updateAppointmentTypesApi(typeId, updateData)
+        return res.type
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
+export const deleteAppointmentTypesThunk = createAsyncThunk('/appointment/type/delete-type', async (typeId, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.deleteAppointmentTypesApi(typeId)
+        return res.type
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const getAppointmentTypesThunk = createAsyncThunk('/appointment/types', async (_, { rejectWithValue }) => {
+    try {
+        const res = await AppointmentsApi.getAppointmentTypesApi()
+        return res.types
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
 
 
 const appointmentSlice = createSlice({
@@ -159,6 +244,8 @@ const appointmentSlice = createSlice({
     initialState: {
         appointmentsByMember: {},
         appointments: [],
+        appointmentCategories: [],
+        appointmentTypes: [],
         loading: false,
         error: null
     },
@@ -360,7 +447,128 @@ const appointmentSlice = createSlice({
             })
 
 
+            // &&&&&&&&&&
+            // ALL CATEGORIES SLICES
+            // &&&&&&&&&&&&&&&
 
+            // get categories
+            .addCase(getAppointmentCategoriesThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(getAppointmentCategoriesThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentCategories = action.payload
+            })
+            .addCase(getAppointmentCategoriesThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // create category
+            .addCase(createAppointmentCategoryThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(createAppointmentCategoryThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentCategories = [...state.appointmentCategories, action.payload];
+            })
+            .addCase(createAppointmentCategoryThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // update category
+            .addCase(updateAppointmentCategoryThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateAppointmentCategoryThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentCategories = state.appointmentCategories.map(cat =>
+                    cat._id === action.payload._id ? action.payload : cat
+                );
+            })
+            .addCase(updateAppointmentCategoryThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // delete category
+            .addCase(deleteAppointmentCategoryThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(deleteAppointmentCategoryThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentCategories = state.appointmentCategories.filter(cat => cat._id !== action.payload.id);
+            })
+            .addCase(deleteAppointmentCategoryThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+            // &&&&&&&&&&
+            // ALL Appointment Types SLICES
+            // &&&&&&&&&&&&&&&
+
+            // get categories
+            .addCase(getAppointmentTypesThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(getAppointmentTypesThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentTypes = action.payload
+            })
+            .addCase(getAppointmentTypesThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // create category
+            .addCase(createAppointmentTypesThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(createAppointmentTypesThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentTypes = [...state.appointmentTypes, action.payload];
+            })
+            .addCase(createAppointmentTypesThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // update category
+            .addCase(updateAppointmentTypesThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateAppointmentTypesThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentTypes = state.appointmentTypes.map(cat =>
+                    cat._id === action.payload._id ? action.payload : cat
+                );
+            })
+            .addCase(updateAppointmentTypesThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
+
+            // delete category
+            .addCase(deleteAppointmentTypesThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(deleteAppointmentTypesThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appointmentTypes = state.appointmentTypes.filter(cat => cat._id !== action.payload.id);
+            })
+            .addCase(deleteAppointmentTypesThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message
+            })
 
     }
 })
