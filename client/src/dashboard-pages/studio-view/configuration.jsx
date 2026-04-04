@@ -224,6 +224,9 @@ const ALL_NAVIGATION_ITEMS = [
       { id: "studio-info", label: "Studio Information" },
       { id: "opening-hours", label: "Opening Hours" },
       { id: "closing-days", label: "Closing Days" },
+      { id: "imprint", label: "Imprint" },
+      { id: "terms-and-conditions", label: "Terms & Conditions" },
+      { id: "privacy-policy", label: "Privacy Policy" },
     ],
   },
   {
@@ -659,6 +662,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [publicHolidays, setPublicHolidays] = useState([])
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
 
+  // Legal pages
+  const [imprintContent, setImprintContent] = useState("")
+  const [termsContent, setTermsContent] = useState("")
+  const [privacyContent, setPrivacyContent] = useState("")
+
   // Staff & Roles
   const [roles, setRoles] = useState([])
   const [defaultVacationDays, setDefaultVacationDays] = useState(0)
@@ -865,6 +873,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           openingHours: 'openingHours',
           closingDays: 'closingDays',
           overallCapacity: 'overallCapacity',
+          imprint: 'imprint',
+          termsAndConditions: 'termsAndConditions',
+          privacyPolicy: 'privacyPolicy',
         };
 
         const backendField = fieldMapping[field];
@@ -1224,7 +1235,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       description: '',
       _id: Date.now().toString()
     };
-    const updatedDays = [...closingDays, newDay];
+    const updatedDays = [newDay, ...closingDays];
     setClosingDays(updatedDays);
     saveStudioChanges({ closingDays: updatedDays });
   };
@@ -1256,6 +1267,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setStudioEmail(config.studio.email || "")
     setStudioWebsite(config.studio.website || "")
     setCurrency(config.studio.currency || "EUR")
+
+    // Legal pages
+    setImprintContent(config.studio.imprint || "")
+    setTermsContent(config.studio.termsAndConditions || "")
+    setPrivacyContent(config.studio.privacyPolicy || "")
 
     // Map backend openingHours to your frontend state
     const formattedHours = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
@@ -3283,37 +3299,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 />
               </div>
             </SettingsCard>
-
-            {/* Manual Save Button */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => saveStudioChanges({
-                  studioName,
-                  studioOwner: studioOperator,
-                  email: studioEmail,
-                  phone: studioPhoneNo,
-                  street: studioStreet,
-                  zipCode: studioZipCode,
-                  city: studioCity,
-                  country: studioCountry,
-                  website: studioWebsite,
-                })}
-                disabled={isSaving}
-                className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Save All Changes
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         )
 
@@ -3471,6 +3456,76 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             </SettingsCard>
           </div>
         )
+
+      case "imprint":
+        return (
+          <div className="space-y-6">
+            {isSaving && (
+              <div className="fixed top-4 right-4 bg-primary text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            )}
+
+            <SectionHeader title="Imprint" description="Legal imprint information displayed to members" />
+            <SettingsCard>
+              <WysiwygEditor
+                value={imprintContent}
+                onChange={(v) => { setImprintContent(v); debouncedSave('imprint', v) }}
+                placeholder="Enter your studio's imprint information here..."
+                minHeight={300}
+                showImages={false}
+              />
+            </SettingsCard>
+          </div>
+        )
+
+      case "terms-and-conditions":
+        return (
+          <div className="space-y-6">
+            {isSaving && (
+              <div className="fixed top-4 right-4 bg-primary text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            )}
+
+            <SectionHeader title="Terms & Conditions" description="Terms and conditions displayed to members" />
+            <SettingsCard>
+              <WysiwygEditor
+                value={termsContent}
+                onChange={(v) => { setTermsContent(v); debouncedSave('termsAndConditions', v) }}
+                placeholder="Enter your studio's terms and conditions here..."
+                minHeight={300}
+                showImages={false}
+              />
+            </SettingsCard>
+          </div>
+        )
+
+      case "privacy-policy":
+        return (
+          <div className="space-y-6">
+            {isSaving && (
+              <div className="fixed top-4 right-4 bg-primary text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            )}
+
+            <SectionHeader title="Privacy Policy" description="Privacy policy displayed to members" />
+            <SettingsCard>
+              <WysiwygEditor
+                value={privacyContent}
+                onChange={(v) => { setPrivacyContent(v); debouncedSave('privacyPolicy', v) }}
+                placeholder="Enter your studio's privacy policy here..."
+                minHeight={300}
+                showImages={false}
+              />
+            </SettingsCard>
+          </div>
+        )
+
       // ========================
       // APPOINTMENT SECTIONS
       // ========================
@@ -7515,7 +7570,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           </div>
 
           {/* Mobile Content Area */}
-          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4">
+          <div ref={mobileContentRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4" key={activeSection}>
             {renderSectionContent()}
           </div>
 
@@ -7539,9 +7594,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           <h1 className="text-2xl font-bold">Configuration</h1>
         </div>
 
-        {/* Content Area */}
-        <div ref={desktopContentRef} className="flex-1 overflow-y-auto p-6">
-          <div>
+        {/* Content Area — absolute so content can never push the outer layout */}
+        <div className="flex-1 min-h-0 relative">
+          <div ref={desktopContentRef} className="absolute inset-0 overflow-y-auto p-6" key={activeSection}>
             {renderSectionContent()}
           </div>
         </div>

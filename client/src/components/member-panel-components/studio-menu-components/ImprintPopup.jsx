@@ -6,25 +6,34 @@ import PopupWrapper from "./PopupWrapper";
 
 const ImprintPopup = ({ onClose, studio }) => {
   const { t } = useTranslation();
+
+  const hasCustomContent = studio?.imprint && studio.imprint !== "<p><br></p>"
+
   return (
     <PopupWrapper title={t("studioMenu.info.imprint")} onClose={onClose}>
-      <p>
-        <strong>{studio?.studioName}</strong>
-      </p>
-      <p>
-        {studio?.street}<br />
-        {studio?.zipCode} {studio?.city} {studio?.country}
-      </p>
-      <p>
-                {t("studioMenu.popup.phone")}: {studio?.phone}
-        <br />
-                {t("studioMenu.personal.email")}: {studio?.email}
-      </p>
-      <p>
-                {t("studioMenu.popup.managingDirector")}: {studio?.studioOwner}
-        <br />
-        {t("studioMenu.popup.commercialRegister")}: {t("studioMenu.popup.notProvided")}
-      </p>
+      {hasCustomContent ? (
+        <div dangerouslySetInnerHTML={{ __html: studio.imprint }} />
+      ) : (
+        <>
+          <p>
+            <strong>{studio?.studioName}</strong>
+          </p>
+          <p>
+            {studio?.street}<br />
+            {studio?.zipCode} {studio?.city} {studio?.country}
+          </p>
+          <p>
+            {t("studioMenu.popup.phone")}: {studio?.phone}
+            <br />
+            {t("studioMenu.personal.email")}: {studio?.email}
+          </p>
+          <p>
+            {t("studioMenu.popup.managingDirector")}: {studio?.studioOwner}
+            <br />
+            {t("studioMenu.popup.commercialRegister")}: {t("studioMenu.popup.notProvided")}
+          </p>
+        </>
+      )}
     </PopupWrapper>
   );
 };

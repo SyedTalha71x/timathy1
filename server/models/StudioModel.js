@@ -61,6 +61,12 @@ const studioSchema = new mongoose.Schema(
     city: String,
     country: String,
     website: String,
+
+    // Legal pages (HTML from WysiwygEditor)
+    imprint: { type: String, default: "" },
+    termsAndConditions: { type: String, default: "" },
+    privacyPolicy: { type: String, default: "" },
+
     img: {
       url: String,
       public_id: String,

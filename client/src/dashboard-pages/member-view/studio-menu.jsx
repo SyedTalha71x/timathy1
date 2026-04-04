@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import ImprintPopup from "../../components/member-panel-components/studio-menu-components/ImprintPopup"
 import TermsPopup from "../../components/member-panel-components/studio-menu-components/TermsPopup"
@@ -433,9 +433,63 @@ const StudioMenu = () => {
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
 
+  // Static map via CartoDB tiles (no API key needed, theme-aware)
+  const [mapCoords, setMapCoords] = useState(null)
+  const [mapError, setMapError] = useState(false)
+  const [mapTheme, setMapTheme] = useState(() =>
+    document.documentElement.classList.contains("light") ? "light_all" : "dark_all"
+  )
+
+  // Watch for theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setMapTheme(document.documentElement.classList.contains("light") ? "light_all" : "dark_all")
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+    return () => observer.disconnect()
+  }, [])
+
+  // Geocode address
+  useEffect(() => {
+    if (!studio?.street || !studio?.city) return
+    const addr = `${studio.street}, ${studio.zipCode || ""} ${studio.city}, ${studio.country || ""}`
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr)}&format=json&limit=1`, {
+      headers: { "Accept": "application/json" }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data?.[0]) {
+          const lat = parseFloat(data[0].lat)
+          const lon = parseFloat(data[0].lon)
+          const zoom = 16
+          const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom))
+          const latRad = lat * Math.PI / 180
+          const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom))
+          setMapCoords({ x, y, zoom })
+        } else {
+          setMapError(true)
+        }
+      })
+      .catch(() => setMapError(true))
+  }, [studio?.street, studio?.city, studio?.zipCode, studio?.country])
+
+  // Build tile URLs from coords + theme
+  const mapTiles = useMemo(() => {
+    if (!mapCoords) return null
+    const { x, y, zoom } = mapCoords
+    const urls = []
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -2; dx <= 3; dx++) {
+        urls.push(`https://a.basemaps.cartocdn.com/${mapTheme}/${zoom}/${x + dx}/${y + dy}@2x.png`)
+      }
+    }
+    return { urls, cols: 6 }
+  }, [mapCoords, mapTheme])
+
   const handleCopyPhone = async () => {
     try {
-      await navigator.clipboard.writeText(studio?.phone || "")
+      const phones = [studio?.phone, studio?.telephone].filter(Boolean).join(" / ")
+      await navigator.clipboard.writeText(phones)
       haptic.light()
       setCopiedPhone(true)
       setTimeout(() => setCopiedPhone(false), 2000)
@@ -566,11 +620,6 @@ const StudioMenu = () => {
     { label: "Google Maps", getUrl: (addr) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}` },
   ]
 
-  const handleAddressClick = (e) => {
-    e.preventDefault()
-    setShowMapConfirm(true)
-  }
-
   const openMapWith = (provider) => {
     setShowMapConfirm(false)
     window.location.href = provider.getUrl(studioAddress)
@@ -647,22 +696,46 @@ const StudioMenu = () => {
           <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 600)) }} className="h-full overflow-y-auto p-2 md:p-6 pt-4 sm:pt-6 pb-20 lg:pb-16">
           <div className="space-y-4 sm:space-y-5">
 
-            {/* Map */}
+            {/* Location — tap to open in Maps app */}
             <Card className="overflow-hidden !p-0">
-              <div className="relative h-48 sm:h-56 md:h-72">
-                {studio && (
-                  <iframe
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(studioAddress)}&output=embed`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
+              <div
+                onClick={() => { haptic.light(); setShowMapConfirm(true) }}
+                className="relative h-48 sm:h-56 md:h-72 cursor-pointer overflow-hidden bg-surface-hover"
+              >
+                {mapTiles && !mapError ? (
+                  <div
+                    className="pointer-events-none absolute"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${mapTiles.cols}, 256px)`,
+                      gridTemplateRows: "repeat(3, 256px)",
+                      left: "50%",
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    {mapTiles.urls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt=""
+                        className="w-[256px] h-[256px] block"
+                        draggable="false"
+                        loading="lazy"
+                        onError={() => setMapError(true)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <MapPin className="w-12 h-12 text-content-faint opacity-30" />
+                  </div>
                 )}
+
+                {/* Address overlay */}
                 <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-lg">
                   <p className="text-sm font-semibold">{studio?.street}</p>
-                  <p className="text-xs text-content-secondary">{studio?.zipCode} {studio?.city}</p>
+                  <p className="text-xs text-white/70">{studio?.zipCode} {studio?.city}{studio?.country ? `, ${studio.country}` : ""}</p>
                 </div>
               </div>
             </Card>
@@ -733,7 +806,7 @@ const StudioMenu = () => {
                       <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                       </svg>
-                      <a href="#" onClick={(e) => { e.preventDefault(); setShowPhoneConfirm(true) }} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors cursor-pointer">{studio?.phone || "+49 30 1234 5678"}</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); setShowPhoneConfirm(true) }} className="text-sm break-all text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors cursor-pointer">{[studio?.phone, studio?.telephone].filter(Boolean).join(" / ") || "+49 30 1234 5678"}</a>
                     </div>
                     <button
                       onClick={handleCopyPhone}
@@ -776,17 +849,7 @@ const StudioMenu = () => {
                       )}
                     </button>
                   </div>
-                  <div className="flex items-center gap-3 bg-surface-hover rounded-lg p-3">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                    <button
-                      onClick={handleAddressClick}
-                      className="text-sm text-content-primary underline decoration-dotted decoration-content-primary/50 underline-offset-2 transition-colors text-left"
-                    >
-                      {studio?.street}, {studio?.zipCode} {studio?.city}
-                    </button>
-                  </div>
+
                 </div>
               </Card>
             </div>
@@ -1426,7 +1489,7 @@ const StudioMenu = () => {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.openInMaps")}</h4>
-                    <p className="text-xs lg:text-sm text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}</p>
+                    <p className="text-xs lg:text-sm text-content-faint">{studio?.street}, {studio?.zipCode} {studio?.city}{studio?.country ? `, ${studio.country}` : ""}</p>
                   </div>
                   <button onClick={() => setShowMapConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
                     <X className="w-5 h-5" />
@@ -1495,7 +1558,7 @@ const StudioMenu = () => {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm lg:text-base font-semibold text-content-primary">{t("studioMenu.info.phoneTitle")}</h4>
-                    <p className="text-xs lg:text-sm text-content-faint">{studio?.phone || "+49 30 1234 5678"}</p>
+                    <p className="text-xs lg:text-sm text-content-faint">{[studio?.phone, studio?.telephone].filter(Boolean).join(" / ")}</p>
                   </div>
                   <button onClick={() => setShowPhoneConfirm(false)} className="hidden lg:flex p-1 text-content-muted hover:text-content-primary transition-colors flex-shrink-0">
                     <X className="w-5 h-5" />
@@ -1504,18 +1567,36 @@ const StudioMenu = () => {
               </div>
 
               <div className="p-3 lg:p-4">
-                <button
-                  onClick={() => {
-                    setShowPhoneConfirm(false)
-                    window.location.href = `tel:${studio?.phone || "+493012345678"}`
-                  }}
-                  className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
-                >
-                  <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
-                  <div>
-                    <p className="text-sm lg:text-base font-medium">{t("studioMenu.info.call")}</p>
-                  </div>
-                </button>
+                {studio?.phone && (
+                  <button
+                    onClick={() => {
+                      setShowPhoneConfirm(false)
+                      window.location.href = `tel:${studio.phone}`
+                    }}
+                    className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                  >
+                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                    <div>
+                      <p className="text-sm lg:text-base font-medium">{studio.phone}</p>
+                      <p className="text-xs text-content-faint">{t("studioMenu.info.telephone", "Telephone")}</p>
+                    </div>
+                  </button>
+                )}
+                {studio?.telephone && (
+                  <button
+                    onClick={() => {
+                      setShowPhoneConfirm(false)
+                      window.location.href = `tel:${studio.telephone}`
+                    }}
+                    className="w-full text-left px-4 py-3.5 lg:py-4 hover:bg-surface-hover active:bg-surface-hover rounded-xl text-content-primary flex items-center gap-3 lg:gap-4 transition-colors"
+                  >
+                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                    <div>
+                      <p className="text-sm lg:text-base font-medium">{studio.telephone}</p>
+                      <p className="text-xs text-content-faint">{t("studioMenu.info.mobile", "Mobile")}</p>
+                    </div>
+                  </button>
+                )}
 
                 <div className="lg:hidden" style={{ height: "calc(3.5rem + env(safe-area-inset-bottom, 0px))" }} />
               </div>

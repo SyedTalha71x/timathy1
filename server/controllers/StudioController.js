@@ -31,7 +31,8 @@ const updateStudio = async (req, res, next) => {
       'phone', 'telephone', 'operatorTelephone', 'email',
       'street', 'zipCode', 'city', 'country', 'website',
       'overallCapacity', 'registrationNumber', 'texId', 'court',
-      'openingHours', 'closingDays'
+      'openingHours', 'closingDays',
+      'imprint', 'termsAndConditions', 'privacyPolicy'
     ];
 
     // Process each field - parse JSON strings if needed

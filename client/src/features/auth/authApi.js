@@ -15,17 +15,18 @@ const safeRequest = async (fn) => {
 
 //logout user
 export const logoutUser = async () => {
-    const token = localStorage.getItem("token"); // wherever you store it
+    const token = localStorage.getItem("token");
     const res = await api.post(
         "/auth/logout",
         {},
         {
             headers: {
-                Authorization: `Bearer ${token}`, // send token
+                Authorization: `Bearer ${token}`,
             },
-            withCredentials: true, // if using cookies
+            withCredentials: true,
         }
     );
+    localStorage.removeItem("token");
     return res.data;
 };
 
@@ -67,6 +68,10 @@ export const updateMember = async (updateData) => {
 
 export const loginMember = async (credentials) => {
     const res = await api.post('/member/login', credentials, { withCredentials: true })
+    // Save token to localStorage for iOS/Capacitor where cookies don't work cross-origin
+    if (res.data?.token) {
+        localStorage.setItem("token", res.data.token)
+    }
     return res.data;
 }
 
@@ -84,6 +89,10 @@ export const changedPassword = async (updatePassword) => {
 
 export const StaffLogin = async (credentials) => {
     const res = await api.post('/staff/login', credentials, { withCredentials: true })
+    // Save token to localStorage for iOS/Capacitor where cookies don't work cross-origin
+    if (res.data?.token) {
+        localStorage.setItem("token", res.data.token)
+    }
     return res.data
 }
 

@@ -6,12 +6,18 @@ import PopupWrapper from "./PopupWrapper";
 
 const TermsPopup = ({ onClose, studio }) => {
   const { t } = useTranslation();
+
+  const hasCustomContent = studio?.termsAndConditions && studio.termsAndConditions !== "<p><br></p>"
+
   return (
     <PopupWrapper title={t("studioMenu.info.terms")} onClose={onClose}>
-      <p>These terms and conditions govern your membership at {studio?.studioName}</p>
-      <p>1. Membership fees are due monthly in advance.</p>
-      <p>2. Cancellation requires 1 month notice.</p>
-      <p>3. Studio rules must be followed at all times.</p>
+      {hasCustomContent ? (
+        <div dangerouslySetInnerHTML={{ __html: studio.termsAndConditions }} />
+      ) : (
+        <>
+          <p>{t("studioMenu.popup.termsPlaceholder", "No terms and conditions have been provided yet.")}</p>
+        </>
+      )}
     </PopupWrapper>
   );
 };

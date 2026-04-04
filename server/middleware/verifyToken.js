@@ -3,7 +3,7 @@ const UserModel = require("../models/UserModel");
 
 const verifyAccessToken = async (req, res, next) => {
     try {
-        const token = req.cookies?.token;
+        const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
 
         if (!token) {
             return res.status(401).json({ error: "Invalid Access Token" });
@@ -33,7 +33,7 @@ const verifyAccessToken = async (req, res, next) => {
 
 const verifyRefreshToken = (req, res, next) => {
     try {
-        const token = req.cookies?.refreshToken
+        const token = req.cookies?.refreshToken || req.headers.authorization?.split(" ")[1];
         if (!token) {
             return res.status(401).json({ error: "Invalid Refresh Token " })
         }
