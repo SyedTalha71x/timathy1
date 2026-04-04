@@ -36,6 +36,10 @@ const ClassRoutes = require('./classes/ClassRoutes')
 const PostRoutes = require('./PostRoutes')
 const ContractRoutes = require('./contract/ContractRoutes')
 
+
+const RoleRoutes = require('./RoleRoutes')
+const MaterialRoutes = require('./canvas/MaterialRoutes')
+
 const router = express.Router();
 
 const strictLimiter = rateLimit({
@@ -101,6 +105,8 @@ router.use('/class', ClassRoutes)
 router.use('/post', PostRoutes)
 router.use('/contract', ContractRoutes)
 
+router.use('/role', RoleRoutes)
 
+router.use('/material', MaterialRoutes)
 
 module.exports = router

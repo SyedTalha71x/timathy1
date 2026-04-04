@@ -70,7 +70,7 @@ const studioSlice = createSlice({
     name: 'studio',
     initialState: {
         // studios: [],
-        studio: null,
+        studio: [],
         loading: false,
         error: null,
     },

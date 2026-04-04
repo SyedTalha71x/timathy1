@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from "react"
-import { 
-  X, 
-  Check, 
-  Plus, 
+import {
+  X,
+  Check,
+  Plus,
   Trash2,
   ChevronLeft,
   ChevronRight,
@@ -43,7 +43,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
   const [editorKey, setEditorKey] = useState(0)
   const [livePreviewContent, setLivePreviewContent] = useState("") // Live preview for active page
-  
+
   // Refs
   const currentContentRef = useRef("")
   const previewUpdateTimeoutRef = useRef(null)
@@ -57,8 +57,9 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
         title: p.title || "Untitled Page",
         content: p.content || ""
       }))
-      
-      setMaterialId(material.id)
+
+      // ✅ Store the MongoDB _id, not the numeric id
+      setMaterialId(material._id)  // Use _id for API calls
       setMaterialName(material.name || "")
       setPages(initPages)
       setActivePageIndex(0)
@@ -82,7 +83,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
   const handleContentChange = useCallback((content) => {
     currentContentRef.current = content
     setHasUnsavedChanges(true)
-    
+
     // Debounced preview update (100ms delay for smooth performance)
     if (previewUpdateTimeoutRef.current) {
       clearTimeout(previewUpdateTimeoutRef.current)
@@ -96,17 +97,17 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
   const handleAddPage = () => {
     // Save current page content first
     const updatedPages = [...pages]
-    updatedPages[activePageIndex] = { 
-      ...updatedPages[activePageIndex], 
-      content: currentContentRef.current 
+    updatedPages[activePageIndex] = {
+      ...updatedPages[activePageIndex],
+      content: currentContentRef.current
     }
-    
+
     const newPage = {
       id: Date.now(),
       title: `Page ${pages.length + 1}`,
       content: ""
     }
-    
+
     setPages([...updatedPages, newPage])
     setActivePageIndex(updatedPages.length)
     setEditorKey(prev => prev + 1)
@@ -123,21 +124,21 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
       setShowDeleteConfirm(null)
       return
     }
-    
+
     // Save current content first if not deleting current page
     let updatedPages = [...pages]
     if (index !== activePageIndex) {
-      updatedPages[activePageIndex] = { 
-        ...updatedPages[activePageIndex], 
-        content: currentContentRef.current 
+      updatedPages[activePageIndex] = {
+        ...updatedPages[activePageIndex],
+        content: currentContentRef.current
       }
     }
-    
+
     const newPages = updatedPages.filter((_, i) => i !== index)
-    const newActiveIndex = index <= activePageIndex 
+    const newActiveIndex = index <= activePageIndex
       ? Math.max(0, activePageIndex - 1)
       : activePageIndex
-    
+
     setPages(newPages)
     setActivePageIndex(newActiveIndex)
     setEditorKey(prev => prev + 1)
@@ -149,14 +150,14 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
 
   const handlePageChange = (newIndex) => {
     if (newIndex === activePageIndex || newIndex < 0 || newIndex >= pages.length) return
-    
+
     // Save current page content before switching
     const updatedPages = [...pages]
-    updatedPages[activePageIndex] = { 
-      ...updatedPages[activePageIndex], 
-      content: currentContentRef.current 
+    updatedPages[activePageIndex] = {
+      ...updatedPages[activePageIndex],
+      content: currentContentRef.current
     }
-    
+
     setPages(updatedPages)
     setActivePageIndex(newIndex)
     setEditorKey(prev => prev + 1)
@@ -167,19 +168,19 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
   const handleMovePage = (fromIndex, direction) => {
     const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1
     if (toIndex < 0 || toIndex >= pages.length) return
-    
+
     // Save current page content first
     const updatedPages = [...pages]
-    updatedPages[activePageIndex] = { 
-      ...updatedPages[activePageIndex], 
-      content: currentContentRef.current 
+    updatedPages[activePageIndex] = {
+      ...updatedPages[activePageIndex],
+      content: currentContentRef.current
     }
-    
+
     // Swap pages
     const temp = updatedPages[fromIndex]
     updatedPages[fromIndex] = updatedPages[toIndex]
     updatedPages[toIndex] = temp
-    
+
     // Update active page index if needed
     let newActiveIndex = activePageIndex
     if (activePageIndex === fromIndex) {
@@ -187,7 +188,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
     } else if (activePageIndex === toIndex) {
       newActiveIndex = fromIndex
     }
-    
+
     setPages(updatedPages)
     setActivePageIndex(newActiveIndex)
     setHasUnsavedChanges(true)
@@ -211,14 +212,17 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
       }
       return page
     })
-    
+
     // Build final material object
     const finalMaterial = {
-      id: materialId,
+      _id: materialId,  // ✅ Include the MongoDB _id
+      id: materialId,   // Keep for backwards compatibility
       name: materialName,
       pages: finalPages
     }
-    
+
+    console.log('Saving material with _id:', finalMaterial._id); // Debug log
+
     onSave(finalMaterial)
     setHasUnsavedChanges(false)
     onClose()
@@ -279,20 +283,19 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
                 {pages.map((page, pageIndex) => (
                   <div
                     key={page.id}
-                    className={`cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${
-                      pageIndex === activePageIndex
+                    className={`cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${pageIndex === activePageIndex
                         ? "border-primary"
                         : "border-border hover:border-border"
-                    }`}
+                      }`}
                     onClick={() => setActivePageIndex(pageIndex)}
                   >
                     <div className="aspect-[4/3] bg-white p-1 overflow-hidden">
-                      <div 
+                      <div
                         className="w-full h-full overflow-hidden pointer-events-none"
-                        style={{ 
-                          transform: 'scale(0.18)', 
-                          transformOrigin: 'top left', 
-                          width: '555%', 
+                        style={{
+                          transform: 'scale(0.18)',
+                          transformOrigin: 'top left',
+                          width: '555%',
                           height: '555%',
                           fontSize: '11px',
                           padding: '6px',
@@ -311,7 +314,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
                   </div>
                 ))}
               </div>
-              
+
               <div className="p-2 border-t border-border flex items-center justify-between">
                 <button
                   onClick={() => setActivePageIndex(Math.max(0, activePageIndex - 1))}
@@ -349,9 +352,9 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
               {/* Content Display - Preview Mode */}
               <div className="flex-1 overflow-auto p-3 sm:p-4">
                 <div className="bg-white rounded-xl p-4 sm:p-6 min-h-[300px] sm:min-h-[500px] max-h-none sm:max-h-[600px] overflow-auto">
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none"
-                    style={{ 
+                    style={{
                       color: '#000',
                       lineHeight: '1.6',
                       fontFamily: 'Arial, Helvetica, sans-serif'
@@ -445,27 +448,26 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {pages.map((page, pageIndex) => {
                 // Use live preview content for active page, otherwise use saved page.content
-                const previewContent = pageIndex === activePageIndex 
-                  ? livePreviewContent 
+                const previewContent = pageIndex === activePageIndex
+                  ? livePreviewContent
                   : page.content
-                
+
                 return (
                   <div
                     key={page.id}
-                    className={`group relative cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${
-                      pageIndex === activePageIndex
+                    className={`group relative cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${pageIndex === activePageIndex
                         ? "border-primary"
                         : "border-border hover:border-border"
-                    }`}
+                      }`}
                     onClick={() => handlePageChange(pageIndex)}
                   >
                     <div className="aspect-[4/3] bg-white p-1 overflow-hidden">
-                      <div 
+                      <div
                         className="w-full h-full overflow-hidden pointer-events-none"
-                        style={{ 
-                          transform: 'scale(0.18)', 
-                          transformOrigin: 'top left', 
-                          width: '555%', 
+                        style={{
+                          transform: 'scale(0.18)',
+                          transformOrigin: 'top left',
+                          width: '555%',
                           height: '555%',
                           fontSize: '11px',
                           padding: '6px',
@@ -514,7 +516,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
                 )
               })}
             </div>
-            
+
             <div className="p-2 border-t border-border flex items-center justify-between">
               <button
                 onClick={() => handlePageChange(activePageIndex - 1)}
@@ -609,28 +611,28 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
               You have unsaved changes. Would you like to save before leaving?
             </p>
             <div className="flex gap-3">
-              <button 
-                onClick={() => { 
+              <button
+                onClick={() => {
                   setShowExitConfirm(false)
                   setHasUnsavedChanges(false)
-                  onClose() 
-                }} 
+                  onClose()
+                }}
                 className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover flex items-center justify-center gap-2"
               >
                 <X className="w-4 h-4" />
                 Don&apos;t Save
               </button>
-              <button 
-                onClick={() => setShowExitConfirm(false)} 
+              <button
+                onClick={() => setShowExitConfirm(false)}
                 className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover"
               >
                 Cancel
               </button>
-              <button 
-                onClick={() => { 
+              <button
+                onClick={() => {
                   setShowExitConfirm(false)
-                  handleSave() 
-                }} 
+                  handleSave()
+                }}
                 className="flex-1 px-4 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover flex items-center justify-center gap-2"
               >
                 <Check className="w-4 h-4" />
@@ -655,14 +657,14 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewM
               Are you sure you want to delete this page? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button 
-                onClick={() => setShowDeleteConfirm(null)} 
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
                 className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover"
               >
                 Cancel
               </button>
-              <button 
-                onClick={confirmDeletePage} 
+              <button
+                onClick={confirmDeletePage}
                 className="flex-1 px-4 py-2.5 bg-accent-red text-white text-sm rounded-xl hover:bg-accent-red flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />

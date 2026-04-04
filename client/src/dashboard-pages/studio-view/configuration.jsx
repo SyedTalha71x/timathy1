@@ -72,6 +72,34 @@ import CustomSelect from "../../components/shared/CustomSelect"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 import { updateLoggedInStaffThunk } from '../../features/staff/staffSlice'
 
+// introduction materials
+import {
+  fetchMaterialThunk,
+  createMaterialThunk,
+  updateMaterialThunk,
+  deleteMaterialThunk
+} from '../../features/canvas/canvasSlice'
+
+
+// Staff roles and permission
+import {
+  createRoleThunk,
+  updateRoleThunk,
+  getAllRolesThunk,
+  getRoleByIdThunk,
+  removeStaffFromRoleThunk,
+  assignStaffToRoleThunk,
+  getStaffByRoleThunk,
+  deleteRoleThunk,
+  getMyPermissionsThunk,
+  updateRolePermissionsThunk,
+  getRolePermissionsThunk,
+  checkStaffPermissionThunk
+
+
+} from '../../features/auth/authSlice'
+
+
 // contract
 
 import {
@@ -105,15 +133,17 @@ import {
 import { useSelector, useDispatch } from 'react-redux'
 // all classes Related slices
 import {
+  // class categories
   createCategoryThunk,
   getCategoriesThunk,
   updateCategoryThunk,
   deleteCategoryThunk,
+  // class types
   createClassTypeThunk,
   getClassTypeThunk,
   updateClassTypeThunk,
   deleteClassTypeThunk,
-  createClassThunk,
+  // room
   createRoomThunk,
   getAllRoomsThunk,
   updateRoomThunk,
@@ -511,6 +541,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   // contract reason
   const { pauseReasons: reduxPauseReason = [], changeReasons: reduxChangeReason = [], renewReasons: reduxRenewReason = [], bonusReasons: reduxBonusReason = [] } = useSelector((state) => state.contracts)
+  // introductions
+  const { materials: reduxMaterial = [] } = useSelector((state) => state.materials) || {}
+
+  // roles 
+  const { roles: reduxRoles = [] } = useSelector((state) => state.auth)
 
 
   // console.log('Categories', categories)
@@ -572,6 +607,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     dispatch(fetchPauseReasonThunk())
     dispatch(fetchRenewReasonThunk())
     dispatch(getAppointmentTypesThunk())
+    dispatch(getAllRolesThunk())
+    dispatch(fetchMaterialThunk())
   }, [dispatch])
   // ============================================
   // Profile State Variables
@@ -677,6 +714,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const [staffAssignmentModalVisible, setStaffAssignmentModalVisible] = useState(false)
   const [selectedRoleForAssignment, setSelectedRoleForAssignment] = useState(null)
   const [allStaff, setAllStaff] = useState([])
+  // roles and permission
+
+  const [permissionLoading, setPermissionLoading] = useState(false)
+  const [selectedRolePermissions, setSelectedRolePermissions] = useState([])
+  const [isRoleAdmin, setIsRoleAdmin] = useState(false)
+
 
   // Appointments
   const [appointmentTypes, setAppointmentTypes] = useState(reduxAppointmentTypes)
@@ -807,6 +850,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Notification section collapse states
   const [collapsedNotifSections, setCollapsedNotifSections] = useState({ emailAppointments: true, emailClasses: true, appAppointments: true, appClasses: true })
 
+
   // Finances
   const [vatRates, setVatRates] = useState([])
   const [vatNumber, setVatNumber] = useState("")
@@ -925,6 +969,28 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     };
   }, [debouncedSave]);
 
+  // +++++++++++
+  // Roles Use Effect
+  // ++++++++++++++++
+  useEffect(() => {
+    if (reduxRoles.length > 0) {
+      const mappedRoles = reduxRoles.map(role => ({
+        id: role._id,
+        name: role.name,
+        description: role.description || '',
+        color: role.color || '#FF843E',
+        permissions: role.permissions || [],
+        isAdmin: role.isAdmin || false,
+        isDefault: role.isDefault || false,
+        staffCount: role.assignedStaff?.length || 0,
+        assignedStaff: role.assignedStaff || []
+      }))
+      setRoles(mappedRoles)
+    }
+  }, [reduxRoles])
+
+
+
 
   useEffect(() => {
     if (reduxAppointmentCategories && reduxAppointmentCategories.length > 0) {
@@ -973,6 +1039,18 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       setContractBonusTimeReasons(mappedReasons);
     }
   }, [reduxBonusReason]);
+
+  // Roles
+  useEffect(() => {
+    if (reduxRoles.length > 0) {
+      const mappedRoles = reduxRoles.map(role => ({
+        id: role._id,
+        name: role.name
+      }));
+      setRoles(mappedRoles);
+    }
+  }, [reduxRoles]);
+
 
   // ============================================
   // Save multiple fields at once
@@ -1297,9 +1375,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setClosingDays(formattedDays)
 
     // Staff
-    setRoles(config.staff?.roles || [])
+    // setRoles(config.staff?.roles || [])
     setDefaultVacationDays(config.staff?.defaultVacationDays || 0)
-    setDefaultStaffRole(config.staff?.defaultStaffRole || "")
+    // setDefaultStaffRole(config.staff?.defaultStaffRole || "")
     setDefaultStaffCountry(config.staff?.defaultStaffCountry || "")
     setAllStaff(config.staff?.allStaff || [])
 
@@ -1319,7 +1397,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setAllowMemberQRCheckIn(config.members?.allowMemberQRCheckIn || false)
     setMemberQRCodeUrl(config.members?.memberQRCodeUrl || "")
     setLeadSources(config.members?.leadSources || [])
-    setIntroductoryMaterials(config.members?.introductoryMaterials || [])
+    // setIntroductoryMaterials(config.members?.introductoryMaterials || [])
 
     // Contracts
     setAllowMemberSelfCancellation(config.contracts?.settings?.allowMemberSelfCancellation || false)
@@ -1642,31 +1720,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       "Add Role",
       [
         { key: "name", label: "Role Name", type: "text", placeholder: "e.g. Trainer, Manager", required: true },
-        { key: "color", label: "Color", type: "color" },
+        { key: "color", label: "Color", type: "color", defaultValue: "#FF843E" },
       ],
-      (data) => {
+      async (data) => {
         const duplicate = roles.find(r => r.name.toLowerCase() === data.name.toLowerCase())
         if (duplicate) {
           toast.error("Duplicate name — Role name already exists")
           return
         }
-        setRoles([...roles, {
-          id: Date.now(),
-          name: data.name,
-          permissions: [],
-          color: data.color,
-          isAdmin: false,
-          staffCount: 0,
-          assignedStaff: []
-        }])
-        closeAddItemModal()
-        toast.success("Role created")
+
+        try {
+          const result = await dispatch(createRoleThunk({
+            name: data.name,
+            color: data.color || "#FF843E",
+            permissions: [],
+            isDefault: false
+          })).unwrap()
+
+          await dispatch(getAllRolesThunk())
+          closeAddItemModal()
+          toast.success(`Role "${data.name}" created successfully`)
+        } catch (error) {
+          toast.error(error.message || "Failed to create role")
+        }
       }
     )
   }
 
-  const handleUpdateRole = (index, field, value) => {
-    const updated = [...roles]
+  const handleUpdateRole = async (index, field, value) => {
+    const role = roles[index]
+
+    if (role.isAdmin) {
+      toast.error("Admin role cannot be modified")
+      return
+    }
+
     if (field === "name" && value.trim()) {
       const duplicate = roles.find((r, i) => i !== index && r.name.toLowerCase() === value.toLowerCase().trim())
       if (duplicate) {
@@ -1674,74 +1762,161 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         return
       }
     }
+
+    // Update local state optimistically
+    const updated = [...roles]
     updated[index][field] = value
     setRoles(updated)
+
+    // Persist to backend
+    try {
+      await dispatch(updateRoleThunk({
+        roleId: role.id,
+        updateData: { [field]: value }
+      })).unwrap()
+
+      await dispatch(getAllRolesThunk())
+      toast.success(`Role ${field} updated`)
+    } catch (error) {
+      // Revert on error
+      setRoles(roles)
+      toast.error(error.message || `Failed to update ${field}`)
+    }
   }
 
+
   const handleDeleteRole = (index) => {
-    if (roles[index].isAdmin) {
+    const role = roles[index]
+
+    if (role.isAdmin) {
       toast.error("Cannot delete Admin role")
       return
     }
-    if (roles[index].staffCount > 0) {
-      toast.error("Reassign staff first")
+
+    if (role.staffCount > 0) {
+      toast.error(`Cannot delete — ${role.staffCount} staff member(s) still assigned to this role`)
       return
     }
+
     openDeleteModal(
       "Delete Role",
-      roles[index].name || "this role",
+      role.name,
       "This action cannot be undone.",
-      () => {
-        setRoles(roles.filter((_, i) => i !== index))
-        closeDeleteModal()
-        toast.success("Role deleted")
+      async () => {
+        try {
+          await dispatch(deleteRoleThunk(role.id)).unwrap()
+          await dispatch(getAllRolesThunk())
+          closeDeleteModal()
+          toast.success(`Role "${role.name}" deleted successfully`)
+        } catch (error) {
+          toast.error(error.message || "Failed to delete role")
+        }
       }
     )
   }
 
   const handleCopyRole = (index) => {
     const role = roles[index]
-    setRoles([...roles, { ...role, id: Date.now(), name: `${role.name} (copy)`, staffCount: 0, assignedStaff: [], isAdmin: false }])
+    const copiedRole = {
+      ...role,
+      id: Date.now(),
+      name: `${role.name} (copy)`,
+      staffCount: 0,
+      assignedStaff: [],
+      isAdmin: false
+    }
+    setRoles([...roles, copiedRole])
+    toast.success(`Role "${copiedRole.name}" created`)
+
+    // Optionally save to backend
+    dispatch(createRoleThunk({
+      name: copiedRole.name,
+      color: copiedRole.color,
+      description: copiedRole.description,
+      permissions: copiedRole.permissions,
+      isDefault: false
+    })).then(() => {
+      dispatch(getAllRolesThunk())
+    })
   }
 
-  const handlePermissionChange = (permissions) => {
+
+  const handlePermissionChange = async (permissions) => {
     if (selectedRoleIndex !== null) {
+      const role = roles[selectedRoleIndex]
+
+      // Admin role cannot be modified
+      if (role.isAdmin) {
+        toast.error("Admin role has all permissions by default and cannot be modified")
+        return
+      }
+
+      // Update local state optimistically
       const updated = [...roles]
       updated[selectedRoleIndex].permissions = permissions
       setRoles(updated)
+
+      // Persist to backend
+      try {
+        await dispatch(updateRolePermissionsThunk({
+          roleId: role.id,
+          permissions: permissions
+        })).unwrap()
+
+        // Refresh roles to ensure consistency
+        await dispatch(getAllRolesThunk())
+        toast.success(`Permissions updated for "${role.name}"`)
+      } catch (error) {
+        // Revert on error
+        await dispatch(getAllRolesThunk())
+        toast.error(error.message || "Failed to update permissions")
+      }
     }
   }
 
-  const handleStaffAssignmentChange = (roleId, assignedStaffIds) => {
-    // Find the admin role
+  const handleStaffAssignmentChange = async (roleId, assignedStaffIds) => {
+    // Find the admin role and target role
     const adminRole = roles.find(r => r.isAdmin)
     const targetRole = roles.find(r => r.id === roleId)
 
-    // If we're assigning to a non-admin role, check if any of the staff are the last admin
-    if (adminRole && !targetRole?.isAdmin) {
+    if (!targetRole) return
+
+    // Validation: Cannot remove last admin
+    if (adminRole && !targetRole.isAdmin) {
       const adminStaff = adminRole.assignedStaff || []
       const staffBeingMovedFromAdmin = assignedStaffIds.filter(id => adminStaff.includes(id))
-
-      // Check if this would remove all admins
       const remainingAdmins = adminStaff.filter(id => !staffBeingMovedFromAdmin.includes(id))
 
       if (staffBeingMovedFromAdmin.length > 0 && remainingAdmins.length === 0) {
-        toast.error("Cannot remove last admin — At least one staff member must remain in the Admin role.")
+        toast.error("Cannot remove last admin — At least one staff member must remain in the Admin role")
         return
       }
     }
 
-    // Remove assigned staff from all other roles, then add to the target role
+    // Update local state optimistically
     setRoles(roles.map(role => {
       if (role.id === roleId) {
-        // This is the target role - assign the staff
         return { ...role, assignedStaff: assignedStaffIds, staffCount: assignedStaffIds.length }
       } else {
-        // Remove any of the assigned staff from this role
         const filteredStaff = (role.assignedStaff || []).filter(staffId => !assignedStaffIds.includes(staffId))
         return { ...role, assignedStaff: filteredStaff, staffCount: filteredStaff.length }
       }
     }))
+
+    // Persist to backend
+    try {
+      await dispatch(assignStaffToRoleThunk({
+        roleId: roleId,
+        staffIds: assignedStaffIds
+      })).unwrap()
+
+      await dispatch(getAllRolesThunk())
+      toast.success(`${assignedStaffIds.length} staff member(s) assigned to ${targetRole.name}`)
+    } catch (error) {
+      // Revert on error
+      await dispatch(getAllRolesThunk())
+      toast.error(error.message || "Failed to assign staff")
+    }
   }
 
   // Appointment handlers
@@ -4595,8 +4770,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
             <div className="space-y-3">
-              {roles.map((role, index) => (
-                <SettingsCard key={role.id}>
+              {reduxRoles.map((role, index) => (
+                <SettingsCard key={role._id}>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Color Picker */}
                     <button
@@ -4644,7 +4819,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       >
                         <Users className="w-4 h-4" />
                         <span className="hidden sm:inline">Staff</span>
-                        <span className="bg-surface-button-hover px-1.5 py-0.5 rounded text-xs">{role.staffCount || 0}</span>
+                        <span className="bg-surface-button-hover px-1.5 py-0.5 rounded text-xs">{role.assignedStaff?.length || 0}</span>
                       </button>
                       <button
                         onClick={() => handleCopyRole(index)}
@@ -4798,9 +4973,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       name: "",
                       pages: [{ id: Date.now(), title: "Page 1", content: "" }]
                     }
-                    // Don't add to list yet - only add when saved
                     setEditingIntroMaterial(newMaterial)
-                    setEditingIntroMaterialIndex(null) // null = new material
+                    setEditingIntroMaterialIndex(null)
                     setIntroMaterialEditorVisible(true)
                   }}
                   className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
@@ -4811,7 +4985,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
 
-            {introductoryMaterials.length === 0 ? (
+            {!Array.isArray(reduxMaterial) || reduxMaterial.length === 0 ? (
               <SettingsCard>
                 <div className="text-center py-8 text-content-muted">
                   <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -4821,8 +4995,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               </SettingsCard>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {introductoryMaterials.map((material, index) => (
-                  <div key={material.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
+                {reduxMaterial.map((material, index) => (
+                  <div key={material._id || material.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
                     <div className="p-4 sm:p-5">
                       <div className="space-y-4">
                         <div className="flex items-start justify-between gap-2">
@@ -4832,18 +5006,24 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
                               <BookOpen className="w-4 h-4" />
-                              {material.pages.length} page{material.pages.length !== 1 ? "s" : ""}
+                              {material.pages?.length || 0} page{material.pages?.length !== 1 ? "s" : ""}
                             </div>
                           </div>
                           <button
                             onClick={() => openDeleteModal(
                               "Delete Material",
-                              introductoryMaterials[index]?.name || "Untitled Material",
-                              `This will permanently delete all ${introductoryMaterials[index]?.pages?.length || 0} page(s). This action cannot be undone.`,
-                              () => {
-                                setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== index))
-                                closeDeleteModal()
-                                toast.success("Material deleted successfully")
+                              material.name || "Untitled Material",
+                              `This will permanently delete all ${material.pages?.length || 0} page(s). This action cannot be undone.`,
+                              async () => {
+                                try {
+                                  // ✅ FIXED: Use material._id
+                                  await dispatch(deleteMaterialThunk(material._id)).unwrap()
+                                  closeDeleteModal()
+                                  toast.success("Material deleted successfully")
+                                  dispatch(fetchMaterialThunk())
+                                } catch (error) {
+                                  toast.error(error.message || "Failed to delete material")
+                                }
                               }
                             )}
                             className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -4852,14 +5032,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           </button>
                         </div>
 
-                        {/* Page previews with content thumbnails */}
+                        {/* Page previews */}
                         <div className="flex gap-1.5 overflow-x-auto pb-1">
-                          {material.pages.slice(0, 4).map((page, pageIndex) => (
+                          {(material.pages || []).slice(0, 4).map((page, pageIndex) => (
                             <div
                               key={page.id}
                               className="w-14 h-[72px] bg-white border border-border rounded-lg flex-shrink-0 overflow-hidden relative"
                             >
-                              {/* Scaled content preview */}
                               <div
                                 className="w-full h-full overflow-hidden pointer-events-none"
                                 style={{
@@ -4877,13 +5056,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>`
                                 }}
                               />
-                              {/* Page number badge */}
                               <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
                                 {pageIndex + 1}
                               </div>
                             </div>
                           ))}
-                          {material.pages.length > 4 && (
+                          {(material.pages?.length || 0) > 4 && (
                             <div className="w-14 h-[72px] bg-surface-card border border-border rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-content-muted font-medium">
                               +{material.pages.length - 4}
                             </div>
@@ -4896,7 +5074,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         onClick={() => {
                           const deepCopy = {
                             ...material,
-                            pages: material.pages.map(p => ({ ...p }))
+                            pages: (material.pages || []).map(p => ({ ...p }))
                           }
                           setEditingIntroMaterial(deepCopy)
                           setEditingIntroMaterialIndex(index)
@@ -4912,10 +5090,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 ))}
               </div>
             )}
-
           </div>
         )
-
       // ========================
       // CONTRACT SECTIONS
       // ========================
@@ -7670,7 +7846,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         openColorPicker={openColorPicker}
       />
 
-      {/* Introductory Material Editor Modal */}
       <IntroMaterialEditorModal
         visible={introMaterialEditorVisible}
         onClose={() => {
@@ -7679,20 +7854,44 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           setEditingIntroMaterialIndex(null)
         }}
         material={editingIntroMaterial}
-        onSave={(updatedMaterial) => {
-          if (editingIntroMaterialIndex !== null) {
-            // Editing existing material
-            const updated = [...introductoryMaterials]
-            updated[editingIntroMaterialIndex] = updatedMaterial
-            setIntroductoryMaterials(updated)
-          } else {
-            // Adding new material
-            setIntroductoryMaterials(prev => [...prev, updatedMaterial])
+        onSave={async (updatedMaterial) => {
+          if (!updatedMaterial.name || updatedMaterial.name.trim() === '') {
+            updatedMaterial.name = 'Untitled Material'
           }
-          setIntroMaterialEditorVisible(false)
-          setEditingIntroMaterial(null)
-          setEditingIntroMaterialIndex(null)
-          toast.success("Material saved successfully")
+
+          try {
+            // ✅ Check for _id (MongoDB ID), not id (numeric)
+            if (updatedMaterial._id) {
+              // UPDATE - using MongoDB _id
+              console.log('Updating material with _id:', updatedMaterial._id);
+              await dispatch(updateMaterialThunk({
+                id: updatedMaterial._id,  // Send the MongoDB _id
+                updateData: {
+                  name: updatedMaterial.name,
+                  pages: updatedMaterial.pages
+                }
+              })).unwrap();
+              toast.success("Material updated successfully");
+            } else {
+              // CREATE - no _id yet
+              console.log('Creating new material');
+              await dispatch(createMaterialThunk({
+                id: updatedMaterial.id || Date.now(),
+                name: updatedMaterial.name,
+                pages: updatedMaterial.pages
+              })).unwrap();
+              toast.success("Material created successfully");
+            }
+
+            await dispatch(fetchMaterialThunk());
+            setIntroMaterialEditorVisible(false);
+            setEditingIntroMaterial(null);
+            setEditingIntroMaterialIndex(null);
+
+          } catch (error) {
+            console.error('Save error:', error);
+            toast.error(error.message || "Failed to save material");
+          }
         }}
       />
 

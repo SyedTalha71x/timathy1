@@ -140,6 +140,35 @@ const UserSchema = new mongoose.Schema({
     }
 }, options);
 
+UserSchema.methods.hasPermission = async function (permissionKey) {
+    // For members, you might want different logic
+    if (this.role === 'member') {
+        // Members typically have limited permissions
+        const memberPermissions = ['my_area.view', 'appointments.view'];
+        return memberPermissions.includes(permissionKey);
+    }
+
+    // For staff, check their role
+    if (this.role === 'staff') {
+        // Populate staffRole if needed
+        if (this.staffRole && typeof this.staffRole === 'object') {
+            if (this.staffRole.isAdmin) return true;
+            return this.staffRole.permissions?.includes(permissionKey) || false;
+        }
+
+        // If staffRole is an ID, populate it
+        if (this.staffRole && typeof this.staffRole === 'string') {
+            const Role = require('./Role');
+            const role = await Role.findById(this.staffRole);
+            if (role) {
+                if (role.isAdmin) return true;
+                return role.permissions?.includes(permissionKey) || false;
+            }
+        }
+    }
+
+    return false;
+};
 
 UserSchema.index({ email: 1, firstName: 1, lastName: 1, })
 

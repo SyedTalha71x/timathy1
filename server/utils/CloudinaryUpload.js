@@ -1,13 +1,13 @@
 const cloudinary = require("./Cloudinary");
 const fs = require("fs");
 
-// --- Profile Images ---
+// --- Studio Images / Profile Images (FIXED: changed from "raw" to "image") ---
 const uploadToCloudinary = (fileBuffer, folder = "Timathy/all") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
-        resource_type: "raw",
+        resource_type: "image", // Changed from "raw" to "image" for proper image display
         access_mode: "public",
         type: "upload",
       },
@@ -24,8 +24,6 @@ const uploadToCloudinary = (fileBuffer, folder = "Timathy/all") => {
     bufferStream.pipe(stream);
   });
 };
-
-
 
 // --- Notes Attachments ---
 const uploadAttachment = (fileBuffer, folder = "Timathy/notes/attachments") => {
@@ -65,7 +63,7 @@ const uploadService = (fileBuffer, folder = "Timathy/servicesImg") => {
   });
 };
 
-// --- Idle Period Documents ---
+// --- Idle Period Documents (Keep as raw for PDFs/documents) ---
 const uploadIdlePeriod = (fileBuffer, folder = "Timathy/vacation") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -84,7 +82,7 @@ const uploadIdlePeriod = (fileBuffer, folder = "Timathy/vacation") => {
   });
 };
 
-// --- Contracts ---
+// --- Contracts (Keep as raw for PDFs) ---
 const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -117,7 +115,7 @@ const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
 };
 
 // --- Video Thumbnails ---
-const uploadThumbnail = (filePath, folder = "Timathy/trainingVideo/thumbnail") => {
+const uploadThumbnail = (fileBuffer, folder = "Timathy/trainingVideo/thumbnail") => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: "image" },
@@ -136,30 +134,61 @@ const uploadThumbnail = (filePath, folder = "Timathy/trainingVideo/thumbnail") =
 };
 
 // --- Training Plan Videos (diskStorage + upload_large) ---
-
 const uploadTrainingPlanVideo = (filePath, folder = "Timathy/trainingVideo/videos") => {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_large(filePath, { resource_type: "video", folder, chunk_size: 6 * 1024 * 1024 }, (err, result) => {
-      if (err) return reject(err);
+    cloudinary.uploader.upload_large(
+      filePath, 
+      { 
+        resource_type: "video", 
+        folder, 
+        chunk_size: 6 * 1024 * 1024 
+      }, 
+      (err, result) => {
+        if (err) return reject(err);
 
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
-      resolve({
-        url: result.secure_url,
-        public_id: result.public_id,
-        duration: result.duration,
-      });
-    });
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+          duration: result.duration,
+        });
+      }
+    );
+  });
+};
+
+// --- Optional: Function to upload raw files (for documents, PDFs, etc.) ---
+const uploadRawFile = (fileBuffer, folder = "Timathy/documents") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "raw",
+        access_mode: "public",
+        type: "upload",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    const { Readable } = require("stream");
+    const bufferStream = new Readable();
+    bufferStream.push(fileBuffer);
+    bufferStream.push(null);
+    bufferStream.pipe(stream);
   });
 };
 
 module.exports = {
-  uploadToCloudinary,
-  uploadService,
-  uploadContract,
-  uploadIdlePeriod,
-  uploadThumbnail,
-  uploadTrainingPlanVideo,
-  uploadAttachment,
-
+  uploadToCloudinary,      // For images (studio logos, profile pictures)
+  uploadService,           // For service images
+  uploadContract,          // For PDF contracts
+  uploadIdlePeriod,        // For vacation documents
+  uploadThumbnail,         // For video thumbnails
+  uploadTrainingPlanVideo, // For training videos
+  uploadAttachment,        // For note attachments
+  uploadRawFile,           // For any other raw files
 };

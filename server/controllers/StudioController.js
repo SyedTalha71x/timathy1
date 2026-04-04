@@ -11,7 +11,8 @@ const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
 const updateStudio = async (req, res, next) => {
   try {
-    const { studioId } = req.params;
+    // const { studioId } = req.params;
+    const studioId = req.user?.studio
 
     // IMPORTANT: Check if req.body exists
     if (!req.body) {
@@ -88,7 +89,7 @@ const updateStudio = async (req, res, next) => {
       });
     }
 
-    console.log('Updating studio with:', updateData);
+    // console.log('Updating studio with:', updateData);
 
     const updatedStudio = await StudioModel.findByIdAndUpdate(
       studioId,

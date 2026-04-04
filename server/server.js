@@ -16,8 +16,8 @@ const allowedOrigins = [
 
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL,  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
-        // origin: 'http://localhost:5173',  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
+        // origin: process.env.FRONTEND_URL,  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
+        origin: 'http://localhost:5173',  //your FRONTEND_URL which you add in .env file which help backend to understand on which port frontend is running
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -59,6 +59,7 @@ const startServer = async () => {
 
             // ✅ 3. Start cron AFTER DB is ready
             await initializeCronJobs();
+
         });
 
     } catch (error) {
